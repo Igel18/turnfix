@@ -96,11 +96,6 @@ void EntityManager::setConnectionName(const QString &connectionName)
     m_connectionName = connectionName;
 }
 
-DisciplinePositionRepository *EntityManager::disciplinePositionRepository() const
-{
-    return m_disciplinePositionRepository;
-}
-
 CompetitionDisciplineRepository *EntityManager::competitionDisciplineRepository() const
 {
     return m_competitionDisciplineRepository;

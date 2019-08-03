@@ -9,7 +9,7 @@ class CompetitionDialog;
 class Competition;
 class EntityManager;
 class CompetitionDisciplineModel;
-class DisciplineOrderModel;
+class QStandardItemModel;
 
 class CompetitionDialog : public QDialog
 {
@@ -39,6 +39,6 @@ private:
     EntityManager *m_em;
     Ui::CompetitionDialog *ui;
     CompetitionDisciplineModel *m_competitionDisciplineModel;
-    DisciplineOrderModel *m_orderModel;
+    QStandardItemModel *model2;
 };
 #endif
