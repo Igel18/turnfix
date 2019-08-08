@@ -82,8 +82,10 @@ EventDialog::EventDialog(Event *event, EntityManager *em, QWidget *parent)
     ui->dae_ms->setDate(m_event->registrationDeadline());
     ui->cmb_locations->setCurrentIndex(ui->cmb_locations->findData(m_event->venueId(), TF::IdRole));
     ui->txt_orga->setText(m_event->organizer());
-    ui->cmb_eventContact->setCurrentIndex(ui->cmb_eventContact->findData(m_event->eventContactId()));
-    ui->cmb_registrationContact->setCurrentIndex(ui->cmb_registrationContact->findData(m_event->registrationContactId()));
+    ui->cmb_eventContact->setCurrentIndex(
+        ui->cmb_eventContact->findData(m_event->eventContactId(), TF::IdRole));
+    ui->cmb_registrationContact->setCurrentIndex(
+        ui->cmb_registrationContact->findData(m_event->registrationContactId(), TF::IdRole));
     ui->txt_web->setText(m_event->website());
     ui->sbx_edv->setValue(m_event->itTeamCount());
     ui->sbx_ref->setValue(m_event->judgesCount());
@@ -129,7 +131,7 @@ void EventDialog::addEventContact()
     if (personDialog->exec() == 1) {
         m_personModel->fetchPersons();
         ui->cmb_eventContact->setCurrentIndex(
-            ui->cmb_eventContact->findData(QVariant::fromValue(personDialog->person())));
+            ui->cmb_eventContact->findData(personDialog->person()->id(), TF::IdRole));
     }
 }
 
@@ -139,7 +141,7 @@ void EventDialog::addRegistrationContact()
     if (personDialog->exec() == 1) {
         m_personModel->fetchPersons();
         ui->cmb_registrationContact->setCurrentIndex(
-            ui->cmb_registrationContact->findData(QVariant::fromValue(personDialog->person())));
+            ui->cmb_registrationContact->findData(personDialog->person()->id(), TF::IdRole));
     }
 }
 
