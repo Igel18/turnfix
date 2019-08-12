@@ -79,20 +79,10 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
 
     enableOptions(0);
 
-    connect(m_competitionDisciplineModel,
-            &CompetitionDisciplineModel::disciplineAdded,
-            m_orderModel,
-            &DisciplineOrderModel::addDiscipline);
-    connect(m_competitionDisciplineModel,
-            &CompetitionDisciplineModel::disciplineRemoved,
-            m_orderModel,
-            &DisciplineOrderModel::removeDiscipline);
-    connect(ui->chk_kuer,
-            &QCheckBox::stateChanged,
-            m_competitionDisciplineModel,
-            &CompetitionDisciplineModel::updateGlobalFreeAndCompulsary);
+    model2 = new QStandardItemModel();
+    ui->tbl_order->setModel(model2);
 
-    connect(ui->cmb_bereich, SIGNAL(currentIndexChanged(int)), this, SLOT(loadDisciplines()));
+    connect(ui->cmb_bereich, SIGNAL(currentIndexChanged(int)), this, SLOT(fillTable()));
     connect(ui->cmb_typ, SIGNAL(currentIndexChanged(int)), this, SLOT(enableOptions(int)));
     connect(ui->but_save, SIGNAL(clicked()), this, SLOT(save()));
     connect(ui->but_up, SIGNAL(clicked()), this, SLOT(moveUp()));
@@ -526,7 +516,7 @@ void CompetitionDialog::fillTable2()
     //    }
 }
 
-void CompetitionDialog::loadDisciplines()
+void CompetitionDialog::markGroup()
 {
     //    QSqlQuery getRows;
     //    getRows.prepare("SELECT int_disziplinenid, int_pos FROM tfx_disgrp_x_disziplinen WHERE "
@@ -544,44 +534,90 @@ void CompetitionDialog::loadDisciplines()
 
 void CompetitionDialog::orderMoveUp()
 {
-    auto model = ui->tbl_order->selectionModel();
-    if (model->selectedIndexes().isEmpty())
+    if (ui->tbl_order->selectionModel()->selectedIndexes().isEmpty())
         return;
-
-    QModelIndex selIdx = model->selectedIndexes().at(0);
-    QModelIndex newIndex = m_orderModel->moveUp(selIdx);
-    model->setCurrentIndex(newIndex, QItemSelectionModel::Select);
+    QModelIndex selIdx = ui->tbl_order->selectionModel()->selectedIndexes().at(0);
+    if (selIdx.row() == 0)
+        return;
+    QStandardItem *itm = model2->takeItem(selIdx.row(), selIdx.column());
+    QStandardItem *itm2 = model2->takeItem(selIdx.row() - 1, selIdx.column());
+    if (itm2 == nullptr)
+        itm2 = new QStandardItem("");
+    QModelIndex newIdx = model2->index(selIdx.row() - 1, selIdx.column());
+    model2->setItem(selIdx.row(), selIdx.column(), itm2);
+    model2->setItem(selIdx.row() - 1, selIdx.column(), itm);
+    ui->tbl_order->selectionModel()->setCurrentIndex(newIdx, QItemSelectionModel::Select);
+    bool check = true;
+    for (int i = 0; i < model2->columnCount(); i++) {
+        if (model2->item(selIdx.row(), i) == nullptr)
+            continue;
+        if (model2->item(selIdx.row(), i)->text() != "") {
+            check = false;
+            break;
+        }
+    }
+    if (check)
+        model2->removeRow(selIdx.row());
 }
 
 void CompetitionDialog::orderMoveDown()
 {
-    auto model = ui->tbl_order->selectionModel();
-    if (model->selectedIndexes().isEmpty())
+    if (ui->tbl_order->selectionModel()->selectedIndexes().isEmpty())
         return;
-
-    QModelIndex selIdx = model->selectedIndexes().at(0);
-    QModelIndex newIndex = m_orderModel->moveDown(selIdx);
-    model->setCurrentIndex(newIndex, QItemSelectionModel::Select);
+    QModelIndex selIdx = ui->tbl_order->selectionModel()->selectedIndexes().at(0);
+    if (selIdx.row() + 1 == model2->rowCount())
+        model2->insertRow(model2->rowCount());
+    QStandardItem *itm = model2->takeItem(selIdx.row(), selIdx.column());
+    QStandardItem *itm2 = model2->takeItem(selIdx.row() + 1, selIdx.column());
+    if (itm2 == nullptr)
+        itm2 = new QStandardItem("");
+    QModelIndex newIdx = model2->index(selIdx.row() + 1, selIdx.column());
+    model2->setItem(selIdx.row(), selIdx.column(), itm2);
+    model2->setItem(selIdx.row() + 1, selIdx.column(), itm);
+    ui->tbl_order->selectionModel()->setCurrentIndex(newIdx, QItemSelectionModel::Select);
 }
 
 void CompetitionDialog::orderMoveLeft()
 {
-    auto model = ui->tbl_order->selectionModel();
-    if (model->selectedIndexes().isEmpty())
+    if (ui->tbl_order->selectionModel()->selectedIndexes().isEmpty())
         return;
-
-    QModelIndex selIdx = model->selectedIndexes().at(0);
-    QModelIndex newIndex = m_orderModel->moveLeft(selIdx);
-    model->setCurrentIndex(newIndex, QItemSelectionModel::Select);
+    QModelIndex selIdx = ui->tbl_order->selectionModel()->selectedIndexes().at(0);
+    if (selIdx.column() == 0)
+        return;
+    QStandardItem *itm = model2->takeItem(selIdx.row(), selIdx.column());
+    QStandardItem *itm2 = model2->takeItem(selIdx.row(), selIdx.column() - 1);
+    if (itm2 == nullptr)
+        itm2 = new QStandardItem("");
+    QModelIndex newIdx = model2->index(selIdx.row(), selIdx.column() - 1);
+    model2->setItem(selIdx.row(), selIdx.column(), itm2);
+    model2->setItem(selIdx.row(), selIdx.column() - 1, itm);
+    ui->tbl_order->selectionModel()->setCurrentIndex(newIdx, QItemSelectionModel::Select);
+    bool check = true;
+    for (int i = 0; i < model2->rowCount(); i++) {
+        if (model2->item(i, selIdx.column()) == nullptr)
+            continue;
+        if (model2->item(i, selIdx.column())->text() != "") {
+            check = false;
+            break;
+        }
+    }
+    if (check)
+        model2->removeColumn(selIdx.column());
 }
 
 void CompetitionDialog::orderMoveRight()
 {
-    auto model = ui->tbl_order->selectionModel();
-    if (model->selectedIndexes().isEmpty())
+    if (ui->tbl_order->selectionModel()->selectedIndexes().isEmpty())
         return;
-
-    QModelIndex selIdx = model->selectedIndexes().at(0);
-    QModelIndex newIndex = m_orderModel->moveRight(selIdx);
-    model->setCurrentIndex(newIndex, QItemSelectionModel::Select);
+    QModelIndex selIdx = ui->tbl_order->selectionModel()->selectedIndexes().at(0);
+    if (selIdx.column() + 1 == model2->columnCount())
+        model2->insertColumn(model2->columnCount());
+    QStandardItem *itm = model2->takeItem(selIdx.row(), selIdx.column());
+    QStandardItem *itm2 = model2->takeItem(selIdx.row(), selIdx.column() + 1);
+    if (itm2 == nullptr)
+        itm2 = new QStandardItem("");
+    QModelIndex newIdx = model2->index(selIdx.row(), selIdx.column() + 1);
+    model2->setItem(selIdx.row(), selIdx.column(), itm2);
+    model2->setItem(selIdx.row(), selIdx.column() + 1, itm);
+    ui->tbl_order->selectionModel()->setCurrentIndex(newIdx, QItemSelectionModel::Select);
 }
