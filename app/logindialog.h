@@ -2,6 +2,7 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
+#include <QDomDocument>
 
 namespace Ui {
     class LoginDialog;
@@ -37,6 +38,8 @@ private slots:
     void errorHandler(const QString &errorText);
     void checkDatabase();
     void createEvent();
+    void importEvent();
+    void readGymNetXml(QDomDocument *xmlBOM);
     void selectCurrentEvent();
     void openDatabaseFile();
     void createDatabaseFile();

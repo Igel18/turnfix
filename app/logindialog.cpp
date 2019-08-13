@@ -12,6 +12,8 @@
 #include <QFileDialog>
 #include <QMenu>
 #include <QMessageBox>
+#include <QXmlStreamReader>
+#include <QDomDocument>
 
 LoginDialog::LoginDialog(EntityManager *em, QWidget *parent)
     : QDialog(parent)
@@ -61,6 +63,7 @@ LoginDialog::LoginDialog(EntityManager *em, QWidget *parent)
     connect(ui->checkDatabaseButton, &QPushButton::clicked, this, &LoginDialog::checkDatabase);
     connect(ui->eventsTable, &QTableView::doubleClicked, this, &LoginDialog::selectCurrentEvent);
     connect(ui->createEventButton, &QPushButton::clicked, this, &LoginDialog::createEvent);
+    connect(ui->importEventButton, &QPushButton::clicked, this, &LoginDialog::importEvent);
     connect(ui->selectEventButton, &QPushButton::clicked, this, &LoginDialog::selectCurrentEvent);
     connect(ui->removeConnectionButton, &QPushButton::clicked, connectionModel, [this]() {
         connectionModel->removeConnection(ui->connectionListView->currentIndex());
@@ -137,6 +140,55 @@ void LoginDialog::createEvent()
     if (nwkw->exec() == 1) {
         eventModel->getEvents();
     }
+}
+
+void LoginDialog::importEvent()
+{
+    auto filename = QFileDialog::getOpenFileName(this, tr("GymNet (*.xml)"));
+    QFile queryFile(filename);
+
+    QDomDocument xmlBOM;
+    xmlBOM.setContent(&queryFile);
+
+    // createEvent();
+    readGymNetXml(&xmlBOM);
+
+    queryFile.close();
+
+}
+
+void LoginDialog::readGymNetXml(QDomDocument *xmlBOM)
+{
+    auto root=xmlBOM->documentElement();
+    QDomElement wettkaempfe=root.firstChild().toElement();
+
+    while(!wettkaempfe.isNull())
+    {
+         if (wettkaempfe.tagName()=="Wettkampf")
+         {
+             QDomElement wettkampf=wettkaempfe.firstChild().toElement();
+
+             while(!wettkampf.isNull())
+             {
+                 if (wettkampf.tagName()=="waID")
+                 {}
+                 if (wettkampf.tagName()=="waNr")
+                 {}
+                 if (wettkampf.tagName()=="waBezeichnung")
+                 {
+                     auto name = wettkampf.firstChild().toText().data();
+                 }
+             }
+         }
+    }
+
+    //                         {auto competition in root.Descendants().Where(x => x.Name == "Wettkampf")
+    //                             var name = competition.Element(XName.Get("waBezeichnung")).Value;
+    //                             var number = competition.Element(XName.Get("waNr")).Value;
+    //                             var alterMax = Int32.Parse(competition.Element(XName.Get("waAlterMax")).Value);
+    //                             var alterMin = Int32.Parse(competition.Element(XName.Get("waAlterMin")).Value);
+    //                             var bereich = Int32.Parse(competition.Element(XName.Get("waGeschlecht")).Value);
+
 }
 
 void LoginDialog::selectCurrentEvent()
