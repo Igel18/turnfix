@@ -266,7 +266,7 @@ font-weight:bold;</string>
             <item>
              <widget class="QPushButton" name="importEventButton">
               <property name="cursor">
-               <cursorShape>SizeHorCursor</cursorShape>
+               <cursorShape>ArrowCursor</cursorShape>
               </property>
               <property name="text">
                <string>GymNet import</string>

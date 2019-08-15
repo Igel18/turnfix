@@ -14,6 +14,8 @@
 #include <QMessageBox>
 #include <QXmlStreamReader>
 #include <QDomDocument>
+#include <QtDebug>
+#include <QListIterator>
 
 LoginDialog::LoginDialog(EntityManager *em, QWidget *parent)
     : QDialog(parent)
@@ -154,33 +156,117 @@ void LoginDialog::importEvent()
     readGymNetXml(&xmlBOM);
 
     queryFile.close();
-
 }
 
 void LoginDialog::readGymNetXml(QDomDocument *xmlBOM)
 {
-    auto root=xmlBOM->documentElement();
-    QDomElement wettkaempfe=root.firstChild().toElement();
+    auto wettkaempfeNode=xmlBOM->documentElement();
+    //QDomElement wettkaempfeNode=root.firstChild().toElement();
+    qDebug() << wettkaempfeNode.tagName();
 
-    while(!wettkaempfe.isNull())
+    if(wettkaempfeNode.tagName()=="Wettkämpfe")
     {
-         if (wettkaempfe.tagName()=="Wettkampf")
-         {
-             QDomElement wettkampf=wettkaempfe.firstChild().toElement();
+        for(int i = 0; i < wettkaempfeNode.childNodes().count(); i++)
+        {
+            QDomElement wettkampfNode = wettkaempfeNode.childNodes().at(i).toElement();
+            qDebug() << wettkampfNode.tagName();
 
-             while(!wettkampf.isNull())
-             {
-                 if (wettkampf.tagName()=="waID")
-                 {}
-                 if (wettkampf.tagName()=="waNr")
-                 {}
-                 if (wettkampf.tagName()=="waBezeichnung")
-                 {
-                     auto name = wettkampf.firstChild().toText().data();
-                 }
-             }
-         }
+            QString wettkampfBezeichnung;
+            QString wettkampfAlterMin;
+            QString wettkampfAlterMax;
+
+            for(int j = 0; j < wettkampfNode.childNodes().count(); j++)
+            {
+                QDomElement wettkampfChildNodes = wettkampfNode.childNodes().at(j).toElement();
+                qDebug() << wettkampfChildNodes.tagName();
+                if(wettkampfChildNodes.tagName()=="waBezeichnung")
+                {
+                    wettkampfBezeichnung = wettkampfChildNodes.text();
+                }
+                else if (wettkampfChildNodes.tagName()=="waAlterMin")
+                {
+                    wettkampfAlterMin = wettkampfChildNodes.text();
+                }
+                else if (wettkampfChildNodes.tagName()=="waAlterMax")
+                {
+                    wettkampfAlterMax = wettkampfChildNodes.text();
+                }
+                else if (wettkampfChildNodes.tagName()=="Mannschaften")
+                {
+                    for(int k = 0; k < wettkampfChildNodes.childNodes().count(); k++)
+                    {
+                        QDomElement mannschaftenNode = wettkampfChildNodes.childNodes().at(k).toElement();
+                        qDebug() << mannschaftenNode.tagName();
+
+                        if(mannschaftenNode.tagName()=="Mannschaft")
+                        {
+                            for(int l = 0; l < mannschaftenNode.childNodes().count(); l++)
+                            {
+                                QDomElement mannschaftNode = mannschaftenNode.childNodes().at(l).toElement();
+                                qDebug() << mannschaftNode.tagName();
+
+                                if (mannschaftNode.tagName()=="verKurzname")
+                                {
+                                    qDebug() << mannschaftNode.text();
+                                    qDebug() << "schreibe Verein in DB";
+                                }
+                                else if (mannschaftNode.tagName()=="Teilnehmer")
+                                {
+                                    for(int m = 0; m < mannschaftNode.childNodes().count(); m++)
+                                    {
+                                        QDomElement teilnehmerNode = mannschaftNode.childNodes().at(m).toElement();
+                                        qDebug() << teilnehmerNode.tagName();
+
+                                        if(teilnehmerNode.tagName()=="TN")
+                                        {
+                                            QString teilnehmerName;
+                                            QString teilnehmerVorname;
+                                            QString teilnehmberGeburtstag;
+                                            QString teilnehmerGeschlecht;
+                                            for(int n = 0; n < teilnehmerNode.childNodes().count(); n++)
+                                            {
+                                                QDomElement teilnehmer = teilnehmerNode.childNodes().at(n).toElement();
+                                                qDebug() << teilnehmer.tagName();
+
+                                                if(teilnehmer.tagName()=="perName")
+                                                {
+                                                    teilnehmerName = teilnehmer.text();
+                                                }
+                                                else if (teilnehmer.tagName()=="perVorname")
+                                                {
+                                                    teilnehmerVorname = teilnehmer.text();
+                                                }
+                                                else if (teilnehmer.tagName()=="perGeburt")
+                                                {
+                                                    teilnehmberGeburtstag = teilnehmer.text();
+                                                }
+                                                else if (teilnehmer.tagName()=="perGeschlecht")
+                                                {
+                                                    teilnehmerGeschlecht = teilnehmer.text();
+                                                }
+                                            }
+
+                                            qDebug() << teilnehmerName;
+                                            qDebug() << teilnehmerVorname;
+                                            qDebug() << teilnehmberGeburtstag;
+                                            qDebug() << teilnehmerGeschlecht;
+                                            qDebug() << "schreibe Teilnehmer in DB";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                qDebug() <<  wettkampfBezeichnung;
+                qDebug() <<  wettkampfAlterMin;
+                qDebug() <<  wettkampfAlterMax;
+                qDebug() << "Wettkampf in DB schreiben";
+            }
+        }
     }
+   // }
 
     //                         {auto competition in root.Descendants().Where(x => x.Name == "Wettkampf")
     //                             var name = competition.Element(XName.Get("waBezeichnung")).Value;
@@ -191,6 +277,32 @@ void LoginDialog::readGymNetXml(QDomDocument *xmlBOM)
 
 }
 
+//QDateTime setDateFromString(QString dateString)
+//{
+// QDateTime dt;
+//    QVariantList dateAsList = convertQDatetoList(dateString);
+//    if(dateAsList.size()==3) {
+//     QDate t(dateAsList.at(2).toInt(),
+//                dateAsList.at(1).toInt(),
+//                dateAsList.at(0).toInt());
+//     dt.setDate(t);
+//    }
+//    else {
+//     //date format is not valid,so setting the current date
+//     dt = QDateTime::currentDateTime();
+//    }
+// return dt;
+//}
+//QVariantList convertQDatetoList(QString dateTime)
+//{
+//    QStringList tempList = dateTime.split("/");
+//    QVariantList dateList;
+//    QListIterator i(tempList);
+//    while(i.hasNext()) {
+//     dateList.append(i.next());
+//    }
+//    return dateList;
+//}
 void LoginDialog::selectCurrentEvent()
 {
     if (!ui->eventsTable->currentIndex().isValid())
