@@ -14,6 +14,7 @@ HEADERS += \
     $$PWD/dbinitializerpostgres.h \
     $$PWD/eventdialog.h \
     $$PWD/eventmodel.h \
+    $$PWD/gymnetimporter.h \
     $$PWD/logindialog.h \
     $$PWD/mainwindow.h \
     $$PWD/postgressetupwizard.h \
@@ -25,6 +26,7 @@ SOURCES += \
     $$PWD/dbinitializerpostgres.cpp \
     $$PWD/eventdialog.cpp \
     $$PWD/eventmodel.cpp \
+    $$PWD/gymnetimporter.cpp \
     $$PWD/logindialog.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/postgressetupwizard.cpp \

@@ -39,7 +39,7 @@ private slots:
     void checkDatabase();
     void createEvent();
     void importEvent();
-    void readGymNetXml(QDomDocument *xmlBOM);
+    //void readGymNetXml(QDomDocument *xmlBOM);
     void selectCurrentEvent();
     void openDatabaseFile();
     void createDatabaseFile();
