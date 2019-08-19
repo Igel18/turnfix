@@ -8,7 +8,10 @@ class GymNetImporter
 public:
     GymNetImporter();
     void readGymNetXml(QDomDocument *xmlBOM);
+
 private:
+    void readDisziplinen(QDomElement *xml);
+    void readMannschaft(QDomElement *xml);
 
 };
 

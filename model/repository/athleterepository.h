@@ -10,6 +10,7 @@ public:
     explicit AthleteRepository(EntityManager *em);
 
     QList<Athlete *> loadAll();
+    Athlete loadByName();
 };
 
 #endif // ATHLETEREPOSITORY_H

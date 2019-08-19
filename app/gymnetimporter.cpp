@@ -111,32 +111,7 @@ void GymNetImporter::readGymNetXml(QDomDocument *xmlBOM)
 
                                         if(disziplinenNode.tagName()=="Disziplin")
                                         {
-                                            QString disziplinNummer;
-                                            QString disziplinName;
-                                            QString disziplinPunkte;
-
-                                            for(int o = 0; o < disziplinenNode.childNodes().count(); o++)
-                                            {
-                                                QDomElement disziplinenNodes = disziplinenNode.childNodes().at(o).toElement();
-
-                                                if(disziplinenNodes.tagName()=="wedDisNr")
-                                                {
-                                                    disziplinNummer = disziplinenNodes.text();
-                                                }
-                                                else if (disziplinenNodes.tagName()=="wedDisName")
-                                                {
-                                                    disziplinName = disziplinenNodes.text();
-                                                }
-                                                else if(disziplinenNodes.tagName()=="wtdPunkte")
-                                                {
-                                                   disziplinPunkte = disziplinenNodes.text();
-                                                }
-
-                                                qDebug() << "Schreibe/Update Disziplin in DB";
-                                                qDebug() << disziplinNummer;
-                                                qDebug() << disziplinName;
-                                                qDebug() << disziplinPunkte;
-                                            }
+                                            readDisziplinen(&disziplinenNode);
                                         }
                                     }
                                 }
@@ -154,6 +129,40 @@ void GymNetImporter::readGymNetXml(QDomDocument *xmlBOM)
     }
 }
 
+void GymNetImporter::readDisziplinen(QDomElement *xml)
+{
+    QString disziplinNummer;
+    QString disziplinName;
+    QString disziplinPunkte;
+
+    for(int o = 0; o < xml->childNodes().count(); o++)
+    {
+        QDomElement disziplinenNodes = xml->childNodes().at(o).toElement();
+
+        if(disziplinenNodes.tagName()=="wedDisNr")
+        {
+            disziplinNummer = disziplinenNodes.text();
+        }
+        else if (disziplinenNodes.tagName()=="wedDisName")
+        {
+            disziplinName = disziplinenNodes.text();
+        }
+        else if(disziplinenNodes.tagName()=="wtdPunkte")
+        {
+           disziplinPunkte = disziplinenNodes.text();
+        }
+
+        qDebug() << "Schreibe/Update Disziplin in DB";
+        qDebug() << disziplinNummer;
+        qDebug() << disziplinName;
+        qDebug() << disziplinPunkte;
+    }
+}
+
+//void readMannschaft(QDomElement &xml)
+//{
+
+//}
 //QDateTime setDateFromString(QString dateString)
 //{
 // QDateTime dt;
