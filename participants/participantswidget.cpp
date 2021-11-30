@@ -17,14 +17,11 @@
 ParticipantsWidget::ParticipantsWidget(QWidget* parent) : QWidget(parent), ui(new Ui::ParticipantsWidget) {
     ui->setupUi(this);
 
-    this->m_event = Session::getInstance()->getEvent();
-
+    //this->m_event = Session::getInstance()->getEvent();
     // this->participantsModel = new ParticipantsTableModel(this->event);
-    this->sortModel = new QSortFilterProxyModel();
+    // this->sortModel = new QSortFilterProxyModel();
     // this->sortModel->setSourceModel(this->participantsModel);
-
-    ui->participantsTable->setModel(this->sortModel);
-
+    // ui->participantsTable->setModel(this->sortModel);
     // this->viewChanged(ui->cmb_typ->currentIndex());
 
     connect(ui->but_addTN, &QPushButton::clicked, this, &ParticipantsWidget::addTN);
@@ -45,13 +42,23 @@ ParticipantsWidget::~ParticipantsWidget()
     delete ui;
 }
 
+void ParticipantsWidget::setup(Event *event, EntityManager *em)
+{
+    m_event = event;
+    m_em = em;
+    m_participantsModel = new ParticipantsTableModel(m_event, this);
+    m_sortModel = new QSortFilterProxyModel(this);
+    m_sortModel->setSourceModel(m_participantsModel);
+    ui->participantsTable->setModel(m_sortModel);
+}
+
 void ParticipantsWidget::viewChanged(int index)
 {
     ParticipantsTableModel::Type type = static_cast<ParticipantsTableModel::Type>(index);
     bool isIndiviual = type == ParticipantsTableModel::Type::Individual;
     bool isTeam = type == ParticipantsTableModel::Type::Team;
 
-    this->participantsModel->updateType(type);
+    m_participantsModel->updateType(type);
 
     ui->but_timeTN->setEnabled(isIndiviual);
     ui->but_addCL->setEnabled(isIndiviual);
@@ -67,14 +74,10 @@ void ParticipantsWidget::viewChanged(int index)
     QHeaderView::ResizeMode resizeModeGroup[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
     int resizeGroup[] = {40, 200, 200, 45, 45};
 
-    int length;
-    switch (type) {
-        case ParticipantsTableModel::Type::Individual: length = 7; break;
-        default: length = 5; break;
-    }
+    int length = (type == ParticipantsTableModel::Type::Individual) ? 5 : 7;
 
-    for (int i=0;i<length;i++) {
-        ui->cmb_filterTN->addItem(this->participantsModel->headerData(i, Qt::Horizontal, Qt::DisplayRole).value<QString>());
+    for( int i = 0; i < length; i++ ) {
+        ui->cmb_filterTN->addItem(m_participantsModel->headerData(i, Qt::Horizontal, Qt::DisplayRole).value<QString>());
         int resize;
         QHeaderView::ResizeMode mode;
         switch (ui->cmb_typ->currentIndex()) {
@@ -98,13 +101,13 @@ void ParticipantsWidget::viewChanged(int index)
 
 void ParticipantsWidget::refresh()
 {
-    this->participantsModel->loadData();
+    m_participantsModel->loadData();
 }
 
 void ParticipantsWidget::loadBestView() {
     QSqlQuery query;
     query.prepare("SELECT COUNT(CASE WHEN int_typ=0 THEN 1 END), COUNT(CASE WHEN int_typ=1 THEN 1 END), COUNT(CASE WHEN int_typ=2 THEN 1 END) FROM tfx_wettkaempfe WHERE int_veranstaltungenid=?");
-    query.bindValue(0, this->m_event->mainEvent()->id());
+    query.bindValue(0, m_event->mainEvent()->id());
     query.exec();
     query.next();
     if (query.value(1).toInt()>query.value(0).toInt()) {
@@ -121,76 +124,76 @@ void ParticipantsWidget::loadBestView() {
 }
 
 void ParticipantsWidget::addTN() {
-    QDialog *dialog;
+    QDialog *dialog = nullptr;
+
+    ParticipantsTableModel::Type participantsType = ParticipantsTableModel::Individual;
+
     switch(ui->cmb_typ->currentIndex()) {
     case 0:
         dialog = new IndividualDialog(m_event, 0, this);
         break;
     case 1:
         dialog = new TeamDialog(m_event, m_em, 0, this);
+        participantsType = ParticipantsTableModel::Team;
         break;
     case 2:
         dialog = new GroupDialog(m_event, m_em, 0, this);
+        participantsType = ParticipantsTableModel::Group;
         break;
     }
-    if(dialog->exec() == 1) {
-        this->participantsModel->loadData();
+
+    if(dialog){
+        if(dialog->exec() == 1) {
+            m_participantsModel->updateType( participantsType );
+            m_participantsModel->loadData();
+        }
     }
 
-    _global::updateRgDis(this->m_event);
+    _global::updateRgDis(m_event);
     ui->participantsTable->setFocus();
 }
 
 void ParticipantsWidget::addCL() {
-    MultiParticipantsDialog *cl = new MultiParticipantsDialog(this->m_event, this);
+    MultiParticipantsDialog *cl = new MultiParticipantsDialog(m_event, this);
     if(cl->exec() == 1) {
-        this->participantsModel->loadData();
+        m_participantsModel->loadData();
     }
 }
 
 void ParticipantsWidget::editTN() {
     QModelIndex idx = ui->participantsTable->currentIndex();
-    QDialog *dialog;
 
-    if (ui->participantsTable->currentIndex().isValid()) {
-        if (ui->cmb_typ->currentIndex() == 0) {
-            dialog = new IndividualDialog(
-                m_event,
-                QVariant(sortModel->data(
-                             sortModel->index(ui->participantsTable->currentIndex().row(), 7)))
-                    .toInt(),
-                this);
-        } else if (ui->cmb_typ->currentIndex() == 1) {
-            dialog = new TeamDialog(m_event,
-                                    m_em,
-                                    QVariant(sortModel->data(sortModel->index(
-                                                 ui->participantsTable->currentIndex().row(), 5)))
-                                        .toInt(),
-                                    this);
-        } else if (ui->cmb_typ->currentIndex() == 2) {
-            dialog = new GroupDialog(m_event,
-                                     m_em,
-                                     QVariant(sortModel->data(sortModel->index(
-                                                  ui->participantsTable->currentIndex().row(), 5)))
-                                         .toInt(),
-                                     this);
-        }
+    if( !idx.isValid() ){
+        return;
     }
 
-    if(dialog->exec() == 1) {
-        this->participantsModel->loadData();
+    QDialog *dialog = nullptr;
+    switch ( ui->cmb_typ->currentIndex() ) {
+    case 0:
+        dialog = new IndividualDialog( m_event, m_sortModel->data(m_sortModel->index(idx.row(), 7)).toInt(), this );
+        break;
+    case 1:
+        dialog = new TeamDialog( m_event, m_em, m_sortModel->data(m_sortModel->index(idx.row(), 5)).toInt(), this );
+        break;
+    case 2:
+        dialog = new GroupDialog( m_event, m_em, m_sortModel->data(m_sortModel->index( idx.row(), 5)).toInt(), this );
+        break;
     }
 
-    ui->participantsTable->setCurrentIndex(idx);
+    if( dialog->exec() == 1 ) {
+        m_participantsModel->loadData();
+    }
+
+    ui->participantsTable->setCurrentIndex(idx); // ??
     ui->participantsTable->setFocus();
-
-    _global::updateRgDis(this->m_event);
+    _global::updateRgDis(m_event);
 }
 
 void ParticipantsWidget::meldeTN() {
-    if (ui->participantsTable->currentIndex().isValid()) {
-        QualificationStandardsDialog *ml = new QualificationStandardsDialog(this->m_event, QVariant(sortModel->data(sortModel->index(ui->participantsTable->currentIndex().row(),7))).toInt(),this);
-        if(ml->exec() == 1) {}
+    auto idx = ui->participantsTable->currentIndex();
+
+    if ( idx.isValid() ) {
+        QualificationStandardsDialog( m_event, m_sortModel->data(m_sortModel->index( idx.row(), 7 )).toInt(), this ).exec();
         ui->participantsTable->setFocus();
     } else {
         QMessageBox::information(this, "Ungültiger Eintrag", "Bitte selektiere eine Zeile in der Liste");
@@ -198,43 +201,41 @@ void ParticipantsWidget::meldeTN() {
 }
 
 void ParticipantsWidget::delTN() {
-    if (ui->cmb_typ->currentIndex() == 0) {
-        if (ui->participantsTable->currentIndex().isValid()) {
-            QMessageBox msg(QMessageBox::Question, "Teilnehmer löschen", "Wollen sie diesen Teilnehmer wirklich löschen?",QMessageBox::Ok | QMessageBox::Cancel);
-            if(msg.exec() == QMessageBox::Ok) {
-                QSqlQuery query;
-                query.prepare("DELETE FROM tfx_wertungen WHERE int_wertungenid=?");
-                query.bindValue( 0, QVariant(sortModel->data(sortModel->index(ui->participantsTable->currentIndex().row(),7))).toInt() );
-                query.exec();
-                this->participantsModel->loadData();
-            }
-            ui->participantsTable->setFocus();
-        }
-    } else if (ui->cmb_typ->currentIndex() == 1) {
-        if (ui->participantsTable->currentIndex().isValid()) {
-            QMessageBox msg(QMessageBox::Question, "Mannschaft löschen", "Wollen sie diese Mannschaft wirklich löschen?",QMessageBox::Ok | QMessageBox::Cancel);
-            if(msg.exec() == QMessageBox::Ok) {
-                QSqlQuery query;
-                query.prepare("DELETE FROM tfx_mannschaften WHERE int_mannschaftenid=?");
-                query.bindValue( 0, QVariant(sortModel->data(sortModel->index(ui->participantsTable->currentIndex().row(),5))).toInt());
-                query.exec();
-                this->participantsModel->loadData();
-            }
-            ui->participantsTable->setFocus();
-        }
-    } else if (ui->cmb_typ->currentIndex() == 2) {
-        if (ui->participantsTable->currentIndex().isValid()) {
-            QMessageBox msg(QMessageBox::Question, "Gruppe löschen", "Wollen sie diese Gruppe wirklich löschen?",QMessageBox::Ok | QMessageBox::Cancel);
-            if(msg.exec() == QMessageBox::Ok) {
-                QSqlQuery query;
-                query.prepare("DELETE FROM tfx_gruppen WHERE int_gruppenid=?");
-                query.bindValue( 0, QVariant(sortModel->data(sortModel->index(ui->participantsTable->currentIndex().row(),5))).toInt());
-                query.exec();
-                this->participantsModel->loadData();
-            }
-            ui->participantsTable->setFocus();
-        }
+    auto idx = ui->participantsTable->currentIndex();
+
+    if( !idx.isValid() ){
+        return;
     }
+
+    auto type = ui->cmb_typ->currentIndex();
+    auto itemToDelete = QMap< int, QString >({ {0 , "Teilnehmer"}, {1 , "Mannschaft"}, {2, "Gruppe"}}).value( type );
+    auto title = tr("%1 löschen").arg(itemToDelete);
+    auto question = tr("Wollen sie diesen %1 wirklich löschen?").arg(itemToDelete);
+
+    if( QMessageBox::Ok != QMessageBox::question( this, title, question, QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel)){
+        return;
+    }
+
+    QSqlQuery query;
+
+    switch (type) {
+    case 0:
+        query.prepare("DELETE FROM tfx_wertungen WHERE int_wertungenid=?");
+        query.bindValue( 0, m_sortModel->data(m_sortModel->index( idx.row(), 7 )).toInt());
+        break;
+    case 1:
+        query.prepare("DELETE FROM tfx_mannschaften WHERE int_mannschaftenid=?");
+        query.bindValue( 0, m_sortModel->data(m_sortModel->index( idx.row(), 5 )).toInt());
+        break;
+    case 2:
+        query.prepare("DELETE FROM tfx_gruppen WHERE int_gruppenid=?");
+        query.bindValue( 0, m_sortModel->data(m_sortModel->index( idx.row(),5 )).toInt());
+        break;
+    }
+
+    query.exec();
+    m_participantsModel->loadData();
+    ui->participantsTable->setFocus();
     _global::updateRgDis(this->m_event);
 }
 
@@ -242,8 +243,8 @@ void ParticipantsWidget::updateMelde() {
     if (ui->participantsTable->currentIndex().isValid()) {
         QSqlQuery query;
         query.prepare("SELECT tfx_disziplinen.var_name, int_disziplinenid, int_wertungenid, var_maske FROM tfx_wettkaempfe_x_disziplinen INNER JOIN tfx_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wettkaempfe_x_disziplinen.int_wettkaempfeid INNER JOIN tfx_wertungen ON tfx_wertungen.int_wettkaempfeid = tfx_wettkaempfe.int_wettkaempfeid WHERE int_veranstaltungenid=? AND int_wertungenid=? AND bol_bahnen AND (int_disziplinenid IN (SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_disziplinenid=tfx_disziplinen.int_disziplinenid AND int_wertungenid=tfx_wertungen.int_wertungenid) OR (SELECT COUNT(*) FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=tfx_wertungen.int_wertungenid)=0)");
-        query.bindValue(0,this->m_event->id());
-        query.bindValue(1,QVariant(sortModel->data(sortModel->index(ui->participantsTable->currentIndex().row(),7))).toInt());
+        query.bindValue( 0, m_event->id() );
+        query.bindValue( 1, m_sortModel->data(m_sortModel->index(ui->participantsTable->currentIndex().row(),7)).toInt());
         query.exec();
         if (_global::querySize(query) <= 0) {
             ui->but_timeTN->setEnabled(false);
@@ -295,16 +296,16 @@ void ParticipantsWidget::syncTN() {
             query7.exec();
         }
         _global::updateRgDis(this->m_event);
-        this->participantsModel->loadData();
+        m_participantsModel->loadData();
     }
 }
 
 void ParticipantsWidget::updateTNFilterColumn(int index) {
-    sortModel->setFilterKeyColumn(index);
+    m_sortModel->setFilterKeyColumn(index);
 }
 
 void ParticipantsWidget::updateTNFilterText(QString text) {
     QRegExp expr(text);
     expr.setCaseSensitivity(Qt::CaseInsensitive);
-    sortModel->setFilterRegExp(expr);
+    m_sortModel->setFilterRegExp(expr);
 }

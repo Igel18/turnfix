@@ -17,11 +17,13 @@ int main(int argc, char *argv[])
 
     EntityManager em;
 
-    LoginDialog dialog(&em);
-    if (dialog.exec() != 1) {
+    auto pLogingDlg = new LoginDialog(&em);
+
+    if (pLogingDlg->exec() != 1) {
         return 0;
     } else {
-        MainWindow mw(&em, dialog.selectedEvent());
+        MainWindow mw(&em, pLogingDlg->selectedEvent());
+        pLogingDlg->setParent(&mw);
         mw.show();
         return app.exec();
     }

@@ -15,9 +15,10 @@ class ParticipantsWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ParticipantsWidget(QWidget* parent = nullptr);
+    explicit ParticipantsWidget(QWidget *parent = nullptr);
     ~ParticipantsWidget();
 
+    void setup(Event *event, EntityManager *em);
     void refresh();
 
 public slots:
@@ -39,7 +40,7 @@ private:
     Event *m_event;
     EntityManager *m_em;
     Ui::ParticipantsWidget *ui;
-    ParticipantsTableModel *participantsModel;
-    QSortFilterProxyModel *sortModel;
+    ParticipantsTableModel *m_participantsModel;
+    QSortFilterProxyModel *m_sortModel;
 };
 #endif

@@ -51,18 +51,23 @@ void CompetitionsWidget::addCompetition()
 
 void CompetitionsWidget::editCompetition()
 {
-    if (ui->competitionsTable->currentIndex().isValid()) {
-        auto idx = ui->competitionsTable->currentIndex();
-        auto competition = qvariant_cast<Competition *>(
-            m_sortModel->data(ui->competitionsTable->currentIndex(), TF::ObjectRole));
-        auto competitionDialog = new CompetitionDialog(competition, m_em, this);
-        if (competitionDialog->exec() == 1) {
-            m_model->fetchCompetitions();
-        }
-        _global::updateRgDis(m_event);
-        ui->competitionsTable->setCurrentIndex(idx);
-        ui->competitionsTable->setFocus();
+    auto idx = ui->competitionsTable->currentIndex();
+
+    if (!idx.isValid()) {
+        return;
     }
+
+    auto competition = qvariant_cast<Competition *>(m_sortModel->data(idx, TF::ObjectRole));
+    competition->setEvent(m_event);
+
+    auto competitionDialog = new CompetitionDialog(competition, m_em, this);
+
+    if (competitionDialog->exec() == 1) {
+        m_model->fetchCompetitions();
+    }
+
+    _global::updateRgDis(m_event);
+    ui->competitionsTable->setFocus();
 }
 
 void CompetitionsWidget::removeCompetition()

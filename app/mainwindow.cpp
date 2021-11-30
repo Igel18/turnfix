@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "aboutdialog.h"
 #include "eventdialog.h"
+#include "app/logindialog.h"
 #include "export/maildialog.h"
 #include "masterdata/masterdatadialog.h"
 #include "model/entity/event.h"
@@ -207,13 +208,22 @@ void MainWindow::editPass() {
 }
 
 void MainWindow::changeWK() {
-    /*Login_Dialog *select = new Login_Dialog(this);
-    select->autoLogin();
-    if (select->exec() == 1) {
-        initEvent();
-        act_WK->trigger();
-        updateTables(0);
-    }*/
+
+    auto pLoginDlg = findChild< LoginDialog* >(QString(), Qt::FindDirectChildrenOnly);
+
+    if(pLoginDlg){
+        pLoginDlg->setParent(nullptr);
+
+        if (pLoginDlg->exec() == 1) {
+            auto selectedEvent = pLoginDlg->selectedEvent();
+            if(selectedEvent != m_event){
+                m_event = selectedEvent;
+                initEvent();
+            }
+        }
+
+        pLoginDlg->setParent(this);
+    }
 }
 
 void MainWindow::sendMLists() {
@@ -228,4 +238,5 @@ void MainWindow::initEvent()
     ui->lbl_wk->setText(m_event->name());
     ui->lbl_ort->setText(m_event->venue()->nameAndCity());
     ui->competitionsWidget->setup(m_event, m_em);
+    ui->tn_tab->setup(m_event, m_em);
 }

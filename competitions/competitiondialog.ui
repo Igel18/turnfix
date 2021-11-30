@@ -61,7 +61,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page">
       <layout class="QGridLayout" name="gridLayout_8">
@@ -312,7 +312,7 @@
           <bool>false</bool>
          </attribute>
          <attribute name="verticalHeaderDefaultSectionSize">
-          <number>21</number>
+          <number>26</number>
          </attribute>
         </widget>
        </item>
@@ -756,7 +756,7 @@
              <bool>false</bool>
             </attribute>
             <attribute name="verticalHeaderDefaultSectionSize">
-             <number>21</number>
+             <number>26</number>
             </attribute>
            </widget>
           </item>
@@ -1027,8 +1027,8 @@
   </action>
  </widget>
  <resources>
-  <include location="../resources/TF_GeraeteIcons.qrc"/>
   <include location="../resources/TurnFix.qrc"/>
+  <include location="../resources/TF_GeraeteIcons.qrc"/>
  </resources>
  <connections/>
 </ui>

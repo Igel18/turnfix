@@ -13,7 +13,7 @@
 #include "entity/disciplinefield.h"
 #include "entity/disciplinegroup.h"
 #include "entity/disciplinegroupitem.h"
-#include "entity/disciplineposition.h"
+//#include "entity/disciplineposition.h"
 #include "entity/division.h"
 #include "entity/event.h"
 #include "entity/formula.h"
@@ -344,7 +344,7 @@ QList<const DBTable *> DBChecker::tableData()
     //                                "RESTRICT",
     //                                "CASCADE");
 
-    QList<DBTable *> tables;
+    QList<const DBTable *> tables;
 
     //    tables.append(section);
     //    tables.append(sport);
