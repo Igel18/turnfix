@@ -4,9 +4,11 @@
 #include "masterdata/divisionmodel.h"
 #include "model/entity/competition.h"
 #include "model/entitymanager.h"
+#include "model/repository/competitionrepository.h"
 #include "src/global/header/_delegates.h"
 #include "src/global/header/_global.h"
 #include "ui_competitiondialog.h"
+#include <QDate>
 #include <QList>
 #include <QMessageBox>
 #include <QStandardItemModel>
@@ -94,6 +96,35 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     connect(ui->but_orderright, SIGNAL(clicked()), this, SLOT(orderMoveRight()));
     connect(ui->tbl_disziplinen, SIGNAL(clicked(QModelIndex)), this, SLOT(fillTable2()));
     connect(ui->chk_kuer, SIGNAL(clicked()), this, SLOT(fillTable2()));
+
+    ui->txt_wknr->setText(m_competition->number());
+    ui->txt_wkbez->setText(m_competition->name());
+    ui->sbx_quali->setValue(m_competition->qualifiers());
+    ui->dae_wkj1->setDate(QDate(m_competition->minYear(), 1, 1));
+
+    const int defaultMaxYear = 2000;
+    int maxYear = m_competition->maxYear();
+
+    switch (m_competition->maxYear()) {
+    case 1:
+        ui->rab_ua->setChecked(true);
+        maxYear = defaultMaxYear;
+        break;
+    case 2:
+        ui->rab_uj->setChecked(true);
+        maxYear = defaultMaxYear;
+        break;
+    case 3:
+        ui->rab_ja->setChecked(true);
+        maxYear = defaultMaxYear;
+        break;
+    }
+
+    ui->dae_wkj2->setDate(QDate(maxYear, 1, 1));
+
+    auto divisionId = m_competition->divisionId();
+    ui->cmb_bereich->setCurrentIndex(divisionId > 0 ? ui->cmb_bereich->findData(divisionId, TF::IdRole) : 0);
+    ui->cmb_typ->setCurrentIndex(m_competition->type());
 
     //    ui->txt_wknr->setText(query.value(4).toString());
     //    ui->txt_wkbez->setText(query.value(5).toString());
@@ -395,6 +426,29 @@ void CompetitionDialog::save()
     //        query10.bindValue(0, editid);
     //        query10.exec();
     //    }
+
+    m_competition->setNumber(ui->txt_wknr->text());
+    m_competition->setName(ui->txt_wkbez->text());
+    m_competition->setMinYear(ui->dae_wkj1->date().year());
+
+    int maxYear = ui->dae_wkj2->date().year();
+
+    if (ui->rab_ua->isChecked()) {
+        maxYear = 1;
+    } else if (ui->rab_uj->isChecked()) {
+        maxYear = 2;
+    } else if (ui->rab_ja->isChecked()) {
+        maxYear = 3;
+    }
+
+    m_competition->setMaxYear(maxYear);
+
+    m_competition->setQualifiers(ui->sbx_quali->value());
+    m_competition->setDivision(qvariant_cast< Division* >(ui->cmb_bereich->currentData()));
+    m_competition->setType(ui->cmb_typ->currentIndex());
+
+    auto result = m_em->competitionRepository()->persist(m_competition);
+
     done(1);
 }
 

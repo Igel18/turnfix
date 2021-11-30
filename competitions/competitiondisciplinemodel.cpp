@@ -48,7 +48,7 @@ QVariant CompetitionDisciplineModel::data(const QModelIndex &index, int role) co
 
     auto discipline = m_disciplines.at(index.row());
     auto competitionDiscipline = m_competitionDisciplines.value(discipline->id());
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch (index.column()) {
         case 2:
             return discipline->sport()->name();
@@ -91,10 +91,56 @@ QVariant CompetitionDisciplineModel::data(const QModelIndex &index, int role) co
     return QVariant();
 }
 
+bool CompetitionDisciplineModel::setData(const QModelIndex &index, const QVariant &value, int role /*= Qt::EditRole*/)
+{
+    if(!index.isValid() || role != Qt::EditRole){
+        return false;
+    }
+
+    auto discipline = m_disciplines.at(index.row());
+    auto competitionDiscipline = m_competitionDisciplines.value(discipline->id());
+
+    if(!competitionDiscipline){
+        competitionDiscipline = new CompetitionDiscipline();
+        competitionDiscipline->setCompetition(m_competition);
+        competitionDiscipline->setDiscipline(discipline);
+        m_competitionDisciplines.insert(competitionDiscipline->disciplineId(), competitionDiscipline);
+    }
+
+    switch (index.column()) {
+    case 5:
+        competitionDiscipline->setInvitationText(value.toString());
+        return true;
+    case 7:
+        competitionDiscipline->setMaximumScore(value.toDouble());
+        return true;
+    }
+
+    return false;
+}
+
+Qt::ItemFlags CompetitionDisciplineModel::flags(const QModelIndex &index) const
+{
+    auto flags = QAbstractItemModel::flags(index);
+
+    if( index.isValid() ){
+        switch (index.column()) {
+        case 5:
+            return flags | Qt::ItemIsEditable;
+        case 7:
+            return flags | Qt::ItemIsEditable;
+        }
+    }
+
+    return flags;
+}
+
 void CompetitionDisciplineModel::fetchDisciplines(Competition *competition, bool women, bool men)
 {
+    m_competition = competition;
+
     QList<CompetitionDiscipline *> competitionDisciplines = m_em->competitionDisciplineRepository()
-                                                                ->fetchByCompetition(competition);
+                                                                ->fetchByCompetition(m_competition);
 
     beginResetModel();
     m_disciplines = m_em->disciplineRepository()->loadByGender(women, men);

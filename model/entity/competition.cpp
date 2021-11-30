@@ -225,14 +225,14 @@ void Competition::setGroup(int group)
     m_group = group;
 }
 
-QTime Competition::startTme() const
+QTime Competition::startTime() const
 {
-    return m_startTme;
+    return m_startTime;
 }
 
-void Competition::setStartTme(const QTime &startTme)
+void Competition::setStartTime(const QTime &startTime)
 {
-    m_startTme = startTme;
+    m_startTime = startTime;
 }
 
 QTime Competition::warmUpTime() const
@@ -313,6 +313,7 @@ Event *Competition::event() const
 void Competition::setEvent(Event *event)
 {
     m_event = event;
+    setEventId(m_event ? m_event->id() : 0 );
 }
 
 Division *Competition::division() const
