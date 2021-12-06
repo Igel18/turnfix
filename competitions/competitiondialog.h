@@ -21,6 +21,9 @@ public:
                                QWidget *parent = nullptr);
     ~CompetitionDialog() override;
 
+signals:
+    void divisionChanged(bool women, bool men);
+
 private slots:
     void save();
     void fillTable();

@@ -6,13 +6,17 @@ CompetitionRepository::CompetitionRepository(EntityManager *em)
     : AbstractRepository<Competition>(em)
 {}
 
-QList<Competition *> CompetitionRepository::fetchByEvent(Event *event)
+QList<Competition *> CompetitionRepository::fetchByEvent(Event *event, int *type /*= nullptr*/)
 {
     QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
+
     QueryBuilder<Competition> qb;
     qb.select(Competition::staticMetaObject, Competition::mapping());
     qb.join(Division::staticMetaObject, Division::mapping(), "Competition", "division", "divisionId");
     qb.where("Competition", "eventId", event->id());
+    if(type){
+        qb.where("Competition", "type", *type);
+    }
     qb.orderBy("Competition", "number");
 
     QList<Competition *> output = qb.query(db);

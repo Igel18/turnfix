@@ -14,7 +14,9 @@
 #include <QSortFilterProxyModel>
 #include <QSqlQuery>
 
-ParticipantsWidget::ParticipantsWidget(QWidget* parent) : QWidget(parent), ui(new Ui::ParticipantsWidget) {
+ParticipantsWidget::ParticipantsWidget(QWidget* parent) :
+    QWidget(parent), ui(new Ui::ParticipantsWidget)
+{
     ui->setupUi(this);
 
     //this->m_event = Session::getInstance()->getEvent();
@@ -33,7 +35,8 @@ ParticipantsWidget::ParticipantsWidget(QWidget* parent) : QWidget(parent), ui(ne
     connect(ui->cmb_filterTN, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ParticipantsWidget::updateTNFilterColumn);
     connect(ui->txt_filterTN, &QLineEdit::textChanged, this, &ParticipantsWidget::updateTNFilterText);
     connect(ui->cmb_typ, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ParticipantsWidget::viewChanged);
-    connect(ui->participantsTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &ParticipantsWidget::updateMelde);
+    //auto pSelectionModel = ui->participantsTable->selectionModel();
+    //connect(pSelectionModel, &QItemSelectionModel::selectionChanged, this, &ParticipantsWidget::updateMelde);
     connect(ui->participantsTable, &QTableView::doubleClicked, this, &ParticipantsWidget::editTN);
 }
 
@@ -46,10 +49,13 @@ void ParticipantsWidget::setup(Event *event, EntityManager *em)
 {
     m_event = event;
     m_em = em;
-    m_participantsModel = new ParticipantsTableModel(m_event, this);
+    m_participantsModel = new ParticipantsTableModel(m_event, m_em, this);
     m_sortModel = new QSortFilterProxyModel(this);
     m_sortModel->setSourceModel(m_participantsModel);
     ui->participantsTable->setModel(m_sortModel);
+    auto pSelectionModel = ui->participantsTable->selectionModel();
+    connect(pSelectionModel, &QItemSelectionModel::selectionChanged, this, &ParticipantsWidget::updateMelde);
+    viewChanged(ParticipantsTableModel::Type::Individual);
 }
 
 void ParticipantsWidget::viewChanged(int index)
@@ -130,7 +136,7 @@ void ParticipantsWidget::addTN() {
 
     switch(ui->cmb_typ->currentIndex()) {
     case 0:
-        dialog = new IndividualDialog(m_event, 0, this);
+        dialog = new IndividualDialog( m_event, m_em, 0, this );
         break;
     case 1:
         dialog = new TeamDialog(m_event, m_em, 0, this);
@@ -149,7 +155,7 @@ void ParticipantsWidget::addTN() {
         }
     }
 
-    _global::updateRgDis(m_event);
+    _global::updateRgDis(m_event, m_em);
     ui->participantsTable->setFocus();
 }
 
@@ -170,7 +176,7 @@ void ParticipantsWidget::editTN() {
     QDialog *dialog = nullptr;
     switch ( ui->cmb_typ->currentIndex() ) {
     case 0:
-        dialog = new IndividualDialog( m_event, m_sortModel->data(m_sortModel->index(idx.row(), 7)).toInt(), this );
+        dialog = new IndividualDialog( m_event, m_em, m_sortModel->data(m_sortModel->index(idx.row(), 7)).toInt(), this );
         break;
     case 1:
         dialog = new TeamDialog( m_event, m_em, m_sortModel->data(m_sortModel->index(idx.row(), 5)).toInt(), this );
@@ -186,7 +192,7 @@ void ParticipantsWidget::editTN() {
 
     ui->participantsTable->setCurrentIndex(idx); // ??
     ui->participantsTable->setFocus();
-    _global::updateRgDis(m_event);
+    _global::updateRgDis(m_event, m_em);
 }
 
 void ParticipantsWidget::meldeTN() {
@@ -216,7 +222,8 @@ void ParticipantsWidget::delTN() {
         return;
     }
 
-    QSqlQuery query;
+    QSqlDatabase db = QSqlDatabase::database(m_em->connectionName());
+    QSqlQuery query(db);
 
     switch (type) {
     case 0:
@@ -236,7 +243,7 @@ void ParticipantsWidget::delTN() {
     query.exec();
     m_participantsModel->loadData();
     ui->participantsTable->setFocus();
-    _global::updateRgDis(this->m_event);
+    _global::updateRgDis(m_event, m_em);
 }
 
 void ParticipantsWidget::updateMelde() {
@@ -295,7 +302,7 @@ void ParticipantsWidget::syncTN() {
             query7.bindValue( 7, 1);
             query7.exec();
         }
-        _global::updateRgDis(this->m_event);
+        _global::updateRgDis(this->m_event, m_em);
         m_participantsModel->loadData();
     }
 }

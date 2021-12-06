@@ -4,9 +4,8 @@
 #include "model/repository/disciplinerepository.h"
 #include <QIcon>
 
-CompetitionDisciplineModel::CompetitionDisciplineModel(EntityManager *em, QObject *parent)
-    : QAbstractTableModel(parent)
-    , m_em(em)
+CompetitionDisciplineModel::CompetitionDisciplineModel(Competition *competition, EntityManager *em, QObject *parent)
+    : QAbstractTableModel(parent), m_competition(competition), m_em(em)
 {
 }
 
@@ -47,7 +46,13 @@ QVariant CompetitionDisciplineModel::data(const QModelIndex &index, int role) co
         return QVariant();
 
     auto discipline = m_disciplines.at(index.row());
+
+    if(role == TF::IdRole){
+        return discipline->id();
+    }
+
     auto competitionDiscipline = m_competitionDisciplines.value(discipline->id());
+
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch (index.column()) {
         case 2:
@@ -69,8 +74,14 @@ QVariant CompetitionDisciplineModel::data(const QModelIndex &index, int role) co
         }
     } else if (role == Qt::CheckStateRole) {
         switch (index.column()) {
-        case 0:
-            return competitionDiscipline != nullptr ? Qt::Checked : Qt::Unchecked;
+        case 0:{
+            if(competitionDiscipline){
+                return competitionDiscipline->selected() ? Qt::Checked : Qt::Unchecked;
+            }
+
+            return Qt::Unchecked;
+        }
+
         case 6:
             if (competitionDiscipline != nullptr) {
                 return competitionDiscipline->freeAndCompulsary() ? Qt::Checked : Qt::Unchecked;
@@ -93,9 +104,30 @@ QVariant CompetitionDisciplineModel::data(const QModelIndex &index, int role) co
 
 bool CompetitionDisciplineModel::setData(const QModelIndex &index, const QVariant &value, int role /*= Qt::EditRole*/)
 {
-    if(!index.isValid() || role != Qt::EditRole){
+    if(!index.isValid()){
         return false;
     }
+
+    if( role == Qt::CheckStateRole ) {
+        switch (index.column()) {
+        case 0:{
+            auto discipline = m_disciplines.at(index.row());
+            auto competDiscipline = competitionDiscipline(discipline->id());
+            competDiscipline->setSelected(!competDiscipline->selected());
+            return true;
+        }
+        case 6:{
+            auto discipline = m_disciplines.at(index.row());
+            auto competDiscipline = competitionDiscipline(discipline->id());
+            competDiscipline->setFreeAndCompulsary(!competDiscipline->freeAndCompulsary());
+            return true;
+        }
+        }
+        return false;
+    }
+
+    if( role != Qt::EditRole )
+        return false;
 
     auto discipline = m_disciplines.at(index.row());
     auto competitionDiscipline = m_competitionDisciplines.value(discipline->id());
@@ -108,12 +140,24 @@ bool CompetitionDisciplineModel::setData(const QModelIndex &index, const QVarian
     }
 
     switch (index.column()) {
-    case 5:
-        competitionDiscipline->setInvitationText(value.toString());
-        return true;
-    case 7:
-        competitionDiscipline->setMaximumScore(value.toDouble());
-        return true;
+    case 5: {
+        const auto oldValue = competitionDiscipline->invitationText();
+        const auto newValue = value.toString();
+        if( oldValue != newValue ){
+            competitionDiscipline->setInvitationText( newValue );
+            return true;
+        }
+        break;
+    }
+    case 7: {
+        const auto oldValue = competitionDiscipline->maximumScore();
+        const auto newValue = value.toDouble();
+        if(oldValue != newValue){
+            competitionDiscipline->setMaximumScore(newValue);
+            return true;
+        }
+        break;
+    }
     }
 
     return false;
@@ -125,8 +169,12 @@ Qt::ItemFlags CompetitionDisciplineModel::flags(const QModelIndex &index) const
 
     if( index.isValid() ){
         switch (index.column()) {
+        case 0:
+            return flags | Qt::ItemIsUserCheckable;
         case 5:
             return flags | Qt::ItemIsEditable;
+        case 6:
+            return flags | Qt::ItemIsUserCheckable;
         case 7:
             return flags | Qt::ItemIsEditable;
         }
@@ -135,19 +183,46 @@ Qt::ItemFlags CompetitionDisciplineModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-void CompetitionDisciplineModel::fetchDisciplines(Competition *competition, bool women, bool men)
+void CompetitionDisciplineModel::fetchDisciplines(bool women, bool men)
 {
-    m_competition = competition;
-
-    QList<CompetitionDiscipline *> competitionDisciplines = m_em->competitionDisciplineRepository()
-                                                                ->fetchByCompetition(m_competition);
+    const auto competitionDisciplines = m_em->competitionDisciplineRepository()->fetchByCompetition(m_competition);
 
     beginResetModel();
-    m_disciplines = m_em->disciplineRepository()->loadByGender(women, men);
+    m_disciplines = m_em->disciplineRepository()->loadByGender( women, men );
     m_competitionDisciplines.clear();
     for (auto competitionDiscipline : competitionDisciplines) {
-        m_competitionDisciplines.insert(competitionDiscipline->disciplineId(),
-                                        competitionDiscipline);
+        competitionDiscipline->setSelected(true);
+        m_competitionDisciplines.insert(competitionDiscipline->disciplineId(), competitionDiscipline);
     }
     endResetModel();
+}
+
+CompetitionDiscipline* CompetitionDisciplineModel::competitionDiscipline(int disciplineId)
+{
+    auto competitionDiscipline = m_competitionDisciplines.value(disciplineId);
+
+    if( !competitionDiscipline ){
+        competitionDiscipline = new CompetitionDiscipline();
+        competitionDiscipline->setCompetition(m_competition);
+        auto itFound = std::find_if(m_disciplines.begin(), m_disciplines.end(), [disciplineId](Discipline* item){ return item->id() == disciplineId; });
+        if(itFound != m_disciplines.end()){
+            competitionDiscipline->setDiscipline(*itFound);
+        }
+
+        m_competitionDisciplines.insert(competitionDiscipline->disciplineId(), competitionDiscipline);
+    }
+
+    return competitionDiscipline;
+}
+
+void CompetitionDisciplineModel::save()
+{
+    auto repo = m_em->competitionDisciplineRepository();
+    for(auto& item: m_competitionDisciplines){
+        if(item->selected()){
+            repo->persist(item);
+        } else {
+            repo->remove(item);
+        }
+    }
 }

@@ -18,6 +18,8 @@ class CompetitionDiscipline : public QObject
     Q_PROPERTY(bool freeAndCompulsary READ freeAndCompulsary WRITE setFreeAndCompulsary)
     Q_PROPERTY(double maximumScore READ maximumScore WRITE setMaximumScore)
 
+    Q_PROPERTY(bool selected READ selected WRITE setSelected STORED false)
+
     Q_PROPERTY(Competition *competition READ competition WRITE setCompetition STORED false)
     Q_PROPERTY(Discipline *discipline READ discipline WRITE setDiscipline STORED false)
 
@@ -51,6 +53,9 @@ public:
     double maximumScore() const;
     void setMaximumScore(double maximumScore);
 
+    bool selected() const;
+    void setSelected(bool bSel);
+
     static const DBTable *mapping();
 
 private:
@@ -63,6 +68,7 @@ private:
     int m_sort;
     bool m_freeAndCompulsary;
     double m_maximumScore;
+    bool m_selected = false;
 
     static DBTable *initializeMapping();
     static const DBTable *m_mapping;

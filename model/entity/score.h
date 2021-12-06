@@ -21,6 +21,7 @@ class Score : public QObject
     Q_PROPERTY(int teamId READ teamId WRITE setTeamId)
     Q_PROPERTY(int statusId READ statusId WRITE setStatusId)
     Q_PROPERTY(int round READ round WRITE setRound)
+    Q_PROPERTY(int bib READ bib WRITE setBib)
     Q_PROPERTY(bool nonCompetitive READ nonCompetitive WRITE setNonCompetitive)
     Q_PROPERTY(bool dns READ dns WRITE setDns)
     Q_PROPERTY(QString squad READ squad WRITE setSquad)
@@ -72,6 +73,9 @@ public:
     int round() const;
     void setRound(int round);
 
+    int bib() const;
+    void setBib(int startNumber);
+
     bool nonCompetitive() const;
     void setNonCompetitive(bool nonCompetitive);
 
@@ -99,6 +103,7 @@ private:
     int m_statusId;
     Status *m_status;
     int m_round;
+    int m_startNumber;
     bool m_nonCompetitive;
     bool m_dns;
     QString m_squad;

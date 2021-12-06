@@ -19,7 +19,7 @@ public:
                         int role = Qt::DisplayRole) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void fetchStatuses();
+    void fetchStatuses(bool *bScorecard = nullptr);
 
 private:
     QList<Status *> m_statuses;

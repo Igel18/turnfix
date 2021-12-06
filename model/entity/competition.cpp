@@ -6,14 +6,10 @@ DBTable *Competition::initializeMapping()
 {
     DBTable *competition = new DBTable("tfx_wettkaempfe");
     competition->addColumn("id", "int_wettkaempfeid", ColumnType::Integer, 0, false, "", "", true);
-    competition->addColumn("eventId", "int_veranstaltungenid", ColumnType::Integer, 0, false)
-        ->addContraint("fky_veranstaltungenid",
-                       "tfx_veranstaltungen",
-                       "int_veranstaltungenid",
-                       "RESTRICT",
-                       "CASCADE");
-    competition->addColumn("divisionId", "int_bereicheid", ColumnType::Integer, 0, false)
-        ->addContraint("fky_bereicheid", "tfx_bereiche", "int_bereicheid", "RESTRICT", "RESTRICT");
+    auto colEventId = competition->addColumn("eventId", "int_veranstaltungenid", ColumnType::Integer, 0, false);
+    colEventId->addContraint("fky_veranstaltungenid", "tfx_veranstaltungen", "int_veranstaltungenid", "RESTRICT", "CASCADE");
+    auto colDivisionId = competition->addColumn("divisionId", "int_bereicheid", ColumnType::Integer, 0, false);
+    colDivisionId->addContraint("fky_bereicheid", "tfx_bereiche", "int_bereicheid", "RESTRICT", "RESTRICT");
     competition->addColumn("type", "int_typ", ColumnType::SmallInt, 0, true, "0");
     competition->addColumn("number", "var_nummer", ColumnType::Varchar, 5);
     competition->addColumn("name", "var_name", ColumnType::Varchar, 150);
@@ -21,16 +17,9 @@ DBTable *Competition::initializeMapping()
     competition->addColumn("maxYear", "yer_bis", ColumnType::SmallInt);
     competition->addColumn("qualifiers", "int_qualifikation", ColumnType::SmallInt, 0, true, "0");
     competition->addColumn("scores", "int_wertungen", ColumnType::SmallInt);
-    competition
-        ->addColumn("dropScores", "bol_streichwertung", ColumnType::Boolean, 0, true, "'false'");
-    competition
-        ->addColumn("showAgeGroup", "bol_ak_anzeigen", ColumnType::Boolean, 0, true, "'false'");
-    competition->addColumn("apparatusChoices",
-                           "bol_wahlwettkampf",
-                           ColumnType::Boolean,
-                           0,
-                           true,
-                           "'false'");
+    competition->addColumn("dropScores", "bol_streichwertung", ColumnType::Boolean, 0, true, "'false'");
+    competition->addColumn("showAgeGroup", "bol_ak_anzeigen", ColumnType::Boolean, 0, true, "'false'");
+    competition->addColumn("apparatusChoices", "bol_wahlwettkampf", ColumnType::Boolean, 0, true, "'false'");
     competition->addColumn("round", "int_durchgang", ColumnType::SmallInt, 0, true, "1");
     competition->addColumn("group", "int_bahn", ColumnType::SmallInt, 0, true, "1");
     competition->addColumn("startTime", "tim_startzeit", ColumnType::TimeNoTimezone);
@@ -39,8 +28,7 @@ DBTable *Competition::initializeMapping()
     competition->addColumn("freeAndCompulsary", "bol_kp", ColumnType::Boolean, 0, true, "'false'");
     competition->addColumn("sortAsc", "bol_sortasc", ColumnType::Boolean, 0, true, "'false'");
     competition->addColumn("manualSort", "bol_mansort", ColumnType::Boolean, 0, true, "'false'");
-    competition
-        ->addColumn("extraApparatusPoints", "bol_gerpkt", ColumnType::Boolean, 0, true, "'false'");
+    competition->addColumn("extraApparatusPoints", "bol_gerpkt", ColumnType::Boolean, 0, true, "'false'");
     competition->addColumn("numDropScores", "int_anz_streich", ColumnType::SmallInt, 0, true, "0");
 
     return competition;

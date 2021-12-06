@@ -45,7 +45,7 @@ void CompetitionsWidget::addCompetition()
     if (competitionDialog->exec() == 1) {
         m_model->fetchCompetitions();
     }
-    _global::updateRgDis(m_event);
+    _global::updateRgDis(m_event, m_em);
     ui->competitionsTable->setFocus();
 }
 
@@ -66,7 +66,7 @@ void CompetitionsWidget::editCompetition()
         m_model->fetchCompetitions();
     }
 
-    _global::updateRgDis(m_event);
+    _global::updateRgDis(m_event, m_em);
     ui->competitionsTable->setFocus();
 }
 
@@ -83,7 +83,7 @@ void CompetitionsWidget::removeCompetition()
             m_em->competitionRepository()->remove(competition);
             m_model->fetchCompetitions();
         }
-        _global::updateRgDis(m_event);
+        _global::updateRgDis(m_event, m_em);
         ui->competitionsTable->setFocus();
     }
 }

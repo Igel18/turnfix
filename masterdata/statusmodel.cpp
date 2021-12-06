@@ -46,13 +46,19 @@ QVariant StatusModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(status);
     } else if (role == TF::IdRole) {
         return status->id();
-    }
+    } else if (role == Qt::BackgroundRole) {
+           return status->color();
+       }
     return QVariant();
 }
 
-void StatusModel::fetchStatuses()
+void StatusModel::fetchStatuses(bool *bScorecard /*= nullptr*/)
 {
     beginResetModel();
-    m_statuses = m_em->statusRepository()->loadAll();
+    if(bScorecard){
+        m_statuses = m_em->statusRepository()->loadByScorecard(*bScorecard);
+    } else {
+        m_statuses = m_em->statusRepository()->loadAll();
+    }
     endResetModel();
 }

@@ -20,6 +20,7 @@ class FormulaRepository;
 class PenaltyRepository;
 class PersonRepository;
 class RegionRepository;
+class ScoreRepository;
 class SportRepository;
 class StateRepository;
 class StatusRepository;
@@ -49,6 +50,7 @@ public:
     PersonRepository *personRepository() const;
     PenaltyRepository *penaltyRepository() const;
     RegionRepository *regionRepository() const;
+    ScoreRepository* scoreRepository() const;
     SportRepository *sportRepository() const;
     StateRepository *stateRepository() const;
     StatusRepository *statusRepository() const;
@@ -79,6 +81,7 @@ private:
     PenaltyRepository *m_penaltyRepository;
     PersonRepository *m_personRepository;
     RegionRepository *m_regionRepository;
+    ScoreRepository* m_scoreRepository;
     SportRepository *m_sportRepository;
     StateRepository *m_stateRepository;
     StatusRepository *m_statusRepository;
