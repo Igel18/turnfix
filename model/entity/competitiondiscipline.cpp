@@ -4,39 +4,18 @@
 
 DBTable *CompetitionDiscipline::initializeMapping()
 {
-    DBTable *competitionDiscipline = new DBTable("tfx_wettkaempfe_x_disziplinen");
-    competitionDiscipline->addColumn("id",
-                                     "int_wettkaempfe_x_disziplinenid",
-                                     ColumnType::Integer,
-                                     0,
-                                     false,
-                                     "",
-                                     "",
-                                     true);
-    competitionDiscipline
-        ->addColumn("competitionId", "int_wettkaempfeid", ColumnType::Integer, 0, false)
-        ->addContraint("fky_wettkaempfeid",
-                       "tfx_wettkaempfe",
-                       "int_wettkaempfeid",
-                       "RESTRICT",
-                       "CASCADE");
-    competitionDiscipline
-        ->addColumn("disciplineId", "int_disziplinenid", ColumnType::Integer, 0, false)
-        ->addContraint("fky_disziplinenid",
-                       "tfx_disziplinen",
-                       "int_disziplinenid",
-                       "RESTRICT",
-                       "RESTRICT");
-    competitionDiscipline->addColumn("invitationText",
-                                     "var_ausschreibung",
-                                     ColumnType::Varchar,
-                                     100);
-    competitionDiscipline->addColumn("sort", "int_sortierung", ColumnType::SmallInt);
-    competitionDiscipline
-        ->addColumn("freeAndCompulsary", "bol_kp", ColumnType::Boolean, 0, true, "'false'");
-    competitionDiscipline->addColumn("maximumScore", "rel_max", ColumnType::Real, 0, true, "0");
+    auto table = new DBTable("tfx_wettkaempfe_x_disziplinen");
+    table->addColumn( "id", "int_wettkaempfe_x_disziplinenid", ColumnType::Integer, 0, false, "", "", true );
+    table->addColumn( "competitionId", "int_wettkaempfeid", ColumnType::Integer, 0, false)
+         ->addContraint( "fky_wettkaempfeid", "tfx_wettkaempfe", "int_wettkaempfeid", "RESTRICT", "CASCADE" );
+    table->addColumn( "disciplineId", "int_disziplinenid", ColumnType::Integer, 0, false)
+         ->addContraint( "fky_disziplinenid", "tfx_disziplinen", "int_disziplinenid", "RESTRICT", "RESTRICT" );
+    table->addColumn( "invitationText", "var_ausschreibung", ColumnType::Varchar, 100 );
+    table->addColumn( "sort", "int_sortierung", ColumnType::SmallInt );
+    table->addColumn( "freeAndCompulsary", "bol_kp", ColumnType::Boolean, 0, true, "'false'" );
+    table->addColumn( "maximumScore", "rel_max", ColumnType::Real, 0, true, "0" );
 
-    return competitionDiscipline;
+    return table;
 }
 
 const DBTable *CompetitionDiscipline::m_mapping = CompetitionDiscipline::initializeMapping();
@@ -74,12 +53,7 @@ Competition *CompetitionDiscipline::competition() const
 void CompetitionDiscipline::setCompetition(Competition *competition)
 {
     m_competition = competition;
-    if (competition == nullptr) {
-        m_competitionId = 0;
-        return;
-    }
-
-    m_competitionId = competition->id();
+    m_competitionId = competition ? competition->id() : 0;
 }
 
 int CompetitionDiscipline::disciplineId() const
@@ -100,12 +74,7 @@ Discipline *CompetitionDiscipline::discipline() const
 void CompetitionDiscipline::setDiscipline(Discipline *discipline)
 {
     m_discipline = discipline;
-    if (discipline == nullptr) {
-        m_disciplineId = 0;
-        return;
-    }
-
-    m_disciplineId = discipline->id();
+    m_disciplineId = discipline ? discipline->id() : 0;
 }
 
 QString CompetitionDiscipline::invitationText() const
@@ -146,4 +115,14 @@ double CompetitionDiscipline::maximumScore() const
 void CompetitionDiscipline::setMaximumScore(double maximumScore)
 {
     m_maximumScore = maximumScore;
+}
+
+bool CompetitionDiscipline::selected() const
+{
+    return m_selected;
+}
+
+void CompetitionDiscipline::setSelected(bool bSel)
+{
+    m_selected = bSel;
 }

@@ -239,4 +239,5 @@ void MainWindow::initEvent()
     ui->lbl_ort->setText(m_event->venue()->nameAndCity());
     ui->competitionsWidget->setup(m_event, m_em);
     ui->tn_tab->setup(m_event, m_em);
+    ui->rg_tab->setup(m_event, m_em);
 }

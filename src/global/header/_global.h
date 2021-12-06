@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QStringList>
 
+class EntityManager;
 class Event;
 class QSqlQuery;
 
@@ -18,7 +19,7 @@ public:
     static void initFields();
     static QStringList getFields();
     static QString wkBez(Event *m_event, QString swknr);
-    static void updateRgDis(Event *m_event);
+    static void updateRgDis(Event *m_event, EntityManager *em = nullptr);
     static QString nameFormat();
     static double calcLeistung(QString value);
     static QList<QVariant> nameSplit(QString name);

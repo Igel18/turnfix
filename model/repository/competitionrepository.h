@@ -11,7 +11,7 @@ class CompetitionRepository : public AbstractRepository<Competition>
 public:
     explicit CompetitionRepository(EntityManager *em);
 
-    QList<Competition *> fetchByEvent(Event *event);
+    QList<Competition *> fetchByEvent(Event *event, int *type = nullptr);
     Competition *fetchByNumber(Event *event, const QString &number);
 };
 

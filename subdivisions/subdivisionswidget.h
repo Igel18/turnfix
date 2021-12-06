@@ -7,6 +7,7 @@ class SubdivisionsWidget;
 }
 
 class AssignmentTableModel;
+class EntityManager;
 class Event;
 class QStandardItemModel;
 
@@ -17,6 +18,8 @@ class SubdivisionsWidget : public QWidget
 public:
     explicit SubdivisionsWidget(QWidget *parent = nullptr);
     ~SubdivisionsWidget() override;
+
+    void setup(Event *event, EntityManager *em);
 
 public slots:
     void fillRETable2();
@@ -32,6 +35,7 @@ private slots:
 
 private:
     Event *m_event;
+    EntityManager *m_em;
     Ui::SubdivisionsWidget *ui;
     AssignmentTableModel *re_model;
     AssignmentTableModel *re_model2;

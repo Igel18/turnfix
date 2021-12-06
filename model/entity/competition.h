@@ -20,6 +20,7 @@ class Competition : public QObject
     Q_PROPERTY(int minYear READ minYear WRITE setMinYear)
     Q_PROPERTY(int maxYear READ maxYear WRITE setMaxYear)
     Q_PROPERTY(int qualifiers READ qualifiers WRITE setQualifiers)
+    Q_PROPERTY(int scores READ scores WRITE setScores)
     Q_PROPERTY(bool dropScores READ dropScores WRITE setDropScores)
     Q_PROPERTY(bool showAgeGroup READ showAgeGroup WRITE setShowAgeGroup)
     Q_PROPERTY(bool apparatusChoices READ apparatusChoices WRITE setApparatusChoices)

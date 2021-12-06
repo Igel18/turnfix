@@ -128,7 +128,7 @@ public:
         QSqlQuery query(db);
         query.prepare(queryString);
         for (int i = 0; i < m_bindValues.length(); i++) {
-            qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
+            // qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
             query.bindValue(i, m_bindValues.at(i));
         }
         query.exec();
@@ -297,20 +297,20 @@ private:
         objects.insert(metaObj->className(), obj);
 
         int index = 0;
-        qDebug() << "====";
+        //qDebug() << "====";
         for (int i = metaObj->propertyOffset(); i < metaObj->propertyCount(); i++) {
             auto property = metaObj->property(i);
             if (!property.isStored()) {
                 continue;
             }
             auto propValue = query.value(index);
-            qDebug() << "Set " << metaObj->className() << ":" << property.name() << " (" << i << ") " << " to " << propValue;
+            //qDebug() << "Set " << metaObj->className() << ":" << property.name() << " (" << i << ") " << " to " << propValue;
             obj->setProperty(property.name(), propValue);
             index++;
         }
 
         for (const QString &key : m_joinTables) {
-            qDebug() << "-----";
+            //qDebug() << "-----";
             auto joinMetaObject = m_joinMetaObjects.value(key);
             auto *joinObj = joinMetaObject.newInstance();
             auto *joinMetaObj = joinObj->metaObject();
@@ -324,7 +324,7 @@ private:
                 }
 
                 auto propValue = query.value(index);
-                qDebug() << "Set " << joinMetaObj->className() << ":" << property.name() << " (" << i << ") " << " to " << propValue;
+                //qDebug() << "Set " << joinMetaObj->className() << ":" << property.name() << " (" << i << ") " << " to " << propValue;
                 joinObj->setProperty(property.name(), propValue);
 
                 index++;

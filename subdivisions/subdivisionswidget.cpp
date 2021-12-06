@@ -11,24 +11,11 @@
 #include <QStandardItemModel>
 
 SubdivisionsWidget::SubdivisionsWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::SubdivisionsWidget)
+    : QWidget(parent), ui(new Ui::SubdivisionsWidget)
 {
     ui->setupUi(this);
 
-    this->m_event = Session::getInstance()->getEvent();
-    this->re_model = new AssignmentTableModel(this->m_event);
-    this->re_model2 = new AssignmentTableModel(this->m_event);
-    this->rg_model = new QStandardItemModel();
-    this->rg_model->setColumnCount(4);
-
-    ui->lst_all->setModel(rg_model);
-
     connect(ui->but_add, SIGNAL(clicked()), this, SLOT(addRiege()));
-    connect(ui->lst_all->selectionModel(),
-            SIGNAL(currentRowChanged(QModelIndex, QModelIndex)),
-            this,
-            SLOT(fetchRgData()));
     connect(ui->but_add_2, SIGNAL(clicked()), this, SLOT(sendData()));
     connect(ui->but_remove, SIGNAL(clicked()), this, SLOT(getData()));
     connect(ui->txt_nummer, SIGNAL(editingFinished()), this, SLOT(updateRiege()));
@@ -38,6 +25,20 @@ SubdivisionsWidget::SubdivisionsWidget(QWidget *parent)
 SubdivisionsWidget::~SubdivisionsWidget()
 {
     delete ui;
+}
+
+void SubdivisionsWidget::setup(Event *event, EntityManager *em)
+{
+    m_event = event;
+    m_em = em;
+
+    re_model = new AssignmentTableModel(m_event, this);
+    re_model2 = new AssignmentTableModel(m_event, this);
+    rg_model = new QStandardItemModel(this);
+    rg_model->setColumnCount(4);
+
+    ui->lst_all->setModel(rg_model);
+    connect(ui->lst_all->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(fetchRgData()));
 }
 
 void SubdivisionsWidget::fillRETable2()

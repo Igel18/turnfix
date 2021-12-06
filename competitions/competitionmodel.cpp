@@ -75,9 +75,9 @@ QVariant CompetitionModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void CompetitionModel::fetchCompetitions()
+void CompetitionModel::fetchCompetitions(int *type /*= nullptr*/)
 {
     beginResetModel();
-    m_competitions = m_em->competitionRepository()->fetchByEvent(m_event);
+    m_competitions = m_em->competitionRepository()->fetchByEvent(m_event, type);
     endResetModel();
 }

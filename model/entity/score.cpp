@@ -195,6 +195,16 @@ void Score::setRound(int round)
     m_round = round;
 }
 
+int Score::bib() const
+{
+    return m_startNumber;
+}
+
+void Score::setBib(int startNumber)
+{
+    m_startNumber = startNumber;
+}
+
 bool Score::nonCompetitive() const
 {
     return m_nonCompetitive;

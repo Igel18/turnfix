@@ -21,8 +21,8 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     , ui(new Ui::CompetitionDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
-                   | Qt::WindowCloseButtonHint);
+
+    setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
     auto tb = new QToolBar();
     auto ag = new QActionGroup(this);
@@ -47,9 +47,7 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     connect(ui->act_wk, &QAction::triggered, [this]() { ui->stackedWidget->setCurrentIndex(0); });
     connect(ui->act_dis, &QAction::triggered, [this]() { ui->stackedWidget->setCurrentIndex(1); });
     connect(ui->act_misc, &QAction::triggered, [this]() { ui->stackedWidget->setCurrentIndex(2); });
-    connect(ui->act_timetable, &QAction::triggered, [this]() {
-        ui->stackedWidget->setCurrentIndex(3);
-    });
+    connect(ui->act_timetable, &QAction::triggered, [this]() { ui->stackedWidget->setCurrentIndex(3); });
     connect(ui->act_order, &QAction::triggered, [this]() { ui->stackedWidget->setCurrentIndex(4); });
 
     auto divisionModel = new DivisionModel(m_em, this);
@@ -60,8 +58,8 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     disciplineGroupModel->fetchGroups();
     ui->cmb_groups->setModel(disciplineGroupModel);
 
-    m_competitionDisciplineModel = new CompetitionDisciplineModel(m_em, this);
-    m_competitionDisciplineModel->fetchDisciplines(m_competition, true, true);
+    m_competitionDisciplineModel = new CompetitionDisciplineModel(m_competition, m_em, this);
+    connect(this, &CompetitionDialog::divisionChanged, m_competitionDisciplineModel, &CompetitionDisciplineModel::fetchDisciplines );
     ui->tbl_disziplinen->setModel(m_competitionDisciplineModel);
 
     QList<QHeaderView::ResizeMode> resizeModes = {QHeaderView::Fixed,
@@ -84,7 +82,13 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     model2 = new QStandardItemModel();
     ui->tbl_order->setModel(model2);
 
-    connect(ui->cmb_bereich, SIGNAL(currentIndexChanged(int)), this, SLOT(fillTable()));
+    //connect(ui->cmb_bereich, SIGNAL(currentIndexChanged(int)), this, SLOT(fillTable()));
+    auto onDivisionChanged = [this](int idx){
+        auto division = qvariant_cast<Division*>(ui->cmb_bereich->itemData(idx, TF::ObjectRole));
+        emit divisionChanged( division->women(),  division->men() );
+    };
+
+    connect(ui->cmb_bereich, qOverload<int>(&QComboBox::currentIndexChanged), onDivisionChanged);
     connect(ui->cmb_typ, SIGNAL(currentIndexChanged(int)), this, SLOT(enableOptions(int)));
     connect(ui->but_save, SIGNAL(clicked()), this, SLOT(save()));
     connect(ui->but_up, SIGNAL(clicked()), this, SLOT(moveUp()));
@@ -94,12 +98,13 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     connect(ui->but_orderdown, SIGNAL(clicked()), this, SLOT(orderMoveDown()));
     connect(ui->but_orderleft, SIGNAL(clicked()), this, SLOT(orderMoveLeft()));
     connect(ui->but_orderright, SIGNAL(clicked()), this, SLOT(orderMoveRight()));
-    connect(ui->tbl_disziplinen, SIGNAL(clicked(QModelIndex)), this, SLOT(fillTable2()));
+    //connect(ui->tbl_disziplinen, SIGNAL(clicked(QModelIndex)), this, SLOT(fillTable2()));
+
     connect(ui->chk_kuer, SIGNAL(clicked()), this, SLOT(fillTable2()));
 
+    // 1st tab
     ui->txt_wknr->setText(m_competition->number());
     ui->txt_wkbez->setText(m_competition->name());
-    ui->sbx_quali->setValue(m_competition->qualifiers());
     ui->dae_wkj1->setDate(QDate(m_competition->minYear(), 1, 1));
 
     const int defaultMaxYear = 2000;
@@ -119,45 +124,31 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
         maxYear = defaultMaxYear;
         break;
     }
-
     ui->dae_wkj2->setDate(QDate(maxYear, 1, 1));
-
     auto divisionId = m_competition->divisionId();
     ui->cmb_bereich->setCurrentIndex(divisionId > 0 ? ui->cmb_bereich->findData(divisionId, TF::IdRole) : 0);
     ui->cmb_typ->setCurrentIndex(m_competition->type());
+    ui->sbx_wertungen->setValue(m_competition->scores());
 
-    //    ui->txt_wknr->setText(query.value(4).toString());
-    //    ui->txt_wkbez->setText(query.value(5).toString());
-    //    ui->sbx_quali->setValue(query.value(8).toInt());
-    //    ui->dae_wkj1->setDate(QDate().fromString(query.value(6).toString(), "yyyy"));
-    //    ui->dae_wkj2->setDate(QDate().fromString(query.value(7).toString(), "yyyy"));
-    //    switch (query.value(7).toInt()) {
-    //    case 1:
-    //        ui->rab_ua->setChecked(true);
-    //        break;
-    //    case 2:
-    //        ui->rab_uj->setChecked(true);
-    //        break;
-    //    case 3:
-    //        ui->rab_ja->setChecked(true);
-    //        break;
-    //    }
-    //    ui->cmb_bereich->setCurrentIndex(ui->cmb_bereich->findData(query.value(2).toInt()));
-    //    ui->cmb_typ->setCurrentIndex(query.value(3).toInt());
-    //    ui->sbx_wertungen->setValue(query.value(9).toInt());
-    //    ui->chk_streich->setChecked(query.value(10).toBool());
-    //    ui->chk_akjg->setChecked(query.value(11).toBool());
-    //    ui->chk_wahl->setChecked(query.value(12).toBool());
-    //    ui->sbx_durchgang->setValue(query.value(13).toInt());
-    //    ui->tie_start->setTime(QTime().fromString(query.value(15).toString(), "hh:mm:ss"));
-    //    ui->sbx_bahn->setValue(query.value(14).toInt());
-    //    ui->tie_warmup->setTime(QTime().fromString(query.value(16).toString(), "hh:mm:ss"));
-    //    ui->chk_showinfo->setChecked(query.value(17).toBool());
-    //    ui->chk_kuer->setChecked(query.value(18).toBool());
-    //    ui->chk_sortasc->setChecked(query.value(19).toBool());
-    //    ui->gbx_sort->setChecked(query.value(20).toBool());
-    //    ui->chk_gpunkte->setChecked(query.value(21).toBool());
-    //    ui->sbx_anz->setValue(query.value(22).toInt());
+    // 3rd tab
+    ui->sbx_quali->setValue(m_competition->qualifiers());
+    ui->chk_akjg->setChecked(m_competition->showAgeGroup());
+    ui->chk_streich->setChecked(m_competition->dropScores());
+    ui->sbx_anz->setValue(m_competition->numDropScores());
+    ui->chk_wahl->setChecked(m_competition->apparatusChoices());
+    ui->chk_showinfo->setChecked(m_competition->showInfo());
+    ui->chk_kuer->setChecked(m_competition->freeAndCompulsary());
+    ui->chk_sortasc->setChecked(m_competition->sortAsc());
+    ui->chk_gpunkte->setChecked(m_competition->extraApparatusPoints());
+
+    // 4th tab
+    ui->sbx_durchgang->setValue(m_competition->round());
+    ui->sbx_bahn->setValue(m_competition->group());
+    ui->tie_warmup->setTime(m_competition->warmUpTime());
+    ui->tie_start->setTime(m_competition->startTime());
+
+    // 5th tab
+    ui->gbx_sort->setChecked(m_competition->manualSort());
 }
 
 CompetitionDialog::~CompetitionDialog()
@@ -427,6 +418,7 @@ void CompetitionDialog::save()
     //        query10.exec();
     //    }
 
+    // 1st tab
     m_competition->setNumber(ui->txt_wknr->text());
     m_competition->setName(ui->txt_wkbez->text());
     m_competition->setMinYear(ui->dae_wkj1->date().year());
@@ -442,12 +434,32 @@ void CompetitionDialog::save()
     }
 
     m_competition->setMaxYear(maxYear);
-
-    m_competition->setQualifiers(ui->sbx_quali->value());
     m_competition->setDivision(qvariant_cast< Division* >(ui->cmb_bereich->currentData()));
     m_competition->setType(ui->cmb_typ->currentIndex());
+    m_competition->setScores(ui->sbx_wertungen->value());
 
-    auto result = m_em->competitionRepository()->persist(m_competition);
+    // 3rd tab
+    m_competition->setQualifiers(ui->sbx_quali->value());
+    m_competition->setShowAgeGroup(ui->chk_akjg->isChecked());
+    m_competition->setDropScores(ui->chk_streich->isChecked());
+    m_competition->setNumDropScores(ui->sbx_anz->value());
+    m_competition->setApparatusChoices(ui->chk_wahl->isChecked());
+    m_competition->setShowInfo(ui->chk_showinfo->isChecked());
+    m_competition->setFreeAndCompulsary(ui->chk_kuer->isChecked());
+    m_competition->setSortAsc(ui->chk_sortasc->isChecked());
+    m_competition->setExtraApparatusPoints(ui->chk_gpunkte->isChecked());
+
+    // 4th tab
+    m_competition->setRound(ui->sbx_durchgang->value());
+    m_competition->setGroup(ui->sbx_bahn->value());
+    m_competition->setWarmUpTime(ui->tie_warmup->time());
+    m_competition->setStartTime(ui->tie_start->time());
+
+    // 5th tab
+    m_competition->setManualSort(ui->gbx_sort->isChecked());
+
+    m_em->competitionRepository()->persist(m_competition);
+    m_competitionDisciplineModel->save();
 
     done(1);
 }

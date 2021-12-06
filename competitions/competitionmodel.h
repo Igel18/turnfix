@@ -21,7 +21,7 @@ public:
                         int role = Qt::DisplayRole) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void fetchCompetitions();
+    void fetchCompetitions(int *type = nullptr);
 
 private:
     Event *m_event;

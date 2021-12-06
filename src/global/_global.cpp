@@ -1,6 +1,7 @@
 #include "header/_global.h"
 #include "header/settings.h"
 #include "model/entity/event.h"
+#include "model/entitymanager.h"
 #include <math.h>
 #include <QSqlQuery>
 #include <QSqlRecord>
@@ -67,8 +68,10 @@ QString _global::wkBez(Event *event, QString swknr) {
     return " " + jahr1 + to;
 }
 
-void _global::updateRgDis(Event *event) {
-    QSqlQuery query;
+void _global::updateRgDis(Event *event, EntityManager *em /*= nullptr*/) {
+    QSqlDatabase db = QSqlDatabase::database(em->connectionName());
+    QSqlQuery query(db);
+
     query.prepare("SELECT var_riege FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? GROUP BY var_riege");
     query.bindValue(0, event->mainEvent()->id());
     query.bindValue(1, event->round());

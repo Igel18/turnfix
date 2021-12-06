@@ -17,7 +17,7 @@ QList<CompetitionDiscipline *> CompetitionDisciplineRepository::fetchByCompetiti
     qb.where("CompetitionDiscipline", "competitionId", competition->id());
     qb.orderBy("CompetitionDiscipline", "sort");
 
-    QList<CompetitionDiscipline *> output = qb.query(db);
+    auto output = qb.query(db);
 
     for (auto competitionDiscipline : output) {
         competitionDiscipline->setCompetition(competition);

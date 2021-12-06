@@ -16,6 +16,7 @@
 #include "repository/penaltyrepository.h"
 #include "repository/personrepository.h"
 #include "repository/regionrepository.h"
+#include "repository/scorerepository.h"
 #include "repository/sportrepository.h"
 #include "repository/staterepository.h"
 #include "repository/statusrepository.h"
@@ -41,6 +42,7 @@ EntityManager::EntityManager(QObject *parent)
     m_penaltyRepository = new PenaltyRepository(this);
     m_personRepository = new PersonRepository(this);
     m_regionRepository = new RegionRepository(this);
+    m_scoreRepository = new ScoreRepository(this);
     m_sportRepository = new SportRepository(this);
     m_stateRepository = new StateRepository(this);
     m_statusRepository = new StatusRepository(this);
@@ -152,6 +154,11 @@ DisciplineFieldRepository *EntityManager::disciplineFieldRepository() const
 FormulaRepository *EntityManager::formulaRepository() const
 {
     return m_formulaRepository;
+}
+
+ScoreRepository *EntityManager::scoreRepository() const
+{
+    return m_scoreRepository;
 }
 
 SportRepository *EntityManager::sportRepository() const

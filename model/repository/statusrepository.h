@@ -10,6 +10,7 @@ public:
     explicit StatusRepository(EntityManager *em);
 
     QList<Status *> loadAll();
+    QList<Status *> loadByScorecard(bool scoredcard);
 };
 
 #endif // STATUSREPOSITORY_H
