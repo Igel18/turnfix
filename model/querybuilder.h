@@ -128,7 +128,7 @@ public:
         QSqlQuery query(db);
         query.prepare(queryString);
         for (int i = 0; i < m_bindValues.length(); i++) {
-            // qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
+            qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
             query.bindValue(i, m_bindValues.at(i));
         }
         query.exec();
