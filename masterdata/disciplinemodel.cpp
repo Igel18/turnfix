@@ -56,6 +56,6 @@ QVariant DisciplineModel::data(const QModelIndex &index, int role) const
 void DisciplineModel::fetchDisciplines()
 {
     beginResetModel();
-    m_disciplines = m_em->disciplineRepository()->loadAll();
+    m_disciplines = m_em->disciplineRepository()->loadDisciplines();
     endResetModel();
 }

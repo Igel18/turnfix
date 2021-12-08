@@ -41,7 +41,7 @@ QVariant AthleteModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     Athlete *athlete = m_athletes.at(index.row());
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch (index.column()) {
         case 0:
             return athlete->fullName();

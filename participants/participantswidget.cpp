@@ -1,11 +1,13 @@
 #include "participantswidget.h"
 #include "groupdialog.h"
 #include "individualdialog.h"
+#include "model/enums.h"
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
+#include "model/repository/scorerepository.h"
 #include "model/settings/session.h"
 #include "multiparticipantsdialog.h"
-#include "participantstablemodel.h"
+#include "participantsmodel.h"
 #include "qualificationstandardsdialog.h"
 #include "src/global/header/_global.h"
 #include "teamdialog.h"
@@ -13,18 +15,12 @@
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 #include <QSqlQuery>
+#include <QDebug>
 
 ParticipantsWidget::ParticipantsWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::ParticipantsWidget)
 {
     ui->setupUi(this);
-
-    //this->m_event = Session::getInstance()->getEvent();
-    // this->participantsModel = new ParticipantsTableModel(this->event);
-    // this->sortModel = new QSortFilterProxyModel();
-    // this->sortModel->setSourceModel(this->participantsModel);
-    // ui->participantsTable->setModel(this->sortModel);
-    // this->viewChanged(ui->cmb_typ->currentIndex());
 
     connect(ui->but_addTN, &QPushButton::clicked, this, &ParticipantsWidget::addTN);
     connect(ui->but_addCL, &QPushButton::clicked, this, &ParticipantsWidget::addCL);
@@ -35,8 +31,6 @@ ParticipantsWidget::ParticipantsWidget(QWidget* parent) :
     connect(ui->cmb_filterTN, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ParticipantsWidget::updateTNFilterColumn);
     connect(ui->txt_filterTN, &QLineEdit::textChanged, this, &ParticipantsWidget::updateTNFilterText);
     connect(ui->cmb_typ, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ParticipantsWidget::viewChanged);
-    //auto pSelectionModel = ui->participantsTable->selectionModel();
-    //connect(pSelectionModel, &QItemSelectionModel::selectionChanged, this, &ParticipantsWidget::updateMelde);
     connect(ui->participantsTable, &QTableView::doubleClicked, this, &ParticipantsWidget::editTN);
 }
 
@@ -49,66 +43,82 @@ void ParticipantsWidget::setup(Event *event, EntityManager *em)
 {
     m_event = event;
     m_em = em;
-    m_participantsModel = new ParticipantsTableModel(m_event, m_em, this);
-    m_sortModel = new QSortFilterProxyModel(this);
-    m_sortModel->setSourceModel(m_participantsModel);
+
+    m_model = new ParticipantsModel(m_event, m_em, this);
+    m_event->setParticipantsModel(m_model);
+    m_model->load();
+
+    //m_participantsModel = new ParticipantsTableModel(m_event, m_em, this);
+    auto m_sortModel = new QSortFilterProxyModel(this);
+    m_sortModel->setSourceModel(m_model);
     ui->participantsTable->setModel(m_sortModel);
-    auto pSelectionModel = ui->participantsTable->selectionModel();
-    connect(pSelectionModel, &QItemSelectionModel::selectionChanged, this, &ParticipantsWidget::updateMelde);
-    viewChanged(ParticipantsTableModel::Type::Individual);
+
+    for(auto i = 0; i < ui->participantsTable->horizontalHeader()->count(); ++i) {
+        switch (i) {
+        case 1:
+        case 4:
+            ui->participantsTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
+            break;
+        default:
+            ui->participantsTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
+        }
+    }
+    //auto pSelectionModel = ui->participantsTable->selectionModel();
+    //connect(pSelectionModel, &QItemSelectionModel::selectionChanged, this, &ParticipantsWidget::updateMelde);
+    //viewChanged(ParticipantsTableModel::Type::Individual);
 }
 
 void ParticipantsWidget::viewChanged(int index)
 {
-    ParticipantsTableModel::Type type = static_cast<ParticipantsTableModel::Type>(index);
-    bool isIndiviual = type == ParticipantsTableModel::Type::Individual;
-    bool isTeam = type == ParticipantsTableModel::Type::Team;
+//    ParticipantsTableModel::Type type = static_cast<ParticipantsTableModel::Type>(index);
+//    bool isIndiviual = type == ParticipantsTableModel::Type::Individual;
+//    bool isTeam = type == ParticipantsTableModel::Type::Team;
 
-    m_participantsModel->updateType(type);
+//    m_participantsModel->updateType(type);
 
-    ui->but_timeTN->setEnabled(isIndiviual);
-    ui->but_addCL->setEnabled(isIndiviual);
-    ui->but_copyTN->setVisible(isTeam && this->m_event->multiRoundEvent() && this->m_event->round() > 1);
-    ui->cmb_filterTN->clear();
+//    ui->but_timeTN->setEnabled(isIndiviual);
+//    ui->but_addCL->setEnabled(isIndiviual);
+//    ui->but_copyTN->setVisible(isTeam && this->m_event->multiRoundEvent() && this->m_event->round() > 1);
+//    ui->cmb_filterTN->clear();
 
-    QHeaderView::ResizeMode resizeModeIndividual[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
-    int resizeIndividual[] = {40, 200, 40, 40, 200, 45, 45};
+//    QHeaderView::ResizeMode resizeModeIndividual[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
+//    int resizeIndividual[] = {40, 200, 40, 40, 200, 45, 45};
 
-    QHeaderView::ResizeMode resizeModeTeam[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
-    int resizeTeam[] = {40, 200, 200, 45, 45};
+//    QHeaderView::ResizeMode resizeModeTeam[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
+//    int resizeTeam[] = {40, 200, 200, 45, 45};
 
-    QHeaderView::ResizeMode resizeModeGroup[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
-    int resizeGroup[] = {40, 200, 200, 45, 45};
+//    QHeaderView::ResizeMode resizeModeGroup[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed};
+//    int resizeGroup[] = {40, 200, 200, 45, 45};
 
-    int length = (type == ParticipantsTableModel::Type::Individual) ? 5 : 7;
+//    int length = (type == ParticipantsTableModel::Type::Individual) ? 5 : 7;
 
-    for( int i = 0; i < length; i++ ) {
-        ui->cmb_filterTN->addItem(m_participantsModel->headerData(i, Qt::Horizontal, Qt::DisplayRole).value<QString>());
-        int resize;
-        QHeaderView::ResizeMode mode;
-        switch (ui->cmb_typ->currentIndex()) {
-        case 0:
-            resize = resizeIndividual[i];
-            mode = resizeModeIndividual[i];
-            break;
-        case 1:
-            resize = resizeTeam[i];
-            mode = resizeModeTeam[i];
-            break;
-        case 2:
-            resize = resizeGroup[i];
-            mode = resizeModeGroup[i];
-            break;
-        }
-        ui->participantsTable->horizontalHeader()->setSectionResizeMode(i, mode);
-        ui->participantsTable->horizontalHeader()->resizeSection(i, resize);
-    }
+//    for( int i = 0; i < length; i++ ) {
+//        ui->cmb_filterTN->addItem(m_participantsModel->headerData(i, Qt::Horizontal, Qt::DisplayRole).value<QString>());
+//        int resize;
+//        QHeaderView::ResizeMode mode;
+//        switch (ui->cmb_typ->currentIndex()) {
+//        case 0:
+//            resize = resizeIndividual[i];
+//            mode = resizeModeIndividual[i];
+//            break;
+//        case 1:
+//            resize = resizeTeam[i];
+//            mode = resizeModeTeam[i];
+//            break;
+//        case 2:
+//            resize = resizeGroup[i];
+//            mode = resizeModeGroup[i];
+//            break;
+//        }
+//        ui->participantsTable->horizontalHeader()->setSectionResizeMode(i, mode);
+//        ui->participantsTable->horizontalHeader()->resizeSection(i, resize);
+//    }
 }
 
-void ParticipantsWidget::refresh()
-{
-    m_participantsModel->loadData();
-}
+//void ParticipantsWidget::refresh()
+//{
+//    m_participantsModel->loadData();
+//}
 
 void ParticipantsWidget::loadBestView() {
     QSqlQuery query;
@@ -132,7 +142,7 @@ void ParticipantsWidget::loadBestView() {
 void ParticipantsWidget::addTN() {
     QDialog *dialog = nullptr;
 
-    ParticipantsTableModel::Type participantsType = ParticipantsTableModel::Individual;
+    //ParticipantsTableModel::Type participantsType = ParticipantsTableModel::Individual;
 
     switch(ui->cmb_typ->currentIndex()) {
     case 0:
@@ -140,18 +150,17 @@ void ParticipantsWidget::addTN() {
         break;
     case 1:
         dialog = new TeamDialog(m_event, m_em, 0, this);
-        participantsType = ParticipantsTableModel::Team;
+        //participantsType = ParticipantsTableModel::Team;
         break;
     case 2:
         dialog = new GroupDialog(m_event, m_em, 0, this);
-        participantsType = ParticipantsTableModel::Group;
+        //participantsType = ParticipantsTableModel::Group;
         break;
     }
 
     if(dialog){
-        if(dialog->exec() == 1) {
-            m_participantsModel->updateType( participantsType );
-            m_participantsModel->loadData();
+        if(dialog->exec() == 1 ){
+            m_model->load();
         }
     }
 
@@ -162,7 +171,8 @@ void ParticipantsWidget::addTN() {
 void ParticipantsWidget::addCL() {
     MultiParticipantsDialog *cl = new MultiParticipantsDialog(m_event, this);
     if(cl->exec() == 1) {
-        m_participantsModel->loadData();
+        qDebug() << "ParticipantsWidget::addCL() reload data...";
+        // m_participantsModel->loadData();
     }
 }
 
@@ -175,9 +185,11 @@ void ParticipantsWidget::editTN() {
 
     QDialog *dialog = nullptr;
     switch ( ui->cmb_typ->currentIndex() ) {
-    case 0:
-        dialog = new IndividualDialog( m_event, m_em, m_sortModel->data(m_sortModel->index(idx.row(), 7)).toInt(), this );
+    case 0: {
+        auto pScore = qvariant_cast<Score*>( ui->participantsTable->model()->data( idx, TF::ObjectRole ));
+        dialog = new IndividualDialog( m_event, m_em, pScore, this );
         break;
+    }
     case 1:
         dialog = new TeamDialog( m_event, m_em, m_sortModel->data(m_sortModel->index(idx.row(), 5)).toInt(), this );
         break;
@@ -186,11 +198,13 @@ void ParticipantsWidget::editTN() {
         break;
     }
 
-    if( dialog->exec() == 1 ) {
-        m_participantsModel->loadData();
+    if(dialog){
+        if( dialog->exec() == 1 ) {
+            m_model->load();
+            qDebug() << "ParticipantsWidget::editTN() reload data...";
+        }
     }
 
-    ui->participantsTable->setCurrentIndex(idx); // ??
     ui->participantsTable->setFocus();
     _global::updateRgDis(m_event, m_em);
 }
@@ -218,7 +232,8 @@ void ParticipantsWidget::delTN() {
     auto title = tr("%1 löschen").arg(itemToDelete);
     auto question = tr("Wollen sie diesen %1 wirklich löschen?").arg(itemToDelete);
 
-    if( QMessageBox::Ok != QMessageBox::question( this, title, question, QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Cancel)){
+    QMessageBox msg(QMessageBox::Question, title, question, QMessageBox::Ok|QMessageBox::Cancel);
+    if( msg.exec() != QMessageBox::Ok) {
         return;
     }
 
@@ -226,10 +241,12 @@ void ParticipantsWidget::delTN() {
     QSqlQuery query(db);
 
     switch (type) {
-    case 0:
-        query.prepare("DELETE FROM tfx_wertungen WHERE int_wertungenid=?");
-        query.bindValue( 0, m_sortModel->data(m_sortModel->index( idx.row(), 7 )).toInt());
+    case 0:{
+        auto pScore = qvariant_cast<Score*>( ui->participantsTable->model()->data( idx, TF::ObjectRole ));
+        m_em->scoreRepository()->remove(pScore);
+        m_model->load();
         break;
+    }
     case 1:
         query.prepare("DELETE FROM tfx_mannschaften WHERE int_mannschaftenid=?");
         query.bindValue( 0, m_sortModel->data(m_sortModel->index( idx.row(), 5 )).toInt());
@@ -241,7 +258,8 @@ void ParticipantsWidget::delTN() {
     }
 
     query.exec();
-    m_participantsModel->loadData();
+
+    // m_participantsModel->loadData();
     ui->participantsTable->setFocus();
     _global::updateRgDis(m_event, m_em);
 }
@@ -303,7 +321,7 @@ void ParticipantsWidget::syncTN() {
             query7.exec();
         }
         _global::updateRgDis(this->m_event, m_em);
-        m_participantsModel->loadData();
+        //m_participantsModel->loadData();
     }
 }
 

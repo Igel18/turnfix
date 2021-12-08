@@ -183,12 +183,26 @@ Qt::ItemFlags CompetitionDisciplineModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-void CompetitionDisciplineModel::fetchDisciplines(bool women, bool men)
+void CompetitionDisciplineModel::fetchDisciplines(int divisionId)
 {
     const auto competitionDisciplines = m_em->competitionDisciplineRepository()->fetchByCompetition(m_competition);
 
+    bool bTrue = true;
+
+    bool* bWomen = nullptr;
+    bool* bMen = nullptr;
+
+    switch ( divisionId ) {
+    case 1: // men
+        bMen = &bTrue;
+        break;
+    case 2: // women
+        bWomen = &bTrue;
+        break;
+    }
+
     beginResetModel();
-    m_disciplines = m_em->disciplineRepository()->loadByGender( women, men );
+    m_disciplines = m_em->disciplineRepository()->loadDisciplines( bWomen, bMen, false );
     m_competitionDisciplines.clear();
     for (auto competitionDiscipline : competitionDisciplines) {
         competitionDiscipline->setSelected(true);

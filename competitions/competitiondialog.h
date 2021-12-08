@@ -16,13 +16,11 @@ class CompetitionDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CompetitionDialog(Competition *competition,
-                               EntityManager *em,
-                               QWidget *parent = nullptr);
-    ~CompetitionDialog() override;
+    explicit CompetitionDialog(Competition *competition, EntityManager *em, QWidget *parent = nullptr);
+    ~CompetitionDialog();
 
 signals:
-    void divisionChanged(bool women, bool men);
+    void divisionChanged(int divisionId);
 
 private slots:
     void save();

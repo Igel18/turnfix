@@ -8,6 +8,7 @@
 #include "participants/licensenumberdialog.h"
 #include "ui_mainwindow.h"
 #include <QActionGroup>
+#include <QDebug>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
@@ -182,7 +183,10 @@ void MainWindow::newNumbers() {
         query3.exec();
         mstnr++;
     }
-    ui->tn_tab->refresh();
+
+    qDebug() << "ui->tn_tab->refresh(); should be called";
+
+    //ui->tn_tab->refresh();
 }
 
 void MainWindow::showTNDB() {
@@ -238,6 +242,7 @@ void MainWindow::initEvent()
     ui->lbl_wk->setText(m_event->name());
     ui->lbl_ort->setText(m_event->venue()->nameAndCity());
     ui->competitionsWidget->setup(m_event, m_em);
+    //ui->rg_tab->setup(m_event, m_em);
     ui->tn_tab->setup(m_event, m_em);
     ui->rg_tab->setup(m_event, m_em);
 }

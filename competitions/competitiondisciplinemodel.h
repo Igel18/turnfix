@@ -6,6 +6,7 @@
 class EntityManager;
 class Competition;
 class Discipline;
+class Division;
 class CompetitionDiscipline;
 
 class CompetitionDisciplineModel : public QAbstractTableModel
@@ -23,7 +24,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
 public slots:
-    void fetchDisciplines(bool women, bool men);
+    void fetchDisciplines(int divisionId);
     void save();
 
 private:

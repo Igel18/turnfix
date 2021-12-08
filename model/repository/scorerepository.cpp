@@ -12,7 +12,8 @@ QList< Score* > ScoreRepository::fetch(int* competitionId /*= nullptr*/)
 
     QueryBuilder<Score> qb;
     qb.select(Score::staticMetaObject, Score::mapping());
-    //qb.join(Athlete::staticMetaObject, Athlete::mapping(), "Score", "athlete", "athleteId");
+    qb.join(Athlete::staticMetaObject, Athlete::mapping(), "Score", "athlete", "athleteId");
+    qb.join(Club::staticMetaObject, Club::mapping(), "Athlete", "club", "clubId");
     //qb.join(Group::staticMetaObject, Group::mapping(), "Score", "group", "groupId");
     //qb.join(Team::staticMetaObject, Team::mapping(), "Score", "team", "teamId");
     //qb.join(Status::staticMetaObject, Status::mapping(), "Score", "status", "statusId");

@@ -20,15 +20,9 @@ CompetitionsWidget::CompetitionsWidget(QWidget *parent)
     connect(ui->but_addWK, &QPushButton::clicked, this, &CompetitionsWidget::addCompetition);
     connect(ui->but_editWK, &QPushButton::clicked, this, &CompetitionsWidget::editCompetition);
     connect(ui->but_delWK, &QPushButton::clicked, this, &CompetitionsWidget::removeCompetition);
-    connect(ui->cmb_filterWK,
-            QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this,
-            &CompetitionsWidget::updateFilterColumn);
+    connect(ui->cmb_filterWK, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CompetitionsWidget::updateFilterColumn);
     connect(ui->txt_filterWK, &QLineEdit::textChanged, this, &CompetitionsWidget::updateFilterText);
-    connect(ui->competitionsTable,
-            &QTableView::doubleClicked,
-            this,
-            &CompetitionsWidget::editCompetition);
+    connect(ui->competitionsTable, &QTableView::doubleClicked, this, &CompetitionsWidget::editCompetition);
 }
 
 CompetitionsWidget::~CompetitionsWidget()
