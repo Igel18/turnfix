@@ -8,7 +8,7 @@ namespace Ui {
 
 class Event;
 class EntityManager;
-class ParticipantsTableModel;
+class ParticipantsModel;
 class QSortFilterProxyModel;
 
 class ParticipantsWidget : public QWidget {
@@ -19,7 +19,7 @@ public:
     ~ParticipantsWidget();
 
     void setup(Event *event, EntityManager *em);
-    void refresh();
+    //void refresh();
 
 public slots:
     void loadBestView();
@@ -40,7 +40,7 @@ private:
     Event *m_event;
     EntityManager *m_em;
     Ui::ParticipantsWidget *ui;
-    ParticipantsTableModel *m_participantsModel;
+    ParticipantsModel* m_model;
     QSortFilterProxyModel *m_sortModel;
 };
 #endif

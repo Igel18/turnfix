@@ -12,6 +12,7 @@ HEADERS += \
     $$PWD/multiparticipantsdialog.h \
     $$PWD/groupdialog.h \
     $$PWD/individualdialog.h \
+    $$PWD/participantsmodel.h \
     $$PWD/participantstablemodel.h \
     $$PWD/participantswidget.h \
     $$PWD/qualificationstandardsdialog.h \
@@ -23,6 +24,7 @@ SOURCES += \
     $$PWD/multiparticipantsdialog.cpp \
     $$PWD/groupdialog.cpp \
     $$PWD/individualdialog.cpp \
+    $$PWD/participantsmodel.cpp \
     $$PWD/participantstablemodel.cpp \
     $$PWD/participantswidget.cpp \
     $$PWD/qualificationstandardsdialog.cpp \

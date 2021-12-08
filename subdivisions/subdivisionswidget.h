@@ -6,7 +6,7 @@ namespace Ui {
 class SubdivisionsWidget;
 }
 
-class AssignmentTableModel;
+//class AssignmentTableModel;
 class EntityManager;
 class Event;
 class QStandardItemModel;
@@ -22,7 +22,8 @@ public:
     void setup(Event *event, EntityManager *em);
 
 public slots:
-    void fillRETable2();
+    void reloadSquads();
+//    void fillRETable2();
 
 private slots:
     void sendData();
@@ -37,8 +38,8 @@ private:
     Event *m_event;
     EntityManager *m_em;
     Ui::SubdivisionsWidget *ui;
-    AssignmentTableModel *re_model;
-    AssignmentTableModel *re_model2;
+//    AssignmentTableModel *re_model;
+//    AssignmentTableModel *re_model2;
     QStandardItemModel *rg_model;
 };
 

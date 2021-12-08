@@ -1,4 +1,5 @@
 #include "individualdialog.h"
+#include "competitions/competitionmodel.h"
 #include "masterdata/athletemodel.h"
 #include "masterdata/clubdialog.h"
 #include "masterdata/clubmodel.h"
@@ -11,19 +12,20 @@
 #include "model/repository/scorerepository.h"
 #include "src/global/header/_global.h"
 #include "ui_individualdialog.h"
+#include "participantswidget.h"
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QToolBar>
 #include <QSortFilterProxyModel>
 
-IndividualDialog::IndividualDialog(Event *tfEvent, EntityManager *em, int edit, QWidget* parent)
-    : QDialog(parent), m_event(tfEvent), m_em(em), ui(new Ui::IndividualDialog)
+IndividualDialog::IndividualDialog(Event *tfEvent, EntityManager *em, Score* pScore, QWidget* parent)
+    : QDialog(parent), ui(new Ui::IndividualDialog), m_event(tfEvent), m_em(em), m_pScore(pScore)
 {
-    editid = edit;
     ui->setupUi(this);
+
     setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
-    auto tb = new QToolBar();
+    auto tb = new QToolBar(this);
     auto ag = new QActionGroup(this);
     tb->setAllowedAreas(Qt::LeftToolBarArea);
     tb->setMovable(false);
@@ -37,45 +39,64 @@ IndividualDialog::IndividualDialog(Event *tfEvent, EntityManager *em, int edit, 
     ui->act_tn->setChecked(true);
     ui->sidebar->layout()->addWidget(tb);
 
-    connect(ui->act_tn, &QAction::triggered, [this](){ ui->stackedWidget->setCurrentIndex(0); });
-    connect(ui->act_dis, &QAction::triggered, [this](){ ui->stackedWidget->setCurrentIndex(1); });
+    connect(ui->act_tn, &QAction::triggered, this, [this](){ ui->stackedWidget->setCurrentIndex(0); });
+    connect(ui->act_dis, &QAction::triggered, this, [this](){ ui->stackedWidget->setCurrentIndex(1); });
 
-    m_athletes = m_em->athleteRepository()->loadAll();
-    for(auto& athlete: m_athletes){
-        ui->cmb_name->addItem(athlete->fullName(), QVariant::fromValue(athlete));
-    }
+    connect(ui->cmb_wk, qOverload<int>(&QComboBox::currentIndexChanged), this, &IndividualDialog::updateDisciplins);
+    connect(ui->cmb_wk, qOverload<int>(&QComboBox::currentIndexChanged), this, &IndividualDialog::checkJg);
+    connect(ui->but_save, &QPushButton::clicked, this, &IndividualDialog::save);
+    connect(ui->dae_year, &QDateEdit::dateChanged, this, &IndividualDialog::checkJg);
+    connect(ui->chk_dat, &QCheckBox::stateChanged, this, [this](){
+        ui->dae_year->setCalendarPopup(ui->chk_dat->isChecked());
+        ui->dae_year->setDisplayFormat(ui->chk_dat->isChecked() ? "dd.MM.yyyy" : "yyyy");
+    });
 
-    ui->cmb_name->setCurrentIndex( -1 );
+    connect(ui->but_addclub, SIGNAL(clicked()), this, SLOT(addClub()));
+
+    auto pAthleteModel = new AthleteModel(m_em, this);
+    pAthleteModel->fetchAthletes();
+    ui->cmb_name->setModel(pAthleteModel);
+    connect(ui->cmb_name, &QComboBox::editTextChanged, this, &IndividualDialog::updateAthleteInfo);
 
     ui->cmb_sex->addItem( "weiblich", 0 );
     ui->cmb_sex->addItem( "männlich", 1 );
 
-    auto clubModel = new ClubModel(m_em, this);
-    clubModel->fetchClubs();
-    ui->cmb_club->setModel( clubModel );
-    ui->cmb_club->setCurrentIndex( -1 );
+    auto pClubModel = new ClubModel(m_em, this);
+    pClubModel->fetchClubs();
+    ui->cmb_club->setModel( pClubModel );
 
-    int type = 0;
-    const auto competitions = m_em->competitionRepository()->fetchByEvent( m_event, &type );
-    for( auto& competition: competitions ){
+    auto athleteIdx = m_pScore ? ui->cmb_name->findData( m_pScore->athleteId(), TF::IdRole ) : -1;
+    ui->cmb_name->setCurrentIndex( athleteIdx );
+
+    int competitionIdx = -1;
+    int competitionType = 0;
+
+    const auto competitions = m_em->competitionRepository()->fetchByEvent( m_event, &competitionType );
+
+    for( auto competition: competitions ){
         auto competitionTitle = QString( "%1 %2" ).arg(competition->number(), competition->name());
-        ui->cmb_wk->addItem( competitionTitle, competition->id() );
+
+        ui->cmb_wk->addItem( competitionTitle, QVariant::fromValue(competition) );
+        if( m_pScore && ( competition->id() == m_pScore->competitionId()) ){
+            competitionIdx = ui->cmb_wk->count() - 1;
+        }
     }
+
+    ui->cmb_wk->setCurrentIndex( competitionIdx );
+
+    ui->txt_rg->setText( m_pScore ? m_pScore->squad() : "" );
 
     auto statusModel = new StatusModel(m_em, this);
     bool bScorecard = true;
     statusModel->fetchStatuses(&bScorecard);
     ui->cmb_status->setModel(statusModel);
 
-    connect(ui->cmb_wk, SIGNAL(currentIndexChanged(int)), this, SLOT(checkDisziplinen()));
-    connect(ui->cmb_wk, SIGNAL(currentIndexChanged(int)), this, SLOT(checkJg()));
-    connect(ui->but_save, SIGNAL(clicked()), this, SLOT(save()));
-    connect(ui->cmb_name, SIGNAL(editTextChanged(QString)), this, SLOT(checkUpdate()));
-    connect(ui->dae_year, SIGNAL(dateChanged(QDate)), this, SLOT(checkJg()));
-    connect(ui->chk_dat, SIGNAL(stateChanged(int)), this, SLOT(changeDat()));
-    connect(ui->but_addclub, SIGNAL(clicked()), this, SLOT(addClub()));
+    auto statusIdx = m_pScore ? ui->cmb_status->findData( m_pScore->statusId(), TF::IdRole ) : -1;
+    ui->cmb_status->setCurrentIndex( statusIdx );
 
-    initData();
+    ui->chk_ak->setChecked( m_pScore ? m_pScore->nonCompetitive() : false );
+    ui->chk_nostart->setChecked( m_pScore ? m_pScore->dns() : false );
+    ui->txt_comment->setText( m_pScore ? m_pScore->comment() : "" );
 }
 
 IndividualDialog::~IndividualDialog()
@@ -83,45 +104,24 @@ IndividualDialog::~IndividualDialog()
     delete ui;
 }
 
-void IndividualDialog::changeDat() {
-    if (ui->chk_dat->isChecked()) {
-        ui->dae_year->setDisplayFormat("dd.MM.yyyy");
-        ui->dae_year->setCalendarPopup(true);
-    } else {
-        ui->dae_year->setDisplayFormat("yyyy");
-        ui->dae_year->setCalendarPopup(false);
-    }
-}
-
-void IndividualDialog::initData() {
-    checkDisziplinen();
-
-    if (editid != 0) {
-        QSqlQuery query3;
-        query3.prepare("SELECT var_nachname || ', ' || var_vorname, int_wettkaempfeid, var_riege, bol_ak, int_startpassnummer, bol_startet_nicht, int_statusid, var_comment FROM tfx_wertungen INNER JOIN tfx_teilnehmer USING (int_teilnehmerid) WHERE int_wertungenid=?");
-        query3.bindValue(0,editid);
-        query3.exec();
-        query3.next();
-        ui->cmb_name->setEditText(query3.value(0).toString());
-        ui->cmb_wk->setCurrentIndex(ui->cmb_wk->findData(query3.value(1).toInt()));
-        ui->txt_rg->setText(query3.value(2).toString());
-        ui->txt_id->setText(query3.value(4).toString());
-        ui->chk_ak->setChecked(query3.value(3).toBool());
-        ui->chk_nostart->setChecked(query3.value(5).toBool());
-        ui->cmb_status->setCurrentIndex(ui->cmb_status->findData(query3.value(6).toInt()));
-        ui->txt_comment->setText(query3.value(7).toString());
-        QObject::disconnect(ui->cmb_name, nullptr, nullptr, nullptr);
-    }
-}
-
 void IndividualDialog::save() {
+
+    auto clubId = ui->cmb_club->currentData(TF::IdRole).toInt();
+    auto pCompetition = qvariant_cast< Competition* >(ui->cmb_wk->currentData(TF::ObjectRole));
+    auto competitionId = pCompetition ? pCompetition->id() : -1;
+    auto statusId = ui->cmb_status->currentData(TF::IdRole).toInt();
+
+    if( (clubId <= 0) || (competitionId <= 0) || (statusId <= 0) ){
+        // msgbox with warning?
+        return;
+    }
+
     auto pAthlete = qvariant_cast<Athlete*>(ui->cmb_name->currentData(TF::ObjectRole));
 
     if( !pAthlete ){
         pAthlete = new Athlete();
     }
 
-    auto clubId = ui->cmb_club->currentData(TF::IdRole).toInt();
     auto fullName = ui->cmb_name->currentText();
     auto firstName = _global::nameSplit(fullName).at(0).toString();
     auto lastName = _global::nameSplit(fullName).at(1).toString();
@@ -141,61 +141,69 @@ void IndividualDialog::save() {
     pAthlete->setLicense(startNumber);
     pAthlete->setYearOfBirthOnly(yearOnly);
 
-    m_em->athleteRepository()->persist(pAthlete);
+    if( !m_em->athleteRepository()->persist(pAthlete) ){
+        return;
+    }
 
     const auto competitions = m_em->competitionRepository()->fetchByEvent(m_event);
 
-    QList< Score* > scores;
+    QList< Score* > existingScores;
 
     for(auto& competition: competitions){
         int competitionId = competition->id();
-        scores.append(m_em->scoreRepository()->fetch(&competitionId));
+        existingScores.append(m_em->scoreRepository()->fetch(&competitionId));
     }
 
-    auto itFound = std::find_if(scores.begin(), scores.end(), [pAthlete](Score* pScore){
-            return pScore->athleteId() == pAthlete->id();
+    int currentScoreId = m_pScore ? m_pScore->id() : 0;
+
+    auto itFound = std::find_if(existingScores.begin(), existingScores.end(), [pAthlete, currentScoreId](Score* pScore){
+        // find existing score with the same athlete (athletes duplication)
+        return (pScore->id() != currentScoreId) && (pScore->athleteId() == pAthlete->id());
     });
 
     bool bOk = true;
 
-    if(itFound != scores.end()){
-        bOk = QMessageBox::Yes == QMessageBox::warning(
-                    this,
-                    tr("Teilnehmer vorhanden!"),
-                    tr("Dieser Teilnehmer ist bereits für diese Veranstaltung eingetragen! Soll er trotzdem hinzugefügt werden?"),
-                    QMessageBox::Yes|QMessageBox::No);
+    if(itFound != existingScores.end()){
+        auto title = tr("Teilnehmer vorhanden!");
+        auto text = tr("Dieser Teilnehmer ist bereits für diese Veranstaltung eingetragen! Soll er trotzdem hinzugefügt werden?");
+        QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::Yes|QMessageBox::No);
+        bOk = msg.exec() == QMessageBox::Yes;
     }
 
-    int maxStartNumber = 0;
+    if( !bOk ){
+        return;
+    }
 
-    for(auto& score: scores){
-        if (score->round() == m_event->round() ){
-            maxStartNumber = std::max(maxStartNumber, score->bib());
+    if(!m_pScore){  // add new participant
+        int maxStartNumber = 0;
+
+        for(auto& score: existingScores){
+            if (score->round() == m_event->round() ){
+                maxStartNumber = std::max(maxStartNumber, score->bib());
+            }
         }
+
+        m_pScore = new Score();
+        m_pScore->setBib(++maxStartNumber);
     }
 
-    auto pScore = new Score();
+    m_pScore->setAthleteId(pAthlete->id());
 
-    pScore->setAthleteId(pAthlete->id());
-    pScore->setCompetitionId(ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()).toInt());
-    pScore->setSquad(ui->txt_rg->text());
-    pScore->setNonCompetitive(ui->chk_ak->isChecked());
-    pScore->setBib(++maxStartNumber);
-    pScore->setDns(ui->chk_nostart->isChecked());
-    pScore->setRound(m_event->round());
-    pScore->setStatusId(ui->cmb_status->itemData(ui->cmb_status->currentIndex(), TF::IdRole).toInt());
-    pScore->setComment(ui->txt_comment->text());
+    m_pScore->setCompetitionId( competitionId );
+    m_pScore->setSquad(ui->txt_rg->text());
+    m_pScore->setNonCompetitive(ui->chk_ak->isChecked());
+    m_pScore->setDns(ui->chk_nostart->isChecked());
+    m_pScore->setRound(m_event->round());
 
-    m_em->scoreRepository()->persist(pScore);
+    m_pScore->setStatusId(statusId);
+    m_pScore->setComment(ui->txt_comment->text());
+
+    m_em->scoreRepository()->persist(m_pScore);
 
     done(1);
 
     //----
-    if (ui->txt_id->text() == ""){
-        ui->txt_id->setText("0");
-    }
-
-    if (editid == 0) {
+//    if (m_pScore == nullptr) { // add new
 //        QSqlQuery query2;
 //        query2.prepare("SELECT int_teilnehmerid FROM tfx_teilnehmer INNER JOIN tfx_vereine USING (int_vereineid) WHERE var_nachname || ', ' || var_vorname=? AND tfx_vereine.var_name=? LIMIT 1");
 //        query2.bindValue(0, ui->cmb_name->currentText());
@@ -290,228 +298,209 @@ void IndividualDialog::save() {
 //            }
 //            done(1);
 //        }
-    } else {
-        QSqlQuery query2;
-        query2.prepare("SELECT int_teilnehmerid FROM tfx_wertungen WHERE int_wertungenid=?");
-        query2.bindValue(0,editid);
-        query2.exec();
-        query2.next();
-        int vid = ui->cmb_club->itemData(ui->cmb_club->currentIndex()).toInt();
-        QSqlQuery query6;
-        query6.prepare("UPDATE tfx_teilnehmer SET int_vereineid=?, var_vorname=?, var_nachname=?, int_geschlecht=?, dat_geburtstag=?, int_startpassnummer=?, bool_nur_jahr=? WHERE int_teilnehmerid=?");
-        query6.bindValue(0, vid);
-        query6.bindValue(1, _global::nameSplit(ui->cmb_name->currentText()).at(0));
-        query6.bindValue(2, _global::nameSplit(ui->cmb_name->currentText()).at(1));
-        query6.bindValue(3, ui->cmb_sex->currentIndex());
-        query6.bindValue(4, ui->dae_year->date().toString("yyyy-MM-dd"));
-        query6.bindValue(5, ui->txt_id->text());
-        query6.bindValue(6, !ui->chk_dat->isChecked());
-        query6.bindValue(7, query2.value(0).toInt());
-        query6.exec();
-        query6.prepare("UPDATE tfx_wertungen SET int_wettkaempfeid=?, var_riege=?, bol_ak=?, bol_startet_nicht=?, int_statusid=?, var_comment=? WHERE int_wertungenid=?");
-        query6.bindValue(0, ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
-        query6.bindValue(1, ui->txt_rg->text());
-        query6.bindValue(2, ui->chk_ak->isChecked());
-        query6.bindValue(3, ui->chk_nostart->isChecked());
-        query6.bindValue(4, ui->cmb_status->itemData(ui->cmb_status->currentIndex()).toInt());
-        query6.bindValue(5, ui->txt_comment->text());
-        query6.bindValue(6, editid);
-        query6.exec();
-        bool all = true;
-        for (int i=0;i<ui->lst_dis->count();i++) {
-            if (ui->lst_dis->item(i)->checkState() == Qt::Unchecked) {
-                all = false;
-                break;
-            }
-        }
-        if (!all) {
-            for (int i=0;i<ui->lst_dis->count();i++) {
-                QSqlQuery query7;
-                query7.prepare("SELECT * FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=? AND int_disziplinenid=?");
-                query7.bindValue(0, editid);
-                query7.bindValue(1, ui->lst_dis->item(i)->data(Qt::UserRole).toInt());
-                query7.exec();
-                if (_global::querySize(query7) == 0 && ui->lst_dis->item(i)->checkState() == Qt::Checked) {
-                    QSqlQuery query8;
-                    query8.prepare("INSERT INTO tfx_wertungen_x_disziplinen (int_wertungenid,int_disziplinenid) VALUES(?,?)");
-                    query8.bindValue(0, editid);
-                    query8.bindValue(1, ui->lst_dis->item(i)->data(Qt::UserRole).toInt());
-                    query8.exec();
-                }
-            }
-            QSqlQuery query9;
-            query9.prepare("SELECT * FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=?");
-            query9.bindValue(0,editid);
-            query9.exec();
-            while (query9.next()) {
-                int test = 0;
-                for (int i=0;i<ui->lst_dis->count();i++) {
-                    if (ui->lst_dis->item(i)->data(Qt::UserRole).toInt() == query9.value(2).toInt()){
-                        QSqlQuery query10;
-                        query10.prepare("SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=? AND int_disziplinenid=? LIMIT 1");
-                        query10.bindValue(0,editid);
-                        query10.bindValue(1,ui->lst_dis->item(i)->data(Qt::UserRole).toInt());
-                        query10.exec();
-                        query10.next();
-                        if (_global::querySize(query10) > 0 && ui->lst_dis->item(i)->checkState() == Qt::Checked) {
-                            test = 1;
-                            break;
-                        } else {
-                            test = 0;
-                        }
-                    }
-                }
-                if (test == 0) {
-                    QSqlQuery query11;
-                    query11.prepare("DELETE FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid=?");
-                    query11.bindValue(0,editid);
-                    query11.bindValue(1,query9.value(2).toInt());
-                    query11.exec();
-                    query11.prepare("DELETE FROM tfx_wertungen_x_disziplinen WHERE int_wertungen_x_disziplinenid=?");
-                    query11.bindValue(0,query9.value(0).toInt());
-                    query11.exec();
-                }
-            }
-            QSqlQuery query12;
-            query12.prepare("DELETE FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid NOT IN (SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=?)");
-            query12.bindValue(0,editid);
-            query12.bindValue(1,editid);
-            query12.exec();
-        } else {
-            QSqlQuery query11;
-            query11.prepare("DELETE FROM tfx_wertungen_x_disziplinen WHERE int_wertungen_x_disziplinenid=?");
-            query11.bindValue(0,editid);
-            query11.exec();
-        }
-
-    }
-
-    done(1);
+//    } else { // edit
+//        QSqlQuery query2;
+//        query2.prepare("SELECT int_teilnehmerid FROM tfx_wertungen WHERE int_wertungenid=?");
+//        query2.bindValue(0,editid);
+//        query2.exec();
+//        query2.next();
+//        int vid = ui->cmb_club->itemData(ui->cmb_club->currentIndex()).toInt();
+//        QSqlQuery query6;
+//        query6.prepare("UPDATE tfx_teilnehmer SET int_vereineid=?, var_vorname=?, var_nachname=?, int_geschlecht=?, dat_geburtstag=?, int_startpassnummer=?, bool_nur_jahr=? WHERE int_teilnehmerid=?");
+//        query6.bindValue(0, vid);
+//        query6.bindValue(1, _global::nameSplit(ui->cmb_name->currentText()).at(0));
+//        query6.bindValue(2, _global::nameSplit(ui->cmb_name->currentText()).at(1));
+//        query6.bindValue(3, ui->cmb_sex->currentIndex());
+//        query6.bindValue(4, ui->dae_year->date().toString("yyyy-MM-dd"));
+//        query6.bindValue(5, ui->txt_id->text());
+//        query6.bindValue(6, !ui->chk_dat->isChecked());
+//        query6.bindValue(7, query2.value(0).toInt());
+//        query6.exec();
+//        query6.prepare("UPDATE tfx_wertungen SET int_wettkaempfeid=?, var_riege=?, bol_ak=?, bol_startet_nicht=?, int_statusid=?, var_comment=? WHERE int_wertungenid=?");
+//        query6.bindValue(0, ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
+//        query6.bindValue(1, ui->txt_rg->text());
+//        query6.bindValue(2, ui->chk_ak->isChecked());
+//        query6.bindValue(3, ui->chk_nostart->isChecked());
+//        query6.bindValue(4, ui->cmb_status->itemData(ui->cmb_status->currentIndex()).toInt());
+//        query6.bindValue(5, ui->txt_comment->text());
+//        query6.bindValue(6, editid);
+//        query6.exec();
+//        bool all = true;
+//        for (int i=0;i<ui->lst_dis->count();i++) {
+//            if (ui->lst_dis->item(i)->checkState() == Qt::Unchecked) {
+//                all = false;
+//                break;
+//            }
+//        }
+//        if (!all) {
+//            for (int i=0;i<ui->lst_dis->count();i++) {
+//                QSqlQuery query7;
+//                query7.prepare("SELECT * FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=? AND int_disziplinenid=?");
+//                query7.bindValue(0, editid);
+//                query7.bindValue(1, ui->lst_dis->item(i)->data(Qt::UserRole).toInt());
+//                query7.exec();
+//                if (_global::querySize(query7) == 0 && ui->lst_dis->item(i)->checkState() == Qt::Checked) {
+//                    QSqlQuery query8;
+//                    query8.prepare("INSERT INTO tfx_wertungen_x_disziplinen (int_wertungenid,int_disziplinenid) VALUES(?,?)");
+//                    query8.bindValue(0, editid);
+//                    query8.bindValue(1, ui->lst_dis->item(i)->data(Qt::UserRole).toInt());
+//                    query8.exec();
+//                }
+//            }
+//            QSqlQuery query9;
+//            query9.prepare("SELECT * FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=?");
+//            query9.bindValue(0,editid);
+//            query9.exec();
+//            while (query9.next()) {
+//                int test = 0;
+//                for (int i=0;i<ui->lst_dis->count();i++) {
+//                    if (ui->lst_dis->item(i)->data(Qt::UserRole).toInt() == query9.value(2).toInt()){
+//                        QSqlQuery query10;
+//                        query10.prepare("SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=? AND int_disziplinenid=? LIMIT 1");
+//                        query10.bindValue(0,editid);
+//                        query10.bindValue(1,ui->lst_dis->item(i)->data(Qt::UserRole).toInt());
+//                        query10.exec();
+//                        query10.next();
+//                        if (_global::querySize(query10) > 0 && ui->lst_dis->item(i)->checkState() == Qt::Checked) {
+//                            test = 1;
+//                            break;
+//                        } else {
+//                            test = 0;
+//                        }
+//                    }
+//                }
+//                if (test == 0) {
+//                    QSqlQuery query11;
+//                    query11.prepare("DELETE FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid=?");
+//                    query11.bindValue(0,editid);
+//                    query11.bindValue(1,query9.value(2).toInt());
+//                    query11.exec();
+//                    query11.prepare("DELETE FROM tfx_wertungen_x_disziplinen WHERE int_wertungen_x_disziplinenid=?");
+//                    query11.bindValue(0,query9.value(0).toInt());
+//                    query11.exec();
+//                }
+//            }
+//            QSqlQuery query12;
+//            query12.prepare("DELETE FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid NOT IN (SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=?)");
+//            query12.bindValue(0,editid);
+//            query12.bindValue(1,editid);
+//            query12.exec();
+//        } else {
+//            QSqlQuery query11;
+//            query11.prepare("DELETE FROM tfx_wertungen_x_disziplinen WHERE int_wertungen_x_disziplinenid=?");
+//            query11.bindValue(0,editid);
+//            query11.exec();
+//        }
+//
+//    }
+//
+//    done(1);
 }
 
-void IndividualDialog::checkUpdate() {
+void IndividualDialog::updateAthleteInfo() {
     auto userInput = ui->cmb_name->currentText();
-    auto itFound = std::find_if(m_athletes.begin(), m_athletes.end(), [userInput](const Athlete* item){
-        return QString("%1 %2").arg(item->firstName(), item->lastName()).contains(userInput, Qt::CaseInsensitive);
-    });
 
-    if(!userInput.trimmed().isEmpty() && itFound != m_athletes.end()){
-        const auto foundAthlete = *itFound;
-        ui->cmb_sex->setCurrentIndex(foundAthlete->gender());
-        ui->dae_year->setDate(foundAthlete->dateOfBirth());
-        ui->txt_id->setText(foundAthlete->license());
-        auto clubIdx = ui->cmb_club->findData(foundAthlete->clubId(), TF::IdRole);
-        ui->cmb_club->setCurrentIndex(clubIdx);
-        ui->chk_dat->setChecked(foundAthlete->yearOfBirthOnly());
-    } else {
-        ui->cmb_sex->setCurrentIndex(0);
-        ui->dae_year->clear();
-        ui->cmb_club->setCurrentIndex(-1);
-        ui->txt_id->setText("");
-        ui->chk_dat->setChecked(false);
-    }
-//    QSqlQuery query;
-//    query.prepare("SELECT * FROM tfx_teilnehmer WHERE var_nachname || ', ' || var_vorname = ?");
-//    query.bindValue( 0, ui->cmb_name->currentText());
-//    query.exec();
-//    if (_global::querySize(query) > 0) {
-//        query.next();
-//        ui->cmb_sex->setCurrentIndex(query.value(4).toInt());
-//        ui->dae_year->setDate(QDate().fromString(query.value(5).toString(), "yyyy-MM-dd"));
-//        ui->txt_id->setText(query.value(7).toString());
-//        ui->cmb_club->setCurrentIndex(ui->cmb_club->findData(query.value(1).toInt()));
-//        ui->chk_dat->setChecked(!query.value(6).toBool());
-//    } else {
-//        ui->cmb_sex->setCurrentIndex(0);
-//        ui->dae_year->clear();
-//        ui->cmb_club->setCurrentIndex(ui->cmb_club->findData(0));
-//        ui->txt_id->setText("");
-//        ui->chk_dat->setChecked(false);
-//    }
+    qDebug() << "IndividualDialog::updateAthleteInfo() with " << userInput;
+
+    auto idx = userInput.isEmpty() ? -1 : ui->cmb_name->findText(userInput, Qt::MatchContains);
+    auto pAthlete = qvariant_cast< Athlete* >(ui->cmb_name->itemData(idx, TF::ObjectRole));
+
+    auto birthDate = pAthlete ? pAthlete->dateOfBirth() : QDate();
+    auto showYearOnly = pAthlete ? pAthlete->yearOfBirthOnly() : false;
+    auto gender = pAthlete ? pAthlete->gender() : -1;
+    auto club = pAthlete ? ui->cmb_club->findData(pAthlete->clubId(), TF::IdRole) : -1;
+    auto license = pAthlete ? pAthlete->license() : "0";
+
+    ui->dae_year->setDate( birthDate );
+    ui->chk_dat->setChecked( !showYearOnly );
+    ui->cmb_sex->setCurrentIndex( gender );
+    ui->cmb_club->setCurrentIndex( club );
+    ui->txt_id->setText( license );
 }
 
 void IndividualDialog::checkJg() {
-    if (ui->dae_year->date().isValid()) {
-        QSqlQuery query;
-        query.prepare("SELECT yer_von, yer_bis FROM tfx_wettkaempfe WHERE int_wettkaempfeid=?");
-        query.bindValue(0,ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
-        query.exec();
-        query.next();
-        if (query.value(1).toInt() == 2) {
-            if (ui->dae_year->date().toString("yyyy").toInt() < query.value(0).toInt()) {
-                ui->lbl_control->setStyleSheet("QLabel { background-color: red }\nQLabel { color: white }");
-                ui->lbl_control->setText("Jahrgangsüberprüfung fehlgeschlagen!");
-            } else {
-                ui->lbl_control->setStyleSheet("");
-                ui->lbl_control->setText("");
-            }
-        } else if (query.value(1).toInt() == 1) {
-            if (ui->dae_year->date().toString("yyyy").toInt() > query.value(0).toInt()) {
-                ui->lbl_control->setStyleSheet("QLabel { background-color: red }\nQLabel { color: white }");
-                ui->lbl_control->setText("Jahrgangsüberprüfung fehlgeschlagen!");
-            } else {
-                ui->lbl_control->setStyleSheet("");
-                ui->lbl_control->setText("");
-            }
-        } else if (query.value(1).toInt() != 3) {
-            if ((query.value(0).toInt() >= query.value(1).toInt() && query.value(1).toInt() <= ui->dae_year->date().toString("yyyy").toInt() && ui->dae_year->date().toString("yyyy").toInt() <= query.value(0).toInt()) || (query.value(0).toInt() < query.value(1).toInt() && query.value(1).toInt() >= ui->dae_year->date().toString("yyyy").toInt() && ui->dae_year->date().toString("yyyy").toInt() >= query.value(0).toInt())) {
-                ui->lbl_control->setStyleSheet("");
-                ui->lbl_control->setText("");
-            } else {
-                ui->lbl_control->setStyleSheet("QLabel { background-color: red }\nQLabel { color: white }");
-                ui->lbl_control->setText("Jahrgangsüberprüfung fehlgeschlagen!");
-            }
-        } else {
-            ui->lbl_control->setStyleSheet("");
-            ui->lbl_control->setText("");
-        }
+    qDebug() << "IndividualDialog::checkJg()";
+
+    ui->lbl_control->setStyleSheet("");
+    ui->lbl_control->setText("");
+
+    const auto birthDate = ui->dae_year->date();
+
+    if( !birthDate.isValid()){
+        return;
     }
+
+    auto pCompetition = qvariant_cast< Competition* >( ui->cmb_wk->currentData());
+
+    if( !pCompetition ){
+        return;
+    }
+
+    bool bOk = true;
+
+    switch( pCompetition->maxYear() ) {
+    case 1: // minYear "und alter"
+        bOk = birthDate.year() <= pCompetition->minYear();
+        break;
+    case 2: // minYear "und junger"
+        bOk = birthDate.year() >= pCompetition->minYear();
+        break;
+    case 3: // jahrgangsoffen
+        bOk = true;
+        break;
+    default: // from minYear to maxYear
+        bOk = ( pCompetition->minYear() <= birthDate.year() ) && ( birthDate.year() <= pCompetition->maxYear());
+        break;
+    }
+
+    ui->lbl_control->setStyleSheet( bOk ? "" : "QLabel { background-color: red }\nQLabel { color: white }" );
+    ui->lbl_control->setText( bOk ? "" : "Jahrgangsüberprüfung fehlgeschlagen!" );
 }
 
-void IndividualDialog::checkDisziplinen() {
-    return;
+void IndividualDialog::updateDisciplins() {
+    qDebug() << "... IndividualDialog::updateDisciplins()";
 
-    ui->lst_dis->clear();
-    QSqlQuery query;
-    query.prepare("SELECT int_disziplinenid, var_name FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) WHERE int_wettkaempfeid=? ORDER BY int_sportid, int_disziplinenid");
-    query.bindValue(0, ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
-    query.exec();
-    while (query.next()) {
-        QListWidgetItem *item = new QListWidgetItem();
-        item->setData(Qt::UserRole,query.value(0).toInt());
-        item->setText(query.value(1).toString());
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(Qt::Checked);
-        ui->lst_dis->addItem(item);
-    }
-    query.prepare("SELECT bol_wahlwettkampf FROM tfx_wettkaempfe WHERE int_wettkaempfeid=?");
-    query.bindValue(0, ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
-    query.exec();
-    query.next();
-    ui->act_dis->setEnabled(query.value(0).toBool());
-    if (editid != 0) {
-        for (int i=0;i<ui->lst_dis->count();i++) {
-            ui->lst_dis->item(i)->setCheckState(Qt::Unchecked);
-        }
-        QSqlQuery query2;
-        query2.prepare("SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=?");
-        query2.bindValue(0,editid);
-        query2.exec();
-        if (_global::querySize(query2) > 0) {
-            while (query2.next()) {
-                for (int i=0;i<ui->lst_dis->count();i++) {
-                    if (ui->lst_dis->item(i)->data(Qt::UserRole).toInt() == query2.value(0).toInt()) {
-                        ui->lst_dis->item(i)->setCheckState(Qt::Checked);
-                        break;
-                    }
-                }
-            }
-        } else {
-            for (int i=0;i<ui->lst_dis->count();i++) {
-                ui->lst_dis->item(i)->setCheckState(Qt::Checked);
-            }
-        }
-    }
+//    ui->lst_dis->clear();
+//    QSqlQuery query;
+//    query.prepare("SELECT int_disziplinenid, var_name FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) WHERE int_wettkaempfeid=? ORDER BY int_sportid, int_disziplinenid");
+//    query.bindValue(0, ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
+//    query.exec();
+//    while (query.next()) {
+//        QListWidgetItem *item = new QListWidgetItem();
+//        item->setData(Qt::UserRole,query.value(0).toInt());
+//        item->setText(query.value(1).toString());
+//        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+//        item->setCheckState(Qt::Checked);
+//        ui->lst_dis->addItem(item);
+//    }
+//    query.prepare("SELECT bol_wahlwettkampf FROM tfx_wettkaempfe WHERE int_wettkaempfeid=?");
+//    query.bindValue(0, ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()));
+//    query.exec();
+//    query.next();
+//    ui->act_dis->setEnabled(query.value(0).toBool());
+//    if (editid != 0) {
+//        for (int i=0;i<ui->lst_dis->count();i++) {
+//            ui->lst_dis->item(i)->setCheckState(Qt::Unchecked);
+//        }
+//        QSqlQuery query2;
+//        query2.prepare("SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=?");
+//        query2.bindValue(0,editid);
+//        query2.exec();
+//        if (_global::querySize(query2) > 0) {
+//            while (query2.next()) {
+//                for (int i=0;i<ui->lst_dis->count();i++) {
+//                    if (ui->lst_dis->item(i)->data(Qt::UserRole).toInt() == query2.value(0).toInt()) {
+//                        ui->lst_dis->item(i)->setCheckState(Qt::Checked);
+//                        break;
+//                    }
+//                }
+//            }
+//        } else {
+//            for (int i=0;i<ui->lst_dis->count();i++) {
+//                ui->lst_dis->item(i)->setCheckState(Qt::Checked);
+//            }
+//        }
+//    }
 }
 
 void IndividualDialog::addClub() {

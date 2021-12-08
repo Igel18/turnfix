@@ -9,6 +9,8 @@
 
 class DBTable;
 
+class ParticipantsModel;
+
 class Event : public QObject
 {
     Q_OBJECT
@@ -156,6 +158,9 @@ public:
 
     static const DBTable *mapping();
 
+    ParticipantsModel* participantsModel() const;
+    void setParticipantsModel(ParticipantsModel* pModel);
+
 private:
     int m_id = 0;
     int m_venueId;
@@ -196,6 +201,8 @@ private:
 
     static DBTable *initializeMapping();
     static const DBTable *m_mapping;
+
+    ParticipantsModel* m_pParticipantsModel = nullptr;
 };
 Q_DECLARE_METATYPE(Event *);
 

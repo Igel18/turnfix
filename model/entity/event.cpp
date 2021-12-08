@@ -461,3 +461,13 @@ QDate Event::registrationDeadline() const
 {
     return m_registrationDeadline;
 }
+
+ParticipantsModel* Event::participantsModel() const
+{
+    return m_pParticipantsModel;
+}
+
+void Event::setParticipantsModel(ParticipantsModel* pModel)
+{
+    m_pParticipantsModel = pModel;
+}

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1043</width>
+    <width>1121</width>
     <height>378</height>
    </rect>
   </property>
@@ -297,6 +297,9 @@
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QTableView" name="participantsTable">
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
         <property name="selectionMode">
          <enum>QAbstractItemView::SingleSelection</enum>
         </property>
@@ -313,7 +316,7 @@
          <bool>false</bool>
         </attribute>
         <attribute name="verticalHeaderDefaultSectionSize">
-         <number>21</number>
+         <number>26</number>
         </attribute>
         <attribute name="verticalHeaderHighlightSections">
          <bool>false</bool>

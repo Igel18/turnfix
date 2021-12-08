@@ -15,10 +15,7 @@
 #include <QToolBar>
 
 CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em, QWidget *parent)
-    : QDialog(parent)
-    , m_competition(competition)
-    , m_em(em)
-    , ui(new Ui::CompetitionDialog)
+    : QDialog(parent), m_competition(competition), m_em(em), ui(new Ui::CompetitionDialog)
 {
     ui->setupUi(this);
 
@@ -82,10 +79,9 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     model2 = new QStandardItemModel();
     ui->tbl_order->setModel(model2);
 
-    //connect(ui->cmb_bereich, SIGNAL(currentIndexChanged(int)), this, SLOT(fillTable()));
     auto onDivisionChanged = [this](int idx){
         auto division = qvariant_cast<Division*>(ui->cmb_bereich->itemData(idx, TF::ObjectRole));
-        emit divisionChanged( division->women(),  division->men() );
+        emit divisionChanged( division->id() );
     };
 
     connect(ui->cmb_bereich, qOverload<int>(&QComboBox::currentIndexChanged), onDivisionChanged);
@@ -149,6 +145,10 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
 
     // 5th tab
     ui->gbx_sort->setChecked(m_competition->manualSort());
+
+    //auto division = qvariant_cast< Division* >(ui->cmb_bereich->itemData(ui->cmb_bereich->currentIndex(), TF::ObjectRole));
+    auto division = qvariant_cast< Division* >( ui->cmb_bereich->currentData( TF::ObjectRole ) );
+    m_competitionDisciplineModel->fetchDisciplines(division->id());
 }
 
 CompetitionDialog::~CompetitionDialog()

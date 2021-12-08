@@ -4,34 +4,32 @@
 #include "model/entitymanager.h"
 #include "model/querybuilder.h"
 
+
 DisciplineRepository::DisciplineRepository(EntityManager *em)
     : AbstractRepository<Discipline>(em)
 {}
 
-QList<Discipline *> DisciplineRepository::loadAll()
+QList<Discipline *> DisciplineRepository::loadDisciplines(const bool* const women /*= nullptr*/, const bool* const men /*= nullptr*/, bool joinFormula /*= true*/ )
 {
     QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
 
     QueryBuilder<Discipline> qb;
     qb.select(Discipline::staticMetaObject, Discipline::mapping());
     qb.join(Sport::staticMetaObject, Sport::mapping(), "Discipline", "sport", "sportId");
-    qb.join(Formula::staticMetaObject, Formula::mapping(), "Discipline", "formula", "formulaId");
-    qb.orderBy("Discipline", "name");
 
-    QList<Discipline *> output = qb.query(db);
+    if( joinFormula ) {
+        qb.join(Formula::staticMetaObject, Formula::mapping(), "Discipline", "formula", "formulaId");
+    }
 
-    return output;
-}
+    if( women ){
+        qb.where("Discipline", "women", *women);
+    }
 
-QList<Discipline *> DisciplineRepository::loadByGender(bool women, bool men)
-{
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
+    if( men )
+    {
+        qb.where("Discipline", "men", *men);
+    }
 
-    QueryBuilder<Discipline> qb;
-    qb.select(Discipline::staticMetaObject, Discipline::mapping());
-    qb.join(Sport::staticMetaObject, Sport::mapping(), "Discipline", "sport", "sportId");
-    qb.where("Discipline", "women", women);
-    qb.where("Discipline", "men", men);
     qb.orderBy("Discipline", "name");
 
     QList<Discipline *> output = qb.query(db);

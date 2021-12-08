@@ -4,7 +4,10 @@
 #include "qnamespace.h"
 
 namespace TF {
-enum ItemDataRole { ObjectRole = Qt::UserRole, IdRole };
+    enum ItemDataRole {
+        ObjectRole = Qt::UserRole,
+        IdRole
+    };
 }
 
 enum ColumnType { SmallInt, Integer, Boolean, Varchar, Date, Real, Text, TimeNoTimezone };
