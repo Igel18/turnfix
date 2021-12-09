@@ -145,7 +145,7 @@ void SubdivisionsWidget::reloadSquads()
 //    }
     QList< QHeaderView::ResizeMode > resizeMode = { QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed };
     QStringList heads = { "Riege", "Teiln.", "Manns.", "Gruppen", "1. Gerät" };
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         ui->lst_all->horizontalHeader()->setSectionResizeMode(i, resizeMode.at( i ));
         rg_model->setHeaderData( i, Qt::Horizontal, heads.at(i) );
     }
