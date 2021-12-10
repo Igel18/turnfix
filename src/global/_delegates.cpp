@@ -1,8 +1,12 @@
 #include "header/_delegates.h"
 #include "header/_global.h"
 #include "model/entity/event.h"
+#include "model/entitymanager.h"
+//#include "model/repository/squaddisciplinerepository.h"
+#include "masterdata/squaddisciplinemodel.h"
 #include <QApplication>
 #include <QComboBox>
+#include <QDebug>
 #include <QDoubleSpinBox>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -48,26 +52,35 @@ bool EditorDelegate::eventFilter ( QObject *object, QEvent *event) {
     return false;
 }
 
-CmbDelegate::CmbDelegate(Event *event, QObject *parent) : QItemDelegate(parent)
+CmbDelegate::CmbDelegate(EntityManager* pEntityManager, Event *event, QObject *parent) :
+    QItemDelegate(parent), m_em(pEntityManager), m_event(event)
 {
-    this->m_event = event;
 }
 
 QWidget *CmbDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &index) const {
     QComboBox *editor = new QComboBox(parent);
-    QStringList fields;
-    fields << "";
-    //fields << "Pause";
-    QSqlQuery query;
-    query.prepare("SELECT var_kurz2 FROM tfx_wertungen INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid INNER JOIN tfx_wettkaempfe_x_disziplinen ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wettkaempfe_x_disziplinen.int_wettkaempfeid INNER JOIN tfx_disziplinen USING (int_disziplinenid) WHERE int_veranstaltungenid=? AND tfx_wertungen.int_runde=? AND var_riege=? GROUP BY int_disziplinenid, var_kurz2 ORDER BY int_disziplinenid");
-    query.bindValue(0, this->m_event->mainEvent()->id());
-    query.bindValue(1, this->m_event->round());
-    query.bindValue(2, index.model()->index(index.row(),0).data().toString());
-    query.exec();
-    while (query.next()) {
-        fields << query.value(0).toString();
+    const auto squadName = index.model()->index( index.row(), 0 ).data().toString();
+    QStringList fields = { "" };
+    auto pModel = new SquadDisciplineModel(m_em, m_event );
+    pModel->fetchData( squadName );
+    editor->setModel( pModel );
+    editor->setModelColumn( 2 );
+
+    for( auto i = 0; i < pModel->rowCount(); ++i){
+        qDebug() << pModel->data(pModel->index(i, 1)).toString();
     }
-    editor->addItems(fields);
+
+//    QSqlQuery query;
+//    query.prepare("SELECT var_kurz2 FROM tfx_wertungen INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid INNER JOIN tfx_wettkaempfe_x_disziplinen ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wettkaempfe_x_disziplinen.int_wettkaempfeid INNER JOIN tfx_disziplinen USING (int_disziplinenid) WHERE int_veranstaltungenid=? AND tfx_wertungen.int_runde=? AND var_riege=? GROUP BY int_disziplinenid, var_kurz2 ORDER BY int_disziplinenid");
+//    query.bindValue(0, this->m_event->mainEvent()->id());
+//    query.bindValue(1, this->m_event->round());
+//    query.bindValue(2, squadName);
+//    query.exec();
+//    while (query.next()) {
+//        fields << query.value(0).toString();
+//    }
+//    editor->addItems(fields);
+
     return editor;
 }
 

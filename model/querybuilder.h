@@ -131,7 +131,8 @@ public:
             qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
             query.bindValue(i, m_bindValues.at(i));
         }
-        query.exec();
+
+        qDebug() << "SQL QUERY EXECUTION RESULT: " << query.exec();
 
         QList<T *> output;
         while (query.next()) {

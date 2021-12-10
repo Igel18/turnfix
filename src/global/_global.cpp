@@ -2,6 +2,11 @@
 #include "header/settings.h"
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
+#include "model/repository/competitionrepository.h"
+#include "model/repository/competitiondisciplinerepository.h"
+#include "model/repository/scorerepository.h"
+#include "model/repository/squaddisciplinerepository.h"
+#include "model/entity/squaddiscipline.h"
 #include <math.h>
 #include <QSqlQuery>
 #include <QSqlRecord>
@@ -68,51 +73,101 @@ QString _global::wkBez(Event *event, QString swknr) {
     return " " + jahr1 + to;
 }
 
-void _global::updateRgDis(Event *event, EntityManager *em /*= nullptr*/) {
-    QSqlDatabase db = QSqlDatabase::database(em->connectionName());
-    QSqlQuery query(db);
+void _global::updateRgDis(Event* event, EntityManager* em) {
+    auto eventCompetitions = em->competitionRepository()->fetchByEvent( event );
+    QHash< QString, QList< Discipline* > > squadDisciplines;
+    QList< Score* > eventParticipants;
 
-    query.prepare("SELECT var_riege FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? GROUP BY var_riege");
-    query.bindValue(0, event->mainEvent()->id());
-    query.bindValue(1, event->round());
-    query.exec();
-    QSqlQuery query2;
-    query2.prepare("SELECT int_disziplinenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? AND var_riege=? GROUP BY int_disziplinenid ORDER BY int_disziplinenid");
-    query2.bindValue(0, event->mainEvent()->id());
-    query2.bindValue(1, event->round());
-    query2.exec();
-    QSqlQuery query3;
-    query3.prepare("SELECT int_riegen_x_disziplinenid FROM tfx_riegen_x_disziplinen WHERE int_veranstaltungenid=? AND int_runde=? AND int_disziplinenid=? AND var_riege=?");
-    query3.bindValue(0, event->mainEvent()->id());
-    query3.bindValue(1, event->round());
-    QSqlQuery query4;
-    query4.prepare("INSERT INTO tfx_riegen_x_disziplinen (int_veranstaltungenid,int_disziplinenid,var_riege,int_runde,int_statusid,bol_erstes_geraet) VALUES (?,?,?,?,?,?)");
-    query4.bindValue(0, event->mainEvent()->id());
-    query4.bindValue(3, event->round());
-    query4.bindValue(4, 1);
-    query4.bindValue(5, false);
-    while(query.next()) {
-        query2.bindValue(2,query.value(0).toString());
-        query2.exec();
-        while (query2.next()) {
-            query3.bindValue(2, query2.value(0).toInt());
-            query3.bindValue(3, query.value(0).toString());
-            query3.exec();
-            if (_global::querySize(query3) == 0) {
-                query4.bindValue(1, query2.value(0).toInt());
-                query4.bindValue(2, query.value(0).toString());
-                query4.exec();
-            }
+    for( auto& eventCompetition: eventCompetitions ){
+        int competitionId = eventCompetition->id();
+        eventParticipants.append(em->scoreRepository()->fetch( &competitionId ));
+    }
+
+    for( auto& participant: eventParticipants ){
+        auto selectedDisciplines = em->competitionDisciplineRepository()->fetchByCompetition( participant->competition() );
+        for( auto& item: selectedDisciplines ) {
+            squadDisciplines[ participant->squad() ].append( item->discipline() );
         }
     }
-    QSqlQuery query5;
-    query5.prepare("DELETE FROM tfx_riegen_x_disziplinen WHERE int_veranstaltungenid=? AND var_riege NOT IN (SELECT var_riege FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? GROUP BY var_riege) AND int_disziplinenid NOT IN (SELECT int_disziplinenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? AND var_riege=tfx_riegen_x_disziplinen.var_riege GROUP BY int_disziplinenid ORDER BY int_disziplinenid)");
-    query5.bindValue(0, event->mainEvent()->id());
-    query5.bindValue(1, event->mainEvent()->id());
-    query5.bindValue(2, event->round());
-    query5.bindValue(3, event->mainEvent()->id());
-    query5.bindValue(4, event->round());
-    query5.exec();
+
+    // clear
+    auto itemsToDelete = em->squadDisciplineRepository()->load( event );
+    for( auto& item: itemsToDelete ){
+        em->squadDisciplineRepository()->remove( item );
+    }
+
+    // add new items
+    for( const auto& squadName: squadDisciplines.keys() ){
+        if( squadName.isEmpty() )
+            continue;
+
+        auto items = squadDisciplines.value( squadName );
+        QHash< int, Discipline* > uniqueDisciplinesForSquad;
+
+        for(auto& item: items){
+            uniqueDisciplinesForSquad[ item->id() ] = item;
+        }
+
+        for( auto& discipline: uniqueDisciplinesForSquad.values()){
+            auto pItem = new SquadDiscipline();
+
+            pItem->setEventId( event->id() );
+            pItem->setDisciplineId( discipline->id() );
+            pItem->setStatusId( 1 ); // update with actual value
+            pItem->setSquad( squadName );
+            pItem->setRound( event->round() ); // update with actual value ??
+            pItem->setStart( false ); // update with actual value
+
+            em->squadDisciplineRepository()->persist( pItem );
+        }
+    }
+
+
+    //-----
+//    QSqlDatabase db = QSqlDatabase::database(em->connectionName());
+//    QSqlQuery query(db);
+
+//    query.prepare("SELECT var_riege FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? GROUP BY var_riege");
+//    query.bindValue(0, event->mainEvent()->id());
+//    query.bindValue(1, event->round());
+//    query.exec();
+//    QSqlQuery query2;
+//    query2.prepare("SELECT int_disziplinenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? AND var_riege=? GROUP BY int_disziplinenid ORDER BY int_disziplinenid");
+//    query2.bindValue(0, event->mainEvent()->id());
+//    query2.bindValue(1, event->round());
+//    query2.exec();
+//    QSqlQuery query3;
+//    query3.prepare("SELECT int_riegen_x_disziplinenid FROM tfx_riegen_x_disziplinen WHERE int_veranstaltungenid=? AND int_runde=? AND int_disziplinenid=? AND var_riege=?");
+//    query3.bindValue(0, event->mainEvent()->id());
+//    query3.bindValue(1, event->round());
+//    QSqlQuery query4;
+//    query4.prepare("INSERT INTO tfx_riegen_x_disziplinen (int_veranstaltungenid,int_disziplinenid,var_riege,int_runde,int_statusid,bol_erstes_geraet) VALUES (?,?,?,?,?,?)");
+//    query4.bindValue(0, event->mainEvent()->id());
+//    query4.bindValue(3, event->round());
+//    query4.bindValue(4, 1);
+//    query4.bindValue(5, false);
+//    while(query.next()) {
+//        query2.bindValue(2,query.value(0).toString());
+//        query2.exec();
+//        while (query2.next()) {
+//            query3.bindValue(2, query2.value(0).toInt());
+//            query3.bindValue(3, query.value(0).toString());
+//            query3.exec();
+//            if (_global::querySize(query3) == 0) {
+//                query4.bindValue(1, query2.value(0).toInt());
+//                query4.bindValue(2, query.value(0).toString());
+//                query4.exec();
+//            }
+//        }
+//    }
+//    QSqlQuery query5;
+//    query5.prepare("DELETE FROM tfx_riegen_x_disziplinen WHERE int_veranstaltungenid=? AND var_riege NOT IN (SELECT var_riege FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? GROUP BY var_riege) AND int_disziplinenid NOT IN (SELECT int_disziplinenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? AND var_riege=tfx_riegen_x_disziplinen.var_riege GROUP BY int_disziplinenid ORDER BY int_disziplinenid)");
+//    query5.bindValue(0, event->mainEvent()->id());
+//    query5.bindValue(1, event->mainEvent()->id());
+//    query5.bindValue(2, event->round());
+//    query5.bindValue(3, event->mainEvent()->id());
+//    query5.bindValue(4, event->round());
+//    query5.exec();
 }
 
 double _global::calcLeistung(QString val) {

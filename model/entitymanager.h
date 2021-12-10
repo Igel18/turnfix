@@ -22,6 +22,7 @@ class PersonRepository;
 class RegionRepository;
 class ScoreRepository;
 class SportRepository;
+class SquadDisciplineRepository;
 class StateRepository;
 class StatusRepository;
 class VenueRepository;
@@ -52,6 +53,7 @@ public:
     RegionRepository *regionRepository() const;
     ScoreRepository* scoreRepository() const;
     SportRepository *sportRepository() const;
+    SquadDisciplineRepository *squadDisciplineRepository() const;
     StateRepository *stateRepository() const;
     StatusRepository *statusRepository() const;
     VenueRepository *venueRepository() const;
@@ -83,6 +85,7 @@ private:
     RegionRepository *m_regionRepository;
     ScoreRepository* m_scoreRepository;
     SportRepository *m_sportRepository;
+    SquadDisciplineRepository *m_squadDisciplineRepository;
     StateRepository *m_stateRepository;
     StatusRepository *m_statusRepository;
     VenueRepository *m_venueRepository;

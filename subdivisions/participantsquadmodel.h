@@ -19,8 +19,6 @@ public slots:
     bool inSquad() const;
     void setInSquad( bool inSquad );
 
-signals:
-
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 

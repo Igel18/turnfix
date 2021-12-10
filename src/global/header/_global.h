@@ -19,6 +19,12 @@ public:
     static void initFields();
     static QStringList getFields();
     static QString wkBez(Event *m_event, QString swknr);
+
+    /*!
+     * \brief updateRgDis updates squads and disciplines mapping (tfx_riegen_x_disziplinen table)
+     * \param m_event
+     * \param em
+     */
     static void updateRgDis(Event *m_event, EntityManager *em = nullptr);
     static QString nameFormat();
     static double calcLeistung(QString value);

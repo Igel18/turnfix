@@ -8,11 +8,11 @@
 #include "src/global/header/_delegates.h"
 #include "src/global/header/_global.h"
 #include "ui_subdivisionswidget.h"
+#include <QDebug>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QStandardItemModel>
-//#include <QSortFilterProxyModel>
 #include "participantsquadmodel.h"
 
 
@@ -21,11 +21,11 @@ SubdivisionsWidget::SubdivisionsWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->but_add, SIGNAL(clicked()), this, SLOT(addRiege()));
-    connect(ui->but_add_2, SIGNAL(clicked()), this, SLOT(sendData()));
-    connect(ui->but_remove, SIGNAL(clicked()), this, SLOT(getData()));
-    connect(ui->txt_nummer, SIGNAL(editingFinished()), this, SLOT(updateRiege()));
-    connect(ui->but_del, SIGNAL(clicked()), this, SLOT(removeRiege()));
+    connect(ui->but_add, &QPushButton::clicked, this, &SubdivisionsWidget::addNewSquad);
+    connect(ui->but_del, &QPushButton::clicked, this, &SubdivisionsWidget::removeSquad);
+    connect(ui->but_add_2, &QPushButton::clicked, this, &SubdivisionsWidget::addToSquad);
+    connect(ui->but_remove, &QPushButton::clicked, this, &SubdivisionsWidget::removeFromSquad);
+    connect(ui->txt_nummer, &QLineEdit::editingFinished, this, &SubdivisionsWidget::updateSquadName);
 }
 
 SubdivisionsWidget::~SubdivisionsWidget()
@@ -41,31 +41,28 @@ void SubdivisionsWidget::setup(Event *event, EntityManager *em)
     auto pNoSquadParticipantsModel = new ParticipantSquadModel( "", true, this );
     pNoSquadParticipantsModel->setSourceModel( m_event->participantsModel() );
     ui->re_table2->setModel(pNoSquadParticipantsModel);
-    // ui->re_table2->hideColumn( 6 ); // hide squad column
+    ui->re_table2->hideColumn( m_iSquadColIdx );
 
     auto pSquadParticipantsModel = new ParticipantSquadModel( "invalid_squad_name", true, this );
     pSquadParticipantsModel->setSourceModel( m_event->participantsModel() );
     ui->tbl_list->setModel( pSquadParticipantsModel );
-    // ui->tbl_list->hideColumn( 6 ); // hide squad column
+    ui->tbl_list->hideColumn( m_iSquadColIdx );
 
-    //----------------
-    //re_model = new AssignmentTableModel(m_event, this);
-    //re_model2 = new AssignmentTableModel(m_event, this);
     rg_model = new QStandardItemModel(this);
     rg_model->setColumnCount(4);
     ui->lst_all->setModel(rg_model);
 
-    connect(ui->lst_all->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(fetchRgData()));
+    connect(ui->lst_all->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &SubdivisionsWidget::fetchRgData);
     connect(m_event->participantsModel(), &ParticipantsModel::modelReset, this, &SubdivisionsWidget::reloadSquads);
 
-    reloadSquads(); // initial
+    reloadSquads(); // initial loading
 }
 
 void SubdivisionsWidget::reloadSquads()
 {
     rg_model->removeRows( 0, rg_model->rowCount() );
 
-    QMap<QString, int > squads; // individual participants only for now
+    QHash<QString, int > squads; // individual participants only for now
 
     for( auto i = 0; i < m_event->participantsModel()->rowCount(); ++i ) {
         auto idx = m_event->participantsModel()->index(i, 0);
@@ -74,9 +71,8 @@ void SubdivisionsWidget::reloadSquads()
         squads[ squadName ] = ++squads[ squadName ];
     }
 
-    const auto keys = squads.keys();
-
-    for( const auto& squadName : keys )
+    const auto squadNames = squads.keys();
+    for( const auto& squadName : squadNames )
     {
         if( !squadName.isEmpty() ){
             QList< QStandardItem* > items = {
@@ -154,8 +150,9 @@ void SubdivisionsWidget::reloadSquads()
     ui->lst_all->horizontalHeader()->resizeSection(2, 45);
     ui->lst_all->horizontalHeader()->resizeSection(3, 45);
     ui->lst_all->horizontalHeader()->resizeSection(4, 90);
-    ui->lst_all->setItemDelegateForColumn(4, new CmbDelegate( m_event ) );
-    ui->lst_all->selectRow(0);
+    auto pCmbDelegate = new CmbDelegate( m_em ,m_event, this );
+    ui->lst_all->setItemDelegateForColumn(4, pCmbDelegate );
+    ui->lst_all->selectRow( 0 );
 }
 
 //void SubdivisionsWidget::fillRETable2()
@@ -236,44 +233,47 @@ void SubdivisionsWidget::reloadSquads()
 //    ui->lst_all->selectRow(0);
 //}
 
-void SubdivisionsWidget::sendData() // add to a squad
+void SubdivisionsWidget::setSquadNameForSelected( QTableView* pTableView, QString squadName )
 {
-    QModelIndexList list = ui->re_table2->selectionModel()->selectedRows();
+    const auto indexes = pTableView->selectionModel()->selectedRows( m_iSquadColIdx );
+    auto pSortFilterModel = qobject_cast< ParticipantSquadModel* >(pTableView->model());
+    Q_ASSERT( pSortFilterModel );
 
-    //---
+    QVector< QModelIndex > vIdxToUpdate;
 
-//    QModelIndexList list = ui->re_table2->selectionModel()->selectedRows();
-//    for (int i = list.size() - 1; i >= 0; i--) {
-//        re_model->insertRow(re_model2->takeRow(list.at(i).row()));
-//    }
-//    _global::updateRgDis(this->m_event);
-//    re_model->setTableData();
-//    re_model2->setTableData();
-//    setRiegenData();
+    for( const auto& idx: indexes ) {
+        vIdxToUpdate.append( pSortFilterModel->mapToSource(idx) );
+    }
+
+    for( const auto& idx: vIdxToUpdate ){
+        pSortFilterModel->sourceModel()->setData( idx, squadName );
+    }
 }
 
-void SubdivisionsWidget::getData() // remove from squad
+void SubdivisionsWidget::addToSquad()
 {
-//    QModelIndexList list = ui->tbl_list->selectionModel()->selectedRows();
-//    for (int i = list.size() - 1; i >= 0; i--) {
-//        re_model2->insertRow(re_model->takeRow(list.at(i).row()));
-//    }
-//    _global::updateRgDis(this->m_event);
-//    re_model->setTableData();
-//    re_model2->setTableData();
-//    setRiegenData();
+    setSquadNameForSelected(ui->re_table2, ui->txt_nummer->text());
+    reloadSquads();
 }
 
-void SubdivisionsWidget::addRiege()
+void SubdivisionsWidget::removeFromSquad()
+{
+    setSquadNameForSelected(ui->tbl_list, "");
+    reloadSquads();
+    _global::updateRgDis( m_event, m_em );
+}
+
+void SubdivisionsWidget::addNewSquad()
 {
     bool ok;
-    QString text = QInputDialog::getText(this,
-                                         tr("Namen festlegen"),
-                                         tr("Bitte einen Namen für die Riege Eingeben"),
-                                         QLineEdit::Normal,
-                                         "",
-                                         &ok);
-    if (ok && !text.isEmpty()) {
+    QString text = QInputDialog::getText(this, tr("Namen festlegen"), tr("Bitte einen Namen für die Riege Eingeben"), QLineEdit::Normal, "", &ok);
+
+    if ( ok ) {
+        if( text.isEmpty() ){
+            QMessageBox::information(this, "Ungültiger Name", "Sie haben keinen Namen eingegeben!");
+            return;
+        }
+
         ui->tbl_list->setEnabled(true);
         ui->txt_nummer->setEnabled(true);
         ui->but_remove->setEnabled(true);
@@ -287,9 +287,14 @@ void SubdivisionsWidget::addRiege()
         rg_model->item(rg_model->rowCount() - 1, 2)->setEditable(false);
         rg_model->setItem(rg_model->rowCount() - 1, 3, new QStandardItem(""));
         ui->lst_all->selectRow(rg_model->rowCount() - 1);
-    } else {
-        QMessageBox::information(this, "Ungültiger Name", "Sie haben keinen Namen eingegeben!");
     }
+}
+
+void SubdivisionsWidget::removeSquad()
+{
+    ui->tbl_list->selectAll();
+    setSquadNameForSelected(ui->tbl_list, "");
+    reloadSquads();
 }
 
 void SubdivisionsWidget::fetchRgData()
@@ -301,8 +306,6 @@ void SubdivisionsWidget::fetchRgData()
 
     qobject_cast< ParticipantSquadModel* >( ui->tbl_list->model() )->setSquadName( riege );
 
-//    re_model->setRiege(riege);
-//    ui->tbl_list->setModel(re_model);
     ui->txt_nummer->setText( riege );
     QHeaderView::ResizeMode resizeModeRE2[] = {QHeaderView::ResizeToContents,
                                                QHeaderView::Stretch,
@@ -315,52 +318,9 @@ void SubdivisionsWidget::fetchRgData()
     }
 }
 
-void SubdivisionsWidget::updateRiege()
+void SubdivisionsWidget::updateSquadName()
 {
-//    if (ui->txt_nummer->text() == "") {
-//        removeRiege();
-//        return;
-//    }
-//    re_model->updateRiege(ui->txt_nummer->text());
-//    rg_model->item(ui->lst_all->selectionModel()->currentIndex().row(), 0)
-//        ->setText(ui->txt_nummer->text());
-}
-
-void SubdivisionsWidget::setRiegenData()
-{
-    QSqlQuery query;
-    query.prepare(
-        "SELECT COUNT(DISTINCT int_teilnehmerid) as count, (SELECT COUNT(*) FROM tfx_mannschaften "
-        "INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND "
-        "tfx_mannschaften.var_riege=tfx_wertungen.var_riege) FROM tfx_wertungen INNER JOIN "
-        "tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND "
-        "tfx_wertungen.int_runde=? AND var_riege=? GROUP BY var_riege");
-    query.bindValue(0, this->m_event->id());
-    query.bindValue(1, this->m_event->mainEvent()->id());
-    query.bindValue(2, this->m_event->round());
-    query.bindValue(3,
-                    rg_model->item(ui->lst_all->selectionModel()->currentIndex().row(), 0)->text());
-    query.exec();
-    query.next();
-    rg_model->item(ui->lst_all->selectionModel()->currentIndex().row(), 1)
-        ->setText(query.value(0).toString());
-    rg_model->item(ui->lst_all->selectionModel()->currentIndex().row(), 2)
-        ->setText(query.value(1).toString());
-}
-
-void SubdivisionsWidget::removeRiege()
-{
-//    re_model->updateRiege("");
-//    rg_model->removeRow(ui->lst_all->selectionModel()->currentIndex().row());
-//    re_model2->setTableData();
-//    if (rg_model->item(0, 0) == nullptr) {
-//        re_model->setRiege("#####");
-//        ui->txt_nummer->setText("");
-//        ui->tbl_list->setEnabled(false);
-//        ui->txt_nummer->setEnabled(false);
-//        ui->but_remove->setEnabled(false);
-//        ui->but_add_2->setEnabled(false);
-//        return;
-//    }
-//    ui->lst_all->selectRow(0);
+    ui->tbl_list->selectAll();
+    setSquadNameForSelected(ui->tbl_list, ui->txt_nummer->text());
+    reloadSquads();
 }

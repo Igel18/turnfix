@@ -6,10 +6,10 @@ namespace Ui {
 class SubdivisionsWidget;
 }
 
-//class AssignmentTableModel;
 class EntityManager;
 class Event;
 class QStandardItemModel;
+class QTableView;
 
 class SubdivisionsWidget : public QWidget
 {
@@ -17,30 +17,30 @@ class SubdivisionsWidget : public QWidget
 
 public:
     explicit SubdivisionsWidget(QWidget *parent = nullptr);
-    ~SubdivisionsWidget() override;
+    ~SubdivisionsWidget();
 
     void setup(Event *event, EntityManager *em);
 
 public slots:
     void reloadSquads();
-//    void fillRETable2();
 
 private slots:
-    void sendData();
-    void getData();
-    void updateRiege();
-    void addRiege();
+    void addNewSquad();
+    void removeSquad();
+    void addToSquad();
+    void removeFromSquad();
+    void updateSquadName();
     void fetchRgData();
-    void setRiegenData();
-    void removeRiege();
+
+protected:
+    void setSquadNameForSelected( QTableView* pTableView, QString squadName );
 
 private:
     Event *m_event;
     EntityManager *m_em;
     Ui::SubdivisionsWidget *ui;
-//    AssignmentTableModel *re_model;
-//    AssignmentTableModel *re_model2;
     QStandardItemModel *rg_model;
+    const int m_iSquadColIdx = 6;
 };
 
 #endif

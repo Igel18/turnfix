@@ -17,6 +17,7 @@ QList< Score* > ScoreRepository::fetch(int* competitionId /*= nullptr*/)
     //qb.join(Group::staticMetaObject, Group::mapping(), "Score", "group", "groupId");
     //qb.join(Team::staticMetaObject, Team::mapping(), "Score", "team", "teamId");
     //qb.join(Status::staticMetaObject, Status::mapping(), "Score", "status", "statusId");
+    qb.join(Competition::staticMetaObject, Competition::mapping(), "Score", "competition", "competitionId");
 
     if(competitionId){
         qb.where("Score", "competitionId", *competitionId);

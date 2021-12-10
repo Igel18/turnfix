@@ -69,7 +69,7 @@ IndividualDialog::IndividualDialog(Event *tfEvent, EntityManager *em, Score* pSc
     ui->cmb_name->setCurrentIndex( athleteIdx );
 
     int competitionIdx = -1;
-    int competitionType = 0;
+    int competitionType = 0; // Individual
 
     const auto competitions = m_em->competitionRepository()->fetchByEvent( m_event, &competitionType );
 

@@ -320,7 +320,7 @@ void ParticipantsWidget::syncTN() {
             query7.bindValue( 7, 1);
             query7.exec();
         }
-        _global::updateRgDis(this->m_event, m_em);
+        _global::updateRgDis(m_event, m_em);
         //m_participantsModel->loadData();
     }
 }
