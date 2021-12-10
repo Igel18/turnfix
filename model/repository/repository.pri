@@ -19,6 +19,7 @@ HEADERS += \
     $$PWD/regionrepository.h \
     $$PWD/scorerepository.h \
     $$PWD/sportrepository.h \
+    $$PWD/squaddisciplinerepository.h \
     $$PWD/staterepository.h \
     $$PWD/statusrepository.h \
     $$PWD/venuerepository.h
@@ -43,6 +44,7 @@ SOURCES += \
     $$PWD/regionrepository.cpp \
     $$PWD/scorerepository.cpp \
     $$PWD/sportrepository.cpp \
+    $$PWD/squaddisciplinerepository.cpp \
     $$PWD/staterepository.cpp \
     $$PWD/statusrepository.cpp \
     $$PWD/venuerepository.cpp

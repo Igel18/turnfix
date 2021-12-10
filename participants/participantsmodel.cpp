@@ -72,8 +72,30 @@ QVariant ParticipantsModel::data(const QModelIndex &index, int role /*= Qt::Disp
     return QVariant();
 }
 
+bool ParticipantsModel::setData(const QModelIndex &index, const QVariant &value, int role /*= Qt::EditRole*/)
+{
+    if ( !index.isValid() || role != Qt::EditRole )
+        return false;
+
+    auto pScore = m_data.at(index.row());
+
+    switch (index.column()) {
+    case 6:
+        pScore->setSquad(value.toString());
+
+        if(m_em->scoreRepository()->persist( pScore )){
+            emit dataChanged( index, index, { Qt::DisplayRole, Qt::EditRole } );
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void ParticipantsModel::load()
 {
+    qDebug() << "ParticipantsModel::load() ...";
+
     beginResetModel();
     m_data.clear();
 

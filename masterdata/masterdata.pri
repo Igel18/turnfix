@@ -44,6 +44,7 @@ HEADERS += \
     $$PWD/regionmodel.h \
     $$PWD/sportdialog.h \
     $$PWD/sportmodel.h \
+    $$PWD/squaddisciplinemodel.h \
     $$PWD/statedialog.h \
     $$PWD/statemodel.h \
     $$PWD/statusdialog.h \
@@ -79,6 +80,7 @@ SOURCES += \
     $$PWD/regionmodel.cpp \
     $$PWD/sportdialog.cpp \
     $$PWD/sportmodel.cpp \
+    $$PWD/squaddisciplinemodel.cpp \
     $$PWD/statedialog.cpp \
     $$PWD/statemodel.cpp \
     $$PWD/statusdialog.cpp \

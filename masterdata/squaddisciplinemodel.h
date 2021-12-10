@@ -1,28 +1,30 @@
-#ifndef STATUSMODEL_H
-#define STATUSMODEL_H
+#ifndef SQUADDISCIPLINEMODEL_H
+#define SQUADDISCIPLINEMODEL_H
 
 #include <QAbstractTableModel>
 
 class EntityManager;
-class Status;
+class Event;
+class SquadDiscipline;
 
-class StatusModel : public QAbstractTableModel
+class SquadDisciplineModel : public QAbstractTableModel
 {
     Q_OBJECT
-
 public:
-    explicit StatusModel(EntityManager *em, QObject *parent = nullptr);
+    explicit SquadDisciplineModel(EntityManager *em, Event *event, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void fetchStatuses(bool *bScorecard = nullptr);
+    void fetchData( QString squad = QString() );
 
 private:
-    QList<Status *> m_statuses;
+    QList< SquadDiscipline* > m_data;
     EntityManager *m_em;
+    Event *m_event;
+
 };
 
-#endif // STATUSMODEL_H
+#endif // SQUADDISCIPLINEMODEL_H

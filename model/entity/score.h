@@ -31,6 +31,7 @@ class Score : public QObject
     Q_PROPERTY(Group *group READ group WRITE setGroup STORED false)
     Q_PROPERTY(Team *team READ team WRITE setTeam STORED false)
     Q_PROPERTY(Status *status READ status WRITE setStatus STORED false)
+    Q_PROPERTY(Competition *competition READ competition WRITE setCompetition STORED false)
 
 public:
     Q_INVOKABLE Score() = default;

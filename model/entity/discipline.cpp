@@ -21,8 +21,7 @@ DBTable *Discipline::initializeMapping()
     discipline->addColumn("lanes", "bol_bahnen", ColumnType::Boolean, 0, true, "'false'");
     discipline->addColumn("men", "bol_m", ColumnType::Boolean, 0, true, "'true'");
     discipline->addColumn("women", "bol_w", ColumnType::Boolean, 0, true, "'true'");
-    discipline
-        ->addColumn("formulaId", "int_formelid", ColumnType::Integer, 0, true, "", " USING NULL")
+    discipline->addColumn("formulaId", "int_formelid", ColumnType::Integer, 0, true, "", " USING NULL")
         ->addContraint("fky_formelid", "tfx_formeln", "int_formelid", "RESTRICT", "RESTRICT");
     discipline->addColumn("calculate", "bol_berechnen", ColumnType::Boolean, 0, true, "'true'");
 
