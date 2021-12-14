@@ -2,7 +2,6 @@
 #include "header/_global.h"
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
-//#include "model/repository/squaddisciplinerepository.h"
 #include "masterdata/squaddisciplinemodel.h"
 #include <QApplication>
 #include <QComboBox>
@@ -60,15 +59,10 @@ CmbDelegate::CmbDelegate(EntityManager* pEntityManager, Event *event, QObject *p
 QWidget *CmbDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &index) const {
     QComboBox *editor = new QComboBox(parent);
     const auto squadName = index.model()->index( index.row(), 0 ).data().toString();
-    QStringList fields = { "" };
     auto pModel = new SquadDisciplineModel(m_em, m_event );
     pModel->fetchData( squadName );
     editor->setModel( pModel );
     editor->setModelColumn( 2 );
-
-    for( auto i = 0; i < pModel->rowCount(); ++i){
-        qDebug() << pModel->data(pModel->index(i, 1)).toString();
-    }
 
 //    QSqlQuery query;
 //    query.prepare("SELECT var_kurz2 FROM tfx_wertungen INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid INNER JOIN tfx_wettkaempfe_x_disziplinen ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wettkaempfe_x_disziplinen.int_wettkaempfeid INNER JOIN tfx_disziplinen USING (int_disziplinenid) WHERE int_veranstaltungenid=? AND tfx_wertungen.int_runde=? AND var_riege=? GROUP BY int_disziplinenid, var_kurz2 ORDER BY int_disziplinenid");

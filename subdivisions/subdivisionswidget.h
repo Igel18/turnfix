@@ -1,6 +1,8 @@
 #ifndef SUBDIVISIONSWIDGET_H
 #define SUBDIVISIONSWIDGET_H
 #include <QWidget>
+#include "squaddata.h"
+#include <QMap>
 
 namespace Ui {
 class SubdivisionsWidget;
@@ -33,7 +35,7 @@ private slots:
     void fetchRgData();
 
 protected:
-    void setSquadNameForSelected( QTableView* pTableView, QString squadName );
+    void setSquadNameForSelectedItems( QTableView* pTableView, QString squadName );
 
 private:
     Event *m_event;
@@ -41,6 +43,7 @@ private:
     Ui::SubdivisionsWidget *ui;
     QStandardItemModel *rg_model;
     const int m_iSquadColIdx = 6;
+    QMap< QString, SquadData > m_squads; // name => SquadData
 };
 
 #endif

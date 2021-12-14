@@ -6,29 +6,22 @@ StatusRepository::StatusRepository(EntityManager *em)
     
 }
 
-QList<Status *> StatusRepository::loadAll()
+QList< Status* > StatusRepository::load(bool* scoredcard /*= nullptr*/, bool* scoresheet /*= nullptr*/)
 {
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
-
-    QueryBuilder<Status> qb;
+    QueryBuilder< Status > qb;
     qb.select(Status::staticMetaObject, Status::mapping());
+
+    if( scoredcard ){
+        qb.where( "Status", "scorecard", *scoredcard );
+    }
+
+    if( scoresheet ){
+        qb.where( "Status", "scoresheet", *scoresheet );
+    }
+
     qb.orderBy("Status", "name");
 
-    QList<Status *> output = qb.query(db);
-
-    return output;
-}
-
-QList<Status *> StatusRepository::loadByScorecard(bool scoredcard)
-{
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
-
-    QueryBuilder<Status> qb;
-    qb.select(Status::staticMetaObject, Status::mapping());
-    qb.where("Status", "scorecard", scoredcard);
-    qb.orderBy("Status", "name");
-
-    QList<Status *> output = qb.query(db);
+    auto output = qb.query( QSqlDatabase::database( entityManager()->connectionName() ) );
 
     return output;
 }

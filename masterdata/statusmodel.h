@@ -18,7 +18,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void fetchStatuses(bool *bScorecard = nullptr);
+    void fetchStatuses(bool *bScoreCard = nullptr, bool *bScoreSheet = nullptr);
 
 private:
     QList<Status *> m_statuses;

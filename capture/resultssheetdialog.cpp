@@ -1,6 +1,10 @@
 #include "resultssheetdialog.h"
 #include "libs/fparser/fparser.hh"
+#include "masterdata/statusmodel.h"
+#include "model/entitymanager.h"
 #include "model/entity/event.h"
+#include "model/repository/disciplinerepository.h"
+#include "model/repository/squaddisciplinerepository.h"
 #include "resultssheettablemodel.h"
 #include "src/global/header/_delegates.h"
 #include "src/global/header/_global.h"
@@ -10,17 +14,15 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 
-ResultsSheetDialog::ResultsSheetDialog(Event *event, QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::ResultsSheetDialog)
+ResultsSheetDialog::ResultsSheetDialog(EntityManager* em, Event *event, QWidget *parent)
+    : QDialog(parent), ui(new Ui::ResultsSheetDialog), m_em(em), m_event(event)
 {
     ui->setupUi(this);
+
     setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMaximizeButtonHint);
 
-    this->m_event = event;
-
-    pe_model = new ResultsSheetTableModel(event);
-    ui->pe_table->setModel(pe_model);
+    pe_model = new ResultsSheetTableModel( em, m_event );
+    ui->pe_table->setModel( pe_model );
     ui->chk_jury->setChecked(Settings::juryResults);
     connect(ui->but_save, SIGNAL(clicked()), this, SLOT(saveClose()));
     connect(ui->chk_jury, SIGNAL(stateChanged(int)), this, SLOT(fillPETable()));
@@ -32,41 +34,30 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     riege = r;
     geraet = g;
     kuer = k;
-    QSqlQuery query;
-    query.prepare("SELECT var_icon, var_name, int_versuche, bol_berechnen FROM tfx_disziplinen WHERE int_disziplinenid=?");
-    query.bindValue(0, geraet);
-    query.exec();
-    query.next();
-    ui->lbl_icon->setPixmap(query.value(0).toString());
-    QString kp;
-    if (kuer) {
-        kp = " (Kür)";
-    } else {
-        kp = " (Pflicht)";
+
+    auto pDiscipline = m_em->disciplineRepository()->loadDiscipline( geraet );
+    ui->lbl_icon->setPixmap( pDiscipline->icon() );
+    ui->lbl_disrg->setText( QString("%1 %2 - Riege %3").arg( pDiscipline->name() ).arg( kuer ? "(Kür)" : "(Pflicht)" ).arg( riege ) );
+    versuche = pDiscipline->attempts();
+    berechnen = pDiscipline->calculate();
+
+    bool scoreSheet = true;
+    auto pStatusModel = new StatusModel( m_em, this );
+    pStatusModel->fetchStatuses( nullptr, &scoreSheet );
+    ui->cmb_status1->setModel( pStatusModel );
+
+    auto items = m_em->squadDisciplineRepository()->load( m_event, riege );
+
+    auto itFound = std::find_if(items.begin(), items.end(), [ this ]( SquadDiscipline* pItem ){
+            return ( pItem->disciplineId() == geraet ) && ( pItem->round() == m_event->round() );
+    });
+
+    if( itFound != items.end() ){
+        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( (*itFound)->statusId() ) );
     }
-    ui->lbl_disrg->setText(query.value(1).toString() + kp + " - Riege " + riege);
-    versuche = query.value(2).toInt();
-    berechnen = query.value(3).toBool();
-    QSqlQuery query3;
-    query3.prepare("SELECT int_statusid, var_name, ary_colorcode FROM tfx_status WHERE bol_bogen='true' ORDER BY int_statusid ASC");
-    query3.exec();
-    while(query3.next()) {
-        ui->cmb_status1->addItem(query3.value(1).toString(), query3.value(0).toInt());
-        QList<int> color = _global::splitColorArray(query3.value(2).toString());
-        ui->cmb_status1->setItemData(ui->cmb_status1->count() - 1,
-                                     QColor(color.at(0), color.at(1), color.at(2)),
-                                     Qt::BackgroundColorRole);
-    }
-    QSqlQuery query2;
-    query2.prepare("SELECT int_statusid FROM tfx_riegen_x_disziplinen WHERE int_veranstaltungenid=? AND int_disziplinenid=? AND var_riege=? AND int_runde=?");
-    query2.bindValue(0, this->m_event->mainEvent()->id());
-    query2.bindValue(1, geraet);
-    query2.bindValue(2, riege);
-    query2.bindValue(3, this->m_event->round());
-    query2.exec();
-    query2.next();
-    ui->cmb_status1->setCurrentIndex(ui->cmb_status1->findData(query2.value(0).toInt()));
+
     connect(ui->cmb_status1, SIGNAL(currentIndexChanged(int)), this, SLOT(statusChange1()));
+
     fillPETable();
 }
 
@@ -74,25 +65,22 @@ void ResultsSheetDialog::fillPETable()
 {
     ui->pe_table->clearSelection();
     pe_model->setTableData(riege, geraet, versuche, kuer, ui->chk_jury->isChecked());
-    QList<QHeaderView::ResizeMode> resizeMode;
-    resizeMode[0] = QHeaderView::ResizeToContents;
-    resizeMode[1] = QHeaderView::Stretch;
-    resizeMode[2] = QHeaderView::Stretch;
-    resizeMode[3] = QHeaderView::ResizeToContents;
-    QList<int> resize;
-    resize[0] = 40;
-    resize[1] = 200;
-    resize[2] = 200;
-    resize[3] = 35;
-    int k=4;
-    for (int i=k;i<pe_model->columnCount();i++) {
-        resizeMode[k] = QHeaderView::ResizeToContents;
-        resize[k] = 60;
-        k++;
+    QList< QPair< QHeaderView::ResizeMode, int > > resizeMode = {
+        { QHeaderView::ResizeToContents, 40 },
+        { QHeaderView::Stretch, 200 },
+        { QHeaderView::Stretch, 200 },
+        { QHeaderView::ResizeToContents, 35 }
+    };
+
+    for ( int i = 4; i < pe_model->columnCount(); ++i ) {
+        resizeMode.append( qMakePair(  QHeaderView::ResizeToContents, 60 ) );
     }
-    for (int i=0;i<pe_model->columnCount();i++) {
-        ui->pe_table->horizontalHeader()->setSectionResizeMode(i, resizeMode[i]);
-        ui->pe_table->horizontalHeader()->resizeSection(i, resize[i]);
+
+    auto pHeader = ui->pe_table->horizontalHeader();
+    for( int i = 0; i < pe_model->columnCount(); ++i ) {
+        pHeader->setSectionResizeMode( i, resizeMode.at( i ).first );
+        pHeader->resizeSection( i, resizeMode.at( i ).second );
+
         if (i > 3) {
             EditorDelegate *ed = new EditorDelegate;
             connect(ed, SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)), this, SLOT(finishEdit()));

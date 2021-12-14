@@ -36,3 +36,16 @@ QList<Discipline *> DisciplineRepository::loadDisciplines(const bool* const wome
 
     return output;
 }
+
+Discipline* DisciplineRepository::loadDiscipline(int id)
+{
+    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
+
+    QueryBuilder<Discipline> qb;
+    qb.select(Discipline::staticMetaObject, Discipline::mapping());
+    qb.join(Sport::staticMetaObject, Sport::mapping(), "Discipline", "sport", "sportId");
+    qb.join(Formula::staticMetaObject, Formula::mapping(), "Discipline", "formula", "formulaId");
+    qb.where( "Discipline", "id", id );
+    auto resultSet = qb.query(db);
+    return resultSet.isEmpty() ? nullptr : resultSet.at( 0 );
+}

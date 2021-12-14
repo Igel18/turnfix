@@ -52,13 +52,9 @@ QVariant StatusModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void StatusModel::fetchStatuses(bool *bScorecard /*= nullptr*/)
+void StatusModel::fetchStatuses(bool *bScoreCard /*= nullptr*/, bool *bScoreSheet /*= nullptr*/)
 {
     beginResetModel();
-    if(bScorecard){
-        m_statuses = m_em->statusRepository()->loadByScorecard(*bScorecard);
-    } else {
-        m_statuses = m_em->statusRepository()->loadAll();
-    }
+    m_statuses = m_em->statusRepository()->load( bScoreCard, bScoreSheet );
     endResetModel();
 }

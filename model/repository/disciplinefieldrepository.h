@@ -6,12 +6,13 @@
 
 class Discipline;
 
-class DisciplineFieldRepository : public AbstractRepository<DisciplineField>
+class DisciplineFieldRepository : public AbstractRepository< DisciplineField >
 {
 public:
     explicit DisciplineFieldRepository(EntityManager *em);
 
-    QList<DisciplineField *> loadByDiscipline(Discipline *discipline);
+    QList< DisciplineField* > loadByDiscipline( Discipline *discipline );
+    QList< DisciplineField* > loadByDisciplineId( int disciplineId );
 };
 
 #endif // DISCIPLINEFIELDREPOSITORY_H
