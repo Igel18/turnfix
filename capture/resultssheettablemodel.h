@@ -2,9 +2,10 @@
 #define MDL_RIEGE_H
 
 #include <QAbstractTableModel>
-#include <QSqlQuery>
 #include <QStringList>
 
+class Discipline;
+class EntityManager;
 class Event;
 
 class ResultsSheetTableModel : public QAbstractTableModel
@@ -12,7 +13,7 @@ class ResultsSheetTableModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    ResultsSheetTableModel(Event *m_event, QObject *parent = nullptr);
+    ResultsSheetTableModel(EntityManager* em, Event *m_event, QObject *parent = nullptr);
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const;
@@ -28,13 +29,14 @@ public:
     int getLastID(const QModelIndex &index);
 
 private:
+    EntityManager* m_em;
     Event *m_event;
     QString riege;
-    QList<QStringList> starter;
-    QMap<int, QMap<int,double> > endwerte;
-    QMap<int, QMap<int, QMap <int, double > > > detailwerte;
-    QSqlQuery disinfo;
-    int geraet;
+    QList< QStringList > starter;
+    QMap< int, QMap< int, double > > endwerte;
+    QMap< int, QMap< int, QMap < int, double > > > detailwerte;
+    Discipline* m_pDisciplineInfo = nullptr;
+    int geraet = -1;
     bool kuer;
     int versuche;
     QList<int> extraColumns;

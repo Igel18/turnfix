@@ -48,12 +48,15 @@ void ParticipantsWidget::setup(Event *event, EntityManager *em)
     m_event->setParticipantsModel(m_model);
     m_model->load();
 
-    //m_participantsModel = new ParticipantsTableModel(m_event, m_em, this);
-    auto m_sortModel = new QSortFilterProxyModel(this);
+    m_sortModel = new QSortFilterProxyModel( this );
     m_sortModel->setSourceModel(m_model);
     ui->participantsTable->setModel(m_sortModel);
 
+    ui->cmb_filterTN->clear();
+
     for(auto i = 0; i < ui->participantsTable->horizontalHeader()->count(); ++i) {
+        ui->cmb_filterTN->addItem(m_model->headerData(i, Qt::Horizontal).toString());
+
         switch (i) {
         case 1:
         case 4:

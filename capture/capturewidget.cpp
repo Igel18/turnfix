@@ -1,7 +1,12 @@
 #include "capturewidget.h"
 #include "barcodedialog.h"
+#include "model/entitymanager.h"
 #include "model/entity/event.h"
+#include "model/repository/competitiondisciplinerepository.h"
+#include "model/repository/competitionrepository.h"
+#include "model/repository/scorerepository.h"
 #include "model/settings/session.h"
+#include "participants/participantsmodel.h"
 #include "resultssheetdialog.h"
 #include "scorecarddialog.h"
 #include "src/global/header/_global.h"
@@ -15,17 +20,15 @@ CaptureWidget::CaptureWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    this->m_event = Session::getInstance()->getEvent();
-
     connect(ui->but_startbogen, SIGNAL(clicked()), this, SLOT(startBogen()));
     connect(ui->but_startkarte, SIGNAL(clicked()), this, SLOT(startKarte()));
     connect(ui->but_barcode, SIGNAL(clicked()), this, SLOT(startBarcode()));
     connect(ui->cmb_squadno, SIGNAL(currentIndexChanged(QString)), this, SLOT(squadChange(QString)));
-    this->installEventFilter(this);
+
+    installEventFilter(this);
     ui->cmb_squadno->installEventFilter(this);
     ui->cmb_apparatus->installEventFilter(this);
     ui->sbx_squadno_2->installEventFilter(this);
-    init();
 }
 
 CaptureWidget::~CaptureWidget()
@@ -33,30 +36,49 @@ CaptureWidget::~CaptureWidget()
     delete ui;
 }
 
-void CaptureWidget::init()
+void CaptureWidget::setup(Event *event, EntityManager *em)
 {
-    //    ui->cmb_squadno->clear();
-    //    QSqlQuery query2;
-    //    query2.prepare("SELECT DISTINCT(var_riege) FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_runde=? ORDER BY var_riege");
-    //    query2.bindValue(0, this->event->mainEvent()->id());
-    //    query2.bindValue(1, this->event->round());
-    //    query2.exec();
-    //    while (query2.next()) {
-    //        ui->cmb_squadno->addItem(query2.value(0).toString(), query2.value(0).toString());
-    //    }
+    m_event = event;
+    m_em = em;
+
+    connect(m_event->participantsModel(), &ParticipantsModel::modelReset, this, &CaptureWidget::reloadSquads);
+    connect(m_event->participantsModel(), &ParticipantsModel::dataChanged, this, &CaptureWidget::reloadSquads);
+
+    reloadSquads();
+}
+
+void CaptureWidget::reloadSquads()
+{
+    QStringList squads;
+
+    const auto competitions = m_em->competitionRepository()->fetchByEvent( m_event );
+
+    for( auto& competition : competitions ){
+        int id = competition->id();
+        const auto scores = m_em->scoreRepository()->fetch( &id );
+        for(auto& score : scores ){
+            squads << score->squad();
+        }
+    }
+
+    squads.removeDuplicates();
+    squads.sort(Qt::CaseInsensitive);
+
+    ui->cmb_squadno->clear();
+
+    for( auto& squad : squads ){
+        ui->cmb_squadno->addItem( squad, squad );
+    }
 }
 
 void CaptureWidget::startBogen()
 {
-    bool kuer=false;
-    if (ui->cmb_apparatus->currentText().right(5) == "(Kür)") {
-        kuer = true;
-    }
-    ResultsSheetDialog *wk = new ResultsSheetDialog(this->m_event, this);
-    wk->init(ui->cmb_squadno->currentText(),
-             ui->cmb_apparatus->itemData(ui->cmb_apparatus->currentIndex()).toInt(),
-             kuer);
-    wk->exec();
+    auto squadName = ui->cmb_squadno->currentText();
+    auto disciplineId = ui->cmb_apparatus->itemData(ui->cmb_apparatus->currentIndex()).toInt();
+    auto optional = ui->cmb_apparatus->currentText().right( 5 ) == "(Kür)" ? true : false;
+    auto pResultsSheetDialog = new ResultsSheetDialog( m_em, m_event, this );
+    pResultsSheetDialog->init( squadName, disciplineId, optional );
+    pResultsSheetDialog->exec();
 }
 
 void CaptureWidget::startKarte()
@@ -95,24 +117,70 @@ void CaptureWidget::startKarte()
 
 void CaptureWidget::squadChange(QString squadno)
 {
-    ui->cmb_apparatus->clear();
-    QSqlQuery query;
-    query.prepare("SELECT DISTINCT int_disziplinenid, tfx_disziplinen.var_name, var_icon, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wertungen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_riege=? ORDER BY tfx_disziplinen.var_name, kp");
-    query.bindValue(0, this->m_event->mainEvent()->id());
-    query.bindValue(1, squadno);
-    query.exec();
-    while (query.next()) {
-        QString name = query.value(1).toString();
-        if (query.value(3).toInt() == 1) {
-            name += " (Pflicht)";
-        }
-        ui->cmb_apparatus->addItem(QIcon(query.value(2).toString()), name, query.value(0).toInt());
-        if (query.value(3).toInt() == 1) {
-            ui->cmb_apparatus->addItem(QIcon(query.value(2).toString()),
-                                       query.value(1).toString() + " (Kür)",
-                                       query.value(0).toInt());
+    const auto eventCompetitions = m_em->competitionRepository()->fetchByEvent( m_event );
+
+    QList< Score* > squadScores;
+
+    for( auto& eventCompetition : eventCompetitions ){
+        int competitionId = eventCompetition->id();
+        const auto scores = m_em->scoreRepository()->fetch( &competitionId );
+        for( auto& score : scores ){
+            if( score->squad() == squadno ){
+                squadScores << score;
+            }
         }
     }
+
+    QMap< QPair<int, bool>, CompetitionDiscipline* > mapUniqueSquadDisciplines;
+
+    for(auto& squadScore : squadScores ){
+        const auto items = m_em->competitionDisciplineRepository()->fetchByCompetition( squadScore->competition() );
+        for( auto& item : items ){
+            auto key = qMakePair<int, bool>(item->disciplineId(), item->freeAndCompulsary());
+            mapUniqueSquadDisciplines[ key ] = item;
+        }
+    }
+
+    ui->cmb_apparatus->clear();
+
+    auto uniqueSquadDisciplines = mapUniqueSquadDisciplines.values();
+
+    std::sort(uniqueSquadDisciplines.begin(), uniqueSquadDisciplines.end(), [](CompetitionDiscipline* pLhs, CompetitionDiscipline* pRhs){
+        if( pLhs->discipline()->name() < pRhs->discipline()->name() )
+            return true;
+        return pLhs->freeAndCompulsary() < pRhs->freeAndCompulsary();
+    });
+
+    for( auto& item : uniqueSquadDisciplines ){
+        auto disciplineIcon = QIcon(item->discipline()->icon());
+        auto disciplineName = item->discipline()->name();
+        auto disciplineId = item->discipline()->id();
+        if( item->freeAndCompulsary() ){
+            ui->cmb_apparatus->addItem( disciplineIcon, QString("%1 (Pflicht)").arg( disciplineName ), disciplineId );
+            ui->cmb_apparatus->addItem( disciplineIcon, QString("%1 (Kür)").arg( disciplineName ), disciplineId );
+        } else {
+            ui->cmb_apparatus->addItem( disciplineIcon, disciplineName, disciplineId );
+        }
+    }
+
+//    ui->cmb_apparatus->clear();
+//    QSqlQuery query;
+//    query.prepare("SELECT DISTINCT int_disziplinenid, tfx_disziplinen.var_name, var_icon, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wertungen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_riege=? ORDER BY tfx_disziplinen.var_name, kp");
+//    query.bindValue(0, this->m_event->mainEvent()->id());
+//    query.bindValue(1, squadno);
+//    query.exec();
+//    while (query.next()) {
+//        QString name = query.value(1).toString();
+//        if (query.value(3).toInt() == 1) {
+//            name += " (Pflicht)";
+//        }
+//        ui->cmb_apparatus->addItem(QIcon(query.value(2).toString()), name, query.value(0).toInt());
+//        if (query.value(3).toInt() == 1) {
+//            ui->cmb_apparatus->addItem(QIcon(query.value(2).toString()),
+//                                       query.value(1).toString() + " (Kür)",
+//                                       query.value(0).toInt());
+//        }
+//    }
 }
 
 void CaptureWidget::startBarcode()

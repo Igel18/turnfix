@@ -7,6 +7,7 @@ class ResultsSheetDialog;
 }
 
 class ResultsSheetTableModel;
+class EntityManager;
 class Event;
 
 class ResultsSheetDialog : public QDialog
@@ -14,7 +15,7 @@ class ResultsSheetDialog : public QDialog
     Q_OBJECT
 
 public:
-    ResultsSheetDialog(Event *m_event, QWidget *parent = nullptr);
+    ResultsSheetDialog(EntityManager* em, Event *m_event, QWidget *parent = nullptr);
     void init(QString riege, int geraet, bool kuer);
 
 private slots:
@@ -27,6 +28,7 @@ private slots:
 private:
     Ui::ResultsSheetDialog *ui;
     ResultsSheetTableModel *pe_model;
+    EntityManager* m_em;
     Event *m_event;
     void calc();
     QString riege;

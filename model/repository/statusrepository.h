@@ -9,8 +9,7 @@ class StatusRepository : public AbstractRepository<Status>
 public:
     explicit StatusRepository(EntityManager *em);
 
-    QList<Status *> loadAll();
-    QList<Status *> loadByScorecard(bool scoredcard);
+    QList< Status* > load(bool* scoredcard = nullptr, bool* scoresheet = nullptr);
 };
 
 #endif // STATUSREPOSITORY_H

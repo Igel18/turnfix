@@ -1,6 +1,5 @@
 #include "squaddisciplinemodel.h"
 
-//#include "model/entity/squaddiscipline.h"
 #include "model/repository/squaddisciplinerepository.h"
 #include "model/enums.h"
 

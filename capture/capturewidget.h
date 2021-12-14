@@ -6,6 +6,7 @@ namespace Ui {
 class CaptureWidget;
 }
 
+class EntityManager;
 class Event;
 class QSqlQueryModel;
 class QStandardItemModel;
@@ -18,9 +19,11 @@ public:
     explicit CaptureWidget(QWidget *parent = nullptr);
     ~CaptureWidget();
 
+    void setup(Event *event, EntityManager *em);
+
 public slots:
     void squadChange(QString squad="");
-    void init();
+    void reloadSquads();
 
 private slots:
     void startBogen();
@@ -29,7 +32,8 @@ private slots:
 
 private:
     Ui::CaptureWidget *ui;
-    Event *m_event;
+    EntityManager *m_em = nullptr;
+    Event *m_event = nullptr;
     bool eventFilter(QObject *obj, QEvent *ev);
 };
 #endif

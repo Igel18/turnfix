@@ -17,8 +17,10 @@
 #include "repository/personrepository.h"
 #include "repository/regionrepository.h"
 #include "repository/scorerepository.h"
+#include "repository/scoredisciplinerepository.h"
 #include "repository/sportrepository.h"
 #include "repository/squaddisciplinerepository.h"
+#include "repository/startingorderrepository.h"
 #include "repository/staterepository.h"
 #include "repository/statusrepository.h"
 #include "repository/venuerepository.h"
@@ -44,8 +46,10 @@ EntityManager::EntityManager(QObject *parent)
     m_personRepository = new PersonRepository(this);
     m_regionRepository = new RegionRepository(this);
     m_scoreRepository = new ScoreRepository(this);
+    m_scoreDisciplineRepository = new ScoreDisciplineRepository(this);
     m_sportRepository = new SportRepository(this);
     m_squadDisciplineRepository = new SquadDisciplineRepository(this);
+    m_startingOrderRepository = new StartingOrderRepository(this);
     m_stateRepository = new StateRepository(this);
     m_statusRepository = new StatusRepository(this);
     m_venueRepository = new VenueRepository(this);
@@ -163,6 +167,11 @@ ScoreRepository *EntityManager::scoreRepository() const
     return m_scoreRepository;
 }
 
+ScoreDisciplineRepository* EntityManager::scoreDisciplineRepository() const
+{
+    return m_scoreDisciplineRepository;
+}
+
 SportRepository *EntityManager::sportRepository() const
 {
     return m_sportRepository;
@@ -171,6 +180,11 @@ SportRepository *EntityManager::sportRepository() const
 SquadDisciplineRepository* EntityManager::squadDisciplineRepository() const
 {
     return m_squadDisciplineRepository;
+}
+
+StartingOrderRepository* EntityManager::startingOrderRepository() const
+{
+    return m_startingOrderRepository;
 }
 
 DivisionRepository *EntityManager::divisionRepository() const

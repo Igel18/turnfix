@@ -60,35 +60,51 @@ void SubdivisionsWidget::setup(Event *event, EntityManager *em)
 
 void SubdivisionsWidget::reloadSquads()
 {
-    rg_model->removeRows( 0, rg_model->rowCount() );
+    auto selectedRows = ui->lst_all->selectionModel()->selectedRows();
+    auto selectedSquad = selectedRows.count() > 0 ? ui->lst_all->model()->data( selectedRows.at( 0 ) ).toString() : "";
 
-    QHash<QString, int > squads; // individual participants only for now
+    QMap< QString, SquadData > squads; // individual participants only for now
 
-    for( auto i = 0; i < m_event->participantsModel()->rowCount(); ++i ) {
-        auto idx = m_event->participantsModel()->index(i, 0);
-        auto pParticipant = qvariant_cast< Score* >( m_event->participantsModel()->data(idx, TF::ObjectRole) );
+    auto pModel = m_event->participantsModel();
+
+    for( auto i = 0; i < pModel->rowCount(); ++i ) {
+        auto idx = pModel->index(i, 0);
+        auto pParticipant = qvariant_cast< Score* >( pModel->data(idx, TF::ObjectRole) );
         auto squadName = pParticipant->squad();
-        squads[ squadName ] = ++squads[ squadName ];
+        auto& squadData = squads[ squadName ];
+        squadData.name = squadName;
+        ++( squadData.participantsCount );
     }
 
-    const auto squadNames = squads.keys();
-    for( const auto& squadName : squadNames )
+    squads.remove("");
+
+    const auto keys = m_squads.keys();
+    for( const auto& key: keys ){
+        m_squads[ key ].participantsCount = 0;
+        m_squads[ key ].teamsCount = 0;
+        m_squads[ key ].groupsCount = 0;
+        m_squads[ key ].firstDiscipline = "";
+    }
+
+    m_squads.insert( squads );
+
+    rg_model->removeRows( 0, rg_model->rowCount() );
+
+    const auto& items = m_squads.values();
+
+    for( const auto& item : items )
     {
-        if( !squadName.isEmpty() ){
-            QList< QStandardItem* > items = {
-                new QStandardItem(squadName),
-                new QStandardItem(QString("%1").arg(squads.value(squadName))),
-                new QStandardItem("0"),
-                new QStandardItem("0"),
-                new QStandardItem("gerat value"),
-            };
-
-            for(auto i = 0; i < 4; ++i) {
-                items.at( i )->setEditable( false );
-            }
-
-            rg_model->appendRow( items );
+        if( !item.name.isEmpty() ){
+            rg_model->appendRow( item.toModelItems() );
         }
+    }
+
+    auto itFound = std::find_if(items.begin(), items.end(), [ selectedSquad ](const SquadData& item){return item.name == selectedSquad; });
+
+    if( itFound != items.end() ){
+        ui->lst_all->selectRow( items.indexOf( *itFound ) );
+    } else {
+        ui->lst_all->selectRow( 0 );
     }
 
     auto bEnabled = rg_model->rowCount() > 0;
@@ -141,7 +157,7 @@ void SubdivisionsWidget::reloadSquads()
 //    }
     QList< QHeaderView::ResizeMode > resizeMode = { QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed };
     QStringList heads = { "Riege", "Teiln.", "Manns.", "Gruppen", "1. Gerät" };
-    for (int i = 0; i < 4; i++) {
+    for( int i = 0; i <= 4; ++i) {
         ui->lst_all->horizontalHeader()->setSectionResizeMode(i, resizeMode.at( i ));
         rg_model->setHeaderData( i, Qt::Horizontal, heads.at(i) );
     }
@@ -150,9 +166,8 @@ void SubdivisionsWidget::reloadSquads()
     ui->lst_all->horizontalHeader()->resizeSection(2, 45);
     ui->lst_all->horizontalHeader()->resizeSection(3, 45);
     ui->lst_all->horizontalHeader()->resizeSection(4, 90);
-    auto pCmbDelegate = new CmbDelegate( m_em ,m_event, this );
+    auto pCmbDelegate = new CmbDelegate( m_em, m_event, this );
     ui->lst_all->setItemDelegateForColumn(4, pCmbDelegate );
-    ui->lst_all->selectRow( 0 );
 }
 
 //void SubdivisionsWidget::fillRETable2()
@@ -233,7 +248,7 @@ void SubdivisionsWidget::reloadSquads()
 //    ui->lst_all->selectRow(0);
 //}
 
-void SubdivisionsWidget::setSquadNameForSelected( QTableView* pTableView, QString squadName )
+void SubdivisionsWidget::setSquadNameForSelectedItems( QTableView* pTableView, QString squadName )
 {
     const auto indexes = pTableView->selectionModel()->selectedRows( m_iSquadColIdx );
     auto pSortFilterModel = qobject_cast< ParticipantSquadModel* >(pTableView->model());
@@ -252,13 +267,13 @@ void SubdivisionsWidget::setSquadNameForSelected( QTableView* pTableView, QStrin
 
 void SubdivisionsWidget::addToSquad()
 {
-    setSquadNameForSelected(ui->re_table2, ui->txt_nummer->text());
+    setSquadNameForSelectedItems(ui->re_table2, ui->txt_nummer->text());
     reloadSquads();
 }
 
 void SubdivisionsWidget::removeFromSquad()
 {
-    setSquadNameForSelected(ui->tbl_list, "");
+    setSquadNameForSelectedItems(ui->tbl_list, "");
     reloadSquads();
     _global::updateRgDis( m_event, m_em );
 }
@@ -274,26 +289,29 @@ void SubdivisionsWidget::addNewSquad()
             return;
         }
 
-        ui->tbl_list->setEnabled(true);
-        ui->txt_nummer->setEnabled(true);
-        ui->but_remove->setEnabled(true);
-        ui->but_add_2->setEnabled(true);
-        rg_model->insertRow(rg_model->rowCount());
-        rg_model->setItem(rg_model->rowCount() - 1, 0, new QStandardItem(text));
-        rg_model->item(rg_model->rowCount() - 1, 0)->setEditable(false);
-        rg_model->setItem(rg_model->rowCount() - 1, 1, new QStandardItem("0"));
-        rg_model->item(rg_model->rowCount() - 1, 1)->setEditable(false);
-        rg_model->setItem(rg_model->rowCount() - 1, 2, new QStandardItem("0"));
-        rg_model->item(rg_model->rowCount() - 1, 2)->setEditable(false);
-        rg_model->setItem(rg_model->rowCount() - 1, 3, new QStandardItem(""));
-        ui->lst_all->selectRow(rg_model->rowCount() - 1);
+        SquadData newSquad;
+        newSquad.name = text;
+        if( !m_squads.contains( newSquad.name ) ){
+            m_squads[ newSquad.name ] = newSquad;
+            reloadSquads();
+            auto foundItems = rg_model->findItems( newSquad.name );
+            if( foundItems.count() > 0 ){
+                ui->lst_all->selectRow( foundItems.at( 0 )->index().row() );
+            }
+        }
     }
 }
 
 void SubdivisionsWidget::removeSquad()
 {
+    auto selectedRows = ui->lst_all->selectionModel()->selectedRows();
+    auto selectedSquad = selectedRows.count() > 0 ? ui->lst_all->model()->data( selectedRows.at( 0 ) ).toString() : "";
+
     ui->tbl_list->selectAll();
-    setSquadNameForSelected(ui->tbl_list, "");
+    setSquadNameForSelectedItems(ui->tbl_list, "");
+
+    m_squads.remove( selectedSquad );
+
     reloadSquads();
 }
 
@@ -320,7 +338,25 @@ void SubdivisionsWidget::fetchRgData()
 
 void SubdivisionsWidget::updateSquadName()
 {
+    auto newSquadName = ui->txt_nummer->text().trimmed();
+
+    if( newSquadName.isEmpty() ){
+        removeSquad();
+        return;
+    }
+
+    auto selectedRows = ui->lst_all->selectionModel()->selectedRows();
+    auto selectedSquad = selectedRows.count() > 0 ? ui->lst_all->model()->data( selectedRows.at( 0 ) ).toString() : "";
+
     ui->tbl_list->selectAll();
-    setSquadNameForSelected(ui->tbl_list, ui->txt_nummer->text());
+    setSquadNameForSelectedItems( ui->tbl_list, newSquadName );
+
+    m_squads.remove( selectedSquad );
+
     reloadSquads();
+
+    auto foundItems = rg_model->findItems( newSquadName );
+    if( foundItems.count() > 0 ){
+        ui->lst_all->selectRow( foundItems.at( 0 )->index().row() );
+    }
 }
