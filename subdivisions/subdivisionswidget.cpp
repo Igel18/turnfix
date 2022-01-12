@@ -76,7 +76,7 @@ void SubdivisionsWidget::reloadSquads()
         ++( squadData.participantsCount );
     }
 
-    squads.remove("");
+   squads.remove("");
 
     const auto keys = m_squads.keys();
     for( const auto& key: keys ){
@@ -86,7 +86,8 @@ void SubdivisionsWidget::reloadSquads()
         m_squads[ key ].firstDiscipline = "";
     }
 
-    m_squads.insert( squads );
+    m_squads = squads;
+    // m_squads.insert( squads );
 
     rg_model->removeRows( 0, rg_model->rowCount() );
 
@@ -113,6 +114,8 @@ void SubdivisionsWidget::reloadSquads()
     ui->txt_nummer->setEnabled( bEnabled );
     ui->but_remove->setEnabled( bEnabled );
     ui->but_add_2->setEnabled( bEnabled );
+
+    //------
 
 //    QSqlQuery query;
 //    query.prepare(
@@ -157,7 +160,7 @@ void SubdivisionsWidget::reloadSquads()
 //    }
     QList< QHeaderView::ResizeMode > resizeMode = { QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed };
     QStringList heads = { "Riege", "Teiln.", "Manns.", "Gruppen", "1. Gerät" };
-    for( int i = 0; i <= 4; ++i) {
+    for( int i = 0; i < 4; ++i) {
         ui->lst_all->horizontalHeader()->setSectionResizeMode(i, resizeMode.at( i ));
         rg_model->setHeaderData( i, Qt::Horizontal, heads.at(i) );
     }
@@ -292,7 +295,8 @@ void SubdivisionsWidget::addNewSquad()
         SquadData newSquad;
         newSquad.name = text;
         if( !m_squads.contains( newSquad.name ) ){
-            m_squads[ newSquad.name ] = newSquad;
+            m_squads.insert(newSquad.name, newSquad);
+           // m_squads[ newSquad.name ] = newSquad;
             reloadSquads();
             auto foundItems = rg_model->findItems( newSquad.name );
             if( foundItems.count() > 0 ){

@@ -72,7 +72,7 @@ Discipline *CompetitionDiscipline::discipline() const
 }
 
 void CompetitionDiscipline::setDiscipline(Discipline *discipline)
-{
+{  
     m_discipline = discipline;
     m_disciplineId = discipline ? discipline->id() : 0;
 }
