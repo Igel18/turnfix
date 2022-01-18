@@ -13,10 +13,12 @@
 #include "repository/divisionrepository.h"
 #include "repository/eventrepository.h"
 #include "repository/formularepository.h"
+#include "repository/juryscorerepository.h"
 #include "repository/penaltyrepository.h"
 #include "repository/personrepository.h"
 #include "repository/regionrepository.h"
 #include "repository/scorerepository.h"
+#include "repository/scoredetailsrepository.h"
 #include "repository/scoredisciplinerepository.h"
 #include "repository/sportrepository.h"
 #include "repository/squaddisciplinerepository.h"
@@ -42,10 +44,12 @@ EntityManager::EntityManager(QObject *parent)
     m_divisionRepository = new DivisionRepository(this);
     m_eventRepository = new EventRepository(this);
     m_formulaRepository = new FormulaRepository(this);
+    m_JuryScoreRepository = new JuryScoreRepository(this);
     m_penaltyRepository = new PenaltyRepository(this);
     m_personRepository = new PersonRepository(this);
     m_regionRepository = new RegionRepository(this);
     m_scoreRepository = new ScoreRepository(this);
+    m_scoreDetailsRepository = new ScoreDetailsRepository(this);
     m_scoreDisciplineRepository = new ScoreDisciplineRepository(this);
     m_sportRepository = new SportRepository(this);
     m_squadDisciplineRepository = new SquadDisciplineRepository(this);
@@ -162,9 +166,19 @@ FormulaRepository *EntityManager::formulaRepository() const
     return m_formulaRepository;
 }
 
+JuryScoreRepository* EntityManager::juryScoreRepository() const
+{
+    return m_JuryScoreRepository;
+}
+
 ScoreRepository *EntityManager::scoreRepository() const
 {
     return m_scoreRepository;
+}
+
+ScoreDetailsRepository* EntityManager::scoreDetailsRepository() const
+{
+    return m_scoreDetailsRepository;
 }
 
 ScoreDisciplineRepository* EntityManager::scoreDisciplineRepository() const

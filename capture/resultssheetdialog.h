@@ -1,14 +1,17 @@
 #ifndef RESULTSSHEETDIALOG_H
 #define RESULTSSHEETDIALOG_H
 #include <QDialog>
+#include <QPointer>
 
 namespace Ui {
 class ResultsSheetDialog;
 }
 
-class ResultsSheetTableModel;
 class EntityManager;
 class Event;
+class ResultsSheetTableModel;
+class SquadDiscipline;
+
 
 class ResultsSheetDialog : public QDialog
 {
@@ -21,7 +24,7 @@ public:
 private slots:
     void fillPETable();
     void finishEdit();
-    void statusChange1();
+    void changeSquadDisciplineStatus( int index );
     void saveClose();
     void saveJuryMethod();
 
@@ -36,6 +39,7 @@ private:
     bool kuer;
     bool berechnen;
     int versuche;
+    QPointer< SquadDiscipline > m_pSquadDiscipline;
 };
 
 #endif

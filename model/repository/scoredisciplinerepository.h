@@ -5,13 +5,12 @@
 #include "model/entity/scorediscipline.h"
 
 
-
 class ScoreDisciplineRepository : public AbstractRepository< ScoreDiscipline >
 {
 public:
-    explicit ScoreDisciplineRepository( EntityManager* em );
+    using AbstractRepository::AbstractRepository;
 
-    QList< ScoreDiscipline* > fetch();
+    QList< ScoreDiscipline* > fetch( const int* scoreId = nullptr, const int* disciplineId = nullptr );
 };
 
 #endif // SCOREDISCIPLINEREPOSITORY_H

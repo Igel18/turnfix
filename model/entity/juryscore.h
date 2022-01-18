@@ -20,8 +20,7 @@ class JuryScore : public QObject
     Q_PROPERTY(double performance READ performance WRITE setPerformance)
 
     Q_PROPERTY(Score *score READ score WRITE setScore STORED false)
-    Q_PROPERTY(
-        DisciplineField *disciplineField READ disciplineField WRITE setDisciplineField STORED false)
+    Q_PROPERTY(DisciplineField *disciplineField READ disciplineField WRITE setDisciplineField STORED false)
 
 public:
     Q_INVOKABLE JuryScore() = default;

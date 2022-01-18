@@ -14,9 +14,11 @@ HEADERS += \
     $$PWD/divisionrepository.h \
     $$PWD/eventrepository.h \
     $$PWD/formularepository.h \
+    $$PWD/juryscorerepository.h \
     $$PWD/penaltyrepository.h \
     $$PWD/personrepository.h \
     $$PWD/regionrepository.h \
+    $$PWD/scoredetailsrepository.h \
     $$PWD/scoredisciplinerepository.h \
     $$PWD/scorerepository.h \
     $$PWD/sportrepository.h \
@@ -41,9 +43,11 @@ SOURCES += \
     $$PWD/divisionrepository.cpp \
     $$PWD/eventrepository.cpp \
     $$PWD/formularepository.cpp \
+    $$PWD/juryscorerepository.cpp \
     $$PWD/penaltyrepository.cpp \
     $$PWD/personrepository.cpp \
     $$PWD/regionrepository.cpp \
+    $$PWD/scoredetailsrepository.cpp \
     $$PWD/scoredisciplinerepository.cpp \
     $$PWD/scorerepository.cpp \
     $$PWD/sportrepository.cpp \

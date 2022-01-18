@@ -53,10 +53,11 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     });
 
     if( itFound != items.end() ){
-        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( (*itFound)->statusId() ) );
+        m_pSquadDiscipline = *itFound;
+        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( (*itFound)->statusId(), TF::IdRole ) );
     }
 
-    connect(ui->cmb_status1, SIGNAL(currentIndexChanged(int)), this, SLOT(statusChange1()));
+    connect( ui->cmb_status1, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
 
     fillPETable();
 }
@@ -64,7 +65,9 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
 void ResultsSheetDialog::fillPETable()
 {
     ui->pe_table->clearSelection();
+
     pe_model->setTableData(riege, geraet, versuche, kuer, ui->chk_jury->isChecked());
+
     QList< QPair< QHeaderView::ResizeMode, int > > resizeMode = {
         { QHeaderView::ResizeToContents, 40 },
         { QHeaderView::Stretch, 200 },
@@ -119,16 +122,13 @@ void ResultsSheetDialog::finishEdit()
     }
 }
 
-void ResultsSheetDialog::statusChange1()
+void ResultsSheetDialog::changeSquadDisciplineStatus(int index)
 {
-    QSqlQuery query;
-    query.prepare("UPDATE tfx_riegen_x_disziplinen SET int_statusid=? WHERE int_veranstaltungenid=? AND int_disziplinenid=? AND var_riege=? AND int_runde=?");
-    query.bindValue(0, ui->cmb_status1->itemData(ui->cmb_status1->currentIndex()).toInt());
-    query.bindValue(1, this->m_event->mainEvent()->id());
-    query.bindValue(2, geraet);
-    query.bindValue(3, riege);
-    query.bindValue(4, this->m_event->round());
-    query.exec();
+    if( m_pSquadDiscipline ){
+        auto statusId = ui->cmb_status1->itemData( index, TF::IdRole ).toInt();
+        m_pSquadDiscipline->setStatusId( statusId );
+        m_em->squadDisciplineRepository()->persist( m_pSquadDiscipline );
+    }
 }
 
 void ResultsSheetDialog::saveClose()

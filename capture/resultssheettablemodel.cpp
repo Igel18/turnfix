@@ -1,21 +1,27 @@
 #include "resultssheettablemodel.h"
 #include "libs/fparser/fparser.hh"
 #include "model/entitymanager.h"
+#include "model/entity/club.h"
 #include "model/entity/event.h"
 #include "model/entity/score.h"
+#include "model/entity/startingorder.h"
 #include "model/repository/disciplinerepository.h"
 #include "model/repository/competitionrepository.h"
 #include "model/repository/competitiondisciplinerepository.h"
+#include "model/repository/clubrepository.h"
 #include "model/repository/disciplinefieldrepository.h"
+#include "model/repository/juryscorerepository.h"
 #include "model/repository/scorerepository.h"
+#include "model/repository/scoredetailsrepository.h"
 #include "model/repository/scoredisciplinerepository.h"
 #include "model/repository/startingorderrepository.h"
 #include "src/global/header/_global.h"
 #include <math.h>
 #include <QColor>
 #include <QKeyEvent>
-#include <QSqlQuery>
-#include <QSqlRecord>
+
+//#include <QSqlQuery>
+//#include <QSqlRecord>
 
 ResultsSheetTableModel::ResultsSheetTableModel(EntityManager* em, Event *event, QObject *parent)
     : QAbstractTableModel(parent), m_em(em), m_event(event)
@@ -24,12 +30,12 @@ ResultsSheetTableModel::ResultsSheetTableModel(EntityManager* em, Event *event, 
 
 int ResultsSheetTableModel::rowCount(const QModelIndex &) const
 {
-    return starter.size()*versuche;
+    return starter.size() * versuche;
 }
 
 int ResultsSheetTableModel::columnCount(const QModelIndex &) const
 {
-    return 5+extraColumns.size();
+    return 5 + extraColumns.size();
 }
 
 QVariant ResultsSheetTableModel::data(const QModelIndex &index, int role) const
@@ -38,32 +44,35 @@ QVariant ResultsSheetTableModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
 
-    int row = static_cast<int>(floor(index.row()/versuche));
+    int row = static_cast< int >( floor(index.row()/versuche) );
+
     if (role == Qt::DisplayRole) {
         if (index.column() < 4) {
             return starter.at(row).at(index.column());
         } else {
-            double wert=0;
-            if (index.column() == this->columnCount()-1) {
-                wert = endwerte.value(starter.at(row).at(4).toInt()).value((index.row()%versuche)+1);
+            double wert = 0;
+            if( index.column() == columnCount() - 1 ) {
+                wert = endwerte.value( starter.at( row ).at( 4 ).toInt() ).value( (index.row() % versuche ) + 1 );
             } else {
                 wert = detailwerte.value(starter.at(row).at(4).toInt()).value((index.row()%versuche)+1).value(extraColumns.at(index.column()-4));
             }
             return _global::strLeistung( wert, m_pDisciplineInfo->unit(), m_pDisciplineInfo->inputMask(), m_pDisciplineInfo->decimals() );
         }
-    } else if (role == Qt::BackgroundColorRole && index.column() == columnCount()-1) {
-        QSqlQuery check;
-        check.prepare("SELECT rel_max, var_formel FROM tfx_wettkaempfe_x_disziplinen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_disziplinen ON tfx_wettkaempfe_x_disziplinen.int_disziplinenid = tfx_disziplinen.int_disziplinenid WHERE tfx_disziplinen.int_disziplinenid=? AND int_veranstaltungenid=? AND var_nummer=?");
-        check.bindValue(0,geraet);
-        check.bindValue(1, this->m_event->mainEvent()->id());
-        check.bindValue(2,starter.at(row).at(3));
-        check.exec();
-        check.next();
-        FunctionParser fparser;
-        fparser.Parse(check.value(1).toString().replace(",",".").toStdString(),"x");
-        double Vars[] = {endwerte.value(starter.at(row).at(4).toInt()).value((index.row()%versuche)+1)};
-        if (fparser.Eval(Vars)>check.value(0).toDouble() && check.value(0).toDouble()>0) {
-            return QColor(Qt::red);
+    } else if ( role == Qt::BackgroundColorRole && ( index.column() == columnCount() - 1 ) ) {
+
+        auto items = m_em->competitionDisciplineRepository()->load( m_event->id(), starter.at(row).at( 3 ), geraet );
+
+        if( items.count() == 1 ){
+            auto pCompetitionDiscipline = items.at( 0 );
+            auto dMaxScore = pCompetitionDiscipline->maximumScore();
+            auto sResultFormula = pCompetitionDiscipline->discipline()->resultFormula();
+
+            FunctionParser fparser;
+            fparser.Parse( sResultFormula.replace(",",".").toStdString(), "x" );
+            double Vars[] = { endwerte.value(starter.at(row).at( 4 ).toInt()).value((index.row() % versuche ) + 1 ) };
+            if( (fparser.Eval(Vars) > dMaxScore ) && ( dMaxScore > 0 ) ) {
+                return QColor(Qt::red);
+            }
         }
     }
 
@@ -82,9 +91,10 @@ QVariant ResultsSheetTableModel::headerData(int section, Qt::Orientation orienta
 
         if( geraet > 0 ){
             if( section == columnCount() - 1 ){
-                if ( m_pDisciplineInfo ){}
+                if ( m_pDisciplineInfo ){
                     return m_pDisciplineInfo->shortName1();
-            } else{
+                }
+            } else {
                 return extraColumnNames.at( section - 4 );
             }
         }
@@ -106,125 +116,168 @@ Qt::ItemFlags ResultsSheetTableModel::flags(const QModelIndex &index) const
 bool ResultsSheetTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-        int row = static_cast<int>(floor(index.row()/versuche));
-        int selectedPEItem = starter.at(row).at(4).toInt();
-        int v=(index.row()%versuche)+1;
-        int kp=0;
-        if (kuer) kp = 1;
-        QSqlQuery disziplin;
-        disziplin.prepare("SELECT var_maske, int_versuche FROM tfx_disziplinen WHERE int_disziplinenid=? LIMIT 1");
-        disziplin.bindValue(0,geraet);
-        disziplin.exec();
-        disziplin.next();
-        double leistung = _global::calcLeistung(value.toString());
-        if (index.column() == this->columnCount()-1) {
-            if (disziplin.value(0).toString() == value || leistung == 0) {
-                QSqlQuery query6;
-                query6.prepare("DELETE FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid=? AND int_versuch=? AND int_kp=?");
-                query6.bindValue(0,selectedPEItem);
-                query6.bindValue(1,geraet);
-                query6.bindValue(2,v);
-                query6.bindValue(3,kp);
-                query6.exec();
-                query6.prepare("DELETE FROM tfx_jury_results WHERE int_wertungenid=? AND int_disziplinen_felderid IN (SELECT int_disziplinen_felderid FROM tfx_disziplinen_felder WHERE int_disziplinenid=? AND bol_enabled='true') AND int_versuch=? AND int_kp=?");
-                query6.bindValue(0,selectedPEItem);
-                query6.bindValue(1,geraet);
-                query6.bindValue(2,v);
-                query6.bindValue(3,kp);
-                query6.exec();
-            } else {
-                QSqlQuery check;
-                check.prepare("SELECT int_wertungen_detailsid FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid=? AND int_versuch=? AND int_kp=? LIMIT 1");
-                check.bindValue(0,selectedPEItem);
-                check.bindValue(1,geraet);
-                check.bindValue(2,v);
-                check.bindValue(3,kp);
-                check.exec();
-                QSqlQuery query6;
-                if (_global::querySize(check)==0) {
-                    query6.prepare("INSERT INTO tfx_wertungen_details (int_wertungenid,int_disziplinenid,int_versuch,rel_leistung,int_kp) VALUES (?,?,?,?,?)");
-                } else {
-                    check.next();
-                    query6.prepare("UPDATE tfx_wertungen_details SET int_wertungenid=?,int_disziplinenid=?,int_versuch=?,rel_leistung=?, int_kp=? WHERE int_wertungen_detailsid=?");
-                    query6.bindValue(5,check.value(0).toString());
+        int row = static_cast< int >( floor( index.row() / versuche ) );
+
+        int iScoreId = starter.at( row ).at( 4 ).toInt(); // aka participant id
+        int iAttempt = ( index.row() % versuche ) + 1;
+        int kp = kuer ? 1 : 0;
+        double leistung = _global::calcLeistung( value.toString() );
+
+        if( index.column() == columnCount() - 1 ) {
+
+            auto detailsRepo = m_em->scoreDetailsRepository();
+            auto scoreDetails = detailsRepo->fetch( &iScoreId, &geraet, &iAttempt, nullptr, &kp );
+
+            if( ( m_pDisciplineInfo->inputMask() == value ) || ( leistung == 0 ) ) {
+                for( auto it = scoreDetails.begin(); it != scoreDetails.end(); ++it ){
+                    detailsRepo->remove( *it );
                 }
-                query6.bindValue(0,selectedPEItem);
-                query6.bindValue(1,geraet);
-                query6.bindValue(2,v);
-                query6.bindValue(3,leistung);
-                query6.bindValue(4,kp);
-                query6.exec();
+
+                auto juryScoreRepo = m_em->juryScoreRepository();
+                auto juryScoreItemsToDel = juryScoreRepo->fetch( &iScoreId, &geraet, &iAttempt, nullptr, &kp );
+                bool bEnabled = true;
+                auto disciplineFields = m_em->disciplineFieldRepository()->loadByDisciplineId( geraet, &bEnabled );
+
+                for(auto it = juryScoreItemsToDel.begin(); it != juryScoreItemsToDel.end(); ++it){
+                    auto pJuryScore = *it;
+                    auto itFound = std::find_if(disciplineFields.begin(), disciplineFields.end(), [ pJuryScore ]( DisciplineField* pItem){
+                        return pItem->id() == pJuryScore->disciplineFieldId();
+                    });
+
+                    if( itFound != disciplineFields.end() ){
+                        juryScoreRepo->remove( pJuryScore );
+                    }
+                }
+            } else {
+                ScoreDetails* pScoreDetailsItem = scoreDetails.count() > 0 ? scoreDetails.at( 0 ) : new ScoreDetails();
+                pScoreDetailsItem->setScoreId( iScoreId );
+                pScoreDetailsItem->setDisciplineId( geraet );
+                pScoreDetailsItem->setAttempt( iAttempt );
+                pScoreDetailsItem->setPerformance( leistung );
+                pScoreDetailsItem->setType( kp );
+                detailsRepo->persist( pScoreDetailsItem );
             }
-            endwerte[selectedPEItem][v] = leistung;
+
+            endwerte[ iScoreId ][ iAttempt ] = leistung;
+
         } else {
-            QSqlQuery query;
-            query.prepare("SELECT int_juryresultsid FROM tfx_jury_results WHERE int_wertungenid=? AND int_disziplinen_felderid=? AND int_versuch=? AND int_kp=?");
-            query.bindValue(0, selectedPEItem);
-            query.bindValue(1, extraColumns.at(index.column()-4));
-            query.bindValue(2, v);
-            query.bindValue(3,kp);
-            query.exec();
-            if (leistung > 0) {
-                QSqlQuery query2;
-                if (_global::querySize(query) == 0) {
-                    query2.prepare("INSERT INTO tfx_jury_results (int_wertungenid,int_disziplinen_felderid,int_versuch,rel_leistung,int_kp) VALUES (?,?,?,?,?)");
-                    query2.bindValue(0,selectedPEItem);
-                    query2.bindValue(1,extraColumns.at(index.column()-4));
-                    query2.bindValue(2,v);
-                    query2.bindValue(3,leistung);
-                    query2.bindValue(4,kp);
-                } else {
-                    query2.prepare("UPDATE tfx_jury_results SET rel_leistung=? WHERE int_juryresultsid=?");
-                    query.next();
-                    query2.bindValue(0, leistung);
-                    query2.bindValue(1, query.value(0).toInt());
-                }
-                query2.exec();
+            int iExtraFieldId = extraColumns.at( index.column() - 4 );
+            auto pJuryRepo = m_em->juryScoreRepository();
+            auto items = pJuryRepo->fetch( &iScoreId, &iExtraFieldId, &iAttempt, nullptr, &kp );
+
+            if( leistung > 0 ){
+                auto pJuryScore = items.isEmpty() ? new JuryScore() : items.at( 0 );
+                pJuryScore->setScoreId( iScoreId );
+                pJuryScore->setDisciplineFieldId( iExtraFieldId );
+                pJuryScore->setAttempt( iAttempt );
+                pJuryScore->setPerformance( leistung );
+                pJuryScore->setType( kp );
+                pJuryRepo->persist( pJuryScore );
             } else {
-                if (_global::querySize(query) > 0) {
-                    query.next();
-                    QSqlQuery query4;
-                    query4.prepare("DELETE FROM tfx_jury_results WHERE int_juryresultsid=?");
-                    query4.bindValue(0, query.value(0).toInt());
-                    query4.exec();
+                for( auto it = items.begin(); it != items.end(); ++it ){
+                    pJuryRepo->remove( *it );
                 }
             }
-            detailwerte[selectedPEItem][v][extraColumns.at(index.column()-4)] = leistung;
+
+            detailwerte[ iScoreId ][ iAttempt ][ iExtraFieldId ] = leistung;
         }
-        emit dataChanged(index, index);
+
+        emit dataChanged( index, index );
+
         return true;
     }
+
     return false;
 }
 
-void ResultsSheetTableModel::setTableData(QString rg, int g, int v, bool k, bool j)
+void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, bool jury)
 {
     beginResetModel();
 
-    riege = rg;
-    geraet = g;
+    riege = squad;
+    geraet = g; // disciplineId
     kuer = k;
-    versuche = v;
+    versuche = v; // attempt
 
     QList< Score* > participants;
 
+    // auto pClubRepo = m_em->clubRepository();
+    auto pScoreDetailsRepo = m_em->scoreDetailsRepository();
+    auto pScoreDisciplineRepo = m_em->scoreDisciplineRepository();
+    auto pScoreRepo = m_em->scoreRepository();
+    auto pCompetitionDisciplineRepo = m_em->competitionDisciplineRepository();
+
+    // fetch competitions for the event
     const auto competitions = m_em->competitionRepository()->fetchByEvent( m_event );
 
+    // fetch participants for the competitions
     for( auto& competition : competitions ){
         int competitionId = competition->id();
-        for( auto& participant : m_em->scoreRepository()->fetch( &competitionId ) ){
-            if( ( participant->squad() == riege ) && ( participant->round() == m_event->round() ) && !participant->dns() ){
-                participants << participant;
-            }
+        participants.append( pScoreRepo->fetch( &competitionId ) );
+    }
+
+    QList< Score* > relevantParticipants;
+
+    // filter particular paticipants for the model
+    for( auto& participant : participants ){
+        // 1. check club
+        if( participant->athlete() && !participant->athlete()->club() ){
+            continue; // skip participants not club members
         }
+
+        if( participant->group() && !participant->group()->club() ){
+            continue; // skip participants not club members
+        }
+
+        // 2. check squad, round, dns
+        if( ( participant->squad() != riege ) || ( participant->round() != m_event->round() ) || participant->dns() ){
+            continue; // skip not from target squad, different round or dns
+        }
+
+        // 3. check competition disciplines
+        auto competitionDisciplines = pCompetitionDisciplineRepo->fetchByCompetition( participant->competition(), &geraet );
+        if( competitionDisciplines.isEmpty() ){
+            continue; // discipline was not selected for the competition
+        }
+
+        int iScoreId = participant->id();
+        // 4. check participant disciplines
+        auto scoreAllDisciplineItems = pScoreDisciplineRepo->fetch( &iScoreId );
+        auto scoreTargetDisciplineItems = pScoreDisciplineRepo->fetch( &iScoreId, &geraet );
+        bool takePart = scoreAllDisciplineItems.isEmpty() || !scoreTargetDisciplineItems.isEmpty();
+
+        if( !takePart ){
+            continue; // skip not relevant disciplines
+        }
+
+        // 5. check KP
+        bool relevantKP = !kuer || participant->competition()->freeAndCompulsary() || competitionDisciplines.at( 0 )->freeAndCompulsary();
+        if( !relevantKP ){
+            continue;
+        }
+
+        relevantParticipants << participant;
+    }
+
+    // get starting order
+    QMultiMap< int, Score* > participantPos;
+
+    int kp_type = kuer ? 1 : 0;
+    auto pStartingOrderRepo = m_em->startingOrderRepository();
+
+    for( auto& participant : relevantParticipants ){
+        int scoreId = participant->id();
+        auto startingOrders = pStartingOrderRepo->fetch( &scoreId, &geraet, &kp_type );
+        int pos = startingOrders.isEmpty() ? 0 : startingOrders.at( 0 )->position();
+        participantPos.insert( pos, participant);
     }
 
     starter.clear();
     extraColumns.clear();
     extraColumnNames.clear();
+    endwerte.clear();
 
-    for( auto& participant : participants ){
-        // TODO: Add conditions for adding to model data
+    for( auto& participant : relevantParticipants ){
         QStringList slItems;
 
         slItems << QString("%1").arg(participant->bib());
@@ -235,9 +288,19 @@ void ResultsSheetTableModel::setTableData(QString rg, int g, int v, bool k, bool
         slItems << QString("%1").arg(participant->competitionId());
 
         starter.append( slItems );
+
+        int kp = kuer ? 1 : 0;
+
+        int scoreId = participant->id();
+        auto scoreDetails = pScoreDetailsRepo->fetch( &scoreId, &geraet, nullptr, nullptr, &kp );
+
+        for( auto it = scoreDetails.begin(); it != scoreDetails.end(); ++it ){
+            auto pDetails = *it;
+            endwerte[ pDetails->scoreId() ][pDetails->attempt()] = pDetails->performance();
+        }
     }
 
-    if (j) {
+    if ( jury ) {
         auto disciplineFields = m_em->disciplineFieldRepository()->loadByDisciplineId( geraet );
 
         std::sort(disciplineFields.begin(), disciplineFields.end(), [](const DisciplineField* pLhs, const DisciplineField* pRhs){
@@ -266,6 +329,7 @@ void ResultsSheetTableModel::setTableData(QString rg, int g, int v, bool k, bool
 //    query4.bindValue(7, !kuer);
 //    query4.bindValue(8, geraet);
 //    query4.exec();
+
 //    starter.clear();
 //    if (_global::querySize(query4)>0)  {
 //        bool skip=false;
@@ -283,6 +347,7 @@ void ResultsSheetTableModel::setTableData(QString rg, int g, int v, bool k, bool
 //            starter.append(lst);
 //        }
 //    }
+
 //    extraColumns.clear();
 //    extraColumnNames.clear();
 //    if (j) {
@@ -301,20 +366,18 @@ void ResultsSheetTableModel::setTableData(QString rg, int g, int v, bool k, bool
 //    disinfo.exec();
 //    disinfo.next();
 
-//    int kp=0;
-//    if (kuer) kp = 1;
-
-//    endwerte.clear();
-//    QSqlQuery endwerteQuery;
-//    endwerteQuery.prepare("SELECT rel_leistung, int_wertungenid, int_versuch FROM tfx_wertungen_details INNER JOIN tfx_wertungen USING (int_wertungenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_disziplinenid=? AND var_riege=? AND int_kp=?");
-//    endwerteQuery.bindValue(0, this->m_event->mainEvent()->id());
-//    endwerteQuery.bindValue(1,geraet);
-//    endwerteQuery.bindValue(2,riege);
-//    endwerteQuery.bindValue(3,kp);
-//    endwerteQuery.exec();
-//    while (endwerteQuery.next()) {
-//        endwerte[endwerteQuery.value(1).toInt()][endwerteQuery.value(2).toInt()] = endwerteQuery.value(0).toDouble();
-//    }
+//                    int kp = kuer ? 1 : 0;
+//                    endwerte.clear();
+//                    QSqlQuery endwerteQuery;
+//                    endwerteQuery.prepare("SELECT rel_leistung, int_wertungenid, int_versuch FROM tfx_wertungen_details INNER JOIN tfx_wertungen USING (int_wertungenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND int_disziplinenid=? AND var_riege=? AND int_kp=?");
+//                    endwerteQuery.bindValue(0, this->m_event->mainEvent()->id());
+//                    endwerteQuery.bindValue(1,geraet);
+//                    endwerteQuery.bindValue(2,riege);
+//                    endwerteQuery.bindValue(3,kp);
+//                    endwerteQuery.exec();
+//                    while (endwerteQuery.next()) {
+//                        endwerte[endwerteQuery.value(1).toInt()][endwerteQuery.value(2).toInt()] = endwerteQuery.value(0).toDouble();
+//                    }
 
 //    detailwerte.clear();
 //    if (j) {

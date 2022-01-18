@@ -110,6 +110,7 @@ private:
     QString m_squad;
     QString m_comment;
 };
+
 Q_DECLARE_METATYPE(Score *);
 
 #endif // SCORE_H

@@ -12,7 +12,7 @@ public:
     explicit DisciplineFieldRepository(EntityManager *em);
 
     QList< DisciplineField* > loadByDiscipline( Discipline *discipline );
-    QList< DisciplineField* > loadByDisciplineId( int disciplineId );
+    QList< DisciplineField* > loadByDisciplineId( int disciplineId, bool* enabled = nullptr );
 };
 
 #endif // DISCIPLINEFIELDREPOSITORY_H

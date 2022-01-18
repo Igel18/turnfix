@@ -6,12 +6,12 @@
 
 class Club;
 
-class ClubRepository : public AbstractRepository<Club>
+class ClubRepository : public AbstractRepository< Club >
 {
 public:
-    explicit ClubRepository(EntityManager *em);
+    using AbstractRepository::AbstractRepository;
 
-    QList<Club *> loadAll();
+    QList< Club* > fetch( const int* id = nullptr );
 };
 
 #endif // CLUBREPOSITORY_H
