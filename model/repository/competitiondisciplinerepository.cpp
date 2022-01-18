@@ -6,10 +6,11 @@
 
 QList<CompetitionDiscipline *> CompetitionDisciplineRepository::fetchByCompetition( Competition *competition, int* disciplineId /*= nullptr*/ )
 {
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
     QueryBuilder<CompetitionDiscipline> qb;
+
     qb.select(CompetitionDiscipline::staticMetaObject, CompetitionDiscipline::mapping());
     qb.join(Discipline::staticMetaObject, Discipline::mapping(), "CompetitionDiscipline", "discipline", "disciplineId");
+
     qb.where("CompetitionDiscipline", "competitionId", competition->id());
 
     if( disciplineId ){
@@ -18,7 +19,7 @@ QList<CompetitionDiscipline *> CompetitionDisciplineRepository::fetchByCompetiti
 
     qb.orderBy("CompetitionDiscipline", "sort");
 
-    auto output = qb.query(db);
+    auto output = qb.query( QSqlDatabase::database(entityManager()->connectionName()) );
 
     for (auto competitionDiscipline : output) {
         competitionDiscipline->setCompetition(competition);
