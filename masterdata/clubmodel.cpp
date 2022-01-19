@@ -61,6 +61,6 @@ QVariant ClubModel::data(const QModelIndex &index, int role) const
 void ClubModel::fetchClubs()
 {
     beginResetModel();
-    m_clubs = m_em->clubRepository()->loadAll();
+    m_clubs = m_em->clubRepository()->fetch();
     endResetModel();
 }

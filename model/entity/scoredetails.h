@@ -18,6 +18,10 @@ class ScoreDetails : public QObject
     Q_PROPERTY(double performance READ performance WRITE setPerformance)
     Q_PROPERTY(int type READ type WRITE setType)
 
+    Q_PROPERTY(Score* score READ score WRITE setScore STORED false)
+    Q_PROPERTY(Discipline* discipline READ discipline WRITE setDiscipline STORED false)
+
+
 public:
     Q_INVOKABLE ScoreDetails() = default;
 

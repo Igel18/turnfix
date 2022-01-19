@@ -6,12 +6,12 @@ StartingOrderRepository::StartingOrderRepository( EntityManager* em ) :
 
 }
 
-QList< StartingOrder* > StartingOrderRepository::fetch( int* scoreId /*= nullptr*/, int* disciplineId /*= nullptr*/ )
+QList< StartingOrder* > StartingOrderRepository::fetch( const int* scoreId /*= nullptr*/, const int* disciplineId /*= nullptr*/, const int* type /*= nullptr*/ )
 {
     QueryBuilder< StartingOrder > qb;
     qb.select(StartingOrder::staticMetaObject, StartingOrder::mapping());
-    qb.join(Score::staticMetaObject, Score::mapping(), "Score", "score", "scoreId");
-    qb.join(Discipline::staticMetaObject, Discipline::mapping(), "Discipline", "discipline", "disciplineId");
+    qb.join(Score::staticMetaObject, Score::mapping(), "StartingOrder", "score", "scoreId");
+    qb.join(Discipline::staticMetaObject, Discipline::mapping(), "StartingOrder", "discipline", "disciplineId");
 
     if( scoreId ){
         qb.where( "StartingOrder", "scoreId", *scoreId );
@@ -19,6 +19,10 @@ QList< StartingOrder* > StartingOrderRepository::fetch( int* scoreId /*= nullptr
 
     if( disciplineId ){
         qb.where( "StartingOrder", "disciplineId", *disciplineId );
+    }
+
+    if( type ){
+        qb.where( "StartingOrder", "type", *type );
     }
 
     auto output = qb.query( QSqlDatabase::database(entityManager()->connectionName()) );

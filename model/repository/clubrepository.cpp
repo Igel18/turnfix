@@ -4,20 +4,19 @@
 #include "model/querybuilder.h"
 #include <QSqlQuery>
 
-ClubRepository::ClubRepository(EntityManager *em)
-    : AbstractRepository<Club>(em)
-{}
-
-QList<Club *> ClubRepository::loadAll()
+QList< Club* > ClubRepository::fetch( const int* id /*= nullptr*/ )
 {
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
-
     QueryBuilder<Club> qb;
     qb.select(Club::staticMetaObject, Club::mapping());
     qb.join(Person::staticMetaObject, Person::mapping(), "Club", "contactPerson", "contactPersonId");
+
+    if( id ){
+        qb.where("Club", "id", *id );
+    }
+
     qb.orderBy("Club", "name");
 
-    QList<Club *> output = qb.query(db);
+    QList<Club *> output = qb.query( QSqlDatabase::database( entityManager()->connectionName() ) );
 
     return output;
 }
