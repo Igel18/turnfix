@@ -7,7 +7,7 @@ class Certificate : public Print {
 
     Q_OBJECT
 public:
-    Certificate(Event *event) : Print(event) {}
+    Certificate(Event *event) : Print(/*event*/) {}
 
     virtual void print(QPrinter*);
     virtual void printContent();

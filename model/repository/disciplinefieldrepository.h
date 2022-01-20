@@ -9,10 +9,11 @@ class Discipline;
 class DisciplineFieldRepository : public AbstractRepository< DisciplineField >
 {
 public:
-    explicit DisciplineFieldRepository(EntityManager *em);
+    using AbstractRepository::AbstractRepository;
 
     QList< DisciplineField* > loadByDiscipline( Discipline *discipline );
     QList< DisciplineField* > loadByDisciplineId( int disciplineId, bool* enabled = nullptr );
+    DisciplineField* fetchOne( int disciplineId, const bool* baseScore = nullptr, const bool* enabled = nullptr );
 };
 
 #endif // DISCIPLINEFIELDREPOSITORY_H

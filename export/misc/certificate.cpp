@@ -32,7 +32,7 @@ void Certificate::printContent() {
     } else {
         int typ = competition->type();
         if (einzelErgebnis) typ = 0;
-        rlist = Result_Calc::resultArrayNew(competition);
+        rlist = Result_Calc::resultArrayNew( competition );
     }
     rlist = Result_Calc::sortRes(rlist);
     for (int i=(rlist.size()-1);i>=0;i--) {

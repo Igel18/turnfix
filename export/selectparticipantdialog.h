@@ -15,7 +15,7 @@ class SelectParticipantDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SelectParticipantDialog(Event *m_event, QWidget *parent = nullptr);
+    explicit SelectParticipantDialog(QWidget *parent = nullptr);
     ~SelectParticipantDialog();
 
 public slots:

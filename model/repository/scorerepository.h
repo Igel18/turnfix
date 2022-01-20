@@ -7,9 +7,9 @@
 class ScoreRepository : public AbstractRepository< Score >
 {
 public:
-    explicit ScoreRepository(EntityManager* em);
+    using AbstractRepository::AbstractRepository;
 
-    QList< Score* > fetch(int* competitionId = nullptr);
+    QList< Score* > fetch( const int* competitionId = nullptr, const int* round = nullptr );
 };
 
 #endif // SCOREREPOSITORY_H

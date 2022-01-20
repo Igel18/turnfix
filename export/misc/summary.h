@@ -7,7 +7,7 @@ class Summary : public Print {
     Q_OBJECT
 
 public:
-    Summary(Event *event) : Print(event) {}
+    Summary(Event *event) : Print(/*event*/) {}
 
     virtual void print(QPrinter*);
     virtual void printContent();

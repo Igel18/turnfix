@@ -7,7 +7,7 @@ class List : public Print {
     Q_OBJECT
 
 public:
-    List(Event *event) : Print(event) {}
+    List(Event *event) : Print(/*event*/) {}
     virtual void printSubHeader();
 
 public slots:

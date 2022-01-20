@@ -35,19 +35,14 @@ void Detail::printContent() {
         }
 
         //Array mit Ergebnissen erstellen
-        QList<QStringList> rlist = Result_Calc::resultArrayNew(competition, vereinNumbers, -1, 0, printAW, detailQuery);
+        QList<QStringList> rlist = Result_Calc::resultArrayNew( competition, vereinNumbers, -1, 0, printAW, detailQuery);
         int cskip=0;
 
         //Liste mit Einzelergebnissen bei Mannschaftswettkämpfen
         // TODO check if working
         QList<QStringList> dlist;
         if (competition->type() == 1)
-            dlist = Result_Calc::resultArrayNew(competition,
-                                                QList<int>(),
-                                                -1,
-                                                0,
-                                                printAW,
-                                                detailQuery);
+            dlist = Result_Calc::resultArrayNew( competition, QList<int>(), -1, 0, printAW, detailQuery );
 
         //Ausgabe
         for (int ll=0;ll<rlist.size();ll++) {

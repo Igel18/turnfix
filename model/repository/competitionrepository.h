@@ -6,13 +6,13 @@
 
 class Event;
 
-class CompetitionRepository : public AbstractRepository<Competition>
+class CompetitionRepository : public AbstractRepository< Competition >
 {
 public:
-    explicit CompetitionRepository(EntityManager *em);
+    using AbstractRepository::AbstractRepository;
 
     QList<Competition *> fetchByEvent(Event *event, int *type = nullptr);
-    Competition *fetchByNumber(Event *event, const QString &number);
+    Competition* fetchByNumber( Event *event, QString number );
 };
 
 #endif // COMPETITIONREPOSITORY_H

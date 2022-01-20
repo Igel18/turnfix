@@ -8,13 +8,15 @@ class RegistrationMatrix : public Print {
     Q_OBJECT
 
 public:
-    RegistrationMatrix(Event *event) : Print(event) {}
-    virtual void print(QPrinter*);
-    virtual void printContent();
+    using Print::Print;
+
+    virtual void print(QPrinter*) override;
+    virtual void printContent() override;
+
     static void setTeamMode(bool teamMode);
+
 private:
     static bool teamMode;
-
 };
 
 #endif // REGISTRATIONMATRIX_H

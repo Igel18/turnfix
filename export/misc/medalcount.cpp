@@ -12,28 +12,34 @@ void MedalCount::print(QPrinter *printer) {
     silber.clear();
     bronze.clear();
     namen.clear();
-    QSqlQuery query2;
-    query2.prepare("SELECT tfx_vereine.int_vereineid, tfx_vereine.var_name, (SELECT COUNT(*) FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid WHERE (tfx_teilnehmer.int_vereineid=tfx_vereine.int_vereineid OR tfx_gruppen.int_vereineid=tfx_vereine.int_vereineid OR tfx_mannschaften.int_vereineid=tfx_vereine.int_vereineid) AND int_veranstaltungenid=? AND bol_startet_nicht='false') FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_wertungen.int_teilnehmerid = tfx_teilnehmer.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_wertungen.int_gruppenid = tfx_gruppen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_wertungen.int_mannschaftenid = tfx_mannschaften.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_teilnehmer.int_vereineid = tfx_vereine.int_vereineid OR tfx_gruppen.int_vereineid = tfx_vereine.int_vereineid OR tfx_mannschaften.int_vereineid = tfx_vereine.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort ORDER BY "+_global::substring("tfx_vereine.var_name","int_start_ort+1")+", tfx_vereine.var_name");
-    query2.bindValue(0, this->m_event->mainEvent()->id());
-    query2.bindValue(1, this->m_event->mainEvent()->id());
-    query2.exec();
-    while (query2.next()) {
-        ids.append(query2.value(0).toInt());
-        namen[query2.value(0).toInt()] = query2.value(1).toString();
-        gesamt[query2.value(0).toInt()] = query2.value(2).toInt();
-    }
-    for (int i=0;i<wkNumbers.size();i++) {
-        QString currWK = wkNumbers.at(i);
-        Competition *competition = m_em->competitionRepository()->fetchByNumber(this->m_event,
-                                                                                currWK);
 
-        QList<QStringList> rlist = Result_Calc::resultArrayNew(competition);
-        for(int j=0;j<rlist.size();j++) {
+    auto db = QSqlDatabase::database( m_em->connectionName() );
+
+    QSqlQuery query2( db );
+    query2.prepare("SELECT tfx_vereine.int_vereineid, tfx_vereine.var_name, (SELECT COUNT(*) FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid WHERE (tfx_teilnehmer.int_vereineid=tfx_vereine.int_vereineid OR tfx_gruppen.int_vereineid=tfx_vereine.int_vereineid OR tfx_mannschaften.int_vereineid=tfx_vereine.int_vereineid) AND int_veranstaltungenid=? AND bol_startet_nicht='false') FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_wertungen.int_teilnehmerid = tfx_teilnehmer.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_wertungen.int_gruppenid = tfx_gruppen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_wertungen.int_mannschaftenid = tfx_mannschaften.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_teilnehmer.int_vereineid = tfx_vereine.int_vereineid OR tfx_gruppen.int_vereineid = tfx_vereine.int_vereineid OR tfx_mannschaften.int_vereineid = tfx_vereine.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort ORDER BY "+_global::substring("tfx_vereine.var_name","int_start_ort+1")+", tfx_vereine.var_name");
+    query2.bindValue( 0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+    query2.bindValue( 1, /*this->m_event->mainEvent()->id()*/ m_event->id());
+    query2.exec();
+
+    while (query2.next()) {
+        auto clubId = query2.value(0).toInt();
+        ids.append( clubId );
+        namen[ clubId ] = query2.value(1).toString();
+        gesamt[ clubId ] = query2.value(2).toInt();
+    }
+
+    for ( int i = 0; i < wkNumbers.size(); ++i ) {
+        QString currWK = wkNumbers.at(i);
+        auto competition = m_em->competitionRepository()->fetchByNumber( m_event, currWK );
+
+        auto rlist = Result_Calc::resultArrayNew( competition );
+
+        for( int j = 0; j < rlist.size(); ++j ) {
             QStringList data = rlist.at(j);
-            QSqlQuery query;
+            QSqlQuery query( db );
             if (competition->type() == 1) {
                 query.prepare("SELECT int_vereineid FROM tfx_mannschaften WHERE int_mannschaftenid=?");
-            } else if (competition->type() == 1) {
+            } else if (competition->type() == 2) {
                 query.prepare("SELECT int_vereineid FROM tfx_wertungen INNER JOIN tfx_gruppen USING (int_gruppenid) WHERE int_wertungenid=?");
             } else {
                 query.prepare("SELECT int_vereineid FROM tfx_wertungen INNER JOIN tfx_teilnehmer USING (int_teilnehmerid) WHERE int_wertungenid=?");
@@ -55,6 +61,7 @@ void MedalCount::print(QPrinter *printer) {
             }
         }
     }
+
     for (int i=0;i<ids.size();i++) {
         for (int j=0;j<(i+1);j++) {
             if (gold[ids.at(i)]>gold[ids.at(j)] || (gold[ids.at(i)]==gold[ids.at(j)] && silber[ids.at(i)]>silber[ids.at(j)]) || (gold[ids.at(i)]==gold[ids.at(j)] && silber[ids.at(i)]==silber[ids.at(j)] && bronze[ids.at(i)]>bronze[ids.at(j)])) {
@@ -62,6 +69,7 @@ void MedalCount::print(QPrinter *printer) {
             }
         }
     }
+
     setTypeString("Medallien");
     Print::print(printer);
     printHeadFoot();

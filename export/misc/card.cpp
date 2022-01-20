@@ -13,7 +13,9 @@ void Card::print(QPrinter *printer) {
 }
 
 void Card::printContent() {
-    QSqlQuery query;
+    auto db = QSqlDatabase::database( m_em->connectionName() );
+
+    QSqlQuery query( db );
     query.prepare("SELECT var_nummer, CASE WHEN tfx_gruppen.int_gruppenid IS NULL THEN " + _global::nameFormat() + " ELSE tfx_gruppen.var_name END AS tnname, CASE WHEN tfx_gruppen.int_gruppenid IS NULL THEN v1.var_name ELSE v2.var_name END AS vereinname, "+_global::date("dat_geburtstag",4)+", int_startnummer, int_wertungenid, var_comment FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid)  LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_vereine AS v1 ON v1.int_vereineid = tfx_teilnehmer.int_vereineid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_vereine AS v2 ON v2.int_vereineid = tfx_gruppen.int_vereineid WHERE int_wertungenid IN ("+teilnehmerString+")");
     query.exec();
     while (query.next()) {
@@ -21,8 +23,7 @@ void Card::printContent() {
             newPage();
         }
 
-        Competition *competition = m_em->competitionRepository()
-                                       ->fetchByNumber(m_event, query.value(0).toString());
+        Competition *competition = m_em->competitionRepository()->fetchByNumber(m_event, query.value(0).toString());
 
         setPrinterFont(12,true);
         painter.drawText(QRectF(pr.x(), yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),query.value(1).toString(),QTextOption(Qt::AlignVCenter));
@@ -47,11 +48,11 @@ void Card::printContent() {
         yco += mmToPixel(6.6);
         printDescriptor(query.value(0).toString());
         int yco2 = yco;
-        QSqlQuery query9;
+        QSqlQuery query9( db );
         query9.prepare("SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen INNER JOIN tfx_wertungen USING (int_wertungenid) INNER JOIN tfx_teilnehmer USING (int_teilnehmerid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid WHERE int_wertungenid=?");
         query9.bindValue(0,query.value(5).toInt());
         query9.exec();
-        QSqlQuery query2;
+        QSqlQuery query2( db );
         if (_global::querySize(query9) == 0) {
             query2.prepare("SELECT int_disziplinenid, tfx_disziplinen.var_kurz2, int_versuche, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp FROM tfx_wettkaempfe_x_disziplinen INNER JOIN tfx_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wettkaempfe_x_disziplinen.int_wettkaempfeid INNER JOIN tfx_wertungen ON tfx_wertungen.int_wettkaempfeid = tfx_wettkaempfe.int_wettkaempfeid WHERE int_wertungenid=? ORDER BY int_sortierung");
         } else {
@@ -70,7 +71,7 @@ void Card::printContent() {
                 }
                 setPrinterFont(10,true);
                 QString name = query2.value(1).toString();
-                QSqlQuery checkKuer;
+                QSqlQuery checkKuer( db );
                 checkKuer.prepare("SELECT int_wettkaempfeid FROM tfx_wettkaempfe INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) INNER JOIN tfx_veranstaltungen USING (int_veranstaltungenid) WHERE int_veranstaltungenid=? AND tfx_wettkaempfe.var_nummer=? AND (tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true')");
                 checkKuer.bindValue(0, this->m_event->mainEvent()->id());
                 checkKuer.bindValue(1,query.value(0).toString());
@@ -88,7 +89,7 @@ void Card::printContent() {
                 int vwidth=0;
                 bool nextRow=false;
                 for (int i=0;i<query2.value(2).toInt();i++) {
-                    QSqlQuery fields;
+                    QSqlQuery fields( db );
                     fields.prepare("SELECT var_name FROM tfx_disziplinen_felder WHERE int_disziplinenid=? AND bol_enabled='true' ORDER BY int_sortierung");
                     fields.bindValue(0,query2.value(0).toInt());
                     fields.exec();
@@ -120,7 +121,7 @@ void Card::printContent() {
         int rows = 0;
         if (competition->type() == 2) {
             setPrinterFont(8);
-            QSqlQuery teamq2;
+            QSqlQuery teamq2( db );
             QString teamstr;
             teamstr = "SELECT " + _global::nameFormat() + " || ' (' || ";
             teamstr += _global::date("dat_geburtstag",2);
@@ -146,5 +147,6 @@ void Card::printContent() {
         painter.drawText(QRectF(pr.width()-pr.x()-mmToPixel(60.0),pr.height()-pr.y()-mmToPixel(28.0)-rows*mmToPixel(3.5), mmToPixel(38.0), mmToPixel(8.0)),"Gesamtpunktzahl:",QTextOption(Qt::AlignVCenter | Qt::AlignRight));
         painter.drawText(QRectF(pr.width()-pr.x()-mmToPixel(100.0),pr.height()-pr.y()-mmToPixel(36.0)-rows*mmToPixel(3.5), mmToPixel(100.0), mmToPixel(8.0)),query.value(6).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignRight));
     }
+
     finishPrint();
 }

@@ -30,6 +30,11 @@ CompetitionsWidget::~CompetitionsWidget()
     delete ui;
 }
 
+CompetitionModel* CompetitionsWidget::model() const
+{
+    return m_model;
+}
+
 void CompetitionsWidget::addCompetition()
 {
     auto competition = new Competition();

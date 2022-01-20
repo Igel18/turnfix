@@ -16,7 +16,8 @@ class Print : public QThread {
     Q_OBJECT
 
 public:
-    Print(Event *event);
+    Print();
+
     void setOutputType(int);
     int  getOutputType();
     static void setDetailInfo(int);

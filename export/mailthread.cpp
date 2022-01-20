@@ -84,7 +84,7 @@ void MailThread::createPDF()
             case 2: {
                     files.append("Meldematrix.pdf");
                     emit(textChanged("PDF-Dateien werden erzeugt...\nMeldematrix.pdf"));
-                    ausdruck = new RegistrationMatrix(this->m_event);
+                    ausdruck = new RegistrationMatrix();
                     ausdruck->setOutputFileName("Meldematrix.pdf");
                     ausdruck->setTypeString("Meldematrix");
                 }; break;

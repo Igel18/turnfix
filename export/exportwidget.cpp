@@ -41,12 +41,12 @@
 #include <QTextStream>
 
 ExportWidget::ExportWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::ExportWidget)
+    : QWidget(parent), ui(new Ui::ExportWidget)
 {
     ui->setupUi(this);
 
-    this->m_event = Session::getInstance()->getEvent();
+    m_em = Session::getInstance()->getEntityManager();
+    m_event = Session::getInstance()->getEvent();
 
     connect(ui->but_csvgesamt, SIGNAL(clicked()), this, SLOT(csvGesamt()));
     connect(ui->but_csvrunde, SIGNAL(clicked()), this, SLOT(csvRunde()));
@@ -144,17 +144,16 @@ void ExportWidget::startPrint()
     } break;
     case 4: { //Wettkampfkarte
             Card::setPaperSize(QPrinter::A5);
-            ausdruck = new Card(this->m_event);
+            ausdruck = new Card();
             ausdruck->setSelectTN(true);
     } break;
     case 5: { //Urkunde
         Certificate::setEineUrkunde(ui->chk_ur_single->isChecked());
         Certificate::setRundenErgebnisse(ui->chk_ur_runde->isChecked());
         Certificate::setPlatzWertung(ui->chk_ur_platz->isChecked());
-        Certificate::setUrkundenID(
-            ui->cmb_urkunde->itemData(ui->cmb_urkunde->currentIndex()).toInt());
+        Certificate::setUrkundenID( ui->cmb_urkunde->itemData(ui->cmb_urkunde->currentIndex()).toInt());
         Certificate::setEinzelErgebnis(ui->chk_ur_einzelwertung->isChecked());
-        ausdruck = new Certificate(this->m_event);
+        ausdruck = new Certificate( m_event );
         ausdruck->setSelectTN(true);
     } break;
     case 6: { //sonstiges
@@ -164,41 +163,41 @@ void ExportWidget::startPrint()
             break;
         case 1: { //Zeitplan
             Timetable::setOrientation(QPrinter::Landscape);
-            ausdruck = new Timetable(this->m_event);
+            ausdruck = new Timetable( m_event );
         } break;
         case 2: { //Meldematrix
             RegistrationMatrix::setOrientation(QPrinter::Landscape);
             RegistrationMatrix::setTeamMode(false);
-            ausdruck = new RegistrationMatrix(this->m_event);
+            ausdruck = new RegistrationMatrix();
         } break;
         case 3: { //Mannschaftsmatrix
             RegistrationMatrix::setOrientation(QPrinter::Landscape);
             RegistrationMatrix::setTeamMode(true);
-            ausdruck = new RegistrationMatrix(this->m_event);
+            ausdruck = new RegistrationMatrix();
         } break;
         case 4: { //Startpässe
-            ausdruck = new License(this->m_event);
+            ausdruck = new License( m_event );
             ausdruck->setSelectClub(true);
             ausdruck->setTypeString("Startpässe");
         } break;
         case 5:
-            ausdruck = new ClubList(this->m_event);
+            ausdruck = new ClubList( m_event );
             break;
         case 6:
-            ausdruck = new ITCheckSquads(this->m_event);
+            ausdruck = new ITCheckSquads( m_event );
             break;
         case 7: { //EDV-Checkliste TN
-            ausdruck = new ITCheckList(this->m_event);
+            ausdruck = new ITCheckList( m_event );
             ausdruck->setTypeString("EDV-Checkliste");
         } break;
         case 8:
-            ausdruck = new Summary(this->m_event);
+            ausdruck = new Summary( m_event );
             break;
         case 9:
-            ausdruck = new MedalCount(this->m_event);
+            ausdruck = new MedalCount();
             break;
         case 10: {
-            ausdruck = new ResultsSheet(this->m_event);
+            ausdruck = new ResultsSheet( m_event );
             ausdruck->setSelectRiege(true);
             ausdruck->setSelectDis(true);
         } break;
@@ -268,7 +267,7 @@ void ExportWidget::createCSV(int mode)
                 } else {
                     stream << "Name;Verein;Jg.;";
                 }
-                rlist = Result_Calc::resultArrayNew(competition);
+                rlist = Result_Calc::resultArrayNew( competition );
                 QSqlQuery dis;
                 dis.prepare("SELECT tfx_disziplinen.var_name, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN generate_series(0,1) ELSE 0 END as kp FROM tfx_wettkaempfe_x_disziplinen INNER JOIN tfx_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_nummer=? ORDER BY int_sortierung, kp");
                 dis.bindValue(0, this->m_event->mainEvent()->id());
@@ -358,11 +357,11 @@ void ExportWidget::showRiegenDialog()
 
 void ExportWidget::showTNDialog()
 {
-    SelectParticipantDialog *tn = new SelectParticipantDialog(this->m_event);
-    if (tn->exec() == 1) {
-        ausdruck->setSelectedTN(tn->getTnList());
-        ausdruck->setSelectedTNWK(tn->getTnWk());
-        ausdruck->setTeilnehmerNumbers(tn->getTnList());
+    auto pDlg = new SelectParticipantDialog();
+    if (pDlg->exec() == 1) {
+        ausdruck->setSelectedTN( pDlg->getTnList() );
+        ausdruck->setSelectedTNWK( pDlg->getTnWk() );
+        ausdruck->setTeilnehmerNumbers( pDlg->getTnList() );
     } else {
         ausdruck->setFinish(true);
     }
@@ -370,9 +369,10 @@ void ExportWidget::showTNDialog()
 
 void ExportWidget::showDisziplinenDialog()
 {
-    SelectDisciplineDialog *dis = new SelectDisciplineDialog(this->m_event);
+    auto dis = new SelectDisciplineDialog( m_event );
+
     if (dis->exec() == 1) {
-        ausdruck->setSelectedDisziplinen(dis->getDis());
+        ausdruck->setSelectedDisziplinen( dis->getDis() );
     } else {
         ausdruck->setFinish(true);
     }

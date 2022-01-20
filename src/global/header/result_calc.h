@@ -14,8 +14,6 @@ public:
     static QList<QStringList> tabllenArray(Competition *competition);
     static QList<QStringList> sortRes(QList<QStringList>,int mode=0);
     static QList<QStringList> quicksort(QList<QStringList> l, int left, int right, int mode);
-
-
 };
 
 #endif // RESULT_CALC_H

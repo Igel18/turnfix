@@ -1,11 +1,13 @@
 #ifndef RESULSWIDGET_H
 #define RESULSWIDGET_H
+
 #include <QWidget>
 
 namespace Ui {
 class ResultsWidget;
 }
 
+class CompetitionModel;
 class ResultsTableModel;
 class Event;
 class EntityManager;
@@ -15,12 +17,12 @@ class ResultsWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ResultsWidget(QWidget *parent = nullptr);
+    explicit ResultsWidget( QWidget *parent = nullptr );
+    void setup( Event *event, EntityManager *em, CompetitionModel* pModel );
     ~ResultsWidget();
 
 public slots:
     void fillERTable();
-    void updateERList();
 
 private:
     Ui::ResultsWidget *ui;
@@ -28,4 +30,5 @@ private:
     Event *m_event;
     EntityManager *m_em;
 };
-#endif
+
+#endif // RESULSWIDGET_H

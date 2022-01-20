@@ -1,5 +1,6 @@
 #include "registrationmatrix.h"
 #include "model/entity/event.h"
+#include "model/entitymanager.h"
 #include "src/global/header/_global.h"
 #include <math.h>
 
@@ -13,9 +14,11 @@ void RegistrationMatrix::print(QPrinter *printer) {
 }
 
 void RegistrationMatrix::printContent() {
-    QSqlQuery query;
+    auto db = QSqlDatabase::database( m_em->connectionName() );
+
+    QSqlQuery query( db );
     query.prepare("SELECT int_wettkaempfeid, var_nummer FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? ORDER BY var_nummer");
-    query.bindValue(0, this->m_event->mainEvent()->id());
+    query.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
     query.exec();
     int count = _global::querySize(query);
     QList<int> ges;
@@ -59,10 +62,10 @@ void RegistrationMatrix::printContent() {
         } else {
             querystring += "count(*) as gesamt FROM tfx_mannschaften INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_mannschaften.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.var_name, int_start_ort ORDER BY "+_global::substring("tfx_vereine.var_name","int_start_ort+1");
         }
-        QSqlQuery query2;
+        QSqlQuery query2( db );
         query2.prepare(querystring);
-        query2.bindValue(0, this->m_event->mainEvent()->id());
-        if (!teamMode) query2.bindValue(1, this->m_event->round());
+        query2.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+        if (!teamMode) query2.bindValue( 1, m_event->round() );
         query2.exec();
         while(query2.next()) {
             if (yco+mmToPixel(5.3) > max_yco) {
@@ -98,6 +101,7 @@ void RegistrationMatrix::printContent() {
             }
         }
     }
+
     finishPrint();
 }
 
