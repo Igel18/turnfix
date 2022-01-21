@@ -23,7 +23,6 @@ public slots:
     QString getTnWk();
 
 private slots:
-    void initData();
     void updateList();
     void submit();
 

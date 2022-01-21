@@ -7,9 +7,10 @@ class ITCheckList : public List {
     Q_OBJECT
 
 public:
-    ITCheckList(Event *event) : List(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using List::List;
+
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
 
 };
 

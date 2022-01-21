@@ -7,10 +7,10 @@ class Certificate : public Print {
 
     Q_OBJECT
 public:
-    Certificate(Event *event) : Print(/*event*/) {}
+    using Print::Print;
 
-    virtual void print(QPrinter*);
-    virtual void printContent();
+    virtual void print(QPrinter*) override;
+    virtual void printContent() override;
     static void setRundenErgebnisse(bool);
     static void setEineUrkunde(bool);
     static void setPlatzWertung(bool);

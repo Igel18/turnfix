@@ -7,6 +7,7 @@
 #include "model/repository/scorerepository.h"
 #include "model/repository/squaddisciplinerepository.h"
 #include "model/entity/squaddiscipline.h"
+#include "model/settings/session.h"
 #include <math.h>
 #include <QSqlQuery>
 #include <QSqlRecord>
@@ -42,9 +43,12 @@ QStringList _global::getFields() {
 }
 
 QString _global::wkBez(Event *event, QString swknr) {
-    QSqlQuery query;
+    auto em = Session::getInstance()->getEntityManager();
+    auto db = QSqlDatabase::database( em->connectionName() );
+
+    QSqlQuery query( db );
     query.prepare("SELECT bol_ak_anzeigen, yer_von, yer_bis, dat_von FROM tfx_wettkaempfe INNER JOIN tfx_veranstaltungen USING (int_veranstaltungenid) WHERE int_veranstaltungenid=? AND var_nummer=? ORDER BY var_nummer LIMIT 1");
-    query.bindValue(0, event->mainEvent()->id());
+    query.bindValue(0, /*event->mainEvent()->id()*/ event->id() );
     query.bindValue(1,swknr);
     query.exec();
     query.next();

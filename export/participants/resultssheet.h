@@ -8,9 +8,10 @@ class ResultsSheet : public List {
 Q_OBJECT
 
 public:
-    ResultsSheet(Event *event) : List(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using List::List;
+
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
 
 private:
     QString currRiege;

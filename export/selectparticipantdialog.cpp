@@ -1,30 +1,34 @@
 #include "selectparticipantdialog.h"
-#include "model/entity/competition.h"
+#include "ui_selectparticipantdialog.h"
+
+#include "competitions/competitionmodel.h"
+#include "competitions/competitionproxymodel.h"
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
 #include "model/settings/session.h"
 #include "results/resultstablemodel.h"
-#include "src/global/header/_delegates.h"
-#include "src/global/header/_global.h"
 #include "src/global/header/result_calc.h"
-#include "ui_selectparticipantdialog.h"
-#include <QList>
-#include <QSqlQuery>
+
 
 SelectParticipantDialog::SelectParticipantDialog( QWidget *parent )
     : QDialog(parent), ui( new Ui::SelectParticipantDialog )
 {
     ui->setupUi( this );
+    setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
     m_em = Session::getInstance()->getEntityManager();
     m_event = Session::getInstance()->getEvent();
 
     er_model = new ResultsTableModel( m_em );
     ui->tbl_tn->setModel(er_model);
-    setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    connect(ui->cmb_wk, SIGNAL(currentIndexChanged(int)), this, SLOT(updateList()));
-    connect(ui->but_select, SIGNAL(clicked()), this, SLOT(submit()));
-    initData();
+
+    connect( ui->but_select, &QPushButton::clicked, this, &SelectParticipantDialog::submit );
+    connect( ui->cmb_wk, qOverload< int >( &QComboBox::currentIndexChanged ), this, &SelectParticipantDialog::updateList );
+
+    auto pProxyModel = new CompetitionProxyModel( "", this );
+    auto pCompetitionModel = m_event->findChild< CompetitionModel* >();
+    pProxyModel->setSourceModel( pCompetitionModel );
+    ui->cmb_wk->setModel(  pProxyModel );
 }
 
 SelectParticipantDialog::~SelectParticipantDialog()
@@ -42,50 +46,37 @@ QString SelectParticipantDialog::getTnWk()
     return tnwk;
 }
 
-void SelectParticipantDialog::initData()
-{
-    auto competitions = m_em->competitionRepository()->fetchByEvent( m_event );
-    for( auto& item : competitions ){
-        ui->cmb_wk->addItem( item->number() + " " + item->name(), item->number());
-    }
-
-    updateList();
-}
-
 void SelectParticipantDialog::updateList()
 {
-    if (ui->cmb_wk->count() > 0) {
-        auto competitionNumber = ui->cmb_wk->itemData( ui->cmb_wk->currentIndex()).toString();
-        auto competition = m_em->competitionRepository()->fetchByNumber( m_event, competitionNumber );
-        auto list = Result_Calc::resultArrayNew( competition );
-        int wktyp = competition->type();
-        int hwk = m_event->id(); // this->m_event->mainEvent()->id();
+    auto pCompetition = qvariant_cast< Competition* >( ui->cmb_wk->currentData() );
 
-        er_model->setList( list, competitionNumber, hwk, wktyp, false );
+    if( pCompetition ){
+        auto resultsData = Result_Calc::resultArrayNew( pCompetition );
+        er_model->setList( resultsData, pCompetition->number(), m_event->id(), pCompetition->type() );
 
-//        if( !list.isEmpty() ) {
-//            for (int i = 0; i < list.at( 0 ).count(); ++i ) {
-//                if( (i == 1) || ( i == 2 ) ){
-//                    ui->tbl_tn->horizontalHeader()->setSectionResizeMode( i, QHeaderView::Stretch );
-//                } else {
-//                    ui->tbl_tn->horizontalHeader()->setSectionResizeMode( i, QHeaderView::ResizeToContents );
-//                }
+        if( !resultsData.isEmpty() ) {
+            auto horHeader = ui->tbl_tn->horizontalHeader();
+            int columnsCount = resultsData.at( 0 ).size() - 1;
 
-//                if (i > 2) {
-//                    ui->tbl_tn->setItemDelegateForColumn(i, new AlignItemDelegate);
-//                }
-//            }
-//            ui->tbl_tn->hideColumn( 3 );
-//        }
+            for( auto col = 0; col < columnsCount; ++col ){
+                horHeader->setSectionResizeMode( col, ( ( col == 1 ) || ( col == 2 ) ) ? QHeaderView::Stretch : QHeaderView::ResizeToContents );
+                if( col > 2 ){
+                    ui->tbl_tn->hideColumn( col );
+                }
+            }
+        }
     }
 }
 
 void SelectParticipantDialog::submit()
 {
-    QModelIndexList indexes = ui->tbl_tn->selectionModel()->selectedRows();
-    for (int i=0;i<indexes.size();i++) {
-        tnlist << er_model->data(er_model->index(indexes.at(i).row(),3),Qt::DisplayRole).toInt();
+    for( auto& index : ui->tbl_tn->selectionModel()->selectedRows() ){
+        tnlist.append(er_model->data(er_model->index( index.row(), 3 ), Qt::DisplayRole ).toInt());
     }
-    tnwk = ui->cmb_wk->itemData(ui->cmb_wk->currentIndex()).toString();
+
+    auto pCompetition = qvariant_cast< Competition* >( ui->cmb_wk->currentData() );
+
+    tnwk = pCompetition->number();
+
     done(1);
 }

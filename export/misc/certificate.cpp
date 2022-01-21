@@ -17,26 +17,28 @@ void Certificate::print(QPrinter *printer) {
 }
 
 void Certificate::printContent() {
-    Competition *competition = m_em->competitionRepository()->fetchByNumber(this->m_event,
-                                                                            selectedTNWK);
+    auto competition = m_em->competitionRepository()->fetchByNumber( m_event, selectedTNWK );
+    auto db = QSqlDatabase::database( m_em->connectionName() );
 
     QList<QStringList> rlist;
-    QSqlQuery wkdata;
+    QSqlQuery wkdata( db );
     wkdata.prepare("SELECT tfx_veranstaltungen.var_name, to_char(dat_von, 'dd.mm.yyyy'), to_char(dat_bis, 'dd.mm.yyyy'), tfx_wettkampforte.var_name, var_ort, tfx_wettkaempfe.var_name, tfx_wettkaempfe.var_nummer, tfx_gaue.var_name, tfx_verbaende.var_name, tfx_laender.var_name FROM tfx_veranstaltungen INNER JOIN tfx_wettkampforte USING (int_wettkampforteid) INNER JOIN tfx_wettkaempfe USING (int_veranstaltungenid)WHERE tfx_veranstaltungen.int_veranstaltungenid=? AND tfx_wettkaempfe.var_nummer=?");
-    wkdata.bindValue(0, this->m_event->mainEvent()->id());
-    wkdata.bindValue(1, competition->number());
+    wkdata.bindValue( 0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+    wkdata.bindValue( 1, competition->number());
     wkdata.exec();
     wkdata.next();
+
     if (competition->type() == 1 && rundenErgebnisse) {
         rlist = Result_Calc::roundResultArrayNew(competition, platzWertung);
     } else {
-        int typ = competition->type();
-        if (einzelErgebnis) typ = 0;
+        int typ = einzelErgebnis ? 0 : competition->type();
         rlist = Result_Calc::resultArrayNew( competition );
     }
-    rlist = Result_Calc::sortRes(rlist);
+
+    rlist = Result_Calc::sortRes( rlist );
+
     for (int i=(rlist.size()-1);i>=0;i--) {
-        if (!teilnehmerNumbers.contains(rlist.at(i).last().toInt()) && !einzelErgebnis) {
+        if (!teilnehmerNumbers.contains(rlist.at(i).at(3).toInt()) && !einzelErgebnis) {
             rlist.removeAt(i);
         }
     }
@@ -44,10 +46,10 @@ void Certificate::printContent() {
     for (int r=0;r<rlist.size();r++) {
         int numOfUrkunden = 1;
         if (competition->type() == 1 && !eineUrkunde && !einzelErgebnis) {
-            QSqlQuery teamCount;
+            QSqlQuery teamCount( db );
             teamCount.prepare("SELECT COUNT(*) FROM tfx_man_x_teilnehmer WHERE int_mannschaftenid=? AND int_runde=?");
             teamCount.bindValue(0,rlist.at(r).last().toInt());
-            teamCount.bindValue(1, this->m_event->round());
+            teamCount.bindValue(1, m_event->round());
             teamCount.exec();
             teamCount.next();
             numOfUrkunden = teamCount.value(0).toInt();
@@ -57,6 +59,7 @@ void Certificate::printContent() {
             if (!(r==rlist.size()-1 && i==numOfUrkunden-1)) newPage(false);
         }
     }
+
     finishPrint();
 }
 

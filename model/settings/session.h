@@ -6,6 +6,7 @@
 class AbstractConnection;
 class EntityManager;
 class Event;
+class MainWindow;
 
 class Session : public QObject
 {
@@ -23,12 +24,15 @@ public:
     static Session* getInstance();
     static void dropInstance();
 
+    static MainWindow* mainWindow();
+
 private:
     EntityManager* m_em = nullptr;
     Event* m_event = nullptr;
     AbstractConnection* m_connectoin = nullptr;
 
     static Session* instance;
+    static MainWindow* m_pMainWindow;
 
     Session() {}
     Session(const Session &);

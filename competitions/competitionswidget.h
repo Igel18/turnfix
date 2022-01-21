@@ -17,10 +17,7 @@ class CompetitionsWidget : public QWidget
 
 public:
     explicit CompetitionsWidget(QWidget *parent = nullptr);
-
-    CompetitionModel* model() const;
-
-    ~CompetitionsWidget() override;
+    ~CompetitionsWidget();
 
 private slots:
     void addCompetition();

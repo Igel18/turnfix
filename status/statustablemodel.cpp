@@ -1,7 +1,14 @@
 #include "statustablemodel.h"
 #include "src/global/header/_global.h"
+#include "model/settings/session.h"
+#include "model/entitymanager.h"
 #include <QColor>
 #include <QSqlRecord>
+
+StatusTableModel::StatusTableModel(const QSqlQuery &qry /*= QSqlQuery()*/, QObject *parent /*= nullptr*/)
+    : QAbstractTableModel(parent), query( qry )
+{
+}
 
 int StatusTableModel::rowCount(const QModelIndex &) const
 {
@@ -39,7 +46,7 @@ QVariant StatusTableModel::data(const QModelIndex &index, int role) const
         if (index.column() > s) {
             QSqlQuery *qry = const_cast<QSqlQuery*>(&query);
             qry->seek(index.row());
-            QSqlQuery cq;
+            QSqlQuery cq( db );
             cq.prepare("SELECT ary_colorcode FROM tfx_status WHERE var_name LIKE ? LIMIT 1");
             cq.bindValue(0,qry->value(index.column()).toString());
             cq.exec();
@@ -70,6 +77,9 @@ QVariant StatusTableModel::headerData(int section, Qt::Orientation orientation, 
 
 void StatusTableModel::setQuery(const QSqlQuery &qry)
 {
+    m_em = Session::getInstance()->getEntityManager();
+    db = QSqlDatabase::database( m_em->connectionName() );
+
     beginResetModel();
     query = qry;
     endResetModel();

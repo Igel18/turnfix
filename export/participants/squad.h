@@ -7,16 +7,17 @@ class Squad : public List {
     Q_OBJECT
 
 public:
-    Squad(Event *event) : List(event) {}
-    virtual void printContent();
+    using List::List;
+
+    virtual void printContent() override;
+
     static void setOrder(int);
     static void setNewPageEach(bool);
 
 private:
     static int order;
     static bool newPageEach;
-    QString currRiege;
-
+    // QString currRiege;
 };
 
 #endif // SQUAD_H

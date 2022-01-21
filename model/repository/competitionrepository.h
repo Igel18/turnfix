@@ -12,7 +12,7 @@ public:
     using AbstractRepository::AbstractRepository;
 
     QList<Competition *> fetchByEvent(Event *event, int *type = nullptr);
-    Competition* fetchByNumber( Event *event, QString number );
+    Competition* fetchByNumber( Event *event, QString number, QSqlDatabase* pDb = nullptr );
 };
 
 #endif // COMPETITIONREPOSITORY_H

@@ -68,7 +68,7 @@ void MailThread::createPDF()
                         QString send_filename = "Meldeliste_"+ query.value(0).toString().replace(" ","_").replace("ä","ae").replace("ö","oe").replace("ü","ue").replace("ß","ss").replace("Ä","Ae").replace("Ö","Oe").replace("Ü","Ue") + ".pdf";
                         files.append(send_filename);
                         emit(textChanged("PDF-Dateien werden erzeugt...\n" + send_filename));
-                        ausdruck = new Registration(this->m_event);
+                        ausdruck = new Registration();
                         ausdruck->setOutputFileName(send_filename);
                         ausdruck->setVerein(vereine.at(j).toInt());
                         ausdruck->setTypeString("Meldeliste");
@@ -77,7 +77,7 @@ void MailThread::createPDF()
             case 1: {
                     files.append("Meldeliste.pdf");
                     emit(textChanged("PDF-Dateien werden erzeugt...\nMeldeliste.pdf"));
-                    ausdruck = new Registration(this->m_event);
+                    ausdruck = new Registration();
                     ausdruck->setOutputFileName("Meldeliste.pdf");
                     ausdruck->setTypeString("Meldeliste");
                 }; break;
@@ -91,7 +91,7 @@ void MailThread::createPDF()
             case 3: {
                     files.append("Riegenlisten.pdf");
                     emit(textChanged("PDF-Dateien werden erzeugt...\nRiegenlisten.pdf"));
-                    ausdruck = new Squad(this->m_event);
+                    ausdruck = new Squad();
                     ausdruck->setOutputFileName("Riegenlisten.pdf");
                     ausdruck->setTypeString("Riegen");
                 }; break;

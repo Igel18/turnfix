@@ -7,9 +7,11 @@ class JudgesSheet : public List {
     Q_OBJECT
 
 public:
-    JudgesSheet(Event *event) : List(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using List::List;
+
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
+
     static void setTeammode(bool set);
 
 private:

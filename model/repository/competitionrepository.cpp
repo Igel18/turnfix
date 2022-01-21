@@ -24,14 +24,14 @@ QList<Competition *> CompetitionRepository::fetchByEvent(Event *event, int *type
     return output;
 }
 
-Competition* CompetitionRepository::fetchByNumber( Event *event, QString number )
+Competition* CompetitionRepository::fetchByNumber( Event *event, QString number, QSqlDatabase* pDb /*= nullptr*/ )
 {
     QueryBuilder< Competition > qb;
     qb.select( Competition::staticMetaObject, Competition::mapping());
     qb.join( Division::staticMetaObject, Division::mapping(), "Competition", "division", "divisionId" );
     qb.where( "Competition", "eventId", event->id() );
     qb.where( "Competition", "number", number );
-    auto output = qb.query( QSqlDatabase::database( entityManager()->connectionName() ) );
+    auto output = qb.query( pDb ? *pDb : QSqlDatabase::database( entityManager()->connectionName() ) );
 
     for(auto& competition : output ){
         competition->setEvent( event );

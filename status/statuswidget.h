@@ -6,6 +6,7 @@ namespace Ui {
 class StatusWidget;
 }
 
+class EntityManager;
 class Event;
 class QSortFilterProxyModel;
 class StatusTableModel;
@@ -23,6 +24,7 @@ public slots:
 
 private:
     Ui::StatusWidget *ui;
+    EntityManager* m_em;
     Event *m_event;
     StatusTableModel *mdl_status1;
     StatusTableModel *mdl_status2;

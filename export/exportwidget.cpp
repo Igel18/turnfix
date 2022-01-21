@@ -44,10 +44,6 @@ ExportWidget::ExportWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::ExportWidget)
 {
     ui->setupUi(this);
-
-    m_em = Session::getInstance()->getEntityManager();
-    m_event = Session::getInstance()->getEvent();
-
     connect(ui->but_csvgesamt, SIGNAL(clicked()), this, SLOT(csvGesamt()));
     connect(ui->but_csvrunde, SIGNAL(clicked()), this, SLOT(csvRunde()));
     connect(ui->but_print, SIGNAL(clicked()), this, SLOT(startPrint()));
@@ -60,6 +56,10 @@ ExportWidget::~ExportWidget()
 
 void ExportWidget::updateData()
 {
+    m_em = Session::getInstance()->getEntityManager();
+    m_event = Session::getInstance()->getEvent();
+
+    auto db = QSqlDatabase::database( m_em->connectionName() );
     QString urkunde = ui->cmb_urkunde->currentText();
     QString headfoot = ui->cmb_headfoot->currentText();
     QString cover = ui->cmb_cover->currentText();
@@ -68,7 +68,7 @@ void ExportWidget::updateData()
     ui->cmb_cover->clear();
     ui->cmb_headfoot->addItem("kein individualisiertes Layout", 0);
     ui->cmb_cover->addItem("kein Cover drucken", 0);
-    QSqlQuery getLayouts("SELECT int_layoutid, var_name FROM tfx_layouts ORDER BY var_name");
+    QSqlQuery getLayouts( "SELECT int_layoutid, var_name FROM tfx_layouts ORDER BY var_name", db );
     while (getLayouts.next()) {
         ui->cmb_urkunde->addItem(getLayouts.value(1).toString(), getLayouts.value(0).toInt());
         ui->cmb_headfoot->addItem(getLayouts.value(1).toString(), getLayouts.value(0).toInt());
@@ -125,20 +125,20 @@ void ExportWidget::startPrint()
         ausdruck->setTypeString("Ergebnisse");
     } break;
     case 1: { //Riegen
-        Squad::setNewPageEach(ui->chk_rg_page->isChecked());
-        Squad::setOrder(ui->cmb_rg_sort->currentIndex());
-        ausdruck = new Squad(this->m_event);
+        Squad::setNewPageEach( ui->chk_rg_page->isChecked() );
+        Squad::setOrder( ui->cmb_rg_sort->currentIndex() );
+        ausdruck = new Squad();
         ausdruck->setSelectRiege(ui->chk_rg_select->isChecked());
         ausdruck->setTypeString("Riegen");
     } break;
     case 2: { //Meldeliste
-            ausdruck = new Registration(this->m_event);
+            ausdruck = new Registration();
             ausdruck->setSelectClub(ui->chk_ve_select->isChecked());
             ausdruck->setTypeString("Meldeliste");
     } break;
     case 3: { //Wettkampfbogen
         JudgesSheet::setTeammode(ui->chk_bo_split->isChecked());
-        ausdruck = new JudgesSheet(this->m_event);
+        ausdruck = new JudgesSheet();
         ausdruck->setSelectRiege(true);
         ausdruck->setSelectDis(true);
     } break;
@@ -153,7 +153,7 @@ void ExportWidget::startPrint()
         Certificate::setPlatzWertung(ui->chk_ur_platz->isChecked());
         Certificate::setUrkundenID( ui->cmb_urkunde->itemData(ui->cmb_urkunde->currentIndex()).toInt());
         Certificate::setEinzelErgebnis(ui->chk_ur_einzelwertung->isChecked());
-        ausdruck = new Certificate( m_event );
+        ausdruck = new Certificate();
         ausdruck->setSelectTN(true);
     } break;
     case 6: { //sonstiges
@@ -176,7 +176,7 @@ void ExportWidget::startPrint()
             ausdruck = new RegistrationMatrix();
         } break;
         case 4: { //Startpässe
-            ausdruck = new License( m_event );
+            ausdruck = new License();
             ausdruck->setSelectClub(true);
             ausdruck->setTypeString("Startpässe");
         } break;
@@ -187,7 +187,7 @@ void ExportWidget::startPrint()
             ausdruck = new ITCheckSquads( m_event );
             break;
         case 7: { //EDV-Checkliste TN
-            ausdruck = new ITCheckList( m_event );
+            ausdruck = new ITCheckList();
             ausdruck->setTypeString("EDV-Checkliste");
         } break;
         case 8:
@@ -197,42 +197,23 @@ void ExportWidget::startPrint()
             ausdruck = new MedalCount();
             break;
         case 10: {
-            ausdruck = new ResultsSheet( m_event );
-            ausdruck->setSelectRiege(true);
-            ausdruck->setSelectDis(true);
+            ausdruck = new ResultsSheet();
+            ausdruck->setSelectRiege( true );
+            ausdruck->setSelectDis( true );
         } break;
         }
     } break;
     }
     ausdruck->setShowPreview(ui->chk_preview->isChecked());
     ausdruck->setOutputType(ui->cmb_output->currentIndex());
-    connect(ausdruck,
-            SIGNAL(requestDetailInfo()),
-            this,
-            SLOT(showDetailinfoDialog()),
-            Qt::BlockingQueuedConnection);
-    connect(ausdruck,
-            SIGNAL(requestDisziplinen()),
-            this,
-            SLOT(showDisziplinenDialog()),
-            Qt::BlockingQueuedConnection);
-    connect(ausdruck,
-            SIGNAL(requestRiegen()),
-            this,
-            SLOT(showRiegenDialog()),
-            Qt::BlockingQueuedConnection);
-    connect(ausdruck, SIGNAL(requestTN()), this, SLOT(showTNDialog()), Qt::BlockingQueuedConnection);
-    connect(ausdruck,
-            SIGNAL(requestVereine()),
-            this,
-            SLOT(showVereineDialog()),
-            Qt::BlockingQueuedConnection);
-    connect(ausdruck, SIGNAL(requestWKs()), this, SLOT(showWKDialog()), Qt::BlockingQueuedConnection);
-    connect(ausdruck,
-            SIGNAL(showPrintPreview(QPrinter *)),
-            this,
-            SLOT(showPrintPreview(QPrinter *)),
-            Qt::BlockingQueuedConnection);
+
+    connect( ausdruck, SIGNAL(requestDetailInfo()), this, SLOT(showDetailinfoDialog()), Qt::BlockingQueuedConnection );
+    connect( ausdruck, SIGNAL(requestDisziplinen()), this, SLOT(showDisziplinenDialog()), Qt::BlockingQueuedConnection );
+    connect( ausdruck, SIGNAL(requestRiegen()), this, SLOT(showRiegenDialog()), Qt::BlockingQueuedConnection );
+    connect( ausdruck, &Print::requestTN, this, &ExportWidget::showTNDialog, Qt::BlockingQueuedConnection );
+    connect( ausdruck, SIGNAL(requestVereine()), this, SLOT(showVereineDialog()), Qt::BlockingQueuedConnection );
+    connect( ausdruck, SIGNAL(requestWKs()), this, SLOT(showWKDialog()), Qt::BlockingQueuedConnection);
+    connect( ausdruck, SIGNAL(showPrintPreview(QPrinter *)), this, SLOT(showPrintPreview(QPrinter *)), Qt::BlockingQueuedConnection );
     //if (ausdruck->printPreview()) ausdruck->~Drucken();
     ausdruck->start();
 }

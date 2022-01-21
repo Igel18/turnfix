@@ -11,7 +11,7 @@ void List::print(QPrinter *printer) {
 }
 
 void List::printSubHeader() {
-    Competition *competition = m_em->competitionRepository()->fetchByNumber(this->m_event, currWK);
+    auto competition = m_em->competitionRepository()->fetchByNumber( m_event, currWK );
 
     setPrinterFont(10);
     QString jg = "";

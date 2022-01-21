@@ -18,7 +18,7 @@ class ResultsWidget : public QWidget
 
 public:
     explicit ResultsWidget( QWidget *parent = nullptr );
-    void setup( Event *event, EntityManager *em, CompetitionModel* pModel );
+    void setup( Event *event, EntityManager *em );
     ~ResultsWidget();
 
 public slots:

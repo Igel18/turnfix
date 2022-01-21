@@ -199,9 +199,10 @@ void Print::printHeadFoot() {
 
 void Print::printDescriptor(QString swknr, bool f) {
     QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
+
     query.prepare("SELECT var_nummer, var_name FROM tfx_wettkaempfe WHERE var_nummer=? AND int_veranstaltungenid=?");
     query.bindValue(0,swknr);
-    query.bindValue(1, this->m_event->mainEvent()->id());
+    query.bindValue(1, /*this->m_event->mainEvent()->id()*/ m_event->id() );
     query.exec();
     query.next();
     QString fort;
@@ -346,7 +347,7 @@ void Print::run() {
         emit requestTN();
         if (finish)
             return;
-        auto competition = m_em->competitionRepository()->fetchByNumber( m_event, selectedTNWK );
+        auto competition = m_em->competitionRepository()->fetchByNumber( m_event, selectedTNWK, &db );
         if (competition->type() == 1) {
             QList<int> selectedTeamTeilnehmer;
             QSqlQuery teamTeilnehmer( db );

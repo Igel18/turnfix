@@ -1,9 +1,11 @@
 #include "resultswidget.h"
 #include "ui_resultswidget.h"
 #include "resultstablemodel.h"
+#include "app/mainwindow.h"
+#include "model/settings/session.h"
 #include "competitions/competitionmodel.h"
+#include "competitions/competitionproxymodel.h"
 #include "model/entity/competition.h"
-#include "competitionproxymodel.h"
 #include "src/global/header/_delegates.h"
 #include "src/global/header/result_calc.h"
 
@@ -15,7 +17,7 @@ ResultsWidget::ResultsWidget(QWidget *parent)
     connect( ui->cmb_selectwk, qOverload< int >( &QComboBox::currentIndexChanged ), this, &ResultsWidget::fillERTable );
 }
 
-void ResultsWidget::setup(Event *event, EntityManager *em, CompetitionModel* pModel)
+void ResultsWidget::setup( Event *event, EntityManager *em )
 {
     m_event = event;
     m_em = em;
@@ -23,8 +25,9 @@ void ResultsWidget::setup(Event *event, EntityManager *em, CompetitionModel* pMo
     er_model = new ResultsTableModel( m_em );
     ui->er_table->setModel(er_model);
 
-    auto pProxyModel = new CompetitionProxyModel( this );
-    pProxyModel->setSourceModel( pModel );
+    auto pProxyModel = new CompetitionProxyModel( "WkNr.", this );
+    auto pCompetitionModel = m_event->findChild< CompetitionModel* >();
+    pProxyModel->setSourceModel( pCompetitionModel );
     ui->cmb_selectwk->setModel(  pProxyModel );
 }
 
