@@ -2,8 +2,10 @@
 #include "misc/certificate.h"
 #include "model/entity/competition.h"
 #include "model/entity/event.h"
+#include "model/entity/postgresqlconnection.h"
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
+#include "model/settings/session.h"
 #include "src/global/header/_global.h"
 #include "src/global/header/settings.h"
 #include <QDateTime>
@@ -17,8 +19,10 @@ QPrinter::Orientation Print::orientation = QPrinter::Portrait;
 
 int Print::headFootID = 0;
 
-Print::Print(Event *event) : QThread() {
-    this->m_event = event;
+Print::Print() : QThread() {
+    m_em = Session::getInstance()->getEntityManager();
+    m_event = Session::getInstance()->getEvent();
+
     showPreview = false;
     selectClub = false;
     selectTN = false;
@@ -153,9 +157,9 @@ void Print::printHeadFoot() {
     } else {
         painter.drawLine(QPointF(pr.x(),pr.y()),QPointF(pr.width()-pr.x(),pr.y()));
         setPrinterFont(10);
-        QSqlQuery query;
+        QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
         query.prepare("SELECT var_veranstalter, tfx_veranstaltungen.var_name, "+_global::date("dat_von",10)+", tfx_wettkampforte.var_name, "+_global::date("dat_bis",10)+", var_ort FROM tfx_veranstaltungen INNER JOIN tfx_wettkampforte USING (int_wettkampforteid) WHERE int_veranstaltungenid=? LIMIT 1");
-        query.bindValue(0, this->m_event->id());
+        query.bindValue( 0, m_event->id() );
         query.exec();
         query.next();
         QString datum;
@@ -194,10 +198,11 @@ void Print::printHeadFoot() {
 }
 
 void Print::printDescriptor(QString swknr, bool f) {
-    QSqlQuery query;
+    QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
+
     query.prepare("SELECT var_nummer, var_name FROM tfx_wettkaempfe WHERE var_nummer=? AND int_veranstaltungenid=?");
     query.bindValue(0,swknr);
-    query.bindValue(1, this->m_event->mainEvent()->id());
+    query.bindValue(1, /*this->m_event->mainEvent()->id()*/ m_event->id() );
     query.exec();
     query.next();
     QString fort;
@@ -235,11 +240,29 @@ void Print::run() {
         emit requestDetailInfo();
     }
 
+    QSqlDatabase db;
+
+    auto pConnectoin = Session::getInstance()->getConnectoin();
+    auto pPSQLConnection = qobject_cast< PostgreSQLConnection* >( pConnectoin );
+
+    if( pPSQLConnection ){
+        auto pThreadConnection = new PostgreSQLConnection();
+        pThreadConnection->setName( pPSQLConnection->name() );
+        pThreadConnection->setDatabaseName( pPSQLConnection->databaseName() );
+        pThreadConnection->setUsername( pPSQLConnection->username() );
+        pThreadConnection->setPassword( pPSQLConnection->password() );
+        if( pThreadConnection->connect( "Print" ) ){
+            db = QSqlDatabase::database( "Print" );
+        }
+    } else { // SQLite
+
+    }
+
     //Vereinsselektion
     if (outputType != 2) {
-        QSqlQuery vereineQuery;
+        QSqlQuery vereineQuery( db );
         vereineQuery.prepare("SELECT tfx_vereine.int_vereineid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid OR tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid OR tfx_vereine.int_vereineid = tfx_mannschaften.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort, tfx_gruppen.int_gruppenid ORDER BY  tfx_vereine.var_name");
-        vereineQuery.bindValue(0, this->m_event->mainEvent()->id());
+        vereineQuery.bindValue( 0, /*m_event->mainEvent()->id()*/m_event->id() );
         vereineQuery.exec();
         while (vereineQuery.next()) {
             vereinNumbers.append(vereineQuery.value(0).toInt());
@@ -257,20 +280,16 @@ void Print::run() {
     }
 
     //Wettkampfselektion
-    QString boolor;
-    if (_global::getDBTyp()==0) {
-        boolor = "bool_or";
-    } else {
-        boolor = "max";
-    }
-    QSqlQuery wkQuery;
+    QString boolor = _global::getDBTyp() == 0 ? "bool_or" : "max";
+    QSqlQuery wkQuery( db );
+
     if (!selectClub) {
         wkQuery.prepare("SELECT var_nummer, bol_wahlwettkampf, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR "+boolor+"(tfx_wettkaempfe_x_disziplinen.bol_kp)='true' THEN 'true' ELSE 'false' END FROM tfx_wettkaempfe INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND (SELECT COUNT(*) FROM tfx_wertungen WHERE int_wettkaempfeid=tfx_wettkaempfe.int_wettkaempfeid) > 0 GROUP BY var_nummer, bol_wahlwettkampf, tfx_wettkaempfe.bol_kp ORDER BY var_nummer");
     } else {
         QString query = "SELECT var_nummer, bol_wahlwettkampf, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR "+boolor+"(tfx_wettkaempfe_x_disziplinen.bol_kp)='true' THEN 'true' ELSE 'false' END FROM tfx_wettkaempfe INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND (SELECT COUNT(*) FROM tfx_wertungen WHERE int_wettkaempfeid=tfx_wettkaempfe.int_wettkaempfeid AND int_wertungenid IN (SELECT int_wertungenid FROM tfx_wertungen LEFT JOIN tfx_teilnehmer USING (int_teilnehmerid) LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid INNER JOIN tfx_vereine AS v ON v.int_vereineid = tfx_teilnehmer.int_vereineid OR v.int_vereineid = tfx_mannschaften.int_vereineid OR v.int_vereineid = tfx_gruppen.int_vereineid WHERE v.int_vereineid IN (" + _global::intListToString(vereinNumbers) + ") AND bol_startet_nicht='false')) > 0 GROUP BY var_nummer, bol_wahlwettkampf, tfx_wettkaempfe.bol_kp ORDER BY var_nummer";
         wkQuery.prepare(query);
     }
-    wkQuery.bindValue(0, this->m_event->mainEvent()->id());
+    wkQuery.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
     wkQuery.exec();
     wkNumbers.clear();
     wkWahl.clear();
@@ -279,9 +298,11 @@ void Print::run() {
         wkWahl.append(wkQuery.value(1).toBool());
         wkKP.append(wkQuery.value(2).toBool());
     }
+
     if (selectWK) {
         emit requestWKs();
-        if (finish) return;
+        if (finish)
+            return;
         if (selectWK) {
             for (int i=wkNumbers.size()-1;i>=0;i--) {
                 if (!selectedWKs.contains(wkNumbers.at(i))) {
@@ -303,9 +324,9 @@ void Print::run() {
     }
 
     //Riegen selektion
-    QSqlQuery riegenQuery;
+    QSqlQuery riegenQuery( db );
     riegenQuery.prepare("SELECT var_riege, COUNT(DISTINCT int_teilnehmerid)+COUNT(DISTINCT int_gruppenid) as \"count\" FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_riege != '' GROUP BY var_riege ORDER BY var_riege");
-    riegenQuery.bindValue(0, this->m_event->mainEvent()->id());
+    riegenQuery.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
     riegenQuery.exec();
     riegenNumbers.clear();
     while (riegenQuery.next()) {
@@ -324,14 +345,14 @@ void Print::run() {
     //Teilnehmerselektion
     if (selectTN) {
         emit requestTN();
-        if (finish) return;
-        Competition *competition = m_em->competitionRepository()->fetchByNumber(this->m_event,
-                                                                                selectedTNWK);
+        if (finish)
+            return;
+        auto competition = m_em->competitionRepository()->fetchByNumber( m_event, selectedTNWK, &db );
         if (competition->type() == 1) {
             QList<int> selectedTeamTeilnehmer;
-            QSqlQuery teamTeilnehmer;
+            QSqlQuery teamTeilnehmer( db );
             teamTeilnehmer.prepare("SELECT int_wertungenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_runde=? AND tfx_wertungen.int_mannschaftenid IN ("+_global::intListToString(selectedTN)+")");
-            teamTeilnehmer.bindValue(0, this->m_event->round());
+            teamTeilnehmer.bindValue( 0, m_event->round() );
             teamTeilnehmer.exec();
             while (teamTeilnehmer.next()) {
                 selectedTeamTeilnehmer.append(teamTeilnehmer.value(0).toInt());
@@ -343,9 +364,9 @@ void Print::run() {
     }
 
     //Disziplinen selektieren
-    QSqlQuery disziplinenQuery;
+    QSqlQuery disziplinenQuery( db );
     disziplinenQuery.prepare("SELECT DISTINCT int_disziplinenid, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp, tfx_disziplinen.var_name FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? GROUP BY int_disziplinenid, tfx_wettkaempfe.bol_kp, tfx_wettkaempfe_x_disziplinen.bol_kp, tfx_disziplinen.var_name ORDER BY tfx_disziplinen.var_name, kp");
-    disziplinenQuery.bindValue(0, this->m_event->mainEvent()->id());
+    disziplinenQuery.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
     disziplinenQuery.exec();
     disziplinenIDs.clear();
     while (disziplinenQuery.next()) {
@@ -390,7 +411,7 @@ void Print::print(QPrinter *prt) {
     if (outputType == 2) curr_printer->setOutputFileName(outputFileName);
     pr = curr_printer->pageRect();
     if (headFootID>0) {
-        QSqlQuery layoutData;
+        QSqlQuery layoutData( QSqlDatabase::database( m_em->connectionName() ) );
         layoutData.prepare("SELECT rel_y, rel_h FROM tfx_layout_felder WHERE int_layoutid=?");
         layoutData.bindValue(0,headFootID);
         layoutData.exec();
@@ -458,7 +479,7 @@ QString Print::readDetailInfo(bool head, QString verein) {
         }
     } else {
         if (verein.right(2) == "M.") verein = verein.left(verein.length()-8);
-        QSqlQuery query;
+        QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
         query.prepare("SELECT '',tfx_gaue.var_kuerzel, tfx_verbaende.var_kuerzel, tfx_laender.var_kuerzel FROM tfx_vereine INNER JOIN tfx_gaue ON tfx_vereine.int_gaueid = tfx_gaue.int_gaueid INNER JOIN tfx_verbaende ON tfx_verbaende.int_verbaendeid = tfx_gaue.int_verbaendeid INNER JOIN tfx_laender ON tfx_laender.int_laenderid = tfx_verbaende.int_laenderid WHERE tfx_vereine.var_name=?");
         query.bindValue(0,verein);
         query.exec();
@@ -475,7 +496,7 @@ void Print::setTypeString(QString t) {
 void Print::printCustomPage(int mode, int layoutid, QStringList tndata, QString tnwk) {
     QFont font2(font);
     Competition *competition = m_em->competitionRepository()->fetchByNumber(this->m_event, tnwk);
-    QSqlQuery query2;
+    QSqlQuery query2( QSqlDatabase::database( m_em->connectionName() ) );
     if (tnwk == "") {
         query2.prepare("SELECT tfx_veranstaltungen.var_name, "+_global::date("dat_von",10)+", "+_global::date("dat_bis",10)+", tfx_wettkampforte.var_name, var_ort, '','' FROM tfx_veranstaltungen INNER JOIN tfx_wettkampforte USING (int_wettkampforteid) WHERE int_veranstaltungenid=?");
     } else {
@@ -485,7 +506,7 @@ void Print::printCustomPage(int mode, int layoutid, QStringList tndata, QString 
     query2.bindValue(0, this->m_event->mainEvent()->id());
     query2.exec();
     query2.next();
-    QSqlQuery layoutData;
+    QSqlQuery layoutData( QSqlDatabase::database( m_em->connectionName() ) );
     layoutData.prepare("SELECT int_typ, var_font, rel_x, rel_y, rel_w, rel_h, var_value, int_align FROM tfx_layout_felder WHERE int_layoutid=? ORDER BY int_layer");
     layoutData.bindValue(0,layoutid);
     layoutData.exec();
@@ -549,7 +570,7 @@ void Print::printCustomPage(int mode, int layoutid, QStringList tndata, QString 
             case 14: {
                     if (tndata.size()>0) {
                         if (competition->type() == 1 || competition->type() == 2) {
-                            QSqlQuery teamq;
+                            QSqlQuery teamq( QSqlDatabase::database( m_em->connectionName() ) );
                             if (competition->type() == 1) {
                                 teamq.prepare("SELECT " + _global::nameFormat() + " || CASE WHEN bol_ak='true' THEN ' (AK)' ELSE '' END FROM tfx_wertungen INNER JOIN tfx_teilnehmer USING (int_teilnehmerid) WHERE int_mannschaftenid=? AND int_runde=? ORDER BY int_mannschaftenid");
                             } else {
@@ -597,7 +618,7 @@ void Print::printCustomPage(int mode, int layoutid, QStringList tndata, QString 
 QStringList Print::readDetailInfos(QString verein) {
     if (verein.right(2) == "M.") verein = verein.left(verein.length()-8);
     if (verein.right(10) == "Mannschaft") verein = verein.left(verein.length()-16);
-    QSqlQuery query;
+    QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
     query.prepare("SELECT tfx_gaue.var_name, tfx_verbaende.var_name, tfx_laender.var_name FROM tfx_vereine INNER JOIN tfx_gaue ON tfx_vereine.int_gaueid = tfx_gaue.int_gaueid INNER JOIN tfx_verbaende ON tfx_verbaende.int_verbaendeid = tfx_gaue.int_verbaendeid INNER JOIN tfx_laender ON tfx_laender.int_laenderid = tfx_verbaende.int_laenderid WHERE tfx_vereine.var_name=?");
     query.bindValue(0,verein);
     query.exec();

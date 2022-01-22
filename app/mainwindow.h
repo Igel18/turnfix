@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(EntityManager *em, Event *m_event);
+    MainWindow( EntityManager *em, Event *m_event );
     ~MainWindow();
 
 private slots:

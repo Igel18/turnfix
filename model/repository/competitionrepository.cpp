@@ -2,29 +2,41 @@
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
 
-CompetitionRepository::CompetitionRepository(EntityManager *em)
-    : AbstractRepository<Competition>(em)
-{}
-
 QList<Competition *> CompetitionRepository::fetchByEvent(Event *event, int *type /*= nullptr*/)
 {
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
-
     QueryBuilder<Competition> qb;
     qb.select(Competition::staticMetaObject, Competition::mapping());
     qb.join(Division::staticMetaObject, Division::mapping(), "Competition", "division", "divisionId");
     qb.where("Competition", "eventId", event->id());
-    if(type){
+
+    if( type ){
         qb.where("Competition", "type", *type);
     }
+
     qb.orderBy("Competition", "number");
 
-    QList<Competition *> output = qb.query(db);
+    auto output = qb.query( QSqlDatabase::database( entityManager()->connectionName() ) );
+
+    for(auto& competition : output ){
+        competition->setEvent( event );
+    }
 
     return output;
 }
 
-Competition *CompetitionRepository::fetchByNumber(Event *, const QString &)
+Competition* CompetitionRepository::fetchByNumber( Event *event, QString number, QSqlDatabase* pDb /*= nullptr*/ )
 {
+    QueryBuilder< Competition > qb;
+    qb.select( Competition::staticMetaObject, Competition::mapping());
+    qb.join( Division::staticMetaObject, Division::mapping(), "Competition", "division", "divisionId" );
+    qb.where( "Competition", "eventId", event->id() );
+    qb.where( "Competition", "number", number );
+    auto output = qb.query( pDb ? *pDb : QSqlDatabase::database( entityManager()->connectionName() ) );
+
+    for(auto& competition : output ){
+        competition->setEvent( event );
+        return competition; // return 1st occurrence (should be one record)
+    }
+
     return nullptr;
 }

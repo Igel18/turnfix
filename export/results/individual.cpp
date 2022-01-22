@@ -8,7 +8,7 @@
 void Individual::printContent() {
     for (int i=0;i<wkNumbers.size();i++) {
         currWK = wkNumbers.at(i);
-        Competition *competition = m_em->competitionRepository()->fetchByNumber(m_event, currWK);
+        Competition *competition = m_em->competitionRepository()->fetchByNumber( m_event, currWK );
 
         if (newPageWK && i > 0) {
             newPage();
@@ -16,7 +16,7 @@ void Individual::printContent() {
         if (checkFitPage(mmToPixel(35.0),currWK)) {
             printDescriptor(currWK);
         }
-        QList<QStringList> rlist = Result_Calc::resultArrayNew(competition, vereinNumbers, -1, 0, false, detailQuery);
+        QList<QStringList> rlist = Result_Calc::resultArrayNew( competition, vereinNumbers, -1, 0, false, detailQuery);
         for (int i=0;i<rlist.size();i++) {
             checkFitPage(mmToPixel(4.8),currWK,true);
             setPrinterFont(9);

@@ -7,10 +7,10 @@ class License : public List {
     Q_OBJECT
 
 public:
-    License(Event *event) : List(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using List::List;
 
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
 };
 
 #endif // LICENSE_H

@@ -1,17 +1,59 @@
 #include "session.h"
 #include "model/entity/event.h"
+#include <QApplication>
 #include <QMutex>
+#include <QWidget>
+
 
 Session *Session::instance = nullptr;
+MainWindow* Session::m_pMainWindow = nullptr;
+
+MainWindow* Session::mainWindow()
+{
+//    if( !m_pMainWindow ){
+
+//        if( qApp ){
+//            auto widgets = qApp->topLevelWidgets();
+
+//            for( QWidget* pWidget : widgets ){
+//                if( QString( pWidget->metaObject()->className() ) == "MainWindow" ){
+//                    m_pMainWindow = pWidget;
+//                }
+//            }
+//        }
+//    }
+
+    return m_pMainWindow;
+}
+
+void Session::setEntityManager(EntityManager* em)
+{
+    m_em = em;
+}
+
+EntityManager* Session::getEntityManager()
+{
+    return m_em;
+}
 
 void Session::setEvent(Event *event)
 {
-    this->m_event = event;
+    m_event = event;
 }
 
 Event* Session::getEvent()
 {
-    return this->m_event;
+    return m_event;
+}
+
+AbstractConnection* Session::getConnectoin()
+{
+    return m_connectoin;
+}
+
+void Session::setConnectoin( AbstractConnection* connection )
+{
+    m_connectoin = connection;
 }
 
 Session* Session::getInstance()

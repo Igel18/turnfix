@@ -7,7 +7,7 @@ class Invitation : public Print {
     Q_OBJECT
 
 public:
-    Invitation(Event *event) : Print(event) {}
+    Invitation(Event *event) : Print(/*event*/) {}
 
     virtual void print(QPrinter*);
     virtual void printContent();

@@ -7,11 +7,11 @@ class MedalCount : public Print {
     Q_OBJECT
 
 public:
-    MedalCount(Event *event) : Print(event) {}
+    using Print::Print;
 
-    virtual void print(QPrinter*);
-    virtual void printContent();
-    virtual void printSubHeader();
+    virtual void print(QPrinter*) override;
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
 
 private:
     QList<int> ids;

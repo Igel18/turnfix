@@ -17,7 +17,7 @@ class CompetitionsWidget : public QWidget
 
 public:
     explicit CompetitionsWidget(QWidget *parent = nullptr);
-    ~CompetitionsWidget() override;
+    ~CompetitionsWidget();
 
 private slots:
     void addCompetition();

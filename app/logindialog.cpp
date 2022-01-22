@@ -6,6 +6,7 @@
 #include "model/entity/abstractconnection.h"
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
+#include "model/settings/session.h"
 #include "postgressetupwizard.h"
 #include "ui_logindialog.h"
 #include <QDataWidgetMapper>
@@ -105,6 +106,7 @@ void LoginDialog::doLogin()
     connectionEstablished = connection->connect("main");
 
     if (connectionEstablished) {
+        Session::getInstance()->setConnectoin( connection );
         em->setConnectionName("main");
         ui->eventsWidget->setEnabled(true);
         eventModel->getEvents();

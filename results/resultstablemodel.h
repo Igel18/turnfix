@@ -4,25 +4,30 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 
+class EntityManager;
+
 class ResultsTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation,
-                        int role = Qt::DisplayRole) const;
-    void setList(const QList<QStringList> &list, QString nr, int hwk, int typ, bool details=true, bool header=true);
+    explicit ResultsTableModel( EntityManager *em, QObject *parent = nullptr );
+
+    int rowCount( const QModelIndex &parent = QModelIndex() ) const override;
+    int columnCount( const QModelIndex &parent = QModelIndex() ) const override;
+    QVariant data( const QModelIndex &index, int role ) const override;
+    QVariant headerData( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
+
+    void setList( const QList< QStringList > &list, QString nr, int hwk, int typ, bool details = true, bool header = true );
 
 private:
-    QList<QStringList> list;
+    QList< QStringList > list;
     QStringList headers;
     int wktyp;
     int hwk;
     bool details;
     bool showHeader;
     QString nr;
+    EntityManager* m_em;
 };
 #endif

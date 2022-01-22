@@ -7,7 +7,7 @@ class ITCheckSquads : public Print {
     Q_OBJECT
 
 public:
-    ITCheckSquads(Event *event) : Print(event) {}
+    ITCheckSquads(Event *event) : Print(/*event*/) {}
 
     virtual void print(QPrinter*);
     virtual void printContent();

@@ -6,7 +6,7 @@
 class Results : public Print {
     Q_OBJECT
 public:
-    Results(Event *event) : Print(event) {}
+    Results(Event *event) : Print(/*event*/) {}
     static void setnewPageWK(bool);
 
 public slots:

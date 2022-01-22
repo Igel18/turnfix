@@ -12,8 +12,7 @@
 #include <QSortFilterProxyModel>
 
 CompetitionsWidget::CompetitionsWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::CompetitionsWidget)
+    : QWidget( parent ), ui( new Ui::CompetitionsWidget )
 {
     ui->setupUi(this);
 
@@ -96,25 +95,17 @@ void CompetitionsWidget::setup(Event *event, EntityManager *em)
 {
     m_em = em;
     m_event = event;
-    m_model = new CompetitionModel(event, em);
+    m_model = new CompetitionModel(event, em, m_event );
     m_model->fetchCompetitions();
     m_sortModel = new QSortFilterProxyModel();
     m_sortModel->setSourceModel(m_model);
 
     ui->competitionsTable->setModel(m_sortModel);
-
-    QList<QHeaderView::ResizeMode> resizeModes = {QHeaderView::ResizeToContents,
-                                                  QHeaderView::Stretch,
-                                                  QHeaderView::ResizeToContents,
-                                                  QHeaderView::ResizeToContents,
-                                                  QHeaderView::ResizeToContents,
-                                                  QHeaderView::ResizeToContents,
-                                                  QHeaderView::ResizeToContents};
-
     ui->cmb_filterWK->clear();
 
+    auto horHeader = ui->competitionsTable->horizontalHeader();
     for (int i = 0; i < 7; i++) {
+        horHeader->setSectionResizeMode( i, i == 1 ? QHeaderView::Stretch : QHeaderView::ResizeToContents );
         ui->cmb_filterWK->addItem(m_model->headerData(i, Qt::Horizontal).toString());
-        ui->competitionsTable->horizontalHeader()->setSectionResizeMode(i, resizeModes.at(i));
     }
 }

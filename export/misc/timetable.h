@@ -7,7 +7,7 @@ class Timetable : public Print {
     Q_OBJECT
 
 public:
-    Timetable(Event *event) : Print(event) {}
+    Timetable(Event *event) : Print(/*event*/) {}
     virtual void print(QPrinter*);
     virtual void printContent();
 };

@@ -7,11 +7,12 @@ class List : public Print {
     Q_OBJECT
 
 public:
-    List(Event *event) : Print(event) {}
-    virtual void printSubHeader();
+    using Print::Print;
+
+    virtual void printSubHeader() override;
 
 public slots:
-    virtual void print(QPrinter*);
+    virtual void print(QPrinter*) override;
 
 protected:
     bool checkWKChange(QString currWK,QString lastWK, double lineHeight, bool newPageCreated=false);

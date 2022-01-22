@@ -3,22 +3,36 @@
 
 #include <QObject>
 
+class AbstractConnection;
+class EntityManager;
 class Event;
+class MainWindow;
 
 class Session : public QObject
 {
     Q_OBJECT
 public:
+    void setEntityManager(EntityManager* em);
+    EntityManager* getEntityManager();
+
     void setEvent(Event* m_event);
     Event* getEvent();
+
+    AbstractConnection* getConnectoin();
+    void setConnectoin( AbstractConnection* connection );
 
     static Session* getInstance();
     static void dropInstance();
 
+    static MainWindow* mainWindow();
+
 private:
-    Event* m_event;
+    EntityManager* m_em = nullptr;
+    Event* m_event = nullptr;
+    AbstractConnection* m_connectoin = nullptr;
 
     static Session* instance;
+    static MainWindow* m_pMainWindow;
 
     Session() {}
     Session(const Session &);

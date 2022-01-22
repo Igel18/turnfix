@@ -43,7 +43,7 @@ void PostgreSQLConnection::setDatabaseName(const QString &value)
 
 bool PostgreSQLConnection::connect(const QString &connectionName)
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", connectionName);
+    QSqlDatabase db = QSqlDatabase::addDatabase( "QPSQL", connectionName );
     db.setHostName(m_server);
     db.setDatabaseName(m_databaseName);
     db.setUserName(m_username);

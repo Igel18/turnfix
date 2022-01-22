@@ -1,26 +1,34 @@
 #include "resultswidget.h"
-#include "model/entity/competition.h"
-#include "model/entitymanager.h"
-#include "model/repository/competitionrepository.h"
-#include "model/settings/session.h"
-#include "resultstablemodel.h"
-#include "src/global/header/_delegates.h"
-#include "src/global/header/_global.h"
-#include "src/global/header/result_calc.h"
 #include "ui_resultswidget.h"
-#include <QSqlQuery>
+#include "resultstablemodel.h"
+#include "app/mainwindow.h"
+#include "model/settings/session.h"
+#include "competitions/competitionmodel.h"
+#include "competitions/competitionproxymodel.h"
+#include "model/entity/competition.h"
+#include "src/global/header/_delegates.h"
+#include "src/global/header/result_calc.h"
+
 
 ResultsWidget::ResultsWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::ResultsWidget)
+    : QWidget(parent), ui(new Ui::ResultsWidget)
 {
-    ui->setupUi(this);
+    ui->setupUi( this );
+    connect( ui->cmb_selectwk, qOverload< int >( &QComboBox::currentIndexChanged ), this, &ResultsWidget::fillERTable );
+}
 
-    this->m_event = Session::getInstance()->getEvent();
-    this->er_model = new ResultsTableModel();
+void ResultsWidget::setup( Event *event, EntityManager *em )
+{
+    m_event = event;
+    m_em = em;
 
+    er_model = new ResultsTableModel( m_em );
     ui->er_table->setModel(er_model);
-    connect(ui->cmb_selectwk, SIGNAL(currentIndexChanged(int)), this, SLOT(fillERTable()));
+
+    auto pProxyModel = new CompetitionProxyModel( "WkNr.", this );
+    auto pCompetitionModel = m_event->findChild< CompetitionModel* >();
+    pProxyModel->setSourceModel( pCompetitionModel );
+    ui->cmb_selectwk->setModel(  pProxyModel );
 }
 
 ResultsWidget::~ResultsWidget()
@@ -30,49 +38,22 @@ ResultsWidget::~ResultsWidget()
 
 void ResultsWidget::fillERTable()
 {
-    if (ui->cmb_selectwk->count() > 0) {
-        Competition *competition = m_em->competitionRepository()->fetchByNumber(
-            m_event, ui->cmb_selectwk->itemData(ui->cmb_selectwk->currentIndex()).toString());
-        QList<QStringList> list = Result_Calc::resultArrayNew(competition);
-        int wktyp = competition->type();
-        int hwk = competition->event()->mainEvent()->id();
-        QString nr = ui->cmb_selectwk->itemData(ui->cmb_selectwk->currentIndex()).toString();
-        er_model->setList(list,nr,hwk,wktyp);
-        if (list.size() > 0) {
+    auto pCompetition = qvariant_cast< Competition* >(ui->cmb_selectwk->currentData());
 
-            int size = list.at(0).size()-1;
-            QList<QHeaderView::ResizeMode> resizeModeER;
+    if( pCompetition ){
+        auto resultsData = Result_Calc::resultArrayNew( pCompetition );
+        er_model->setList( resultsData, pCompetition->number(), m_event->id(), pCompetition->type() );
 
-            resizeModeER << QHeaderView::ResizeToContents;
-            resizeModeER << QHeaderView::Stretch;
-            resizeModeER << QHeaderView::Stretch;
-            resizeModeER << QHeaderView::ResizeToContents;
+        if( !resultsData.isEmpty() ) {
+            auto horHeader = ui->er_table->horizontalHeader();
+            int columnsCount = resultsData.at( 0 ).size() - 1;
 
-            for (int i=4;i<size;i++) {
-                resizeModeER << QHeaderView::ResizeToContents;
-            }
-
-            for (int i=0;i<size;i++) {
-                QHeaderView *hv = ui->er_table->horizontalHeader();
-                hv->setSectionResizeMode(i, resizeModeER.at(i));
-                if (i > 2) {
-                    ui->er_table->setItemDelegateForColumn(i, new AlignItemDelegate);
+            for( auto col = 0; col < columnsCount; ++col ){
+                horHeader->setSectionResizeMode( col, ( ( col == 1 ) || ( col == 2 ) ) ? QHeaderView::Stretch : QHeaderView::ResizeToContents );
+                if( col > 2 ){
+                    ui->er_table->setItemDelegateForColumn( col, new AlignItemDelegate );
                 }
             }
         }
-    }
-}
-
-void ResultsWidget::updateERList()
-{
-    ui->cmb_selectwk->clear();
-    QSqlQuery query2;
-    query2.prepare("SELECT var_nummer, var_name FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? ORDER BY var_nummer ASC");
-    query2.bindValue(0, this->m_event->mainEvent()->id());
-    query2.exec();
-    while (query2.next()) {
-        ui->cmb_selectwk->addItem("WkNr. " + query2.value(0).toString() + " "
-                                      + query2.value(1).toString(),
-                                  query2.value(0).toString());
     }
 }

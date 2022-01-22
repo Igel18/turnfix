@@ -5,6 +5,7 @@
 #include "export/maildialog.h"
 #include "masterdata/masterdatadialog.h"
 #include "model/entity/event.h"
+#include "model/settings/session.h"
 #include "participants/licensenumberdialog.h"
 #include "ui_mainwindow.h"
 #include <QActionGroup>
@@ -14,10 +15,8 @@
 #include <QSqlQuery>
 #include <QToolBar>
 
-MainWindow::MainWindow(EntityManager *em, Event *event)
-    : QMainWindow()
-    , ui(new Ui::MainWindow)
-    , m_em(em)
+MainWindow::MainWindow( EntityManager *em, Event *event )
+    : QMainWindow(), ui( new Ui::MainWindow ), m_em( em )
 {
     m_event = event;
 
@@ -239,10 +238,16 @@ void MainWindow::sendMLists() {
 
 void MainWindow::initEvent()
 {
-    ui->lbl_wk->setText(m_event->name());
-    ui->lbl_ort->setText(m_event->venue()->nameAndCity());
-    ui->competitionsWidget->setup(m_event, m_em);
-    ui->tn_tab->setup(m_event, m_em);
-    ui->rg_tab->setup(m_event, m_em);
-    ui->pe_tab->setup(m_event, m_em);
+    Session::getInstance()->setEntityManager( m_em );
+    Session::getInstance()->setEvent( m_event );
+
+    ui->lbl_wk->setText( m_event->name() );
+    ui->lbl_ort->setText( m_event->venue()->nameAndCity() );
+    ui->competitionsWidget->setup( m_event, m_em );
+    ui->tn_tab->setup( m_event, m_em );
+    ui->rg_tab->setup( m_event, m_em );
+    ui->pe_tab->setup( m_event, m_em );
+    ui->er_tab->setup( m_event, m_em );
+    ui->dr_tab->updateData();
+    ui->st_tab->updateStatus();
 }

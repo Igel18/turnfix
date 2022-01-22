@@ -1,19 +1,34 @@
 #include "header/result_calc.h"
 #include "header/_global.h"
 #include "libs/fparser/fparser.hh"
+#include "model/repository/competitionrepository.h"
+#include "model/repository/competitiondisciplinerepository.h"
+#include "model/repository/disciplinefieldrepository.h"
+#include "model/repository/juryscorerepository.h"
+#include "model/repository/scorerepository.h"
+#include "model/repository/scoredetailsrepository.h"
+#include "model/settings/session.h"
 #include "model/entity/competition.h"
+#include "model/entitymanager.h"
 #include <QSqlQuery>
 
-QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<int> cres, int rnd, int print, bool printAW, QString detailQuery) {
+QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QList< int > cres, int rnd, int print, bool printAW, QString detailQuery ) {
+
+    QList< QStringList > reslist;
+
     if (rnd == -1)
         rnd = competition->event()->round();
-    QSqlQuery wk;
+
+    QSqlDatabase db = QSqlDatabase::database( Session::getInstance()->getEntityManager()->connectionName() );
+
+    QSqlQuery wk( db );
     wk.prepare("SELECT bol_streichwertung, int_qualifikation, int_wertungen, int_wettkaempfeid, bol_sortasc, bol_gerpkt, int_anz_streich, int_typ FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? AND var_nummer=? LIMIT 1");
     wk.bindValue(0, competition->event()->mainEvent()->id());
     wk.bindValue(1, competition->number());
     wk.exec();
     wk.next();
-    QSqlQuery dis;
+
+    QSqlQuery dis( db );
     if (competition->type() == 1 && print == 0) {
         dis.prepare("SELECT int_disziplinenid, int_berechnung, var_formel, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp, rel_max FROM tfx_wettkaempfe_x_disziplinen INNER JOIN tfx_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe_x_disziplinen.int_wettkaempfeid = tfx_wettkaempfe.int_wettkaempfeid WHERE tfx_wettkaempfe.int_wettkaempfeid=? ORDER BY int_sortierung DESC, kp");
     } else {
@@ -21,9 +36,11 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
     }
     dis.bindValue(0,wk.value(3).toInt());
     dis.exec();
-    QList< QList<int> > disrows;
+
+    QList< QList< int > > disrows;
+
     while (dis.next()) {
-        QList<int> lst;
+        QList< int > lst;
         lst.append(dis.at());
         lst.append(0);
         disrows.append(lst);
@@ -32,21 +49,22 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
             disrows.append(lst);
         }
     }
-    QSqlQuery res;
+
+    QSqlQuery res( db );
     res.prepare("SELECT tfx_wertungen.int_wertungenid, tfx_wettkaempfe_x_disziplinen.int_disziplinenid, max(tfx_wertungen_details.rel_leistung), max(jr.rel_leistung), tfx_wertungen_details.int_kp FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) LEFT JOIN tfx_wertungen_details ON tfx_wertungen_details.int_disziplinenid = tfx_wettkaempfe_x_disziplinen.int_disziplinenid AND tfx_wertungen_details.int_wertungenid = tfx_wertungen.int_wertungenid LEFT JOIN tfx_jury_results AS jr ON jr.int_wertungenid = tfx_wertungen.int_wertungenid AND jr.int_kp = tfx_wertungen_details.int_kp AND jr.int_versuch = tfx_wertungen_details.int_versuch AND int_disziplinen_felderid=(SELECT int_disziplinen_felderid FROM tfx_disziplinen_felder WHERE int_disziplinenid=tfx_wettkaempfe_x_disziplinen.int_disziplinenid AND bol_ausgangswert='true' AND bol_enabled='true' LIMIT 1) WHERE tfx_wettkaempfe.int_wettkaempfeid=? AND int_runde=? GROUP BY tfx_wertungen.int_wertungenid, tfx_wettkaempfe_x_disziplinen.int_disziplinenid, tfx_wertungen_details.int_kp ORDER BY tfx_wertungen.int_wertungenid, tfx_wettkaempfe_x_disziplinen.int_disziplinenid, tfx_wertungen_details.int_kp DESC");
-    res.bindValue(0,wk.value(3).toInt());
+    res.bindValue( 0, wk.value(3).toInt() );
     res.bindValue(1,rnd);
     res.exec();
 
-    QMap <int, QMap< int, QMap< int,double > > > wertungen;
-    QMap< int, QMap< int,double > > wert;
-    QMap <int, QMap< int, QMap< int,double > > > ausgang;
-    QMap< int, QMap< int,double > > aw;
+    QMap< int, QMap< int, QMap< int, double > > > wertungen;
+    QMap< int, QMap< int, double > > wert;
+    QMap< int, QMap< int, QMap< int, double > > > ausgang;
+    QMap< int, QMap< int, double > > aw;
 
-    QList<QStringList> reslist;
     int lastw = 0;
     while(res.next()) {
-        if (res.at() == 0) lastw = res.value(0).toInt();
+        if (res.at() == 0)
+            lastw = res.value(0).toInt();
         if (res.value(0).toInt() != lastw && res.at()>0) {
             wertungen[lastw] = wert;
             ausgang[lastw] = aw;
@@ -57,16 +75,19 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
         wert[res.value(1).toInt()][res.value(4).toInt()] = res.value(2).toDouble();
         aw[res.value(1).toInt()][res.value(4).toInt()] = res.value(3).toDouble();
     }
+
     if (_global::querySize(res)>0) {
         wertungen[lastw] = wert;
         ausgang[lastw] = aw;
     }
+
     if (competition->type() == 0 || competition->type() == 2) {
         QString pgExtra;
         if (_global::getDBTyp()==0) {
             pgExtra = "::text";
         }
-        QSqlQuery tn;
+
+        QSqlQuery tn( db );
         QString tnquery;
         tnquery = "SELECT CASE WHEN bol_ak='true' THEN 'AK' ELSE int_wertungenid"+pgExtra+" END AS platz, CASE WHEN tfx_wertungen.int_gruppenid IS NULL THEN ";
         tnquery += _global::nameFormat();
@@ -118,6 +139,7 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
                     sum -= streich.at(i);
                 }
             }
+
             tnlist << QString().setNum(sum,'f',3);
             tnlist << tn.value(4).toString();
             reslist.append(tnlist);
@@ -219,12 +241,13 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
             }
         }
     }
-    int sort;
+
+    int sort = 0;
+
     if ((competition->type() == 0 || competition->type() == 2) && wk.value(4).toBool()) {
         sort = 3;
-    } else {
-        sort = 0;
     }
+
     reslist = sortRes(reslist,sort);
     int p=0;
     double last=0;
@@ -258,9 +281,10 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
             }
         }
     }
+
     if (cres.length() > 0) {
         QList<int> ids;
-        QSqlQuery id;
+        QSqlQuery id( db );
         if (competition->type() == 0 || competition->type() == 2) {
             QString query = "SELECT int_wertungenid FROM tfx_wertungen LEFT JOIN tfx_teilnehmer USING (int_teilnehmerid) LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid OR tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid WHERE int_wettkaempfeid=? AND tfx_vereine.int_vereineid IN (" + _global::intListToString(cres) + ")";
             id.prepare(query);
@@ -279,6 +303,7 @@ QList<QStringList> Result_Calc::resultArrayNew(Competition *competition, QList<i
             }
         }
     }
+
     return reslist;
 }
 
@@ -298,7 +323,7 @@ QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,boo
     QMap <int, QMap< int,int > > places;
     QList<QStringList> reslist;
     while(rnd.next()) {
-        QList<QStringList> lst = resultArrayNew(competition, QList<int>(), rnd.value(0).toInt(), 1, false, detailQuery);
+        QList<QStringList> lst = resultArrayNew( competition, QList<int>(), rnd.value(0).toInt(), 1, false, detailQuery);
         for (int i=0;i<lst.size();i++) {
             wertungen[lst.at(i).last().toInt()][rnd.value(0).toInt()] = lst.at(i).at(lst.at(i).size()-2).toDouble();
             places[lst.at(i).last().toInt()][rnd.value(0).toInt()] = lst.at(i).at(0).toInt();
@@ -424,7 +449,7 @@ QList<QStringList> Result_Calc::tabllenArray(Competition *competition) {
     QMap< int,double > roundSum;
 
     while(rnd.next()) {
-        QList<QStringList> lst = resultArrayNew(competition,QList<int>(),rnd.value(0).toInt());
+        QList<QStringList> lst = resultArrayNew( competition, QList<int>(), rnd.value(0).toInt() );
         for (int i=0;i<lst.size();i++) {
             wertungen[lst.at(i).last().toInt()][rnd.value(0).toInt()] = lst.at(i).at(lst.at(i).size()-2).toDouble();
             roundSum[rnd.value(0).toInt()] += lst.at(i).at(lst.at(i).size()-2).toDouble();
@@ -529,7 +554,6 @@ QList<QStringList> Result_Calc::tabllenArray(Competition *competition) {
     }
     return reslist;
 }
-
 
 QList<QStringList> Result_Calc::sortRes(QList<QStringList> l,int mode) {
     if (l.size() > 0) {

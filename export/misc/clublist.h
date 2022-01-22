@@ -7,7 +7,7 @@ class ClubList : public Print {
     Q_OBJECT
 
 public:
-    ClubList(Event *event) : Print(event) {}
+    ClubList(Event *event) : Print(/*event*/) {}
 
     virtual void print(QPrinter*);
     virtual void printContent();
