@@ -7,10 +7,10 @@ class Individual : public Results {
     Q_OBJECT
 
 public:
-    Individual(Event *event) : Results(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using Results::Results;
 
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
 };
 
 #endif // EINZEL_H

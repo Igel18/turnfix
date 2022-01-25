@@ -23,7 +23,7 @@ ResultsSheetDialog::ResultsSheetDialog(EntityManager* em, Event *event, QWidget 
 
     pe_model = new ResultsSheetTableModel( em, m_event );
     ui->pe_table->setModel( pe_model );
-    ui->chk_jury->setChecked(Settings::juryResults);
+    ui->chk_jury->setChecked( Settings::juryResults );
     connect(ui->but_save, SIGNAL(clicked()), this, SLOT(saveClose()));
     connect(ui->chk_jury, SIGNAL(stateChanged(int)), this, SLOT(fillPETable()));
     connect(ui->chk_jury, SIGNAL(stateChanged(int)), this, SLOT(saveJuryMethod()));
@@ -46,15 +46,19 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     pStatusModel->fetchStatuses( nullptr, &scoreSheet );
     ui->cmb_status1->setModel( pStatusModel );
 
-    auto items = m_em->squadDisciplineRepository()->load( m_event, riege );
+    int round = m_event->round();
+    auto items = m_em->squadDisciplineRepository()->load( m_event, riege, &geraet, &round );
 
-    auto itFound = std::find_if(items.begin(), items.end(), [ this ]( SquadDiscipline* pItem ){
-            return ( pItem->disciplineId() == geraet ) && ( pItem->round() == m_event->round() );
-    });
-
-    if( itFound != items.end() ){
-        m_pSquadDiscipline = *itFound;
-        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( (*itFound)->statusId(), TF::IdRole ) );
+    if( items.isEmpty() ){
+        m_pSquadDiscipline = new SquadDiscipline();
+        m_pSquadDiscipline->setEventId( m_event->id() );
+        m_pSquadDiscipline->setDisciplineId( geraet );
+        m_pSquadDiscipline->setSquad( riege );
+        m_pSquadDiscipline->setRound( round );
+        // m_pSquadDiscipline->setStart( false );
+    } else {
+        m_pSquadDiscipline = items.at( 0 );
+        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( m_pSquadDiscipline->statusId(), TF::IdRole ) );
     }
 
     connect( ui->cmb_status1, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
@@ -124,11 +128,9 @@ void ResultsSheetDialog::finishEdit()
 
 void ResultsSheetDialog::changeSquadDisciplineStatus(int index)
 {
-    if( m_pSquadDiscipline ){
-        auto statusId = ui->cmb_status1->itemData( index, TF::IdRole ).toInt();
-        m_pSquadDiscipline->setStatusId( statusId );
-        m_em->squadDisciplineRepository()->persist( m_pSquadDiscipline );
-    }
+    auto statusId = ui->cmb_status1->itemData( index, TF::IdRole ).toInt();
+    m_pSquadDiscipline->setStatusId( statusId );
+    m_em->squadDisciplineRepository()->persist( m_pSquadDiscipline );
 }
 
 void ResultsSheetDialog::saveClose()

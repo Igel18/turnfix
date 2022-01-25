@@ -439,7 +439,7 @@ QDate Event::endDate() const
 
 Event *Event::mainEvent()
 {
-    if (m_mainEvent != nullptr) {
+    if(m_mainEvent != nullptr) {
         return m_mainEvent;
     }
 

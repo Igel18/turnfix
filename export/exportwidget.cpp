@@ -99,23 +99,24 @@ void ExportWidget::startPrint()
     Print::setHeadFootID(ui->cmb_headfoot->itemData(ui->cmb_headfoot->currentIndex()).toInt());
     Print::setPaperSize(QPrinter::A4);
     Print::setOrientation(QPrinter::Portrait);
+
     switch (ui->cmb_printtype->currentIndex()) {
     case 0: { //Ergebnisse
         Results::setnewPageWK(ui->chk_res_pg->isChecked());
         switch (ui->cmb_res_type->currentIndex()) {
         case 0: { //Einzel
-            ausdruck = new Individual(this->m_event);
+            ausdruck = new Individual();
         } break;
         case 1: { //Detail
             Detail::setPrintAW(ui->chk_res_aw->isChecked());
-            ausdruck = new Detail(this->m_event);
+            ausdruck = new Detail();
         } break;
         case 2: { //Rundenergebnisse
             Round::setUseExtraScore(ui->chk_res_sc->isChecked());
-            ausdruck = new Round(this->m_event);
+            ausdruck = new Round();
         } break;
         case 3: { //Tabelle
-            ausdruck = new Table(this->m_event);
+            ausdruck = new Table();
             ausdruck->setTypeString("Tabelle");
         } break;
         }
@@ -137,10 +138,10 @@ void ExportWidget::startPrint()
             ausdruck->setTypeString("Meldeliste");
     } break;
     case 3: { //Wettkampfbogen
-        JudgesSheet::setTeammode(ui->chk_bo_split->isChecked());
+        JudgesSheet::setTeammode( ui->chk_bo_split->isChecked() );
         ausdruck = new JudgesSheet();
-        ausdruck->setSelectRiege(true);
-        ausdruck->setSelectDis(true);
+        ausdruck->setSelectRiege( true );
+        ausdruck->setSelectDis( true );
     } break;
     case 4: { //Wettkampfkarte
             Card::setPaperSize(QPrinter::A5);
@@ -208,12 +209,12 @@ void ExportWidget::startPrint()
     ausdruck->setOutputType(ui->cmb_output->currentIndex());
 
     connect( ausdruck, SIGNAL(requestDetailInfo()), this, SLOT(showDetailinfoDialog()), Qt::BlockingQueuedConnection );
-    connect( ausdruck, SIGNAL(requestDisziplinen()), this, SLOT(showDisziplinenDialog()), Qt::BlockingQueuedConnection );
+    connect( ausdruck, &Print::requestDisziplinen, this, &ExportWidget::showDisziplinenDialog, Qt::BlockingQueuedConnection );
     connect( ausdruck, SIGNAL(requestRiegen()), this, SLOT(showRiegenDialog()), Qt::BlockingQueuedConnection );
     connect( ausdruck, &Print::requestTN, this, &ExportWidget::showTNDialog, Qt::BlockingQueuedConnection );
     connect( ausdruck, SIGNAL(requestVereine()), this, SLOT(showVereineDialog()), Qt::BlockingQueuedConnection );
     connect( ausdruck, SIGNAL(requestWKs()), this, SLOT(showWKDialog()), Qt::BlockingQueuedConnection);
-    connect( ausdruck, SIGNAL(showPrintPreview(QPrinter *)), this, SLOT(showPrintPreview(QPrinter *)), Qt::BlockingQueuedConnection );
+    connect( ausdruck, SIGNAL(showPrintPreview(QPrinter*)), this, SLOT(showPrintPreview(QPrinter*)), Qt::BlockingQueuedConnection );
     //if (ausdruck->printPreview()) ausdruck->~Drucken();
     ausdruck->start();
 }
@@ -328,11 +329,11 @@ void ExportWidget::showWKDialog()
 
 void ExportWidget::showRiegenDialog()
 {
-    SelectSubdivisionDialog *rg = new SelectSubdivisionDialog(this->m_event);
-    if (rg->exec() == 1) {
-        ausdruck->setSelectedRiegen(rg->getRg());
+    auto dlg = new SelectSubdivisionDialog( m_event );
+    if( dlg->exec() == 1) {
+        ausdruck->setSelectedRiegen( dlg->getRg() );
     } else {
-        ausdruck->setFinish(true);
+        ausdruck->setFinish( true );
     }
 }
 

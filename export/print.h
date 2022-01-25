@@ -18,9 +18,17 @@ class Print : public QThread {
 public:
     Print();
 
+    // static methods
+    static void setDetailInfo(int);
+    static void setHeadFootID(int);
+    static void setCoverID(int);
+    static void setPaperSize(QPrinter::PaperSize);
+    static QPrinter::PaperSize getPaperSize();
+    static void setOrientation(QPrinter::Orientation);
+    static QPrinter::Orientation getOrientation();
+
     void setOutputType(int);
     int  getOutputType();
-    static void setDetailInfo(int);
     void setShowPreview(bool);
     void setSelectClub(bool);
     void setSelectRiege(bool);
@@ -29,17 +37,10 @@ public:
     void setSelectDis(bool);
     void setSelectDetail(bool);
     void setTypeString(QString);
-    static void setHeadFootID(int);
-    static void setCoverID(int);
     void setOutputFileName(QString);
-    static void setPaperSize(QPrinter::PaperSize);
-    static QPrinter::PaperSize getPaperSize();
-    static void setOrientation(QPrinter::Orientation);
-    static QPrinter::Orientation getOrientation();
     void setWKNumber(QString);
     void setVerein(int);
     void setFinish(bool);
-
     void setDetailQuery(QString);
     void setSelectedTNWK(QString);
     void setSelectedClubs(QList<int>);
@@ -48,7 +49,6 @@ public:
     void setSelectedWKs(QStringList);
     void setSelectedRiegen(QStringList);
     void setSelectedDisziplinen(QList< QList<int> >);
-
 
 public slots:
     virtual void print(QPrinter*);
@@ -66,25 +66,27 @@ protected:
 
     static int detailinfo;
     bool korr;
-    int yco;
+    int m_yco; // y for content output ?
     int max_yco;
     int top_yco;
     qreal fontHeight;
-    void printHeadFoot();
-    void printDescriptor(QString,bool=false);
+
+    // protected virtual
     virtual void printContent();
     virtual void printSubHeader();
-    void newPage(bool printHeadFoot = true);
+
+    void printHeadFoot();
+    void printDescriptor( QString, bool = false );
+    void newPage( bool bPrintHeadFoot = true );
     void finishPrint();
-    int mmToPixel(double mm);
-    void setPrinterFont(int size, bool bold=false, bool italic=false);
+    inline int mmToPixel( double mm ){ return ((double)curr_printer->width() * mm / ((double)curr_printer->widthMM() + 10.0 ) ); }
+    void setPrinterFont( int size, bool bold = false, bool italic = false );
     void drawStandardRow(QString plst, QString name, QString jg, QString verein, QString points="", QString extra="");
     QString readDetailInfo(bool head,QString verein="");
     QStringList readDetailInfos(QString verein);
     void printCustomPage(int mode, int layoutid, QStringList tndata=QStringList(), QString tnwk="");
     void drawHighlightRect(qreal y, qreal h=-1);
     void drawTextLine(QString text, int x=0, bool newLine=true);
-
 
     int outputType;
     bool showPreview;
@@ -111,7 +113,6 @@ protected:
     QList<bool> wkKP;
     QStringList riegenNumbers;
     QMap<QString,QImage> customImages;
-
 
     QList<int> selectedClubs;
     QStringList selectedWKs;

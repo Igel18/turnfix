@@ -24,8 +24,8 @@ void List::printSubHeader() {
     } else {
         drawStandardRow("StNr.","Name","Jg.","Mannschaft","",readDetailInfo(true));
     }
-    painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-    yco += 1;
+    painter.drawLine(QPointF(pr.x(), m_yco),QPointF(pr.width()-pr.x(),m_yco));
+    m_yco += 1;
 }
 
 bool List::checkWKChange(QString currWK, QString lastWK, double lineHeight, bool newPageCreated) {
@@ -34,13 +34,13 @@ bool List::checkWKChange(QString currWK, QString lastWK, double lineHeight, bool
         skip += mmToPixel(27.8);
     }
     skip += mmToPixel(lineHeight);
-    if (yco+skip > max_yco) {
+    if (m_yco+skip > max_yco) {
         newPage();
         newPageCreated = true;
         if (lastWK == currWK) printDescriptor(currWK,1);
     }
     if (lastWK != currWK) {
-        if (lastWK != "" && !newPageCreated) yco += mmToPixel(5.0);
+        if (lastWK != "" && !newPageCreated) m_yco += mmToPixel(5.0);
         printDescriptor(currWK);
     }
     return newPageCreated;

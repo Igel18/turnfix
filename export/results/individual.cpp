@@ -6,7 +6,9 @@
 #include "src/global/header/result_calc.h"
 
 void Individual::printContent() {
-    for (int i=0;i<wkNumbers.size();i++) {
+    auto db = QSqlDatabase::database( m_em->connectionName() );
+
+    for( int i = 0; i < wkNumbers.size(); ++i ) {
         currWK = wkNumbers.at(i);
         Competition *competition = m_em->competitionRepository()->fetchByNumber( m_event, currWK );
 
@@ -20,7 +22,7 @@ void Individual::printContent() {
         for (int i=0;i<rlist.size();i++) {
             checkFitPage(mmToPixel(4.8),currWK,true);
             setPrinterFont(9);
-            if (i%2 != 0) drawHighlightRect(yco);
+            if (i%2 != 0) drawHighlightRect(m_yco);
             QString jg;
             QString verein;
             if (competition->type() == 0)
@@ -30,7 +32,7 @@ void Individual::printContent() {
             } else {
                 verein = rlist.at(i).at(2);
             }
-            QSqlQuery disCountQuery;
+            QSqlQuery disCountQuery( db );
             disCountQuery.prepare("SELECT int_disziplinenid, tfx_disziplinen.var_name, int_berechnung, var_einheit, var_kurz1, var_maske, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN generate_series(0,1) ELSE 0 END as kp FROM tfx_wettkaempfe_x_disziplinen INNER JOIN tfx_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE var_nummer=? AND int_veranstaltungenid=?");
             disCountQuery.bindValue(0,currWK);
             disCountQuery.bindValue(1, this->m_event->mainEvent()->id());
@@ -38,7 +40,7 @@ void Individual::printContent() {
             QString res;
             if (_global::querySize(disCountQuery) == 1) {
                 disCountQuery.next();
-                QSqlQuery query4;
+                QSqlQuery query4( db );
                 query4.prepare("SELECT rel_leistung FROM tfx_wertungen_details WHERE int_wertungenid=? AND int_disziplinenid=? ORDER BY rel_leistung DESC LIMIT 1");
                 query4.bindValue(0,rlist.at(i).last());
                 query4.bindValue(1,disCountQuery.value(0).toInt());
@@ -56,23 +58,21 @@ void Individual::printContent() {
                                    readDetailInfo(false,verein)
                                    );
         }
-        yco += mmToPixel(5.0);
+        m_yco += mmToPixel(5.0);
     }
     finishPrint();
 }
 
 void Individual::printSubHeader() {
-    Competition *competition = m_em->competitionRepository()->fetchByNumber(this->m_event, currWK);
-
+    auto competition = m_em->competitionRepository()->fetchByNumber( m_event, currWK );
     setPrinterFont(10);
-    QString jg;
-    if (competition->type() == 0)
-        jg = "Jg.";
+    QString jg = competition->type() == 0 ? "Jg." : "";
+
     if (competition->type() == 0 || competition->type() == 2) {
         drawStandardRow("Platz","Name",jg,"Verein","Punkte",readDetailInfo(true));
     } else {
         drawStandardRow("Platz","Verein","","Mannschaft","Punkte",readDetailInfo(true));
     }
-    painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-    yco += 1;
+    painter.drawLine(QPointF(pr.x(),m_yco),QPointF(pr.width()-pr.x(),m_yco));
+    m_yco += 1;
 }

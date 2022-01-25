@@ -9,9 +9,9 @@ void ResultsSheet::printContent() {
 
         QSqlQuery query2;
         query2.prepare("SELECT tfx_wertungen.int_startnummer, CASE WHEN tfx_wertungen.int_gruppenid IS NOT NULL THEN tfx_gruppen.var_name ELSE " + _global::nameFormat() + " || CASE WHEN tfx_wertungen.bol_ak='true' THEN ' (AK)' ELSE '' END END, CASE WHEN tfx_wertungen.int_mannschaftenid IS NOT NULL THEN v1.var_name || ' - ' || tfx_mannschaften.int_nummer || '. M.' ELSE CASE WHEN tfx_wertungen.int_gruppenid IS NOT NULL THEN v2.var_name ELSE v3.var_name END END, tfx_wettkaempfe.var_nummer, "+_global::date("dat_geburtstag",2)+", int_wertungenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_vereine AS v3 ON tfx_teilnehmer.int_vereineid = v3.int_vereineid LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid LEFT JOIN tfx_vereine AS v1 ON tfx_mannschaften.int_vereineid = v1.int_vereineid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_vereine AS v2 ON tfx_gruppen.int_vereineid = v2.int_vereineid WHERE tfx_wettkaempfe.int_veranstaltungenid=? AND tfx_wertungen.var_riege=? AND tfx_wertungen.int_runde=? AND tfx_wettkaempfe_x_disziplinen.int_disziplinenid=? AND (NOT EXISTS (SELECT int_wertungen_x_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE int_wertungenid=tfx_wertungen.int_wertungenid) OR EXISTS (SELECT int_wertungen_x_disziplinenid FROM tfx_wertungen_x_disziplinen WHERE tfx_wertungen_x_disziplinen.int_wertungenid=tfx_wertungen.int_wertungenid AND tfx_wertungen_x_disziplinen.int_disziplinenid=?)) AND tfx_wertungen.bol_startet_nicht='false' ORDER BY tfx_wettkaempfe.var_nummer, tfx_mannschaften.int_nummer, tfx_mannschaften.int_mannschaftenid, tfx_wertungen.int_startnummer");
-        query2.bindValue(0, this->m_event->mainEvent()->id());
+        query2.bindValue(0, m_event->mainEvent()->id());
         query2.bindValue(1, currRiege);
-        query2.bindValue(2, this->m_event->round());
+        query2.bindValue(2, m_event->round());
         for (int j=0;j<disziplinenIDs.size();j++) {
 
             currDis = disziplinenIDs.at(j).at(0);
@@ -86,7 +86,7 @@ void ResultsSheet::printContent() {
                     if (k>0) {
                         if ((fcount*mmToPixel(15.9))>pr.width()-pr.x()-pr.x()-xco-mmToPixel(2.6)) {
                             xco= pr.x()+mmToPixel(10.6);
-                            yco += mmToPixel(7.2);
+                            m_yco += mmToPixel(7.2);
                             rows++;
                         } else {
                             xco=xco+mmToPixel(2.6);
@@ -95,14 +95,14 @@ void ResultsSheet::printContent() {
                     fields.exec();
                     fcount = _global::querySize(fields);
                     while (fields.next()) {
-                        painter.drawRect(QRectF(xco, yco, mmToPixel(15.9), mmToPixel(6.6)));
-                        painter.drawText(QRectF(xco, yco, mmToPixel(15.9), mmToPixel(6.6)),fields.value(1).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignHCenter));
+                        painter.drawRect(QRectF(xco, m_yco, mmToPixel(15.9), mmToPixel(6.6)));
+                        painter.drawText(QRectF(xco, m_yco, mmToPixel(15.9), mmToPixel(6.6)),fields.value(1).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignHCenter));
                         xco += mmToPixel(15.9);
                     }
                 }
-                yco += mmToPixel(7.4);
-                painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-                yco += mmToPixel(0.3);
+                m_yco += mmToPixel(7.4);
+                painter.drawLine(QPointF(pr.x(),m_yco),QPointF(pr.width()-pr.x(),m_yco));
+                m_yco += mmToPixel(0.3);
                 lastWK = query2.value(3).toString();
             }
         }
@@ -120,12 +120,12 @@ void ResultsSheet::printSubHeader() {
     fields.bindValue(0,currDis);
     fields.exec();
     while (fields.next()) {
-        painter.drawText(QRectF(xco, yco, mmToPixel(15.9), QFontMetricsF(painter.font()).height()),fields.value(0).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignHCenter));
+        painter.drawText(QRectF(xco, m_yco, mmToPixel(15.9), QFontMetricsF(painter.font()).height()),fields.value(0).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignHCenter));
         xco = xco+mmToPixel(15.9);
     }
-    yco += mmToPixel(3.5);
-    painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-    yco += 1;
+    m_yco += mmToPixel(3.5);
+    painter.drawLine(QPointF(pr.x(),m_yco),QPointF(pr.width()-pr.x(),m_yco));
+    m_yco += 1;
 }
 
 void ResultsSheet::printType(QString file,QString name) {

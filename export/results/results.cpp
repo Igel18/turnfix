@@ -3,8 +3,8 @@
 
 bool Results::newPageWK = false;
 
-void Results::print(QPrinter *printer) {
-    Print::print(printer);
+void Results::print( QPrinter *printer ) {
+    Print::print( printer );
     printHeadFoot();
     printContent();
 }
@@ -14,7 +14,7 @@ void Results::setnewPageWK(bool set) {
 }
 
 bool Results::checkFitPage(int h, QString wk, bool f) {
-    if (yco+h > max_yco) {
+    if ( m_yco + h > max_yco ) {
         newPage();
         printDescriptor(wk,f);
         return false;

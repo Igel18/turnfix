@@ -1,4 +1,5 @@
 #include "summary.h"
+#include "model/entitymanager.h"
 #include "model/entity/event.h"
 #include "src/global/header/_global.h"
 
@@ -10,10 +11,11 @@ void Summary::print(QPrinter *printer) {
 }
 
 void Summary::printContent() {
+    auto db = QSqlDatabase::database( m_em->connectionName() );
     setPrinterFont(11,true);
-    QSqlQuery query;
+    QSqlQuery query( db );
     query.prepare("SELECT int_veranstaltungenid, var_veranstalter, var_vorname || ' ' || var_nachname, tfx_personen.var_adresse, tfx_personen.var_plz, tfx_personen.var_ort, tfx_wettkampforte.var_name, tfx_wettkampforte.var_adresse, tfx_wettkampforte.var_plz, tfx_wettkampforte.var_ort, int_edv, int_kampfrichter, int_helfer FROM tfx_veranstaltungen INNER JOIN tfx_wettkampforte USING (int_wettkampforteid) LEFT JOIN tfx_personen ON int_ansprechpartner = int_personenid WHERE int_veranstaltungenid=?");
-    query.bindValue(0, this->m_event->id());
+    query.bindValue( 0, m_event->id() );
     query.exec();
     query.next();
     drawTextLine("Veranstalter",0,false);
@@ -26,9 +28,9 @@ void Summary::printContent() {
     drawTextLine(query.value(3).toString(),0,false);
     drawTextLine(query.value(8).toString() + " " + query.value(9).toString(), pr.width()/2);
     drawTextLine(query.value(4).toString() + " " + query.value(5).toString());
-    yco += mmToPixel(2.1);
-    painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-    yco += mmToPixel(2.1);
+    m_yco += mmToPixel(2.1);
+    painter.drawLine(QPointF(pr.x(),m_yco),QPointF(pr.width()-pr.x(),m_yco));
+    m_yco += mmToPixel(2.1);
     setPrinterFont(11,true);
     drawTextLine("Zahl der angetretenen Teilnehmer");
     setPrinterFont(11);
@@ -37,17 +39,17 @@ void Summary::printContent() {
     query3.bindValue(0, this->m_event->mainEvent()->id());
     query3.exec();
     while (query3.next()) {
-        painter.drawText(QRectF(pr.x(), yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"WK Nr. " + query3.value(0).toString(),QTextOption(Qt::AlignVCenter));
-        painter.drawText(QRectF(pr.x()+mmToPixel(26.5), yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),query3.value(1).toString(),QTextOption(Qt::AlignVCenter));
-        painter.drawText(QRectF(pr.width()/2, yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),_global::wkBez(this->m_event, query3.value(0).toString()),QTextOption(Qt::AlignVCenter));
+        painter.drawText(QRectF(pr.x(), m_yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"WK Nr. " + query3.value(0).toString(),QTextOption(Qt::AlignVCenter));
+        painter.drawText(QRectF(pr.x()+mmToPixel(26.5), m_yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),query3.value(1).toString(),QTextOption(Qt::AlignVCenter));
+        painter.drawText(QRectF(pr.width()/2, m_yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),_global::wkBez(this->m_event, query3.value(0).toString()),QTextOption(Qt::AlignVCenter));
         QSqlQuery query4;
         query4.prepare("SELECT COUNT(*) FROM tfx_wertungen WHERE int_wettkaempfeid=? AND int_runde=?");
         query4.bindValue(0, query3.value(2).toInt());
         query4.bindValue(1, this->m_event->round());
         query4.exec();
         query4.next();
-        painter.drawText(QRectF(pr.x(), yco, pr.width()-pr.x()-pr.x(),QFontMetricsF(painter.font()).height()),query4.value(0).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignRight));
-        yco += mmToPixel(5.3);
+        painter.drawText(QRectF(pr.x(), m_yco, pr.width()-pr.x()-pr.x(),QFontMetricsF(painter.font()).height()),query4.value(0).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignRight));
+        m_yco += mmToPixel(5.3);
     }
     drawTextLine("Anzahl Vereine",0,false);
     QSqlQuery query2;
@@ -56,9 +58,9 @@ void Summary::printContent() {
     query2.bindValue(1, this->m_event->round());
     query2.exec();
     drawTextLine(QString().setNum(_global::querySize(query2)),pr.x()+mmToPixel(39.7));
-    yco += mmToPixel(2.1);
-    painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-    yco += mmToPixel(2.1);
+    m_yco += mmToPixel(2.1);
+    painter.drawLine(QPointF(pr.x(),m_yco),QPointF(pr.width()-pr.x(),m_yco));
+    m_yco += mmToPixel(2.1);
     setPrinterFont(11,true);
     drawTextLine("Zahl der eingesetzen Helfer");
     setPrinterFont(11);

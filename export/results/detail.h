@@ -7,9 +7,11 @@ class Detail : public Results {
     Q_OBJECT
 
 public:
-    Detail(Event *event) : Results(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using Results::Results;
+
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
+
     static void setPrintAW(bool);
 
 private:
@@ -21,13 +23,13 @@ private:
         QString detail;
         QString aw;
     };
-    QMap<int, QMap<int, resultData> > results;
+
+    QMap< int, QMap< int, resultData > > results;
 
     struct position {
         int x;
         int y;
     };
-
 };
 
 #endif // DETAIL_H
