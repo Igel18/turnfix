@@ -186,10 +186,11 @@ void Print::printHeadFoot() {
     if(Settings::creator.length() > 0) {
         extra = " durch " + Settings::creator;
     }
-    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(3.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Erstellt" + extra + " mit TurnFix - www.turnfix.de",QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(3.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Erstellt durch " + m_event->organizer(),QTextOption(Qt::AlignVCenter));
     painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(3.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),QDateTime::currentDateTime().toString("dd.MM.yyyy - HH:mm") + " Uhr",QTextOption(Qt::AlignVCenter | Qt::AlignRight));
+    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(0.5)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"mit TurnFix - https://github.com/Igel18/turnfix",QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(0.5)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Lizenziert unter der GNU General Public License v3.0",QTextOption(Qt::AlignVCenter | Qt::AlignRight));
     setPrinterFont(6);
-    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(0.5)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Lizenziert für: " + Settings::organisation,QTextOption(Qt::AlignVCenter | Qt::AlignRight));
 }
 
 void Print::printDescriptor( QString swknr, bool f ){
