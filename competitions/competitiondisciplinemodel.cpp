@@ -233,6 +233,8 @@ void CompetitionDisciplineModel::save()
 {
     auto repo = m_em->competitionDisciplineRepository();
     for(auto& item: m_competitionDisciplines){
+        item->setCompetition( m_competition );
+
         if(item->selected()){
             repo->persist(item);
         } else {

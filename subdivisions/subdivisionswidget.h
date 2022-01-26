@@ -34,6 +34,9 @@ private slots:
     void updateSquadName();
     void fetchRgData();
 
+signals:
+    void dataChanged();
+
 protected:
     void setSquadNameForSelectedItems( QTableView* pTableView, QString squadName );
 

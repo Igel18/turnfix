@@ -44,7 +44,7 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     bool scoreSheet = true;
     auto pStatusModel = new StatusModel( m_em, this );
     pStatusModel->fetchStatuses( nullptr, &scoreSheet );
-    ui->cmb_status1->setModel( pStatusModel );
+    ui->cmb_squadStatus->setModel( pStatusModel );
 
     int round = m_event->round();
     auto items = m_em->squadDisciplineRepository()->load( m_event, riege, &geraet, &round );
@@ -58,10 +58,10 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
         // m_pSquadDiscipline->setStart( false );
     } else {
         m_pSquadDiscipline = items.at( 0 );
-        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( m_pSquadDiscipline->statusId(), TF::IdRole ) );
+        ui->cmb_squadStatus->setCurrentIndex( ui->cmb_squadStatus->findData( m_pSquadDiscipline->statusId(), TF::IdRole ) );
     }
 
-    connect( ui->cmb_status1, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
+    connect( ui->cmb_squadStatus, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
 
     fillPETable();
 }
@@ -128,7 +128,7 @@ void ResultsSheetDialog::finishEdit()
 
 void ResultsSheetDialog::changeSquadDisciplineStatus(int index)
 {
-    auto statusId = ui->cmb_status1->itemData( index, TF::IdRole ).toInt();
+    auto statusId = ui->cmb_squadStatus->itemData( index, TF::IdRole ).toInt();
     m_pSquadDiscipline->setStatusId( statusId );
     m_em->squadDisciplineRepository()->persist( m_pSquadDiscipline );
 }

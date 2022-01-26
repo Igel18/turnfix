@@ -51,7 +51,6 @@ void SubdivisionsWidget::setup(Event *event, EntityManager *em)
     rg_model = new QStandardItemModel( m_event );
     rg_model->setObjectName( "SquadsModel" );
     rg_model->setHorizontalHeaderLabels( { "Riege", "Teiln.", "Manns.", "Gruppen", "1. Gerät" } );
-    // rg_model->setColumnCount( 5 );
 
     ui->lst_all->setModel(rg_model);
 
@@ -118,8 +117,6 @@ void SubdivisionsWidget::reloadSquads()
     ui->txt_nummer->setEnabled( bEnabled );
     ui->but_remove->setEnabled( bEnabled );
     ui->but_add_2->setEnabled( bEnabled );
-
-    QList< QHeaderView::ResizeMode > resizeMode = { QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed };
 
     auto pHorHeader = ui->lst_all->horizontalHeader();
 
@@ -232,6 +229,7 @@ void SubdivisionsWidget::addToSquad()
 {
     setSquadNameForSelectedItems(ui->re_table2, ui->txt_nummer->text());
     reloadSquads();
+    emit dataChanged();
 }
 
 void SubdivisionsWidget::removeFromSquad()
@@ -239,6 +237,7 @@ void SubdivisionsWidget::removeFromSquad()
     setSquadNameForSelectedItems(ui->tbl_list, "");
     reloadSquads();
     _global::updateRgDis( m_event, m_em );
+    emit dataChanged();
 }
 
 void SubdivisionsWidget::addNewSquad()
@@ -276,6 +275,8 @@ void SubdivisionsWidget::removeSquad()
     m_squads.remove( selectedSquad );
 
     reloadSquads();
+    _global::updateRgDis( m_event, m_em );
+    emit dataChanged();
 }
 
 void SubdivisionsWidget::fetchRgData()
@@ -322,4 +323,7 @@ void SubdivisionsWidget::updateSquadName()
     if( foundItems.count() > 0 ){
         ui->lst_all->selectRow( foundItems.at( 0 )->index().row() );
     }
+
+    _global::updateRgDis( m_event, m_em );
+    emit dataChanged();
 }

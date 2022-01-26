@@ -22,7 +22,8 @@ public:
     void setup(Event *event, EntityManager *em);
 
 public slots:
-    void squadChange(QString squad="");
+    void squadChange( QString squad = "" );
+    void reloadDisciplines();
     void reloadSquads();
 
 private slots:

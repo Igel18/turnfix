@@ -115,6 +115,12 @@ void CaptureWidget::startKarte()
     wk->exec();
 }
 
+void CaptureWidget::reloadDisciplines()
+{
+    auto currentSquad = ui->cmb_squadno->currentText();
+    squadChange( currentSquad );
+}
+
 void CaptureWidget::squadChange(QString squadno)
 {
     const auto eventCompetitions = m_em->competitionRepository()->fetchByEvent( m_event );

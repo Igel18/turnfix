@@ -37,8 +37,9 @@ void CompetitionsWidget::addCompetition()
     auto competitionDialog = new CompetitionDialog(competition, m_em, this);
     if (competitionDialog->exec() == 1) {
         m_model->fetchCompetitions();
+        _global::updateRgDis(m_event, m_em);
+        emit competitionsChanged();
     }
-    _global::updateRgDis(m_event, m_em);
     ui->competitionsTable->setFocus();
 }
 
@@ -57,9 +58,10 @@ void CompetitionsWidget::editCompetition()
 
     if (competitionDialog->exec() == 1) {
         m_model->fetchCompetitions();
+        _global::updateRgDis(m_event, m_em);
+        emit competitionsChanged();
     }
 
-    _global::updateRgDis(m_event, m_em);
     ui->competitionsTable->setFocus();
 }
 
@@ -75,6 +77,7 @@ void CompetitionsWidget::removeCompetition()
                 m_sortModel->data(ui->competitionsTable->currentIndex(), TF::ObjectRole));
             m_em->competitionRepository()->remove(competition);
             m_model->fetchCompetitions();
+            emit competitionsChanged();
         }
         _global::updateRgDis(m_event, m_em);
         ui->competitionsTable->setFocus();

@@ -25,6 +25,9 @@ MainWindow::MainWindow( EntityManager *em, Event *event )
     showMaximized();
     // updateTables(0);
 
+    connect( ui->competitionsWidget, &CompetitionsWidget::competitionsChanged, ui->pe_tab, &CaptureWidget::reloadDisciplines );
+    connect( ui->rg_tab, &SubdivisionsWidget::dataChanged, ui->pe_tab, &CaptureWidget::reloadDisciplines );
+
     initEvent();
 
     connect(ui->act_change_contest, SIGNAL(triggered()), this, SLOT(changeWK()));
@@ -65,10 +68,7 @@ MainWindow::MainWindow( EntityManager *em, Event *event )
     menu->addAction(ui->act_ST);
     menu->addAction(ui->act_ED);
 
-    connect(ui->act_WK, &QAction::triggered, [this]() {
-        ui->sta_wdg->setCurrentIndex(0);
-        updateTables(0);
-    });
+    connect(ui->act_WK, &QAction::triggered, this, [this]() { ui->sta_wdg->setCurrentIndex(0); updateTables(0); });
     connect(ui->act_TN, &QAction::triggered, [this]() {
         ui->sta_wdg->setCurrentIndex(1);
         updateTables(1);
