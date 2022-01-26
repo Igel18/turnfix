@@ -48,8 +48,11 @@ void SubdivisionsWidget::setup(Event *event, EntityManager *em)
     ui->tbl_list->setModel( pSquadParticipantsModel );
     ui->tbl_list->hideColumn( m_iSquadColIdx );
 
-    rg_model = new QStandardItemModel(this);
-    rg_model->setColumnCount(4);
+    rg_model = new QStandardItemModel( m_event );
+    rg_model->setObjectName( "SquadsModel" );
+    rg_model->setHorizontalHeaderLabels( { "Riege", "Teiln.", "Manns.", "Gruppen", "1. Gerät" } );
+    // rg_model->setColumnCount( 5 );
+
     ui->lst_all->setModel(rg_model);
 
     connect(ui->lst_all->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &SubdivisionsWidget::fetchRgData);
@@ -68,32 +71,33 @@ void SubdivisionsWidget::reloadSquads()
     auto pModel = m_event->participantsModel();
 
     for( auto i = 0; i < pModel->rowCount(); ++i ) {
-        auto idx = pModel->index(i, 0);
-        auto pParticipant = qvariant_cast< Score* >( pModel->data(idx, TF::ObjectRole) );
+        auto pParticipant = qvariant_cast< Score* >( pModel->data( pModel->index(i, 0), TF::ObjectRole ) );
         auto squadName = pParticipant->squad();
-        auto& squadData = squads[ squadName ];
-        squadData.name = squadName;
-        ++( squadData.participantsCount );
+        if( !squadName.isEmpty() ){
+            auto& squadData = squads[ squadName ];
+            squadData.name = squadName;
+            ++( squadData.participantsCount );
+        }
     }
 
-   squads.remove("");
-
-    const auto keys = m_squads.keys();
-    for( const auto& key: keys ){
+    const auto existing_squads = m_squads.keys();
+    for( auto& key : existing_squads ){
         m_squads[ key ].participantsCount = 0;
         m_squads[ key ].teamsCount = 0;
         m_squads[ key ].groupsCount = 0;
         m_squads[ key ].firstDiscipline = "";
     }
 
-    m_squads = squads;
-    // m_squads.insert( squads );
+    const auto reloaded_squads = squads.keys();
+    for( auto& key : reloaded_squads ){
+        m_squads[ key ] = squads.value( key );
+    }
 
     rg_model->removeRows( 0, rg_model->rowCount() );
 
-    const auto& items = m_squads.values();
+    const auto items = m_squads.values();
 
-    for( const auto& item : items )
+    for( auto& item : items )
     {
         if( !item.name.isEmpty() ){
             rg_model->appendRow( item.toModelItems() );
@@ -115,62 +119,18 @@ void SubdivisionsWidget::reloadSquads()
     ui->but_remove->setEnabled( bEnabled );
     ui->but_add_2->setEnabled( bEnabled );
 
-    //------
-
-//    QSqlQuery query;
-//    query.prepare(
-//        "SELECT var_riege, COUNT(DISTINCT int_teilnehmerid)+(SELECT COUNT(*) FROM "
-//        "tfx_gruppen_x_teilnehmer INNER JOIN tfx_wertungen AS w USING (int_gruppenid) INNER JOIN "
-//        "tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_Veranstaltungenid=? AND int_runde=? "
-//        "AND var_riege=tfx_wertungen.var_riege) as count, (SELECT COUNT(*) FROM tfx_mannschaften "
-//        "INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND "
-//        "tfx_mannschaften.var_riege=tfx_wertungen.var_riege),(SELECT COUNT(int_gruppenid) FROM "
-//        "tfx_wertungen AS w WHERE int_veranstaltungenid=? AND int_runde=? AND "
-//        "var_riege=tfx_wertungen.var_riege), (SELECT var_name FROM tfx_riegen_x_disziplinen INNER "
-//        "JOIN tfx_disziplinen USING (int_disziplinenid) WHERE "
-//        "int_veranstaltungenid=tfx_wettkaempfe.int_veranstaltungenid AND "
-//        "int_runde=tfx_wertungen.int_runde AND var_riege=tfx_wertungen.var_riege AND "
-//        "bol_erstes_geraet='true' LIMIT 1) FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING "
-//        "(int_wettkaempfeid) WHERE int_veranstaltungenid=? AND tfx_wertungen.int_runde=? AND "
-//        "var_riege != '' GROUP BY var_riege, int_runde, int_veranstaltungenid");
-
-//    query.bindValue(0, this->m_event->mainEvent()->id());
-//    query.bindValue(1, this->m_event->round());
-//    query.bindValue(2, this->m_event->id());
-//    query.bindValue(3, this->m_event->mainEvent()->id());
-//    query.bindValue(4, this->m_event->round());
-//    query.bindValue(5, this->m_event->mainEvent()->id());
-//    query.bindValue(6, this->m_event->round());
-//    query.exec();
-//    while (query.next()) {
-//        ui->tbl_list->setEnabled(true);
-//        ui->txt_nummer->setEnabled(true);
-//        ui->but_remove->setEnabled(true);
-//        ui->but_add_2->setEnabled(true);
-//        rg_model->insertRow(rg_model->rowCount());
-//        rg_model->setItem(query.at(), 0, new QStandardItem(query.value(0).toString()));
-//        rg_model->item(query.at(), 0)->setEditable(false);
-//        rg_model->setItem(query.at(), 1, new QStandardItem(query.value(1).toString()));
-//        rg_model->item(query.at(), 1)->setEditable(false);
-//        rg_model->setItem(query.at(), 2, new QStandardItem(query.value(2).toString()));
-//        rg_model->item(query.at(), 2)->setEditable(false);
-//        rg_model->setItem(query.at(), 3, new QStandardItem(query.value(3).toString()));
-//        rg_model->item(query.at(), 3)->setEditable(false);
-//        rg_model->setItem(query.at(), 4, new QStandardItem(query.value(4).toString()));
-//    }
     QList< QHeaderView::ResizeMode > resizeMode = { QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed };
-    QStringList heads = { "Riege", "Teiln.", "Manns.", "Gruppen", "1. Gerät" };
-    for( int i = 0; i < 4; ++i) {
-        ui->lst_all->horizontalHeader()->setSectionResizeMode(i, resizeMode.at( i ));
-        rg_model->setHeaderData( i, Qt::Horizontal, heads.at(i) );
-    }
 
-    ui->lst_all->horizontalHeader()->resizeSection(1, 45);
-    ui->lst_all->horizontalHeader()->resizeSection(2, 45);
-    ui->lst_all->horizontalHeader()->resizeSection(3, 45);
-    ui->lst_all->horizontalHeader()->resizeSection(4, 90);
-    auto pCmbDelegate = new CmbDelegate( m_em, m_event, this );
-    ui->lst_all->setItemDelegateForColumn(4, pCmbDelegate );
+    auto pHorHeader = ui->lst_all->horizontalHeader();
+
+    for( int i = 0; i < pHorHeader->count(); ++i ) {
+        pHorHeader->setSectionResizeMode( i, i == 0 ? QHeaderView::Stretch : QHeaderView::Fixed );
+        pHorHeader->resizeSection( i, i == 4 ? 90 : 47 );
+
+        if( i == 4 ){
+            ui->lst_all->setItemDelegateForColumn( i, new CmbDelegate( m_em, m_event, this ) );
+        }
+    }
 }
 
 //void SubdivisionsWidget::fillRETable2()
@@ -295,8 +255,7 @@ void SubdivisionsWidget::addNewSquad()
         SquadData newSquad;
         newSquad.name = text;
         if( !m_squads.contains( newSquad.name ) ){
-            m_squads.insert(newSquad.name, newSquad);
-           // m_squads[ newSquad.name ] = newSquad;
+            m_squads.insert( newSquad.name, newSquad );
             reloadSquads();
             auto foundItems = rg_model->findItems( newSquad.name );
             if( foundItems.count() > 0 ){

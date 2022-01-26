@@ -19,13 +19,13 @@ void License::printContent() {
         }
         checkWKChange(currWK,lastWK,6.6);
         setPrinterFont(10);
-        painter.drawLine(QPointF(pr.width()-pr.x(),yco-mmToPixel(1.3)),QPointF(pr.width()-pr.x(),yco-mmToPixel(1.3)+mmToPixel(6.6)));
-        painter.drawLine(QPointF(pr.width()-pr.x()-mmToPixel(5.8),yco-mmToPixel(1.3)),QPointF(pr.width()-pr.x()-mmToPixel(5.8),yco-mmToPixel(1.3)+mmToPixel(6.6)));
-        painter.drawLine(QPointF(pr.width()-pr.x()-mmToPixel(45.5),yco-mmToPixel(1.3)),QPointF(pr.width()-pr.x()-mmToPixel(45.5),yco-mmToPixel(1.3)+mmToPixel(6.6)));
-        if (query2.value(5).toString() != "" && query2.value(5).toInt() > 0) painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(45.0)), yco, mmToPixel(39.7), QFontMetricsF(painter.font()).height()),QString(query2.value(5).toString()),QTextOption(Qt::AlignVCenter | Qt::AlignCenter));
+        painter.drawLine(QPointF(pr.width()-pr.x(),m_yco-mmToPixel(1.3)),QPointF(pr.width()-pr.x(),m_yco-mmToPixel(1.3)+mmToPixel(6.6)));
+        painter.drawLine(QPointF(pr.width()-pr.x()-mmToPixel(5.8),m_yco-mmToPixel(1.3)),QPointF(pr.width()-pr.x()-mmToPixel(5.8),m_yco-mmToPixel(1.3)+mmToPixel(6.6)));
+        painter.drawLine(QPointF(pr.width()-pr.x()-mmToPixel(45.5),m_yco-mmToPixel(1.3)),QPointF(pr.width()-pr.x()-mmToPixel(45.5),m_yco-mmToPixel(1.3)+mmToPixel(6.6)));
+        if (query2.value(5).toString() != "" && query2.value(5).toInt() > 0) painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(45.0)), m_yco, mmToPixel(39.7), QFontMetricsF(painter.font()).height()),QString(query2.value(5).toString()),QTextOption(Qt::AlignVCenter | Qt::AlignCenter));
         drawStandardRow(query2.value(0).toString() + "  ",query2.value(1).toString(),query2.value(4).toString(),query2.value(2).toString());
-        painter.drawLine(QPointF(pr.x(),yco),QPointF(pr.width()-pr.x(),yco));
-        yco += mmToPixel(1.3);
+        painter.drawLine(QPointF(pr.x(),m_yco),QPointF(pr.width()-pr.x(),m_yco));
+        m_yco += mmToPixel(1.3);
         lastWK = query2.value(3).toString();
         lastClub = query2.value(2).toString();
     }
@@ -34,8 +34,8 @@ void License::printContent() {
 
 void License::printSubHeader() {
     List::printSubHeader();
-    yco -= fontHeight+mmToPixel(1.0)+1;
-    painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(45.0)), yco, mmToPixel(39.7), QFontMetricsF(painter.font()).height()),"Startpass-Nr.",QTextOption(Qt::AlignVCenter));
-    painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(5.3)), yco, mmToPixel(5.3), QFontMetricsF(painter.font()).height()),"Ok",QTextOption(Qt::AlignVCenter));
-    yco += fontHeight+mmToPixel(1.0)+1;
+    m_yco -= fontHeight+mmToPixel(1.0)+1;
+    painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(45.0)), m_yco, mmToPixel(39.7), QFontMetricsF(painter.font()).height()),"Startpass-Nr.",QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(5.3)), m_yco, mmToPixel(5.3), QFontMetricsF(painter.font()).height()),"Ok",QTextOption(Qt::AlignVCenter));
+    m_yco += fontHeight+mmToPixel(1.0)+1;
 }

@@ -23,8 +23,8 @@ QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QLis
 
     QSqlQuery wk( db );
     wk.prepare("SELECT bol_streichwertung, int_qualifikation, int_wertungen, int_wettkaempfeid, bol_sortasc, bol_gerpkt, int_anz_streich, int_typ FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? AND var_nummer=? LIMIT 1");
-    wk.bindValue(0, competition->event()->mainEvent()->id());
-    wk.bindValue(1, competition->number());
+    wk.bindValue( 0, competition->event()->mainEvent()->id() );
+    wk.bindValue( 1, competition->number());
     wk.exec();
     wk.next();
 
@@ -93,7 +93,7 @@ QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QLis
         tnquery += _global::nameFormat();
         tnquery += " ELSE tfx_gruppen.var_name END"+pgExtra+" || CASE WHEN bol_ak='true' THEN ' (AK)' ELSE '' END AS tnname, tfx_vereine.var_name, CASE WHEN tfx_wertungen.int_gruppenid IS NULL THEN "+_global::date("dat_geburtstag",2)+" END, tfx_wertungen.int_wertungenid FROM tfx_wertungen LEFT JOIN tfx_teilnehmer USING (int_teilnehmerid) LEFT JOIN tfx_gruppen ON tfx_wertungen.int_gruppenid = tfx_gruppen.int_gruppenid INNER JOIN tfx_vereine ON tfx_gruppen.int_vereineid = tfx_vereine.int_vereineid OR tfx_teilnehmer.int_vereineid = tfx_vereine.int_vereineid INNER JOIN tfx_gaue USING (int_gaueid) INNER JOIN tfx_verbaende USING (int_verbaendeid) INNER JOIN tfx_laender USING (int_laenderid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid WHERE int_veranstaltungenid=? AND var_nummer=? AND int_runde=? AND bol_startet_nicht='false'"+detailQuery+" ORDER BY bol_ak DESC";
         tn.prepare(tnquery);
-        tn.bindValue(0, competition->event()->mainEvent()->id());
+        tn.bindValue(0, competition->event()->mainEvent()->id() );
         tn.bindValue(1, competition->number());
         tn.bindValue(2, rnd);
         tn.exec();
@@ -145,14 +145,14 @@ QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QLis
             reslist.append(tnlist);
         }
     } else {
-        QSqlQuery team;
+        QSqlQuery team( db );
         team.prepare("SELECT int_mannschaftenid, tfx_vereine.var_name, tfx_mannschaften.int_nummer ||'. Mannschaft', int_mannschaftenid FROM tfx_mannschaften INNER JOIN tfx_vereine USING (int_vereineid) INNER JOIN tfx_gaue USING (int_gaueid) INNER JOIN tfx_verbaende USING (int_verbaendeid) INNER JOIN tfx_laender USING (int_laenderid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_mannschaften.int_wettkaempfeid WHERE int_veranstaltungenid=? AND tfx_wettkaempfe.var_nummer=?"+detailQuery);
         team.bindValue(0, competition->event()->mainEvent()->id());
         team.bindValue(1, competition->number());
         team.exec();
-        QSqlQuery tn;
+        QSqlQuery tn( db );
         tn.prepare("SELECT int_wertungenid FROM tfx_wertungen WHERE int_mannschaftenid=? AND bol_ak='false'");
-        QSqlQuery abzug;
+        QSqlQuery abzug( db );
         abzug.prepare("SELECT rel_abzug FROM tfx_mannschaften_abzug INNER JOIN tfx_man_x_man_ab USING (int_mannschaften_abzugid) WHERE int_mannschaftenid=?");
         QMap<int, QMap<int, double > > dispoints;
         while (team.next()) {
@@ -308,13 +308,15 @@ QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QLis
 }
 
 QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,bool useExtraScore, QString detailQuery) {
-    QSqlQuery wk;
+    QSqlDatabase db = QSqlDatabase::database( Session::getInstance()->getEntityManager()->connectionName() );
+
+    QSqlQuery wk( db );
     wk.prepare("SELECT bol_streichwertung, int_qualifikation, int_wertungen, int_wettkaempfeid FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? AND var_nummer=? LIMIT 1");
     wk.bindValue(0, competition->event()->mainEvent()->id());
     wk.bindValue(1, competition->number());
     wk.exec();
     wk.next();
-    QSqlQuery rnd;
+    QSqlQuery rnd( db );
     rnd.prepare("SELECT int_runde FROM tfx_veranstaltungen WHERE int_veranstaltungenid=? OR int_hauptwettkampf=? AND bol_rundenwettkampf='true' ORDER BY int_runde");
     rnd.bindValue(0, competition->event()->mainEvent()->id());
     rnd.bindValue(1, competition->event()->mainEvent()->id());
@@ -330,7 +332,7 @@ QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,boo
         }
     }
     if (competition->type() == 1) {
-        QSqlQuery team;
+        QSqlQuery team( db );
         team.prepare("SELECT int_mannschaftenid, tfx_vereine.var_name, tfx_mannschaften.int_nummer ||'. Mannschaft', int_mannschaftenid FROM tfx_mannschaften INNER JOIN tfx_vereine USING (int_vereineid) INNER JOIN tfx_gaue USING (int_gaueid) INNER JOIN tfx_verbaende USING (int_verbaendeid) INNER JOIN tfx_laender USING (int_laenderid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_mannschaften.int_wettkaempfeid WHERE int_veranstaltungenid=? AND tfx_wettkaempfe.var_nummer=?"+detailQuery);
         team.bindValue(0, competition->event()->mainEvent()->id());
         team.bindValue(1, competition->number());
@@ -360,7 +362,7 @@ QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,boo
         if (_global::getDBTyp()==0) {
             pgExtra = "::text";
         }
-        QSqlQuery tn;
+        QSqlQuery tn( db );
         QString tnquery;
         if (competition->type() == 2) {
             tnquery = "SELECT CASE WHEN bol_ak='true' THEN 'AK' ELSE '' END AS platz, tfx_gruppen.var_name, tfx_vereine.var_name, '', tfx_gruppen.int_gruppenid FROM tfx_wertungen INNER JOIN tfx_gruppen ON tfx_wertungen.int_gruppenid = tfx_gruppen.int_gruppenid INNER JOIN tfx_vereine ON tfx_gruppen.int_vereineid = tfx_vereine.int_vereineid INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid WHERE int_veranstaltungenid=? AND var_nummer=? AND bol_startet_nicht='false' GROUP BY tfx_gruppen.int_gruppenid, bol_ak, tfx_gruppen.var_name, tfx_vereine.var_name ORDER BY bol_ak DESC";
@@ -436,7 +438,9 @@ QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,boo
 }
 
 QList<QStringList> Result_Calc::tabllenArray(Competition *competition) {
-    QSqlQuery rnd;
+    QSqlDatabase db = QSqlDatabase::database( Session::getInstance()->getEntityManager()->connectionName() );
+
+    QSqlQuery rnd( db );
     rnd.prepare("SELECT int_runde FROM tfx_veranstaltungen WHERE int_veranstaltungenid=? OR int_hauptwettkampf=? ORDER BY int_runde");
     rnd.bindValue(0, competition->event()->mainEvent()->id());
     rnd.bindValue(1, competition->event()->mainEvent()->id());
@@ -494,7 +498,7 @@ QList<QStringList> Result_Calc::tabllenArray(Competition *competition) {
 
     QList<QStringList> reslist;
 
-    QSqlQuery team;
+    QSqlQuery team( db );
     team.prepare("SELECT int_mannschaftenid, tfx_vereine.var_name, tfx_mannschaften.int_nummer ||'. Mannschaft', int_mannschaftenid FROM tfx_mannschaften INNER JOIN tfx_vereine USING (int_vereineid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_mannschaften.int_wettkaempfeid WHERE int_veranstaltungenid=? AND tfx_wettkaempfe.var_nummer=?");
     team.bindValue(0, competition->event()->mainEvent()->id());
     team.bindValue(1, competition->number());

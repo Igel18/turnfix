@@ -6,11 +6,11 @@
 class Results : public Print {
     Q_OBJECT
 public:
-    Results(Event *event) : Print(/*event*/) {}
+    using Print::Print;
     static void setnewPageWK(bool);
 
 public slots:
-    virtual void print(QPrinter*);
+    virtual void print( QPrinter* ) override;
 
 protected:
     static bool newPageWK;
@@ -18,7 +18,7 @@ protected:
     bool currWahl;
     bool currKP;
     QSqlQuery wkQuery;
-    bool checkFitPage(int,QString,bool=false);
+    bool checkFitPage( int, QString, bool = false );
 };
 
 #endif // RESULTS_H

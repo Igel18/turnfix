@@ -26,28 +26,28 @@ void Card::printContent() {
         Competition *competition = m_em->competitionRepository()->fetchByNumber(m_event, query.value(0).toString());
 
         setPrinterFont(12,true);
-        painter.drawText(QRectF(pr.x(), yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),query.value(1).toString(),QTextOption(Qt::AlignVCenter));
-        painter.drawText(QRectF(pr.width()/2-mmToPixel(7.5), yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),"Startnummer: " + query.value(4).toString(),QTextOption(Qt::AlignVCenter));
+        painter.drawText(QRectF(pr.x(), m_yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),query.value(1).toString(),QTextOption(Qt::AlignVCenter));
+        painter.drawText(QRectF(pr.width()/2-mmToPixel(7.5), m_yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),"Startnummer: " + query.value(4).toString(),QTextOption(Qt::AlignVCenter));
         if (Settings::barCodes == 0) {
             QFont cbarFont = Settings::barCodeFont;
             cbarFont.setPixelSize(mmToPixel(8.0));
             painter.setFont(cbarFont);
-            painter.drawText(QRectF(pr.width()-pr.x()-mmToPixel(35.0), yco, mmToPixel(35.0), QFontMetricsF(painter.font()).height()),"*" + query.value(4).toString() + "*",QTextOption(Qt::AlignRight));
+            painter.drawText(QRectF(pr.width()-pr.x()-mmToPixel(35.0), m_yco, mmToPixel(35.0), QFontMetricsF(painter.font()).height()),"*" + query.value(4).toString() + "*",QTextOption(Qt::AlignRight));
             painter.setFont(font);
         }
-        yco += mmToPixel(6.6);
+        m_yco += mmToPixel(6.6);
         setPrinterFont(11);
-        painter.drawText(QRectF(pr.x(), yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),query.value(2).toString(),QTextOption(Qt::AlignVCenter));
+        painter.drawText(QRectF(pr.x(), m_yco, (pr.width()-pr.x()-pr.x())/2, QFontMetricsF(painter.font()).height()),query.value(2).toString(),QTextOption(Qt::AlignVCenter));
         if (competition->type() != 2)
             painter.drawText(QRectF(pr.width() / 2 - mmToPixel(7.5),
-                                    yco,
+                                    m_yco,
                                     (pr.width() - pr.x() - pr.x()) / 2,
                                     QFontMetricsF(painter.font()).height()),
                              "Jahrgang: " + query.value(3).toString(),
                              QTextOption(Qt::AlignVCenter));
-        yco += mmToPixel(6.6);
+        m_yco += mmToPixel(6.6);
         printDescriptor(query.value(0).toString());
-        int yco2 = yco;
+        int yco2 = m_yco;
         QSqlQuery query9( db );
         query9.prepare("SELECT int_disziplinenid FROM tfx_wertungen_x_disziplinen INNER JOIN tfx_wertungen USING (int_wertungenid) INNER JOIN tfx_teilnehmer USING (int_teilnehmerid) INNER JOIN tfx_wettkaempfe ON tfx_wettkaempfe.int_wettkaempfeid = tfx_wertungen.int_wettkaempfeid WHERE int_wertungenid=?");
         query9.bindValue(0,query.value(5).toInt());
@@ -83,8 +83,8 @@ void Card::printContent() {
                         name += " (K)";
                     }
                 }
-                painter.drawText(QRectF(xco, yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),name,QTextOption(Qt::AlignVCenter));
-                yco += mmToPixel(4.0);
+                painter.drawText(QRectF(xco, m_yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),name,QTextOption(Qt::AlignVCenter));
+                m_yco += mmToPixel(4.0);
                 setPrinterFont(8,true);
                 int vwidth=0;
                 bool nextRow=false;
@@ -94,9 +94,9 @@ void Card::printContent() {
                     fields.bindValue(0,query2.value(0).toInt());
                     fields.exec();
                     while (fields.next()) {
-                        if (!nextRow) painter.drawText(QRectF(xco, yco, mmToPixel(15.9), QFontMetricsF(painter.font()).height()),fields.value(0).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignCenter));
-                        if (nextRow && fields.at()==0) yco-= mmToPixel(4.0);
-                        painter.drawRect(QRectF(xco, yco+mmToPixel(4.0), mmToPixel(15.9), mmToPixel(6.6)));
+                        if (!nextRow) painter.drawText(QRectF(xco, m_yco, mmToPixel(15.9), QFontMetricsF(painter.font()).height()),fields.value(0).toString(),QTextOption(Qt::AlignVCenter | Qt::AlignCenter));
+                        if (nextRow && fields.at()==0) m_yco-= mmToPixel(4.0);
+                        painter.drawRect(QRectF(xco, m_yco+mmToPixel(4.0), mmToPixel(15.9), mmToPixel(6.6)));
                         xco = xco+mmToPixel(15.9);
                     }
                     xco = xco + mmToPixel(2.6);
@@ -107,15 +107,15 @@ void Card::printContent() {
                         } else {
                             xco = pr.width()/2;
                         }
-                        yco += mmToPixel(11.9);
+                        m_yco += mmToPixel(11.9);
                         nextRow=true;
                     }
                 }
-                if (yco + mmToPixel(11.9) > pr.height()-pr.y()-mmToPixel(11.9)) {
-                    yco = yco2-mmToPixel(11.9);
+                if (m_yco + mmToPixel(11.9) > pr.height()-pr.y()-mmToPixel(11.9)) {
+                    m_yco = yco2-mmToPixel(11.9);
                     col2 = true;
                 }
-                yco += mmToPixel(11.9);
+                m_yco += mmToPixel(11.9);
             }
         }
         int rows = 0;
@@ -131,13 +131,13 @@ void Card::printContent() {
             teamq2.exec();
             int column=0;
             rows = _global::querySize(teamq2)/3+1;
-            yco = pr.height()-pr.x()-mmToPixel(5.0)-rows*mmToPixel(3.4);
+            m_yco = pr.height()-pr.x()-mmToPixel(5.0)-rows*mmToPixel(3.4);
             while (teamq2.next()) {
-                painter.drawText(QRectF(pr.x()+column*((pr.width()-pr.x()-mmToPixel(10.6))/3), yco, ((pr.width()-pr.x()-mmToPixel(10.6))/3), QFontMetricsF(painter.font()).height()),teamq2.value(0).toString(),QTextOption(Qt::AlignVCenter));
+                painter.drawText(QRectF(pr.x()+column*((pr.width()-pr.x()-mmToPixel(10.6))/3), m_yco, ((pr.width()-pr.x()-mmToPixel(10.6))/3), QFontMetricsF(painter.font()).height()),teamq2.value(0).toString(),QTextOption(Qt::AlignVCenter));
                 column++;
                 if (column == 3) {
                     column = 0;
-                    yco += mmToPixel(3.2);
+                    m_yco += mmToPixel(3.2);
                 }
             }
         }

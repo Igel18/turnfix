@@ -9,9 +9,12 @@ class Event;
 class SquadDisciplineRepository : public AbstractRepository< SquadDiscipline >
 {
 public:
-    explicit SquadDisciplineRepository(EntityManager *em);
+    using AbstractRepository::AbstractRepository;
 
-    QList< SquadDiscipline* > load( Event* pEvent, QString squad = QString() );
+    QList< SquadDiscipline* > load( Event* pEvent,
+                                    QString squad = QString(),
+                                    const int* disciplineId = nullptr,
+                                    const int* round = nullptr );
 };
 
 #endif // SQUADDISCIPLINEREPOSITORY_H

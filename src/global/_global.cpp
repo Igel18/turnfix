@@ -48,7 +48,7 @@ QString _global::wkBez(Event *event, QString swknr) {
 
     QSqlQuery query( db );
     query.prepare("SELECT bol_ak_anzeigen, yer_von, yer_bis, dat_von FROM tfx_wettkaempfe INNER JOIN tfx_veranstaltungen USING (int_veranstaltungenid) WHERE int_veranstaltungenid=? AND var_nummer=? ORDER BY var_nummer LIMIT 1");
-    query.bindValue(0, /*event->mainEvent()->id()*/ event->id() );
+    query.bindValue(0, event->mainEvent()->id() );
     query.bindValue(1,swknr);
     query.exec();
     query.next();

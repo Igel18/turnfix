@@ -77,7 +77,7 @@ void Registration::printContent() {
             verein = query2.value(2).toString();
         drawStandardRow(query2.value(0).toString() + "  ",query2.value(1).toString(),jg,query2.value(2).toString(),"",readDetailInfo(false,verein));
         if (competition->type() == 1 || competition->type() == 2) {
-            yco -= mmToPixel(0.8);
+            m_yco -= mmToPixel(0.8);
             setPrinterFont(8);
             QSqlQuery teamq2;
             switch (competition->type()) {
@@ -91,16 +91,16 @@ void Registration::printContent() {
             teamq2.exec();
             int column=0;
             while (teamq2.next()) {
-                painter.drawText(QRectF(pr.x()+mmToPixel(10.6)+column*((pr.width()-pr.x()-mmToPixel(10.6))/4), yco, ((pr.width()-pr.x()-mmToPixel(10.6))/4), QFontMetricsF(painter.font()).height()),teamq2.value(0).toString(),QTextOption(Qt::AlignVCenter));
+                painter.drawText(QRectF(pr.x()+mmToPixel(10.6)+column*((pr.width()-pr.x()-mmToPixel(10.6))/4), m_yco, ((pr.width()-pr.x()-mmToPixel(10.6))/4), QFontMetricsF(painter.font()).height()),teamq2.value(0).toString(),QTextOption(Qt::AlignVCenter));
                 column++;
                 if (column == 4) {
                     column = 0;
-                    yco += mmToPixel(3.2);
+                    m_yco += mmToPixel(3.2);
                 }
             }
-            if (column != 0) yco += mmToPixel(3.2);
+            if (column != 0) m_yco += mmToPixel(3.2);
             setPrinterFont(10);
-            yco += mmToPixel(2.6);
+            m_yco += mmToPixel(2.6);
         }
         pre = query2.value(5).toInt();
         lastWK = query2.value(3).toString();

@@ -151,38 +151,33 @@ void Print::setFinish(bool set) {
 }
 
 void Print::printHeadFoot() {
-
-    if (headFootID>0) {
-        printCustomPage(2,headFootID);
+    if( headFootID > 0 ) {
+        printCustomPage( 2, headFootID );
     } else {
-        painter.drawLine(QPointF(pr.x(),pr.y()),QPointF(pr.width()-pr.x(),pr.y()));
-        setPrinterFont(10);
         QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
         query.prepare("SELECT var_veranstalter, tfx_veranstaltungen.var_name, "+_global::date("dat_von",10)+", tfx_wettkampforte.var_name, "+_global::date("dat_bis",10)+", var_ort FROM tfx_veranstaltungen INNER JOIN tfx_wettkampforte USING (int_wettkampforteid) WHERE int_veranstaltungenid=? LIMIT 1");
         query.bindValue( 0, m_event->id() );
         query.exec();
         query.next();
-        QString datum;
-        if (query.value(2).toString() == query.value(4).toString()) {
-            datum = query.value(2).toString();
-        } else {
-            datum = query.value(2).toString() + " - " + query.value(4).toString();
-        }
-        painter.drawText(QRectF(pr.x(), (pr.y()+mmToPixel(1.3)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),query.value(0).toString(),QTextOption(Qt::AlignVCenter));
-        painter.drawText(QRectF(pr.x(), (pr.y()+mmToPixel(4.8)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),query.value(1).toString(),QTextOption(Qt::AlignVCenter));
+        auto organizer = query.value(0).toString();
+        auto eventName = query.value(1).toString();
+        auto dtBegin = query.value(2).toString();
+        auto dtEnd = query.value(4).toString();
+        auto datum = dtBegin == dtEnd ? dtBegin : QString("%1 - %2").arg( dtBegin, dtEnd );
+
+        painter.drawLine( QPointF( pr.x(), pr.y() ), QPointF( pr.width() - pr.x(), pr.y() ) );
+        setPrinterFont( 10 );
+        QRectF rect = QRectF( pr.x(), pr.y() + mmToPixel( 1.3 ), pr.width() - pr.x() - pr.x(), fontHeight );
+        painter.drawText( rect, organizer, QTextOption(Qt::AlignVCenter) );
+        painter.drawText(QRectF(pr.x(), (pr.y()+mmToPixel(4.8)), pr.width()-pr.x()-pr.x(), fontHeight), eventName, QTextOption( Qt::AlignVCenter ));
         painter.drawText(QRectF(pr.x(), (pr.y()+mmToPixel(8.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),datum + " " + query.value(3).toString() + " " + query.value(5).toString(),QTextOption(Qt::AlignVCenter));
         painter.drawLine(QPointF(pr.x(),pr.y()+mmToPixel(13.0)),QPointF(pr.width()-pr.x(),pr.y()+mmToPixel(13.0)));
 
         // Type
-        setPrinterFont(30,true);
-        painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(105.9)/*-off*/), (pr.y()-mmToPixel(0.5)), mmToPixel(105), QFontMetricsF(painter.font()).height()),typeString,QTextOption(Qt::AlignRight | Qt::AlignVCenter));
-
-
-        yco = pr.y()+mmToPixel(15.0);
-
-
+        setPrinterFont( 30, true );
+        painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(105.9)/*-off*/), (pr.y()-mmToPixel(0.5)), mmToPixel( 105 ), fontHeight ),typeString,QTextOption(Qt::AlignRight | Qt::AlignVCenter));
+        m_yco = pr.y()+mmToPixel(15.0);
         painter.drawLine(QPointF(pr.x(),pr.height()-pr.y()-mmToPixel(4.5)),QPointF(pr.width()-pr.x(),pr.height()-pr.y()-mmToPixel(4.5)));
-
         font.setFamily("Tahoma");
         painter.setFont(font);
     }
@@ -197,23 +192,23 @@ void Print::printHeadFoot() {
     painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(0.5)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Lizenziert für: " + Settings::organisation,QTextOption(Qt::AlignVCenter | Qt::AlignRight));
 }
 
-void Print::printDescriptor(QString swknr, bool f) {
+void Print::printDescriptor( QString swknr, bool f ){
     QSqlQuery query( QSqlDatabase::database( m_em->connectionName() ) );
-
-    query.prepare("SELECT var_nummer, var_name FROM tfx_wettkaempfe WHERE var_nummer=? AND int_veranstaltungenid=?");
-    query.bindValue(0,swknr);
-    query.bindValue(1, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+    query.prepare( "SELECT var_nummer, var_name FROM tfx_wettkaempfe WHERE var_nummer=? AND int_veranstaltungenid=?" );
+    query.bindValue( 0, swknr );
+    query.bindValue( 1, m_event->mainEvent()->id() );
     query.exec();
     query.next();
-    QString fort;
-    if (f > 0) {
-        fort = QString(" (Fortsetzung)");
-    } else {
-        fort = QString("");
-    }
-    setPrinterFont(14,true);
-    painter.drawText(QRectF(pr.x(), yco-mmToPixel(2.6), pr.width()-pr.x()-pr.x(), (QFontMetricsF(painter.font()).height())*2.3),"WK Nr. " + query.value(0).toString() + " " + query.value(1).toString() + _global::wkBez(this->m_event, swknr) + fort,QTextOption(Qt::AlignVCenter));
-    yco += QFontMetricsF(painter.font()).height()*2.3;
+    auto number = query.value(0).toString();
+    auto name = query.value(1).toString();
+    auto fort = f > 0 ? " (Fortsetzung)" : "";
+    auto text = QString( "WK Nr. %1 %2%3%4" ).arg( number, name, _global::wkBez( m_event, swknr ), fort );
+
+    setPrinterFont( 14, true );
+    auto rectHeight = fontHeight * 2.3;
+    painter.drawText( QRectF( pr.x(), m_yco - mmToPixel( 2.6 ), pr.width()-pr.x()-pr.x(), rectHeight), text, QTextOption( Qt::AlignVCenter ) );
+    m_yco += rectHeight;
+
     printSubHeader();
 }
 
@@ -221,10 +216,12 @@ void Print::printContent() {}
 
 void Print::printSubHeader() {}
 
-void Print::newPage(bool print) {
+void Print::newPage( bool bPrintHeadFoot /*= true*/ ) {
     curr_printer->newPage();
-    yco = top_yco;
-    if (print) printHeadFoot();
+    m_yco = top_yco;
+    if( bPrintHeadFoot ){
+        printHeadFoot();
+    }
 }
 
 void Print::finishPrint() {
@@ -233,7 +230,6 @@ void Print::finishPrint() {
 }
 
 void Print::run() {
-
     //Detailselektion
     detailQuery="";
     if (selectDetail && detailinfo > 0) {
@@ -262,7 +258,7 @@ void Print::run() {
     if (outputType != 2) {
         QSqlQuery vereineQuery( db );
         vereineQuery.prepare("SELECT tfx_vereine.int_vereineid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid OR tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid OR tfx_vereine.int_vereineid = tfx_mannschaften.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort, tfx_gruppen.int_gruppenid ORDER BY  tfx_vereine.var_name");
-        vereineQuery.bindValue( 0, /*m_event->mainEvent()->id()*/m_event->id() );
+        vereineQuery.bindValue( 0, m_event->mainEvent()->id() );
         vereineQuery.exec();
         while (vereineQuery.next()) {
             vereinNumbers.append(vereineQuery.value(0).toInt());
@@ -289,7 +285,7 @@ void Print::run() {
         QString query = "SELECT var_nummer, bol_wahlwettkampf, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR "+boolor+"(tfx_wettkaempfe_x_disziplinen.bol_kp)='true' THEN 'true' ELSE 'false' END FROM tfx_wettkaempfe INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND (SELECT COUNT(*) FROM tfx_wertungen WHERE int_wettkaempfeid=tfx_wettkaempfe.int_wettkaempfeid AND int_wertungenid IN (SELECT int_wertungenid FROM tfx_wertungen LEFT JOIN tfx_teilnehmer USING (int_teilnehmerid) LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid INNER JOIN tfx_vereine AS v ON v.int_vereineid = tfx_teilnehmer.int_vereineid OR v.int_vereineid = tfx_mannschaften.int_vereineid OR v.int_vereineid = tfx_gruppen.int_vereineid WHERE v.int_vereineid IN (" + _global::intListToString(vereinNumbers) + ") AND bol_startet_nicht='false')) > 0 GROUP BY var_nummer, bol_wahlwettkampf, tfx_wettkaempfe.bol_kp ORDER BY var_nummer";
         wkQuery.prepare(query);
     }
-    wkQuery.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+    wkQuery.bindValue( 0, m_event->mainEvent()->id() );
     wkQuery.exec();
     wkNumbers.clear();
     wkWahl.clear();
@@ -326,16 +322,19 @@ void Print::run() {
     //Riegen selektion
     QSqlQuery riegenQuery( db );
     riegenQuery.prepare("SELECT var_riege, COUNT(DISTINCT int_teilnehmerid)+COUNT(DISTINCT int_gruppenid) as \"count\" FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_riege != '' GROUP BY var_riege ORDER BY var_riege");
-    riegenQuery.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+    riegenQuery.bindValue( 0, m_event->mainEvent()->id() );
     riegenQuery.exec();
     riegenNumbers.clear();
     while (riegenQuery.next()) {
         riegenNumbers.append(riegenQuery.value(0).toString());
     }
-    if (selectRiege) {
+
+    if( selectRiege ) {
         emit requestRiegen();
-        if (finish) return;
-        for (int i=riegenNumbers.size()-1;i>=0;i--) {
+        if (finish)
+            return;
+
+        for( int i = riegenNumbers.size() - 1;i>=0;i--) {
             if (!selectedRiegen.contains(riegenNumbers.at(i))) {
                 riegenNumbers.removeAt(i);
             }
@@ -366,7 +365,7 @@ void Print::run() {
     //Disziplinen selektieren
     QSqlQuery disziplinenQuery( db );
     disziplinenQuery.prepare("SELECT DISTINCT int_disziplinenid, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp, tfx_disziplinen.var_name FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? GROUP BY int_disziplinenid, tfx_wettkaempfe.bol_kp, tfx_wettkaempfe_x_disziplinen.bol_kp, tfx_disziplinen.var_name ORDER BY tfx_disziplinen.var_name, kp");
-    disziplinenQuery.bindValue(0, /*this->m_event->mainEvent()->id()*/ m_event->id() );
+    disziplinenQuery.bindValue( 0, m_event->mainEvent()->id() );
     disziplinenQuery.exec();
     disziplinenIDs.clear();
     while (disziplinenQuery.next()) {
@@ -406,25 +405,32 @@ void Print::run() {
     delete curr_printer;
 }
 
-void Print::print(QPrinter *prt) {
+void Print::print( QPrinter *prt ) {
     curr_printer = prt;
-    if (outputType == 2) curr_printer->setOutputFileName(outputFileName);
-    pr = curr_printer->pageRect();
-    if (headFootID>0) {
+    if( outputType == 2 ){
+        curr_printer->setOutputFileName( outputFileName );
+    }
+
+    pr = curr_printer->pageLayout().paintRectPixels( curr_printer->resolution() );
+
+    if( headFootID > 0 ) {
         QSqlQuery layoutData( QSqlDatabase::database( m_em->connectionName() ) );
         layoutData.prepare("SELECT rel_y, rel_h FROM tfx_layout_felder WHERE int_layoutid=?");
         layoutData.bindValue(0,headFootID);
         layoutData.exec();
+
         top_yco = 0;
         max_yco = pr.height()-pr.y();
         while (layoutData.next()) {
-            if ((mmToPixel(layoutData.value(0).toDouble()) + mmToPixel(layoutData.value(1).toDouble())) < (pr.height()/2)) {
-                if ((mmToPixel(layoutData.value(0).toDouble()) + mmToPixel(layoutData.value(1).toDouble()))>top_yco) {
-                    top_yco = (mmToPixel(layoutData.value(0).toDouble()) + mmToPixel(layoutData.value(1).toDouble()))+mmToPixel(5.0);
+            auto y = layoutData.value(0).toDouble();
+            auto h = layoutData.value(1).toDouble();
+            if( ( mmToPixel(y) + mmToPixel(h) ) < ( pr.height()/2 ) ) {
+                if( (mmToPixel(y) + mmToPixel(h)) > top_yco ) {
+                    top_yco = ( mmToPixel(y) + mmToPixel(h) ) + mmToPixel( 5.0 );
                 }
             } else {
-                if (mmToPixel(layoutData.value(0).toDouble())<max_yco) {
-                    max_yco = mmToPixel(layoutData.value(0).toDouble())+mmToPixel(4.0);
+                if( mmToPixel(y) < max_yco ) {
+                    max_yco = mmToPixel(y) + mmToPixel( 4.0 );
                 }
             }
         }
@@ -432,40 +438,37 @@ void Print::print(QPrinter *prt) {
         top_yco = pr.y()+mmToPixel(15.0);
         max_yco = pr.height()-pr.y()-mmToPixel(5.0);
     }
-    painter.begin(curr_printer);
+
+    painter.begin( curr_printer );
     font.setFamily("Tahoma");
     painter.setFont(font);
     QPen pen(painter.pen());
     pen.setWidthF(mmToPixel(0.35));
     painter.setPen(pen);
-    yco = top_yco;
-    if (coverID>0) {
-        printCustomPage(3,coverID);
+    m_yco = top_yco;
+
+    if( coverID > 0 ) {
+        printCustomPage( 3, coverID );
         newPage();
     }
 }
 
 void Print::setPrinterFont(int size, bool bold, bool italic) {
-    font.setPointSize(size);
-    font.setBold(bold);
-    font.setItalic(italic);
-    painter.setFont(font);
-    fontHeight = QFontMetricsF(painter.font()).height();
-}
-
-int Print::mmToPixel(double mm) {
-    int px = ((double)curr_printer->width() * mm / ((double)curr_printer->widthMM()+10.0));
-    return px;
+    font.setPointSize( size );
+    font.setBold( bold );
+    font.setItalic( italic );
+    painter.setFont( font );
+    fontHeight = QFontMetricsF( painter.font() ).height();
 }
 
 void Print::drawStandardRow(QString plst, QString name, QString jg, QString verein, QString points, QString extra) {
-    painter.drawText(QRectF(pr.x(), yco, mmToPixel(10.6), fontHeight),plst,QTextOption(Qt::AlignVCenter));
-    painter.drawText(QRectF(pr.x()+mmToPixel(10.6), yco, mmToPixel(79.4), fontHeight),name,QTextOption(Qt::AlignVCenter));
-    painter.drawText(QRectF(pr.x()+mmToPixel(79.4), yco, mmToPixel(10.6), fontHeight),jg,QTextOption(Qt::AlignVCenter));
-    painter.drawText(QRectF(pr.x()+mmToPixel(90.0), yco, mmToPixel(79.4), fontHeight),verein,QTextOption(Qt::AlignVCenter));
-    painter.drawText(QRectF(pr.x()+mmToPixel(155.0), yco, mmToPixel(45.0), fontHeight),extra,QTextOption(Qt::AlignVCenter));
-    painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(15.9)), yco, mmToPixel(15.9), fontHeight),points,QTextOption(Qt::AlignVCenter | Qt::AlignRight));
-    yco += fontHeight+mmToPixel(1.0);
+    painter.drawText(QRectF(pr.x(), m_yco, mmToPixel(10.6), fontHeight),plst,QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x()+mmToPixel(10.6), m_yco, mmToPixel(79.4), fontHeight),name,QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x()+mmToPixel(79.4), m_yco, mmToPixel(10.6), fontHeight),jg,QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x()+mmToPixel(90.0), m_yco, mmToPixel(79.4), fontHeight),verein,QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x()+mmToPixel(155.0), m_yco, mmToPixel(45.0), fontHeight),extra,QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF((pr.width()-pr.x()-mmToPixel(15.9)), m_yco, mmToPixel(15.9), fontHeight),points,QTextOption(Qt::AlignVCenter | Qt::AlignRight));
+    m_yco += fontHeight+mmToPixel(1.0);
 }
 
 QString Print::readDetailInfo(bool head, QString verein) {
@@ -628,8 +631,11 @@ QStringList Print::readDetailInfos(QString verein) {
     return infos;
 }
 
-void Print::drawHighlightRect(qreal y, qreal h) {
-    if (h==-1) h = QFontMetricsF(painter.font()).height() + mmToPixel(1.0);
+void Print::drawHighlightRect(qreal y, qreal h /*= -1*/) {
+    if( h == -1 ){
+        h = QFontMetricsF(painter.font()).height() + mmToPixel(1.0);
+    }
+
     QRectF r;
     painter.setPen(QPen(QColor(240,240,240,255)));
     r.setRect(pr.x(),y, (pr.width()-pr.x()-pr.x()), h);
@@ -642,6 +648,6 @@ void Print::drawTextLine(QString text, int x, bool newLine) {
     if (x == 0) {
         x = pr.x();
     }
-    painter.drawText(QRectF(x, yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),text);
-    if (newLine) yco += mmToPixel(5.3);
+    painter.drawText(QRectF(x, m_yco, pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),text);
+    if (newLine) m_yco += mmToPixel(5.3);
 }

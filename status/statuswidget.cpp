@@ -70,19 +70,18 @@ void StatusWidget::updateStatus()
     query3.bindValue( 0, eventId );
     query3.bindValue( 1, round );
     query3.exec();
-    mdl_status2->setSingle(false);
-    mdl_status2->setQuery(query3);
-    ui->tbl_status2->setModel(mdl_sort_status2);
-    ui->tbl_status2->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    ui->tbl_status2->horizontalHeader()->resizeSection(0, 40);
-    int size = _global::querySize(columns);
-    for (int i=0; i<size;i++) {
-        ui->tbl_status2->horizontalHeader()->setSectionResizeMode(i + 1, QHeaderView::Fixed);
-        ui->tbl_status2->horizontalHeader()->resizeSection(i + 1, 125);
+    mdl_status2->setSingle( false );
+    mdl_status2->setQuery( query3 );
+    ui->tbl_status2->setModel( mdl_sort_status2 );
+
+    for( int i = 0; i < ui->tbl_status2->horizontalHeader()->count(); ++i ) {
+        ui->tbl_status2->horizontalHeader()->setSectionResizeMode( i, QHeaderView::Fixed );
+        ui->tbl_status2->horizontalHeader()->resizeSection( i, i == 0 ? 40 : 125 );
     }
+
     QHeaderView::ResizeMode resizeModeST2[] = {QHeaderView::Fixed, QHeaderView::Stretch, QHeaderView::Fixed, QHeaderView::Fixed, QHeaderView::Fixed};
-    int resizeST2[] = {40, 250,300,350,200};
-    for (int i=0;i<5;i++) {
+    int resizeST2[] = { 40, 250, 300, 350, 200 };
+    for( int i = 0; i < ui->tbl_status1->horizontalHeader()->count(); ++i ) {
         ui->tbl_status1->horizontalHeader()->setSectionResizeMode(i, resizeModeST2[i]);
         ui->tbl_status1->horizontalHeader()->resizeSection(i, resizeST2[i]);
     }

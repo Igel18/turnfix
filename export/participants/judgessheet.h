@@ -18,7 +18,7 @@ private:
     QString currRiege;
     int currDis;
     static bool teammode;
-    void printType(QString,QString);
+    void printType( QString, QString );
 
 };
 

@@ -7,9 +7,11 @@ class Round : public Results {
     Q_OBJECT
 
 public:
-    Round(Event *event) : Results(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using Results::Results;
+
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
+
     static void setUseExtraScore(bool);
 
 private:

@@ -7,10 +7,10 @@ class Table : public Results {
     Q_OBJECT
 
 public:
-    Table(Event *event) : Results(event) {}
-    virtual void printContent();
-    virtual void printSubHeader();
+    using Results::Results;
 
+    virtual void printContent() override;
+    virtual void printSubHeader() override;
 };
 
 #endif // TABLE_H
