@@ -44,7 +44,7 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     bool scoreSheet = true;
     auto pStatusModel = new StatusModel( m_em, this );
     pStatusModel->fetchStatuses( nullptr, &scoreSheet );
-    ui->cmb_status1->setModel( pStatusModel );
+    ui->cmb_squadStatus->setModel( pStatusModel );
 
     int round = m_event->round();
     auto items = m_em->squadDisciplineRepository()->load( m_event, riege, &geraet, &round );
@@ -58,10 +58,10 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
         // m_pSquadDiscipline->setStart( false );
     } else {
         m_pSquadDiscipline = items.at( 0 );
-        ui->cmb_status1->setCurrentIndex( ui->cmb_status1->findData( m_pSquadDiscipline->statusId(), TF::IdRole ) );
+        ui->cmb_squadStatus->setCurrentIndex( ui->cmb_squadStatus->findData( m_pSquadDiscipline->statusId(), TF::IdRole ) );
     }
 
-    connect( ui->cmb_status1, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
+    connect( ui->cmb_squadStatus, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
 
     fillPETable();
 }
@@ -114,21 +114,24 @@ void ResultsSheetDialog::finishEdit()
 {
     int row = ui->pe_table->currentIndex().row();
     int col = ui->pe_table->currentIndex().column();
-    if (col == pe_model->columnCount()-1) {
-        if (pe_model->index(row+1,4).isValid()) {
-            ui->pe_table->setCurrentIndex(pe_model->index(row + 1, 4));
+
+    if( col == pe_model->columnCount() - 1 ) {
+        if (pe_model->index( row + 1, 4 ).isValid()) {
+            ui->pe_table->setCurrentIndex(pe_model->index( row + 1, 4 ) );
         } else {
-            ui->pe_table->setCurrentIndex(pe_model->index(0, 4));
+            ui->pe_table->setCurrentIndex(pe_model->index( 0, 4 ) );
         }
     } else {
-        ui->pe_table->setCurrentIndex(pe_model->index(row, col + 1));
-        if (berechnen) calc();
+        ui->pe_table->setCurrentIndex( pe_model->index( row, col + 1 ) );
+        if( berechnen ){
+            calc();
+        }
     }
 }
 
 void ResultsSheetDialog::changeSquadDisciplineStatus(int index)
 {
-    auto statusId = ui->cmb_status1->itemData( index, TF::IdRole ).toInt();
+    auto statusId = ui->cmb_squadStatus->itemData( index, TF::IdRole ).toInt();
     m_pSquadDiscipline->setStatusId( statusId );
     m_em->squadDisciplineRepository()->persist( m_pSquadDiscipline );
 }
@@ -141,40 +144,30 @@ void ResultsSheetDialog::saveClose()
 
 void ResultsSheetDialog::calc()
 {
-    QStringList lst;
-    lst << "A"<<"B"<<"C"<<"D"<<"E"<<"F"<<"G"<<"H"<<"I"<<"J"<<"K"<<"L"<<"M"<<"N"<<"O"<<"P"<<"Q"<<"R"<<"S"<<"T"<<"U"<<"V"<<"W"<<"X"<<"Y"<<"Z";
-    QSqlQuery query2;
-    query2.prepare("SELECT tfx_formeln.var_formel, int_berechnung, var_einheit, var_maske FROM tfx_disziplinen LEFT JOIN tfx_formeln USING (int_formelid) WHERE int_disziplinenid=?");
-    query2.bindValue(0,geraet);
-    query2.exec();
-    query2.next();
-    QString vars;
-    for (int i=0;i<lst.size();i++) {
-        if (query2.value(0).toString().contains(lst.at(i))) {
-            vars += lst.at(i)+",";
-        }
+    auto pDiscipline = m_em->disciplineRepository()->loadDiscipline( geraet );
+    auto pFormula = pDiscipline->formula();
+    const QString sFormula = pFormula ? pFormula->formula() : "";
+    //const QString sFormula = pDiscipline->resultFormula().isEmpty() ? "1*x" : pDiscipline->resultFormula();
+    auto sVars = QString( sFormula ).replace( QRegExp("[^A-Z]"), " " ).simplified().split( " " ).join( "," );
+
+    QVector< double > dVars;
+    double max = 0.0;
+    for( int i = 4; i < pe_model->columnCount() - 1; ++i) {
+        dVars.append( pe_model->data(pe_model->index(ui->pe_table->currentIndex().row(), i)).toDouble() );
+        max = qMax( dVars.last(), max );
     }
-    vars = vars.left(vars.length()-1);
+
     FunctionParser fparser;
-    fparser.Parse(query2.value(0).toString().toStdString(),vars.toStdString());
-    int size = pe_model->columnCount()-5;
-    QVector<double> Vars(size);
-    double max=0.0;
-    for (int i=4;i<pe_model->columnCount()-1;i++) {
-        Vars[i - 4] = QVariant(
-                          pe_model->data(pe_model->index(ui->pe_table->currentIndex().row(), i)))
-                          .toDouble();
-        if (Vars[i-4]>max) max = Vars[i-4];
+    fparser.Parse( sFormula.toStdString(), sVars.toStdString() );
+    double res = fparser.Eval(dVars.data());
+
+    if( max == 0 ){
+        res = 0.0;
     }
-    double res = fparser.Eval(Vars.data());
-    if (max==0) res = 0.0;
-    pe_model->setData(pe_model->index(ui->pe_table->currentIndex().row(),
-                                      pe_model->columnCount() - 1),
-                      _global::strLeistung(res,
-                                           query2.value(2).toString(),
-                                           query2.value(3).toString(),
-                                           query2.value(1).toInt()),
-                      Qt::EditRole);
+
+    auto idx = pe_model->index(ui->pe_table->currentIndex().row(), pe_model->columnCount() - 1);
+    auto value = _global::strLeistung(res, pDiscipline->unit(), pDiscipline->inputMask(), pDiscipline->decimals());
+    pe_model->setData( idx, value );
 }
 
 void ResultsSheetDialog::saveJuryMethod()

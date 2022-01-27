@@ -88,7 +88,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QComboBox" name="cmb_status1"/>
+       <widget class="QComboBox" name="cmb_squadStatus"/>
       </item>
      </layout>
     </widget>
@@ -211,7 +211,7 @@
          <bool>false</bool>
         </attribute>
         <attribute name="verticalHeaderDefaultSectionSize">
-         <number>20</number>
+         <number>26</number>
         </attribute>
        </widget>
       </item>

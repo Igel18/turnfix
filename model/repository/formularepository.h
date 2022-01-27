@@ -8,9 +8,8 @@ class Formula;
 class FormulaRepository : public AbstractRepository<Formula>
 {
 public:
-    explicit FormulaRepository(EntityManager *em);
-
-    QList<Formula *> loadAll();
+    using AbstractRepository::AbstractRepository;
+    QList< Formula* > loadAll( const int* id = nullptr );
 };
 
 #endif // FORMULAREPOSITORY_H

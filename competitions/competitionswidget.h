@@ -26,6 +26,9 @@ private slots:
     void updateFilterColumn(int index);
     void updateFilterText(const QString &text);
 
+signals:
+    void competitionsChanged();
+
 public:
     void setup(Event *event, EntityManager *em);
 

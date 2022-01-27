@@ -20,9 +20,6 @@
 #include <QColor>
 #include <QKeyEvent>
 
-//#include <QSqlQuery>
-//#include <QSqlRecord>
-
 ResultsSheetTableModel::ResultsSheetTableModel(EntityManager* em, Event *event, QObject *parent)
     : QAbstractTableModel(parent), m_em(em), m_event(event)
 {
@@ -44,18 +41,21 @@ QVariant ResultsSheetTableModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
 
-    int row = static_cast< int >( floor(index.row()/versuche) );
+    int row = static_cast< int >( floor( index.row() / versuche ) );
 
-    if (role == Qt::DisplayRole) {
+    if( role == Qt::DisplayRole ) {
         if (index.column() < 4) {
             return starter.at(row).at(index.column());
         } else {
             double wert = 0;
+            int scoreId = starter.at( row ).at( 4 ).toInt();
+            int attempt = (index.row() % versuche ) + 1;
             if( index.column() == columnCount() - 1 ) {
-                wert = endwerte.value( starter.at( row ).at( 4 ).toInt() ).value( (index.row() % versuche ) + 1 );
+                wert = endwerte.value( scoreId ).value( attempt );
             } else {
-                wert = detailwerte.value(starter.at(row).at(4).toInt()).value((index.row()%versuche)+1).value(extraColumns.at(index.column()-4));
+                wert = detailwerte.value( scoreId ).value( attempt ).value( extraColumns.at( index.column() - 4 ) );
             }
+
             return _global::strLeistung( wert, m_pDisciplineInfo->unit(), m_pDisciplineInfo->inputMask(), m_pDisciplineInfo->decimals() );
         }
     } else if ( role == Qt::BackgroundColorRole && ( index.column() == columnCount() - 1 ) ) {
@@ -66,11 +66,14 @@ QVariant ResultsSheetTableModel::data(const QModelIndex &index, int role) const
             auto pCompetitionDiscipline = items.at( 0 );
             auto dMaxScore = pCompetitionDiscipline->maximumScore();
             auto sResultFormula = pCompetitionDiscipline->discipline()->resultFormula();
+            int scoreId = starter.at( row ).at( 4 ).toInt();
+            int attempt = (index.row() % versuche ) + 1;
 
             FunctionParser fparser;
-            fparser.Parse( sResultFormula.replace(",",".").toStdString(), "x" );
-            double Vars[] = { endwerte.value(starter.at(row).at( 4 ).toInt()).value((index.row() % versuche ) + 1 ) };
-            if( (fparser.Eval(Vars) > dMaxScore ) && ( dMaxScore > 0 ) ) {
+            fparser.Parse( sResultFormula.replace( ",", "." ).toStdString(), "x" );
+            double Vars[] = { endwerte.value( scoreId ).value( attempt ) };
+            auto ranking = fparser.Eval( Vars );
+            if( ( ranking > dMaxScore ) && ( dMaxScore > 0 ) ) {
                 return QColor(Qt::red);
             }
         }
@@ -194,6 +197,8 @@ void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, 
 {
     beginResetModel();
 
+    m_pParticipants.clear();
+
     riege = squad;
     geraet = g; // disciplineId
     kuer = k;
@@ -215,8 +220,6 @@ void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, 
         int competitionId = competition->id();
         participants.append( pScoreRepo->fetch( &competitionId ) );
     }
-
-    QList< Score* > relevantParticipants;
 
     // filter particular paticipants for the model
     for( auto& participant : participants ){
@@ -256,7 +259,7 @@ void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, 
             continue;
         }
 
-        relevantParticipants << participant;
+        m_pParticipants.append( participant );
     }
 
     // get starting order
@@ -265,7 +268,7 @@ void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, 
     int kp_type = kuer ? 1 : 0;
     auto pStartingOrderRepo = m_em->startingOrderRepository();
 
-    for( auto& participant : relevantParticipants ){
+    for( auto& participant : m_pParticipants ){
         int scoreId = participant->id();
         auto startingOrders = pStartingOrderRepo->fetch( &scoreId, &geraet, &kp_type );
         int pos = startingOrders.isEmpty() ? 0 : startingOrders.at( 0 )->position();
@@ -277,7 +280,7 @@ void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, 
     extraColumnNames.clear();
     endwerte.clear();
 
-    for( auto& participant : relevantParticipants ){
+    for( auto& participant : m_pParticipants ){
         QStringList slItems;
 
         slItems << QString("%1").arg(participant->bib());

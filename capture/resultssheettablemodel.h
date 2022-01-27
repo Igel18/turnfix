@@ -8,6 +8,7 @@
 class Discipline;
 class EntityManager;
 class Event;
+class Score;
 
 class ResultsSheetTableModel : public QAbstractTableModel
 {
@@ -42,6 +43,7 @@ private:
     int versuche;
     QList< int > extraColumns;
     QStringList extraColumnNames;
+    QList< QPointer< Score > > m_pParticipants;
 };
 
 #endif

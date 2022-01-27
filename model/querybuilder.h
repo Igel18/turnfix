@@ -123,16 +123,17 @@ public:
             queryString += QString(" ORDER BY %1").arg(m_order);
         }
 
-        qDebug() << queryString;
+        //qDebug() << queryString;
 
         QSqlQuery query(db);
         query.prepare(queryString);
         for (int i = 0; i < m_bindValues.length(); i++) {
-            qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
+            //qDebug() << "Bind " << i << ": " << m_bindValues.at(i);
             query.bindValue(i, m_bindValues.at(i));
         }
 
-        qDebug() << "SQL QUERY EXECUTION RESULT: " << query.exec();
+        auto result = query.exec();
+        //qDebug() << "SQL QUERY EXECUTION RESULT: " << result;
 
         QList<T *> output;
         while (query.next()) {
@@ -192,6 +193,7 @@ public:
             QStringList keys = values.keys();
             for (auto const &key : keys) {
                 query.bindValue(key, values.value(key));
+                qDebug() << key << " <- " << values.value(key);
             }
 
             bool result = query.exec();
