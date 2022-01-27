@@ -37,6 +37,7 @@ void SubdivisionsWidget::setup(Event *event, EntityManager *em)
 {
     m_event = event;
     m_em = em;
+    m_squads.clear();
 
     auto pNoSquadParticipantsModel = new ParticipantSquadModel( "", true, this );
     pNoSquadParticipantsModel->setSourceModel( m_event->participantsModel() );
