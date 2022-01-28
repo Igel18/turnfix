@@ -99,7 +99,7 @@
              </font>
             </property>
             <property name="text">
-             <string>TurnFix 1.1.3</string>
+             <string>TurnFix 2.0</string>
             </property>
            </widget>
           </item>
@@ -113,7 +113,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>http://www.turnfix.de</string>
+             <string>https://github.com/Igel18/turnfix</string>
             </property>
            </widget>
           </item>
@@ -136,7 +136,7 @@
           <item row="4" column="0">
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Copyright 2008-2011 Christoph Krämer</string>
+             <string>Copyright 2008-2022 GNU GPL v2</string>
             </property>
            </widget>
           </item>
