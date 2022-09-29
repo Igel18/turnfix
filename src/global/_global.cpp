@@ -132,6 +132,9 @@ double _global::calcLeistung(QString val) {
     if (val.contains(":")) {
         QStringList split = val.split(":");
         leistung = split.at(0).toDouble()*60 + split.at(1).toDouble();
+    }
+    else if (val.contains(",")) {
+        leistung = val.replace(",", ".").toDouble();
     } else {
         leistung = val.toDouble();
     }
