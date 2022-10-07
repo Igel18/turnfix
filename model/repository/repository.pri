@@ -15,6 +15,7 @@ HEADERS += \
     $$PWD/eventrepository.h \
     $$PWD/formularepository.h \
     $$PWD/juryscorerepository.h \
+    $$PWD/layoutrepository.h \
     $$PWD/penaltyrepository.h \
     $$PWD/personrepository.h \
     $$PWD/regionrepository.h \
@@ -44,6 +45,7 @@ SOURCES += \
     $$PWD/eventrepository.cpp \
     $$PWD/formularepository.cpp \
     $$PWD/juryscorerepository.cpp \
+    $$PWD/layoutrepository.cpp \
     $$PWD/penaltyrepository.cpp \
     $$PWD/personrepository.cpp \
     $$PWD/regionrepository.cpp \

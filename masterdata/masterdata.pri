@@ -35,6 +35,7 @@ HEADERS += \
     $$PWD/divisionmodel.h \
     $$PWD/formuladialog.h \
     $$PWD/formulamodel.h \
+    $$PWD/layoutmodel.h \
     $$PWD/masterdatadialog.h \
     $$PWD/penaltydialog.h \
     $$PWD/penaltymodel.h \
@@ -71,6 +72,7 @@ SOURCES += \
     $$PWD/divisionmodel.cpp \
     $$PWD/formuladialog.cpp \
     $$PWD/formulamodel.cpp \
+    $$PWD/layoutmodel.cpp \
     $$PWD/masterdatadialog.cpp \
     $$PWD/penaltydialog.cpp \
     $$PWD/penaltymodel.cpp \
