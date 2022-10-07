@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>716</width>
-    <height>623</height>
+    <height>650</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -93,6 +93,12 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>2</width>
+          <height>0</height>
+         </size>
+        </property>
         <item>
          <property name="text">
           <string>Ergebnisse</string>
@@ -139,7 +145,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>6</number>
         </property>
         <widget class="QWidget" name="resultWidget">
          <layout class="QGridLayout" name="gridLayout_10">

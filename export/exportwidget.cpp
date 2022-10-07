@@ -50,7 +50,6 @@ ExportWidget::ExportWidget(QWidget *parent)
     connect(ui->but_csvrunde, SIGNAL(clicked()), this, SLOT(csvRunde()));
     connect(ui->but_csvparticipants, SIGNAL(clicked()), this, SLOT(loadparticipants()));
     connect(ui->but_print, SIGNAL(clicked()), this, SLOT(startPrint()));
-
 }
 
 ExportWidget::~ExportWidget()
@@ -161,53 +160,50 @@ void ExportWidget::startPrint()
         ausdruck = new Certificate();
         ausdruck->setSelectTN(true);
     } break;
-    case 6: { //sonstiges
-        switch (ui->cmb_misc_typ->currentIndex()) {
-        case 0:
-            ausdruck = new Invitation(this->m_event);
-            break;
-        case 1: { //Zeitplan
-            Timetable::setOrientation(QPrinter::Landscape);
-            ausdruck = new Timetable( m_event );
-        } break;
-        case 2: { //Meldematrix
-            RegistrationMatrix::setOrientation(QPrinter::Landscape);
-            RegistrationMatrix::setTeamMode(false);
-            ausdruck = new RegistrationMatrix();
-        } break;
-        case 3: { //Mannschaftsmatrix
-            RegistrationMatrix::setOrientation(QPrinter::Landscape);
-            RegistrationMatrix::setTeamMode(true);
-            ausdruck = new RegistrationMatrix();
-        } break;
-        case 4: { //Startpässe
-            ausdruck = new License();
-            ausdruck->setSelectClub(true);
-            ausdruck->setTypeString("Startpässe");
-        } break;
-        case 5:
-            ausdruck = new ClubList( m_event );
-            break;
-        case 6:
-            ausdruck = new ITCheckSquads( m_event );
-            break;
-        case 7: { //EDV-Checkliste TN
-            ausdruck = new ITCheckList();
-            ausdruck->setTypeString("EDV-Checkliste");
-        } break;
-        case 8:
-            ausdruck = new Summary( m_event );
-            break;
-        case 9:
-            ausdruck = new MedalCount();
-            break;
-        case 10: {
-            ausdruck = new ResultsSheet();
-            ausdruck->setSelectRiege( true );
-            ausdruck->setSelectDis( true );
-        } break;
-        }
+    case 6:     //Einladung
+        ausdruck = new Invitation(this->m_event);
+        break;
+    case 7:   {  //Zeitplan
+        Timetable::setOrientation(QPrinter::Landscape);
+        ausdruck = new Timetable( m_event );
     } break;
+    case 8:  {  //Meldematrix
+        RegistrationMatrix::setOrientation(QPrinter::Landscape);
+        RegistrationMatrix::setTeamMode(false);
+        ausdruck = new RegistrationMatrix();
+    } break;
+    case 9: {   //Mannschaftsmatrix
+        RegistrationMatrix::setOrientation(QPrinter::Landscape);
+        RegistrationMatrix::setTeamMode(true);
+        ausdruck = new RegistrationMatrix();
+    } break;
+    case 10: {  //Startpässe
+        ausdruck = new License();
+        ausdruck->setSelectClub(true);
+        ausdruck->setTypeString("Startpässe");
+        } break;
+    case 11:    //Vereinsliste
+        ausdruck = new ClubList( m_event );
+        break;
+    case 12:    //EDV-Checkliste Riegen
+        ausdruck = new ITCheckSquads( m_event );
+        break;
+    case 13:  { //EDV-Checkliste TN
+               ausdruck = new ITCheckList();
+               ausdruck->setTypeString("EDV-Checkliste");
+           } break;
+    case 14:    //Summary
+        ausdruck = new Summary( m_event );
+        break;
+    case 15:    //Medallienspiegel
+        ausdruck = new MedalCount();
+        break;
+    case 16: {   //Ergebnisliste
+        ausdruck = new ResultsSheet();
+        ausdruck->setSelectRiege( true );
+        ausdruck->setSelectDis( true );
+    } break;
+
     }
     ausdruck->setShowPreview(ui->chk_preview->isChecked());
     ausdruck->setOutputType(ui->cmb_output->currentIndex());
