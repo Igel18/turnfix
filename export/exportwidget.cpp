@@ -39,6 +39,8 @@
 #include <QPrinter>
 #include <QSqlQuery>
 #include <QTextStream>
+#include "model/repository/competitionrepository.h"
+#include "model/repository/scorerepository.h"
 
 ExportWidget::ExportWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::ExportWidget)
@@ -46,7 +48,9 @@ ExportWidget::ExportWidget(QWidget *parent)
     ui->setupUi(this);
     connect(ui->but_csvgesamt, SIGNAL(clicked()), this, SLOT(csvGesamt()));
     connect(ui->but_csvrunde, SIGNAL(clicked()), this, SLOT(csvRunde()));
+    connect(ui->but_csvparticipants, SIGNAL(clicked()), this, SLOT(loadparticipants()));
     connect(ui->but_print, SIGNAL(clicked()), this, SLOT(startPrint()));
+
 }
 
 ExportWidget::~ExportWidget()
@@ -243,7 +247,7 @@ void ExportWidget::createCSV(int mode)
                                            ->fetchByNumber(this->m_event,
                                                            query5.value(0).toString());
             QList<QStringList> rlist;
-            if (mode == 0) {
+            if (mode == 0) { //csvGesamt
                 if (competition->type() == 1) {
                     stream << "Verein;Mannschaft;";
                 } else {
@@ -259,7 +263,7 @@ void ExportWidget::createCSV(int mode)
                     stream << dis.value(0).toString()+";";
                 }
                 stream << "Gesamt;";
-            } else {
+            } else if(mode == 1) { // csvRunde
                 stream << "Verein;Mannschaft;";
                 rlist = Result_Calc::roundResultArrayNew(competition);
                 for (int i=0;i<(rlist.at(0).size()-6)/2;i++) {
@@ -267,6 +271,7 @@ void ExportWidget::createCSV(int mode)
                 }
                 stream << "Pkt. Ges.;Pl. Ges.;";
             }
+
             stream << "WKNr.;WK-Bezeichnung;Jahrgang\n";
             for (int i=0;i<rlist.size();i++) {
                 for (int j=0;j<=rlist.at(i).size()+1;j++) {
@@ -284,6 +289,62 @@ void ExportWidget::createCSV(int mode)
         }
         file.close();
     }
+}
+
+void ExportWidget::loadparticipants()
+{
+    qDebug() << "ParticipantsModel::load() ...";
+
+
+    m_data.clear();
+
+    const auto competitions = m_em->competitionRepository()->fetchByEvent(m_event);
+
+    for(auto& competition: competitions){
+        int competitionId = competition->id();
+
+        auto scores = m_em->scoreRepository()->fetch(&competitionId);
+
+        for( auto& score: scores) {
+            score->setCompetition(competition);
+        }
+
+        m_data.append(scores);
+    }
+
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    QStringList filters;
+    filters << "CSV-Datei (*.csv)";
+    dialog.setNameFilters(filters);
+    dialog.setViewMode(QFileDialog::Detail);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setDefaultSuffix("csv");
+    if(dialog.exec()) {
+        QFile file(dialog.selectedFiles().at(0));
+        file.open(QIODevice::WriteOnly);
+        QTextStream stream(&file);
+        QString header = "Startnummer;Verein;Name;Geburtsjahr;Geschlecht;Wettkampfnummer;Riege\n";
+        stream << header;
+
+    for (int i=0; m_data.size() > i; i++) {
+        auto pScore = m_data.at(i);
+
+        QString str ;
+        str.setNum(pScore->bib());
+        QString  csv = str +";"+
+          pScore->athlete()->club()->name() +";"+
+          pScore->athlete()->fullName() +";"+
+          pScore->athlete()->dateOfBirth().toString("yy") +";"+
+          (pScore->athlete()->gender() == Athlete::Male ? "m" : "w") +";"+
+          pScore->competition()->number() +";"+
+          pScore->squad() +"\n";
+          stream << csv;
+   }
+
+        file.close();
+    }
+
 }
 
 void ExportWidget::showDetailinfoDialog()

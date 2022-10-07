@@ -11,6 +11,7 @@ class Print;
 class EntityManager;
 class Event;
 class QPrintPreviewDialog;
+class Score;
 
 class ExportWidget : public QWidget
 {
@@ -24,6 +25,7 @@ public:
 private slots:
     void csvGesamt();
     void csvRunde();
+    void loadparticipants();
     void startPrint();
     void showDetailinfoDialog();
     void showDisziplinenDialog();
@@ -39,6 +41,7 @@ private:
     EntityManager *m_em;
     void createCSV(int mode);
     Print *ausdruck;
-    QPrintPreviewDialog *dialog;
+    QPrintPreviewDialog *dialog;   
+    QList< Score* > m_data;
 };
 #endif
