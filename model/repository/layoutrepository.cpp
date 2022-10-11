@@ -4,7 +4,7 @@
 #include "model/querybuilder.h"
 #include <QSqlQuery>
 
-QList< Layout* > LayoutRepository::fetch( const int* id /*= nullptr*/ )
+QList< Layout* > LayoutRepository::loadAll( const int* id /*= nullptr*/ )
 {
     QueryBuilder<Layout> qb;
     qb.select(Layout::staticMetaObject, Layout::mapping());

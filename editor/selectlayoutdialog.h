@@ -7,6 +7,8 @@ namespace Ui {
 class SelectLayoutDialog;
 }
 
+class EntityManager;
+
 class SelectLayoutDialog : public QDialog
 {
     Q_OBJECT
@@ -16,6 +18,7 @@ public:
     ~SelectLayoutDialog();
 
     int getLayoutID();
+    void setup(EntityManager *em);
 
 private slots:
     void layoutSelectionChange();
@@ -23,6 +26,7 @@ private slots:
 
 private:
     Ui::SelectLayoutDialog *ui;
+    EntityManager *m_em = nullptr;
 };
 
 #endif // SELECTLAYOUTDIALOG_H

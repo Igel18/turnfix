@@ -28,6 +28,7 @@ class EditorWidget : public QWidget
 public:
     explicit EditorWidget(QWidget *parent = nullptr);
     ~EditorWidget();
+    void setup(EntityManager *em);
 
     static QList<EditorGraphicsItem *> items;
 public slots:
@@ -92,6 +93,9 @@ private:
     QtEnumPropertyManager *val_align;
     QtStringPropertyManager *val_txt;
     QtDoublePropertyManager *val_line;
+
+    EntityManager *m_em;
+
 signals:
     void sendData(QList<_global::itemdata>);
 };

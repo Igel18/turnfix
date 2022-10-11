@@ -148,6 +148,10 @@ EditorWidget::~EditorWidget()
     delete ui;
 }
 
+void EditorWidget::setup(EntityManager *em){
+    m_em = em;
+}
+
 void EditorWidget::initPreview(QList<_global::itemdata> val)
 {
     for (int i=0;i<val.size();i++) {
@@ -210,6 +214,8 @@ void EditorWidget::delField()
 void EditorWidget::load()
 {
     SelectLayoutDialog *sel = new SelectLayoutDialog();
+    sel->setup(m_em);
+
     if (sel->exec() == 1) {
         removeAllItems();
         QSqlQuery layoutItemQuery;

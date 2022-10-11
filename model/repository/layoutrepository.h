@@ -11,7 +11,7 @@ class LayoutRepository : public AbstractRepository< Layout >
 public:
     using AbstractRepository::AbstractRepository;
 
-    QList< Layout* > fetch( const int* id = nullptr );
+    QList< Layout* > loadAll( const int* id = nullptr );
 };
 
 #endif // LAYOUTREPOSITORY_H

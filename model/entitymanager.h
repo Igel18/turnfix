@@ -18,6 +18,7 @@ class DivisionRepository;
 class EventRepository;
 class FormulaRepository;
 class JuryScoreRepository;
+class LayoutRepository;
 class PenaltyRepository;
 class PersonRepository;
 class RegionRepository;
@@ -53,6 +54,7 @@ public:
     EventRepository *eventRepository() const;
     FormulaRepository *formulaRepository() const;
     JuryScoreRepository* juryScoreRepository() const;
+    LayoutRepository* layoutRepository() const;
     PersonRepository *personRepository() const;
     PenaltyRepository *penaltyRepository() const;
     RegionRepository *regionRepository() const;
@@ -89,6 +91,7 @@ private:
     EventRepository *m_eventRepository;
     FormulaRepository *m_formulaRepository;
     JuryScoreRepository* m_JuryScoreRepository;
+    LayoutRepository* m_LayoutRepository;
     PenaltyRepository *m_penaltyRepository;
     PersonRepository *m_personRepository;
     RegionRepository *m_regionRepository;

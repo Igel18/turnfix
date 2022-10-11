@@ -248,6 +248,7 @@ void MainWindow::initEvent()
     ui->rg_tab->setup( m_event, m_em );
     ui->pe_tab->setup( m_event, m_em );
     ui->er_tab->setup( m_event, m_em );
+    ui->ed_tab->setup(m_em);
     ui->dr_tab->updateData();
     ui->st_tab->updateStatus();
 }
