@@ -15,6 +15,7 @@
 #include "repository/formularepository.h"
 #include "repository/juryscorerepository.h"
 #include "repository/layoutrepository.h"
+#include "repository/layoutfieldrepository.h"
 #include "repository/penaltyrepository.h"
 #include "repository/personrepository.h"
 #include "repository/regionrepository.h"
@@ -47,6 +48,7 @@ EntityManager::EntityManager(QObject *parent)
     m_formulaRepository = new FormulaRepository(this);
     m_JuryScoreRepository = new JuryScoreRepository(this);
     m_LayoutRepository = new LayoutRepository(this);
+    m_LayoutFieldRepository = new LayoutFieldRepository(this);
     m_penaltyRepository = new PenaltyRepository(this);
     m_personRepository = new PersonRepository(this);
     m_regionRepository = new RegionRepository(this);
@@ -176,6 +178,11 @@ JuryScoreRepository* EntityManager::juryScoreRepository() const
 LayoutRepository* EntityManager::layoutRepository() const
 {
     return m_LayoutRepository;
+}
+
+LayoutFieldRepository* EntityManager::layoutFieldRepository() const
+{
+    return m_LayoutFieldRepository;
 }
 
 ScoreRepository *EntityManager::scoreRepository() const

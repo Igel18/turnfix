@@ -17,7 +17,7 @@ int LayoutModel::rowCount(const QModelIndex &) const
 
 int LayoutModel::columnCount(const QModelIndex &) const
 {
-    return 3;
+    return 2;
 }
 
 QVariant LayoutModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -44,7 +44,7 @@ QVariant LayoutModel::data(const QModelIndex &index, int role) const
         case 0:
             return layout->name();
         case 1:
-         return layout->comment();
+            return layout->comment();
         }
     } else if (role == TF::ObjectRole) {
         return QVariant::fromValue(layout);
