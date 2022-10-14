@@ -2,6 +2,7 @@
 #include "model/entity/layout.h"
 #include "model/entitymanager.h"
 #include "model/querybuilder.h"
+#include "model/entity/layoutfield.h"
 #include <QSqlQuery>
 
 QList< Layout* > LayoutRepository::loadAll( const int* id /*= nullptr*/ )

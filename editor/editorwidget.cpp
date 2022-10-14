@@ -4,6 +4,8 @@
 #include "savelayoutdialog.h"
 #include "selectlayoutdialog.h"
 #include "ui_editorwidget.h"
+#include "model/repository/layoutrepository.h"
+#include "model/repository/layoutfieldrepository.h"
 #include <QDomDocument>
 #include <QFileDialog>
 #include <QGraphicsScene>
@@ -215,31 +217,47 @@ void EditorWidget::load()
 {
     SelectLayoutDialog *sel = new SelectLayoutDialog();
     sel->setup(m_em);
+    auto id = sel->getLayoutID();
 
     if (sel->exec() == 1) {
         removeAllItems();
-        QSqlQuery layoutItemQuery;
-        layoutItemQuery.prepare("SELECT int_layout_felderid, int_typ, var_font, rel_x, rel_y, rel_w, rel_h, var_value, int_align FROM tfx_layout_felder WHERE int_layoutid=? ORDER BY int_layer");
-        layoutItemQuery.bindValue(0,sel->getLayoutID());
-        layoutItemQuery.exec();
-        while (layoutItemQuery.next()) {
-            QFont font;
-            font.fromString(layoutItemQuery.value(2).toString());
-            _global::itemdata v = {
-                layoutItemQuery.value(0).toInt(),
-                layoutItemQuery.value(1).toInt(),
-                layoutItemQuery.value(3).toDouble(),
-                layoutItemQuery.value(4).toDouble(),
-                layoutItemQuery.value(5).toDouble(),
-                layoutItemQuery.value(6).toDouble(),
-                font,
-                layoutItemQuery.value(7),
-                layoutItemQuery.value(8).toInt()
-            };
-            addNewItem(v);
-        }
+        // TODO: LoadAll muss mit id übergeben werden. Es kommt bei &id aber kein element zurück...
+        auto fieldlst =  m_em->layoutFieldRepository()->loadAll();
+        auto field= fieldlst.first();
+        _global::itemdata v = {
+            field->align(),
+            field->layer(),
+            field->x(),
+            field->y(),
+            field->width(),
+            field->height(),
+            field->font(),
+            field->value()
+        };
+        addNewItem(v);
     }
-}
+//addNewItem()        //        QSqlQuery layoutItemQuery;
+//        layoutItemQuery.prepare("SELECT int_layout_felderid, int_typ, var_font, rel_x, rel_y, rel_w, rel_h, var_value, int_align FROM tfx_layout_felder WHERE int_layoutid=? ORDER BY int_layer");
+//        layoutItemQuery.bindValue(0,sel->getLayoutID());
+//        layoutItemQuery.exec();
+//        while (layoutItemQuery.next()) {
+//            QFont font;
+//            font.fromString(layoutItemQuery.value(2).toString());
+//            _global::itemdata v = {
+//                layoutItemQuery.value(0).toInt(),
+//                layoutItemQuery.value(1).toInt(),
+//                layoutItemQuery.value(3).toDouble(),
+//                layoutItemQuery.value(4).toDouble(),
+//                layoutItemQuery.value(5).toDouble(),
+//                layoutItemQuery.value(6).toDouble(),
+//                font,
+//                layoutItemQuery.value(7),
+//                layoutItemQuery.value(8).toInt()
+//            };
+//            addNewItem(v);
+//        }
+    }
+
 
 void EditorWidget::removeAllItems()
 {

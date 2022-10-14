@@ -45,12 +45,23 @@ SelectLayoutDialog::~SelectLayoutDialog()
 
 void SelectLayoutDialog::layoutSelectionChange()
 {
-    QSqlQuery getCommentQuery;
-    getCommentQuery.prepare("SELECT txt_comment FROM tfx_layouts WHERE int_layoutid=?");
-    getCommentQuery.bindValue(0, ui->cmb_layout->itemData(ui->cmb_layout->currentIndex()));
-    getCommentQuery.exec();
-    getCommentQuery.next();
-    ui->txt_comment->setText(getCommentQuery.value(0).toString());
+
+
+//    QSqlQuery getCommentQuery;
+//    getCommentQuery.prepare("SELECT txt_comment FROM tfx_layouts WHERE int_layoutid=?");
+//    getCommentQuery.bindValue(0, ui->cmb_layout->itemData(ui->cmb_layout->currentIndex()));
+//    getCommentQuery.exec();
+//    getCommentQuery.next();
+    auto cmbboxindex=ui->cmb_layout->currentIndex();
+    auto layouts = m_em->layoutRepository()->loadAll(&cmbboxindex);
+    auto layoutitems = layouts.count();
+    if (layoutitems==0)
+    {
+        return;
+    }
+
+    auto layout = layouts.first();
+    ui->txt_comment->setText(layout->comment());
 }
 
 int SelectLayoutDialog::getLayoutID()
