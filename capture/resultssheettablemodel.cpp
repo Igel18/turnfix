@@ -60,7 +60,7 @@ QVariant ResultsSheetTableModel::data(const QModelIndex &index, int role) const
         }
     } else if ( role == Qt::BackgroundColorRole && ( index.column() == columnCount() - 1 ) ) {
 
-        auto items = m_em->competitionDisciplineRepository()->load( m_event->id(), starter.at(row).at( 3 ), geraet );
+        auto items = m_em->competitionDisciplineRepository()->load( m_event->id(), starter.at(row).at( 3 ).toString(), geraet );
 
         if( items.count() == 1 ){
             auto pCompetitionDiscipline = items.at( 0 );
@@ -281,9 +281,9 @@ void ResultsSheetTableModel::setTableData( QString squad, int g, int v, bool k, 
     endwerte.clear();
 
     for( auto& participant : m_pParticipants ){
-        QStringList slItems;
+        QVariantList slItems;
 
-        slItems << QString("%1").arg(participant->bib());
+        slItems << participant->bib();
         slItems << participant->athlete()->fullName();
         slItems << participant->athlete()->club()->name();
         slItems << participant->competition()->number();

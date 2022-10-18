@@ -21,7 +21,7 @@ DBTable *SquadDiscipline::initializeMapping()
                        "CASCADE");
     squadDiscipline->addColumn("statusId", "int_statusid", ColumnType::Integer, 0, false)
         ->addContraint("fky_statusid", "tfx_status", "int_statusid", "RESTRICT", "RESTRICT");
-    squadDiscipline->addColumn("squad", "var_riege", ColumnType::Varchar, 5);
+    squadDiscipline->addColumn("squad", "var_riege", ColumnType::Varchar, 15);
     squadDiscipline->addColumn("round", "int_runde", ColumnType::SmallInt);
     squadDiscipline->addColumn("start", "bol_erstes_geraet", ColumnType::Boolean, 0, true, "'false'");
 

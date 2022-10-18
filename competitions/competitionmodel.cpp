@@ -2,6 +2,7 @@
 #include "model/entity/competition.h"
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
+#include "participants/participantsmodel.h"
 
 CompetitionModel::CompetitionModel(Event *event, EntityManager *em, QObject *parent)
     : QAbstractTableModel(parent)
@@ -21,7 +22,7 @@ int CompetitionModel::columnCount(const QModelIndex &) const
 }
 
 QVariant CompetitionModel::headerData(int section, Qt::Orientation orientation, int role) const
-{   
+{
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
         case 0:
@@ -64,8 +65,14 @@ QVariant CompetitionModel::data(const QModelIndex &index, int role) const
         case 5:
             return competition->qualifiers();
         case 6:
-            // TODO get count
-            return "-";
+            // TODO
+            int participantCount = 0;
+            for (int i=0; i < competition->event()->participantsModel()->rowCount(); ++i ) {
+                if (competition->event()->participantsModel()->data(i,5) == competition->number()) {
+                    participantCount++;
+                }
+            }
+            return participantCount;
         }
     } else if (role == TF::ObjectRole) {
         return QVariant::fromValue(competition);

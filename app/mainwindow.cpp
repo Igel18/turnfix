@@ -4,6 +4,7 @@
 #include "app/logindialog.h"
 #include "export/maildialog.h"
 #include "masterdata/masterdatadialog.h"
+#include "model/entitymanager.h"
 #include "model/entity/event.h"
 #include "model/settings/session.h"
 #include "participants/licensenumberdialog.h"
@@ -138,6 +139,8 @@ void MainWindow::showEventDialog()
 }
 
 void MainWindow::newNumbers() {
+    auto db = QSqlDatabase::database( m_em->connectionName() );
+
     int ret = QMessageBox::question(this,
                                     tr("Startnummern neu vergeben?"),
                                     tr("Sollen wirklich neue Startnummern vergeben werden?"),
@@ -155,7 +158,7 @@ void MainWindow::newNumbers() {
                                1,
                                &ok);
     if (!ok) return;
-    QSqlQuery query;
+    QSqlQuery query(db);
     query.prepare("SELECT int_wertungenid, var_nummer FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer USING (int_teilnehmerid) LEFT JOIN tfx_gruppen USING (int_gruppenid) INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid OR tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid WHERE int_veranstaltungenid=? AND int_runde=? ORDER BY "+_global::substring("tfx_vereine.var_name","int_start_ort+1")+", tfx_vereine.var_name, var_nummer, int_mannschaftenid, int_wertungenid");
     query.bindValue(0, m_event->mainEvent()->id());
     query.bindValue(1, m_event->round());
@@ -163,14 +166,15 @@ void MainWindow::newNumbers() {
     int stnr=firstNumber;
     int mstnr=1;
     while (query.next()) {
-        QSqlQuery query2;
+        qDebug() << query.value(0).toString();
+        QSqlQuery query2(db);
         query2.prepare("UPDATE tfx_wertungen SET int_startnummer=? WHERE int_wertungenid=?");
         query2.bindValue(0,stnr);
         query2.bindValue(1,query.value(0).toInt());
         query2.exec();
         stnr++;
     }
-    QSqlQuery query4;
+    QSqlQuery query4(db);
     query4.prepare("SELECT int_mannschaftenid FROM tfx_mannschaften INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) INNER JOIN tfx_vereine USING (int_vereineid) WHERE int_veranstaltungenid=? ORDER BY "+_global::substring("tfx_vereine.var_name","int_start_ort+1")+", tfx_wettkaempfe.var_nummer, tfx_mannschaften.int_nummer");
     query4.bindValue(0, m_event->mainEvent()->id());
     query4.exec();
@@ -183,9 +187,7 @@ void MainWindow::newNumbers() {
         mstnr++;
     }
 
-    qDebug() << "ui->tn_tab->refresh(); should be called";
-
-    //ui->tn_tab->refresh();
+    ui->tn_tab->refresh();
 }
 
 void MainWindow::showTNDB() {

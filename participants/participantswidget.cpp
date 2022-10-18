@@ -118,10 +118,10 @@ void ParticipantsWidget::viewChanged(int index)
 //    }
 }
 
-//void ParticipantsWidget::refresh()
-//{
-//    m_participantsModel->loadData();
-//}
+void ParticipantsWidget::refresh()
+{
+    m_model->load();
+}
 
 void ParticipantsWidget::loadBestView() {
     QSqlQuery query;

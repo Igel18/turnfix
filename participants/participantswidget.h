@@ -19,7 +19,7 @@ public:
     ~ParticipantsWidget();
 
     void setup(Event *event, EntityManager *em);
-    //void refresh();
+    void refresh();
 
 public slots:
     void loadBestView();

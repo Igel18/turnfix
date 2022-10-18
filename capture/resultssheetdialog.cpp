@@ -22,7 +22,10 @@ ResultsSheetDialog::ResultsSheetDialog(EntityManager* em, Event *event, QWidget 
     setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMaximizeButtonHint);
 
     pe_model = new ResultsSheetTableModel( em, m_event );
-    ui->pe_table->setModel( pe_model );
+    m_sortFilterModel = new QSortFilterProxyModel(this);
+    m_sortFilterModel->setSourceModel(pe_model);
+    ui->pe_table->setModel( m_sortFilterModel );
+    ui->pe_table->setSortingEnabled(true);
     ui->chk_jury->setChecked( Settings::juryResults );
     connect(ui->but_save, SIGNAL(clicked()), this, SLOT(saveClose()));
     connect(ui->chk_jury, SIGNAL(stateChanged(int)), this, SLOT(fillPETable()));
@@ -80,7 +83,7 @@ void ResultsSheetDialog::fillPETable()
     };
 
     for ( int i = 4; i < pe_model->columnCount(); ++i ) {
-        resizeMode.append( qMakePair(  QHeaderView::ResizeToContents, 60 ) );
+        resizeMode.append( qMakePair( QHeaderView::ResizeToContents, 60 ) );
     }
 
     auto pHeader = ui->pe_table->horizontalHeader();

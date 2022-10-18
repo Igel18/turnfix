@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>350</width>
-    <height>455</height>
+    <height>460</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -46,7 +46,6 @@
        <widget class="QLabel" name="label_10">
         <property name="font">
          <font>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -260,7 +259,7 @@
           </size>
          </property>
          <property name="maxLength">
-          <number>5</number>
+          <number>15</number>
          </property>
         </widget>
        </item>
@@ -358,7 +357,6 @@
        <widget class="QLabel" name="lbl_control">
         <property name="font">
          <font>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>

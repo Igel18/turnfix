@@ -696,7 +696,7 @@ void CheckTable_Thread::run() {
     column col16_2 = {"int_wettkaempfeid","integer",0,"NO","",""};
     column col16_3 = {"int_vereineid","integer",0,"NO","",""};
     column col16_4 = {"int_nummer","smallint",0,"YES",1,""};
-    column col16_5 = {"var_riege",varchar(5,false),5,"YES",1,""};
+    column col16_5 = {"var_riege",varchar(15,false),15,"YES",1,""};
     column col16_6 = {"int_startnummer","integer",0,"YES","",""};
     tfx_mannschaften << col16_1 << col16_2 << col16_3 << col16_4 << col16_5 << col16_6;
     cons con16_1 = {"pky_mannschaftenid","PRIMARY KEY","int_mannschaftenid","","","",""};
@@ -711,7 +711,7 @@ void CheckTable_Thread::run() {
                    "int_wettkaempfeid integer NOT NULL,"
                    "int_vereineid integer NOT NULL,"
                    "int_nummer smallint DEFAULT 1,"
-                   "var_riege "+varchar(5)+" DEFAULT 1,"
+                   "var_riege "+varchar(15)+" DEFAULT 1,"
                    "int_startnummer integer,"
                    "CONSTRAINT pky_mannschaftenid PRIMARY KEY (int_mannschaftenid),"
                    "CONSTRAINT fky_vereineid FOREIGN KEY (int_vereineid) REFERENCES tfx_vereine (int_vereineid) ON UPDATE RESTRICT ON DELETE RESTRICT,"
@@ -810,7 +810,7 @@ void CheckTable_Thread::run() {
     column col21_2 = {"int_veranstaltungenid","integer",0,"NO","",""};
     column col21_3 = {"int_disziplinenid","integer",0,"NO","",""};
     column col21_4 = {"int_statusid","integer",0,"NO","",""};
-    column col21_5 = {"var_riege",varchar(5,false),5,"YES","",""};
+    column col21_5 = {"var_riege",varchar(15,false),15,"YES","",""};
     column col21_6 = {"int_runde","smallint",0,"YES","",""};
     column col21_7 = {"bol_erstes_geraet","boolean",0,"YES","'false'",""};
     tfx_riegen_x_disziplinen << col21_1 << col21_2 << col21_3 << col21_4 << col21_5 << col21_6 << col21_7;
@@ -828,7 +828,7 @@ void CheckTable_Thread::run() {
                    "int_veranstaltungenid integer NOT NULL,"
                    "int_disziplinenid integer NOT NULL,"
                    "int_statusid integer NOT NULL,"
-                   "var_riege "+varchar(5)+","
+                   "var_riege "+varchar(15)+","
                    "int_runde smallint,"
                    "bol_erstes_geraet boolean DEFAULT 'false',"
                    "CONSTRAINT pky_riegen_x_disziplinenid PRIMARY KEY (int_riegen_x_disziplinenid),"
@@ -849,7 +849,7 @@ void CheckTable_Thread::run() {
     column col22_8 = {"int_startnummer","integer",0,"YES","",""};
     column col22_9 = {"bol_ak","boolean",0,"YES","'false'",""};
     column col22_10 = {"bol_startet_nicht","boolean",0,"YES","'false'",""};
-    column col22_11 = {"var_riege",varchar(5,false),5,"YES","",""};
+    column col22_11 = {"var_riege",varchar(15,false),15,"YES","",""};
     column col22_12 = {"var_comment",varchar(150,false),150,"YES","",""};
     tfx_wertungen << col22_1 << col22_2 << col22_3 << col22_4 << col22_5 << col22_6 << col22_7 << col22_8 << col22_9 << col22_10 << col22_11 << col22_12;
     cons con22_1 = {"pky_wertungenid","PRIMARY KEY","int_wertungenid","","","",""};
@@ -873,7 +873,7 @@ void CheckTable_Thread::run() {
                    "int_startnummer integer,"
                    "bol_ak boolean DEFAULT 'false',"
                    "bol_startet_nicht boolean DEFAULT 'false',"
-                   "var_riege "+varchar(5)+","
+                   "var_riege "+varchar(15)+","
                    "var_comment "+varchar(150)+","
                    "CONSTRAINT pky_wertungenid PRIMARY KEY (int_wertungenid),"
                    "CONSTRAINT fky_gruppenid FOREIGN KEY (int_gruppenid) REFERENCES tfx_gruppen (int_gruppenid) ON UPDATE RESTRICT ON DELETE CASCADE,"

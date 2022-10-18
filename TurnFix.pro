@@ -4,6 +4,7 @@ INCLUDEPATH += .
 QT += widgets xml sql network printsupport
 TRANSLATIONS = lang/turnfix_de.ts
 RC_FILE = turnfix.rc
+CONFIG += c++14
 
 CONFIG(release, debug|release) {
     CONFIG += release

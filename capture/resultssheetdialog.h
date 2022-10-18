@@ -2,6 +2,7 @@
 #define RESULTSSHEETDIALOG_H
 #include <QDialog>
 #include <QPointer>
+#include <QSortFilterProxyModel>
 
 namespace Ui {
 class ResultsSheetDialog;
@@ -31,6 +32,7 @@ private slots:
 private:
     Ui::ResultsSheetDialog *ui;
     ResultsSheetTableModel *pe_model;
+    QSortFilterProxyModel * m_sortFilterModel = nullptr;
     EntityManager* m_em;
     Event *m_event;
     void calc();

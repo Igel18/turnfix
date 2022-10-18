@@ -103,7 +103,7 @@ QList<const DBTable *> DBChecker::tableData()
     //    team->addColumn("int_wettkaempfeid", ColumnType::Integer, 0, false);
     //    team->addColumn("int_vereineid", ColumnType::Integer, 0, false);
     //    team->addColumn("int_nummer", ColumnType::SmallInt, 0, true, "1");
-    //    team->addColumn("var_riege", ColumnType::Varchar, 5, true, "1");
+    //    team->addColumn("var_riege", ColumnType::Varchar, 15, true, "1");
     //    team->addColumn("int_startnummer", ColumnType::Integer);
     //    team->addContraint("fky_vereineid",
     //                       "tfx_vereine",
@@ -176,7 +176,7 @@ QList<const DBTable *> DBChecker::tableData()
     //    squadDiscipline->addColumn("int_veranstaltungenid", ColumnType::Integer, 0, false);
     //    squadDiscipline->addColumn("int_disziplinenid", ColumnType::Integer, 0, false);
     //    squadDiscipline->addColumn("int_statusid", ColumnType::Integer, 0, false);
-    //    squadDiscipline->addColumn("var_riege", ColumnType::Varchar, 5);
+    //    squadDiscipline->addColumn("var_riege", ColumnType::Varchar, 15);
     //    squadDiscipline->addColumn("int_runde", ColumnType::SmallInt);
     //    squadDiscipline->addColumn("bol_erstes_geraet", ColumnType::Boolean, 0, true, "'false'");
     //    squadDiscipline->addContraint("fky_disziplinenid",
@@ -209,7 +209,7 @@ QList<const DBTable *> DBChecker::tableData()
     //    judgement->addColumn("int_startnummer", ColumnType::Integer);
     //    judgement->addColumn("bol_ak", ColumnType::Boolean, 0, true, "'false'");
     //    judgement->addColumn("bol_startet_nicht", ColumnType::Boolean, 0, true, "'false'");
-    //    judgement->addColumn("var_riege", ColumnType::Varchar, 5);
+    //    judgement->addColumn("var_riege", ColumnType::Varchar, 15);
     //    judgement->addColumn("var_comment", ColumnType::Varchar, 150);
     //    judgement->addContraint("fky_gruppenid",
     //                            "tfx_gruppen",

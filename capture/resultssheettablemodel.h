@@ -30,11 +30,12 @@ public:
     int getNextID(const QModelIndex &index);
     int getLastID(const QModelIndex &index);
 
+
 private:
     EntityManager* m_em;
     Event *m_event;
     QString riege;
-    QList< QStringList > starter;
+    QList< QVariantList > starter;
     QMap< int, QMap< int, double > > endwerte;
     QMap< int, QMap< int, QMap < int, double > > > detailwerte;
     QPointer< Discipline > m_pDisciplineInfo;
@@ -44,6 +45,7 @@ private:
     QList< int > extraColumns;
     QStringList extraColumnNames;
     QList< QPointer< Score > > m_pParticipants;
+
 };
 
 #endif
