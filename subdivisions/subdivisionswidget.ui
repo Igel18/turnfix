@@ -157,7 +157,7 @@
              </size>
             </property>
             <property name="maxLength">
-             <number>5</number>
+             <number>15</number>
             </property>
            </widget>
           </item>
