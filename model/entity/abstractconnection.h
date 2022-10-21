@@ -24,6 +24,8 @@ public:
 
     QString id() const;
 
+    QSqlDatabase * db() { return &m_database; }
+
     QString name() const;
     void setName(const QString &value);
 
@@ -33,7 +35,7 @@ public:
     static const DBTable *mapping();
 
 protected:
-    QMap<QString, QSqlDatabase> m_databases;
+    QSqlDatabase m_database;
 
 private:
     QUuid m_uuid;

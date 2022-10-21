@@ -6,6 +6,8 @@
 
 QList< LayoutField* > LayoutFieldRepository::loadAll( const int* id /*= nullptr*/ )
 {
+    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
+
     QueryBuilder<LayoutField> qb;
     qb.select(LayoutField::staticMetaObject, LayoutField::mapping());
     qb.join(Layout::staticMetaObject, Layout::mapping(), "LayoutField", "layout", "layoutId");
@@ -15,13 +17,21 @@ QList< LayoutField* > LayoutFieldRepository::loadAll( const int* id /*= nullptr*
 
     //Layoutfield     layoutField->addColumn("layoutId", "int_layoutid", ColumnType::Integer, 0, false)
 //    ->addContraint("fky_layoutid", "tfx_layouts", "int_layoutid", "RESTRICT", "CASCADE");
-
-    if( id ){
+    if(id) {
         qb.where("LayoutField", "id", *id );
     }
-
-    QList<LayoutField *> output = qb.query( QSqlDatabase::database( entityManager()->connectionName() ) );
-
+    QList<LayoutField *> output = qb.query(db);
     return output;
 }
 
+QList< LayoutField* > LayoutFieldRepository::loadLayout( int id )
+{
+    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
+
+    QueryBuilder<LayoutField> qb;
+    qb.select(LayoutField::staticMetaObject, LayoutField::mapping());
+    qb.join(Layout::staticMetaObject, Layout::mapping(), "LayoutField", "layout", "layoutId");
+    qb.where("LayoutField", "layoutId", id );
+    QList<LayoutField *> output = qb.query(db);
+    return output;
+}

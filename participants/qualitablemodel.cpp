@@ -80,7 +80,7 @@ bool QualificationStandardsTableModel::setData(const QModelIndex &index,
                                                const QVariant &value,
                                                int role)
 {
-    Event *event = Session::getInstance()->getEvent();
+    Event *event = Session::instance()->getEvent();
 
     if (index.isValid() && role == Qt::EditRole) {
         QSqlQuery query;

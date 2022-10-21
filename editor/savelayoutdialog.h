@@ -2,6 +2,7 @@
 #define SAVELAYOUTDIALOG_H
 
 #include <QDialog>
+#include <QSqlDatabase>
 
 namespace Ui {
 class SaveLayoutDialog;
@@ -26,6 +27,8 @@ private slots:
 private:
     Ui::SaveLayoutDialog *ui;
     QList<EditorGraphicsItem *> items;
+
+    QSqlDatabase db;
 };
 
 #endif // SAVELAYOUTDIALOG_H

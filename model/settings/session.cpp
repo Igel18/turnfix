@@ -5,7 +5,7 @@
 #include <QWidget>
 
 
-Session *Session::instance = nullptr;
+Session *Session::m_instance = nullptr;
 MainWindow* Session::m_pMainWindow = nullptr;
 
 MainWindow* Session::mainWindow()
@@ -46,38 +46,38 @@ Event* Session::getEvent()
     return m_event;
 }
 
-AbstractConnection* Session::getConnectoin()
+AbstractConnection* Session::connection()
 {
-    return m_connectoin;
+    return m_connection;
 }
 
-void Session::setConnectoin( AbstractConnection* connection )
+void Session::setConnection( AbstractConnection* connection )
 {
-    m_connectoin = connection;
+    m_connection = connection;
 }
 
-Session* Session::getInstance()
+Session* Session::instance()
 {
     static QMutex mutex;
-    if (!instance)
+    if (!m_instance)
     {
         mutex.lock();
 
-        if (!instance)
+        if (!m_instance)
         {
-            instance = new Session;
+            m_instance = new Session;
         }
 
         mutex.unlock();
     }
-    return instance;
+    return m_instance;
 }
 
 void Session::dropInstance()
 {
     static QMutex mutex;
     mutex.lock();
-    delete instance;
-    instance = nullptr;
+    delete m_instance;
+    m_instance = nullptr;
     mutex.unlock();
 }

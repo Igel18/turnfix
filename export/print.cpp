@@ -20,8 +20,8 @@ QPrinter::Orientation Print::orientation = QPrinter::Portrait;
 int Print::headFootID = 0;
 
 Print::Print() : QThread() {
-    m_em = Session::getInstance()->getEntityManager();
-    m_event = Session::getInstance()->getEvent();
+    m_em = Session::instance()->getEntityManager();
+    m_event = Session::instance()->getEvent();
 
     showPreview = false;
     selectClub = false;
@@ -239,8 +239,8 @@ void Print::run() {
 
     QSqlDatabase db;
 
-    auto pConnectoin = Session::getInstance()->getConnectoin();
-    auto pPSQLConnection = qobject_cast< PostgreSQLConnection* >( pConnectoin );
+    auto pConnection = Session::instance()->instance();
+    auto pPSQLConnection = qobject_cast< PostgreSQLConnection* >( pConnection );
 
     if( pPSQLConnection ){
         auto pThreadConnection = new PostgreSQLConnection();

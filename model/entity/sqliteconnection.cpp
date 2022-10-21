@@ -22,7 +22,7 @@ bool SQLiteConnection::connect(const QString &name)
         emit errorOccured(db.lastError().text());
     } else {
         QSqlQuery("PRAGMA foreign_keys=true", db);
-        m_databases.insert(name, db);
+        m_database = db;
     }
 
     return successful;

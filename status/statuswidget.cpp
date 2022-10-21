@@ -33,8 +33,8 @@ StatusWidget::~StatusWidget()
 
 void StatusWidget::updateStatus()
 {
-    m_event = Session::getInstance()->getEvent();
-    m_em = Session::getInstance()->getEntityManager();
+    m_event = Session::instance()->getEvent();
+    m_em = Session::instance()->getEntityManager();
 
     int eventId = m_event->id();
     int round = m_event->round();

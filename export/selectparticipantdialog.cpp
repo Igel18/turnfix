@@ -16,8 +16,8 @@ SelectParticipantDialog::SelectParticipantDialog( QWidget *parent )
     ui->setupUi( this );
     setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
-    m_em = Session::getInstance()->getEntityManager();
-    m_event = Session::getInstance()->getEvent();
+    m_em = Session::instance()->getEntityManager();
+    m_event = Session::instance()->getEvent();
 
     er_model = new ResultsTableModel( m_em );
     ui->tbl_tn->setModel(er_model);

@@ -53,7 +53,7 @@ bool PostgreSQLConnection::connect(const QString &connectionName)
     if (!successful) {
         emit errorOccured(db.lastError().text());
     } else {
-        m_databases.insert(connectionName, db);
+        m_database = db;
     }
 
     return successful;

@@ -59,8 +59,8 @@ ExportWidget::~ExportWidget()
 
 void ExportWidget::updateData()
 {
-    m_em = Session::getInstance()->getEntityManager();
-    m_event = Session::getInstance()->getEvent();
+    m_em = Session::instance()->getEntityManager();
+    m_event = Session::instance()->getEvent();
 
     auto db = QSqlDatabase::database( m_em->connectionName() );
     QString urkunde = ui->cmb_urkunde->currentText();

@@ -19,7 +19,7 @@ QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QLis
     if (rnd == -1)
         rnd = competition->event()->round();
 
-    QSqlDatabase db = QSqlDatabase::database( Session::getInstance()->getEntityManager()->connectionName() );
+    QSqlDatabase db = QSqlDatabase::database( Session::instance()->getEntityManager()->connectionName() );
 
     QSqlQuery wk( db );
     wk.prepare("SELECT bol_streichwertung, int_qualifikation, int_wertungen, int_wettkaempfeid, bol_sortasc, bol_gerpkt, int_anz_streich, int_typ FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? AND var_nummer=? LIMIT 1");
@@ -308,7 +308,7 @@ QList< QStringList > Result_Calc::resultArrayNew( Competition *competition, QLis
 }
 
 QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,bool useExtraScore, QString detailQuery) {
-    QSqlDatabase db = QSqlDatabase::database( Session::getInstance()->getEntityManager()->connectionName() );
+    QSqlDatabase db = QSqlDatabase::database( Session::instance()->getEntityManager()->connectionName() );
 
     QSqlQuery wk( db );
     wk.prepare("SELECT bol_streichwertung, int_qualifikation, int_wertungen, int_wettkaempfeid FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? AND var_nummer=? LIMIT 1");
@@ -438,7 +438,7 @@ QList<QStringList> Result_Calc::roundResultArrayNew(Competition *competition,boo
 }
 
 QList<QStringList> Result_Calc::tabllenArray(Competition *competition) {
-    QSqlDatabase db = QSqlDatabase::database( Session::getInstance()->getEntityManager()->connectionName() );
+    QSqlDatabase db = QSqlDatabase::database( Session::instance()->getEntityManager()->connectionName() );
 
     QSqlQuery rnd( db );
     rnd.prepare("SELECT int_runde FROM tfx_veranstaltungen WHERE int_veranstaltungenid=? OR int_hauptwettkampf=? ORDER BY int_runde");

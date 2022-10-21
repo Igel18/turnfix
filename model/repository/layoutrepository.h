@@ -12,6 +12,7 @@ public:
     using AbstractRepository::AbstractRepository;
 
     QList< Layout* > loadAll( const int* id = nullptr );
+
 };
 
 #endif // LAYOUTREPOSITORY_H

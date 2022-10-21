@@ -18,10 +18,10 @@ public:
     void setEvent(Event* m_event);
     Event* getEvent();
 
-    AbstractConnection* getConnectoin();
-    void setConnectoin( AbstractConnection* connection );
+    AbstractConnection * connection();
+    void setConnection( AbstractConnection *connection );
 
-    static Session* getInstance();
+    static Session* instance();
     static void dropInstance();
 
     static MainWindow* mainWindow();
@@ -29,9 +29,9 @@ public:
 private:
     EntityManager* m_em = nullptr;
     Event* m_event = nullptr;
-    AbstractConnection* m_connectoin = nullptr;
+    AbstractConnection *m_connection = nullptr;
 
-    static Session* instance;
+    static Session *m_instance;
     static MainWindow* m_pMainWindow;
 
     Session() {}

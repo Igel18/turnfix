@@ -111,6 +111,10 @@ void ResultsSheetDialog::fillPETable()
     }
     ui->pe_table->setCurrentIndex(pe_model->index(0, 4));
     ui->pe_table->edit(ui->pe_table->currentIndex());
+
+    // sort by "StNr." then "WK" by default
+    m_sortFilterModel->sort(0);
+    m_sortFilterModel->sort(3);
 }
 
 void ResultsSheetDialog::finishEdit()

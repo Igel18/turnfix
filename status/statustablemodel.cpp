@@ -77,7 +77,7 @@ QVariant StatusTableModel::headerData(int section, Qt::Orientation orientation, 
 
 void StatusTableModel::setQuery(const QSqlQuery &qry)
 {
-    m_em = Session::getInstance()->getEntityManager();
+    m_em = Session::instance()->getEntityManager();
     db = QSqlDatabase::database( m_em->connectionName() );
 
     beginResetModel();

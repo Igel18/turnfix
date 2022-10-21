@@ -106,7 +106,7 @@ void LoginDialog::doLogin()
     connectionEstablished = connection->connect("main");
 
     if (connectionEstablished) {
-        Session::getInstance()->setConnectoin( connection );
+        Session::instance()->setConnection( connection );
         em->setConnectionName("main");
         ui->eventsWidget->setEnabled(true);
         eventModel->getEvents();

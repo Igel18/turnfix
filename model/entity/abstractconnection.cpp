@@ -25,12 +25,7 @@ void AbstractConnection::setName(const QString &value)
 
 void AbstractConnection::close(const QString &connectionName)
 {
-    if (!m_databases.contains(connectionName)) {
-        return;
-    }
-
-    QSqlDatabase database = m_databases.value(connectionName);
-    database.close();
+    m_database.close();
 }
 
 const DBTable *AbstractConnection::mapping()

@@ -12,6 +12,7 @@ public:
     using AbstractRepository::AbstractRepository;
 
     QList< LayoutField* > loadAll( const int* id = nullptr );
+    QList< LayoutField* > loadLayout( int layoutId );
 };
 
 #endif // LAYOUTFIELDREPOSITORY_H

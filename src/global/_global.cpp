@@ -36,8 +36,7 @@ QStringList _global::getFields() {
 }
 
 QString _global::wkBez(Event *event, QString swknr) {
-    auto em = Session::getInstance()->getEntityManager();
-    auto db = QSqlDatabase::database( em->connectionName() );
+    auto db = QSqlDatabase::database( Session::instance()->getEntityManager()->connectionName() );
 
     QSqlQuery query( db );
     query.prepare("SELECT bol_ak_anzeigen, yer_von, yer_bis, dat_von FROM tfx_wettkaempfe INNER JOIN tfx_veranstaltungen USING (int_veranstaltungenid) WHERE int_veranstaltungenid=? AND var_nummer=? ORDER BY var_nummer LIMIT 1");

@@ -14,7 +14,7 @@ StartingOrderWidget::StartingOrderWidget(QWidget *parent)
     ui->setupUi(this);
     ui->listWidget_2->installEventFilter(this);
 
-    this->m_event = Session::getInstance()->getEvent();
+    this->m_event = Session::instance()->getEvent();
 
     connect(ui->cmb_riege, SIGNAL(currentIndexChanged(QString)), this, SLOT(squadChange(QString)));
     connect(ui->cmb_dis, SIGNAL(currentIndexChanged(int)), this, SLOT(load()));

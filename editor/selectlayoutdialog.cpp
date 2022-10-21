@@ -4,6 +4,7 @@
 #include "model/entity/event.h"
 #include "model/repository/layoutrepository.h"
 #include "masterdata/layoutmodel.h"
+#include "model/settings/session.h"
 #include <QSqlQuery>
 
 SelectLayoutDialog::SelectLayoutDialog(QWidget *parent)
@@ -12,9 +13,6 @@ SelectLayoutDialog::SelectLayoutDialog(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    connect(ui->cmb_layout, SIGNAL(currentIndexChanged(int)), this, SLOT(layoutSelectionChange()));
-    connect(ui->bbx_done, SIGNAL(accepted()), this, SLOT(closeDialog()));
-    connect(ui->bbx_done, SIGNAL(rejected()), this, SLOT(close()));
 
 
 //    QSqlQuery layoutListQuery;
@@ -26,16 +24,17 @@ SelectLayoutDialog::SelectLayoutDialog(QWidget *parent)
 //        ui->cmb_layout->addItem(layoutListQuery.value(1).toString(),
 //                                layoutListQuery.value(0).toInt());
 //    }
-}
 
-void SelectLayoutDialog::setup(EntityManager *em)
-{
-    m_em = em;
+    m_em = Session::instance()->getEntityManager();
     auto layouts = m_em->layoutRepository()->loadAll();
 
     for(int i=0;i<layouts.size();i++){
         ui->cmb_layout->addItem(layouts[i]->name(),layouts[i]->id());
     }
+
+    connect(ui->cmb_layout, SIGNAL(currentIndexChanged(int)), this, SLOT(layoutSelectionChange()));
+    connect(ui->bbx_done, SIGNAL(accepted()), this, SLOT(closeDialog()));
+    connect(ui->bbx_done, SIGNAL(rejected()), this, SLOT(close()));
 }
 
 SelectLayoutDialog::~SelectLayoutDialog()
@@ -45,8 +44,6 @@ SelectLayoutDialog::~SelectLayoutDialog()
 
 void SelectLayoutDialog::layoutSelectionChange()
 {
-
-
 //    QSqlQuery getCommentQuery;
 //    getCommentQuery.prepare("SELECT txt_comment FROM tfx_layouts WHERE int_layoutid=?");
 //    getCommentQuery.bindValue(0, ui->cmb_layout->itemData(ui->cmb_layout->currentIndex()));

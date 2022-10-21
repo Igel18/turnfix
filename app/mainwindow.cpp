@@ -240,8 +240,8 @@ void MainWindow::sendMLists() {
 
 void MainWindow::initEvent()
 {
-    Session::getInstance()->setEntityManager( m_em );
-    Session::getInstance()->setEvent( m_event );
+    Session::instance()->setEntityManager( m_em );
+    Session::instance()->setEvent( m_event );
 
     ui->lbl_wk->setText( m_event->name() );
     ui->lbl_ort->setText( m_event->venue()->nameAndCity() );
@@ -250,7 +250,6 @@ void MainWindow::initEvent()
     ui->rg_tab->setup( m_event, m_em );
     ui->pe_tab->setup( m_event, m_em );
     ui->er_tab->setup( m_event, m_em );
-    ui->ed_tab->setup(m_em);
     ui->dr_tab->updateData();
     ui->st_tab->updateStatus();
 }

@@ -1,5 +1,7 @@
 #include "savelayoutdialog.h"
 #include "editorgraphicsitem.h"
+#include "model/settings/session.h"
+#include "model/entitymanager.h"
 #include "ui_savelayoutdialog.h"
 #include <QMessageBox>
 #include <QSqlQuery>
@@ -9,15 +11,19 @@ SaveLayoutDialog::SaveLayoutDialog(QWidget *parent)
     , ui(new Ui::SaveLayoutDialog)
 {
     ui->setupUi(this);
-    connect(ui->cmb_layout,SIGNAL(editTextChanged(QString)),this,SLOT(layoutSelectionChange()));
-    connect(ui->bbx_done,SIGNAL(accepted()),this,SLOT(closeDialog()));
-    connect(ui->bbx_done,SIGNAL(rejected()), this, SLOT(close()));
-    QSqlQuery layoutListQuery;
+
+    db = QSqlDatabase::database(Session::instance()->getEntityManager()->connectionName());
+
+    QSqlQuery layoutListQuery(db);
     layoutListQuery.prepare("SELECT int_layoutid, var_name FROM tfx_layouts ORDER BY var_name");
     layoutListQuery.exec();
     while (layoutListQuery.next()) {
         ui->cmb_layout->addItem(layoutListQuery.value(1).toString(),layoutListQuery.value(0).toInt());
     }
+
+    connect(ui->cmb_layout,SIGNAL(editTextChanged(QString)),this,SLOT(layoutSelectionChange()));
+    connect(ui->bbx_done,SIGNAL(accepted()),this,SLOT(closeDialog()));
+    connect(ui->bbx_done,SIGNAL(rejected()), this, SLOT(close()));
 }
 
 SaveLayoutDialog::~SaveLayoutDialog()
@@ -27,8 +33,9 @@ SaveLayoutDialog::~SaveLayoutDialog()
 
 void SaveLayoutDialog::closeDialog()
 {
+
     int layoutid=-1;
-    QSqlQuery layoutQuery;
+    QSqlQuery layoutQuery(db);
     layoutQuery.prepare("SELECT int_layoutid FROM tfx_layouts WHERE var_name=?");
     layoutQuery.bindValue(0,ui->cmb_layout->currentText());
     layoutQuery.exec();
@@ -42,7 +49,7 @@ void SaveLayoutDialog::closeDialog()
             layoutid = layoutQuery.value(0).toInt();
         }
     }
-    QSqlQuery createLayout;
+    QSqlQuery createLayout(db);
     if (layoutid==-1) {
         createLayout.prepare("INSERT INTO tfx_layouts (var_name,txt_comment) VALUES (?,?)");
     } else {
@@ -54,7 +61,8 @@ void SaveLayoutDialog::closeDialog()
     createLayout.exec();
     if (layoutid == -1) {
         if (_global::getDBTyp() == 0) {
-            QSqlQuery getLayoutID("SELECT last_value FROM tfx_layouts_int_layoutid_seq");
+            QSqlQuery getLayoutID(db);
+            getLayoutID.prepare("SELECT last_value FROM tfx_layouts_int_layoutid_seq");
             getLayoutID.next();
             layoutid = getLayoutID.value(0).toInt();
         } else {
@@ -66,7 +74,7 @@ void SaveLayoutDialog::closeDialog()
         _global::itemdata data = items.at(i)->getItemData();
         bool insert = true;
         if (data.id > 0) {
-            QSqlQuery getLayoutID;
+            QSqlQuery getLayoutID(db);
             getLayoutID.prepare("SELECT int_layoutid FROM tfx_layout_felder WHERE int_layout_felderid=?");
             getLayoutID.bindValue(0,items.at(i)->getItemData().id);
             getLayoutID.exec();
@@ -76,7 +84,7 @@ void SaveLayoutDialog::closeDialog()
                 ids.append(items.at(i)->getItemData().id);
             }
         }
-        QSqlQuery insertLayoutFeld;
+        QSqlQuery insertLayoutFeld(db);
         if (insert) {
             insertLayoutFeld.prepare("INSERT INTO tfx_layout_felder (int_typ,var_font,rel_x,rel_y,rel_w,rel_h,var_value,int_align,int_layer,int_layoutid) VALUES (?,?,?,?,?,?,?,?,?,?)");
             insertLayoutFeld.bindValue(9,layoutid);
@@ -96,7 +104,8 @@ void SaveLayoutDialog::closeDialog()
         insertLayoutFeld.exec();
         if (insert) {
             if (_global::getDBTyp()==0) {
-                QSqlQuery getLayoutFeldID("SELECT last_value FROM tfx_layout_felder_int_layout_felderid_seq");
+                QSqlQuery getLayoutFeldID(db);
+                getLayoutFeldID.prepare("SELECT last_value FROM tfx_layout_felder_int_layout_felderid_seq");
                 getLayoutFeldID.next();
                 data.id = getLayoutFeldID.value(0).toInt();
             } else {
@@ -108,7 +117,7 @@ void SaveLayoutDialog::closeDialog()
             continue;
         }
     }
-    QSqlQuery deleteOldFields;
+    QSqlQuery deleteOldFields(db);
     deleteOldFields.prepare("DELETE FROM tfx_layout_felder WHERE int_layoutid=? AND int_layout_felderid NOT IN ("+_global::intListToString(ids)+")");
     deleteOldFields.bindValue(0,layoutid);
     deleteOldFields.exec();
@@ -117,7 +126,7 @@ void SaveLayoutDialog::closeDialog()
 
 void SaveLayoutDialog::layoutSelectionChange()
 {
-    QSqlQuery getCommentQuery;
+    QSqlQuery getCommentQuery(db);
     getCommentQuery.prepare("SELECT txt_comment FROM tfx_layouts WHERE var_name=?");
     getCommentQuery.bindValue(0,ui->cmb_layout->currentText());
     getCommentQuery.exec();

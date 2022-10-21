@@ -18,7 +18,6 @@ public:
     ~SelectLayoutDialog();
 
     int getLayoutID();
-    void setup(EntityManager *em);
 
 private slots:
     void layoutSelectionChange();
