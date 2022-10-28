@@ -39,9 +39,10 @@ DisciplineGroupDialog::DisciplineGroupDialog(DisciplineGroup *disciplineGroup,
     ui->tbl_group->setModel(m_itemModel);
 
     // Zwischenspeichern behebt folgendes Problem:
-    // Wird eine neue Gruppe angelegt, die Disziplinen enthält wird ein Query
-    // erzeugt, das als disciplineGroupId die 0 enthält. Das schlägt natürlich fehl.
-    // Mit dem Speichern wird sichergestellt, das beim Bestücken die Gruppe bereits eine
+    //Wird eine neue Gruppe angelegt, die Disziplinen enthält, wird ein Query erzeugt,
+    // das als  disciplineGroupId die 0 enthält. Das schlägt später beim Speicher dann fehl,
+    // weil die Null keine valide Id ist.
+    // Mit dem Zwischenspeichern wird sichergestellt, das beim Bestücken die Gruppe bereits eine
     // Id hat. Schöner wäre es in der if(nullptr) Abfrage gewesen, geht aber nicht,
     // weil Model und ItemModel gesetzt werden müssen.
     this->save();
