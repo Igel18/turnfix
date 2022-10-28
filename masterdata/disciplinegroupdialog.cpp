@@ -38,6 +38,14 @@ DisciplineGroupDialog::DisciplineGroupDialog(DisciplineGroup *disciplineGroup,
     m_itemModel->fetchItems(m_disciplineGroup);
     ui->tbl_group->setModel(m_itemModel);
 
+    // Zwischenspeichern behebt folgendes Problem:
+    // Wird eine neue Gruppe angelegt, die Disziplinen enthält wird ein Query
+    // erzeugt, das als disciplineGroupId die 0 enthält. Das schlägt natürlich fehl.
+    // Mit dem Speichern wird sichergestellt, das beim Bestücken die Gruppe bereits eine
+    // Id hat. Schöner wäre es in der if(nullptr) Abfrage gewesen, geht aber nicht,
+    // weil Model und ItemModel gesetzt werden müssen.
+    this->save();
+
     QList<QHeaderView::ResizeMode> resizeModes = {QHeaderView::Stretch,
                                                   QHeaderView::ResizeToContents};
     QList<int> sizes = {300, 250};
@@ -93,6 +101,8 @@ void DisciplineGroupDialog::save()
 {
     m_disciplineGroup->setName(ui->txt_name->text());
     m_disciplineGroup->setComment(ui->txt_comment->text());
+
+    m_disciplineGroup->setName("Test");
 
     m_em->startTransaction();
     m_em->disciplineGroupRepository()->persist(m_disciplineGroup);

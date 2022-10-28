@@ -4,13 +4,13 @@
 
 DBTable *DisciplineGroup::initializeMapping()
 {
-    DBTable *disciplinGroup = new DBTable("tfx_disziplinen_gruppen");
-    disciplinGroup
+    DBTable *disciplineGroup = new DBTable("tfx_disziplinen_gruppen");
+    disciplineGroup
         ->addColumn("id", "int_disziplinen_gruppenid", ColumnType::Integer, 0, false, "", "", true);
-    disciplinGroup->addColumn("name", "var_name", ColumnType::Varchar, 100);
-    disciplinGroup->addColumn("comment", "txt_comment", ColumnType::Text);
+    disciplineGroup->addColumn("name", "var_name", ColumnType::Varchar, 100);
+    disciplineGroup->addColumn("comment", "txt_comment", ColumnType::Text);
 
-    return disciplinGroup;
+    return disciplineGroup;
 }
 
 const DBTable *DisciplineGroup::m_mapping = DisciplineGroup::initializeMapping();

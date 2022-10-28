@@ -29,7 +29,7 @@ private slots:
     void enableOptions(int typ);
     void moveUp();
     void moveDown();
-    void markGroup();
+    void selectGroup();
 
     void orderMoveUp();
     void orderMoveDown();

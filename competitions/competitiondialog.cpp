@@ -3,14 +3,18 @@
 #include "masterdata/disciplinegroupmodel.h"
 #include "masterdata/divisionmodel.h"
 #include "model/entity/competition.h"
+#include "model/entity/disciplinegroup.h"
+#include "model/entity/disciplinegroupitem.h"
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
+#include "model/repository/disciplinegroupitemrepository.h""
 #include "src/global/header/_delegates.h"
 #include "src/global/header/_global.h"
 #include "ui_competitiondialog.h"
 #include <QDate>
 #include <QList>
 #include <QMessageBox>
+#include <QModelIndexList>
 #include <QStandardItemModel>
 #include <QToolBar>
 
@@ -89,7 +93,7 @@ CompetitionDialog::CompetitionDialog(Competition *competition, EntityManager *em
     connect(ui->but_save, SIGNAL(clicked()), this, SLOT(save()));
     connect(ui->but_up, SIGNAL(clicked()), this, SLOT(moveUp()));
     connect(ui->but_down, SIGNAL(clicked()), this, SLOT(moveDown()));
-    connect(ui->but_mark, SIGNAL(clicked()), this, SLOT(markGroup()));
+    connect(ui->but_mark, SIGNAL(clicked()), this, SLOT(selectGroup()));
     connect(ui->but_orderup, SIGNAL(clicked()), this, SLOT(orderMoveUp()));
     connect(ui->but_orderdown, SIGNAL(clicked()), this, SLOT(orderMoveDown()));
     connect(ui->but_orderleft, SIGNAL(clicked()), this, SLOT(orderMoveLeft()));
@@ -582,20 +586,38 @@ void CompetitionDialog::fillTable2()
     //    }
 }
 
-void CompetitionDialog::markGroup()
+void CompetitionDialog::selectGroup()
 {
-    //    QSqlQuery getRows;
-    //    getRows.prepare("SELECT int_disziplinenid, int_pos FROM tfx_disgrp_x_disziplinen WHERE "
-    //                    "int_disziplinen_gruppenid=? ORDER BY int_pos");
-    //    getRows.bindValue(0, ui->cmb_groups->itemData(ui->cmb_groups->currentIndex()));
-    //    getRows.exec();
-    //    while (getRows.next()) {
-    //        if (model->findItems(getRows.value(0).toString(), Qt::MatchExactly, 8).isEmpty())
-    //            continue;
-    //        int row = model->findItems(getRows.value(0).toString(), Qt::MatchExactly, 8).at(0)->row();
-    //        model->insertRow(getRows.value(1).toInt(), model->takeRow(row));
-    //        model->item(getRows.value(1).toInt(), 0)->setCheckState(Qt::Checked);
-    //    }
+    // fetch DisciplineGroup from drop down
+    DisciplineGroup * group = ui->cmb_groups->currentData().value<DisciplineGroup*>();
+    // fetch corresponding DisciplineGroupItems
+    QList<DisciplineGroupItem *> items = m_em->disciplineGroupItemRepository()->loadByGroup(group);
+
+    int selectId = -1;
+    int tableItemId = -1;
+    QModelIndex currentIndex;
+
+    // deselection loop
+    for ( int i=0; i < m_competitionDisciplineModel->rowCount(); ++i ) {
+        currentIndex = m_competitionDisciplineModel->index(i, 0);
+        m_competitionDisciplineModel->setData( currentIndex, Qt::Unchecked, Qt::CheckStateRole );
+    }
+
+    // selection loop
+    for ( DisciplineGroupItem * item : items ) {
+        selectId = item->disciplineId();
+
+        // loop through m_competitionDisciplineModel
+        for ( int i=0; i < m_competitionDisciplineModel->rowCount(); ++i ) {
+            currentIndex = m_competitionDisciplineModel->index(i, 0);
+
+            tableItemId = m_competitionDisciplineModel->data( currentIndex,  TF::IdRole).toInt();
+
+            // select the matches
+            if ( tableItemId == selectId )
+                m_competitionDisciplineModel->setData( currentIndex, Qt::Checked, Qt::CheckStateRole );
+        }
+    }
 }
 
 void CompetitionDialog::orderMoveUp()

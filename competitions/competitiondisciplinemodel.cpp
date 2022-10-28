@@ -113,7 +113,15 @@ bool CompetitionDisciplineModel::setData(const QModelIndex &index, const QVarian
         case 0:{
             auto discipline = m_disciplines.at(index.row());
             auto competDiscipline = competitionDiscipline(discipline->id());
-            competDiscipline->setSelected(!competDiscipline->selected());
+
+            if ( value.toInt() == Qt::Checked && !competDiscipline->selected() ) {
+                competDiscipline->setSelected(true);
+                emit dataChanged(index,index);
+            } else if ( value.toInt() == Qt::Unchecked && competDiscipline->selected() ) {
+                competDiscipline->setSelected(false);
+                emit dataChanged(index,index);
+            }
+
             return true;
         }
         case 6:{

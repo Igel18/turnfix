@@ -31,6 +31,7 @@ protected:
     _global::itemdata values;
     qreal mmToPixel(double mm);
     QPrinter *p;
+
 signals:
     void sizePosChanged(EditorGraphicsItem *, QRectF);
     void clicked(EditorGraphicsItem *);

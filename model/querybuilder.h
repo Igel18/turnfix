@@ -157,6 +157,7 @@ public:
 
             for (int i = metaObject.propertyOffset(); i < metaObject.propertyCount(); i++) {
                 QMetaProperty property = metaObject.property(i);
+
                 if (!property.isStored() || QString(property.name()) == "id") {
                     continue;
                 }

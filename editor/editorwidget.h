@@ -31,10 +31,12 @@ public:
     void setup(EntityManager *em);
 
     static QList<EditorGraphicsItem *> items;
+
 public slots:
     static QList<_global::itemdata> getItems();
     static QList<EditorGraphicsItem *> getEditorItems();
     void initPreview(QList<_global::itemdata> values);
+
 private slots:
     void addField();
     void delField();
