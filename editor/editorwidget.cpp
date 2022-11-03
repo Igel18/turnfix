@@ -18,7 +18,9 @@
 #include <QtSpinBoxFactory>
 #include <QtTreePropertyBrowser>
 
+// Felder in diesem Editor
 QList<EditorGraphicsItem *> EditorWidget::items = QList<EditorGraphicsItem *>();
+
 
 EditorWidget::EditorWidget(QWidget *parent)
     : QWidget(parent)
@@ -69,6 +71,8 @@ EditorWidget::EditorWidget(QWidget *parent)
     man_db = new QtGroupPropertyManager(ui->wdg_props);
     prop_db_root = man_db->addProperty("Datenbankelement");
     prop_db = val_db->addProperty("DB-Feld");
+
+    // Datenbankfelder die möglich sind werden in fields gespeichert
     QStringList fields = _global::getFields();
     val_db->setEnumNames(prop_db,fields);
     prop_db_root->addSubProperty(prop_size);
@@ -178,11 +182,13 @@ QList<EditorGraphicsItem *> EditorWidget::getEditorItems()
 
 void EditorWidget::addNewItem(_global::itemdata lst)
 {
-    scene->addTurnFixItem(lst);
+    auto editorGraphicsItem = scene->addTurnFixItem(lst);
+
+    items.append(editorGraphicsItem);
     int row = items.size()-1;
     QStringList types;
-    types << "DB" << "TEXT" << "GRAFIK" << "LINIE";
     QStringList fields = _global::getFields();
+    types << "DB" << "TEXT" << "GRAFIK" << "LINIE";
     QString text;
     switch (lst.typ) {
     case 0: text = fields.at(lst.value.toInt()); break;
@@ -190,6 +196,7 @@ void EditorWidget::addNewItem(_global::itemdata lst)
     case 2: text = lst.value.toString(); break;
     case 3: text = "Linienstärke: " + lst.value.toString(); break;
     }
+
     ui->tbl_items->insertRow(row);
     ui->tbl_items->setItem(row, 0, new QTableWidgetItem(types.at(lst.typ)));
     ui->tbl_items->setItem(row, 1, new QTableWidgetItem(text));
