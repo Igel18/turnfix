@@ -235,15 +235,17 @@ void EditorWidget::load()
         for ( LayoutField * field : fields ) {
             qDebug() << field->value();
             _global::itemdata v = {
-                field->align(),
-                field->layer(),
+                field->id(),
+                field->type(),
                 field->x(),
                 field->y(),
                 field->width(),
                 field->height(),
                 field->font(),
-                field->value()
+                field->value(),
+                field->align()
             };
+
             addNewItem(v);
         }
     }

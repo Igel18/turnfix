@@ -10,6 +10,7 @@
 #include "src/global/header/settings.h"
 #include <QDateTime>
 #include <QSqlQuery>
+#include <QStandardItemModel>
 
 int Print::detailinfo = 0;
 int Print::coverID = 0;
@@ -239,7 +240,7 @@ void Print::run() {
 
     QSqlDatabase db;
 
-    auto pConnection = Session::instance()->instance();
+    auto pConnection = Session::instance()->connection();
     auto pPSQLConnection = qobject_cast< PostgreSQLConnection* >( pConnection );
 
     if( pPSQLConnection ){
@@ -321,14 +322,22 @@ void Print::run() {
     }
 
     //Riegen selektion
-    QSqlQuery riegenQuery( db );
-    riegenQuery.prepare("SELECT var_riege, COUNT(DISTINCT int_teilnehmerid)+COUNT(DISTINCT int_gruppenid) as \"count\" FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_riege != '' GROUP BY var_riege ORDER BY var_riege");
-    riegenQuery.bindValue( 0, m_event->mainEvent()->id() );
-    riegenQuery.exec();
+    auto pModel = m_event->findChild< QStandardItemModel* >( "SquadsModel", Qt::FindDirectChildrenOnly );
+    // QStringList riegenNumbers;
     riegenNumbers.clear();
-    while (riegenQuery.next()) {
-        riegenNumbers.append(riegenQuery.value(0).toString());
+    for( auto i = 0; i < pModel->rowCount(); ++i ){
+       riegenNumbers.append( pModel->item( i )->text() );
     }
+
+   // QSqlQuery riegenQuery( db );
+   // riegenQuery.prepare("SELECT var_riege, COUNT(DISTINCT int_teilnehmerid)+COUNT(DISTINCT int_gruppenid) as \"count\" FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND var_riege != '' GROUP BY var_riege ORDER BY var_riege");
+   // riegenQuery.bindValue( 0, m_event->mainEvent()->id() );
+   // riegenQuery.exec();
+    //riegenNumbers.clear();
+
+    //while (riegenQuery.next()) {
+    //    riegenNumbers.append(riegenQuery.value(0).toString());
+    //}
 
     if( selectRiege ) {
         emit requestRiegen();
@@ -348,18 +357,21 @@ void Print::run() {
         if (finish)
             return;
         auto competition = m_em->competitionRepository()->fetchByNumber( m_event, selectedTNWK, &db );
-        if (competition->type() == 1) {
-            QList<int> selectedTeamTeilnehmer;
-            QSqlQuery teamTeilnehmer( db );
-            teamTeilnehmer.prepare("SELECT int_wertungenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_runde=? AND tfx_wertungen.int_mannschaftenid IN ("+_global::intListToString(selectedTN)+")");
-            teamTeilnehmer.bindValue( 0, m_event->round() );
-            teamTeilnehmer.exec();
-            while (teamTeilnehmer.next()) {
-                selectedTeamTeilnehmer.append(teamTeilnehmer.value(0).toInt());
+        if (competition != nullptr)
+        {
+            if (competition->type() == 1) {
+                QList<int> selectedTeamTeilnehmer;
+                QSqlQuery teamTeilnehmer( db );
+                teamTeilnehmer.prepare("SELECT int_wertungenid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_runde=? AND tfx_wertungen.int_mannschaftenid IN ("+_global::intListToString(selectedTN)+")");
+                teamTeilnehmer.bindValue( 0, m_event->round() );
+                teamTeilnehmer.exec();
+                while (teamTeilnehmer.next()) {
+                    selectedTeamTeilnehmer.append(teamTeilnehmer.value(0).toInt());
+                }
+                teilnehmerString = _global::intListToString(selectedTeamTeilnehmer);
+            } else {
+                teilnehmerString = _global::intListToString(selectedTN);
             }
-            teilnehmerString = _global::intListToString(selectedTeamTeilnehmer);
-        } else {
-            teilnehmerString = _global::intListToString(selectedTN);
         }
     }
 

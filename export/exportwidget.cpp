@@ -128,30 +128,30 @@ void ExportWidget::startPrint()
         ausdruck->setSelectClub(ui->chk_res_cl->isChecked());
         ausdruck->setTypeString("Ergebnisse");
     } break;
-    case 1: { //Riegen
+    case 1:  //Riegen
         Squad::setNewPageEach( ui->chk_rg_page->isChecked() );
         Squad::setOrder( ui->cmb_rg_sort->currentIndex() );
         ausdruck = new Squad();
         ausdruck->setSelectRiege(ui->chk_rg_select->isChecked());
         ausdruck->setTypeString("Riegen");
-    } break;
-    case 2: { //Meldeliste
-            ausdruck = new Registration();
-            ausdruck->setSelectClub(ui->chk_ve_select->isChecked());
-            ausdruck->setTypeString("Meldeliste");
-    } break;
-    case 3: { //Wettkampfbogen
+     break;
+    case 2:  //Meldeliste
+        ausdruck = new Registration();
+        ausdruck->setSelectClub(ui->chk_ve_select->isChecked());
+        ausdruck->setTypeString("Meldeliste");
+     break;
+    case 3:  //Wettkampfbogen
         JudgesSheet::setTeammode( ui->chk_bo_split->isChecked() );
         ausdruck = new JudgesSheet();
         ausdruck->setSelectRiege( true );
         ausdruck->setSelectDis( true );
-    } break;
-    case 4: { //Wettkampfkarte
-            Card::setPaperSize(QPrinter::A5);
-            ausdruck = new Card();
-            ausdruck->setSelectTN(true);
-    } break;
-    case 5: { //Urkunde
+     break;
+    case 4:  //Wettkampfkarte
+        Card::setPaperSize(QPrinter::A5);
+        ausdruck = new Card();
+        ausdruck->setSelectTN(true);
+     break;
+    case 5:  //Urkunde
         Certificate::setEineUrkunde(ui->chk_ur_single->isChecked());
         Certificate::setRundenErgebnisse(ui->chk_ur_runde->isChecked());
         Certificate::setPlatzWertung(ui->chk_ur_platz->isChecked());
@@ -159,39 +159,40 @@ void ExportWidget::startPrint()
         Certificate::setEinzelErgebnis(ui->chk_ur_einzelwertung->isChecked());
         ausdruck = new Certificate();
         ausdruck->setSelectTN(true);
-    } break;
+        ausdruck->setTypeString("Urkunde");
+     break;
     case 6:     //Einladung
         ausdruck = new Invitation(this->m_event);
         break;
-    case 7:   {  //Zeitplan
+    case 7:     //Zeitplan
         Timetable::setOrientation(QPrinter::Landscape);
         ausdruck = new Timetable( m_event );
-    } break;
-    case 8:  {  //Meldematrix
+     break;
+    case 8:    //Meldematrix
         RegistrationMatrix::setOrientation(QPrinter::Landscape);
         RegistrationMatrix::setTeamMode(false);
         ausdruck = new RegistrationMatrix();
-    } break;
-    case 9: {   //Mannschaftsmatrix
+     break;
+    case 9:    //Mannschaftsmatrix
         RegistrationMatrix::setOrientation(QPrinter::Landscape);
         RegistrationMatrix::setTeamMode(true);
         ausdruck = new RegistrationMatrix();
-    } break;
-    case 10: {  //Startpässe
+     break;
+    case 10:   //Startpässe
         ausdruck = new License();
         ausdruck->setSelectClub(true);
         ausdruck->setTypeString("Startpässe");
-        } break;
+         break;
     case 11:    //Vereinsliste
         ausdruck = new ClubList( m_event );
         break;
     case 12:    //EDV-Checkliste Riegen
         ausdruck = new ITCheckSquads( m_event );
         break;
-    case 13:  { //EDV-Checkliste TN
-               ausdruck = new ITCheckList();
-               ausdruck->setTypeString("EDV-Checkliste");
-           } break;
+    case 13:   //EDV-Checkliste TN
+        ausdruck = new ITCheckList();
+        ausdruck->setTypeString("EDV-Checkliste");
+        break;
     case 14:    //Summary
         ausdruck = new Summary( m_event );
         break;

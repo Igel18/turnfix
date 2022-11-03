@@ -65,7 +65,6 @@ QVariant CompetitionModel::data(const QModelIndex &index, int role) const
         case 5:
             return competition->qualifiers();
         case 6:
-            // TODO
             int participantCount = 0;
             for (int i=0; i < competition->event()->participantsModel()->rowCount(); ++i ) {
                 if (competition->event()->participantsModel()->data(i,5) == competition->number()) {
