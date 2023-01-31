@@ -45,9 +45,11 @@ Set SuperUser Password for PostgreSQL database and keep it:
 ![grafik](https://user-images.githubusercontent.com/10853055/215724398-9234c178-361a-453e-a14f-d94dbd6279e8.png)
 
 Set locale to Germany: 
+
 ![grafik](https://user-images.githubusercontent.com/10853055/215724415-69993895-12be-4b12-af2f-c15f007c2d0f.png)
 
 Dont lunch stack Builder: 
+
 ![grafik](https://user-images.githubusercontent.com/10853055/215724544-c364aebb-a936-4e96-973e-873d3cd674f7.png)
 
 ### TurnFix 1.4
