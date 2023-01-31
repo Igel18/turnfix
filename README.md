@@ -96,7 +96,29 @@ Change Username, Password and Database like setup in previous steps:
 ![grafik](https://user-images.githubusercontent.com/10853055/215727414-599fb25d-9bc8-4050-a4d2-1542d8d6c662.png)
 
 ### TurnFix 2.x
-now TurnFix 2.x can be used with the same login credentials 
+Extracct turnfix_2.x.zip 
+Copy the Folder to C:\Program Files\turnfix
+Execute TurnFix.exe 
+
+#### Database properties 
+Setup Database properties to 
+- PostgreSQL
+- Server: localhost 
+- Benutzername: turnfixadmin 
+- Password:  
+![grafik](https://user-images.githubusercontent.com/10853055/215725015-399957f6-967c-447b-bda0-b80cb5b44b07.png)
+
+#### Setup Turnfix Database
+![grafik](https://user-images.githubusercontent.com/10853055/215765455-de7e4b01-089c-48d1-9a4a-7d6ac61e4a83.png)
+
+![grafik](https://user-images.githubusercontent.com/10853055/215765481-04b11360-41ac-4bae-b24e-dd23787739b3.png)
+
+![grafik](https://user-images.githubusercontent.com/10853055/215765509-71f8c8fc-6ba6-4c1e-8867-42931b04aeba.png)
+
+![grafik](https://user-images.githubusercontent.com/10853055/215765547-db37e9e4-1df1-4b13-84df-6507b6740f82.png)
+
+####
+TurnFix 2.x can be used with the same login credentials as turnfix 1.4
 
 ## Views
 ### Login
