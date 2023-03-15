@@ -1,8 +1,7 @@
 ---
-description: >-
-  Alles was sie über TurnFix wissen müssen um Wettkämpfe auszuwerten finden sie
-  hier!
+description: Meldungen für TurnFix exportieren
 ---
 
-# TurnFix verwenden
+# Meldungen exportieren
 
+In GymNet ist es möglich eine XML Datei zu Exportieren, die sowohl die Teilneher als auch die Wettkämpfe mit Geräten für eine Veranstaltung enthält.&#x20;
