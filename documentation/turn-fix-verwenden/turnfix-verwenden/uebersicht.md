@@ -12,3 +12,5 @@
 8. Drucken von Urkunden und Listen & Exportieren von csv Dateien&#x20;
 9. Übersicht über den Status des Wettkampfes&#x20;
 10. Editieren und Anlegen von Urkunden Layouts
+11. Menü für alles was Global für die Veranstaltung ("Wettkampf") oder die Datenbank ("Datenbank") gilt. z.B. ändern des Veranstaltungstitels oder verwalten der Personen in der Datenbank&#x20;
+

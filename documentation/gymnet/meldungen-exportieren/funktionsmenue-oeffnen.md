@@ -1,3 +1,3 @@
 # Funktionsmenü öffnen
 
-![](../../.gitbook/assets/grafik.png)
+![](<../../.gitbook/assets/grafik (24).png>)

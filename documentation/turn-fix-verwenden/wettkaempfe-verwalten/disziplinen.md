@@ -1,9 +1,7 @@
----
-description: >-
-  Hier müssen die möglichen Disziplinen dem Wettkampf zugeordnet werden. Dazu
-  wählt man aus der Liste eine Disziplin und bestätigt den Button mit dem Plus.
-  Zum Entfernen den Eintrag aus der Liste wählen
----
-
 # Disziplinen
 
+![](<../../.gitbook/assets/grafik (6).png>)
+
+Hier müssen die Disziplinen dem Wettkampf zugeordnet werden. Dazu wählt man aus der Liste eine Disziplin und setzt den Haken am anfang der Zeile.&#x20;
+
+Über "Diziplingruppen markieren" können voreingestelle gruppen selektiert werden. (z.B. "6-Kampf männlich"). Diese Gruppen müssen zuvor eigerichtet werden.&#x20;

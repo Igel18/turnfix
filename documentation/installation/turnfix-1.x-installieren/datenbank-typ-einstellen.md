@@ -13,4 +13,4 @@ Setup Database properties to
 
 
 
-![](<../../.gitbook/assets/grafik (11).png>)
+![](<../../.gitbook/assets/grafik (11) (2).png>)

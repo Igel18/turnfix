@@ -1,3 +1,3 @@
 # Wettkampf öffnen
 
-![](<../../.gitbook/assets/grafik (4).png>)
+![](<../../.gitbook/assets/grafik (4) (1).png>)

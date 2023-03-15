@@ -1,3 +1,3 @@
 # Installationsordner auswählen
 
-![](<../../.gitbook/assets/grafik (10) (1).png>)
+![](<../../.gitbook/assets/grafik (10) (1) (1).png>)
