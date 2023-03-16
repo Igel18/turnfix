@@ -1,9 +1,3 @@
----
-description: >-
-  Achtung: Sie müssen bevor sie Wettkampfbögen drucken können die Felder in der
-  Disziplindatenbank festlegen. Mehr dazu unten im dazugehörigen Abschnitt!
----
-
 # Wettkämpfe verwalten
 
 ![](<../../.gitbook/assets/grafik (30).png>)

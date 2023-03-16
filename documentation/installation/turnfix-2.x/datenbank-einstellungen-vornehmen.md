@@ -1,3 +1,3 @@
 # Datenbank Einstellungen vornehmen
 
-![](<../../.gitbook/assets/grafik (8).png>)
+![](<../../.gitbook/assets/grafik (8) (1).png>)

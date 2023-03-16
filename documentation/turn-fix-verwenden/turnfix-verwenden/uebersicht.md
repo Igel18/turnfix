@@ -1,6 +1,6 @@
 # Übersicht
 
-![](<../../.gitbook/assets/grafik (20).png>)
+<figure><img src="../../.gitbook/assets/grafik (20).png" alt=""><figcaption></figcaption></figure>
 
 1. Bezeichnung des Wettkampf
 2. Verwalten der Wettkämpfe&#x20;

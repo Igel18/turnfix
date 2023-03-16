@@ -8,4 +8,4 @@ Oder „turnfixproduktiv“
 
 Nur kleinbuchstaben
 
-![](<../../.gitbook/assets/grafik (15).png>)
+![](<../../.gitbook/assets/grafik (15) (1).png>)

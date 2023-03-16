@@ -4,7 +4,7 @@ description: Hier nehmen sie die allgemeinen Einstellungen für den Wettkampf vo
 
 # Allgemein
 
-****![](<../../.gitbook/assets/grafik (17).png>)****
+<figure><img src="../../.gitbook/assets/grafik (17) (2).png" alt=""><figcaption></figcaption></figure>
 
 **Wettkampfnummer** Eindeutige Zahl für den Wettkampf. Die kleinstmögliche Nummer ist 1 die größtmögliche 99999.
 

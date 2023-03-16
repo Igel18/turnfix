@@ -6,7 +6,7 @@ description: Hier werden die Einstellungen zur Verbindung an die Datenbank vorge
 
 Mit dem "+" lassen sich PostgreSql oder SQLite Datenbank Verbindungen hinzufügen. (PostgreSql ist hier empfohlen).&#x20;
 
-****![](<../../.gitbook/assets/grafik (12).png>)****
+<figure><img src="../../.gitbook/assets/grafik (12) (2).png" alt=""><figcaption></figcaption></figure>
 
 **Server** Die Adresse des PostgreSQL-Servers. In der Regel localhost wenn PostgreSQL auf dem selben Rechner installiert ist. Ansonsten der Name oder die IP-Adresse des Rechners auf dem PostgreSQL läuft.&#x20;
 

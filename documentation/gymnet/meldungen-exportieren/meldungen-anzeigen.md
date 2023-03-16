@@ -1,3 +1,5 @@
 # Meldungen anzeigen
 
-![](<../../.gitbook/assets/grafik (21).png>)![](<../../.gitbook/assets/grafik (10) (1).png>)
+<figure><img src="../../.gitbook/assets/grafik (21).png" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../../.gitbook/assets/grafik (3).png" alt=""><figcaption></figcaption></figure>

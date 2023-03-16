@@ -19,6 +19,9 @@
 ## Turn Fix verwenden
 
 * [TurnFix verwenden](turn-fix-verwenden/turnfix-verwenden/README.md)
+  * [Voraussetzungen](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/README.md)
+    * [Firewall einstellen](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/firewall-einstellen.md)
+    * [Postgre SQL](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/postgre-sql.md)
   * [Übersicht](turn-fix-verwenden/turnfix-verwenden/uebersicht.md)
   * [Häufige funktionen](turn-fix-verwenden/turnfix-verwenden/haeufige-funktionen.md)
 * [Programm starten](turn-fix-verwenden/programm-starten.md)
@@ -31,17 +34,25 @@
 * [Wettkämpfe verwalten](turn-fix-verwenden/wettkaempfe-verwalten/README.md)
   * [Allgemein](turn-fix-verwenden/wettkaempfe-verwalten/allgemein.md)
   * [Disziplinen](turn-fix-verwenden/wettkaempfe-verwalten/disziplinen.md)
-  * [andere Optionen](turn-fix-verwenden/wettkaempfe-verwalten/andere-optionen.md)
+  * [Sonstiges](turn-fix-verwenden/wettkaempfe-verwalten/sonstiges.md)
   * [Zeitplan](turn-fix-verwenden/wettkaempfe-verwalten/zeitplan.md)
+  * [Anordnung Ergebnisliste](turn-fix-verwenden/wettkaempfe-verwalten/anordnung-ergebnisliste.md)
 * [Teilnehmer verwalten](turn-fix-verwenden/teilnehmer-verwalten/README.md)
   * [Teilnehmerdaten](turn-fix-verwenden/teilnehmer-verwalten/teilnehmerdaten.md)
-* [Disziplinen](turn-fix-verwenden/disziplinen.md)
+  * [Disziplinen](turn-fix-verwenden/teilnehmer-verwalten/disziplinen.md)
 * [Riegen einteilen](turn-fix-verwenden/riegen-einteilen.md)
-* [Ergebnisse erfassen](turn-fix-verwenden/ergebnisse-erfassen/README.md)
-  * [Eingabe mit Riegenbogen](turn-fix-verwenden/ergebnisse-erfassen/eingabe-mit-riegenbogen.md)
-  * [Eingabe mit Wettkampfkarte](turn-fix-verwenden/ergebnisse-erfassen/eingabe-mit-wettkampfkarte.md)
+* [Leistungen erfassen](turn-fix-verwenden/leistungen-erfassen/README.md)
+  * [Eingabe mit Riegenbogen](turn-fix-verwenden/leistungen-erfassen/eingabe-mit-riegenbogen.md)
+  * [Eingabe mit Wettkampfkarte](turn-fix-verwenden/leistungen-erfassen/eingabe-mit-wettkampfkarte.md)
 * [Ergebnislisten anzeigen](turn-fix-verwenden/ergebnislisten-anzeigen.md)
-* [Exportieren & Drucken](turn-fix-verwenden/exportieren-and-drucken.md)
+* [Drucken & Exportieren](turn-fix-verwenden/drucken-and-exportieren/README.md)
+  * [Drucken](turn-fix-verwenden/drucken-and-exportieren/drucken.md)
+  * [Exportieren](turn-fix-verwenden/drucken-and-exportieren/exportieren.md)
+* [Statusübersicht](turn-fix-verwenden/statusuebersicht.md)
+* [Layout-Editor](turn-fix-verwenden/layout-editor/README.md)
+  * [Felder](turn-fix-verwenden/layout-editor/felder.md)
+  * [Öffnen / Speichern / Löschen](turn-fix-verwenden/layout-editor/oeffnen-speichern-loeschen.md)
+  * [Ebenen](turn-fix-verwenden/layout-editor/ebenen.md)
 
 ## Datenbankverwaltung
 
@@ -83,11 +94,15 @@
 
 ## 🤔 FAQ
 
+* [Hintergrundbild im Layout einfügen](faq/hintergrundbild-im-layout-einfuegen.md)
 * [Leistung erfassen rot hinterlegt](faq/leistung-erfassen-rot-hinterlegt.md)
 * [0.00 Wertung](faq/0.00-wertung.md)
 * [Fehler: Datenbank erstellen](faq/fehler-datenbank-erstellen.md)
 * [Bei Mannschaftswettkämpfen werden die Wertungen nicht addiert](faq/bei-mannschaftswettkaempfen-werden-die-wertungen-nicht-addiert.md)
-
-## Funktionen
-
-* [Page 3](funktionen/page-3.md)
+* [D/E-Note](faq/d-e-note/README.md)
+  * [Einstellen einer Formel](faq/d-e-note/einstellen-einer-formel.md)
+  * [Einstellungen an der Disziplin](faq/d-e-note/einstellungen-an-der-disziplin.md)
+  * [Wettkampfbögen](faq/d-e-note/wettkampfboegen.md)
+  * [Erfassen der Leistung](faq/d-e-note/erfassen-der-leistung.md)
+  * [Ergebnisbogen](faq/d-e-note/ergebnisbogen.md)
+* [Infos / Links](faq/infos-links.md)

@@ -1,6 +1,6 @@
 # Ausführen
 
-![](<../.gitbook/assets/grafik (9) (1).png>)
+<figure><img src="../.gitbook/assets/grafik (9) (1) (2).png" alt=""><figcaption></figcaption></figure>
 
 Nach dem Doppelklick auf "TurnFixImport" erscheint dieses Fenster. Als Datenbanktyp sollte PostGreSQL gewählt werden.&#x20;
 

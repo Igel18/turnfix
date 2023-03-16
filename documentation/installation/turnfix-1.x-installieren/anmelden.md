@@ -8,4 +8,4 @@ Dialog erscheint „Datenbankfehler“&#x20;
 
 \-> mit Ja bestätigen
 
-![](<../../.gitbook/assets/grafik (19) (1).png>)
+![](<../../.gitbook/assets/grafik (19) (1) (1).png>)

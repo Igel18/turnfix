@@ -2,7 +2,7 @@
 
 Den Menüpunk "Datenbank"->"Disziplinen" öffnen. Dann im linken Bereich "Disziplingruppen" auswählen.&#x20;
 
-![](../.gitbook/assets/grafik.png)
+![](<../.gitbook/assets/grafik (16).png>)
 
 Hier können Gruppen von Disziplinen definiert werden die beim Erstellen von Wettkämpfen verwendet werden können. Dadurch geht das Erstellen der Wettkämpfe viel schneller.&#x20;
 

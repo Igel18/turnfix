@@ -4,7 +4,7 @@ description: Hier werden allgemeine Veranstaltungsdaten angegeben.
 
 # Veranstaltungsdaten
 
-![](<../../.gitbook/assets/grafik (1).png>)
+<figure><img src="../../.gitbook/assets/grafik (1) (2).png" alt=""><figcaption></figcaption></figure>
 
 Hier geben sie den Namen des Wettkampfs sowie das Datum und den Meldeschluss an.&#x20;
 
