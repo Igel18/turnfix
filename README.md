@@ -31,6 +31,10 @@ From PostGreSQL 11 folder:
 ## License
 
 Apache 2.0
+
+## Dokumentation can found here
+https://github.com/Igel18/turnfix/blob/v2/documentation/SUMMARY.md 
+
 ## Setup 
 ### Database 
 #### Install PostgreSQL 11.8 
