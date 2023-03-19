@@ -10,7 +10,7 @@ Es öffnet sich ein Eingabefenster welches sich auch maximieren lässt. Hier ste
 
 **Status** Im rechten oberen Drop Down Feld lässt sich der Status der Riege einstellen. Dies ist für die Nachverfolgung des Wettkampfes aus dem Wettkampfbüro sinnvoll, wenn an den Kampfgerichten die Wertungen direkt über TurnFix erfasst werden.&#x20;
 
-**Jury-Wertungen erfassen** Es werden die Individuellen Felder angezeigt, welche bei der Disziplin am Wettkampfbogen angezeigt werden sollen.&#x20;
+**Jury-Wertungen erfassen** Es werden die Individuellen Felder angezeigt, welche bei der Disziplin am Wettkampfbogen angezeigt werden sollen. Dieses Feld lässt sich über den Parameter **JuryResults** in der Datei turnfix.ini standardmäßig aktivieren bzw. deaktivieren.&#x20;
 
 **D/A-Note** Individuelles Feld welches an der Disziplin definiert ist (nur sichtbar bei "Jury-Wertungen erfassen")
 
