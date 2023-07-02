@@ -106,3 +106,4 @@
   * [Erfassen der Leistung](faq/d-e-note/erfassen-der-leistung.md)
   * [Ergebnisbogen](faq/d-e-note/ergebnisbogen.md)
 * [Infos / Links](faq/infos-links.md)
+* [CSV-Export-Beispiel: Etiketten](faq/csv-export-beispiel-etiketten.md)
