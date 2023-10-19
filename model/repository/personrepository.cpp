@@ -11,26 +11,12 @@ PersonRepository::PersonRepository(EntityManager *em)
 
 QList<Person *> PersonRepository::loadAll()
 {
-    QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
-    QList<Person *> output;
-    QSqlQuery query(db);
-    query.prepare("SELECT * FROM tfx_personen ORDER BY var_nachname, var_vorname");
-    query.exec();
+    QueryBuilder<Person> qb;
+    qb.select(Person::staticMetaObject, Person::mapping());
+    qb.orderBy("Person", "lastName");
+    qb.orderBy("Person", "firstName");
 
-    while (query.next()) {
-        auto person = new Person();
-        const QMetaObject *metaObj = person->metaObject();
-        const DBTable *mappingObj = Person::mapping();
-
-        for (int i = metaObj->propertyOffset(); i < metaObj->propertyCount(); ++i) {
-            QMetaProperty property = metaObj->property(i);
-            DBColumn *column = mappingObj->columnByProperty(property.name());
-
-            person->setProperty(property.name(), query.value(column->name()));
-        }
-
-        output.append(person);
-    }
+    auto output = qb.query(QSqlDatabase::database( entityManager()->connectionName()));
 
     return output;
 }
