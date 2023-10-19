@@ -99,6 +99,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="currentIndex">
+         <number>6</number>
+        </property>
         <item>
          <property name="text">
           <string>Ergebnisse</string>
@@ -195,7 +198,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>16</number>
+         <number>6</number>
         </property>
         <widget class="QWidget" name="resultWidget">
          <layout class="QGridLayout" name="gridLayout_10">
@@ -251,7 +254,7 @@
           <item row="9" column="0">
            <widget class="QStackedWidget" name="resultStack">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="page_3"/>
             <widget class="QWidget" name="page_4">
@@ -537,16 +540,6 @@
          </layout>
         </widget>
         <widget class="QWidget" name="ausschreibungWidget"/>
-        <widget class="QWidget" name="zeitplanWidget"/>
-        <widget class="QWidget" name="meldematrixWidget"/>
-        <widget class="QWidget" name="mannschaftsmatrixWidget"/>
-        <widget class="QWidget" name="startpasskontrollnummernWidget"/>
-        <widget class="QWidget" name="vereinslisteWidget"/>
-        <widget class="QWidget" name="edvriegenWidget"/>
-        <widget class="QWidget" name="edvteilnehmerWidget"/>
-        <widget class="QWidget" name="wettkampfberichtWidget"/>
-        <widget class="QWidget" name="medallienspiegelWidget"/>
-        <widget class="QWidget" name="ergebnisbogenWidget"/>
        </widget>
       </item>
      </layout>
@@ -716,22 +709,6 @@
  <resources/>
  <connections>
   <connection>
-   <sender>cmb_res_type</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>resultStack</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>180</x>
-     <y>151</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>188</x>
-     <y>239</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>cmb_printtype</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>mainStack</receiver>
@@ -744,6 +721,22 @@
     <hint type="destinationlabel">
      <x>238</x>
      <y>157</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cmb_res_type</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>resultStack</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>180</x>
+     <y>151</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>188</x>
+     <y>239</y>
     </hint>
    </hints>
   </connection>

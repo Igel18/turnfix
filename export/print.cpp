@@ -5,12 +5,15 @@
 #include "model/entity/postgresqlconnection.h"
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
+#include "model/repository/clubrepository.h"
 #include "model/settings/session.h"
 #include "src/global/header/_global.h"
 #include "src/global/header/settings.h"
 #include <QDateTime>
 #include <QSqlQuery>
 #include <QStandardItemModel>
+#include <iostream>
+using namespace std;
 
 int Print::detailinfo = 0;
 int Print::coverID = 0;
@@ -21,9 +24,6 @@ QPrinter::Orientation Print::orientation = QPrinter::Portrait;
 int Print::headFootID = 0;
 
 Print::Print() : QThread() {
-    m_em = Session::instance()->getEntityManager();
-    m_event = Session::instance()->getEvent();
-
     showPreview = false;
     selectClub = false;
     selectTN = false;
@@ -35,6 +35,11 @@ Print::Print() : QThread() {
     outputFileName = "";
     singleWK = "";
     finish = false;
+}
+
+void Print::init(Event *event, EntityManager *em){
+    this->m_event = event;
+    this->m_em = em;
 }
 
 void Print::setOutputType(int set) {
@@ -151,6 +156,9 @@ void Print::setFinish(bool set) {
     finish = set;
 }
 
+/*
+ * Print the foot of the page
+*/
 void Print::printHeadFoot() {
     if( headFootID > 0 ) {
         printCustomPage( 2, headFootID );
@@ -187,7 +195,7 @@ void Print::printHeadFoot() {
     if(Settings::creator.length() > 0) {
         extra = " durch " + Settings::creator;
     }
-    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(3.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Erstellt durch " + m_event->organizer(),QTextOption(Qt::AlignVCenter));
+    painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(3.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Erstellt durch Turnuntergau 2 Unterallgäu",QTextOption(Qt::AlignVCenter));//m_event->organizer(),QTextOption(Qt::AlignVCenter));
     painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(3.2)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),QDateTime::currentDateTime().toString("dd.MM.yyyy - HH:mm") + " Uhr",QTextOption(Qt::AlignVCenter | Qt::AlignRight));
     painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(0.5)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"mit TurnFix - https://github.com/Igel18/turnfix",QTextOption(Qt::AlignVCenter));
     painter.drawText(QRectF(pr.x(), (pr.height()-pr.y()-mmToPixel(0.5)), pr.width()-pr.x()-pr.x(), QFontMetricsF(painter.font()).height()),"Lizenziert unter der GNU General Public License v3.0",QTextOption(Qt::AlignVCenter | Qt::AlignRight));
@@ -251,6 +259,7 @@ void Print::run() {
         pThreadConnection->setPassword( pPSQLConnection->password() );
         if( pThreadConnection->connect( "Print" ) ){
             db = QSqlDatabase::database( "Print" );
+            m_em->setConnectionName("Print");
         }
     } else { // SQLite
 
@@ -258,6 +267,10 @@ void Print::run() {
 
     //Vereinsselektion
     if (outputType != 2) {
+
+        m_em->setConnectionName("Print");
+     //   auto clubs = m_em->clubRepository()->fetchByEvent(m_event);
+
         QSqlQuery vereineQuery( db );
         vereineQuery.prepare("SELECT tfx_vereine.int_vereineid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid OR tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid OR tfx_vereine.int_vereineid = tfx_mannschaften.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort, tfx_gruppen.int_gruppenid ORDER BY  tfx_vereine.var_name");
         vereineQuery.bindValue( 0, m_event->mainEvent()->id() );
@@ -266,6 +279,7 @@ void Print::run() {
             vereinNumbers.append(vereineQuery.value(0).toInt());
         }
         if (selectClub) {
+            m_em->setConnectionName("main");
             emit requestVereine();
             if (finish) return;
 
@@ -278,31 +292,22 @@ void Print::run() {
     }
 
     //Wettkampfselektion
-    QString boolor = _global::getDBTyp() == 0 ? "bool_or" : "max";
-    QSqlQuery wkQuery( db );
+    m_em->setConnectionName("Print");
+    auto competitions = m_em->competitionRepository()->fetchByEvent(m_event);
 
-    if (!selectClub) {
-        wkQuery.prepare("SELECT var_nummer, bol_wahlwettkampf, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR "+boolor+"(tfx_wettkaempfe_x_disziplinen.bol_kp)='true' THEN 'true' ELSE 'false' END FROM tfx_wettkaempfe INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND (SELECT COUNT(*) FROM tfx_wertungen WHERE int_wettkaempfeid=tfx_wettkaempfe.int_wettkaempfeid) > 0 GROUP BY var_nummer, bol_wahlwettkampf, tfx_wettkaempfe.bol_kp ORDER BY var_nummer");
-    } else {
-        QString query = "SELECT var_nummer, bol_wahlwettkampf, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR "+boolor+"(tfx_wettkaempfe_x_disziplinen.bol_kp)='true' THEN 'true' ELSE 'false' END FROM tfx_wettkaempfe INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? AND (SELECT COUNT(*) FROM tfx_wertungen WHERE int_wettkaempfeid=tfx_wettkaempfe.int_wettkaempfeid AND int_wertungenid IN (SELECT int_wertungenid FROM tfx_wertungen LEFT JOIN tfx_teilnehmer USING (int_teilnehmerid) LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid INNER JOIN tfx_vereine AS v ON v.int_vereineid = tfx_teilnehmer.int_vereineid OR v.int_vereineid = tfx_mannschaften.int_vereineid OR v.int_vereineid = tfx_gruppen.int_vereineid WHERE v.int_vereineid IN (" + _global::intListToString(vereinNumbers) + ") AND bol_startet_nicht='false')) > 0 GROUP BY var_nummer, bol_wahlwettkampf, tfx_wettkaempfe.bol_kp ORDER BY var_nummer";
-        wkQuery.prepare(query);
-    }
-    wkQuery.bindValue( 0, m_event->mainEvent()->id() );
-    wkQuery.exec();
-    wkNumbers.clear();
-    wkWahl.clear();
-    while (wkQuery.next()) {
-        wkNumbers.append(wkQuery.value(0).toString());
-        wkWahl.append(wkQuery.value(1).toBool());
-        wkKP.append(wkQuery.value(2).toBool());
+    foreach (Competition const *comp, competitions){
+        wkNumbers.append(comp->number());
+        wkWahl.append(comp->apparatusChoices());
+        wkKP.append(comp->freeAndCompulsary());
     }
 
     if (selectWK) {
+        m_em->setConnectionName("main");
         emit requestWKs();
         if (finish)
             return;
         if (selectWK) {
-            for (int i=wkNumbers.size()-1;i>=0;i--) {
+            for (int i = wkNumbers.size()-1; i>=0; i--) {
                 if (!selectedWKs.contains(wkNumbers.at(i))) {
                     wkNumbers.removeAt(i);
                     wkWahl.removeAt(i);
@@ -340,6 +345,7 @@ void Print::run() {
     //}
 
     if( selectRiege ) {
+        m_em->setConnectionName("main");
         emit requestRiegen();
         if (finish)
             return;
@@ -353,9 +359,11 @@ void Print::run() {
 
     //Teilnehmerselektion
     if (selectTN) {
+        m_em->setConnectionName("main");
         emit requestTN();
         if (finish)
             return;
+        m_em->setConnectionName("Print");
         auto competition = m_em->competitionRepository()->fetchByNumber( m_event, selectedTNWK, &db );
         if (competition != nullptr)
         {
@@ -425,6 +433,7 @@ void Print::print( QPrinter *prt ) {
     }
 
     pr = curr_printer->pageLayout().paintRectPixels( curr_printer->resolution() );
+    m_em->setConnectionName("main");
 
     if( headFootID > 0 ) {
         QSqlQuery layoutData( QSqlDatabase::database( m_em->connectionName() ) );
@@ -552,7 +561,7 @@ void Print::printCustomPage(int mode, int layoutid, QStringList tndata, QString 
                         field = query2.value(1).toString();
                     } else {
                         field = query2.value(1).toString() + " - " + query2.value(2).toString();
-                    }}; break;
+                    }} break;
             case 2 : field = query2.value(3).toString() + ", " + query2.value(4).toString(); break;
             case 3 : {if (tndata.size()>0) field = tndata.at(1);} break;
             case 4 : {if (tndata.size()>0) field = tndata.at(2);} break;
@@ -563,7 +572,8 @@ void Print::printCustomPage(int mode, int layoutid, QStringList tndata, QString 
                             field = tndata.at(0) + ".";
                         }
                     }
-                }; break;
+                    }
+                    break;
             case 6 : {
                     if (tndata.size()>0) {
                         bool isUrkunde=false;

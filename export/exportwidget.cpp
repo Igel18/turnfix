@@ -107,21 +107,21 @@ void ExportWidget::startPrint()
     case 0: { //Ergebnisse
         Results::setnewPageWK(ui->chk_res_pg->isChecked());
         switch (ui->cmb_res_type->currentIndex()) {
-        case 0: { //Einzel
-            ausdruck = new Individual();
-        } break;
-        case 1: { //Detail
-            Detail::setPrintAW(ui->chk_res_aw->isChecked());
-            ausdruck = new Detail();
-        } break;
-        case 2: { //Rundenergebnisse
-            Round::setUseExtraScore(ui->chk_res_sc->isChecked());
-            ausdruck = new Round();
-        } break;
-        case 3: { //Tabelle
-            ausdruck = new Table();
-            ausdruck->setTypeString("Tabelle");
-        } break;
+            case 0: { //Einzel
+                ausdruck = new Individual();
+            } break;
+            case 1: { //Detail
+                Detail::setPrintAW(ui->chk_res_aw->isChecked());
+                ausdruck = new Detail();
+            } break;
+            case 2: { //Rundenergebnisse
+                Round::setUseExtraScore(ui->chk_res_sc->isChecked());
+                ausdruck = new Round();
+            } break;
+            case 3: { //Tabelle
+                ausdruck = new Table();
+                ausdruck->setTypeString("Tabelle");
+            } break;
         }
         ausdruck->setSelectWK(ui->chk_res_wk->isChecked());
         ausdruck->setSelectDetail(ui->chk_res_detail->isChecked());
@@ -134,23 +134,23 @@ void ExportWidget::startPrint()
         ausdruck = new Squad();
         ausdruck->setSelectRiege(ui->chk_rg_select->isChecked());
         ausdruck->setTypeString("Riegen");
-     break;
+        break;
     case 2:  //Meldeliste
         ausdruck = new Registration();
         ausdruck->setSelectClub(ui->chk_ve_select->isChecked());
         ausdruck->setTypeString("Meldeliste");
-     break;
+        break;
     case 3:  //Wettkampfbogen
         JudgesSheet::setTeammode( ui->chk_bo_split->isChecked() );
         ausdruck = new JudgesSheet();
         ausdruck->setSelectRiege( true );
         ausdruck->setSelectDis( true );
-     break;
+        break;
     case 4:  //Wettkampfkarte
         Card::setPaperSize(QPrinter::A5);
         ausdruck = new Card();
         ausdruck->setSelectTN(true);
-     break;
+        break;
     case 5:  //Urkunde
         Certificate::setEineUrkunde(ui->chk_ur_single->isChecked());
         Certificate::setRundenErgebnisse(ui->chk_ur_runde->isChecked());
@@ -160,29 +160,29 @@ void ExportWidget::startPrint()
         ausdruck = new Certificate();
         ausdruck->setSelectTN(true);
         ausdruck->setTypeString("Urkunde");
-     break;
+        break;
     case 6:     //Einladung
         ausdruck = new Invitation(this->m_event);
         break;
     case 7:     //Zeitplan
         Timetable::setOrientation(QPrinter::Landscape);
         ausdruck = new Timetable( m_event );
-     break;
+        break;
     case 8:    //Meldematrix
         RegistrationMatrix::setOrientation(QPrinter::Landscape);
         RegistrationMatrix::setTeamMode(false);
         ausdruck = new RegistrationMatrix();
-     break;
+        break;
     case 9:    //Mannschaftsmatrix
         RegistrationMatrix::setOrientation(QPrinter::Landscape);
         RegistrationMatrix::setTeamMode(true);
         ausdruck = new RegistrationMatrix();
-     break;
+        break;
     case 10:   //Startpässe
         ausdruck = new License();
         ausdruck->setSelectClub(true);
         ausdruck->setTypeString("Startpässe");
-         break;
+        break;
     case 11:    //Vereinsliste
         ausdruck = new ClubList( m_event );
         break;
@@ -217,6 +217,7 @@ void ExportWidget::startPrint()
     connect( ausdruck, SIGNAL(requestWKs()), this, SLOT(showWKDialog()), Qt::BlockingQueuedConnection);
     connect( ausdruck, SIGNAL(showPrintPreview(QPrinter*)), this, SLOT(showPrintPreview(QPrinter*)), Qt::BlockingQueuedConnection );
     //if (ausdruck->printPreview()) ausdruck->~Drucken();
+    ausdruck->init(m_event, m_em);
     ausdruck->start();
 }
 
@@ -377,7 +378,7 @@ void ExportWidget::showVereineDialog()
 
 void ExportWidget::showWKDialog()
 {
-    SelectCompetitionDialog *wk = new SelectCompetitionDialog(this->m_event);
+    SelectCompetitionDialog *wk = new SelectCompetitionDialog(this->m_event, this->m_em);
     if (wk->exec()) {
         ausdruck->setSelectedWKs(QStringList(wk->getWk()));
     } else {

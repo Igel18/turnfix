@@ -1,12 +1,18 @@
 #include "selectcompetitiondialog.h"
 #include "model/entity/event.h"
+#include "model/entitymanager.h"
+#include "model/repository/competitionrepository.h"
 #include "src/global/header/_global.h"
 #include "ui_selectcompetitiondialog.h"
 #include <QSqlQuery>
 
-SelectCompetitionDialog::SelectCompetitionDialog(Event *event, QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::SelectCompetitionDialog)
+/*
+ * The dialog to select the competitions which should be printed
+ */
+SelectCompetitionDialog::SelectCompetitionDialog(Event *event, EntityManager *em, QWidget *parent)
+    : QDialog(parent),
+      ui(new Ui::SelectCompetitionDialog),
+      m_em(em)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -24,12 +30,11 @@ SelectCompetitionDialog::~SelectCompetitionDialog()
 
 void SelectCompetitionDialog::initData()
 {
-    QSqlQuery query2;
-    query2.prepare("SELECT var_nummer || ' ' || var_name, var_nummer FROM tfx_wettkaempfe WHERE int_veranstaltungenid=? ORDER BY var_nummer");
-    query2.bindValue(0, this->m_event->mainEvent()->id());
-    query2.exec();
-    while (query2.next()) {
-        ui->cmb_dis->addItem(query2.value(0).toString(), query2.value(1).toString());
+    const auto competitions = m_em->competitionRepository()->fetchByEvent(m_event);
+
+    foreach(const Competition *comp, competitions)
+    {
+        ui->cmb_dis->addItem(comp->name(), comp->number());
     }
 }
 

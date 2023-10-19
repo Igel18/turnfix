@@ -49,6 +49,7 @@ public:
     void setSelectedWKs(QStringList);
     void setSelectedRiegen(QStringList);
     void setSelectedDisziplinen(QList< QList<int> >);
+    void init(Event *event, EntityManager *em);
 
 public slots:
     virtual void print(QPrinter*);

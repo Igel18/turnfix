@@ -133,7 +133,7 @@ public:
         }
 
         auto result = query.exec();
-        //qDebug() << "SQL QUERY EXECUTION RESULT: " << result;
+        qDebug() << "SQL QUERY EXECUTION RESULT: " << result;
 
         QList<T *> output;
         while (query.next()) {
