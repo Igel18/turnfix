@@ -14,6 +14,7 @@ public:
 
     QList<Club*> fetch( int *id = nullptr );
     QList<Club*> fetchByEvent(Event *event, int* id = nullptr );
+    QList<Club*> fetchByEvent2(Event *event, int* id = nullptr );
 };
 
 #endif // CLUBREPOSITORY_H

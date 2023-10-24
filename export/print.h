@@ -6,6 +6,7 @@
 #include <QPrinter>
 #include <QSqlQuery>
 #include <QThread>
+#include "model/entity/club.h"
 
 class QFont;
 class QRect;

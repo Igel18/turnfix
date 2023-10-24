@@ -269,15 +269,21 @@ void Print::run() {
     if (outputType != 2) {
 
         m_em->setConnectionName("Print");
-     //   auto clubs = m_em->clubRepository()->fetchByEvent(m_event);
+        QList<Club *> clubs = m_em->clubRepository()->fetchByEvent2(m_event);
 
-        QSqlQuery vereineQuery( db );
-        vereineQuery.prepare("SELECT tfx_vereine.int_vereineid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid OR tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid OR tfx_vereine.int_vereineid = tfx_mannschaften.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort, tfx_gruppen.int_gruppenid ORDER BY  tfx_vereine.var_name");
-        vereineQuery.bindValue( 0, m_event->mainEvent()->id() );
-        vereineQuery.exec();
-        while (vereineQuery.next()) {
-            vereinNumbers.append(vereineQuery.value(0).toInt());
+        vereinNumbers.clear();
+        for (int i=1; clubs.size()>i; i++)
+        {
+            vereinNumbers.append(clubs[i]->id());
         }
+
+//        QSqlQuery vereineQuery( db );
+//        vereineQuery.prepare("SELECT tfx_vereine.int_vereineid FROM tfx_wertungen INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) LEFT JOIN tfx_teilnehmer ON tfx_teilnehmer.int_teilnehmerid = tfx_wertungen.int_teilnehmerid LEFT JOIN tfx_gruppen ON tfx_gruppen.int_gruppenid = tfx_wertungen.int_gruppenid LEFT JOIN tfx_mannschaften ON tfx_mannschaften.int_mannschaftenid = tfx_wertungen.int_mannschaftenid INNER JOIN tfx_vereine ON tfx_vereine.int_vereineid = tfx_teilnehmer.int_vereineid OR tfx_vereine.int_vereineid = tfx_gruppen.int_vereineid OR tfx_vereine.int_vereineid = tfx_mannschaften.int_vereineid WHERE int_veranstaltungenid=? GROUP BY tfx_vereine.int_vereineid, tfx_vereine.var_name, tfx_vereine.int_start_ort, tfx_gruppen.int_gruppenid ORDER BY  tfx_vereine.var_name");
+//        vereineQuery.bindValue( 0, m_event->mainEvent()->id() );
+//        vereineQuery.exec();
+//        while (vereineQuery.next()) {
+//            vereinNumbers.append(vereineQuery.value(0).toInt());
+//        }
         if (selectClub) {
             m_em->setConnectionName("main");
             emit requestVereine();

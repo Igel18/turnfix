@@ -29,7 +29,7 @@ MailDialog::MailDialog(Event *event, QWidget* parent) : QDialog(parent) {
 }
 
 void MailDialog::selClubs() {
-    SelectClubDialog *vn = new SelectClubDialog(this->m_event, this);
+    SelectClubDialog *vn = new SelectClubDialog(this->m_event, nullptr, this);
     vn->exec();
     vereine = vn->returnVereine();
     QString to;

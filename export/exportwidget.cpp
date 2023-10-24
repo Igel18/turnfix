@@ -364,7 +364,7 @@ void ExportWidget::showDetailinfoDialog()
 void ExportWidget::showVereineDialog()
 {
     QList<int> selectedClubs;
-    SelectClubDialog *vn = new SelectClubDialog(this->m_event);
+    SelectClubDialog *vn = new SelectClubDialog(this->m_event, this->m_em);
     if (vn->exec() == 1) {
         QStringList vereine = vn->returnVereine();
         for (int i=0;i<vereine.size();i++) {

@@ -2,6 +2,7 @@
 #define SELECTCLUBDIALOG_H
 #include <QDialog>
 #include "ui_selectclubdialog.h"
+#include "model/entitymanager.h"
 
 class Event;
 
@@ -9,7 +10,7 @@ class SelectClubDialog : public QDialog, public Ui::SelectClubDialogUi {
     Q_OBJECT
 
 public:
-    SelectClubDialog(Event *m_event, QWidget* parent = nullptr);
+    SelectClubDialog(Event *m_event, EntityManager *m_em, QWidget* parent = nullptr);
 
     QStringList returnVereine();
 
@@ -20,6 +21,7 @@ private:
     void initData();
 
     Event *m_event;
+    EntityManager *m_em;
     QStringList vereine;
 };
 #endif
