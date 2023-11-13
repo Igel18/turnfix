@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/etiketten.h \
     $$PWD/itchecklist.h \
     $$PWD/judgessheet.h \
     $$PWD/license.h \
@@ -8,6 +9,7 @@ HEADERS += \
     $$PWD/squad.h
 
 SOURCES += \
+    $$PWD/etiketten.cpp \
     $$PWD/itchecklist.cpp \
     $$PWD/judgessheet.cpp \
     $$PWD/license.cpp \

@@ -18,6 +18,7 @@
 #include "participants/registration.h"
 #include "participants/resultssheet.h"
 #include "participants/squad.h"
+#include "participants/etiketten.h"
 #include "results/detail.h"
 #include "results/individual.h"
 #include "results/results.h"
@@ -104,7 +105,7 @@ void ExportWidget::startPrint()
     Print::setOrientation(QPrinter::Portrait);
 
     switch (ui->cmb_printtype->currentIndex()) {
-    case 0: { //Ergebnisse
+    case 0:  //Ergebnisse
         Results::setnewPageWK(ui->chk_res_pg->isChecked());
         switch (ui->cmb_res_type->currentIndex()) {
             case 0: { //Einzel
@@ -127,7 +128,7 @@ void ExportWidget::startPrint()
         ausdruck->setSelectDetail(ui->chk_res_detail->isChecked());
         ausdruck->setSelectClub(ui->chk_res_cl->isChecked());
         ausdruck->setTypeString("Ergebnisse");
-    } break;
+        break;
     case 1:  //Riegen
         Squad::setNewPageEach( ui->chk_rg_page->isChecked() );
         Squad::setOrder( ui->cmb_rg_sort->currentIndex() );
@@ -199,13 +200,17 @@ void ExportWidget::startPrint()
     case 15:    //Medallienspiegel
         ausdruck = new MedalCount();
         break;
-    case 16: {   //Ergebnisliste
+    case 16:    //Ergebnisliste
         ausdruck = new ResultsSheet();
         ausdruck->setSelectRiege( true );
         ausdruck->setSelectDis( true );
-    } break;
-
+        break;
+    case 17:   //Teilnehmer Etiketten
+        ausdruck = new Etiketten();
+        ausdruck->setTypeString("Etiketten");
+        break;
     }
+
     ausdruck->setShowPreview(ui->chk_preview->isChecked());
     ausdruck->setOutputType(ui->cmb_output->currentIndex());
 

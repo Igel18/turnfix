@@ -6,6 +6,7 @@
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
 #include "model/repository/clubrepository.h"
+#include "model/repository/disciplinerepository.h"
 #include "model/settings/session.h"
 #include "src/global/header/_global.h"
 #include "src/global/header/settings.h"
@@ -390,6 +391,17 @@ void Print::run() {
     }
 
     //Disziplinen selektieren
+//    disziplinenIDs.clear();
+
+//    bool bWomen = true;
+
+//    QList<int*> list = m_em->disciplineRepository()->loadDisciplineIds( &bWomen, &bWomen, false );
+//    QList<int> lst;
+//    for (int i=1; list.size()>1; i++) {
+//        lst.append(*list.at(i));
+//    }
+
+  //  disziplinenIDs.append(lst);
     QSqlQuery disziplinenQuery( db );
     disziplinenQuery.prepare("SELECT DISTINCT int_disziplinenid, CASE WHEN tfx_wettkaempfe.bol_kp='true' OR tfx_wettkaempfe_x_disziplinen.bol_kp='true' THEN 1 ELSE 0 END as kp, tfx_disziplinen.var_name FROM tfx_disziplinen INNER JOIN tfx_wettkaempfe_x_disziplinen USING (int_disziplinenid) INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid) WHERE int_veranstaltungenid=? GROUP BY int_disziplinenid, tfx_wettkaempfe.bol_kp, tfx_wettkaempfe_x_disziplinen.bol_kp, tfx_disziplinen.var_name ORDER BY tfx_disziplinen.var_name, kp");
     disziplinenQuery.bindValue( 0, m_event->mainEvent()->id() );

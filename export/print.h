@@ -7,6 +7,7 @@
 #include <QSqlQuery>
 #include <QThread>
 #include "model/entity/club.h"
+#include "model/repository/disciplinerepository.h"
 
 class QFont;
 class QRect;

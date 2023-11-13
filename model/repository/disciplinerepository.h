@@ -17,6 +17,7 @@ public:
     //! \return disciplines (depends on params combination: women = true => "w" + "w/m"; men = true => "m" + "w/m" etc.)
     //!
     QList<Discipline *> loadDisciplines(const bool* const women = nullptr, const bool* const men = nullptr, bool joinFormula = true );
+    QList<int *> loadDisciplineIds(const bool* const women /*= nullptr*/, const bool* const men /*= nullptr*/, bool joinFormula /*= true*/ );
 
     Discipline* loadDiscipline(int id);
 };
