@@ -51,8 +51,9 @@ void Etiketten::printContent() {
     }
 
     //set label values
-    auto labelheigth = 16.9;
-    auto labelwidth = 48.5;
+    // keine ahnung warum die originalen werte der labels nicht passen. darum wurden diese angepasst. vermutung: das mmToPixel stimmt nicht.
+    auto labelheigth = 17.5;//16.9;
+    auto labelwidth = 50.3;//48.5;
     auto boarderleft = 7.0;
     auto boardertop = 13.0;
 
@@ -71,7 +72,8 @@ void Etiketten::printContent() {
         for(int i=0; i<labelcountX; i++){
 
             // Spalten schleife
-            for(int j=0; j<labelcountY; j++){
+            // die 1. Zeile ist immer mit dem Header überdeckt, daher fange ich erst in der 2. zeile an.
+            for(int j=1; j<labelcountY; j++){
                 QStringList part = paricipantlist[count];
                 drawLabel(i, j, labelheigth, labelwidth, boarderleft, boardertop,  part[0], part[1], part[2], part[3], part[4]);
                 count++;
@@ -104,17 +106,17 @@ void Etiketten::printContent() {
 void Etiketten::drawLabel(int x, int y, double height, double width, double boarderleft, double boardertop, QString name, QString jg, QString verein, QString wettkampf, QString riege){
 
     //die position von links
-    auto positionX = x * width + boarderleft;
+    auto positionX = (x * width) + boarderleft;
 
     // die position von oben
-    auto positionY = y * height + boardertop;
+    auto positionY = (y * height) + boardertop;
 
     m_yco = mmToPixel(positionY);
-    painter.drawText(QRectF(pr.x()+mmToPixel(positionX), m_yco, mmToPixel(positionY), fontHeight), name, QTextOption(Qt::AlignLeft));
+    painter.drawText(QRectF(mmToPixel(positionX), m_yco, mmToPixel(positionY), fontHeight), name, QTextOption(Qt::AlignLeft));
     m_yco += fontHeight+mmToPixel(1.0);
-    painter.drawText(QRectF(pr.x()+mmToPixel(positionX), m_yco, mmToPixel(positionY), fontHeight), verein,QTextOption(Qt::AlignLeft));
+    painter.drawText(QRectF(mmToPixel(positionX), m_yco, mmToPixel(positionY), fontHeight), verein,QTextOption(Qt::AlignLeft));
     m_yco += fontHeight+mmToPixel(1.0);
-    painter.drawText(QRectF(pr.x()+mmToPixel(positionX), m_yco, mmToPixel(positionY), fontHeight), "RG: " + riege + " WK: " + wettkampf, QTextOption(Qt::AlignLeft));
+    painter.drawText(QRectF(mmToPixel(positionX), m_yco, mmToPixel(positionY), fontHeight), "RG: " + riege + " WK: " + wettkampf, QTextOption(Qt::AlignLeft));
     m_yco += fontHeight+mmToPixel(1.0);
 }
 
