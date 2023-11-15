@@ -83,6 +83,9 @@ void Print::setSelectDetail(bool set) {
     selectDetail = set;
 }
 
+/*
+ * Sets the size of the paper e.g. A4
+ */
 void Print::setPaperSize(QPrinter::PaperSize set) {
     paperSize = set;
 }
@@ -91,6 +94,9 @@ QPrinter::PaperSize Print::getPaperSize() {
     return paperSize;
 }
 
+/*
+ * Sets the orientation of the paper e.g. landscape
+ */
 void Print::setOrientation(QPrinter::Orientation set) {
     orientation = set;
 }
@@ -158,7 +164,7 @@ void Print::setFinish(bool set) {
 }
 
 /*
- * Print the foot of the page
+ * Print the header and footer of the page
 */
 void Print::printHeadFoot() {
     if( headFootID > 0 ) {
