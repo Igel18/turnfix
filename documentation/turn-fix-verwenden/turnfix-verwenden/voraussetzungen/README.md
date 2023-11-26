@@ -1,6 +1,6 @@
 # Voraussetzungen
 
-**Geeignete Geräte**: Für TurnFix sind Laptops / PCs mit Windows 10 Pro vorgesehen.&#x20;
+**Geeignete Geräte**: Für TurnFix sind Laptops / PCs mit Windows 10 Pro / Windows 11 Pro vorgesehen.&#x20;
 
 Zur Verwendung von TurnFix wird eine PostgreSQL Datenbank installiert. Diese kann auf dem Laptop ausgeführt werden, sodass während dem Wettkampf **keine Internetverbindung** notwendig ist.&#x20;
 
