@@ -1,7 +1,6 @@
 #include "etiketten.h"
 #include "model/entitymanager.h"
 #include "model/entity/event.h"
-#include "src/global/header/_global.h"
 #include "participants/participantsmodel.h"
 #include "model/entity/competition.h"
 #include "model/repository/competitionrepository.h"
@@ -52,8 +51,8 @@ void Etiketten::printContent() {
 
     //set label values
     // keine ahnung warum die originalen werte der labels nicht passen. darum wurden diese angepasst. vermutung: das mmToPixel stimmt nicht.
-    auto labelheigth = 17.5;//16.9;
-    auto labelwidth = 50.3;//48.5;
+    auto labelheigth = 17.9;//16.9;
+    auto labelwidth = 50.5;//48.5;
     auto boarderleft = 7.0;
     auto boardertop = 13.0;
 
