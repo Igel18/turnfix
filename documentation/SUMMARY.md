@@ -22,6 +22,7 @@
   * [Voraussetzungen](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/README.md)
     * [Firewall einstellen](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/firewall-einstellen.md)
     * [Postgre SQL](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/postgre-sql.md)
+    * [Drucker](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/drucker.md)
   * [Übersicht](turn-fix-verwenden/turnfix-verwenden/uebersicht.md)
   * [Häufige funktionen](turn-fix-verwenden/turnfix-verwenden/haeufige-funktionen.md)
 * [Programm starten](turn-fix-verwenden/programm-starten.md)
