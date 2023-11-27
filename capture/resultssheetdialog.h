@@ -25,6 +25,7 @@ public:
 private slots:
     void fillPETable();
     void finishEdit();
+    void updateSquadStatus(int oldIndex, int newIndex, QString text);
     void changeSquadDisciplineStatus( int index );
     void saveClose();
     void saveJuryMethod();

@@ -13,6 +13,8 @@
 #include <math.h>
 #include <QMessageBox>
 #include <QSqlQuery>
+//#include <QInputDialog>
+#include <QMessageBox>
 
 ResultsSheetDialog::ResultsSheetDialog(EntityManager* em, Event *event, QWidget *parent)
     : QDialog(parent), ui(new Ui::ResultsSheetDialog), m_em(em), m_event(event)
@@ -45,6 +47,7 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     berechnen = pDiscipline->calculate();
 
     bool scoreSheet = true;
+
     auto pStatusModel = new StatusModel( m_em, this );
     pStatusModel->fetchStatuses( nullptr, &scoreSheet );
     ui->cmb_squadStatus->setModel( pStatusModel );
@@ -67,6 +70,30 @@ void ResultsSheetDialog::init(QString r, int g, bool k)
     connect( ui->cmb_squadStatus, qOverload<int>(&QComboBox::currentIndexChanged), this, &ResultsSheetDialog::changeSquadDisciplineStatus );
 
     fillPETable();
+
+    // automatisch den Status auf Wettkampf gestartet setzen
+    updateSquadStatus(1, 6, "Soll der Status der Riege auf 'Wettkampf gestartet' gesetzt werden?");
+}
+
+/*
+ * Automatisch den Status der Riege setzen
+ */
+void ResultsSheetDialog::updateSquadStatus(int oldIndex, int newIndex, QString text)
+{
+    if (m_pSquadDiscipline->statusId() == oldIndex)
+    {
+        QMessageBox dlg;
+        dlg.setText(text);
+        dlg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        dlg.setDefaultButton(QMessageBox::Yes);
+        int ret = dlg.exec();
+
+        if (ret == QMessageBox::Yes)
+        {
+            changeSquadDisciplineStatus(newIndex);
+            ui->cmb_squadStatus->setCurrentIndex( ui->cmb_squadStatus->findData( m_pSquadDiscipline->statusId(), TF::IdRole ) );
+        }
+    }
 }
 
 void ResultsSheetDialog::fillPETable()
@@ -145,6 +172,9 @@ void ResultsSheetDialog::changeSquadDisciplineStatus(int index)
 
 void ResultsSheetDialog::saveClose()
 {
+    // automatisch den Status auf Wettkampf gestartet setzen
+    updateSquadStatus(6, 9, "Soll der Status der Riege auf 'Leistung erfasst' gesetzt werden?");
+
     finishEdit();
     close();
 }
