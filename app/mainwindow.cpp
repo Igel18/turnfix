@@ -41,6 +41,7 @@ MainWindow::MainWindow( EntityManager *em, Event *event )
     connect(ui->act_events, SIGNAL(triggered()), this, SLOT(showDisDB()));
     connect(ui->act_pass, SIGNAL(triggered()), this, SLOT(editPass()));
     connect(ui->act_license, SIGNAL(triggered()), this, SLOT(showAbout()));
+    connect(ui->act_IM, SIGNAL(triggered()), this, SLOT(importDialog()));
 
     QToolBar *tb = new QToolBar();
     tb->setAllowedAreas(Qt::LeftToolBarArea);
@@ -68,6 +69,7 @@ MainWindow::MainWindow( EntityManager *em, Event *event )
     menu->addAction(ui->act_DR);
     menu->addAction(ui->act_ST);
     menu->addAction(ui->act_ED);
+    menu->addAction(ui->act_IM);
 
     connect(ui->act_WK, &QAction::triggered, this, [this]() { ui->sta_wdg->setCurrentIndex(0); updateTables(0); });
     connect(ui->act_TN, &QAction::triggered, [this]() {
@@ -205,6 +207,14 @@ void MainWindow::showDisDB() {
                                                     this,
                                                     MasterdataDialog::Type::DisciplineData);
     dbctrl->show();
+}
+
+void MainWindow::showImportDialog() {
+    MasterdataDialog *dbctrl = new MasterdataDialog(m_em,
+                                                    this,
+                                                    MasterdataDialog::Type::DisciplineData);
+    dbctrl->show();
+
 }
 
 void MainWindow::editPass() {

@@ -44,6 +44,7 @@ include(results/results.pri)
 include(export/export.pri)
 include(status/status.pri)
 include(editor/editor.pri)
+include(import/import.pri)
 include(controls/controls.pri)
 include(libs/libs.pri)
 

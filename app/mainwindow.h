@@ -27,6 +27,7 @@ private slots:
     void showVNDB();
     void showDisDB();
     void editPass();
+    void showImportDialog();
     void changeWK();
     void sendMLists();
 

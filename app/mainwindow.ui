@@ -190,7 +190,6 @@ font-family:Tahoma;</string>
          <property name="font">
           <font>
            <pointsize>-1</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -270,7 +269,7 @@ font-weight:bold;</string>
      <x>0</x>
      <y>0</y>
      <width>892</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWettkampf">
@@ -295,6 +294,9 @@ font-weight:bold;</string>
     <addaction name="act_events"/>
     <addaction name="separator"/>
     <addaction name="act_pass"/>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
+    <addaction name="act_IM"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -480,6 +482,11 @@ font-weight:bold;</string>
    </property>
    <property name="text">
     <string>Startreihenfolgen</string>
+   </property>
+  </action>
+  <action name="act_IM">
+   <property name="text">
+    <string>GymNet Import</string>
    </property>
   </action>
  </widget>
