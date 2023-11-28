@@ -4,6 +4,7 @@
 #include "app/logindialog.h"
 #include "export/maildialog.h"
 #include "masterdata/masterdatadialog.h"
+#include "import/importdialog.h"
 #include "model/entitymanager.h"
 #include "model/entity/event.h"
 #include "model/settings/session.h"
@@ -41,7 +42,7 @@ MainWindow::MainWindow( EntityManager *em, Event *event )
     connect(ui->act_events, SIGNAL(triggered()), this, SLOT(showDisDB()));
     connect(ui->act_pass, SIGNAL(triggered()), this, SLOT(editPass()));
     connect(ui->act_license, SIGNAL(triggered()), this, SLOT(showAbout()));
-    connect(ui->act_IM, SIGNAL(triggered()), this, SLOT(importDialog()));
+    connect(ui->act_IM, SIGNAL(triggered()), this, SLOT(showImportDialog()));
 
     QToolBar *tb = new QToolBar();
     tb->setAllowedAreas(Qt::LeftToolBarArea);
@@ -210,11 +211,8 @@ void MainWindow::showDisDB() {
 }
 
 void MainWindow::showImportDialog() {
-    MasterdataDialog *dbctrl = new MasterdataDialog(m_em,
-                                                    this,
-                                                    MasterdataDialog::Type::DisciplineData);
-    dbctrl->show();
-
+    ImportDialog *importDlg = new ImportDialog(m_event, m_em, this);
+    importDlg->show();
 }
 
 void MainWindow::editPass() {

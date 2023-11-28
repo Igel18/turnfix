@@ -1,8 +1,8 @@
 
-HEADERS += \ \
+HEADERS += \
     $$PWD/importdialog.h
 
-SOURCES += \ \
+SOURCES += \
     $$PWD/importdialog.cpp
 
 FORMS += \

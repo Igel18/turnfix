@@ -10,9 +10,8 @@ ImportDialog::ImportDialog(Event *event, EntityManager *em, QWidget *parent)
     , m_event(event)
     , m_em(em)
 {
-   // ui->setupUi(this);
-
-     connect(this,  SIGNAL(act_browse()), this, SLOT(browseFile()), Qt::BlockingQueuedConnection);
+    ui->setupUi(this);
+    connect(ui->FileOpenDlg,  SIGNAL(act_browse()), this, SLOT(browseFile()), Qt::BlockingQueuedConnection);
 }
 
 void ImportDialog::browseFile()
@@ -28,4 +27,12 @@ void ImportDialog::browseFile()
     if(dialog.exec()) {
 
     }
+}
+
+void ImportDialog::act_browse()
+{
+}
+
+void ImportDialog::parseXml()
+{
 }

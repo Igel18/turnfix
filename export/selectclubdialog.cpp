@@ -1,6 +1,5 @@
 #include "selectclubdialog.h"
 #include "model/entity/event.h"
-#include "src/global/header/_global.h"
 #include "model/entitymanager.h"
 #include "model/repository/clubrepository.h"
 #include <QGridLayout>
