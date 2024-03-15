@@ -6,7 +6,6 @@
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
 #include "model/repository/clubrepository.h"
-#include "model/repository/disciplinerepository.h"
 #include "model/settings/session.h"
 #include "src/global/header/_global.h"
 #include "src/global/header/settings.h"

@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QDialog>
-
+#include <QFile>
 namespace Ui {
 class ImportDialog;
 }
@@ -21,14 +21,18 @@ private:
     Ui::ImportDialog *ui;
     Event *m_event;
     EntityManager *m_em;
-    char path;
-
-public slots:
-    void act_browse();
+    QString filename;
+    QFile xmlFile;
 
 private slots:
     void browseFile();
     void parseXml();
+    void parseXml2();
+
+
+
+signals:
+    void act_browse();
 };
 
 #endif // GYMNET_H

@@ -1,5 +1,4 @@
 #include "settingswidget.h"
-#include "checkdatabasedialog.h"
 #include "model/settings/tfsettings.h"
 #include "ui_settingswidget.h"
 #include <QFileDialog>
