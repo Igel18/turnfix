@@ -7,6 +7,7 @@
 #include "ui_importdialog.h"
 #include <QTextCodec>
 #include <QDomDocument>
+#include <QTextStream>
 
 #include <QDebug>
 
@@ -35,10 +36,32 @@ void ImportDialog::browseFile()
         filename = dialog.selectedFiles()[0];
     }
 
-
-    ImportDialog::parseXml();
+    ImportDialog::test();
+   // ImportDialog::parseXml4();
 
     //listWidget.text();
+}
+
+void ImportDialog::test(){
+
+    qDebug() << "system name:"
+             << QLocale::system().name();
+
+    qDebug() << "\n1. Using QString::QString(char const *)";
+    dbg("\\u00fc", QString("\u00fc"));
+    dbg("\\xc3\\xbc", QString("\xc3\xbc"));
+    dbg("LATIN SMALL LETTER U WITH DIAERESIS", QString("ü"));
+
+        qDebug() << "\n2. Using QString::fromUtf8(char const *)";
+    dbg("\\u00fc", QString::fromUtf8("\u00fc"));
+    dbg("\\xc3\\xbc", QString::fromUtf8("\xc3\xbc"));
+    dbg("LATIN SMALL LETTER U WITH DIAERESIS", QString::fromUtf8("ü"));
+
+        qDebug() << "\n3. Using QString::fromLocal8Bit(char const *)";
+    dbg("\\u00fc", QString::fromLocal8Bit("\u00fc"));
+    dbg("\\xc3\\xbc", QString::fromLocal8Bit("\xc3\xbc"));
+    dbg("LATIN SMALL LETTER U WITH DIAERESIS", QString::fromLocal8Bit("ü"));
+
 }
 
 void ImportDialog::parseXml2()
@@ -87,6 +110,142 @@ void ImportDialog::parseXml2()
     }
 }
 
+void ImportDialog::parseXml3()
+{
+    QFile xmlFile(filename);
+
+    if (!xmlFile.open(QIODevice::ReadOnly | QFile::Text))
+    {
+        qDebug()<<"File Openning Error"<< xmlFile.errorString();
+        return;
+    }
+
+    qDebug() << xmlFile;
+
+    QTextStream ts(&xmlFile);
+    ts.setCodec("UTF-8");
+    qDebug() << ts.readAll().toUtf8();
+
+    qDebug() << "TEST ä TEST";
+
+    QString ca = ts.readAll();
+    qDebug() << ca;
+    qDebug() << ca.toUtf8();
+    qDebug() << ca.toStdWString();
+
+    QXmlStreamReader xmlReader(ts.readAll());
+    while(!xmlReader.atEnd() &&  !xmlReader.hasError()) {
+        /* Read next element.*/
+        QXmlStreamReader::TokenType token = xmlReader.readNext();
+        /* If token is just StartDocument, we'll go to next.*/
+
+        switch (token) {
+        case QXmlStreamReader::StartDocument:
+            qDebug() << xmlReader.documentEncoding();
+        case QXmlStreamReader::NoToken:
+            break;
+        case QXmlStreamReader::Invalid: {
+            qDebug() << xmlReader.tokenString();  // never seen
+            break;
+        }
+        case QXmlStreamReader::Characters:   {
+            qDebug() << xmlReader.tokenString() << xmlReader.text();
+            break;
+        }
+        case QXmlStreamReader::StartElement: {
+            qDebug() << xmlReader.tokenString() << xmlReader.qualifiedName();
+            for (QXmlStreamAttribute &attr: xmlReader.attributes()) {
+                qDebug() << " " << attr.name() << "==" << attr.value();
+            }
+
+            if(xmlReader.name() == "Wettk\xC3\xA4mpfe") {
+                continue;
+            }
+
+            break;
+        }
+        case QXmlStreamReader::EndElement:   {
+            qDebug() << xmlReader.tokenString() << xmlReader.qualifiedName();
+            break;
+        }
+        default: {
+            qDebug() << xmlReader.tokenString();
+            break;
+        }
+        }
+    }
+}
+
+void ImportDialog::parseXml4()
+{
+    QFile xmlFile(filename);
+
+    if (!xmlFile.open(QIODevice::ReadOnly | QFile::Text))
+    {
+        qDebug()<<"File Openning Error"<< xmlFile.errorString();
+        return;
+    }
+
+    qDebug() << xmlFile;
+
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+    QTextCodec::setCodecForLocale(QTextCodec::codecForUtfText("UTF-8"));
+    QString strg = xmlFile.readAll();
+    QString codepoints;
+    foreach (QChar chr, strg){
+        codepoints.append(QString::number(chr.unicode(),16)).append(" ");
+    }
+
+
+    //QTextCodec::setCodecForCStrings(QTextCodec::codecForUtfText("UTF-8"));
+
+    qDebug() << codepoints;
+
+    QXmlStreamReader xmlReader(strg);
+
+    while(!xmlReader.atEnd() &&  !xmlReader.hasError()) {
+        /* Read next element.*/
+        QXmlStreamReader::TokenType token = xmlReader.readNext();
+        /* If token is just StartDocument, we'll go to next.*/
+
+        switch (token) {
+        case QXmlStreamReader::StartDocument:
+            qDebug() << xmlReader.documentEncoding();
+        case QXmlStreamReader::NoToken:
+            break;
+        case QXmlStreamReader::Invalid: {
+            qDebug() << xmlReader.tokenString();  // never seen
+            break;
+        }
+        case QXmlStreamReader::Characters:   {
+            qDebug() << xmlReader.tokenString() << xmlReader.text();
+            break;
+        }
+        case QXmlStreamReader::StartElement: {
+            qDebug() << xmlReader.tokenString() << xmlReader.qualifiedName();
+            for (QXmlStreamAttribute &attr: xmlReader.attributes()) {
+                qDebug() << " " << attr.name() << "==" << attr.value();
+            }
+
+            if(xmlReader.name() == "Wettk\xC3\xA4mpfe") {
+                continue;
+            }
+
+            break;
+        }
+        case QXmlStreamReader::EndElement:   {
+            qDebug() << xmlReader.tokenString() << xmlReader.qualifiedName();
+            break;
+        }
+        default: {
+            qDebug() << xmlReader.tokenString();
+            break;
+        }
+        }
+    }
+}
+
+
 void ImportDialog::parseXml()
 {
     QFile xmlFile(filename);
@@ -106,7 +265,12 @@ void ImportDialog::parseXml()
         qDebug() << line;
     }
 
-    qDebug() << QString::fromUtf8(line);
+// gibts erst mit QT6
+//    auto toUtf16 = QStringDecoder(QStringDecoder::Utf8);
+//    QString string = toUtf16(line);
+//    qDebug() << string;
+
+        QString str = QStringLiteral("ßàéöø");
 
     QString ttt = QString::fromUtf8(line);
     qDebug() << ttt;
@@ -171,5 +335,17 @@ void ImportDialog::parseXml()
 //            }
 //        }
     }
+}
+
+void ImportDialog::dbg(char const * rawInput, QString s) {
+
+    QString codepoints;
+    foreach(QChar chr, s) {
+        codepoints.append(QString::number(chr.unicode(), 16)).append(" ");
+    }
+
+    qDebug() << "Input: " << rawInput
+             << ", "
+             << "Unicode codepoints: " << codepoints;
 }
 

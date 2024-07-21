@@ -23,13 +23,15 @@ private:
     EntityManager *m_em;
     QString filename;
     QFile xmlFile;
+    void dbg(char const * rawInput, QString s);
+    void parseXml();
+    void parseXml2();
+    void parseXml3();
+    void parseXml4();
+    void test();
 
 private slots:
     void browseFile();
-    void parseXml();
-    void parseXml2();
-
-
 
 signals:
     void act_browse();

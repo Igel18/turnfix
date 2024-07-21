@@ -34,7 +34,7 @@ void SelectCompetitionDialog::initData()
 
     foreach(const Competition *comp, competitions)
     {
-        ui->cmb_dis->addItem(comp->name(), comp->number());
+        ui->cmb_dis->addItem(comp->number() + " " + comp->name());
     }
 }
 
