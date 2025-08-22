@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Gymnastics>
+  <Event>
+    <Name>Testveranstaltung 2025</Name>
+    <Organizer>Testverein</Organizer>
+    <Date>2025-03-15</Date>
+    <Location>Teststadt</Location>
+    <Competitions>
+      <Competition>
+        <Name>Jugend männlich</Name>
+        <Discipline>Männlicher Mehrkampf</Discipline>
+        <Participants>
+          <Participant>
+            <FirstName>Max</FirstName>
+            <LastName>Mustermann</LastName>
+            <Club>TSV Testdorf</Club>
+            <BirthYear>2010</BirthYear>
+            <Registration>123456</Registration>
+          </Participant>
+          <Participant>
+            <FirstName>Tim</FirstName>
+            <LastName>Test</LastName>
+            <Club>SV Beispielstadt</Club>
+            <BirthYear>2009</BirthYear>
+            <Registration>789012</Registration>
+          </Participant>
+        </Participants>
+      </Competition>
+      <Competition>
+        <Name>Jugend weiblich</Name>
+        <Discipline>Weiblicher Mehrkampf</Discipline>
+        <Participants>
+          <Participant>
+            <FirstName>Anna</FirstName>
+            <LastName>Beispiel</LastName>
+            <Club>TuS Musterort</Club>
+            <BirthYear>2011</BirthYear>
+            <Registration>345678</Registration>
+          </Participant>
+        </Participants>
+      </Competition>
+    </Competitions>
+  </Event>
+</Gymnastics>

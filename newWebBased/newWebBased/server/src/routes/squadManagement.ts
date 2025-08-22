@@ -1,0 +1,402 @@
+import { Router } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+
+const router = Router();
+const prisma = new PrismaClient();
+
+// Validation schemas
+const createSquadSchema = z.object({
+  eventId: z.number().int().positive(),
+  name: z.string().min(1).max(50),
+});
+
+const assignParticipantToSquadSchema = z.object({
+  participantId: z.number().int().positive(),
+  squadName: z.string().min(1).max(50),
+  eventId: z.number().int().positive(),
+});
+
+const updateSquadSchema = z.object({
+  eventId: z.number().int().positive(),
+  oldSquadName: z.string().min(1),
+  newSquadName: z.string().min(1).max(50),
+});
+
+// Get all squads for an event with participants
+router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const eventId = req.query.eventId as string;
+    
+    console.log(`Squad Management API: eventId=${eventId}`);
+    
+    if (!eventId) {
+      return res.status(400).json({ message: 'Event ID is required' });
+    }
+
+    // Get all squads (riegen) for this event with participant information
+    const squadQuery = `
+      SELECT 
+        COALESCE(w.var_riege, 'Unassigned') as squad_name,
+        COUNT(DISTINCT t.int_teilnehmerid) as participant_count,
+        STRING_AGG(DISTINCT wk.var_name, ', ') as competition_names
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege IS NOT NULL AND w.var_riege != ''
+      GROUP BY w.var_riege
+      ORDER BY w.var_riege
+    `;
+
+    const squadResults = await prisma.$queryRawUnsafe(squadQuery, parseInt(eventId));
+
+    // Get detailed participants for each squad
+    const squads = await Promise.all(
+      (squadResults as any[]).map(async (squad) => {
+        const participantQuery = `
+          SELECT 
+            t.int_teilnehmerid,
+            t.var_vorname,
+            t.var_nachname,
+            t.int_vereineid,
+            t.int_geschlecht,
+            t.dat_geburtstag,
+            t.int_startpassnummer,
+            v.var_name as verein_name,
+            w.var_riege,
+            CASE 
+              WHEN t.int_geschlecht = 1 THEN 'male'
+              WHEN t.int_geschlecht = 2 THEN 'female'
+              ELSE 'other'
+            END as gender,
+            CASE 
+              WHEN t.dat_geburtstag IS NOT NULL THEN 
+                EXTRACT(YEAR FROM t.dat_geburtstag)
+              ELSE NULL
+            END as birth_year,
+            STRING_AGG(DISTINCT wk.var_name, ', ') as assigned_competitions
+          FROM tfx_wertungen w
+          INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+          LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+          WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
+          GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
+                   t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, 
+                   v.var_name, w.var_riege
+          ORDER BY t.var_nachname ASC, t.var_vorname ASC
+        `;
+
+        const participants = await prisma.$queryRawUnsafe(
+          participantQuery, 
+          parseInt(eventId),
+          squad.squad_name
+        );
+
+        return {
+          id: squad.squad_name, // Use squad name as ID since it's unique per event
+          name: squad.squad_name,
+          eventId: parseInt(eventId),
+          participantCount: Number(squad.participant_count),
+          competitions: squad.competition_names ? squad.competition_names.split(', ') : [],
+          participants: (participants as any[]).map(p => ({
+            id: Number(p.int_teilnehmerid),
+            firstname: p.var_vorname,
+            lastname: p.var_nachname,
+            club: p.verein_name || 'Unknown Club',
+            clubId: p.int_vereineid ? Number(p.int_vereineid) : 0,
+            gender: p.gender,
+            birthYear: p.birth_year ? Number(p.birth_year) : null,
+            squadId: squad.squad_name,
+            squadName: squad.squad_name,
+            assignedCompetitions: p.assigned_competitions ? p.assigned_competitions.split(', ') : []
+          }))
+        };
+      })
+    );
+
+    console.log(`Returning ${squads.length} squads for event ${eventId}`);
+
+    res.json({
+      squads: squads,
+      eventId: parseInt(eventId),
+      totalSquads: squads.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching squads:', error);
+    res.status(500).json({ message: 'Failed to fetch squads' });
+  }
+});
+
+// Get available participants (not assigned to any squad for this event)
+router.get('/available-participants', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const eventId = req.query.eventId as string;
+    
+    if (!eventId) {
+      return res.status(400).json({ message: 'Event ID is required' });
+    }
+
+    // Get participants registered for the event but not assigned to any squad
+    const availableParticipantsQuery = `
+      SELECT 
+        t.int_teilnehmerid,
+        t.var_vorname,
+        t.var_nachname,
+        t.int_vereineid,
+        t.int_geschlecht,
+        t.dat_geburtstag,
+        t.int_startpassnummer,
+        v.var_name as verein_name,
+        CASE 
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'other'
+        END as gender,
+        CASE 
+          WHEN t.dat_geburtstag IS NOT NULL THEN 
+            EXTRACT(YEAR FROM t.dat_geburtstag)
+          ELSE NULL
+        END as birth_year
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+      WHERE wk.int_veranstaltungenid = $1 
+        AND (w.var_riege IS NULL OR w.var_riege = '' OR w.var_riege = 'Unassigned')
+      GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
+               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name
+      ORDER BY t.var_nachname ASC, t.var_vorname ASC
+    `;
+
+    const availableParticipants = await prisma.$queryRawUnsafe(availableParticipantsQuery, parseInt(eventId));
+
+    const formattedParticipants = (availableParticipants as any[]).map(participant => ({
+      id: Number(participant.int_teilnehmerid),
+      firstname: participant.var_vorname,
+      lastname: participant.var_nachname,
+      club: participant.verein_name || 'Unknown Club',
+      clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
+      gender: participant.gender,
+      birthYear: participant.birth_year ? Number(participant.birth_year) : null,
+      squadId: undefined,
+      squadName: undefined
+    }));
+
+    console.log(`Returning ${formattedParticipants.length} available participants for event ${eventId}`);
+
+    res.json({
+      participants: formattedParticipants,
+      eventId: parseInt(eventId),
+      totalAvailable: formattedParticipants.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching available participants:', error);
+    res.status(500).json({ message: 'Failed to fetch available participants' });
+  }
+});
+
+// Create a new squad
+router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const validatedData = createSquadSchema.parse(req.body);
+    
+    // Check if squad name already exists for this event
+    const existingSquad = await prisma.$queryRawUnsafe(`
+      SELECT COUNT(*) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
+    `, validatedData.eventId, validatedData.name);
+
+    if ((existingSquad as any[])[0].count > 0) {
+      return res.status(400).json({ message: 'Squad name already exists for this event' });
+    }
+
+    console.log(`Created squad "${validatedData.name}" for event ${validatedData.eventId}`);
+
+    res.status(201).json({
+      message: 'Squad created successfully',
+      squad: {
+        id: validatedData.name,
+        name: validatedData.name,
+        eventId: validatedData.eventId,
+        participantCount: 0,
+        competitions: [],
+        participants: []
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating squad:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to create squad' });
+  }
+});
+
+// Assign participant to squad
+router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const validatedData = assignParticipantToSquadSchema.parse(req.body);
+    
+    // Update all wertungen entries for this participant in this event to the new squad
+    const updateResult = await prisma.$queryRawUnsafe(`
+      UPDATE tfx_wertungen 
+      SET var_riege = $3
+      WHERE int_teilnehmerid = $1 
+        AND int_wettkaempfeid IN (
+          SELECT int_wettkaempfeid 
+          FROM tfx_wettkaempfe 
+          WHERE int_veranstaltungenid = $2
+        )
+    `, validatedData.participantId, validatedData.eventId, validatedData.squadName);
+
+    console.log(`Assigned participant ${validatedData.participantId} to squad "${validatedData.squadName}" for event ${validatedData.eventId}`);
+
+    res.json({
+      message: 'Participant assigned to squad successfully',
+      participantId: validatedData.participantId,
+      squadName: validatedData.squadName,
+      eventId: validatedData.eventId
+    });
+
+  } catch (error) {
+    console.error('Error assigning participant to squad:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to assign participant to squad' });
+  }
+});
+
+// Remove participant from squad (set to unassigned)
+router.delete('/unassign', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { participantId, eventId } = req.query;
+    
+    if (!participantId || !eventId) {
+      return res.status(400).json({ message: 'Participant ID and Event ID are required' });
+    }
+
+    // Update all wertungen entries for this participant in this event to unassigned
+    const updateResult = await prisma.$queryRawUnsafe(`
+      UPDATE tfx_wertungen 
+      SET var_riege = NULL
+      WHERE int_teilnehmerid = $1 
+        AND int_wettkaempfeid IN (
+          SELECT int_wettkaempfeid 
+          FROM tfx_wettkaempfe 
+          WHERE int_veranstaltungenid = $2
+        )
+    `, parseInt(participantId as string), parseInt(eventId as string));
+
+    console.log(`Unassigned participant ${participantId} from squad for event ${eventId}`);
+
+    res.json({
+      message: 'Participant unassigned from squad successfully',
+      participantId: parseInt(participantId as string),
+      eventId: parseInt(eventId as string)
+    });
+
+  } catch (error) {
+    console.error('Error unassigning participant from squad:', error);
+    res.status(500).json({ message: 'Failed to unassign participant from squad' });
+  }
+});
+
+// Update squad name
+router.put('/update', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const validatedData = updateSquadSchema.parse(req.body);
+    
+    // Check if new squad name already exists for this event
+    const existingSquad = await prisma.$queryRawUnsafe(`
+      SELECT COUNT(*) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
+    `, validatedData.eventId, validatedData.newSquadName);
+
+    if ((existingSquad as any[])[0].count > 0 && validatedData.oldSquadName !== validatedData.newSquadName) {
+      return res.status(400).json({ message: 'New squad name already exists for this event' });
+    }
+
+    // Update all wertungen entries with the old squad name to the new squad name
+    const updateResult = await prisma.$queryRawUnsafe(`
+      UPDATE tfx_wertungen 
+      SET var_riege = $3
+      WHERE var_riege = $1 
+        AND int_wettkaempfeid IN (
+          SELECT int_wettkaempfeid 
+          FROM tfx_wettkaempfe 
+          WHERE int_veranstaltungenid = $2
+        )
+    `, validatedData.oldSquadName, validatedData.eventId, validatedData.newSquadName);
+
+    console.log(`Updated squad name from "${validatedData.oldSquadName}" to "${validatedData.newSquadName}" for event ${validatedData.eventId}`);
+
+    res.json({
+      message: 'Squad name updated successfully',
+      oldSquadName: validatedData.oldSquadName,
+      newSquadName: validatedData.newSquadName,
+      eventId: validatedData.eventId
+    });
+
+  } catch (error) {
+    console.error('Error updating squad name:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to update squad name' });
+  }
+});
+
+// Delete squad (unassign all participants)
+router.delete('/delete', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { squadName, eventId } = req.query;
+    
+    if (!squadName || !eventId) {
+      return res.status(400).json({ message: 'Squad name and Event ID are required' });
+    }
+
+    // Get participant count before deletion
+    const participantCount = await prisma.$queryRawUnsafe(`
+      SELECT COUNT(DISTINCT int_teilnehmerid) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
+    `, parseInt(eventId as string), squadName);
+
+    // Update all wertungen entries for this squad to unassigned (NULL)
+    const updateResult = await prisma.$queryRawUnsafe(`
+      UPDATE tfx_wertungen 
+      SET var_riege = NULL
+      WHERE var_riege = $1 
+        AND int_wettkaempfeid IN (
+          SELECT int_wettkaempfeid 
+          FROM tfx_wettkaempfe 
+          WHERE int_veranstaltungenid = $2
+        )
+    `, squadName, parseInt(eventId as string));
+
+    console.log(`Deleted squad "${squadName}" for event ${eventId}, unassigned ${(participantCount as any[])[0].count} participants`);
+
+    res.json({
+      message: 'Squad deleted successfully',
+      squadName: squadName,
+      eventId: parseInt(eventId as string),
+      unassignedParticipants: Number((participantCount as any[])[0].count)
+    });
+
+  } catch (error) {
+    console.error('Error deleting squad:', error);
+    res.status(500).json({ message: 'Failed to delete squad' });
+  }
+});
+
+export default router;
