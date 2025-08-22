@@ -3,6 +3,8 @@
 
 #include "abstractrepository.h"
 #include "model/entity/venue.h"
+#include <model/entity/club.h>
+#include <model/entity/event.h>
 
 class VenueRepository : public AbstractRepository<Venue>
 {

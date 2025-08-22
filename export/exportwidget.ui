@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>716</width>
-    <height>650</height>
+    <height>653</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -203,7 +203,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>6</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="resultWidget">
          <layout class="QGridLayout" name="gridLayout_10">
@@ -259,7 +259,7 @@
           <item row="9" column="0">
            <widget class="QStackedWidget" name="resultStack">
             <property name="currentIndex">
-             <number>1</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="page_3"/>
             <widget class="QWidget" name="page_4">

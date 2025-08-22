@@ -6,6 +6,7 @@
 #include "model/entity/venue.h"
 #include "model/entitymanager.h"
 #include "model/querybuilder.h"
+#include "model/repository/scorerepository.h"
 #include <QMetaProperty>
 #include <QSqlQuery>
 
@@ -103,12 +104,24 @@ QList<Event *> EventRepository::loadAll()
 {
     QSqlDatabase db = QSqlDatabase::database(entityManager()->connectionName());
 
+//    QueryBuilder<Event> qb;
+//    qb.select(Event::staticMetaObject, Event::mapping());
+//    qb.join(Venue::staticMetaObject, Venue::mapping(), "Event", "venue", "venueId");
+//    qb.orderBy("Event", "startDate", "DESC");
+
+    QueryBuilder<Event> qb = prepareQuery();
+    QList<Event *> output = qb.query(db);
+
+    return output;
+}
+
+QueryBuilder<Event> EventRepository::prepareQuery()
+{
     QueryBuilder<Event> qb;
     qb.select(Event::staticMetaObject, Event::mapping());
     qb.join(Venue::staticMetaObject, Venue::mapping(), "Event", "venue", "venueId");
     qb.orderBy("Event", "startDate", "DESC");
 
-    QList<Event *> output = qb.query(db);
-
-    return output;
+    return qb;
 }
+

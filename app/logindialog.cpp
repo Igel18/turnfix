@@ -7,12 +7,16 @@
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
 #include "model/settings/session.h"
+#include "model/repository/eventrepository.h"
 #include "postgressetupwizard.h"
 #include "ui_logindialog.h"
 #include <QDataWidgetMapper>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMessageBox>
+#include <QThread>
+#include "databaseworker.h"
+#include <QMetaType>
 
 LoginDialog::LoginDialog(EntityManager *em, QWidget *parent)
     : QDialog(parent)
@@ -76,6 +80,8 @@ LoginDialog::LoginDialog(EntityManager *em, QWidget *parent)
             &QPushButton::clicked,
             this,
             &LoginDialog::setupPostgresDatabase);
+
+    qRegisterMetaType<Event*>("Event*");
 }
 
 LoginDialog::~LoginDialog()
@@ -90,29 +96,46 @@ Event *LoginDialog::selectedEvent()
 
 void LoginDialog::doLogin()
 {
-    bool connectionEstablished;
+    if (ui->connectionComboBox->currentIndex() == -1)
+        return;
 
-    ui->eventsWidget->setEnabled(false);
-    eventModel->clear();
+    int connectionIndex = ui->connectionComboBox->currentIndex();
 
-    if (ui->connectionComboBox->currentIndex()==-1)
-       return;
+    // Erstelle den DatabaseWorker
+    QThread *dbThread = new QThread(this);
+    DatabaseWorker *worker = new DatabaseWorker("async_connection", this);
+    worker->moveToThread(dbThread);
 
-    AbstractConnection *connection = connectionModel->connectionAt(
-        ui->connectionComboBox->currentIndex());
+    // Erstelle den QueryBuilder
+    auto eventRepository = em->eventRepository();
+    QueryBuilder<Event> *qb = new QueryBuilder<Event>();
+    qb->select(Event::staticMetaObject, Event::mapping());
 
-    connect(connection, &AbstractConnection::errorOccured, this, &LoginDialog::errorHandler);
+    // Verbinde Signale und Slots
+    connect(dbThread, &QThread::started, [worker, qb]() {
+        worker->performQuery(qb);
+    });
 
-    connectionEstablished = connection->connect("main");
+    connect(worker, &DatabaseWorker::querySucceeded, this, [this](const QList<QVariant> &result) {
+        QList<Event *> events;
 
-    if (connectionEstablished) {
-        Session::instance()->setConnection( connection );
-        em->setConnectionName("main");
+        for (const QVariant &variant : result) {
+            events.append(variant.value<Event *>());
+        }
+
+        qDebug() << "Query succeeded:" << events;
         ui->eventsWidget->setEnabled(true);
-        eventModel->getEvents();
-    }
+    });
 
-    disconnect(connection, &AbstractConnection::errorOccured, this, &LoginDialog::errorHandler);
+    connect(worker, &DatabaseWorker::queryFailed, this, [this](const QString &error) {
+        qDebug() << "Query failed:" << error;
+        QMessageBox::critical(this, tr("Datenbankfehler"), error);
+    });
+
+    connect(dbThread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(dbThread, &QThread::finished, dbThread, &QObject::deleteLater);
+
+    dbThread->start();
 }
 
 void LoginDialog::errorHandler(const QString &errorText)

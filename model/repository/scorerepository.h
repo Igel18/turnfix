@@ -10,6 +10,7 @@ public:
     using AbstractRepository::AbstractRepository;
 
     QList< Score* > fetch( const int* competitionId = nullptr, const int* round = nullptr );
+    QueryBuilder<Score> prepareQuery(const int* competitionId /*= nullptr*/, const int* round /*= nullptr*/);
 };
 
 #endif // SCOREREPOSITORY_H

@@ -3,6 +3,7 @@
 
 #include "model/dbcolumn.h"
 #include "model/dbtable.h"
+#include "model/querybuilderbase.h"
 #include <QDebug>
 #include <QList>
 #include <QMetaObject>
@@ -12,10 +13,36 @@
 #include <QString>
 #include <QStringList>
 
-template<class T>
-class QueryBuilder
-{
+template <typename T>
+class QueryBuilder : public QueryBuilderBase {
+
 public:
+    QueryBuilder() = default;
+
+    // Implementiere die execute-Methode
+    QList<QVariant> execute(QSqlDatabase &db) const override {
+        QList<QVariant> results;
+
+        // Beispiel: Führe die Abfrage aus und konvertiere die Ergebnisse in QVariant
+        QSqlQuery query(db);
+        query.exec(m_select); // m_queryString enthält die generierte SQL-Abfrage
+
+        while (query.next()) {
+            T *entity = new T();
+            // Fülle die Entität mit den Daten aus der Abfrage
+            results.append(QVariant::fromValue(entity));
+        }
+
+        return results;
+    }
+
+    /**
+     * @brief Selects columns from a database table based on the provided meta object and mapping.
+     * 
+     * @param metaObject The meta object representing the class.
+     * @param mapping The mapping object that defines the table structure.
+     * @return A reference to the QueryBuilder object.
+     */
     QueryBuilder select(QMetaObject metaObject, const DBTable *mapping)
     {
         m_select = "SELECT ";
@@ -43,21 +70,35 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Joins another table to the current query based on the provided parameters.
+     * 
+     * @param metaObject The meta object representing the class to join.
+     * @param mapping The mapping object that defines the table structure.
+     * @param joinClass The name of the class to join.
+     * @param propertyName The name of the property to join on.
+     * @param idName The name of the ID column in the joined table.
+     * @param key The name of the key column in the current table (default is "id").
+     * @param joinType The join type (e.g., INNER, LEFT, RIGHT)
+     * @return A reference to the QueryBuilder object.
+     */
     QueryBuilder join(QMetaObject metaObject,
                       const DBTable *mapping,
                       const QString &joinClass,
                       const QString &propertyName,
                       const QString &idName,
-                      const QString &key = "id")
+                      const QString &key = "id",
+                      const QString& joinType = "LEFT")
     {
         m_mappings.insert(metaObject.className(), mapping);
         m_select += ", ";
-        m_from += QString(" LEFT JOIN %1 ON %2.%3 = %4.%5")
+        m_from += QString(" %6 JOIN %1 ON %2.%3 = %4.%5")
                       .arg(mapping->name(),
                            m_mappings.value(joinClass)->name(),
                            m_mappings.value(joinClass)->columnByProperty(idName)->name(),
                            mapping->name(),
-                           mapping->columnByProperty(key)->name());
+                           mapping->columnByProperty(key)->name(),
+                           joinType);
         m_joinMetaObjects.insert(propertyName, metaObject);
         m_joinClasses.insert(propertyName, joinClass);
         m_joinTables.append(propertyName);
@@ -83,6 +124,14 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Orders the results based on the specified class name, property name, and order.
+     * 
+     * @param className The name of the class to order by.
+     * @param propertyName The name of the property to order by.
+     * @param order The order direction (ASC or DESC).
+     * @return A reference to the QueryBuilder object.
+     */
     QueryBuilder orderBy(const QString &className,
                          const QString &propertyName,
                          const QString &order = "ASC")
@@ -99,6 +148,14 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Adds a WHERE clause to the query based on the specified class name, property name, and value.
+     * 
+     * @param className The name of the class to filter by.
+     * @param propertyName The name of the property to filter by.
+     * @param value The value to filter by.
+     * @return A reference to the QueryBuilder object.
+     */
     QueryBuilder where(const QString &className, const QString &propertyName, const QVariant &value)
     {
         if (m_where != "") {
@@ -113,6 +170,12 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Executes the query and returns a list of objects of type T.
+     * 
+     * @param db The database connection to use for the query.
+     * @return A list of objects of type T.
+     */
     QList<T *> query(const QSqlDatabase &db)
     {
         QString queryString = QString("%1 %2").arg(m_select, m_from);
@@ -145,6 +208,15 @@ public:
         return output;
     }
 
+    /**
+     * @brief Persists the object to the database.
+     * 
+     * @param db The database connection to use for the operation.
+     * @param metaObject The meta object representing the class.
+     * @param mapping The mapping object that defines the table structure.
+     * @param obj The object to persist.
+     * @return true if the operation was successful, false otherwise.
+     */
     bool persist(const QSqlDatabase &db, QMetaObject metaObject, const DBTable *mapping, T *obj)
     {
         QObject *qobj = obj;

@@ -12,9 +12,9 @@ class ClubRepository : public AbstractRepository< Club >
 public:
     using AbstractRepository::AbstractRepository;
 
-    QList<Club*> fetch( int *id = nullptr );
-    QList<Club*> fetchByEvent(Event *event, int* id = nullptr );
-    QList<Club*> fetchByEvent2(Event *event, int* id = nullptr );
+    QList< Club* > fetch( int *id = nullptr );
+    QList< Club* > fetchClubByEvent(Event *event, const int* id = nullptr );
+
 };
 
 #endif // CLUBREPOSITORY_H

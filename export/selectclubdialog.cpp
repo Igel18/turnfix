@@ -24,7 +24,7 @@ QStringList SelectClubDialog::returnVereine() {
 
 void SelectClubDialog::initData() {
 
-    auto clubs = m_em->clubRepository()->fetchByEvent2(m_event);
+    auto clubs = m_em->clubRepository()->fetchClubByEvent(m_event);
 
     for (int i=1;clubs.count()>i;i++) {
         QListWidgetItem *item = new QListWidgetItem(clubs[i]->name());

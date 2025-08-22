@@ -2,6 +2,8 @@
 #include "model/dbcolumn.h"
 #include "model/dbtable.h"
 #include "model/entitymanager.h"
+#include <model/entity/club.h>
+#include <model/entity/event.h>
 #include <QMetaProperty>
 #include <QSqlQuery>
 

@@ -11,6 +11,7 @@ public:
 
     QList<Event *> loadAll();
     bool persist(Event *event) override;
+    QueryBuilder<Event> prepareQuery();
 };
 
 #endif // EVENTREPOSITORY_H

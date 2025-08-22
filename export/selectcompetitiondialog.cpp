@@ -2,7 +2,6 @@
 #include "model/entity/event.h"
 #include "model/entitymanager.h"
 #include "model/repository/competitionrepository.h"
-#include "src/global/header/_global.h"
 #include "ui_selectcompetitiondialog.h"
 #include <QSqlQuery>
 

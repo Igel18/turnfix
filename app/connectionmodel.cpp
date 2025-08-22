@@ -3,6 +3,8 @@
 #include "model/entity/sqliteconnection.h"
 #include "model/entitymanager.h"
 #include "model/repository/connectionrepository.h"
+#include "databaseworker.h"
+#include "QThread"
 
 ConnectionModel::ConnectionModel(EntityManager *em, QObject *parent)
     : QAbstractTableModel(parent)
@@ -144,4 +146,38 @@ AbstractConnection *ConnectionModel::connectionAt(const QModelIndex &index)
 AbstractConnection *ConnectionModel::connectionAt(int index)
 {
     return connections.at(index);
+}
+
+template <typename T>
+void ConnectionModel::executeQueryAsync(QueryBuilder<T> qb, int connectionIndex)
+{
+    if (connectionIndex < 0 || connectionIndex >= connections.size()) {
+        emit queryFailed("Ungültiger Verbindungsindex");
+        return;
+    }
+
+    // Erstelle einen separaten Thread
+    QThread *dbThread = new QThread(this);
+    QString connectionName = QString("async_connection_%1").arg(connectionIndex);
+    AbstractConnection *connection = connections.at(connectionIndex);
+
+    // Erstelle den DatabaseWorker
+    DatabaseWorker *worker = new DatabaseWorker(connectionName, connection);
+    worker->moveToThread(dbThread);
+
+    // Verbinde den Thread-Start mit der Abfrageausführung
+    connect(dbThread, &QThread::started, [worker, qb]() mutable {
+        worker->performQuery(qb);
+    });
+
+    // Verbinde die Signale des Workers mit den Signalen des ConnectionModels
+    connect(worker, &DatabaseWorker::querySucceeded, this, &ConnectionModel::querySucceeded);
+    connect(worker, &DatabaseWorker::queryFailed, this, &ConnectionModel::queryFailed);
+
+    // Bereinige den Worker und den Thread nach Abschluss
+    connect(dbThread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(dbThread, &QThread::finished, dbThread, &QObject::deleteLater);
+
+    // Starte den Thread
+    dbThread->start();
 }

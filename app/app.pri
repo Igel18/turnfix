@@ -11,6 +11,7 @@ HEADERS += \
     $$PWD/aboutdialog.h \
     $$PWD/checkdatabasedialog.h \
     $$PWD/connectionmodel.h \
+    $$PWD/databaseworker.h \
     $$PWD/dbinitializerpostgres.h \
     $$PWD/eventdialog.h \
     $$PWD/eventmodel.h \
