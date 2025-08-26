@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { CircleStackIcon } from '@heroicons/react/24/outline'
 
 export function Home() {
   return (
@@ -24,6 +25,13 @@ export function Home() {
               className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition"
             >
               View Events
+            </Link>
+            <Link 
+              to="/database-config" 
+              className="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition flex items-center gap-2"
+            >
+              <CircleStackIcon className="h-5 w-5" />
+              Database Config
             </Link>
           </div>
           <div className="mt-4">

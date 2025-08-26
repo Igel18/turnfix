@@ -59,10 +59,7 @@ export default function Disciplines() {
   const fetchDisciplines = async () => {
     try {
       setIsLoading(true)
-      const response = await apiGet('/disciplines')
-      if (!response.ok) throw new Error('Failed to fetch disciplines')
-      
-      const data = await response.json()
+      const data = await apiGet('/disciplines')
       setDisciplines(data || [])
       
       // Extract unique apparatus
@@ -91,8 +88,7 @@ export default function Disciplines() {
   const handleDelete = async (discipline: Discipline) => {
     if (window.confirm(`Are you sure you want to delete "${discipline.display_name || discipline.name}"?`)) {
       try {
-        const response = await apiDelete(`/disciplines/${discipline.id}`)
-        if (!response.ok) throw new Error('Failed to delete discipline')
+        await apiDelete(`/disciplines/${discipline.id}`)
         
         // Refresh the list
         await fetchDisciplines()

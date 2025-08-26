@@ -15,6 +15,7 @@ import CompetitionsFixed from '@/pages/CompetitionsFixed'
 import Disciplines from '@/pages/Disciplines'
 import SquadManagement from '@/pages/SquadManagement'
 import EventParticipants from '@/pages/EventParticipants'
+import DatabaseConfig from '@/pages/DatabaseConfig'
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="/squads" element={<SquadManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/disciplines" element={<Disciplines />} />
+            <Route path="/database-config" element={<DatabaseConfig />} />
           </Routes>
         </div>
       </EventProvider>

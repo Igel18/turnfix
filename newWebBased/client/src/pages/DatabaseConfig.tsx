@@ -4,7 +4,8 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { CheckCircleIcon, XCircleIcon, CircleStackIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, XCircleIcon, CircleStackIcon, Cog6ToothIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
 
 interface DatabaseConfig {
   host: string;
@@ -18,6 +19,13 @@ interface DatabaseConfig {
 interface ConnectionStatus {
   connected: boolean;
   message: string;
+  tablesFound?: number;
+  sampleTables?: string[];
+}
+
+interface DatabaseConfigResponse {
+  config?: DatabaseConfig;
+  message?: string;
 }
 
 export default function DatabaseConfig() {
@@ -33,21 +41,44 @@ export default function DatabaseConfig() {
   const [loading, setLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  const [serverRestart, setServerRestart] = useState(false);
 
   // Load current configuration on component mount
   useEffect(() => {
     loadCurrentConfig();
+    // Test current connection on load
+    setTimeout(() => {
+      testConnection();
+    }, 500);
   }, []);
 
   const loadCurrentConfig = async () => {
     try {
       const response = await fetch('/api/admin/database-config');
       if (response.ok) {
-        const data = await response.json();
-        setConfig(data);
+        const data: DatabaseConfigResponse = await response.json();
+        if (data.config) {
+          // Load the stored password from localStorage for convenience
+          const storedPassword = localStorage.getItem('db_password') || '';
+          setConfig({
+            ...data.config,
+            password: storedPassword
+          });
+          setConfigLoaded(true);
+        }
+      } else {
+        // If no config found, try to load password from localStorage
+        const storedPassword = localStorage.getItem('db_password') || '';
+        setConfig(prev => ({
+          ...prev,
+          password: storedPassword
+        }));
+        setConfigLoaded(true);
       }
     } catch (error) {
       console.error('Failed to load database configuration:', error);
+      setConfigLoaded(true);
     }
   };
 
@@ -88,8 +119,14 @@ export default function DatabaseConfig() {
 
   const saveConfiguration = async () => {
     setLoading(true);
+    setConnectionStatus(null);
 
     try {
+      // Store password in localStorage for convenience
+      if (config.password) {
+        localStorage.setItem('db_password', config.password);
+      }
+
       const response = await fetch('/api/admin/database-config', {
         method: 'POST',
         headers: {
@@ -98,16 +135,18 @@ export default function DatabaseConfig() {
         body: JSON.stringify(config),
       });
 
+      const result = await response.json();
+
       if (response.ok) {
         setConnectionStatus({
           connected: true,
-          message: 'Configuration saved successfully!'
+          message: result.message || 'Configuration saved successfully! Please restart the server for changes to take effect.'
         });
+        setServerRestart(true);
       } else {
-        const error = await response.json();
         setConnectionStatus({
           connected: false,
-          message: 'Failed to save configuration: ' + error.message
+          message: result.message || 'Failed to save configuration'
         });
       }
     } catch (error) {
@@ -126,13 +165,54 @@ export default function DatabaseConfig() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <div className="flex items-center gap-3 mb-6">
-        <CircleStackIcon className="h-8 w-8 text-blue-600" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Database Configuration</h1>
-          <p className="text-gray-600">Configure your PostgreSQL database connection</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <CircleStackIcon className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Database Configuration</h1>
+            <p className="text-gray-600">Configure your PostgreSQL database connection</p>
+          </div>
         </div>
+        <Link 
+          to="/" 
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition flex items-center gap-2"
+        >
+          ← Back to Home
+        </Link>
       </div>
+
+      {/* Status Alert */}
+      {connectionStatus && (
+        <Alert className={`mb-6 ${connectionStatus.connected ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+          <div className="flex items-center gap-2">
+            {connectionStatus.connected ? (
+              <CheckCircleIcon className="h-5 w-5 text-green-600" />
+            ) : (
+              <XCircleIcon className="h-5 w-5 text-red-600" />
+            )}
+            <AlertDescription className={connectionStatus.connected ? 'text-green-800' : 'text-red-800'}>
+              {connectionStatus.message}
+              {connectionStatus.tablesFound !== undefined && (
+                <div className="mt-1 text-sm">
+                  Found {connectionStatus.tablesFound} tables
+                  {connectionStatus.sampleTables && connectionStatus.sampleTables.length > 0 && (
+                    <span className="text-gray-600"> (e.g., {connectionStatus.sampleTables.join(', ')})</span>
+                  )}
+                </div>
+              )}
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
+
+      {serverRestart && connectionStatus?.connected && (
+        <Alert className="mb-6 border-amber-200 bg-amber-50">
+          <ArrowPathIcon className="h-5 w-5 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <strong>Server restart required:</strong> The database configuration has been saved but won't take effect until you restart the development server.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Configuration Form */}
@@ -252,21 +332,6 @@ export default function DatabaseConfig() {
                   </code>
                 </div>
               </div>
-
-              {connectionStatus && (
-                <Alert className={connectionStatus.connected ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-                  <div className="flex items-center gap-2">
-                    {connectionStatus.connected ? (
-                      <CheckCircleIcon className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <XCircleIcon className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={connectionStatus.connected ? 'text-green-800' : 'text-red-800'}>
-                      {connectionStatus.message}
-                    </AlertDescription>
-                  </div>
-                </Alert>
-              )}
 
               <div className="text-sm text-gray-600">
                 <h4 className="font-medium mb-2">Configuration Notes:</h4>
