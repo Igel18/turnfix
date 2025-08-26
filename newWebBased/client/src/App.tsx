@@ -12,6 +12,7 @@ import Participants from '@/pages/Participants'
 import Results from '@/pages/Results'
 import ScoreCapture from '@/pages/ScoreCapture'
 import CompetitionsFixed from '@/pages/CompetitionsFixed'
+import CompetitionsDebug from '@/pages/CompetitionsDebug'
 import Disciplines from '@/pages/Disciplines'
 import SquadManagement from '@/pages/SquadManagement'
 import EventParticipants from '@/pages/EventParticipants'
@@ -34,6 +35,7 @@ function App() {
             <Route path="/results" element={<Results />} />
             <Route path="/score-capture" element={<ScoreCapture />} />
             <Route path="/competitions" element={<CompetitionsFixed />} />
+            <Route path="/competitions-debug" element={<CompetitionsDebug />} />
             <Route path="/squads" element={<SquadManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/disciplines" element={<Disciplines />} />

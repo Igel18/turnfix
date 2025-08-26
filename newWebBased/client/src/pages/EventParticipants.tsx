@@ -41,16 +41,6 @@ interface Competition {
   registrationDeadline?: string;
 }
 
-// Interface for event data
-interface Event {
-  id: number;
-  name: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  participantCount: number;
-}
-
 const EventParticipants: React.FC = () => {
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
@@ -62,7 +52,6 @@ const EventParticipants: React.FC = () => {
   // State for participants and competitions
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   
   // UI state
   const [selectedTab, setSelectedTab] = useState<'add-remove' | 'assign'>('add-remove');
@@ -75,30 +64,10 @@ const EventParticipants: React.FC = () => {
   // Load initial data
   useEffect(() => {
     if (eventId) {
-      loadEvent();
       loadParticipants();
       loadCompetitions();
     }
   }, [eventId]);
-
-  const loadEvent = async () => {
-    try {
-      const eventData = await apiGet(`/event-participants/event/${eventId}`)
-      setCurrentEvent(eventData)
-    } catch (error) {
-      console.error('Error loading event:', error);
-      // Fallback to mock data if API fails
-      const mockEvent: Event = {
-        id: parseInt(eventId || '1'),
-        name: '15. Ü18 Championship',
-        startDate: '2023-11-11',
-        endDate: '2023-11-11',
-        location: 'Gymnastics Hall Munich',
-        participantCount: 0
-      };
-      setCurrentEvent(mockEvent);
-    }
-  };
 
   const loadParticipants = async () => {
     try {
@@ -371,7 +340,7 @@ const EventParticipants: React.FC = () => {
     <div className="max-w-7xl mx-auto">
       <UnifiedHeader
         title="Event Participants"
-        description={`Manage participants for ${currentEvent?.name || 'event'}`}
+        description="Add, remove and assign participants to competitions within the selected event"
         icon={Users}
         stateInfo={getParticipantStateInfo()}
         selectedState={selectedTab}

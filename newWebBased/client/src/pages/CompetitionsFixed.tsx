@@ -178,8 +178,12 @@ const Competitions: React.FC = () => {
           (formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined) : 
           formData.maxParticipants,
         registrationDeadline: formData.registrationDeadline || null,
-        organizer: formData.organizer
+        organizer: formData.organizer,
+        ...(eventId && { eventId: parseInt(eventId) })
       };
+
+      console.log('Competition submission payload:', payload);
+      console.log('Disciplines array:', payload.disciplines, 'Length:', payload.disciplines.length);
 
       if (editingCompetition) {
         await apiPut(`/competitions/${editingCompetition.id}`, payload);
@@ -198,11 +202,25 @@ const Competitions: React.FC = () => {
   };
 
   const resetForm = () => {
+    // Pre-populate date and location from selected event
+    let eventDate = '';
+    if (selectedEvent?.dat_eventstartdate) {
+      // Extract date part only (YYYY-MM-DD) from datetime string
+      eventDate = selectedEvent.dat_eventstartdate.split('T')[0];
+    }
+    const eventLocation = selectedEvent?.var_location || '';
+    
+    console.log('Presetting competition form with event data:', {
+      eventDate,
+      eventLocation,
+      eventName: selectedEvent?.var_eventname
+    });
+    
     setFormData({
       name: '',
       description: '',
-      date: '',
-      location: '',
+      date: eventDate,
+      location: eventLocation,
       gender: 'gemischt',
       ageFrom: 6,
       ageTo: 18,
@@ -488,6 +506,12 @@ const Competitions: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Debug Info */}
+                <div className="bg-gray-100 p-3 rounded text-xs">
+                  <strong>Debug:</strong> Selected disciplines: [{formData.disciplines.join(', ')}] | 
+                  Submit enabled: {!(loading || formData.disciplines.length === 0)} | 
+                  Form valid: {formData.name && formData.date && formData.location && formData.disciplines.length > 0}
+                </div>
                 {/* Basic Information */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
@@ -595,35 +619,54 @@ const Competitions: React.FC = () => {
                 {/* Disciplines Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Disciplines * ({filteredDisciplines.length} available for {formData.gender})
+                    Disciplines * ({filteredDisciplines.length} available for {formData.gender}, {formData.disciplines.length} selected)
                   </label>
+                  {formData.disciplines.length > 0 && (
+                    <div className="mb-2 text-sm text-blue-600">
+                      Selected: {formData.disciplines.map(id => {
+                        const discipline = filteredDisciplines.find(d => d.int_disziplinid === id);
+                        return discipline ? discipline.var_disziplinname : `ID:${id}`;
+                      }).join(', ')}
+                    </div>
+                  )}
                   <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
                     {filteredDisciplines.length === 0 ? (
                       <p className="text-gray-500 text-sm">No disciplines available for selected gender</p>
                     ) : (
                       <div className="space-y-2">
                         {filteredDisciplines.map((discipline) => (
-                          <label key={discipline.int_disziplinid} className="flex items-center">
+                          <label key={discipline.int_disziplinid} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                             <input
                               type="checkbox"
                               checked={formData.disciplines.includes(discipline.int_disziplinid)}
                               onChange={(e) => {
                                 const disciplineId = discipline.int_disziplinid;
+                                console.log('Discipline selection changed:', {
+                                  disciplineId,
+                                  checked: e.target.checked,
+                                  currentDisciplines: formData.disciplines,
+                                  disciplineName: discipline.var_disziplinname
+                                });
+                                
                                 if (e.target.checked) {
+                                  const newDisciplines = [...formData.disciplines, disciplineId];
+                                  console.log('Adding discipline, new array:', newDisciplines);
                                   setFormData(prev => ({
                                     ...prev,
-                                    disciplines: [...prev.disciplines, disciplineId]
+                                    disciplines: newDisciplines
                                   }));
                                 } else {
+                                  const newDisciplines = formData.disciplines.filter(id => id !== disciplineId);
+                                  console.log('Removing discipline, new array:', newDisciplines);
                                   setFormData(prev => ({
                                     ...prev,
-                                    disciplines: prev.disciplines.filter(id => id !== disciplineId)
+                                    disciplines: newDisciplines
                                   }));
                                 }
                               }}
-                              className="mr-2"
+                              className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
-                            <span className="text-sm">
+                            <span className="text-sm select-none">
                               {discipline.var_disziplinname} 
                               <span className="text-gray-500 ml-1">
                                 ({discipline.var_disziplinkategorie}, {discipline.altersklasse_von}-{discipline.altersklasse_bis} years)
