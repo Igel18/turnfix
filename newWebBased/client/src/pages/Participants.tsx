@@ -5,8 +5,7 @@ import {
   TrashIcon,
   UserGroupIcon,
   CalendarIcon,
-  BuildingOfficeIcon,
-  XMarkIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { exportToCSV, getParticipantCSVData } from '@/utils/csvExport'
@@ -102,7 +101,6 @@ export function Participants() {
       onChange: (value: string) => {
         setSelectedClub(value === '' ? '' : parseInt(value));
         setCurrentPage(1);
-        fetchParticipants(1);
       }
     },
     {
@@ -116,7 +114,6 @@ export function Participants() {
       onChange: (value: string) => {
         setSelectedGender(value);
         setCurrentPage(1);
-        fetchParticipants(1);
       }
     },
     {
@@ -127,19 +124,17 @@ export function Participants() {
       onChange: (value: string) => {
         setSelectedAge(value);
         setCurrentPage(1);
-        fetchParticipants(1);
       }
     }
   ]
 
   const handleClearAllFilters = () => {
-  setSearchTerm('')
-  setSelectedClub('')
-  setSelectedGender('')
-  setSelectedAge('')
-  setSelectedStatus('')
-  setCurrentPage(1)
-  fetchParticipants(1)
+    setSearchTerm('')
+    setSelectedClub('')
+    setSelectedGender('')
+    setSelectedAge('')
+    setSelectedStatus('')
+    setCurrentPage(1)
   }
 
   const handleExportCSV = () => {
@@ -157,7 +152,7 @@ export function Participants() {
       })
 
       if (searchTerm) params.append('search', searchTerm)
-  if (selectedClub) params.append('clubId', selectedClub.toString())
+      if (selectedClub) params.append('clubId', selectedClub.toString())
       if (selectedGender) params.append('gender', selectedGender)
       if (selectedAge) {
         const [min, max] = selectedAge.split('-')
@@ -280,7 +275,12 @@ export function Participants() {
   }
 
   useEffect(() => {
-    fetchParticipants(currentPage)
+    // Add a small delay to prevent rapid API calls when filters change
+    const timeoutId = setTimeout(() => {
+      fetchParticipants(currentPage)
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
   }, [searchTerm, selectedClub, selectedGender, selectedAge, currentPage])
 
   useEffect(() => {
@@ -310,11 +310,6 @@ export function Participants() {
           onClick: openCreateModal
         }}
         totalCount={participants.length}
-        secondaryAction={{
-          label: 'Reset Filters',
-          icon: XMarkIcon,
-          onClick: handleClearAllFilters
-        }}
       />
 
       {/* Participants Table */}
@@ -431,7 +426,6 @@ export function Participants() {
             {/* Smart Pagination: show first, last, current, and nearby pages with ellipsis */}
             {(() => {
               const pages = [];
-              const maxPagesToShow = 5;
               const startPage = Math.max(1, currentPage - 2);
               const endPage = Math.min(totalPages, currentPage + 2);
 
