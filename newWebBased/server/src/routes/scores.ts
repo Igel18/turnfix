@@ -8,12 +8,17 @@ const prisma = new PrismaClient();
 
 // Validation schemas
 const scoreCreateSchema = z.object({
-  competitionId: z.number().int(),
-  participantId: z.number().int(),
-  disciplineId: z.number().int(),
-  score: z.number(),
-  attempt: z.number().int().default(1),
-  notes: z.string().optional()
+  competitionId: z.number().int(), // int_wettkaempfeid NOT NULL
+  participantId: z.number().int(), // int_teilnehmerid NOT NULL
+  statusId: z.number().int(),      // int_statusid NOT NULL
+  groupId: z.number().int().optional(),
+  teamId: z.number().int().optional(),
+  round: z.number().int().optional(),
+  startNumber: z.number().int().optional(),
+  ak: z.boolean().optional(), // "außer Konkurrenz" (out of competition)
+  startetNicht: z.boolean().optional(),
+  riege: z.string().optional(),
+  comment: z.string().optional()
 });
 
 const scoreUpdateSchema = scoreCreateSchema.partial();
@@ -51,16 +56,16 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     }
     
     if (query.disciplineId) {
-      whereClause += ` AND w.int_disziplinid = $${paramIndex}`;
+      whereClause += ` AND w.int_disziplinenid = $${paramIndex}`;
       queryParams.push(query.disciplineId);
       paramIndex++;
     }
 
     const scoresQuery = `
       SELECT 
-        w.int_wertungsid as id,
+        w.int_wertungenid as id,
         w.int_teilnehmerid as participantId,
-        w.int_disziplinid as disciplineId,
+        w.int_disziplinenid as disciplineId,
         w.int_wettkaempfeid as competitionId,
         w.flo_wertung as score,
         w.int_versuch as attempt,
@@ -75,10 +80,10 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         wk.var_name as competition_name
       FROM tfx_wertungen w
       LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
-      LEFT JOIN tfx_disziplinen d ON w.int_disziplinid = d.int_disziplinenid  
+      LEFT JOIN tfx_disziplinen d ON w.int_disziplinenid = d.int_disziplinenid  
       LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       ${whereClause}
-      ORDER BY w.int_wettkaempfeid, w.int_disziplinid, w.int_teilnehmerid
+      ORDER BY w.int_wettkaempfeid, w.int_disziplinenid, w.int_teilnehmerid
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
@@ -139,92 +144,65 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = scoreCreateSchema.parse(req.body);
-    
     console.log('Creating score:', validatedData);
-    
-    // Check if score already exists
-    const existingScoreQuery = `
-      SELECT int_wertungsid 
-      FROM tfx_wertungen 
-      WHERE int_teilnehmerid = $1 
-        AND int_disziplinid = $2 
-        AND int_wettkaempfeid = $3
-        AND int_versuch = $4
-    `;
-    
-    const existingScore = await prisma.$queryRawUnsafe(
-      existingScoreQuery,
-      validatedData.participantId,
-      validatedData.disciplineId,
-      validatedData.competitionId,
-      validatedData.attempt
-    ) as any[];
 
-    if (existingScore.length > 0) {
-      // Update existing score
-      const updateQuery = `
-        UPDATE tfx_wertungen 
-        SET flo_wertung = $1, var_notizen = $2
-        WHERE int_wertungsid = $3
-        RETURNING *
-      `;
-      
-      const updated = await prisma.$queryRawUnsafe(
-        updateQuery,
-        validatedData.score,
-        validatedData.notes || null,
-        existingScore[0].int_wertungsid
-      ) as any[];
-
-      console.log('Updated existing score');
-      return res.json({
-        id: updated[0].int_wertungsid,
-        participantId: validatedData.participantId,
-        disciplineId: validatedData.disciplineId,
-        competitionId: validatedData.competitionId,
-        score: validatedData.score,
-        attempt: validatedData.attempt,
-        notes: validatedData.notes,
-        status: 'completed'
-      });
-    } else {
-      // Create new score entry
-      const insertQuery = `
-        INSERT INTO tfx_wertungen 
-          (int_teilnehmerid, int_disziplinid, int_wettkaempfeid, flo_wertung, int_versuch, var_notizen)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *
-      `;
-      
-      const created = await prisma.$queryRawUnsafe(
-        insertQuery,
-        validatedData.participantId,
-        validatedData.disciplineId,
-        validatedData.competitionId,
-        validatedData.score,
-        validatedData.attempt,
-        validatedData.notes || null
-      ) as any[];
-
-      console.log('Created new score');
-      res.status(201).json({
-        id: created[0].int_wertungsid,
-        participantId: validatedData.participantId,
-        disciplineId: validatedData.disciplineId,
-        competitionId: validatedData.competitionId,
-        score: validatedData.score,
-        attempt: validatedData.attempt,
-        notes: validatedData.notes,
-        status: 'completed'
-      });
+    // Insert new score
+    // Validate required NOT NULL fields
+    if (
+      validatedData.competitionId === undefined ||
+      validatedData.participantId === undefined ||
+      validatedData.statusId === undefined
+    ) {
+      return res.status(400).json({ error: 'Validation error', details: 'competitionId, participantId, and statusId are required.' });
     }
 
+    const insertQuery = `
+      INSERT INTO tfx_wertungen 
+        (int_wettkaempfeid, int_teilnehmerid, int_gruppenid, int_mannschaftenid, int_statusid, int_runde, int_startnummer, bol_ak, bol_startet_nicht, var_riege, var_comment)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *
+    `;
+
+    const created = await prisma.$queryRawUnsafe(
+      insertQuery,
+      validatedData.competitionId,
+      validatedData.participantId,
+      validatedData.groupId || null,
+      validatedData.teamId || null,
+      validatedData.statusId,
+      validatedData.round || null,
+      validatedData.startNumber || null,
+      validatedData.ak || null,
+      validatedData.startetNicht || null,
+      validatedData.riege || null,
+      validatedData.comment || null
+    ) as any[];
+
+    console.log('Created new score');
+    res.status(201).json({
+      id: created[0].int_wertungenid,
+      competitionId: created[0].int_wettkaempfeid,
+      participantId: created[0].int_teilnehmerid,
+      groupId: created[0].int_gruppenid,
+      teamId: created[0].int_mannschaftenid,
+      statusId: created[0].int_statusid,
+      round: created[0].int_runde,
+      startNumber: created[0].int_startnummer,
+      ak: created[0].bol_ak,
+      startetNicht: created[0].bol_startet_nicht,
+      riege: created[0].var_riege,
+      comment: created[0].var_comment
+    });
   } catch (error) {
     console.error('Error creating score:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
-    res.status(500).json({ error: 'Internal server error' });
+    if (error instanceof Error) {
+      res.status(500).json({ error: 'Internal server error', message: error.message, stack: error.stack });
+    } else {
+      res.status(500).json({ error: 'Internal server error', details: error });
+    }
   }
 });
 
@@ -240,20 +218,64 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       return res.status(400).json({ error: 'Invalid score ID' });
     }
 
-    // Build update query dynamically
+    // Build update query dynamically for allowed columns
     const updateFields: string[] = [];
     const queryParams: any[] = [];
     let paramIndex = 1;
 
-    if (validatedData.score !== undefined) {
-      updateFields.push(`flo_wertung = $${paramIndex}`);
-      queryParams.push(validatedData.score);
+    if (validatedData.competitionId !== undefined) {
+      updateFields.push(`int_wettkaempfeid = $${paramIndex}`);
+      queryParams.push(validatedData.competitionId);
       paramIndex++;
     }
-
-    if (validatedData.notes !== undefined) {
-      updateFields.push(`var_notizen = $${paramIndex}`);
-      queryParams.push(validatedData.notes);
+    if (validatedData.participantId !== undefined) {
+      updateFields.push(`int_teilnehmerid = $${paramIndex}`);
+      queryParams.push(validatedData.participantId);
+      paramIndex++;
+    }
+    if (validatedData.groupId !== undefined) {
+      updateFields.push(`int_gruppenid = $${paramIndex}`);
+      queryParams.push(validatedData.groupId);
+      paramIndex++;
+    }
+    if (validatedData.teamId !== undefined) {
+      updateFields.push(`int_mannschaftenid = $${paramIndex}`);
+      queryParams.push(validatedData.teamId);
+      paramIndex++;
+    }
+    if (validatedData.statusId !== undefined) {
+      updateFields.push(`int_statusid = $${paramIndex}`);
+      queryParams.push(validatedData.statusId);
+      paramIndex++;
+    }
+    if (validatedData.round !== undefined) {
+      updateFields.push(`int_runde = $${paramIndex}`);
+      queryParams.push(validatedData.round);
+      paramIndex++;
+    }
+    if (validatedData.startNumber !== undefined) {
+      updateFields.push(`int_startnummer = $${paramIndex}`);
+      queryParams.push(validatedData.startNumber);
+      paramIndex++;
+    }
+    if (validatedData.ak !== undefined) {
+      updateFields.push(`bol_ak = $${paramIndex}`);
+      queryParams.push(validatedData.ak);
+      paramIndex++;
+    }
+    if (validatedData.startetNicht !== undefined) {
+      updateFields.push(`bol_startet_nicht = $${paramIndex}`);
+      queryParams.push(validatedData.startetNicht);
+      paramIndex++;
+    }
+    if (validatedData.riege !== undefined) {
+      updateFields.push(`var_riege = $${paramIndex}`);
+      queryParams.push(validatedData.riege);
+      paramIndex++;
+    }
+    if (validatedData.comment !== undefined) {
+      updateFields.push(`var_comment = $${paramIndex}`);
+      queryParams.push(validatedData.comment);
       paramIndex++;
     }
 
@@ -266,7 +288,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const updateQuery = `
       UPDATE tfx_wertungen 
       SET ${updateFields.join(', ')}
-      WHERE int_wertungsid = $${paramIndex}
+      WHERE int_wertungenid = $${paramIndex}
       RETURNING *
     `;
 
@@ -278,14 +300,18 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 
     console.log('Updated score successfully');
     res.json({
-      id: updated[0].int_wertungsid,
-      participantId: updated[0].int_teilnehmerid,
-      disciplineId: updated[0].int_disziplinid,
+      id: updated[0].int_wertungenid,
       competitionId: updated[0].int_wettkaempfeid,
-      score: updated[0].flo_wertung ? parseFloat(updated[0].flo_wertung) : null,
-      attempt: updated[0].int_versuch || 1,
-      notes: updated[0].var_notizen,
-      status: updated[0].flo_wertung ? 'completed' : 'pending'
+      participantId: updated[0].int_teilnehmerid,
+      groupId: updated[0].int_gruppenid,
+      teamId: updated[0].int_mannschaftenid,
+      statusId: updated[0].int_statusid,
+      round: updated[0].int_runde,
+      startNumber: updated[0].int_startnummer,
+      ak: updated[0].bol_ak,
+      startetNicht: updated[0].bol_startet_nicht,
+      riege: updated[0].var_riege,
+      comment: updated[0].var_comment
     });
 
   } catch (error) {
@@ -310,7 +336,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 
     const deleteQuery = `
       DELETE FROM tfx_wertungen 
-      WHERE int_wertungsid = $1
+      WHERE int_wertungenid = $1
       RETURNING *
     `;
 

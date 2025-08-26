@@ -8,11 +8,11 @@ const prisma = new PrismaClient();
 
 // Validation schemas
 const createResultSchema = z.object({
-  competitionId: z.number().int().positive(),
-  participantId: z.number().int().positive(),
-  disciplineId: z.number().int().positive(),
-  score: z.number(),
-  rank: z.number().int().positive().optional(),
+  competitionId: z.number().int().positive(), // NOT NULL
+  participantId: z.number().int().positive(), // NOT NULL
+  disciplineId: z.number().int().positive(),  // NOT NULL
+  score: z.number(), // NOT NULL
+  rank: z.number().int().optional(),
   notes: z.string().optional()
 });
 
@@ -25,62 +25,58 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     const offset = parseInt(req.query.offset as string) || 0;
     const competitionId = req.query.competitionId as string;
     const participantId = req.query.participantId as string;
-    const disciplineId = req.query.disciplineId as string;
+    // disciplineId is not a direct field in tfx_wertungen, handled via details
 
-    const whereConditions: string[] = [];
-    const params: any[] = [];
-    let paramIndex = 1;
-    
+    const whereConditions: any = {};
     if (competitionId) {
-      whereConditions.push(`r.int_veranstaltungid = $${paramIndex}`);
-      params.push(parseInt(competitionId));
-      paramIndex++;
+      whereConditions.int_wettkaempfeid = parseInt(competitionId);
     }
     if (participantId) {
-      whereConditions.push(`r.int_teilnehmerid = $${paramIndex}`);
-      params.push(parseInt(participantId));
-      paramIndex++;
-    }
-    if (disciplineId) {
-      whereConditions.push(`r.int_disziplinid = $${paramIndex}`);
-      params.push(parseInt(disciplineId));
-      paramIndex++;
+      whereConditions.int_teilnehmerid = parseInt(participantId);
     }
 
-    const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
-    
-    const query = `
-      SELECT 
-        r.*,
-        e.var_name as competition_name,
-        e.dat_start as competition_start,
-        e.dat_ende as competition_end,
-        t.var_vorname as participant_firstname,
-        t.var_nachname as participant_lastname,
-        d.var_name as discipline_name
-      FROM tfx_ergebnisse r
-      LEFT JOIN tfx_veranstaltungen e ON r.int_veranstaltungid = e.int_veranstaltungid
-      LEFT JOIN tfx_teilnehmer t ON r.int_teilnehmerid = t.int_teilnehmerid
-      LEFT JOIN tfx_disziplinen d ON r.int_disziplinid = d.int_disziplinid
-      ${whereClause}
-      ORDER BY r.dec_note DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
+    const results = await prisma.tfx_wertungen.findMany({
+      where: whereConditions,
+      include: {
+        tfx_wettkaempfe: {
+          select: {
+            int_wettkaempfeid: true,
+            var_name: true,
+          }
+        },
+        tfx_teilnehmer: {
+          select: {
+            int_teilnehmerid: true,
+            var_vorname: true,
+            var_nachname: true,
+            tfx_vereine: {
+              select: {
+                int_vereineid: true,
+                var_name: true,
+              }
+            }
+          }
+        },
+        tfx_wertungen_details: {
+          select: {
+            int_wertungen_detailsid: true,
+            int_disziplinenid: true,
+            rel_leistung: true,
+            int_versuch: true
+          }
+        }
+      },
+      orderBy: [
+        { int_wettkaempfeid: 'asc' },
+        { int_teilnehmerid: 'asc' }
+      ],
+      take: limit,
+      skip: offset
+    });
 
-    const results = await prisma.$queryRawUnsafe(query, ...params, limit, offset);
-
-    // Get total count for pagination
-    const countQuery = `
-      SELECT COUNT(*) as total
-      FROM tfx_ergebnisse r
-      LEFT JOIN tfx_veranstaltungen e ON r.int_veranstaltungid = e.int_veranstaltungid
-      LEFT JOIN tfx_teilnehmer t ON r.int_teilnehmerid = t.int_teilnehmerid
-      LEFT JOIN tfx_disziplinen d ON r.int_disziplinid = d.int_disziplinid
-      ${whereClause}
-    `;
-
-    const countResult = await prisma.$queryRawUnsafe(countQuery, ...params.slice(0, -2));
-    const totalCount = Number((countResult as any)[0]?.total || 0);
+    const totalCount = await prisma.tfx_wertungen.count({
+      where: whereConditions
+    });
 
     res.json({
       results,
@@ -102,48 +98,28 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const resultId = parseInt(req.params.id);
 
-    const result = await prisma.result.findUnique({
-      where: { id: resultId },
+    const result = await prisma.tfx_wertungen.findUnique({
+      where: { int_wertungenid: resultId },
       include: {
-        competition: {
+        tfx_wettkaempfe: {
           select: {
-            id: true,
-            name: true,
-            description: true,
-            startDate: true,
-            endDate: true,
-            location: true,
-            type: true,
-            status: true
+            int_wettkaempfeid: true,
+            var_name: true
           }
         },
-        participant: {
+        tfx_teilnehmer: {
           select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            birthDate: true,
-            gender: true,
-            licenseNo: true,
-            nationality: true,
-            club: {
-              select: {
-                id: true,
-                name: true,
-                shortName: true,
-                city: true,
-                country: true
-              }
-            }
+            int_teilnehmerid: true,
+            var_vorname: true,
+            var_nachname: true
           }
         },
-        discipline: {
+        tfx_wertungen_details: {
           select: {
-            id: true,
-            name: true,
-            description: true,
-            maxScore: true,
-            order: true
+            int_wertungen_detailsid: true,
+            int_disziplinenid: true,
+            rel_leistung: true,
+            int_versuch: true
           }
         }
       }
@@ -161,97 +137,57 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Create new result
-router.post('/', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/', async (req, res) => {
   try {
     const validatedData = createResultSchema.parse(req.body);
-
+    // Validate required NOT NULL fields
+    if (
+      validatedData.competitionId === undefined ||
+      validatedData.participantId === undefined ||
+      validatedData.disciplineId === undefined ||
+      validatedData.score === undefined
+    ) {
+      return res.status(400).json({ error: 'Validation error', details: 'competitionId, participantId, disciplineId, and score are required.' });
+    }
     // Check if competition exists
-    const competition = await prisma.competition.findUnique({
-      where: { id: validatedData.competitionId }
-    });
-
+    const competition = await prisma.tfx_wettkaempfe.findUnique({ where: { int_wettkaempfeid: validatedData.competitionId } });
     if (!competition) {
       return res.status(400).json({ error: 'Competition not found' });
     }
-
-    // Check if participant exists
-    const participant = await prisma.participant.findUnique({
-      where: { id: validatedData.participantId }
-    });
-
+    const participant = await prisma.tfx_teilnehmer.findUnique({ where: { int_teilnehmerid: validatedData.participantId } });
     if (!participant) {
       return res.status(400).json({ error: 'Participant not found' });
     }
-
-    // Check if discipline exists
-    const discipline = await prisma.discipline.findUnique({
-      where: { id: validatedData.disciplineId }
-    });
-
+    const discipline = await prisma.tfx_disziplinen.findUnique({ where: { int_disziplinenid: validatedData.disciplineId } });
     if (!discipline) {
       return res.status(400).json({ error: 'Discipline not found' });
     }
-
-    // Check if result already exists
-    const existingResult = await prisma.result.findUnique({
+    const existingResult = await prisma.tfx_wertungen.findFirst({
       where: {
-        competitionId_participantId_disciplineId: {
-          competitionId: validatedData.competitionId,
-          participantId: validatedData.participantId,
-          disciplineId: validatedData.disciplineId
-        }
+        int_wettkaempfeid: validatedData.competitionId,
+        int_teilnehmerid: validatedData.participantId
       }
     });
-
     if (existingResult) {
-      return res.status(400).json({ error: 'Result for this participant and discipline already exists' });
+      return res.status(400).json({ error: 'Result for this participant already exists' });
     }
-
-    const result = await prisma.result.create({
+    const result = await prisma.tfx_wertungen.create({
       data: {
-        competitionId: validatedData.competitionId,
-        participantId: validatedData.participantId,
-        disciplineId: validatedData.disciplineId,
-        score: validatedData.score,
-        rank: validatedData.rank,
-        notes: validatedData.notes
-      },
-      include: {
-        competition: {
-          select: {
-            id: true,
-            name: true,
-            startDate: true,
-            endDate: true,
-            location: true
-          }
-        },
-        participant: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            licenseNo: true,
-            club: {
-              select: {
-                id: true,
-                name: true,
-                shortName: true
-              }
-            }
-          }
-        },
-        discipline: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            maxScore: true
-          }
-        }
+        int_wettkaempfeid: validatedData.competitionId,
+        int_teilnehmerid: validatedData.participantId,
+        var_comment: validatedData.notes || null,
+        int_statusid: 1,
+        int_runde: 1,
+        int_startnummer: validatedData.rank || null
       }
     });
-
+    await prisma.tfx_wertungen_details.create({
+      data: {
+        int_wertungenid: result.int_wertungenid,
+        int_disziplinenid: validatedData.disciplineId,
+        rel_leistung: validatedData.score
+      }
+    });
     res.status(201).json({ result });
   } catch (error) {
     console.error('Error creating result:', error);
@@ -268,54 +204,32 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     const resultId = parseInt(req.params.id);
     const validatedData = updateResultSchema.parse(req.body);
 
-    // Build update data
+    // Only update allowed columns in tfx_wertungen
     const updateData: any = {};
-    if (validatedData.score !== undefined) updateData.score = validatedData.score;
-    if (validatedData.rank !== undefined) updateData.rank = validatedData.rank;
-    if (validatedData.notes !== undefined) updateData.notes = validatedData.notes;
-    if (validatedData.competitionId) updateData.competitionId = validatedData.competitionId;
-    if (validatedData.participantId) updateData.participantId = validatedData.participantId;
-    if (validatedData.disciplineId) updateData.disciplineId = validatedData.disciplineId;
-
-    const result = await prisma.result.update({
-      where: { id: resultId },
-      data: updateData,
-      include: {
-        competition: {
-          select: {
-            id: true,
-            name: true,
-            startDate: true,
-            endDate: true,
-            location: true
+    if (validatedData.rank !== undefined) updateData.int_startnummer = validatedData.rank;
+    if (validatedData.notes !== undefined) updateData.var_comment = validatedData.notes;
+    if (validatedData.competitionId !== undefined) updateData.int_wettkaempfeid = validatedData.competitionId;
+    if (validatedData.participantId !== undefined) updateData.int_teilnehmerid = validatedData.participantId;
+    // Only update disciplineId and score in tfx_wertungen_details if provided
+    if (validatedData.disciplineId !== undefined || validatedData.score !== undefined) {
+      // Find the details row
+      const details = await prisma.tfx_wertungen_details.findFirst({
+        where: { int_wertungenid: resultId }
+      });
+      if (details) {
+        await prisma.tfx_wertungen_details.update({
+          where: { int_wertungen_detailsid: details.int_wertungen_detailsid },
+          data: {
+            ...(validatedData.disciplineId !== undefined ? { int_disziplinenid: validatedData.disciplineId } : {}),
+            ...(validatedData.score !== undefined ? { rel_leistung: validatedData.score } : {})
           }
-        },
-        participant: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            licenseNo: true,
-            club: {
-              select: {
-                id: true,
-                name: true,
-                shortName: true
-              }
-            }
-          }
-        },
-        discipline: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            maxScore: true
-          }
-        }
+        });
       }
+    }
+    const result = await prisma.tfx_wertungen.update({
+      where: { int_wertungenid: resultId },
+      data: updateData
     });
-
     res.json({ result });
   } catch (error) {
     console.error('Error updating result:', error);
@@ -331,8 +245,8 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const resultId = parseInt(req.params.id);
 
-    await prisma.result.delete({
-      where: { id: resultId }
+    await prisma.tfx_wertungen.delete({
+      where: { int_wertungenid: resultId }
     });
 
     res.json({ message: 'Result deleted successfully' });
@@ -348,42 +262,28 @@ router.get('/competition/:competitionId', authenticateToken, async (req: AuthReq
     const competitionId = parseInt(req.params.competitionId);
     const disciplineId = req.query.disciplineId as string;
 
-    const whereConditions: any = { competitionId };
-    if (disciplineId) {
-      whereConditions.disciplineId = parseInt(disciplineId);
-    }
-
-    const results = await prisma.result.findMany({
+    const whereConditions: any = { int_wettkaempfeid: competitionId };
+    const results = await prisma.tfx_wertungen.findMany({
       where: whereConditions,
       include: {
-        participant: {
+        tfx_teilnehmer: {
           select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            licenseNo: true,
-            club: {
-              select: {
-                id: true,
-                name: true,
-                shortName: true
-              }
-            }
+            int_teilnehmerid: true,
+            var_vorname: true,
+            var_nachname: true
           }
         },
-        discipline: {
+        tfx_wertungen_details: {
           select: {
-            id: true,
-            name: true,
-            description: true,
-            maxScore: true
+            int_wertungen_detailsid: true,
+            int_disziplinenid: true,
+            rel_leistung: true,
+            int_versuch: true
           }
         }
       },
       orderBy: [
-        { disciplineId: 'asc' },
-        { rank: 'asc' },
-        { score: 'desc' }
+        { int_startnummer: 'asc' }
       ]
     });
 
@@ -399,29 +299,26 @@ router.get('/participant/:participantId', authenticateToken, async (req: AuthReq
   try {
     const participantId = parseInt(req.params.participantId);
 
-    const results = await prisma.result.findMany({
-      where: { participantId },
+    const results = await prisma.tfx_wertungen.findMany({
+      where: { int_teilnehmerid: participantId },
       include: {
-        competition: {
+        tfx_wettkaempfe: {
           select: {
-            id: true,
-            name: true,
-            startDate: true,
-            endDate: true,
-            location: true
+            int_wettkaempfeid: true,
+            var_name: true
           }
         },
-        discipline: {
+        tfx_wertungen_details: {
           select: {
-            id: true,
-            name: true,
-            description: true,
-            maxScore: true
+            int_wertungen_detailsid: true,
+            int_disziplinenid: true,
+            rel_leistung: true,
+            int_versuch: true
           }
         }
       },
       orderBy: [
-        { judgedAt: 'desc' }
+        { int_wertungenid: 'desc' }
       ]
     });
 
@@ -442,27 +339,26 @@ router.post('/calculate-rankings', authenticateToken, async (req: AuthRequest, r
     }
 
     // Get all results for the competition/discipline ordered by score
-    const results = await prisma.result.findMany({
+    const details = await prisma.tfx_wertungen_details.findMany({
       where: {
-        competitionId: parseInt(competitionId),
-        disciplineId: parseInt(disciplineId)
+        int_disziplinenid: parseInt(disciplineId),
+        tfx_wertungen: {
+          int_wettkaempfeid: parseInt(competitionId)
+        }
       },
-      orderBy: { score: 'desc' }
+      orderBy: { rel_leistung: 'desc' }
     });
-
-    // Update rankings
-    const updatePromises = results.map((result, index) => {
-      return prisma.result.update({
-        where: { id: result.id },
-        data: { rank: index + 1 }
+    // Update rankings in tfx_wertungen
+    const updatePromises = details.map((detail, index) => {
+      return prisma.tfx_wertungen.update({
+        where: { int_wertungenid: detail.int_wertungenid },
+        data: { int_startnummer: index + 1 }
       });
     });
-
     await Promise.all(updatePromises);
-
     res.json({ 
       message: 'Rankings calculated and updated successfully',
-      updatedCount: results.length
+      updatedCount: details.length
     });
   } catch (error) {
     console.error('Error calculating rankings:', error);

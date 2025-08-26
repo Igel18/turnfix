@@ -16,10 +16,19 @@
     "db:generate": "cd server && npm run db:generate",
     "db:seed": "cd server && npm run db:seed"
   },
-  "keywords": ["gymnastics", "competition", "management", "turnfix"],
+  "keywords": [
+    "gymnastics",
+    "competition",
+    "management",
+    "turnfix"
+  ],
   "author": "TurnFix Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "form-data": "^4.0.4",
+    "node-fetch": "^3.3.2"
   }
 }

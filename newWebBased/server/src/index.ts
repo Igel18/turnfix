@@ -31,7 +31,6 @@ import resultRoutes from './routes/results';
 import competitionRoutes from './routes/competitions';
 import squadManagementRoutes from './routes/squadManagement';
 import scoresRoutes from './routes/scores';
-import adminRoutes from './routes/admin';
 
 const app = express();
 const server = createServer(app);
@@ -105,7 +104,6 @@ app.use('/api/results', resultRoutes);
 app.use('/api/competitions', competitionRoutes);
 app.use('/api/squad-management', squadManagementRoutes);
 app.use('/api/scores', scoresRoutes);
-app.use('/api/admin', adminRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {

@@ -8,7 +8,6 @@ export interface AuthRequest extends Request {
     username: string;
     role: string;
   };
-  file?: any; // Multer file object
 }
 
 // Temporary bypass for authentication during development

@@ -5,7 +5,8 @@ import {
   TrashIcon,
   UserGroupIcon,
   CalendarIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { exportToCSV, getParticipantCSVData } from '@/utils/csvExport'
@@ -49,8 +50,7 @@ export function Participants() {
     dat_geburtsdatum: '',
     var_geschlecht: '',
     int_vereineid: '',
-    int_jahrgangmin: '',
-    int_jahrgangmax: ''
+    int_startpassnummer: ''
   })
 
   // Age groups for filtering
@@ -99,7 +99,11 @@ export function Participants() {
         label: club.var_name
       })),
       selectedValue: selectedClub.toString(),
-      onChange: (value: string) => setSelectedClub(value === '' ? '' : parseInt(value))
+      onChange: (value: string) => {
+        setSelectedClub(value === '' ? '' : parseInt(value));
+        setCurrentPage(1);
+        fetchParticipants(1);
+      }
     },
     {
       label: 'Gender',
@@ -109,23 +113,33 @@ export function Participants() {
         { value: 'W', label: 'Female' }
       ],
       selectedValue: selectedGender,
-      onChange: setSelectedGender
+      onChange: (value: string) => {
+        setSelectedGender(value);
+        setCurrentPage(1);
+        fetchParticipants(1);
+      }
     },
     {
       label: 'Age Group',
       value: 'age',
       options: ageGroups,
       selectedValue: selectedAge,
-      onChange: setSelectedAge
+      onChange: (value: string) => {
+        setSelectedAge(value);
+        setCurrentPage(1);
+        fetchParticipants(1);
+      }
     }
   ]
 
   const handleClearAllFilters = () => {
-    setSearchTerm('')
-    setSelectedClub('')
-    setSelectedGender('')
-    setSelectedAge('')
-    setSelectedStatus('')
+  setSearchTerm('')
+  setSelectedClub('')
+  setSelectedGender('')
+  setSelectedAge('')
+  setSelectedStatus('')
+  setCurrentPage(1)
+  fetchParticipants(1)
   }
 
   const handleExportCSV = () => {
@@ -141,15 +155,17 @@ export function Participants() {
         limit: '10',
         offset: ((page - 1) * 10).toString()
       })
-      
+
       if (searchTerm) params.append('search', searchTerm)
-      if (selectedClub) params.append('club_id', selectedClub.toString())
+  if (selectedClub) params.append('clubId', selectedClub.toString())
       if (selectedGender) params.append('gender', selectedGender)
       if (selectedAge) {
         const [min, max] = selectedAge.split('-')
         params.append('age_min', min)
         if (max !== '+') params.append('age_max', max)
       }
+
+      console.log('Fetching participants with params:', params.toString());
 
       const response = await fetch(`/api/participants?${params}`);
 
@@ -202,7 +218,7 @@ export function Participants() {
           int_geschlecht: formData.var_geschlecht === 'M' ? 1 : formData.var_geschlecht === 'W' ? 2 : 0,
           int_vereineid: parseInt(formData.int_vereineid) || 0,
           bool_nur_jahr: true,
-          int_startpassnummer: 0
+          int_startpassnummer: formData.int_startpassnummer !== '' ? parseInt(formData.int_startpassnummer) : 0
         })
       })
 
@@ -240,8 +256,7 @@ export function Participants() {
       dat_geburtsdatum: '',
       var_geschlecht: '',
       int_vereineid: '',
-      int_jahrgangmin: '',
-      int_jahrgangmax: ''
+      int_startpassnummer: ''
     })
     setEditingParticipant(null)
   }
@@ -254,8 +269,7 @@ export function Participants() {
       dat_geburtsdatum: participant.dat_geburtstag.split('T')[0], // Format date for input
       var_geschlecht: participant.int_geschlecht === 1 ? 'M' : participant.int_geschlecht === 2 ? 'W' : '',
       int_vereineid: participant.int_vereineid.toString(),
-      int_jahrgangmin: '',
-      int_jahrgangmax: ''
+      int_startpassnummer: participant.int_startpassnummer !== null ? participant.int_startpassnummer.toString() : ''
     })
     setIsModalOpen(true)
   }
@@ -296,6 +310,11 @@ export function Participants() {
           onClick: openCreateModal
         }}
         totalCount={participants.length}
+        secondaryAction={{
+          label: 'Reset Filters',
+          icon: XMarkIcon,
+          onClick: handleClearAllFilters
+        }}
       />
 
       {/* Participants Table */}
@@ -345,11 +364,17 @@ export function Participants() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        participant.int_geschlecht === 1 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-pink-100 text-pink-800'
+                        participant.int_geschlecht === 1
+                          ? 'bg-blue-100 text-blue-800'
+                          : participant.int_geschlecht === 2
+                            ? 'bg-pink-100 text-pink-800'
+                            : 'bg-gray-100 text-gray-800'
                       }`}>
-                        {participant.geschlecht_name}
+                        {participant.int_geschlecht === 1
+                          ? 'Male'
+                          : participant.int_geschlecht === 2
+                            ? 'Female'
+                            : participant.geschlecht_name || 'Unknown'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -403,19 +428,59 @@ export function Participants() {
               Previous
             </button>
             
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-2 border rounded-lg ${
-                  currentPage === page 
-                    ? 'bg-blue-600 text-white border-blue-600' 
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {/* Smart Pagination: show first, last, current, and nearby pages with ellipsis */}
+            {(() => {
+              const pages = [];
+              const maxPagesToShow = 5;
+              const startPage = Math.max(1, currentPage - 2);
+              const endPage = Math.min(totalPages, currentPage + 2);
+
+              // Always show first page
+              if (startPage > 1) {
+                pages.push(
+                  <button
+                    key={1}
+                    onClick={() => setCurrentPage(1)}
+                    className={`px-3 py-2 border rounded-lg ${1 === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50'}`}
+                  >
+                    1
+                  </button>
+                );
+                if (startPage > 2) {
+                  pages.push(<span key="start-ellipsis" className="px-2">...</span>);
+                }
+              }
+
+              // Show pages around current
+              for (let page = startPage; page <= endPage; page++) {
+                pages.push(
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 border rounded-lg ${page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50'}`}
+                  >
+                    {page}
+                  </button>
+                );
+              }
+
+              // Always show last page
+              if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                  pages.push(<span key="end-ellipsis" className="px-2">...</span>);
+                }
+                pages.push(
+                  <button
+                    key={totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    className={`px-3 py-2 border rounded-lg ${totalPages === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50'}`}
+                  >
+                    {totalPages}
+                  </button>
+                );
+              }
+              return pages;
+            })()}
             
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
@@ -470,6 +535,20 @@ export function Participants() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Pass Number
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.int_startpassnummer}
+                    onChange={(e) => setFormData({ ...formData, int_startpassnummer: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Start pass number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Birth Date *
                   </label>
                   <input
@@ -516,37 +595,7 @@ export function Participants() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Birth Year Min *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="1900"
-                      max="2030"
-                      value={formData.int_jahrgangmin}
-                      onChange={(e) => setFormData({ ...formData, int_jahrgangmin: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Birth Year Max *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="1900"
-                      max="2030"
-                      value={formData.int_jahrgangmax}
-                      onChange={(e) => setFormData({ ...formData, int_jahrgangmax: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
+                {/* Removed Birth Year Min and Max fields, not needed since birth date is mandatory */}
 
                 <div className="flex space-x-3 pt-4">
                   <button

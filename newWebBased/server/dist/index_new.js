@@ -28,6 +28,7 @@ const statuses_1 = __importDefault(require("./routes/statuses"));
 const countries_1 = __importDefault(require("./routes/countries"));
 const teams_1 = __importDefault(require("./routes/teams"));
 const venues_1 = __importDefault(require("./routes/venues"));
+const participants_simple_1 = __importDefault(require("./routes/participants_simple"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
@@ -78,6 +79,7 @@ app.use('/api/statuses', statuses_1.default);
 app.use('/api/countries', countries_1.default);
 app.use('/api/teams', teams_1.default);
 app.use('/api/venues', venues_1.default);
+app.use('/api/participants', participants_simple_1.default);
 // Socket.IO for real-time features
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);

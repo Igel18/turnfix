@@ -60,6 +60,15 @@ const Events: React.FC = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [activeView, setActiveView] = useState<'list' | 'participants' | 'scores'>('list')
   
+  // Import event details state
+  const [importEventData, setImportEventData] = useState({
+    eventName: '',
+    startDate: '',
+    endDate: '',
+    location: '',
+    description: ''
+  })
+  
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
@@ -283,11 +292,24 @@ const Events: React.FC = () => {
   const handleImportFile = async () => {
     if (!importFile) return
 
+    // Validate required event name
+    if (!importEventData.eventName.trim()) {
+      setImportProgress({ step: 'Error: Event name is required', progress: 0 })
+      return
+    }
+
     setImportProgress({ step: 'Parsing XML file...', progress: 10 })
     
     try {
       const formData = new FormData()
-      formData.append('file', importFile)
+      formData.append('xmlFile', importFile)
+      
+      // Add event information to FormData
+      formData.append('eventName', importEventData.eventName.trim())
+      if (importEventData.startDate) formData.append('startDate', importEventData.startDate)
+      if (importEventData.endDate) formData.append('endDate', importEventData.endDate)
+      if (importEventData.location) formData.append('location', importEventData.location.trim())
+      if (importEventData.description) formData.append('description', importEventData.description.trim())
       
       setImportProgress({ step: 'Uploading and processing...', progress: 30 })
       
@@ -299,12 +321,84 @@ const Events: React.FC = () => {
       const result = await response.json()
       
       if (response.ok && result.success) {
-        setImportProgress({ step: 'Import completed successfully!', progress: 100 })
+        setImportProgress({ step: 'Processing and inserting data into database...', progress: 70 })
+        
+        // Display the extracted data if available
+        if (result.extractedData) {
+          const { clubs, competitions, participants, devices } = result.extractedData
+          let summary = '\n\n📊 Extracted Data Summary:\n'
+          
+          if (clubs.length > 0) {
+            summary += `\n🏛️ Clubs (${clubs.length}):\n`
+            clubs.slice(0, 3).forEach((club: any) => {
+              summary += `  • ${club.name || 'Unnamed Club'} ${club.code ? `(${club.code})` : ''}\n`
+            })
+            if (clubs.length > 3) summary += `  ... and ${clubs.length - 3} more\n`
+          }
+          
+          if (competitions.length > 0) {
+            summary += `\n🏆 Competitions (${competitions.length}):\n`
+            competitions.slice(0, 3).forEach((comp: any) => {
+              summary += `  • ${comp.name || 'Unnamed Competition'} ${comp.date ? `(${comp.date})` : ''}\n`
+            })
+            if (competitions.length > 3) summary += `  ... and ${competitions.length - 3} more\n`
+          }
+          
+          if (participants.length > 0) {
+            summary += `\n👥 Participants (${participants.length}):\n`
+            participants.slice(0, 3).forEach((p: any) => {
+              const name = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Unnamed Participant'
+              summary += `  • ${name} ${p.gender ? `(${p.gender})` : ''}\n`
+            })
+            if (participants.length > 3) summary += `  ... and ${participants.length - 3} more\n`
+          }
+          
+          if (devices.length > 0) {
+            summary += `\n🤸 Devices/Apparatus (${devices.length}):\n`
+            devices.slice(0, 3).forEach((d: any) => {
+              summary += `  • ${d.name || 'Unnamed Device'} ${d.code ? `(${d.code})` : ''}\n`
+            })
+            if (devices.length > 3) summary += `  ... and ${devices.length - 3} more\n`
+          }
+
+          // Add database insertion results if available
+          if (result.insertionResults) {
+            const { clubs: clubResults, participants: participantResults, competitions: compResults, devices: deviceResults } = result.insertionResults
+            summary += '\n\n💾 Database Import Results:\n'
+            summary += `  🏛️ Clubs: ${clubResults.inserted} new, ${clubResults.updated} updated, ${clubResults.errors} errors\n`
+            summary += `  👥 Participants: ${participantResults.inserted} new, ${participantResults.updated} updated, ${participantResults.errors} errors\n`
+            summary += `  🏆 Competitions: ${compResults.inserted} new, ${compResults.updated} updated, ${compResults.errors} errors\n`
+            summary += `  🤸 Disciplines: ${deviceResults.inserted} new, ${deviceResults.updated} updated, ${deviceResults.errors} errors`
+          }
+
+          // Add event creation info if available
+          if (result.createdEvent) {
+            summary = `\n🎪 Event Created: "${result.createdEvent.name}" (ID: ${result.createdEvent.id})${summary}`
+          }
+          
+          // Update the progress message with the summary
+          setImportProgress({ 
+            step: `Import completed successfully! ${summary}`, 
+            progress: 100 
+          })
+        } else {
+          // Fallback if no extracted data
+          setImportProgress({ step: 'Import completed successfully!', progress: 100 })
+        }
+        
         setTimeout(() => {
           setIsImportModalOpen(false)
           setImportProgress(null)
+          // Reset import event data for next import
+          setImportEventData({
+            eventName: '',
+            startDate: '',
+            endDate: '',
+            location: '',
+            description: ''
+          })
           fetchEvents(currentPage) // Reload events
-        }, 2000)
+        }, 8000) // Extended timeout to let user read the summary
       } else {
         throw new Error(result.message || 'Import failed')
       }
@@ -861,11 +955,81 @@ const Events: React.FC = () => {
                   </p>
                 </div>
 
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-blue-800 mb-3">Event Information</h4>
+                  <p className="text-xs text-blue-700 mb-3">
+                    Since GymNet XML files don't contain overall event information, please provide the event details:
+                  </p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-blue-800 mb-1">
+                        Event Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={importEventData.eventName}
+                        onChange={(e) => setImportEventData({...importEventData, eventName: e.target.value})}
+                        placeholder="e.g., District Championships 2024"
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-blue-800 mb-1">
+                          Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={importEventData.startDate}
+                          onChange={(e) => setImportEventData({...importEventData, startDate: e.target.value})}
+                          className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-blue-800 mb-1">
+                          End Date
+                        </label>
+                        <input
+                          type="date"
+                          value={importEventData.endDate}
+                          onChange={(e) => setImportEventData({...importEventData, endDate: e.target.value})}
+                          className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-blue-800 mb-1">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={importEventData.location}
+                        onChange={(e) => setImportEventData({...importEventData, location: e.target.value})}
+                        placeholder="e.g., Sports Hall Munich"
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-blue-800 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={importEventData.description}
+                        onChange={(e) => setImportEventData({...importEventData, description: e.target.value})}
+                        placeholder="Optional additional information about the event"
+                        rows={2}
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {importProgress && (
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-gray-700">
-                      <span>{importProgress.step}</span>
-                      <span>{importProgress.progress}%</span>
+                    <div className="flex justify-between items-start text-sm text-gray-700">
+                      <pre className="whitespace-pre-wrap text-sm leading-relaxed max-w-md">{importProgress.step}</pre>
+                      <span className="ml-2">{importProgress.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
@@ -893,7 +1057,17 @@ const Events: React.FC = () => {
                 <div className="flex space-x-3">
                   <button
                     type="button"
-                    onClick={() => setIsImportModalOpen(false)}
+                    onClick={() => {
+                      setIsImportModalOpen(false)
+                      // Reset import event data when canceling
+                      setImportEventData({
+                        eventName: '',
+                        startDate: '',
+                        endDate: '',
+                        location: '',
+                        description: ''
+                      })
+                    }}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                     disabled={importProgress !== null}
                   >
@@ -902,7 +1076,7 @@ const Events: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleImportFile}
-                    disabled={!importFile || importProgress !== null}
+                    disabled={!importFile || !importEventData.eventName.trim() || importProgress !== null}
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
                     {importProgress ? 'Importing...' : 'Import Event'}

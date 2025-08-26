@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 // Validation schemas
 const createCountrySchema = z.object({
   var_name: z.string().min(1).max(255),
-  var_kurz: z.string().min(1).max(10),
+  var_kuerzel: z.string().min(1).max(10),
 });
 
 const updateCountrySchema = createCountrySchema.partial();
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
     if (search) {
       whereConditions.OR = [
         { var_name: { contains: search, mode: 'insensitive' } },
-        { var_kurz: { contains: search, mode: 'insensitive' } }
+  { var_kuerzel: { contains: search, mode: 'insensitive' } }
       ];
     }
 
