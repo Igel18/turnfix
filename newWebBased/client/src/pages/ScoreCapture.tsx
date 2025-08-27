@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
-import { apiGet } from '../utils/api'
+import { apiGet, apiPost } from '../utils/api'
 
 // Interfaces
 interface Participant {
@@ -170,8 +170,25 @@ export function ScoreCapture() {
       console.log('All loaded disciplines (before dedup):', allDisciplines)
       console.log('Unique disciplines (after dedup):', uniqueDisciplines)
       
-      // Initialize score matrix
-      initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], [])
+      // Load existing scores for the event
+      let existingScores: Score[] = []
+      try {
+        console.log('Fetching scores with URL:', `/scores?eventId=${eventId}`)
+        const scoresData = await apiGet(`/scores?eventId=${eventId}`)
+        console.log('Raw scores response:', scoresData)
+        existingScores = scoresData?.results || []
+        console.log('Loaded existing scores:', existingScores)
+        console.log('Number of existing scores:', existingScores.length)
+        if (existingScores.length > 0) {
+          console.log('Sample score object:', existingScores[0])
+        }
+      } catch (error) {
+        console.error('Error loading existing scores:', error)
+        // Continue without scores if there's an error
+      }
+      
+      // Initialize score matrix with existing scores
+      initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], existingScores)
       
     } catch (error) {
       console.error('Error loading initial data:', error)
@@ -186,11 +203,22 @@ export function ScoreCapture() {
     console.log('disciplines:', disciplines, 'type:', typeof disciplines, 'isArray:', Array.isArray(disciplines))
     console.log('existingScores:', existingScores, 'type:', typeof existingScores, 'isArray:', Array.isArray(existingScores))
     
+    // Debug the first few score objects to see their actual properties
+    if (existingScores.length > 0) {
+      console.log('First score object properties:', Object.keys(existingScores[0]))
+      console.log('First score object full:', existingScores[0])
+      console.log('participantId field:', existingScores[0].participantId)
+      console.log('disciplineId field:', existingScores[0].disciplineId)
+    }
+    
     const matrix: {[key: string]: string} = {} // Changed to string only
     
     const safeParticipants = Array.isArray(participants) ? participants : []
     const safeDisciplines = Array.isArray(disciplines) ? disciplines : []
     const safeExistingScores = Array.isArray(existingScores) ? existingScores : []
+    
+    console.log('Processing matrix for:', safeParticipants.length, 'participants and', safeDisciplines.length, 'disciplines')
+    console.log('With', safeExistingScores.length, 'existing scores')
     
     safeParticipants.forEach(participant => {
       safeDisciplines.forEach((discipline, index) => {
@@ -200,10 +228,16 @@ export function ScoreCapture() {
           s.participantId === participant.id && 
           (s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId)
         )
+        
+        if (existingScore) {
+          console.log(`Found existing score for key ${key}:`, existingScore)
+        }
+        
         matrix[key] = existingScore ? existingScore.score.toString() : '' // Convert to string
       })
     })
     
+    console.log('Final score matrix:', matrix)
     setScoreMatrix(matrix)
   }
 
@@ -226,24 +260,52 @@ export function ScoreCapture() {
     
     if (scoreValue === '' || scoreValue === null || scoreValue === undefined) return
     
+    // Only save if we have a valid numeric discipline ID
+    // If disciplineId is a string (fallback ID), we need to find the actual discipline
+    let numericDisciplineId: number | null = null
+    
+    if (typeof disciplineId === 'number') {
+      numericDisciplineId = disciplineId
+    } else if (typeof disciplineId === 'string') {
+      // Try to find the discipline by name or fallback pattern
+      const discipline = disciplines.find(d => {
+        return d.var_name && disciplineId.includes(d.var_name)
+      })
+      if (discipline && discipline.int_disziplinid) {
+        numericDisciplineId = discipline.int_disziplinid
+      } else {
+        console.log('Cannot save score: invalid discipline ID:', disciplineId)
+        return // Skip saving if we can't resolve to a numeric ID
+      }
+    }
+    
+    if (!numericDisciplineId) {
+      console.log('Cannot save score: no valid numeric discipline ID found')
+      return
+    }
+    
     try {
       const scoreData = {
         competitionId: competitionId ? parseInt(competitionId) : 1, // fallback to competition 1
         participantId: participantId,
-        disciplineId: disciplineId,
-        score: typeof scoreValue === 'string' ? parseFloat(scoreValue) : scoreValue,
-        attempt: 1,
-        status: 'completed' as const
+        disciplineId: numericDisciplineId,
+        score: typeof scoreValue === 'string' ? parseFloat(scoreValue) : scoreValue
       }
       
-      // TODO: Implement when scores API is ready
-      console.log('Would save score:', scoreData)
+      console.log('Saving score:', scoreData)
       
-      // For now, just show success message
-      // await apiPost('/scores', scoreData)
+      // Use the new save-value endpoint
+      const response = await apiPost('/scores/save-value', scoreData)
       
-      // Reload scores when API is ready
-      // await loadData()
+      if (response.success) {
+        console.log('Score saved successfully:', response)
+        // Optionally show success message
+        // You could add a toast notification here
+      } else {
+        console.error('Failed to save score:', response)
+        alert('Failed to save score')
+      }
+      
     } catch (error) {
       console.error('Error saving score:', error)
       alert('Failed to save score')
