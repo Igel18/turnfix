@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
-import { apiGet, apiPost, apiPut } from '../utils/api'
+import { apiGet } from '../utils/api'
 
 // Interfaces
 interface Participant {
@@ -87,7 +87,7 @@ export function ScoreCapture() {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [disciplines, setDisciplines] = useState<Discipline[]>([])
   const [squads, setSquads] = useState<Squad[]>([])
-  const [scores, setScores] = useState<Score[]>([])
+  const [scores] = useState<Score[]>([])
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [loading, setLoading] = useState(false)
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({}) // Changed to string only

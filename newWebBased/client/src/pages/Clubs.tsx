@@ -3,10 +3,16 @@ import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  UserGroupIcon,
+  MapPinIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline'
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
-import { exportToCSV, getClubCSVData } from '@/utils/csvExport'
+import { UnifiedHeader } from '../components/UnifiedHeader'
+import { UnifiedDataView } from '../components/UnifiedDataView'
+import type { StateInfo } from '../components/UnifiedHeader'
 
 interface Club {
   int_vereineid: number
@@ -36,21 +42,32 @@ interface Contact {
   var_telefon?: string
 }
 
+interface FormData {
+  var_name: string
+  var_website: string
+  int_gaueid: string
+  int_personenid: string
+  int_start_ort: string
+}
+
 export function Clubs() {
   const [clubs, setClubs] = useState<Club[]>([])
   const [regions, setRegions] = useState<Region[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [selectedClub, setSelectedClub] = useState<Club | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState<number | ''>('')
   const [selectedStatus, setSelectedStatus] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingClub, setEditingClub] = useState<Club | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-
-  // Form state
-  const [formData, setFormData] = useState({
+  const [viewType, setViewType] = useState<'table' | 'cards'>('cards')
+  const [activeTab, setActiveTab] = useState('info')
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingClub, setEditingClub] = useState<Club | null>(null)
+  const [formData, setFormData] = useState<FormData>({
     var_name: '',
     var_website: '',
     int_gaueid: '',
@@ -78,7 +95,7 @@ export function Clubs() {
         color: 'bg-gray-100 text-gray-800'
       },
       {
-        value: 'with_contact',
+        value: 'with-contact',
         label: 'With Contact',
         count: withContact,
         color: 'bg-blue-100 text-blue-800'
@@ -86,43 +103,19 @@ export function Clubs() {
     ]
   }
 
-  const getFilterOptions = () => [
-    {
-      label: 'Region',
-      value: 'region',
-      options: regions.map(region => ({
-        value: region.id.toString(),
-        label: region.name
-      })),
-      selectedValue: selectedRegion.toString(),
-      onChange: (value: string) => setSelectedRegion(value === '' ? '' : parseInt(value))
-    }
-  ]
-
-  const handleClearAllFilters = () => {
-    setSearchTerm('')
-    setSelectedRegion('')
-    setSelectedStatus('')
-  }
-
-  const handleExportCSV = () => {
-    const csvData = getClubCSVData(clubs)
-    exportToCSV(csvData)
-  }
-
-  // Fetch clubs with pagination and filters
-  const fetchClubs = async (page = 1) => {
+  // Fetch clubs with search and pagination
+  const fetchClubs = async (page: number = 1) => {
     setIsLoading(true)
     try {
-      const params = new URLSearchParams({
-        limit: '10',
-        offset: ((page - 1) * 10).toString()
-      })
-      
-      if (searchTerm) params.append('search', searchTerm)
-      if (selectedRegion) params.append('gaue_id', selectedRegion.toString())
-
       const token = localStorage.getItem('token')
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '12',
+        ...(searchTerm && { search: searchTerm }),
+        ...(selectedRegion && { region: selectedRegion.toString() }),
+        ...(selectedStatus && { status: selectedStatus })
+      })
+
       const response = await fetch(`/api/clubs?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -131,8 +124,8 @@ export function Clubs() {
 
       if (response.ok) {
         const data = await response.json()
-        setClubs(data.clubs)
-        setTotalPages(Math.ceil(data.pagination.total / 10))
+        setClubs(data.clubs || [])
+        setTotalPages(data.pagination?.totalPages || 1)
       }
     } catch (error) {
       console.error('Error fetching clubs:', error)
@@ -145,7 +138,7 @@ export function Clubs() {
   const fetchRegions = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/clubs/data/gaue', {
+      const response = await fetch('/api/regions', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -153,18 +146,18 @@ export function Clubs() {
       
       if (response.ok) {
         const data = await response.json()
-        setRegions(data)
+        setRegions(data.regions || [])
       }
     } catch (error) {
       console.error('Error fetching regions:', error)
     }
   }
 
-  // Fetch contacts/persons for dropdown
+  // Fetch contacts for dropdown
   const fetchContacts = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/clubs/data/personen', {
+      const response = await fetch('/api/contacts', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -199,7 +192,7 @@ export function Clubs() {
         int_start_ort: parseInt(formData.int_start_ort) || 0
       }
       
-      console.log('Sending club data:', requestBody);
+      console.log('Sending club data:', requestBody)
       
       const response = await fetch(url, {
         method,
@@ -282,170 +275,337 @@ export function Clubs() {
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="space-y-6">
+      {/* Page Header with Add Button */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center mb-2">
+            <BuildingOfficeIcon className="h-8 w-8 mr-3" />
+            Clubs
+          </h1>
+          <p className="text-gray-600">
+            Manage gymnastics clubs, their contact information, and regional assignments
+          </p>
+        </div>
+        <button
+          onClick={openCreateModal}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Add Club
+        </button>
+      </div>
+
       <UnifiedHeader
-        title="Club Management"
-        description="Manage gymnastics clubs and associations"
+        title="Clubs"
+        description="Manage gymnastics clubs, their contact information, and regional assignments"
         icon={BuildingOfficeIcon}
+        
+        // Search functionality
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search clubs by name..."
+        
+        // State info badges
         stateInfo={getClubStateInfo()}
         selectedState={selectedStatus}
         onStateChange={setSelectedStatus}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search clubs..."
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={handleClearAllFilters}
-        onExportCSV={handleExportCSV}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: 'Add Club',
-          icon: PlusIcon,
-          onClick: openCreateModal
+        
+        // Clear filters and export
+        onClearAllFilters={() => {
+          setSearchTerm('')
+          setSelectedRegion('')
+          setSelectedStatus('')
         }}
-        totalCount={clubs.length}
+        onExportCSV={() => console.log('Export CSV functionality to be implemented')}
+        
+        // Filter options
+        filterOptions={[
+          {
+            label: 'Region',
+            value: 'region',
+            selectedValue: selectedRegion.toString(),
+            onChange: (value) => setSelectedRegion(value === '' ? '' : parseInt(value)),
+            options: [
+              { value: '', label: 'All Regions' },
+              ...regions.map(region => ({ 
+                value: region.id.toString(), 
+                label: region.name 
+              }))
+            ]
+          }
+        ]}
       />
 
-      {/* Clubs Table */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        {isLoading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading clubs...</p>
-          </div>
-        ) : clubs.length === 0 ? (
-          <div className="p-6 text-center">
-            <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No clubs found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Club Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Region
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact Person
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Website
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Athletes
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {clubs.map((club) => (
-                  <tr key={club.int_vereineid} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{club.var_name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                      {club.gaue_name || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                      {club.var_vorname && club.var_nachname ? (
-                        <div>
-                          <div className="font-medium">{club.var_vorname} {club.var_nachname}</div>
-                          {club.var_email && (
-                            <div className="text-xs text-gray-500">{club.var_email}</div>
-                          )}
-                          {club.var_telefon && (
-                            <div className="text-xs text-gray-500">{club.var_telefon}</div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">No contact</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {club.var_website ? (
-                        <a 
-                          href={club.var_website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Visit Website
-                        </a>
-                      ) : (
-                        <span className="text-gray-400">No website</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {club.athlete_count} athletes
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => openEditModal(club)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(club.int_vereineid)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Unified Data View */}
+      <UnifiedDataView
+        items={clubs}
+        selectedItem={selectedClub}
+        isLoading={isLoading}
+        viewType={viewType}
+        onViewTypeChange={setViewType}
+        onSelectItem={(club) => setSelectedClub(club as Club)}
+        
+        // Card rendering
+        renderCard={(club) => (
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {club.var_name}
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPinIcon className="h-4 w-4 mr-2" />
+                    <span>{club.gaue_name || 'No region'}</span>
+                  </div>
+                  
+                  {club.var_vorname && club.var_nachname && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <UserGroupIcon className="h-4 w-4 mr-2" />
+                      <span>{club.var_vorname} {club.var_nachname}</span>
+                    </div>
+                  )}
+                  
+                  {club.var_email && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <EnvelopeIcon className="h-4 w-4 mr-2" />
+                      <span>{club.var_email}</span>
+                    </div>
+                  )}
+                  
+                  {club.var_telefon && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <PhoneIcon className="h-4 w-4 mr-2" />
+                      <span>{club.var_telefon}</span>
+                    </div>
+                  )}
+                  
+                  {club.var_website && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <GlobeAltIcon className="h-4 w-4 mr-2" />
+                      <a 
+                        href={club.var_website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Visit Website
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {club.athlete_count} athletes
+                </span>
+              </div>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Previous
-            </button>
+        
+        // Table configuration
+        tableHeaders={['Club Name', 'Region', 'Contact Person', 'Website', 'Athletes']}
+        renderTableRow={(club) => (
+          <>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="font-medium text-gray-900">{club.var_name}</div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+              {club.gaue_name || 'N/A'}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+              {club.var_vorname && club.var_nachname ? (
+                <div>
+                  <div className="font-medium">{club.var_vorname} {club.var_nachname}</div>
+                  {club.var_email && (
+                    <div className="text-xs text-gray-500">{club.var_email}</div>
+                  )}
+                  {club.var_telefon && (
+                    <div className="text-xs text-gray-500">{club.var_telefon}</div>
+                  )}
+                </div>
+              ) : (
+                <span className="text-gray-400">No contact</span>
+              )}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              {club.var_website ? (
+                <a 
+                  href={club.var_website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Visit Website
+                </a>
+              ) : (
+                <span className="text-gray-400">No website</span>
+              )}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {club.athlete_count} athletes
+              </span>
+            </td>
+          </>
+        )}
+        
+        // Detail view configuration
+        selectedItemTabs={[
+          {
+            id: 'info',
+            label: 'Information',
+            icon: BuildingOfficeIcon
+          },
+          {
+            id: 'athletes',
+            label: 'Athletes',
+            icon: UserGroupIcon,
+            count: selectedClub?.athlete_count || 0
+          }
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        
+        renderTabContent={(tabId, club) => {
+          if (tabId === 'info') {
+            return (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Club Details</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Name</label>
+                        <p className="text-sm text-gray-900">{club.var_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Region</label>
+                        <p className="text-sm text-gray-900">{club.gaue_name || 'No region assigned'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Website</label>
+                        {club.var_website ? (
+                          <a 
+                            href={club.var_website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            {club.var_website}
+                          </a>
+                        ) : (
+                          <p className="text-sm text-gray-500">No website</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Contact Information</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Contact Person</label>
+                        <p className="text-sm text-gray-900">
+                          {club.var_vorname && club.var_nachname 
+                            ? `${club.var_vorname} ${club.var_nachname}`
+                            : 'No contact person'
+                          }
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Email</label>
+                        <p className="text-sm text-gray-900">{club.var_email || 'No email'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Phone</label>
+                        <p className="text-sm text-gray-900">{club.var_telefon || 'No phone'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          } else if (tabId === 'athletes') {
+            return (
+              <div className="text-center py-12">
+                <UserGroupIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {club.athlete_count} Athletes
+                </h3>
+                <p className="text-gray-600">
+                  Detailed athlete list would be implemented here
+                </p>
+              </div>
+            )
+          }
+        }}
+        
+        renderDetailStats={(club) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center">
+              <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                <BuildingOfficeIcon className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Club Name</p>
+                <p className="text-lg font-semibold text-gray-900">{club.var_name}</p>
+              </div>
+            </div>
             
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-2 border rounded-lg ${
-                  currentPage === page 
-                    ? 'bg-blue-600 text-white border-blue-600' 
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            <div className="flex items-center">
+              <div className="bg-green-100 p-3 rounded-lg mr-4">
+                <MapPinIcon className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Region</p>
+                <p className="text-lg font-semibold text-gray-900">{club.gaue_name || 'No region'}</p>
+              </div>
+            </div>
             
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Next
-            </button>
+            <div className="flex items-center">
+              <div className="bg-purple-100 p-3 rounded-lg mr-4">
+                <UserGroupIcon className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Athletes</p>
+                <p className="text-lg font-semibold text-gray-900">{club.athlete_count}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        
+        // Actions
+        actionButtons={[
+          {
+            icon: PencilIcon,
+            onClick: (club) => openEditModal(club as Club),
+            className: "text-blue-600 hover:text-blue-800",
+            title: "Edit Club"
+          },
+          {
+            icon: TrashIcon,
+            onClick: (club) => handleDelete((club as Club).int_vereineid),
+            className: "text-red-600 hover:text-red-800",
+            title: "Delete Club"
+          }
+        ]}
+        
+        // Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        
+        // Empty state
+        emptyStateIcon={BuildingOfficeIcon}
+        emptyStateTitle="No clubs found"
+        emptyStateDescription="Try adjusting your search or filter criteria"
+      />
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
@@ -562,5 +722,3 @@ export function Clubs() {
     </div>
   )
 }
-
-export default Clubs
