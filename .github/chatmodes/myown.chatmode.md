@@ -28,6 +28,13 @@ When in doubt, refer to the Prisma documentation for guidance.
 
 when creating a "*_simple" or "*_debug" or "_temp" make sure to use the same naming convention as the existing routes. And if the simple implementation works better than the old one, consider replacing the old one.
 
+Do not change these following Prisma-based routes using SQL queries or their behavior or the API because these things are working: 
+    - http://localhost:5173/regions
+    - http://localhost:5173/associations
+    - http://localhost:5173/clubs
+    - http://localhost:5173/participants
+    - http://localhost:5173/disciplines
+    - http://localhost:5173/events
 
 ## UI 
 Unified Style Pattern: 
@@ -44,6 +51,11 @@ Use the Prisma Schema for the database connection.
 Do not touch the file "apiRoutesTest.js" 
 Do not touch the http://localhost:5173/participants or ask for changes. Only do small changes. 
 The backend routes should return a JSON object 
+
+Do not change the database schema or any existing data. We must be compatible with a old software. 
+
+## API 
+Do not change the Port of the API. 
 
 # Scope 
 You have access to the whole codebase, including all routes, middleware, and database models.

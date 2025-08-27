@@ -25,7 +25,7 @@ const participantQuerySchema = zod_1.z.object({
     offset: zod_1.z.string().transform(Number).default(0)
 });
 // Get all participants with search and pagination
-router.get('/', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const query = participantQuerySchema.parse(req.query);
         // Build WHERE conditions

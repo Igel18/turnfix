@@ -13,6 +13,7 @@ import {
   BuildingLibraryIcon,
   CogIcon
 } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react'
 
 // Group 1: Database Management - Athletes, Clubs, Organizations
 const databaseManagementActions = [
@@ -107,6 +108,45 @@ export function Dashboard() {
     selectedSquad
   } = useEvent()
 
+  // Statistics state
+  const [statistics, setStatistics] = useState({
+    activeEvents: 0,
+    registeredClubs: 0,
+    totalAthletes: 0,
+    loading: true
+  })
+
+  // Fetch statistics from API
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const [eventsRes, clubsRes, participantsRes] = await Promise.all([
+          fetch('/api/events'),
+          fetch('/api/clubs'),
+          fetch('/api/participants')
+        ])
+
+        const [events, clubs, participants] = await Promise.all([
+          eventsRes.json(),
+          clubsRes.json(),
+          participantsRes.json()
+        ])
+
+        setStatistics({
+          activeEvents: events.length || 0,
+          registeredClubs: clubs.length || 0,
+          totalAthletes: participants.length || 0,
+          loading: false
+        })
+      } catch (error) {
+        console.error('Error fetching statistics:', error)
+        setStatistics(prev => ({ ...prev, loading: false }))
+      }
+    }
+
+    fetchStatistics()
+  }, [])
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Welcome Header */}
@@ -120,12 +160,14 @@ export function Dashboard() {
       </div>
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Active Events</p>
-              <p className="text-2xl font-semibold text-gray-900">12</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {statistics.loading ? '...' : statistics.activeEvents}
+              </p>
             </div>
             <CalendarDaysIcon className="h-8 w-8 text-blue-500" />
           </div>
@@ -135,7 +177,9 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Registered Clubs</p>
-              <p className="text-2xl font-semibold text-gray-900">45</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {statistics.loading ? '...' : statistics.registeredClubs}
+              </p>
             </div>
             <BuildingOfficeIcon className="h-8 w-8 text-green-500" />
           </div>
@@ -144,20 +188,12 @@ export function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Participants</p>
-              <p className="text-2xl font-semibold text-gray-900">234</p>
+              <p className="text-sm text-gray-600">Total Athletes</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {statistics.loading ? '...' : statistics.totalAthletes}
+              </p>
             </div>
             <UserGroupIcon className="h-8 w-8 text-purple-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Completed Competitions</p>
-              <p className="text-2xl font-semibold text-gray-900">8</p>
-            </div>
-            <TrophyIcon className="h-8 w-8 text-yellow-500" />
           </div>
         </div>
       </div>

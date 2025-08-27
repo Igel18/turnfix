@@ -1,7 +1,6 @@
 {
   "name": "turnfix-server",
   "version": "1.0.0",
-  "type": "module",
   "description": "TurnFix Backend API",
   "main": "dist/index.js",
   "scripts": {

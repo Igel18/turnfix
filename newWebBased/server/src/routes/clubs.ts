@@ -25,7 +25,7 @@ const clubQuerySchema = z.object({
 });
 
 // Get all clubs with search and pagination
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const query = clubQuerySchema.parse(req.query);
     
@@ -351,7 +351,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 });
 
 // Get gaue (regions) for dropdown
-router.get('/data/gaue', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/data/gaue', async (req: Request, res: Response) => {
   try {
     const query = `
       SELECT int_gaueid as id, var_name as name
@@ -375,7 +375,7 @@ router.get('/data/gaue', authenticateToken, async (req: AuthRequest, res: Respon
 });
 
 // Get persons (contacts) for dropdown
-router.get('/data/personen', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/data/personen', async (req: Request, res: Response) => {
   try {
     const query = `
       SELECT 

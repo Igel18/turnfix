@@ -245,6 +245,8 @@ app.listen(PORT, () => {
   console.log(`🚀 Simple server running on port ${PORT}`);
   console.log(`🔗 API: http://localhost:${PORT}/api/events`);
   console.log(`🔗 API: http://localhost:${PORT}/api/disciplines`);
+  console.log(`🔗 API: http://localhost:${PORT}/api/regions`);
+  console.log(`🔗 API: http://localhost:${PORT}/api/regions/data/:type`);
   console.log(`🔗 Admin: http://localhost:${PORT}/api/admin/test-database-connection`);
   console.log(`🔗 Admin: http://localhost:${PORT}/api/admin/database-config`);
 });

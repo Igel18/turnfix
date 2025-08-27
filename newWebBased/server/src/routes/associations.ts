@@ -33,7 +33,7 @@ const associationQuerySchema = z.object({
 });
 
 // Get all associations with search and pagination
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const query = associationQuerySchema.parse(req.query);
     
@@ -299,7 +299,7 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 });
 
 // Get data endpoints for dropdowns
-router.get('/data/laender', authenticateToken, async (req: Request, res: Response) => {
+router.get('/data/laender', async (req: Request, res: Response) => {
   try {
     const query = `
       SELECT int_laenderid, var_name, var_kuerzel

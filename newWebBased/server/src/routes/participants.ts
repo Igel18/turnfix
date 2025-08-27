@@ -28,7 +28,7 @@ const participantQuerySchema = z.object({
 });
 
 // Get all participants with search and pagination
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const query = participantQuerySchema.parse(req.query);
     

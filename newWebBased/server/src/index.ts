@@ -88,6 +88,11 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test endpoint (same as simple server)
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Server is working!' });
+});
+
 // API Routes - Only Prisma-based routes using direct SQL queries
 app.use('/api/disciplines', disciplineRoutes);
 app.use('/api/associations', associationRoutes);

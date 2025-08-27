@@ -8,7 +8,7 @@ const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createCountrySchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(255),
-    var_kurz: zod_1.z.string().min(1).max(10),
+    var_kuerzel: zod_1.z.string().min(1).max(10),
 });
 const updateCountrySchema = createCountrySchema.partial();
 // Get all countries
@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
         if (search) {
             whereConditions.OR = [
                 { var_name: { contains: search, mode: 'insensitive' } },
-                { var_kurz: { contains: search, mode: 'insensitive' } }
+                { var_kuerzel: { contains: search, mode: 'insensitive' } }
             ];
         }
         const [countries, totalCount] = await Promise.all([

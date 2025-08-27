@@ -22,7 +22,7 @@ const createDisciplineSchema = zod_1.z.object({
 });
 const updateDisciplineSchema = createDisciplineSchema.partial();
 // Get all disciplines
-router.get('/', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const query = `
       SELECT 
@@ -78,16 +78,29 @@ router.get('/apparatus', authBypass_1.authenticateToken, async (req, res) => {
 // Get age groups (from gender categories since no age columns exist in disciplines)
 router.get('/age-groups', authBypass_1.authenticateToken, async (req, res) => {
     try {
-        // Since there are no age columns in tfx_disziplinen, return placeholder age groups
+        // Since there are no age columns in tfx_disziplinen, return standard age groups
         // These would typically come from participant data or competition rules
         const ageGroups = [
-            { age_from: 6, age_to: 7, age_range: '6-7', discipline_count: 0 },
-            { age_from: 8, age_to: 9, age_range: '8-9', discipline_count: 0 },
-            { age_from: 10, age_to: 11, age_range: '10-11', discipline_count: 0 },
-            { age_from: 12, age_to: 13, age_range: '12-13', discipline_count: 0 },
-            { age_from: 14, age_to: 15, age_range: '14-15', discipline_count: 0 },
-            { age_from: 16, age_to: 17, age_range: '16-17', discipline_count: 0 },
-            { age_from: 18, age_to: 99, age_range: '18+', discipline_count: 0 }
+            { value: 6, label: '6 years' },
+            { value: 7, label: '7 years' },
+            { value: 8, label: '8 years' },
+            { value: 9, label: '9 years' },
+            { value: 10, label: '10 years' },
+            { value: 11, label: '11 years' },
+            { value: 12, label: '12 years' },
+            { value: 13, label: '13 years' },
+            { value: 14, label: '14 years' },
+            { value: 15, label: '15 years' },
+            { value: 16, label: '16 years' },
+            { value: 17, label: '17 years' },
+            { value: 18, label: '18 years' },
+            { value: 19, label: '19 years' },
+            { value: 20, label: '20 years' },
+            { value: 25, label: '25 years' },
+            { value: 30, label: '30 years' },
+            { value: 40, label: '40 years' },
+            { value: 50, label: '50 years' },
+            { value: 99, label: '99+ years' }
         ];
         res.json(ageGroups);
     }
@@ -141,21 +154,15 @@ router.get('/filtered', authBypass_1.authenticateToken, async (req, res) => {
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
         const query = `
       SELECT 
-        int_disziplinenid as id, 
-        var_name as name, 
-        var_kurz1 as short_name,
-        var_kurz2 as display_name,
-        var_einheit as apparatus,
+        int_disziplinenid, 
+        var_name as var_disziplinname, 
+        var_einheit as var_disziplinkategorie,
         bol_m as male_allowed,
         bol_w as female_allowed,
-        CASE 
-          WHEN bol_m = true AND bol_w = true THEN 'gemischt'
-          WHEN bol_m = true AND bol_w = false THEN 'männlich'
-          WHEN bol_m = false AND bol_w = true THEN 'weiblich'
-          ELSE 'unbekannt'
-        END as gender_text,
-        int_sportid as sport_id,
-        var_icon as icon
+        6 as altersklasse_von,
+        99 as altersklasse_bis,
+        var_icon,
+        int_sportid
       FROM tfx_disziplinen
       ${whereClause}
       ORDER BY var_name

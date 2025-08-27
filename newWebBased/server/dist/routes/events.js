@@ -50,33 +50,33 @@ const parseXmlAsync = (xml, options) => {
         });
     });
 };
-// Get all events - using tfx_veranstaltungen (the actual events table)
-router.get('/', authBypass_1.authenticateToken, async (req, res) => {
+// Get all events - using legacy tfx_veranstaltungen table
+router.get('/', async (req, res) => {
     try {
         const { search, limit = '50', offset = '0' } = req.query;
         let whereClause = '';
         const params = [];
         let paramIndex = 1;
         if (search) {
-            whereClause = `WHERE LOWER(v.var_name) LIKE LOWER($${paramIndex}) OR LOWER(v.var_veranstalter) LIKE LOWER($${paramIndex})`;
+            whereClause = `WHERE LOWER(var_name) LIKE LOWER($${paramIndex}) OR LOWER(var_veranstalter) LIKE LOWER($${paramIndex})`;
             params.push(`%${search}%`);
             paramIndex++;
         }
         const countQuery = `
       SELECT COUNT(*) as total
-      FROM tfx_veranstaltungen v
+      FROM tfx_veranstaltungen
       ${whereClause}
     `;
         const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
         const total = parseInt(countResult[0]?.total || '0');
         const dataQuery = `
       SELECT 
-        v.int_veranstaltungenid as int_eventid,
-        v.var_name as var_eventname,
-        v.dat_von as dat_eventstartdate,
-        v.dat_bis as dat_eventenddate,
-        v.var_veranstalter as var_location,
-        '' as var_description,
+        int_veranstaltungenid as int_eventid,
+        var_name as var_eventname,
+        dat_von as dat_eventstartdate,
+        dat_bis as dat_eventenddate,
+        var_veranstalter as var_location,
+        COALESCE(txt_hinweise, '') as var_description,
         (SELECT COUNT(*) FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as participant_count,
@@ -85,20 +85,34 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count
       FROM tfx_veranstaltungen v
       ${whereClause}
-      ORDER BY v.dat_von DESC, v.var_name
+      ORDER BY dat_von DESC, var_name ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(parseInt(limit), parseInt(offset));
         const events = await prisma.$queryRawUnsafe(dataQuery, ...params);
         // Convert BigInt values and dates for JSON serialization to match client expectations
-        const formattedEvents = events.map((event) => ({
-            ...event,
-            int_eventid: Number(event.int_eventid),
-            participant_count: Number(event.participant_count),
-            score_count: Number(event.score_count),
-            dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
-            dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null
-        }));
+        const formattedEvents = events.map((event) => {
+            // Determine status based on dates
+            const now = new Date();
+            const startDate = new Date(event.dat_eventstartdate);
+            const endDate = new Date(event.dat_eventenddate);
+            let status = 'upcoming';
+            if (now > endDate) {
+                status = 'completed';
+            }
+            else if (now >= startDate && now <= endDate) {
+                status = 'active';
+            }
+            return {
+                ...event,
+                int_eventid: Number(event.int_eventid),
+                participant_count: Number(event.participant_count || 0),
+                score_count: Number(event.score_count || 0),
+                dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
+                dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null,
+                status
+            };
+        });
         console.log(`=== EVENTS: Sending ${formattedEvents.length} events to client ===`);
         console.log('First event sample:', JSON.stringify(formattedEvents[0], null, 2));
         const response = {
@@ -1045,7 +1059,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
     }
 });
 // Get event by ID (moved to end to avoid catching other routes)
-router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
@@ -1073,13 +1087,25 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Event not found' });
         }
         const event = events[0];
+        // Determine status based on dates
+        const now = new Date();
+        const startDate = new Date(event.dat_eventstartdate);
+        const endDate = new Date(event.dat_eventenddate);
+        let status = 'upcoming';
+        if (now > endDate) {
+            status = 'completed';
+        }
+        else if (now >= startDate && now <= endDate) {
+            status = 'active';
+        }
         const formattedEvent = {
             ...event,
             int_eventid: Number(event.int_eventid),
-            participant_count: Number(event.participant_count),
-            score_count: Number(event.score_count),
+            participant_count: Number(event.participant_count || 0),
+            score_count: Number(event.score_count || 0),
             dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
-            dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null
+            dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null,
+            status
         };
         res.json(formattedEvent);
     }

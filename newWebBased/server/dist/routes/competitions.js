@@ -18,7 +18,8 @@ const createCompetitionSchema = zod_1.z.object({
     disciplines: zod_1.z.array(zod_1.z.number()).min(1, 'At least one discipline is required'),
     maxParticipants: zod_1.z.number().optional(),
     registrationDeadline: zod_1.z.string().optional(),
-    organizer: zod_1.z.string().optional()
+    organizer: zod_1.z.string().optional(),
+    eventId: zod_1.z.number().optional()
 });
 const updateCompetitionSchema = createCompetitionSchema.partial();
 // Get all competitions

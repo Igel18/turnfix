@@ -23,7 +23,7 @@ const regionQuerySchema = z.object({
 });
 
 // Get all regions with search and pagination
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const query = regionQuerySchema.parse(req.query);
     
@@ -272,7 +272,7 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 });
 
 // Get data endpoints for dropdowns
-router.get('/data/verbaende', authenticateToken, async (req: Request, res: Response) => {
+router.get('/data/verbaende', async (req: Request, res: Response) => {
   try {
     const query = `
       SELECT int_verbaendeid, var_name, var_kuerzel

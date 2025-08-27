@@ -29,7 +29,7 @@ const associationQuerySchema = zod_1.z.object({
     offset: zod_1.z.string().transform(Number).default(0)
 });
 // Get all associations with search and pagination
-router.get('/', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const query = associationQuerySchema.parse(req.query);
         let whereClause = '';
@@ -256,7 +256,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
     }
 });
 // Get data endpoints for dropdowns
-router.get('/data/laender', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/data/laender', async (req, res) => {
     try {
         const query = `
       SELECT int_laenderid, var_name, var_kuerzel

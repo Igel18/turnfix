@@ -24,7 +24,7 @@ const createDisciplineSchema = z.object({
 const updateDisciplineSchema = createDisciplineSchema.partial();
 
 // Get all disciplines
-router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/', async (req, res) => {
   try {
     const query = `
       SELECT 

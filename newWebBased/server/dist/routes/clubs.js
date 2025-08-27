@@ -22,7 +22,7 @@ const clubQuerySchema = zod_1.z.object({
     offset: zod_1.z.string().transform(Number).default(0)
 });
 // Get all clubs with search and pagination
-router.get('/', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const query = clubQuerySchema.parse(req.query);
         let whereClause = '';
@@ -297,7 +297,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
     }
 });
 // Get gaue (regions) for dropdown
-router.get('/data/gaue', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/data/gaue', async (req, res) => {
     try {
         const query = `
       SELECT int_gaueid as id, var_name as name
@@ -318,7 +318,7 @@ router.get('/data/gaue', authBypass_1.authenticateToken, async (req, res) => {
     }
 });
 // Get persons (contacts) for dropdown
-router.get('/data/personen', authBypass_1.authenticateToken, async (req, res) => {
+router.get('/data/personen', async (req, res) => {
     try {
         const query = `
       SELECT 
