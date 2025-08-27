@@ -19,6 +19,6 @@ node scripts/create-test-user.js
 echo.
 echo Application started!
 echo Frontend: http://localhost:5173
-echo Backend: http://localhost:3001
+echo Backend: http://localhost:3002
 echo.
 pause

@@ -133,9 +133,9 @@ export function Dashboard() {
         ])
 
         setStatistics({
-          activeEvents: events.length || 0,
-          registeredClubs: clubs.length || 0,
-          totalAthletes: participants.length || 0,
+          activeEvents: events.events?.length || 0,
+          registeredClubs: clubs.clubs?.length || 0,
+          totalAthletes: participants.participants?.length || 0,
           loading: false
         })
       } catch (error) {
