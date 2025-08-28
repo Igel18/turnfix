@@ -91,6 +91,7 @@ export function ScoreCapture() {
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [loading, setLoading] = useState(false)
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({}) // Changed to string only
+  const [disciplineToCompetitionMap, setDisciplineToCompetitionMap] = useState<Map<number | string, number>>(new Map())
   
   // Selection state - initialized from context
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || '')
@@ -143,16 +144,29 @@ export function ScoreCapture() {
       console.log('Loaded competitions:', competitionsData)
       setCompetitions(competitionsData || [])
       
-      // Load all disciplines from all competitions
+      // Load all disciplines from all competitions and track their competition associations
       let allDisciplines: Discipline[] = []
+      const disciplineToCompetitionMap = new Map<number | string, number>()
+      
       for (const competition of competitionsData || []) {
         try {
           const disciplinesData = await apiGet(`/competitions/${competition.id}/disciplines`)
-          allDisciplines = [...allDisciplines, ...(disciplinesData.disciplines || [])]
+          const competitionDisciplines = disciplinesData.disciplines || []
+          
+          // Track which competition each discipline belongs to
+          competitionDisciplines.forEach((discipline: Discipline) => {
+            const disciplineKey = discipline.int_disziplinid || discipline.var_name
+            disciplineToCompetitionMap.set(disciplineKey, competition.id)
+          })
+          
+          allDisciplines = [...allDisciplines, ...competitionDisciplines]
         } catch (error) {
           console.error(`Error loading disciplines for competition ${competition.id}:`, error)
         }
       }
+      
+      // Store the mapping in state for filtering
+      setDisciplineToCompetitionMap(disciplineToCompetitionMap)
       
       // Remove duplicate disciplines based on int_disziplinid and var_name
       const uniqueDisciplines = allDisciplines.reduce((acc: Discipline[], current: Discipline) => {
@@ -356,6 +370,31 @@ export function ScoreCapture() {
     }
   }
 
+  // Helper function to check if participant should be shown based on discipline selection
+  const participantHasSelectedDiscipline = (participant: Participant): boolean => {
+    // For score capture, we want to be more permissive - show all participants in the squad
+    // when a discipline is selected, as they might compete in that discipline
+    return true
+    
+    // The original restrictive logic is commented out:
+    /*
+    if (!activeDiscipline || !participant.assignedCompetitions) {
+      return true // Show all if no discipline selected or no competition assignments
+    }
+    
+    // Get the competition ID that has the selected discipline
+    const selectedDisciplineKey = activeDiscipline
+    const competitionWithDiscipline = disciplineToCompetitionMap.get(selectedDisciplineKey)
+    
+    if (!competitionWithDiscipline) {
+      return true // If we can't find the competition for this discipline, show participant
+    }
+    
+    // Check if the participant is assigned to the competition that has this discipline
+    return participant.assignedCompetitions.includes(competitionWithDiscipline)
+    */
+  }
+
   const filteredParticipants = Array.isArray(participants) ? participants.filter(participant => {
     const matchesSearch = 
       participant.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -363,8 +402,9 @@ export function ScoreCapture() {
       participant.club?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesSquad = !activeSquad || participant.squad_name === activeSquad
+    const hasDiscipline = participantHasSelectedDiscipline(participant)
 
-    return matchesSearch && matchesSquad
+    return matchesSearch && matchesSquad && hasDiscipline
   }) : []
 
   // Filter disciplines to show only selected one, or all if none selected
