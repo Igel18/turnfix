@@ -100,6 +100,13 @@ const eventManagementActions = [
     color: 'bg-blue-500'
   },
   {
+    name: 'Squad Status',
+    description: 'Manage status for squad-discipline combinations',
+    href: '/squad-status',
+    icon: ClipboardDocumentListIcon,
+    color: 'bg-purple-500'
+  },
+  {
     name: 'Score Capture',
     description: 'Enter competition results and scores',
     href: '/score-capture',
