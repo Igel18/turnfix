@@ -4,10 +4,13 @@ import { useEvent } from '../contexts/EventContext'
 import { 
   ChartBarIcon,
   TrophyIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  DocumentArrowDownIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { apiGet } from '../utils/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface Participant {
   id: number
@@ -18,6 +21,14 @@ interface Participant {
   scores: { [discipline: string]: number }
   totalScore: number
   rank: number
+  competitionId?: number
+  competitionName?: string
+}
+
+interface CompetitionGroup {
+  competitionId: number
+  competitionName: string
+  participants: Participant[]
 }
 
 const Results = () => {
@@ -33,6 +44,7 @@ const Results = () => {
   const squadName = urlSquadName
   
   const [ranking, setRanking] = useState<Participant[]>([])
+  const [competitionGroups, setCompetitionGroups] = useState<CompetitionGroup[]>([])
   const [disciplines, setDisciplines] = useState<string[]>([])
   const [eventName, setEventName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
@@ -42,9 +54,16 @@ const Results = () => {
 
   // Helper functions for unified header
   const getResultsStateInfo = (): StateInfo[] => {
-    const totalParticipants = ranking.length
+    const totalParticipants = selectedCompetition ? 
+      ranking.length : 
+      filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)
+    
     const totalDisciplines = disciplines.length
-    const completedScores = ranking.reduce((sum, p) => sum + Object.keys(p.scores).length, 0)
+    const completedScores = selectedCompetition ?
+      ranking.reduce((sum, p) => sum + Object.keys(p.scores).length, 0) :
+      filteredCompetitionGroups.reduce((sum, group) => 
+        sum + group.participants.reduce((groupSum, p) => groupSum + Object.keys(p.scores).length, 0), 0
+      )
 
     return [
       {
@@ -131,6 +150,7 @@ const Results = () => {
 
       if (participants.length === 0) {
         setRanking([])
+        setCompetitionGroups([])
         setDisciplines([])
         setEventName(`Event ${eventId}`)
         return
@@ -191,22 +211,62 @@ const Results = () => {
           age: participant.age || 0,
           scores: participantScores,
           totalScore,
-          rank: 0
+          rank: 0,
+          competitionId: participant.assignedCompetitions?.[0], // Use first assigned competition
+          competitionName: competitions.find(c => c.id === participant.assignedCompetitions?.[0])?.name || 'Unknown Competition'
         }
       })
 
-      // Sort by total score and assign ranks
-      participantsList.sort((a, b) => b.totalScore - a.totalScore)
-      participantsList.forEach((participant, index) => {
-        participant.rank = index + 1
-      })
+      if (selectedCompetition) {
+        // Single competition view - normal ranking
+        participantsList.sort((a, b) => b.totalScore - a.totalScore)
+        participantsList.forEach((participant, index) => {
+          participant.rank = index + 1
+        })
+        setRanking(participantsList)
+        setCompetitionGroups([])
+      } else {
+        // Group by competition and rank within each competition
+        const competitionMap = new Map<number, Participant[]>()
+        
+        participantsList.forEach(participant => {
+          const compId = participant.competitionId || 0
+          if (!competitionMap.has(compId)) {
+            competitionMap.set(compId, [])
+          }
+          competitionMap.get(compId)!.push(participant)
+        })
 
-      setRanking(participantsList)
+        // Create competition groups with individual rankings
+        const groups: CompetitionGroup[] = []
+        competitionMap.forEach((participants, competitionId) => {
+          // Sort participants by total score within this competition
+          participants.sort((a, b) => b.totalScore - a.totalScore)
+          participants.forEach((participant, index) => {
+            participant.rank = index + 1
+          })
+
+          const competitionName = competitions.find(c => c.id === competitionId)?.name || `Competition ${competitionId}`
+          groups.push({
+            competitionId,
+            competitionName,
+            participants
+          })
+        })
+
+        // Sort groups by competition name
+        groups.sort((a, b) => a.competitionName.localeCompare(b.competitionName))
+        
+        setCompetitionGroups(groups)
+        setRanking([]) // Clear single ranking when showing groups
+      }
+
       setDisciplines(Array.from(disciplineSet).sort())
       setEventName(scores[0]?.event_name || scores[0]?.eventName || `Event ${eventId}`)
     } catch (error) {
       console.error('Error fetching event ranking:', error)
       setRanking([])
+      setCompetitionGroups([])
       setDisciplines([])
     } finally {
       setIsLoading(false)
@@ -240,11 +300,116 @@ const Results = () => {
     window.URL.revokeObjectURL(url)
   }
 
+  // Export results to PDF
+  const exportResultsPDF = () => {
+    if (ranking.length === 0) return
+
+    const doc = new jsPDF('landscape')
+    
+    // Add title
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Competition Results', 20, 20)
+    
+    // Add event info
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Event: ${eventName}`, 20, 35)
+    if (squadName) {
+      doc.text(`Squad: ${squadName}`, 20, 45)
+    }
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, squadName ? 55 : 45)
+    
+    // Prepare table data
+    const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+    const tableData = filteredRanking.map(participant => [
+      participant.rank,
+      participant.name,
+      participant.club,
+      participant.age,
+      ...disciplines.map(discipline => 
+        participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
+      ),
+      formatScore(participant.totalScore)
+    ])
+
+    // Generate table
+    autoTable(doc, {
+      head: [headers],
+      body: tableData,
+      startY: squadName ? 65 : 55,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [66, 139, 202],
+        textColor: 255,
+        fontSize: 9,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 15 }, // Rank
+        1: { halign: 'left', cellWidth: 40 },   // Name
+        2: { halign: 'left', cellWidth: 35 },   // Club
+        3: { halign: 'center', cellWidth: 15 }, // Age
+        [headers.length - 1]: { 
+          halign: 'center', 
+          cellWidth: 20,
+          fillColor: [240, 248, 255],
+          fontStyle: 'bold'
+        } // Total
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250]
+      },
+      didParseCell: function(data) {
+        // Highlight medal positions
+        if (data.section === 'body' && data.column.index === 0) {
+          const rank = parseInt(data.cell.text[0])
+          if (rank <= 3) {
+            switch (rank) {
+              case 1:
+                data.cell.styles.fillColor = [255, 215, 0] // Gold
+                break
+              case 2:
+                data.cell.styles.fillColor = [192, 192, 192] // Silver
+                break
+              case 3:
+                data.cell.styles.fillColor = [205, 127, 50] // Bronze
+                break
+            }
+            data.cell.styles.textColor = [0, 0, 0]
+            data.cell.styles.fontStyle = 'bold'
+          }
+        }
+        
+        // Highlight total score column
+        if (data.section === 'body' && data.column.index === headers.length - 1) {
+          data.cell.styles.fillColor = [240, 248, 255]
+          data.cell.styles.fontStyle = 'bold'
+        }
+      }
+    })
+
+    // Save the PDF
+    doc.save(`results_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
   // Filter participants based on search term
   const filteredRanking = ranking.filter(participant =>
     participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     participant.club.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // Filter competition groups based on search term
+  const filteredCompetitionGroups = competitionGroups.map(group => ({
+    ...group,
+    participants: group.participants.filter(participant =>
+      participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      participant.club.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })).filter(group => group.participants.length > 0)
 
   useEffect(() => {
     if (eventId) {
@@ -298,9 +463,14 @@ const Results = () => {
         ]}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={exportResults}
+        secondaryAction={{
+          label: 'Export PDF',
+          icon: DocumentArrowDownIcon,
+          onClick: exportResultsPDF
+        }}
         showHomeButton={true}
         homeUrl="/dashboard"
-        totalCount={filteredRanking.length}
+        totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
       />
 
       {/* Event Selection Context */}
@@ -326,94 +496,198 @@ const Results = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading results...</p>
           </div>
-        ) : filteredRanking.length === 0 ? (
-          <div className="p-6 text-center">
-            <TrophyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No results found for this event</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Platz
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Verein
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Jg
-                  </th>
-                  {disciplines.map(discipline => (
-                    <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
+        ) : selectedCompetition ? (
+          // Single Competition View
+          filteredRanking.length === 0 ? (
+            <div className="p-6 text-center">
+              <TrophyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No results found for this competition</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Platz
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Verein
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Jg
+                    </th>
+                    {disciplines.map(discipline => (
+                      <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{discipline}</span>
+                          <span className="text-[10px] text-gray-400 font-normal">Device</span>
+                        </div>
+                      </th>
+                    ))}
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
                       <div className="flex flex-col">
-                        <span className="font-semibold">{discipline}</span>
-                        <span className="text-[10px] text-gray-400 font-normal">Device</span>
+                        <span className="font-bold text-blue-700">Gesamt</span>
+                        <span className="text-[10px] text-blue-500 font-normal">Total Score</span>
                       </div>
                     </th>
-                  ))}
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-blue-700">Gesamt</span>
-                      <span className="text-[10px] text-blue-500 font-normal">Total Score</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRanking.map((participant) => (
-                  <tr key={participant.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(participant.rank)}`}>
-                        {getMedalEmoji(participant.rank)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
-                        {participant.name}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-gray-600">
-                      {participant.club}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
-                      {participant.age}
-                    </td>
-                    {disciplines.map(discipline => (
-                      <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
-                        <div className="flex flex-col items-center">
-                          {participant.scores[discipline] ? (
-                            <span className="text-lg font-bold text-gray-900">
-                              {formatScore(participant.scores[discipline])}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredRanking.map((participant) => (
+                    <tr key={participant.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(participant.rank)}`}>
+                          {getMedalEmoji(participant.rank)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {participant.name}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-gray-600">
+                        {participant.club}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
+                        {participant.age}
+                      </td>
+                      {disciplines.map(discipline => (
+                        <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
+                          <div className="flex flex-col items-center">
+                            {participant.scores[discipline] ? (
+                              <span className="text-lg font-bold text-gray-900">
+                                {formatScore(participant.scores[discipline])}
+                              </span>
+                            ) : (
+                              <span className="text-lg font-medium text-gray-400">-</span>
+                            )}
+                            <span className="text-xs text-gray-500 mt-1">
+                              {discipline}
                             </span>
-                          ) : (
-                            <span className="text-lg font-medium text-gray-400">-</span>
-                          )}
-                          <span className="text-xs text-gray-500 mt-1">
-                            {discipline}
+                          </div>
+                        </td>
+                      ))}
+                      <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
+                        <div className="flex flex-col items-center">
+                          <span className="text-xl font-bold text-blue-900">
+                            {formatScore(participant.totalScore)}
+                          </span>
+                          <span className="text-xs text-blue-600 mt-1">
+                            Total
                           </span>
                         </div>
                       </td>
-                    ))}
-                    <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
-                      <div className="flex flex-col items-center">
-                        <span className="text-xl font-bold text-blue-900">
-                          {formatScore(participant.totalScore)}
-                        </span>
-                        <span className="text-xs text-blue-600 mt-1">
-                          Total
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : (
+          // Grouped by Competition View
+          filteredCompetitionGroups.length === 0 ? (
+            <div className="p-6 text-center">
+              <TrophyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No results found for this event</p>
+            </div>
+          ) : (
+            <div className="space-y-8 p-6">
+              {filteredCompetitionGroups.map((group) => (
+                <div key={group.competitionId} className="border rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                    <h3 className="text-xl font-bold text-white">{group.competitionName}</h3>
+                    <p className="text-blue-100 text-sm">{group.participants.length} participants</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Platz
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Name
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Verein
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Jg
+                          </th>
+                          {disciplines.map(discipline => (
+                            <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
+                              <div className="flex flex-col">
+                                <span className="font-semibold">{discipline}</span>
+                                <span className="text-[10px] text-gray-400 font-normal">Device</span>
+                              </div>
+                            </th>
+                          ))}
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-blue-700">Gesamt</span>
+                              <span className="text-[10px] text-blue-500 font-normal">Total Score</span>
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {group.participants.map((participant) => (
+                          <tr key={participant.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-4 whitespace-nowrap text-center">
+                              <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(participant.rank)}`}>
+                                {getMedalEmoji(participant.rank)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <div className="font-medium text-gray-900">
+                                {participant.name}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-gray-600">
+                              {participant.club}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
+                              {participant.age}
+                            </td>
+                            {disciplines.map(discipline => (
+                              <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
+                                <div className="flex flex-col items-center">
+                                  {participant.scores[discipline] ? (
+                                    <span className="text-lg font-bold text-gray-900">
+                                      {formatScore(participant.scores[discipline])}
+                                    </span>
+                                  ) : (
+                                    <span className="text-lg font-medium text-gray-400">-</span>
+                                  )}
+                                  <span className="text-xs text-gray-500 mt-1">
+                                    {discipline}
+                                  </span>
+                                </div>
+                              </td>
+                            ))}
+                            <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
+                              <div className="flex flex-col items-center">
+                                <span className="text-xl font-bold text-blue-900">
+                                  {formatScore(participant.totalScore)}
+                                </span>
+                                <span className="text-xs text-blue-600 mt-1">
+                                  Total
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>
