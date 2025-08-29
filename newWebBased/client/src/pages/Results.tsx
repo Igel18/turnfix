@@ -53,6 +53,16 @@ interface CertificateLayout {
   fields: LayoutField[]
 }
 
+// Paper format definitions (same as LayoutDesigner)
+const PAPER_FORMATS = {
+  A4: { width: 595, height: 842, name: 'A4 (210 × 297 mm)' },
+  A3: { width: 842, height: 1191, name: 'A3 (297 × 420 mm)' },
+  A5: { width: 420, height: 595, name: 'A5 (148 × 210 mm)' },
+  Letter: { width: 612, height: 792, name: 'Letter (8.5 × 11 in)' },
+  Legal: { width: 612, height: 1008, name: 'Legal (8.5 × 14 in)' },
+  Tabloid: { width: 792, height: 1224, name: 'Tabloid (11 × 17 in)' }
+}
+
 const Results = () => {
   const [searchParams] = useSearchParams()
   const { selectedEvent } = useEvent()
@@ -78,6 +88,7 @@ const Results = () => {
   const [certificateLayouts, setCertificateLayouts] = useState<CertificateLayout[]>([])
   const [showCertificateModal, setShowCertificateModal] = useState(false)
   const [selectedLayout, setSelectedLayout] = useState<string>('')
+  const [selectedPaperFormat, setSelectedPaperFormat] = useState<keyof typeof PAPER_FORMATS>('A4')
   const [certificatesToPrint, setCertificatesToPrint] = useState<Participant[]>([])
   const [isPrintingCertificates, setIsPrintingCertificates] = useState(false)
 
@@ -586,6 +597,45 @@ const Results = () => {
     }
   }
 
+  // Helper function to load image as base64
+  const loadImageAsBase64 = (imagePath: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          canvas.width = img.width
+          canvas.height = img.height
+          
+          // Clear the canvas with transparent background
+          ctx?.clearRect(0, 0, canvas.width, canvas.height)
+          ctx?.drawImage(img, 0, 0)
+          
+          // Use PNG format to preserve transparency
+          const dataURL = canvas.toDataURL('image/png')
+          resolve(dataURL)
+        } catch (error) {
+          reject(error)
+        }
+      }
+      
+      img.onerror = () => reject(new Error(`Failed to load image: ${imagePath}`))
+      
+      // Determine the full URL for the image
+      let imageUrl = imagePath
+      if (imagePath.startsWith('/uploads/')) {
+        imageUrl = `${window.location.origin}${imagePath}`
+      } else if (!imagePath.startsWith('http') && !imagePath.startsWith('data:')) {
+        imageUrl = `${window.location.origin}/${imagePath}`
+      }
+      
+      img.src = imageUrl
+    })
+  }
+
   // Generate certificates for selected participants
   const generateCertificates = async () => {
     if (!selectedLayout || certificatesToPrint.length === 0) return
@@ -599,75 +649,89 @@ const Results = () => {
         return
       }
 
-      // Create PDF document (A4 portrait for certificates)
-      const doc = new jsPDF('portrait', 'pt', 'a4')
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const pageHeight = doc.internal.pageSize.getHeight()
+      // Create PDF document with selected paper format
+      const paperSize = PAPER_FORMATS[selectedPaperFormat]
+      const doc = new jsPDF('portrait', 'pt', [paperSize.width, paperSize.height])
+      const pageWidth = paperSize.width
+      const pageHeight = paperSize.height
 
       console.log(`PDF page size: ${pageWidth} x ${pageHeight}`)
       console.log(`Layout: ${layout.var_name} with ${layout.fields.length} fields`)
 
       // Generate certificate for each participant
-      certificatesToPrint.forEach((participant, index) => {
-        if (index > 0) {
+      for (let participantIndex = 0; participantIndex < certificatesToPrint.length; participantIndex++) {
+        const participant = certificatesToPrint[participantIndex]
+        
+        if (participantIndex > 0) {
           doc.addPage()
         }
 
         console.log(`Generating certificate for participant: ${participant.name}`)
 
-        // Add a test text to ensure PDF is working
-        doc.setTextColor(0, 0, 0)
+        // Add debug info to see coordinate system
+        doc.setTextColor(100, 100, 100)
         doc.setFont('helvetica', 'normal')
-        doc.setFontSize(12)
-        doc.text(`Test Certificate for ${participant.name}`, 50, 50)
+        doc.setFontSize(8)
+        doc.text(`Debug: ${participant.name} - Page: ${pageWidth}x${pageHeight} - Format: ${selectedPaperFormat}`, 20, 20)
 
         // Sort fields by layer (background to foreground)
         const sortedFields = [...layout.fields].sort((a, b) => a.int_layer - b.int_layer)
         console.log(`Processing ${sortedFields.length} fields for layout: ${layout.var_name}`)
+        
+        // Log all field coordinates to understand the scale
+        console.log('=== Field Coordinates Analysis ===')
+        sortedFields.forEach((field, idx) => {
+          console.log(`Field ${idx}: x=${field.rel_x}, y=${field.rel_y}, w=${field.rel_w}, h=${field.rel_h}, type=${field.int_typ}`)
+        })
+        
+        // Find the maximum coordinates to understand the scale
+        const maxX = Math.max(...sortedFields.map(f => f.rel_x + f.rel_w))
+        const maxY = Math.max(...sortedFields.map(f => f.rel_y + f.rel_h))
+        console.log(`Maximum coordinates: X=${maxX}, Y=${maxY}`)
+        
+        // Add this info to the PDF for reference
+        doc.text(`Max coords: X=${maxX.toFixed(0)}, Y=${maxY.toFixed(0)}`, 20, 35)
 
-        // Render each field
-        sortedFields.forEach((field, fieldIndex) => {
-          // Normalize coordinates first - the stored values might be in absolute units
-          // Based on TurnFix, let's assume the original coordinate system was much larger
-          // We need to convert these to 0-1 range first
+        // Process each field (now with proper async handling for images)
+        for (let fieldIndex = 0; fieldIndex < sortedFields.length; fieldIndex++) {
+          const field = sortedFields[fieldIndex]
+          // Simple coordinate conversion - assume database stores values in 0-1 range
+          // If they're larger than 1, divide by the maximum coordinate to normalize
           
-          let normalizedX = field.rel_x
-          let normalizedY = field.rel_y
-          let normalizedW = field.rel_w
-          let normalizedH = field.rel_h
+          console.log(`Raw field ${fieldIndex}: x=${field.rel_x}, y=${field.rel_y}, w=${field.rel_w}, h=${field.rel_h}`)
+          console.log(`Field type: ${field.int_typ}, value: "${field.var_value}", font: "${field.var_font}"`)
           
-          // If coordinates are outside 0-1 range, they need normalization
-          // Based on the console output, it looks like the original system used much larger values
-          if (field.rel_x > 1 || field.rel_y > 1 || field.rel_w > 1 || field.rel_h > 1) {
-            // Detect coordinate system based on the largest values
-            const maxCoordX = Math.max(field.rel_x, field.rel_x + field.rel_w)
-            const maxCoordY = Math.max(field.rel_y, field.rel_y + field.rel_h)
-            
-            // Guess the original coordinate system
-            let originalWidth = 210  // Default A4 width in mm
-            let originalHeight = 297 // Default A4 height in mm
-            
-            // If coordinates are much larger, adjust the assumed system
-            if (maxCoordX > 1000) {
-              originalWidth = Math.max(maxCoordX * 1.2, 2000) // Add some buffer
-            }
-            if (maxCoordY > 1000) {
-              originalHeight = Math.max(maxCoordY * 1.2, 2000) // Add some buffer
-            }
-            
-            normalizedX = field.rel_x / originalWidth
-            normalizedY = field.rel_y / originalHeight
-            normalizedW = field.rel_w / originalWidth
-            normalizedH = field.rel_h / originalHeight
-            
-            console.log(`Normalized field ${fieldIndex}: from (${field.rel_x}, ${field.rel_y}) to (${normalizedX.toFixed(3)}, ${normalizedY.toFixed(3)}) using system ${originalWidth}x${originalHeight}`)
-          }
+          // The database coordinates seem to be stored at a different scale than the designer canvas
+          // Let's calculate the ratio between database max and designer canvas
+          const designerCanvasWidth = 2480  // A4 at 300 DPI from LayoutDesigner
+          const designerCanvasHeight = 3508 // A4 at 300 DPI from LayoutDesigner
           
-          // Now calculate PDF coordinates
-          const x = Math.max(0, Math.min(pageWidth, normalizedX * pageWidth))
-          const y = Math.max(0, Math.min(pageHeight, normalizedY * pageHeight))
-          const width = Math.max(1, Math.min(pageWidth - x, normalizedW * pageWidth))
-          const height = Math.max(1, Math.min(pageHeight - y, normalizedH * pageHeight))
+          console.log(`Database coordinate space: ${maxX.toFixed(1)} x ${maxY.toFixed(1)}`)
+          console.log(`Designer canvas: ${designerCanvasWidth} x ${designerCanvasHeight}`)
+          
+          // Calculate the scaling factor from database coordinates to designer canvas
+          const dbToDesignerX = designerCanvasWidth / maxX  // Should be ~10.16
+          const dbToDesignerY = designerCanvasHeight / maxY // Should be ~11.89
+          
+          // Then scale from designer canvas to PDF
+          const designerToPdfX = pageWidth / designerCanvasWidth   // Should be ~0.24
+          const designerToPdfY = pageHeight / designerCanvasHeight // Should be ~0.24
+          
+          // Combined scaling: database -> designer -> PDF
+          const scaleX = dbToDesignerX * designerToPdfX
+          const scaleY = dbToDesignerY * designerToPdfY
+          
+          console.log(`DB to Designer scale: X=${dbToDesignerX.toFixed(3)}, Y=${dbToDesignerY.toFixed(3)}`)
+          console.log(`Designer to PDF scale: X=${designerToPdfX.toFixed(3)}, Y=${designerToPdfY.toFixed(3)}`)
+          console.log(`Combined scale: X=${scaleX.toFixed(4)}, Y=${scaleY.toFixed(4)}`)
+          
+          // Calculate PDF coordinates using the combined scaling
+          const x = Math.max(0, field.rel_x * scaleX)
+          const y = Math.max(0, field.rel_y * scaleY)
+          const width = Math.max(1, field.rel_w * scaleX)
+          const height = Math.max(1, field.rel_h * scaleY)
+
+          console.log(`PDF coords: x=${x.toFixed(1)}, y=${y.toFixed(1)}, w=${width.toFixed(1)}, h=${height.toFixed(1)}, page=${pageWidth}x${pageHeight}`)
 
           console.log(`Field ${fieldIndex}: type=${field.int_typ}, pos=(${x.toFixed(1)}, ${y.toFixed(1)}), size=(${width.toFixed(1)}, ${height.toFixed(1)})`)
 
@@ -681,19 +745,36 @@ const Results = () => {
           doc.setTextColor(0, 0, 0) // Black text
           doc.setFont('helvetica', 'normal')
 
+          // Debug: Draw field boundaries (red rectangles) and add field info
+          doc.setDrawColor(255, 0, 0)
+          doc.setLineWidth(0.5)
+          doc.rect(x, y, width, height)
+          
+          // Add field number for debugging
+          doc.setFontSize(8)
+          doc.setTextColor(255, 0, 0)
+          doc.text(`${fieldIndex}`, x, y - 2)
+          doc.setTextColor(0, 0, 0)
+
           switch (field.int_typ) {
             case 0: // Database field
               if (field.var_value && /^\d+$/.test(field.var_value)) {
                 const fieldValue = getDatabaseFieldValue(parseInt(field.var_value), participant, eventName)
                 console.log(`Database field ${field.var_value}: "${fieldValue}"`)
                 
-                // Set font size
+                // Set font size with better scaling
                 const fontParts = field.var_font?.split(',') || ['helvetica', '12']
-                const fontSize = Math.max(8, parseInt(fontParts[1]) || 12)
+                let fontSize = parseInt(fontParts[1]) || 12
+                // Scale font size based on field height if available
+                if (height > 10) {
+                  fontSize = Math.min(fontSize, height * 0.6)
+                }
+                fontSize = Math.max(8, Math.min(72, fontSize))
                 doc.setFontSize(fontSize)
                 
-                // Calculate text position (jsPDF uses bottom-left origin for text)
-                const textY = y + (height > 0 ? height/2 + fontSize/3 : fontSize)
+                // Calculate text position - jsPDF text baseline is at the bottom of the text
+                // To center text vertically: middle of field + small offset for baseline
+                const textY = y + (height + fontSize) / 2
                 
                 // Set text alignment
                 const align = field.int_align === 1 ? 'center' : field.int_align === 2 ? 'right' : 'left'
@@ -713,11 +794,16 @@ const Results = () => {
                 console.log(`Text field: "${field.var_value}"`)
                 
                 const fontParts = field.var_font?.split(',') || ['helvetica', '12']
-                const fontSize = Math.max(8, parseInt(fontParts[1]) || 12)
+                let fontSize = parseInt(fontParts[1]) || 12
+                // Scale font size based on field height if available
+                if (height > 10) {
+                  fontSize = Math.min(fontSize, height * 0.6)
+                }
+                fontSize = Math.max(8, Math.min(72, fontSize))
                 doc.setFontSize(fontSize)
                 
-                // Calculate text position
-                const textY = y + (height > 0 ? height/2 + fontSize/3 : fontSize)
+                // Calculate text position - center vertically in the field
+                const textY = y + (height + fontSize) / 2
                 
                 const align = field.int_align === 1 ? 'center' : field.int_align === 2 ? 'right' : 'left'
                 let textX = x
@@ -732,14 +818,27 @@ const Results = () => {
               break
               
             case 2: // Image field
-              // Note: For now, images are not supported in this basic implementation
-              // Draw a placeholder rectangle
-              if (width > 0 && height > 0) {
+              if (field.var_value && width > 0 && height > 0) {
+                try {
+                  const imageData = await loadImageAsBase64(field.var_value)
+                  doc.addImage(imageData, 'PNG', x, y, width, height)
+                  console.log(`Added image to PDF: ${field.var_value}`)
+                } catch (error) {
+                  console.error(`Error loading image ${field.var_value}:`, error)
+                  // Draw placeholder on error
+                  doc.setDrawColor(255, 100, 100)
+                  doc.setLineWidth(1)
+                  doc.rect(x, y, width, height)
+                  doc.setFontSize(8)
+                  doc.text('Image Error', x + width/2, y + height/2, { align: 'center' })
+                }
+              } else {
+                // Draw placeholder for empty image field
                 doc.setDrawColor(200, 200, 200)
                 doc.setLineWidth(1)
                 doc.rect(x, y, width, height)
                 doc.setFontSize(8)
-                doc.text('Image', x + width/2, y + height/2, { align: 'center' })
+                doc.text('No Image', x + width/2, y + height/2, { align: 'center' })
               }
               break
               
@@ -755,8 +854,8 @@ const Results = () => {
             default:
               console.log(`Unknown field type: ${field.int_typ}`)
           }
-        })
-      })
+        }
+      }
 
       // Save the PDF
       const fileName = `certificates_${selectedCompetition ? competitions.find(c => c.id?.toString() === selectedCompetition)?.name?.replace(/[^a-z0-9]/gi, '_') : 'all'}_${new Date().toISOString().split('T')[0]}.pdf`
@@ -766,6 +865,7 @@ const Results = () => {
       setShowCertificateModal(false)
       setCertificatesToPrint([])
       setSelectedLayout('')
+      setSelectedPaperFormat('A4')
       
     } catch (error) {
       console.error('Error generating certificates:', error)
@@ -1136,12 +1236,33 @@ const Results = () => {
                 </select>
               </div>
 
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Paper Format
+                </label>
+                <select
+                  value={selectedPaperFormat}
+                  onChange={(e) => setSelectedPaperFormat(e.target.value as keyof typeof PAPER_FORMATS)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {Object.entries(PAPER_FORMATS).map(([key, format]) => (
+                    <option key={key} value={key}>
+                      {format.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Choose the same paper format used when designing the layout
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => {
                     setShowCertificateModal(false)
                     setCertificatesToPrint([])
                     setSelectedLayout('')
+                    setSelectedPaperFormat('A4')
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                 >
