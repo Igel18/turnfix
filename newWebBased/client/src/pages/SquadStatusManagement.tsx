@@ -279,6 +279,7 @@ export function SquadStatusManagement() {
           console.log('Export CSV')
         }}
         stateInfo={getStateInfo()}
+        showHomeButton={true}
         primaryAction={{
           label: viewMode === 'table' ? 'Grid View' : 'Table View',
           icon: viewMode === 'table' ? EyeIcon : ClipboardDocumentListIcon,
