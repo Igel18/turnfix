@@ -69,6 +69,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   const [paperFormat, setPaperFormat] = useState<keyof typeof PAPER_FORMATS>('A4');
   const [canvasSize, setCanvasSize] = useState(PAPER_FORMATS.A4);
   const [zoom, setZoom] = useState(0.3); // Smaller default zoom for larger paper formats
+  const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>({});
 
   // Initialize with fit-to-view zoom
   useEffect(() => {
@@ -149,6 +150,29 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     
     await onFieldsChange(updatedFields);
   };
+
+  // Check if an image can be loaded
+  const checkImageLoad = useCallback((imagePath: string) => {
+    if (!imagePath || loadedImages[imagePath] !== undefined) return;
+    
+    const img = new Image();
+    img.onload = () => {
+      setLoadedImages(prev => ({ ...prev, [imagePath]: true }));
+    };
+    img.onerror = () => {
+      setLoadedImages(prev => ({ ...prev, [imagePath]: false }));
+    };
+    img.src = imagePath;
+  }, [loadedImages]);
+
+  // Check images when fields change
+  useEffect(() => {
+    fields.forEach(field => {
+      if (field.int_typ === 2 && field.var_value) {
+        checkImageLoad(field.var_value);
+      }
+    });
+  }, [fields, checkImageLoad]);
 
   // Handle drag start
   const handleDragStart = (e: React.MouseEvent, field: LayoutField) => {
@@ -295,6 +319,67 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     };
   };
 
+  // Enhanced sample data for database fields based on TurnFix mapping
+  const getDatabaseFieldSample = (fieldValue: string | null) => {
+    if (!fieldValue) return 'Max Mustermann';
+    
+    const value = fieldValue.toLowerCase();
+    
+    // First check if it's a descriptive field name (for manually entered field names)
+    if (value.includes('name') || value.includes('nachname') || value.includes('surname')) {
+      return 'Mustermann';
+    }
+    if (value.includes('vorname') || value.includes('firstname') || value.includes('given')) {
+      return 'Max';
+    }
+    if (value.includes('verein') || value.includes('club') || value.includes('team')) {
+      return 'TV Musterstadt 1895';
+    }
+    if (value.includes('platz') || value.includes('rang') || value.includes('place') || value.includes('rank')) {
+      return '1. Platz';
+    }
+    if (value.includes('punkte') || value.includes('point') || value.includes('score') || value.includes('wertung')) {
+      return '15,250';
+    }
+    if (value.includes('datum') || value.includes('date')) {
+      return '15.03.2025';
+    }
+    if (value.includes('ort') || value.includes('location') || value.includes('venue')) {
+      return 'Musterstadt';
+    }
+    if (value.includes('wettkampf') || value.includes('competition') || value.includes('event')) {
+      return 'Bezirksmeisterschaft';
+    }
+    
+    // TurnFix database field mapping based on the C++ code analysis
+    // These correspond to the switch cases in printCustomPage function
+    if (/^\d+$/.test(fieldValue)) {
+      const fieldNum = parseInt(fieldValue);
+      switch (fieldNum) {
+        case 0: return 'Bezirksmeisterschaft 2025'; // Event name
+        case 1: return '15.03.2025 - 16.03.2025'; // Event dates  
+        case 2: return 'Sporthalle Musterstadt, Musterstraße 1'; // Location
+        case 3: return 'Max Mustermann'; // Participant name 1
+        case 4: return 'TV Musterstadt 1895'; // Club name
+        case 5: return '1.'; // Place/Rank
+        case 6: return '15,250'; // Score/Points
+        case 7: return 'Kür AK 12 männlich'; // Competition name
+        case 8: return 'Kür AK 12 männlich (Einzel)'; // Competition + designation
+        case 9: return 'Turngau Musterstadt'; // Gau (District)
+        case 10: return 'Württembergischer Turnerbund'; // Verband (Association)
+        case 11: return 'Baden-Württemberg'; // Land (State)
+        case 12: return 'Siegerurkunde'; // Type string
+        case 13: return '15,250'; // Score (alternative)
+        case 14: return 'Max Mustermann, Anna Schmidt, Tom Weber'; // Team members
+        case 15: return 'WK-01'; // Competition number
+        default: return `Feld ${fieldNum}`; // Unknown field number
+      }
+    }
+    
+    // Default: show the field name as is if it's descriptive
+    return fieldValue || 'Beispieltext';
+  };
+
   // Get field display content
   const getFieldContent = (field: LayoutField) => {
     const isSelected = selectedField?.int_layout_felderid === field.int_layout_felderid;
@@ -314,7 +399,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
         return (
           <div style={contentStyle}>
             <span className="text-blue-600 font-mono text-xs mr-1">🗃</span>
-            <span className="truncate">{field.var_value || 'database_field'}</span>
+            <span className="truncate" title={`Database field: ${field.var_value || 'unknown'}`}>
+              {getDatabaseFieldSample(field.var_value)}
+            </span>
           </div>
         );
       case 1: // Text field
@@ -325,12 +412,39 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
           </div>
         );
       case 2: // Image
-        return (
-          <div style={contentStyle}>
-            <span className="text-purple-600 mr-1">🖼</span>
-            <span className="truncate">{field.var_value || 'image.png'}</span>
-          </div>
-        );
+        const imagePath = field.var_value;
+        const isImageLoaded = imagePath && loadedImages[imagePath] === true;
+        
+        if (isImageLoaded) {
+          return (
+            <div style={{ ...contentStyle, padding: 0, overflow: 'hidden' }}>
+              <img 
+                src={imagePath} 
+                alt="Layout Image"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+                onError={(e) => {
+                  // Fallback to text display if image fails to load
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          );
+        } else {
+          return (
+            <div style={contentStyle}>
+              <span className="text-purple-600 mr-1">🖼</span>
+              <span className="truncate">{imagePath || 'image.png'}</span>
+              {imagePath && loadedImages[imagePath] === false && (
+                <span className="text-red-500 text-xs ml-1">(not found)</span>
+              )}
+            </div>
+          );
+        }
       case 3: // Line
         return (
           <div style={contentStyle}>
@@ -644,15 +758,70 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                        selectedField.int_typ === 1 ? 'Text Content' :
                        selectedField.int_typ === 2 ? 'Image Path' : 'Line Style'}
                     </label>
-                    <input
-                      type="text"
-                      value={selectedField.var_value || ''}
-                      onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
-                      className="w-full text-xs border border-gray-300 rounded px-2 py-1"
-                      placeholder={selectedField.int_typ === 0 ? 'participant_name' :
-                                  selectedField.int_typ === 1 ? 'Enter text' :
-                                  selectedField.int_typ === 2 ? 'image.png' : 'solid'}
-                    />
+                    
+                    {selectedField.int_typ === 2 ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={selectedField.var_value || ''}
+                          onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                          placeholder="image.png or full path"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // For local files, we'll use the file name
+                                // In a real application, you might upload to a server
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const dataUrl = event.target?.result as string;
+                                  updateField(selectedField.int_layout_felderid, { var_value: dataUrl });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="text-xs flex-1"
+                            id="image-upload"
+                          />
+                        </div>
+                        {selectedField.var_value && (
+                          <div className="text-xs">
+                            {loadedImages[selectedField.var_value] === true && (
+                              <span className="text-green-600">✓ Image loaded successfully</span>
+                            )}
+                            {loadedImages[selectedField.var_value] === false && (
+                              <span className="text-red-600">✗ Image not found or failed to load</span>
+                            )}
+                            {loadedImages[selectedField.var_value] === undefined && (
+                              <span className="text-gray-500">Loading...</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={selectedField.var_value || ''}
+                        onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
+                        className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                        placeholder={selectedField.int_typ === 0 ? 'participant_name' :
+                                    selectedField.int_typ === 1 ? 'Enter text' : 'solid'}
+                      />
+                    )}
+                    
+                    {selectedField.int_typ === 0 && (
+                      <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
+                        <div className="text-xs text-blue-700 font-medium">Preview:</div>
+                        <div className="text-xs text-blue-600 italic">
+                          "{getDatabaseFieldSample(selectedField.var_value)}"
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Position */}
@@ -687,6 +856,14 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                           className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                         />
                       </div>
+                    </div>
+                    <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
+                      <div className="font-medium mb-1">Coordinate System:</div>
+                      <div>• X=0, Y=0 = Top-Left corner</div>
+                      <div>• X=1, Y=0 = Top-Right corner</div>
+                      <div>• X=0, Y=1 = Bottom-Left corner</div>
+                      <div>• X=1, Y=1 = Bottom-Right corner</div>
+                      <div className="mt-1 text-blue-600">Values range from 0.0 to 1.0 (relative to paper size)</div>
                     </div>
                   </div>
 
@@ -750,6 +927,10 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       onChange={(e) => updateField(selectedField.int_layout_felderid, { int_layer: Number(e.target.value) })}
                       className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                     />
+                    <div className="mt-1 text-xs text-gray-500">
+                      <div>Lower numbers = Background (0, 1, 2)</div>
+                      <div>Higher numbers = Foreground (8, 9, 10)</div>
+                    </div>
                   </div>
 
                   {/* Font */}
