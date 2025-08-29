@@ -1,0 +1,398 @@
+import { Router } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+
+const router = Router();
+const prisma = new PrismaClient();
+
+// Validation schemas
+const createLayoutSchema = z.object({
+  name: z.string().min(1, 'Layout name is required').max(100),
+  comment: z.string().optional()
+});
+
+const updateLayoutSchema = createLayoutSchema.partial();
+
+const createLayoutFieldSchema = z.object({
+  layoutId: z.number().int().positive(),
+  type: z.number().int().min(0).max(10),
+  font: z.string().max(150).optional(),
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  width: z.number().min(0).max(1),
+  height: z.number().min(0).max(1),
+  value: z.string().max(200).optional(),
+  align: z.number().int().min(0).max(2).default(0),
+  layer: z.number().int().min(0).max(10).default(0)
+});
+
+const updateLayoutFieldSchema = createLayoutFieldSchema.partial();
+
+// Get all layouts
+router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    console.log('Fetching all certificate layouts');
+    
+    const layouts = await prisma.tfx_layouts.findMany({
+      include: {
+        tfx_layout_felder: true
+      },
+      orderBy: {
+        var_name: 'asc'
+      }
+    });
+
+    // Transform the data to include field count and better naming
+    const transformedLayouts = layouts.map(layout => ({
+      int_layoutid: layout.int_layoutid,
+      var_name: layout.var_name,
+      txt_comment: layout.txt_comment,
+      fieldCount: layout.tfx_layout_felder.length,
+      fields: layout.tfx_layout_felder.map(field => ({
+        int_layout_felderid: field.int_layout_felderid,
+        int_layoutid: field.int_layoutid,
+        int_typ: field.int_typ,
+        var_font: field.var_font,
+        rel_x: field.rel_x,
+        rel_y: field.rel_y,
+        rel_w: field.rel_w,
+        rel_h: field.rel_h,
+        var_value: field.var_value,
+        int_align: field.int_align,
+        int_layer: field.int_layer
+      }))
+    }));
+
+    console.log(`Found ${transformedLayouts.length} layouts`);
+    res.json(transformedLayouts);
+  } catch (error) {
+    console.error('Error fetching layouts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get layout by ID
+router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    const layout = await prisma.tfx_layouts.findUnique({
+      where: { int_layoutid: id },
+      include: {
+        tfx_layout_felder: {
+          orderBy: {
+            int_layer: 'asc'
+          }
+        }
+      }
+    });
+
+    if (!layout) {
+      return res.status(404).json({ error: 'Layout not found' });
+    }
+
+    // Transform the data
+    const transformedLayout = {
+      int_layoutid: layout.int_layoutid,
+      var_name: layout.var_name,
+      txt_comment: layout.txt_comment,
+      fieldCount: layout.tfx_layout_felder.length,
+      fields: layout.tfx_layout_felder.map(field => ({
+        int_layout_felderid: field.int_layout_felderid,
+        int_layoutid: field.int_layoutid,
+        int_typ: field.int_typ,
+        var_font: field.var_font,
+        rel_x: field.rel_x,
+        rel_y: field.rel_y,
+        rel_w: field.rel_w,
+        rel_h: field.rel_h,
+        var_value: field.var_value,
+        int_align: field.int_align,
+        int_layer: field.int_layer
+      }))
+    };
+
+    res.json(transformedLayout);
+  } catch (error) {
+    console.error('Error fetching layout:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create new layout
+router.post('/', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const validatedData = createLayoutSchema.parse(req.body);
+    console.log('Creating layout:', validatedData);
+
+    const layout = await prisma.tfx_layouts.create({
+      data: {
+        var_name: validatedData.name,
+        txt_comment: validatedData.comment || null
+      }
+    });
+
+    console.log('Created layout:', layout);
+    
+    // Return the transformed layout
+    const transformedLayout = {
+      int_layoutid: layout.int_layoutid,
+      var_name: layout.var_name,
+      txt_comment: layout.txt_comment,
+      fieldCount: 0,
+      fields: []
+    };
+
+    res.status(201).json(transformedLayout);
+  } catch (error) {
+    console.error('Error creating layout:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update layout
+router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const validatedData = updateLayoutSchema.parse(req.body);
+    
+    console.log('Updating layout:', id, validatedData);
+
+    const layout = await prisma.tfx_layouts.update({
+      where: { int_layoutid: id },
+      data: {
+        ...(validatedData.name && { var_name: validatedData.name }),
+        ...(validatedData.comment !== undefined && { txt_comment: validatedData.comment || null })
+      },
+      include: {
+        tfx_layout_felder: true
+      }
+    });
+
+    // Transform the data
+    const transformedLayout = {
+      int_layoutid: layout.int_layoutid,
+      var_name: layout.var_name,
+      txt_comment: layout.txt_comment,
+      fieldCount: layout.tfx_layout_felder.length,
+      fields: layout.tfx_layout_felder.map(field => ({
+        int_layout_felderid: field.int_layout_felderid,
+        int_layoutid: field.int_layoutid,
+        int_typ: field.int_typ,
+        var_font: field.var_font,
+        rel_x: field.rel_x,
+        rel_y: field.rel_y,
+        rel_w: field.rel_w,
+        rel_h: field.rel_h,
+        var_value: field.var_value,
+        int_align: field.int_align,
+        int_layer: field.int_layer
+      }))
+    };
+
+    res.json(transformedLayout);
+  } catch (error) {
+    console.error('Error updating layout:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete layout
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    console.log('Deleting layout:', id);
+
+    // Check if layout exists
+    const existingLayout = await prisma.tfx_layouts.findUnique({
+      where: { int_layoutid: id }
+    });
+
+    if (!existingLayout) {
+      return res.status(404).json({ error: 'Layout not found' });
+    }
+
+    // Delete the layout (cascade will delete associated fields)
+    await prisma.tfx_layouts.delete({
+      where: { int_layoutid: id }
+    });
+
+    console.log('Layout deleted successfully');
+    res.json({ message: 'Layout deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting layout:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Layout Fields Routes
+
+// Get fields for a layout
+router.get('/:id/fields', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const layoutId = parseInt(req.params.id);
+    
+    const fields = await prisma.tfx_layout_felder.findMany({
+      where: { int_layoutid: layoutId },
+      orderBy: {
+        int_layer: 'asc'
+      }
+    });
+
+    // Transform the data
+    const transformedFields = fields.map(field => ({
+      int_layout_felderid: field.int_layout_felderid,
+      int_layoutid: field.int_layoutid,
+      int_typ: field.int_typ,
+      var_font: field.var_font,
+      rel_x: field.rel_x,
+      rel_y: field.rel_y,
+      rel_w: field.rel_w,
+      rel_h: field.rel_h,
+      var_value: field.var_value,
+      int_align: field.int_align,
+      int_layer: field.int_layer
+    }));
+
+    res.json(transformedFields);
+  } catch (error) {
+    console.error('Error fetching layout fields:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create new layout field
+router.post('/:id/fields', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const layoutId = parseInt(req.params.id);
+    const validatedData = createLayoutFieldSchema.parse({
+      ...req.body,
+      layoutId
+    });
+
+    console.log('Creating layout field:', validatedData);
+
+    const field = await prisma.tfx_layout_felder.create({
+      data: {
+        int_layoutid: validatedData.layoutId,
+        int_typ: validatedData.type,
+        var_font: validatedData.font || null,
+        rel_x: validatedData.x,
+        rel_y: validatedData.y,
+        rel_w: validatedData.width,
+        rel_h: validatedData.height,
+        var_value: validatedData.value || null,
+        int_align: validatedData.align,
+        int_layer: validatedData.layer
+      }
+    });
+
+    // Transform the data
+    const transformedField = {
+      int_layout_felderid: field.int_layout_felderid,
+      int_layoutid: field.int_layoutid,
+      int_typ: field.int_typ,
+      var_font: field.var_font,
+      rel_x: field.rel_x,
+      rel_y: field.rel_y,
+      rel_w: field.rel_w,
+      rel_h: field.rel_h,
+      var_value: field.var_value,
+      int_align: field.int_align,
+      int_layer: field.int_layer
+    };
+
+    res.status(201).json(transformedField);
+  } catch (error) {
+    console.error('Error creating layout field:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update layout field
+router.put('/:id/fields/:fieldId', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const fieldId = parseInt(req.params.fieldId);
+    const validatedData = updateLayoutFieldSchema.parse(req.body);
+    
+    console.log('Updating layout field:', fieldId, validatedData);
+
+    const field = await prisma.tfx_layout_felder.update({
+      where: { int_layout_felderid: fieldId },
+      data: {
+        ...(validatedData.type !== undefined && { int_typ: validatedData.type }),
+        ...(validatedData.font !== undefined && { var_font: validatedData.font || null }),
+        ...(validatedData.x !== undefined && { rel_x: validatedData.x }),
+        ...(validatedData.y !== undefined && { rel_y: validatedData.y }),
+        ...(validatedData.width !== undefined && { rel_w: validatedData.width }),
+        ...(validatedData.height !== undefined && { rel_h: validatedData.height }),
+        ...(validatedData.value !== undefined && { var_value: validatedData.value || null }),
+        ...(validatedData.align !== undefined && { int_align: validatedData.align }),
+        ...(validatedData.layer !== undefined && { int_layer: validatedData.layer })
+      }
+    });
+
+    // Transform the data
+    const transformedField = {
+      int_layout_felderid: field.int_layout_felderid,
+      int_layoutid: field.int_layoutid,
+      int_typ: field.int_typ,
+      var_font: field.var_font,
+      rel_x: field.rel_x,
+      rel_y: field.rel_y,
+      rel_w: field.rel_w,
+      rel_h: field.rel_h,
+      var_value: field.var_value,
+      int_align: field.int_align,
+      int_layer: field.int_layer
+    };
+
+    res.json(transformedField);
+  } catch (error) {
+    console.error('Error updating layout field:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete layout field
+router.delete('/:id/fields/:fieldId', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const fieldId = parseInt(req.params.fieldId);
+    console.log('Deleting layout field:', fieldId);
+
+    // Check if field exists
+    const existingField = await prisma.tfx_layout_felder.findUnique({
+      where: { int_layout_felderid: fieldId }
+    });
+
+    if (!existingField) {
+      return res.status(404).json({ error: 'Layout field not found' });
+    }
+
+    // Delete the field
+    await prisma.tfx_layout_felder.delete({
+      where: { int_layout_felderid: fieldId }
+    });
+
+    console.log('Layout field deleted successfully');
+    res.json({ message: 'Layout field deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting layout field:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export default router;

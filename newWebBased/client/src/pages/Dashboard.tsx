@@ -11,7 +11,8 @@ import {
   ChartBarIcon,
   MapIcon,
   BuildingLibraryIcon,
-  CogIcon
+  CogIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -51,6 +52,13 @@ const databaseManagementActions = [
     href: '/disciplines',
     icon: CogIcon,
     color: 'bg-amber-500'
+  },
+  {
+    name: 'Certificate Layouts',
+    description: 'Design and manage certificate templates and layouts',
+    href: '/certificate-layouts',
+    icon: DocumentTextIcon,
+    color: 'bg-pink-500'
   },
   {
     name: 'Create Event',

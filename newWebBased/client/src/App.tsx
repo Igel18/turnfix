@@ -17,6 +17,7 @@ import Disciplines from '@/pages/Disciplines'
 import SquadManagement from '@/pages/SquadManagement'
 import EventParticipants from '@/pages/EventParticipants'
 import DatabaseConfig from '@/pages/DatabaseConfig'
+import CertificateLayouts from '@/pages/CertificateLayouts'
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/disciplines" element={<Disciplines />} />
             <Route path="/database-config" element={<DatabaseConfig />} />
+            <Route path="/certificate-layouts" element={<CertificateLayouts />} />
           </Routes>
         </div>
       </EventProvider>
