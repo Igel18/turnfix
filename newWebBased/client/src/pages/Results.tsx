@@ -5,7 +5,8 @@ import {
   ChartBarIcon,
   TrophyIcon,
   InformationCircleIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  PrinterIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { apiGet } from '../utils/api'
@@ -31,6 +32,27 @@ interface CompetitionGroup {
   participants: Participant[]
 }
 
+interface LayoutField {
+  int_layout_felderid: number
+  int_layoutid: number
+  int_typ: number
+  var_font: string | null
+  rel_x: number
+  rel_y: number
+  rel_w: number
+  rel_h: number
+  var_value: string | null
+  int_align: number
+  int_layer: number
+}
+
+interface CertificateLayout {
+  int_layoutid: number
+  var_name: string
+  txt_comment: string | null
+  fields: LayoutField[]
+}
+
 const Results = () => {
   const [searchParams] = useSearchParams()
   const { selectedEvent } = useEvent()
@@ -51,6 +73,13 @@ const Results = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [competitions, setCompetitions] = useState<any[]>([])
   const [selectedCompetition, setSelectedCompetition] = useState<string>('')
+  
+  // Certificate printing state
+  const [certificateLayouts, setCertificateLayouts] = useState<CertificateLayout[]>([])
+  const [showCertificateModal, setShowCertificateModal] = useState(false)
+  const [selectedLayout, setSelectedLayout] = useState<string>('')
+  const [certificatesToPrint, setCertificatesToPrint] = useState<Participant[]>([])
+  const [isPrintingCertificates, setIsPrintingCertificates] = useState(false)
 
   // Helper functions for unified header
   const getResultsStateInfo = (): StateInfo[] => {
@@ -521,6 +550,148 @@ const Results = () => {
     }
   }
 
+  // Fetch available certificate layouts
+  const fetchCertificateLayouts = async () => {
+    try {
+      const data = await apiGet('/layouts')
+      setCertificateLayouts(data.layouts || [])
+    } catch (error) {
+      console.error('Error fetching certificate layouts:', error)
+      setCertificateLayouts([])
+    }
+  }
+
+  // Get database field value for certificate
+  const getDatabaseFieldValue = (fieldNum: number, participant: Participant, eventName: string, eventLocation?: string) => {
+    switch (fieldNum) {
+      case 0: return eventName // Event name
+      case 1: return new Date().toLocaleDateString('de-DE') // Event dates
+      case 2: return eventLocation || 'Sporthalle' // Location
+      case 3: return participant.name // Participant name
+      case 4: return participant.club // Club name
+      case 5: return `${participant.rank}.` // Place/Rank
+      case 6: return participant.totalScore.toFixed(3) // Score/Points
+      case 7: return participant.competitionName || 'Wettkampf' // Competition name
+      case 8: return `${participant.competitionName || 'Wettkampf'} (Einzel)` // Competition + designation
+      case 9: return 'Turngau' // Gau (District)
+      case 10: return 'Turnerbund' // Verband (Association)
+      case 11: return 'Deutschland' // Land (State)
+      case 12: return participant.rank <= 3 ? 'Siegerurkunde' : 'Teilnahmeurkunde' // Type string
+      case 13: return participant.totalScore.toFixed(3) // Score (alternative)
+      case 14: return participant.name // Team members (single participant)
+      case 15: return `WK-${participant.competitionId}` // Competition number
+      default: return `Feld ${fieldNum}`
+    }
+  }
+
+  // Generate certificates for selected participants
+  const generateCertificates = async () => {
+    if (!selectedLayout || certificatesToPrint.length === 0) return
+
+    setIsPrintingCertificates(true)
+    try {
+      // Find the selected layout
+      const layout = certificateLayouts.find(l => l.int_layoutid.toString() === selectedLayout)
+      if (!layout) {
+        alert('Layout not found')
+        return
+      }
+
+      // Create PDF document (A4 portrait for certificates)
+      const doc = new jsPDF('portrait', 'pt', 'a4')
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+
+      // Generate certificate for each participant
+      certificatesToPrint.forEach((participant, index) => {
+        if (index > 0) {
+          doc.addPage()
+        }
+
+        // Sort fields by layer (background to foreground)
+        const sortedFields = [...layout.fields].sort((a, b) => a.int_layer - b.int_layer)
+
+        // Render each field
+        sortedFields.forEach(field => {
+          const x = field.rel_x * pageWidth
+          const y = field.rel_y * pageHeight
+          const width = field.rel_w * pageWidth
+          const height = field.rel_h * pageHeight
+
+          switch (field.int_typ) {
+            case 0: // Database field
+              if (field.var_value && /^\d+$/.test(field.var_value)) {
+                const fieldValue = getDatabaseFieldValue(parseInt(field.var_value), participant, eventName)
+                
+                // Set font from field settings
+                const fontParts = field.var_font?.split(',') || ['Arial', '12']
+                const fontSize = parseInt(fontParts[1]) || 12
+                doc.setFontSize(fontSize)
+                
+                // Set text alignment
+                const align = field.int_align === 1 ? 'center' : field.int_align === 2 ? 'right' : 'left'
+                
+                doc.text(fieldValue, x, y + fontSize, { align: align as any, maxWidth: width })
+              }
+              break
+              
+            case 1: // Text field
+              if (field.var_value) {
+                const fontParts = field.var_font?.split(',') || ['Arial', '12']
+                const fontSize = parseInt(fontParts[1]) || 12
+                doc.setFontSize(fontSize)
+                
+                const align = field.int_align === 1 ? 'center' : field.int_align === 2 ? 'right' : 'left'
+                doc.text(field.var_value, x, y + fontSize, { align: align as any, maxWidth: width })
+              }
+              break
+              
+            case 2: // Image field
+              // Note: For now, images are not supported in this basic implementation
+              // In a full implementation, you would load and embed the image
+              break
+              
+            case 3: // Line field
+              doc.setLineWidth(1)
+              doc.line(x, y + height/2, x + width, y + height/2)
+              break
+          }
+        })
+      })
+
+      // Save the PDF
+      const fileName = `certificates_${selectedCompetition ? competitions.find(c => c.id?.toString() === selectedCompetition)?.name?.replace(/[^a-z0-9]/gi, '_') : 'all'}_${new Date().toISOString().split('T')[0]}.pdf`
+      doc.save(fileName)
+      
+      // Close modal
+      setShowCertificateModal(false)
+      setCertificatesToPrint([])
+      setSelectedLayout('')
+      
+    } catch (error) {
+      console.error('Error generating certificates:', error)
+      alert('Error generating certificates')
+    } finally {
+      setIsPrintingCertificates(false)
+    }
+  }
+
+  // Show certificate modal for selected participants
+  const showCertificateDialog = (participants: Participant[]) => {
+    setCertificatesToPrint(participants)
+    setShowCertificateModal(true)
+    fetchCertificateLayouts()
+  }
+
+  // Get all participants for certificate printing
+  const getAllParticipantsForCertificates = () => {
+    if (selectedCompetition) {
+      return filteredRanking
+    } else {
+      return filteredCompetitionGroups.flatMap(group => group.participants)
+    }
+  }
+
   // Filter participants based on search term
   const filteredRanking = ranking.filter(participant =>
     participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -600,17 +771,26 @@ const Results = () => {
 
       {/* Event Selection Context */}
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 mx-6">
-        <div className="flex items-center">
-          <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-          <div className="text-sm text-blue-800">
-            <strong>Event:</strong> {eventName}
-            {squadName && (
-              <>
-                <span className="mx-2">•</span>
-                <strong>Squad:</strong> {squadName}
-              </>
-            )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
+            <div className="text-sm text-blue-800">
+              <strong>Event:</strong> {eventName}
+              {squadName && (
+                <>
+                  <span className="mx-2">•</span>
+                  <strong>Squad:</strong> {squadName}
+                </>
+              )}
+            </div>
           </div>
+          <button
+            onClick={() => showCertificateDialog(getAllParticipantsForCertificates())}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <PrinterIcon className="h-4 w-4 mr-2" />
+            Print Certificates
+          </button>
         </div>
       </div>
 
@@ -815,6 +995,71 @@ const Results = () => {
           )
         )}
       </div>
+
+      {/* Certificate Modal */}
+      {showCertificateModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Print Certificates</h3>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Selected participants: {certificatesToPrint.length}
+                </p>
+                <div className="max-h-32 overflow-y-auto bg-gray-50 rounded p-2 text-sm">
+                  {certificatesToPrint.slice(0, 5).map(p => (
+                    <div key={p.id} className="truncate">
+                      {p.rank}. {p.name} ({p.club})
+                    </div>
+                  ))}
+                  {certificatesToPrint.length > 5 && (
+                    <div className="text-gray-500">...and {certificatesToPrint.length - 5} more</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Certificate Layout
+                </label>
+                <select
+                  value={selectedLayout}
+                  onChange={(e) => setSelectedLayout(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Choose a layout...</option>
+                  {certificateLayouts.map(layout => (
+                    <option key={layout.int_layoutid} value={layout.int_layoutid}>
+                      {layout.var_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowCertificateModal(false)
+                    setCertificatesToPrint([])
+                    setSelectedLayout('')
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={generateCertificates}
+                  disabled={!selectedLayout || isPrintingCertificates}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isPrintingCertificates ? 'Generating...' : 'Generate PDF'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
