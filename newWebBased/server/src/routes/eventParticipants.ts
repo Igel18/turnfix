@@ -57,7 +57,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
       INNER JOIN tfx_wertungen w ON t.int_teilnehmerid = w.int_teilnehmerid
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      WHERE wk.int_veranstaltungenid = $1`;
+      WHERE wk.int_veranstaltungenid = $1
+        AND (w.bol_startet_nicht IS NULL OR w.bol_startet_nicht = false)`;
     
     let queryParams = [parseInt(eventId)];
     
