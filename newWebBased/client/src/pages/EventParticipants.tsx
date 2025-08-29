@@ -6,12 +6,13 @@ import {
   ArrowRight,
   ArrowLeft,
   UserPlus,
-  UserMinus
+  UserMinus,
+  Edit
 } from 'lucide-react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader';
 import { useEvent } from '@/contexts/EventContext';
-import { apiGet, apiPost, apiDelete } from '../utils/api';
+import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 
 // Interface for participant data
 interface Participant {
@@ -23,6 +24,8 @@ interface Participant {
   gender: 'male' | 'female';
   birthYear: number;
   age: number;
+  squad_name?: string;
+  startet_nicht: boolean;
   isInEvent: boolean;
   assignedCompetitions: number[];
   registrationDate?: string;
@@ -51,34 +54,39 @@ const EventParticipants: React.FC = () => {
   
   // State for participants and competitions
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
+  const [availableParticipants, setAvailableParticipants] = useState<Participant[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   
   // UI state
-  const [selectedTab, setSelectedTab] = useState<'add-remove' | 'assign'>('add-remove');
+  const [selectedTab, setSelectedTab] = useState<'participants' | 'assign'>('participants');
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('');
+  
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalSearchTerm, setAddModalSearchTerm] = useState('');
+  const [editingParticipant, setEditingParticipant] = useState<number | null>(null);
 
-  // Load initial data
   useEffect(() => {
     if (eventId) {
       loadParticipants();
+      loadAvailableParticipants();
       loadCompetitions();
     }
   }, [eventId]);
 
   const loadParticipants = async () => {
     try {
-      const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=true`)
+      const data = await apiGet(`/event-participants?eventId=${eventId}`)
       setAllParticipants(data.participants || []);
       console.log(`Loaded ${data.participants?.length || 0} participants from API`);
     } catch (error) {
       console.error('Error loading participants:', error);
-      // Fallback to mock data
-      const mockParticipants: Participant[] = [
-        // Participants already in event
+      // Use mock data for fallback
+      setAllParticipants([
         {
           id: 1,
           firstname: 'Max',
@@ -88,51 +96,55 @@ const EventParticipants: React.FC = () => {
           gender: 'male',
           birthYear: 2008,
           age: 16,
+          squad_name: 'mBlau',
+          startet_nicht: false,
           isInEvent: true,
           assignedCompetitions: [1, 3],
           registrationDate: '2023-10-15'
-        },
-        {
-          id: 2,
-          firstname: 'Anna',
-          lastname: 'Weber',
-          club: 'SV Hamburg',
-          clubId: 2,
-          gender: 'female',
-          birthYear: 2009,
-          age: 15,
-          isInEvent: true,
-          assignedCompetitions: [2],
-          registrationDate: '2023-10-16'
-        },
-        // Available participants not in event
-        {
-          id: 3,
-          firstname: 'Tom',
-          lastname: 'Schmidt',
-          club: 'TV Berlin',
-          clubId: 3,
-          gender: 'male',
-          birthYear: 2007,
-          age: 17,
-          isInEvent: false,
-          assignedCompetitions: []
-        },
-        {
-          id: 4,
-          firstname: 'Lisa',
-          lastname: 'Klein',
-          club: 'TG Frankfurt',
-          clubId: 4,
-          gender: 'female',
-          birthYear: 2010,
-          age: 14,
-          isInEvent: false,
-          assignedCompetitions: []
         }
-      ];
-      setAllParticipants(mockParticipants);
-      console.log('Using mock participant data due to API error');
+      ]);
+    }
+  };
+
+  const loadAvailableParticipants = async () => {
+    try {
+      // Load all participants (not just event participants)
+      const data = await apiGet('/participants');
+      console.log('Available participants data:', data);
+      
+      let participants = [];
+      // Handle different response structures
+      if (Array.isArray(data)) {
+        participants = data;
+      } else if (data && Array.isArray(data.participants)) {
+        participants = data.participants;
+      } else {
+        console.warn('Unexpected participants data structure:', data);
+        setAvailableParticipants([]);
+        return;
+      }
+
+      // Normalize the participant data structure
+      const normalizedParticipants = participants.map((p: any) => ({
+        id: p.id || p.int_teilnehmerid,
+        firstname: p.firstname || p.var_vorname,
+        lastname: p.lastname || p.var_nachname, 
+        club: p.club || p.verein_name,
+        clubId: p.clubId || p.int_vereineid,
+        gender: p.gender || p.geschlecht_name,
+        age: p.age,
+        birthYear: p.birthYear || (p.dat_geburtstag ? new Date(p.dat_geburtstag).getFullYear() : null),
+        squad_name: p.squad_name,
+        startet_nicht: p.startet_nicht || false,
+        isInEvent: p.isInEvent || false,
+        assignedCompetitions: p.assignedCompetitions || [],
+        registrationDate: p.registrationDate
+      }));
+
+      setAvailableParticipants(normalizedParticipants);
+    } catch (error) {
+      console.error('Error loading available participants:', error);
+      setAvailableParticipants([]);
     }
   };
 
@@ -174,6 +186,29 @@ const EventParticipants: React.FC = () => {
     }
   };
 
+  const updateParticipantStatus = async (participantId: number, startetNicht: boolean) => {
+    try {
+      await apiPut('/event-participants/update-status', {
+        participantId,
+        eventId: parseInt(eventId!),
+        startetNicht
+      });
+
+      // Update UI optimistically
+      setAllParticipants(participants =>
+        participants.map(p =>
+          p.id === participantId
+            ? { ...p, startet_nicht: startetNicht }
+            : p
+        )
+      );
+      console.log(`Successfully updated participant ${participantId} status to startet_nicht: ${startetNicht}`);
+    } catch (error) {
+      console.error('Error updating participant status:', error);
+      alert('Failed to update participant status');
+    }
+  };
+
   const addParticipantToEvent = async (participantId: number) => {
     try {
       await apiPost('/event-participants/add', {
@@ -181,15 +216,10 @@ const EventParticipants: React.FC = () => {
         participantId: participantId
       });
 
-      // Update UI optimistically
-      setAllParticipants(participants =>
-        participants.map(p =>
-          p.id === participantId
-              ? { ...p, isInEvent: true, registrationDate: new Date().toISOString().split('T')[0] }
-              : p
-          )
-        );
-        console.log(`Successfully added participant ${participantId} to event`);
+      // Reload participants to get updated list
+      await loadParticipants();
+      console.log(`Successfully added participant ${participantId} to event`);
+      setShowAddModal(false);
     } catch (error) {
       console.error('Error adding participant to event:', error);
       alert('Failed to add participant to event');
@@ -290,14 +320,27 @@ const EventParticipants: React.FC = () => {
     return matchesSearch && matchesGender && matchesClub && matchesAge;
   });
 
-  const eventParticipants = filteredParticipants.filter(p => p.isInEvent);
-  const availableParticipants = filteredParticipants.filter(p => !p.isInEvent);
+  const filteredAvailableParticipants = Array.isArray(availableParticipants) ? availableParticipants.filter(participant => {
+    // Ensure participant has required properties
+    if (!participant || typeof participant !== 'object') return false;
+    
+    const firstname = participant.firstname || '';
+    const lastname = participant.lastname || '';
+    const club = participant.club || '';
+    
+    const matchesSearch = 
+      firstname.toLowerCase().includes(addModalSearchTerm.toLowerCase()) ||
+      lastname.toLowerCase().includes(addModalSearchTerm.toLowerCase()) ||
+      club.toLowerCase().includes(addModalSearchTerm.toLowerCase());
+    
+    return matchesSearch;
+  }) : [];
 
   const getParticipantStateInfo = (): StateInfo[] => [
     {
-      value: 'add-remove',
-      label: 'Event Registration',
-      count: allParticipants.filter(p => p.isInEvent).length,
+      value: 'participants',
+      label: 'Event Participants',
+      count: filteredParticipants.length,
       color: 'text-blue-600'
     },
     {
@@ -344,7 +387,7 @@ const EventParticipants: React.FC = () => {
         icon={Users}
         stateInfo={getParticipantStateInfo()}
         selectedState={selectedTab}
-        onStateChange={(state) => setSelectedTab(state as 'add-remove' | 'assign')}
+        onStateChange={(state) => setSelectedTab(state as 'participants' | 'assign')}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search participants..."
@@ -358,7 +401,7 @@ const EventParticipants: React.FC = () => {
         onExportCSV={() => console.log('Export CSV clicked')}
         showHomeButton={true}
         homeUrl="/dashboard"
-        totalCount={selectedTab === 'add-remove' ? eventParticipants.length : competitions.length}
+        totalCount={selectedTab === 'participants' ? filteredParticipants.length : competitions.length}
       />
 
       {/* Selected Context */}
@@ -375,103 +418,116 @@ const EventParticipants: React.FC = () => {
       )}
 
       <div className="p-6">
-        {selectedTab === 'add-remove' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Available Participants */}
+        {selectedTab === 'participants' && (
+          <div className="space-y-6">
+            {/* Event Participants Section */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Available Participants ({availableParticipants.length})
+                  Event Participants ({filteredParticipants.length})
                 </h3>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Add Participant
+                </button>
               </div>
+              
               <div className="bg-white rounded-lg border">
-                <div className="max-h-96 overflow-y-auto">
-                  {availableParticipants.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Users className="mx-auto h-8 w-8 mb-2" />
-                      <p>No available participants found</p>
+                <div className="overflow-y-auto">
+                  {filteredParticipants.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Users className="mx-auto h-12 w-12 mb-4" />
+                      <p className="text-lg font-medium mb-2">No participants in this event</p>
+                      <p className="text-sm">Click "Add Participant" to start adding participants to this event.</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-200">
-                      {availableParticipants.map(participant => (
-                        <div key={participant.id} className="p-4 flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {participant.firstname} {participant.lastname}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {participant.club} • {participant.gender} • Age {participant.age}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => addParticipantToEvent(participant.id)}
-                            className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                            title="Add to event"
-                          >
-                            <UserPlus className="w-4 h-4" />
-                            Add
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Event Participants */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Event Participants ({eventParticipants.length})
-                </h3>
-              </div>
-              <div className="bg-white rounded-lg border">
-                <div className="max-h-96 overflow-y-auto">
-                  {eventParticipants.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Users className="mx-auto h-8 w-8 mb-2" />
-                      <p>No participants registered for this event</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-gray-200">
-                      {eventParticipants.map(participant => (
-                        <div key={participant.id} className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {participant.firstname} {participant.lastname}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {participant.club} • {participant.gender} • Age {participant.age}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Registered: {participant.registrationDate}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => removeParticipantFromEvent(participant.id)}
-                              className="flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
-                              title="Remove from event"
-                            >
-                              <UserMinus className="w-4 h-4" />
-                              Remove
-                            </button>
-                          </div>
-                          {participant.assignedCompetitions.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {participant.assignedCompetitions.map(compId => {
-                                const comp = competitions.find(c => c.id === compId);
-                                return comp ? (
-                                  <span key={compId} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                                    {comp.name}
-                                  </span>
-                                ) : null;
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Participant
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Club
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Age/Gender
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Squad
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Competitions
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {filteredParticipants.map(participant => (
+                            <tr key={participant.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {participant.firstname} {participant.lastname}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  ID: {participant.id}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {participant.club}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {participant.age} • {participant.gender === 'male' ? 'Male' : 'Female'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {participant.squad_name || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <button
+                                  onClick={() => updateParticipantStatus(participant.id, !participant.startet_nicht)}
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    participant.startet_nicht
+                                      ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                                      : 'bg-green-100 text-green-800 hover:bg-green-200'
+                                  }`}
+                                >
+                                  {participant.startet_nicht ? 'Not Starting' : 'Participating'}
+                                </button>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {participant.assignedCompetitions.length} competitions
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => setEditingParticipant(editingParticipant === participant.id ? null : participant.id)}
+                                    className="text-blue-600 hover:text-blue-900 p-1"
+                                    title="Edit participant"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => removeParticipantFromEvent(participant.id)}
+                                    className="text-red-600 hover:text-red-900 p-1"
+                                    title="Remove from event"
+                                  >
+                                    <UserMinus className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>
@@ -513,10 +569,10 @@ const EventParticipants: React.FC = () => {
             {/* Event Participants for Assignment */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Event Participants ({eventParticipants.length})
+                Event Participants ({filteredParticipants.length})
               </h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {eventParticipants.map(participant => {
+                {filteredParticipants.map(participant => {
                   const isEligible = selectedCompetition ? 
                     isParticipantEligibleForCompetition(participant, selectedCompetition) : false;
                   const isAssigned = selectedCompetition ? 
@@ -592,7 +648,7 @@ const EventParticipants: React.FC = () => {
                         Assigned Participants
                       </h4>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {eventParticipants
+                        {filteredParticipants
                           .filter(p => p.assignedCompetitions.includes(selectedCompetition.id))
                           .map(participant => (
                             <div key={participant.id} className="flex items-center justify-between p-2 bg-green-50 rounded">
@@ -623,6 +679,71 @@ const EventParticipants: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Add Participant Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 m-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Add Participant to Event</h3>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Search Field */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search participants by name, club..."
+                value={addModalSearchTerm}
+                onChange={(e) => setAddModalSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Available Participants List */}
+            <div className="max-h-64 overflow-y-auto border rounded-lg">
+              {filteredAvailableParticipants.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="mx-auto h-8 w-8 mb-2" />
+                  <p>No available participants found</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {filteredAvailableParticipants.map(participant => (
+                    <div key={participant.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {participant.firstname} {participant.lastname}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {participant.club} • {participant.gender} • Age {participant.age}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          addParticipantToEvent(participant.id);
+                          setShowAddModal(false);
+                        }}
+                        className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -42,6 +42,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         w.var_riege as squad_name,
+        w.bol_startet_nicht,
         CASE 
           WHEN t.int_geschlecht = 1 THEN 'male'
           WHEN t.int_geschlecht = 2 THEN 'female'
@@ -57,8 +58,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
       INNER JOIN tfx_wertungen w ON t.int_teilnehmerid = w.int_teilnehmerid
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      WHERE wk.int_veranstaltungenid = $1
-        AND (w.bol_startet_nicht IS NULL OR w.bol_startet_nicht = false)`;
+      WHERE wk.int_veranstaltungenid = $1`;
     
     let queryParams = [parseInt(eventId)];
     
@@ -70,7 +70,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     
     eventParticipantsQuery += `
       GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
-               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name, w.var_riege
+               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name, w.var_riege, w.bol_startet_nicht
       ORDER BY t.var_nachname ASC, t.var_vorname ASC
     `;
 
@@ -102,6 +102,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.age ? Number(participant.age) : null,
           squad_name: participant.squad_name || null,
+          startet_nicht: participant.bol_startet_nicht || false,
           isInEvent: true,
           assignedCompetitions: (assignments as any[]).map(a => Number(a.int_wettkaempfeid)),
           registrationDate: participant.registration_date
@@ -157,6 +158,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
         age: participant.age ? Number(participant.age) : null,
         squad_name: null, // Available participants don't have squads assigned
+        startet_nicht: false, // Available participants are not marked as not starting
         isInEvent: false,
         assignedCompetitions: [],
         registrationDate: undefined
@@ -396,6 +398,44 @@ router.get('/event/:eventId', authenticateToken, async (req: AuthRequest, res) =
   } catch (error) {
     console.error('Error fetching event details:', error);
     res.status(500).json({ message: 'Failed to fetch event details' });
+  }
+});
+
+// Update participant status (bol_startet_nicht)
+router.put('/update-status', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { participantId, eventId, startetNicht } = req.body;
+    
+    if (!participantId || !eventId || typeof startetNicht !== 'boolean') {
+      return res.status(400).json({ message: 'Participant ID, Event ID, and startetNicht (boolean) are required' });
+    }
+
+    // Update all wertungen for this participant in this event
+    const updateResult = await prisma.tfx_wertungen.updateMany({
+      where: {
+        int_teilnehmerid: participantId,
+        tfx_wettkaempfe: {
+          int_veranstaltungenid: eventId
+        }
+      },
+      data: {
+        bol_startet_nicht: startetNicht
+      }
+    });
+
+    console.log(`Updated startet_nicht status for participant ${participantId} in event ${eventId} to ${startetNicht}. Updated ${updateResult.count} records.`);
+
+    res.json({
+      message: 'Participant status updated successfully',
+      participantId: participantId,
+      eventId: eventId,
+      startetNicht: startetNicht,
+      updatedRecords: updateResult.count
+    });
+
+  } catch (error) {
+    console.error('Error updating participant status:', error);
+    res.status(500).json({ message: 'Failed to update participant status' });
   }
 });
 
