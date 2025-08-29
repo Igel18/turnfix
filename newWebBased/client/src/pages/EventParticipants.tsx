@@ -44,6 +44,159 @@ interface Competition {
   registrationDeadline?: string;
 }
 
+// Interface for edit form data
+interface EditParticipantData {
+  firstname: string;
+  lastname: string;
+  club: string;
+  age: number;
+  gender: 'male' | 'female';
+  squad_name: string;
+  startet_nicht: boolean;
+}
+
+// Edit Participant Form Component
+interface EditParticipantFormProps {
+  participant: Participant;
+  onSave: (data: EditParticipantData) => Promise<void>;
+  onCancel: () => void;
+}
+
+const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, onSave, onCancel }) => {
+  const [formData, setFormData] = useState<EditParticipantData>({
+    firstname: participant.firstname,
+    lastname: participant.lastname,
+    club: participant.club,
+    age: participant.age,
+    gender: participant.gender,
+    squad_name: participant.squad_name || '',
+    startet_nicht: participant.startet_nicht
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
+      alert('First name and last name are required');
+      return;
+    }
+    
+    if (formData.age < 1 || formData.age > 100) {
+      alert('Please enter a valid age between 1 and 100');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      await onSave(formData);
+    } catch (error) {
+      console.error('Error saving participant:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg border">
+      <h4 className="text-lg font-medium text-gray-900 mb-4">Edit Participant</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+          <input
+            type="text"
+            required
+            value={formData.firstname}
+            onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+          <input
+            type="text"
+            required
+            value={formData.lastname}
+            onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Club</label>
+          <input
+            type="text"
+            value={formData.club}
+            onChange={(e) => setFormData({ ...formData, club: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+          <input
+            type="number"
+            required
+            min="1"
+            max="100"
+            value={formData.age}
+            onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <select
+            value={formData.gender}
+            onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Squad</label>
+          <input
+            type="text"
+            value={formData.squad_name}
+            onChange={(e) => setFormData({ ...formData, squad_name: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Enter squad name"
+          />
+        </div>
+        <div className="flex items-center">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.startet_nicht}
+              onChange={(e) => setFormData({ ...formData, startet_nicht: e.target.checked })}
+              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-700">Not Starting</span>
+          </label>
+        </div>
+      </div>
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 const EventParticipants: React.FC = () => {
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
@@ -206,6 +359,38 @@ const EventParticipants: React.FC = () => {
     } catch (error) {
       console.error('Error updating participant status:', error);
       alert('Failed to update participant status');
+    }
+  };
+
+  const updateParticipantDetails = async (participantId: number, updatedData: EditParticipantData) => {
+    try {
+      await apiPut('/event-participants/update-details', {
+        participantId,
+        eventId: parseInt(eventId!),
+        ...updatedData
+      });
+
+      // Update UI optimistically
+      setAllParticipants(participants =>
+        participants.map(p =>
+          p.id === participantId
+            ? { 
+                ...p, 
+                firstname: updatedData.firstname,
+                lastname: updatedData.lastname,
+                club: updatedData.club,
+                age: updatedData.age,
+                gender: updatedData.gender,
+                squad_name: updatedData.squad_name,
+                startet_nicht: updatedData.startet_nicht
+              }
+            : p
+        )
+      );
+      console.log(`Successfully updated participant ${participantId} details`);
+    } catch (error) {
+      console.error('Error updating participant details:', error);
+      alert('Failed to update participant details');
     }
   };
 
@@ -473,58 +658,76 @@ const EventParticipants: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {filteredParticipants.map(participant => (
-                            <tr key={participant.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {participant.firstname} {participant.lastname}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  ID: {participant.id}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {participant.club}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {participant.age} • {participant.gender === 'male' ? 'Male' : 'Female'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {participant.squad_name || '-'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <button
-                                  onClick={() => updateParticipantStatus(participant.id, !participant.startet_nicht)}
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    participant.startet_nicht
-                                      ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                                      : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                  }`}
-                                >
-                                  {participant.startet_nicht ? 'Not Starting' : 'Participating'}
-                                </button>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {participant.assignedCompetitions.length} competitions
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div className="flex items-center justify-end gap-2">
+                            <React.Fragment key={participant.id}>
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {participant.firstname} {participant.lastname}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    ID: {participant.id}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {participant.club}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {participant.age} • {participant.gender === 'male' ? 'Male' : 'Female'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {participant.squad_name || '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
                                   <button
-                                    onClick={() => setEditingParticipant(editingParticipant === participant.id ? null : participant.id)}
-                                    className="text-blue-600 hover:text-blue-900 p-1"
-                                    title="Edit participant"
+                                    onClick={() => updateParticipantStatus(participant.id, !participant.startet_nicht)}
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                      participant.startet_nicht
+                                        ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                                    }`}
                                   >
-                                    <Edit className="w-4 h-4" />
+                                    {participant.startet_nicht ? 'Not Starting' : 'Participating'}
                                   </button>
-                                  <button
-                                    onClick={() => removeParticipantFromEvent(participant.id)}
-                                    className="text-red-600 hover:text-red-900 p-1"
-                                    title="Remove from event"
-                                  >
-                                    <UserMinus className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {participant.assignedCompetitions.length} competitions
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={() => setEditingParticipant(editingParticipant === participant.id ? null : participant.id)}
+                                      className={`p-1 ${editingParticipant === participant.id ? 'text-green-600 hover:text-green-900' : 'text-blue-600 hover:text-blue-900'}`}
+                                      title={editingParticipant === participant.id ? 'Save changes' : 'Edit participant'}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => removeParticipantFromEvent(participant.id)}
+                                      className="text-red-600 hover:text-red-900 p-1"
+                                      title="Remove from event"
+                                    >
+                                      <UserMinus className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                              
+                              {/* Expandable edit row */}
+                              {editingParticipant === participant.id && (
+                                <tr className="bg-gray-50">
+                                  <td colSpan={7} className="px-6 py-4">
+                                    <EditParticipantForm 
+                                      participant={participant}
+                                      onSave={async (updatedData) => {
+                                        await updateParticipantDetails(participant.id, updatedData);
+                                        setEditingParticipant(null);
+                                      }}
+                                      onCancel={() => setEditingParticipant(null)}
+                                    />
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
                           ))}
                         </tbody>
                       </table>

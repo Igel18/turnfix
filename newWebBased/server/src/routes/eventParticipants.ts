@@ -439,4 +439,65 @@ router.put('/update-status', authenticateToken, async (req: AuthRequest, res) =>
   }
 });
 
+// Update participant details (name, club, age, gender, squad)
+router.put('/update-details', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { participantId, eventId, firstname, lastname, club, age, gender, squad_name, startet_nicht } = req.body;
+
+    if (!participantId || !eventId) {
+      return res.status(400).json({ message: 'Participant ID and Event ID are required' });
+    }
+
+    // Update participant basic information in tfx_teilnehmer table
+    if (firstname !== undefined || lastname !== undefined || age !== undefined || gender !== undefined) {
+      const updateData: any = {};
+      
+      if (firstname !== undefined) updateData.var_vorname = firstname;
+      if (lastname !== undefined) updateData.var_nachname = lastname;
+      if (age !== undefined) {
+        // Calculate birth year from age (approximate)
+        const currentYear = new Date().getFullYear();
+        const birthYear = currentYear - age;
+        updateData.dat_geburtstag = new Date(`${birthYear}-01-01`);
+      }
+      if (gender !== undefined) {
+        updateData.int_geschlecht = gender === 'male' ? 1 : gender === 'female' ? 2 : 0;
+      }
+
+      await prisma.tfx_teilnehmer.update({
+        where: { int_teilnehmerid: participantId },
+        data: updateData
+      });
+    }
+
+    // Update squad and participation status in tfx_wertungen table
+    if (squad_name !== undefined || startet_nicht !== undefined) {
+      const updateData: any = {};
+      
+      if (squad_name !== undefined) updateData.var_riege = squad_name;
+      if (startet_nicht !== undefined) updateData.bol_startet_nicht = startet_nicht;
+
+      await prisma.tfx_wertungen.updateMany({
+        where: {
+          int_teilnehmerid: participantId,
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: eventId
+          }
+        },
+        data: updateData
+      });
+    }
+
+    res.json({ 
+      message: 'Participant details updated successfully',
+      participantId: participantId,
+      eventId: eventId
+    });
+
+  } catch (error) {
+    console.error('Error updating participant details:', error);
+    res.status(500).json({ message: 'Failed to update participant details' });
+  }
+});
+
 export default router;
