@@ -48,31 +48,55 @@ interface Competition {
 interface EditParticipantData {
   firstname: string;
   lastname: string;
-  club: string;
-  age: number;
+  clubId: number;
+  birthday: string;
   gender: 'male' | 'female';
   squad_name: string;
   startet_nicht: boolean;
+  assignedCompetitions: number[];
+}
+
+// Interface for club data
+interface Club {
+  id: number;
+  name: string;
 }
 
 // Edit Participant Form Component
 interface EditParticipantFormProps {
   participant: Participant;
+  eventId: string;
+  clubs: Club[];
+  competitions: Competition[];
   onSave: (data: EditParticipantData) => Promise<void>;
   onCancel: () => void;
 }
 
-const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, onSave, onCancel }) => {
+const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, eventId, clubs, competitions, onSave, onCancel }) => {
   const [formData, setFormData] = useState<EditParticipantData>({
     firstname: participant.firstname,
     lastname: participant.lastname,
-    club: participant.club,
-    age: participant.age,
+    clubId: participant.clubId,
+    birthday: participant.birthYear ? `${participant.birthYear}-01-01` : '',
     gender: participant.gender,
     squad_name: participant.squad_name || '',
-    startet_nicht: participant.startet_nicht
+    startet_nicht: participant.startet_nicht,
+    assignedCompetitions: participant.assignedCompetitions || []
   });
   const [saving, setSaving] = useState(false);
+
+  // Calculate age from birthday
+  const calculateAge = (birthday: string): number => {
+    if (!birthday) return 0;
+    const today = new Date();
+    const birthDate = new Date(birthday);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,8 +107,9 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
       return;
     }
     
-    if (formData.age < 1 || formData.age > 100) {
-      alert('Please enter a valid age between 1 and 100');
+    const age = calculateAge(formData.birthday);
+    if (age < 1 || age > 100) {
+      alert('Please enter a valid birthday (age must be between 1 and 100)');
       return;
     }
     
@@ -124,22 +149,28 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Club</label>
-          <input
-            type="text"
-            value={formData.club}
-            onChange={(e) => setFormData({ ...formData, club: e.target.value })}
+          <select
+            value={formData.clubId}
+            onChange={(e) => setFormData({ ...formData, clubId: parseInt(e.target.value) || 0 })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          >
+            <option key="select-club-0" value={0}>Select Club</option>
+            {clubs
+              .filter(club => club && typeof club.id !== 'undefined' && club.id !== null)
+              .map(club => (
+                <option key={`club-${club.id}`} value={club.id}>{club.name}</option>
+              ))}
+          </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Birthday * <span className="text-sm text-gray-500">(Age: {calculateAge(formData.birthday)})</span>
+          </label>
           <input
-            type="number"
+            type="date"
             required
-            min="1"
-            max="100"
-            value={formData.age}
-            onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
+            value={formData.birthday}
+            onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -176,6 +207,43 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
           </label>
         </div>
       </div>
+
+      {/* Competition Assignments */}
+      <div className="mt-6">
+        <h5 className="text-sm font-medium text-gray-700 mb-3">Competition Assignments</h5>
+        <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
+          {competitions.length === 0 ? (
+            <p className="text-sm text-gray-500">Loading competitions...</p>
+          ) : (
+            competitions.map((competition: Competition) => (
+              <label key={`competition-${competition.id}`} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.assignedCompetitions.includes(competition.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFormData({
+                        ...formData,
+                        assignedCompetitions: [...formData.assignedCompetitions, competition.id]
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        assignedCompetitions: formData.assignedCompetitions.filter(id => id !== competition.id)
+                      });
+                    }
+                  }}
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">
+                  {competition.name} ({competition.gender}, Ages {competition.ageFrom}-{competition.ageTo})
+                </span>
+              </label>
+            ))
+          )}
+        </div>
+      </div>
+
       <div className="flex justify-end gap-3 mt-6">
         <button
           type="button"
@@ -209,6 +277,7 @@ const EventParticipants: React.FC = () => {
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
   const [availableParticipants, setAvailableParticipants] = useState<Participant[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   
   // UI state
   const [selectedTab, setSelectedTab] = useState<'participants' | 'assign'>('participants');
@@ -228,6 +297,7 @@ const EventParticipants: React.FC = () => {
       loadParticipants();
       loadAvailableParticipants();
       loadCompetitions();
+      loadClubs();
     }
   }, [eventId]);
 
@@ -339,6 +409,39 @@ const EventParticipants: React.FC = () => {
     }
   };
 
+  const loadClubs = async () => {
+    try {
+      const data = await apiGet('/clubs');
+      console.log('Raw clubs data:', data);
+      
+      let clubsArray = [];
+      if (Array.isArray(data)) {
+        clubsArray = data;
+      } else if (data && Array.isArray(data.clubs)) {
+        clubsArray = data.clubs;
+      } else {
+        console.warn('Unexpected clubs data structure:', data);
+        setClubs([]);
+        return;
+      }
+
+      // Filter and validate clubs data
+      const validClubs = clubsArray
+        .filter((club: any) => club && typeof club === 'object')
+        .map((club: any) => ({
+          id: club.id || club.int_vereineid,
+          name: club.name || club.var_name || 'Unknown Club'
+        }))
+        .filter((club: Club) => club.id && club.id !== undefined && club.id !== null);
+
+      console.log('Processed clubs:', validClubs);
+      setClubs(validClubs);
+    } catch (error) {
+      console.error('Error loading clubs:', error);
+      setClubs([]);
+    }
+  };
+
   const updateParticipantStatus = async (participantId: number, startetNicht: boolean) => {
     try {
       await apiPut('/event-participants/update-status', {
@@ -364,10 +467,15 @@ const EventParticipants: React.FC = () => {
 
   const updateParticipantDetails = async (participantId: number, updatedData: EditParticipantData) => {
     try {
+      // Calculate age from birthday
+      const age = updatedData.birthday ? 
+        new Date().getFullYear() - new Date(updatedData.birthday).getFullYear() : 0;
+
       await apiPut('/event-participants/update-details', {
         participantId,
         eventId: parseInt(eventId!),
-        ...updatedData
+        ...updatedData,
+        age // Send calculated age to backend
       });
 
       // Update UI optimistically
@@ -378,11 +486,14 @@ const EventParticipants: React.FC = () => {
                 ...p, 
                 firstname: updatedData.firstname,
                 lastname: updatedData.lastname,
-                club: updatedData.club,
-                age: updatedData.age,
+                clubId: updatedData.clubId,
+                club: clubs.find(c => c.id === updatedData.clubId)?.name || p.club, // Update club name
+                birthYear: updatedData.birthday ? new Date(updatedData.birthday).getFullYear() : p.birthYear,
+                age: age,
                 gender: updatedData.gender,
                 squad_name: updatedData.squad_name,
-                startet_nicht: updatedData.startet_nicht
+                startet_nicht: updatedData.startet_nicht,
+                assignedCompetitions: updatedData.assignedCompetitions
               }
             : p
         )
@@ -718,6 +829,9 @@ const EventParticipants: React.FC = () => {
                                   <td colSpan={7} className="px-6 py-4">
                                     <EditParticipantForm 
                                       participant={participant}
+                                      eventId={eventId!}
+                                      clubs={clubs}
+                                      competitions={competitions}
                                       onSave={async (updatedData) => {
                                         await updateParticipantDetails(participant.id, updatedData);
                                         setEditingParticipant(null);

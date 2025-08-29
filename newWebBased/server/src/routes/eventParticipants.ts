@@ -439,29 +439,29 @@ router.put('/update-status', authenticateToken, async (req: AuthRequest, res) =>
   }
 });
 
-// Update participant details (name, club, age, gender, squad)
+// Update participant details (name, club, birthday, gender, squad, competitions)
 router.put('/update-details', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { participantId, eventId, firstname, lastname, club, age, gender, squad_name, startet_nicht } = req.body;
+    const { participantId, eventId, firstname, lastname, clubId, birthday, gender, squad_name, startet_nicht, assignedCompetitions } = req.body;
 
     if (!participantId || !eventId) {
       return res.status(400).json({ message: 'Participant ID and Event ID are required' });
     }
 
     // Update participant basic information in tfx_teilnehmer table
-    if (firstname !== undefined || lastname !== undefined || age !== undefined || gender !== undefined) {
+    if (firstname !== undefined || lastname !== undefined || birthday !== undefined || gender !== undefined || clubId !== undefined) {
       const updateData: any = {};
       
       if (firstname !== undefined) updateData.var_vorname = firstname;
       if (lastname !== undefined) updateData.var_nachname = lastname;
-      if (age !== undefined) {
-        // Calculate birth year from age (approximate)
-        const currentYear = new Date().getFullYear();
-        const birthYear = currentYear - age;
-        updateData.dat_geburtstag = new Date(`${birthYear}-01-01`);
+      if (birthday !== undefined) {
+        updateData.dat_geburtstag = new Date(birthday);
       }
       if (gender !== undefined) {
         updateData.int_geschlecht = gender === 'male' ? 1 : gender === 'female' ? 2 : 0;
+      }
+      if (clubId !== undefined) {
+        updateData.int_vereineid = clubId;
       }
 
       await prisma.tfx_teilnehmer.update({
@@ -486,6 +486,55 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
         },
         data: updateData
       });
+    }
+
+    // Handle competition assignments if provided
+    if (assignedCompetitions !== undefined && Array.isArray(assignedCompetitions)) {
+      // Get all competitions for this event
+      const eventCompetitions = await prisma.tfx_wettkaempfe.findMany({
+        where: { int_veranstaltungenid: eventId }
+      });
+
+      // Get existing score entries for this participant in this event
+      const existingEntries = await prisma.tfx_wertungen.findMany({
+        where: {
+          int_teilnehmerid: participantId,
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: eventId
+          }
+        },
+        include: {
+          tfx_wettkaempfe: true
+        }
+      });
+
+      const existingCompetitionIds = existingEntries.map(entry => entry.int_wettkaempfeid);
+
+      // Add new competition assignments (create score entries)
+      for (const competitionId of assignedCompetitions) {
+        if (!existingCompetitionIds.includes(competitionId)) {
+          await prisma.tfx_wertungen.create({
+            data: {
+              int_teilnehmerid: participantId,
+              int_wettkaempfeid: competitionId,
+              int_statusid: 1, // Assuming status 1 is active/participating
+              var_riege: squad_name || '',
+              bol_startet_nicht: startet_nicht || false
+            }
+          });
+        }
+      }
+
+      // Remove competition assignments (delete score entries for unassigned competitions)
+      const competitionsToRemove = existingCompetitionIds.filter(id => !assignedCompetitions.includes(id));
+      if (competitionsToRemove.length > 0) {
+        await prisma.tfx_wertungen.deleteMany({
+          where: {
+            int_teilnehmerid: participantId,
+            int_wettkaempfeid: { in: competitionsToRemove }
+          }
+        });
+      }
     }
 
     res.json({ 
