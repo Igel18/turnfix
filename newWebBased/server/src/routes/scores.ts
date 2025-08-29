@@ -118,29 +118,42 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     
     if (results.length > 0) {
       console.log('Sample raw result:', results[0]);
+      console.log('Raw result field names:', Object.keys(results[0]));
+      console.log('participantId value:', results[0].participantid || results[0].participantId);
+      console.log('disciplineId value:', results[0].disciplineid || results[0].disciplineId);
+      console.log('score value:', results[0].score);
+    }
+
+    const mappedResults = results.map((result: any) => ({
+      id: result.id,
+      participantId: parseInt(result.participantid),
+      disciplineId: parseInt(result.disciplineid), 
+      competitionId: parseInt(result.competitionid),
+      score: result.score ? parseFloat(result.score) : null,
+      attempt: result.attempt || 1,
+      notes: result.notes,
+      status: result.status,
+      participant: {
+        firstName: result.var_vorname,
+        lastName: result.var_nachname
+      },
+      discipline: {
+        name: result.discipline_name
+      },
+      competition: {
+        name: result.competition_name
+      }
+    }));
+
+    if (mappedResults.length > 0) {
+      console.log('Sample mapped result:', mappedResults[0]);
+      console.log('Mapped participantId:', mappedResults[0].participantId);
+      console.log('Mapped disciplineId:', mappedResults[0].disciplineId);
+      console.log('Mapped score:', mappedResults[0].score);
     }
 
     res.json({
-      results: results.map((result: any) => ({
-        id: result.id,
-        participantId: result.participantid,
-        disciplineId: result.disciplineid, 
-        competitionId: result.competitionid,
-        score: result.score ? parseFloat(result.score) : null,
-        attempt: result.attempt || 1,
-        notes: result.notes,
-        status: result.status,
-        participant: {
-          firstName: result.var_vorname,
-          lastName: result.var_nachname
-        },
-        discipline: {
-          name: result.discipline_name
-        },
-        competition: {
-          name: result.competition_name
-        }
-      })),
+      results: mappedResults,
       pagination: {
         total: totalCount,
         limit: query.limit,

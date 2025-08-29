@@ -90,6 +90,7 @@ export function ScoreCapture() {
   const [scores] = useState<Score[]>([])
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [loading, setLoading] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(false)
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({}) // Changed to string only
   const [disciplineToCompetitionMap, setDisciplineToCompetitionMap] = useState<Map<number | string, number>>(new Map())
   
@@ -101,7 +102,7 @@ export function ScoreCapture() {
 
   // Load initial data when eventId is available
   useEffect(() => {
-    if (eventId) {
+    if (eventId && !loading && !isInitializing) {
       loadInitialData()
     }
   }, [eventId])
@@ -111,7 +112,14 @@ export function ScoreCapture() {
     if (contextSquad?.squad_name && contextSquad.squad_name !== activeSquad) {
       setActiveSquad(contextSquad.squad_name)
     }
-  }, [contextSquad])
+  }, [contextSquad?.squad_name, activeSquad])
+
+  // Sync URL squad with local state
+  useEffect(() => {
+    if (urlSquadName && !contextSquad?.squad_name && urlSquadName !== activeSquad) {
+      setActiveSquad(urlSquadName)
+    }
+  }, [urlSquadName, contextSquad?.squad_name, activeSquad])
 
   // Sync context discipline with local state
   useEffect(() => {
@@ -121,14 +129,21 @@ export function ScoreCapture() {
         setActiveDiscipline(disciplineValue)
       }
     }
-  }, [contextDiscipline])
+  }, [contextDiscipline?.int_disziplinid, contextDiscipline?.var_name, activeDiscipline])
+
+  // Helper function to add delay between API calls
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
   const loadInitialData = async () => {
+    if (isInitializing) return // Prevent duplicate calls
+    
     console.log('Loading initial data for eventId:', eventId)
     setLoading(true)
+    setIsInitializing(true)
     try {
       // Load all participants for the event
       const participantsResponse = await apiGet(`/event-participants?eventId=${eventId}`)
+      await delay(100) // Small delay between requests
       
       // Extract the participants array from the response object
       const participantsData = participantsResponse?.participants || []
@@ -136,11 +151,13 @@ export function ScoreCapture() {
       
       // Load squads for the event (all squads, not competition-specific)
       const squadsData = await apiGet(`/squad-management?eventId=${eventId}`)
+      await delay(100)
       console.log('Loaded squads:', squadsData)
       setSquads(squadsData.squads || [])
       
       // Load all disciplines/competitions for the event
       const competitionsData = await apiGet(`/competitions?eventId=${eventId}`)
+      await delay(100)
       console.log('Loaded competitions:', competitionsData)
       setCompetitions(competitionsData || [])
       
@@ -150,6 +167,7 @@ export function ScoreCapture() {
       
       for (const competition of competitionsData || []) {
         try {
+          await delay(50) // Delay between each competition request
           const disciplinesData = await apiGet(`/competitions/${competition.id}/disciplines`)
           const competitionDisciplines = disciplinesData.disciplines || []
           
@@ -184,11 +202,11 @@ export function ScoreCapture() {
       console.log('All loaded disciplines (before dedup):', allDisciplines)
       console.log('Unique disciplines (after dedup):', uniqueDisciplines)
       
-      // Load existing scores for the event
+      // Load existing scores for the event (load ALL scores, not just first 100)
       let existingScores: Score[] = []
       try {
-        console.log('Fetching scores with URL:', `/scores?eventId=${eventId}`)
-        const scoresData = await apiGet(`/scores?eventId=${eventId}`)
+        console.log('Fetching ALL scores with URL:', `/scores?eventId=${eventId}&limit=1000`)
+        const scoresData = await apiGet(`/scores?eventId=${eventId}&limit=1000`)
         console.log('Raw scores response:', scoresData)
         existingScores = scoresData?.results || []
         console.log('Loaded existing scores:', existingScores)
@@ -208,6 +226,7 @@ export function ScoreCapture() {
       console.error('Error loading initial data:', error)
     } finally {
       setLoading(false)
+      setIsInitializing(false)
     }
   }
 
@@ -229,6 +248,11 @@ export function ScoreCapture() {
     
     const safeParticipants = Array.isArray(participants) ? participants : []
     const safeDisciplines = Array.isArray(disciplines) ? disciplines : []
+    
+    console.log(`Processing ${safeParticipants.length} participants:`)
+    safeParticipants.forEach(p => {
+      console.log(`Participant ${p.id}: ${p.firstname} ${p.lastname}, Squad: ${p.squad_name}`)
+    })
     const safeExistingScores = Array.isArray(existingScores) ? existingScores : []
     
     console.log('Processing matrix for:', safeParticipants.length, 'participants and', safeDisciplines.length, 'disciplines')
@@ -238,13 +262,24 @@ export function ScoreCapture() {
       safeDisciplines.forEach((discipline, index) => {
         const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
         const key = `${participant.id}-${disciplineId}`
-        const existingScore = safeExistingScores.find(s => 
-          s.participantId === participant.id && 
-          (s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId)
-        )
+        
+        // Debug: Log the search criteria
+        console.log(`Looking for score: participantId=${participant.id}, disciplineId=${discipline.int_disziplinid || disciplineId}`)
+        console.log(`Available scores for participant ${participant.id}:`, safeExistingScores.filter(s => s.participantId === participant.id))
+        
+        const existingScore = safeExistingScores.find(s => {
+          const matchesParticipant = s.participantId === participant.id
+          const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId
+          
+          console.log(`Score ${s.id}: participantId=${s.participantId}, disciplineId=${s.disciplineId}, matches participant=${matchesParticipant}, matches discipline=${matchesDiscipline}`)
+          
+          return matchesParticipant && matchesDiscipline
+        })
         
         if (existingScore) {
-          console.log(`Found existing score for key ${key}:`, existingScore)
+          console.log(`✓ Found existing score for key ${key}:`, existingScore)
+        } else {
+          console.log(`✗ No score found for key ${key}`)
         }
         
         matrix[key] = existingScore ? existingScore.score.toString() : '' // Convert to string

@@ -50,17 +50,25 @@ export interface Club {
 
 export interface Participant {
   id: number;
-  firstName: string;
-  lastName: string;
-  birthDate: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
-  clubId: number;
+  firstName?: string;
+  lastName?: string;
+  firstname?: string; // API uses lowercase
+  lastname?: string; // API uses lowercase
+  birthDate?: string;
+  gender?: 'male' | 'female' | 'other' | 'MALE' | 'FEMALE' | 'OTHER';
+  clubId?: number;
+  club?: string;
   licenseNo?: string;
   nationality?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  club?: Club;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  squad_name?: string; // API uses this field
+  age?: number;
+  birthYear?: number;
+  assignedCompetitions?: number[];
+  isInEvent?: boolean;
+  registrationDate?: string;
 }
 
 export interface Competition {
