@@ -8,6 +8,7 @@ import {
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import LayoutDesigner from '@/components/LayoutDesigner'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 
 interface Layout {
@@ -40,6 +41,7 @@ export function CertificateLayouts() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingLayout, setEditingLayout] = useState<Layout | null>(null)
   const [selectedLayout, setSelectedLayout] = useState<Layout | null>(null)
+  const [showDesigner, setShowDesigner] = useState(false)
 
   // Form state for creating/editing layouts
   const [formData, setFormData] = useState({
@@ -173,6 +175,50 @@ export function CertificateLayouts() {
     })
   }
 
+  // Open layout designer
+  const openLayoutDesigner = (layout: Layout) => {
+    setSelectedLayout(layout)
+    setShowDesigner(true)
+  }
+
+  // Save layout from designer
+  const saveLayoutFromDesigner = async (layout: Layout) => {
+    try {
+      const updatedLayout = await apiPut(`/layouts/${layout.int_layoutid}`, {
+        name: layout.var_name,
+        comment: layout.txt_comment
+      })
+      
+      setLayouts(prev => prev.map(l => 
+        l.int_layoutid === layout.int_layoutid ? updatedLayout : l
+      ))
+      setShowDesigner(false)
+      setSelectedLayout(null)
+    } catch (error) {
+      console.error('Error saving layout:', error)
+    }
+  }
+
+  // Handle field changes from designer
+  const handleFieldsChange = async (fields: LayoutField[]) => {
+    if (!selectedLayout) return
+    
+    try {
+      // Update field count in layout
+      const updatedLayout = { ...selectedLayout, fields, fieldCount: fields.length }
+      setSelectedLayout(updatedLayout)
+      
+      // Update in layouts list
+      setLayouts(prev => prev.map(layout => 
+        layout.int_layoutid === selectedLayout.int_layoutid 
+          ? { ...layout, fieldCount: fields.length, fields }
+          : layout
+      ))
+    } catch (error) {
+      console.error('Error updating fields:', error)
+    }
+  }
+
   // Filter layouts based on search term
   const filteredLayouts = layouts.filter(layout =>
     layout.var_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -289,9 +335,9 @@ export function CertificateLayouts() {
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => setSelectedLayout(layout)}
+                        onClick={() => openLayoutDesigner(layout)}
                         className="text-blue-600 hover:text-blue-800 p-1"
-                        title="View Layout"
+                        title="Design Layout"
                       >
                         <EyeIcon className="h-4 w-4" />
                       </button>
@@ -366,9 +412,9 @@ export function CertificateLayouts() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={() => setSelectedLayout(layout)}
+                          onClick={() => openLayoutDesigner(layout)}
                           className="text-blue-600 hover:text-blue-900"
-                          title="View Layout"
+                          title="Design Layout"
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
@@ -462,6 +508,19 @@ export function CertificateLayouts() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Layout Designer */}
+      {showDesigner && selectedLayout && (
+        <LayoutDesigner
+          layout={selectedLayout}
+          onClose={() => {
+            setShowDesigner(false)
+            setSelectedLayout(null)
+          }}
+          onSave={saveLayoutFromDesigner}
+          onFieldsChange={handleFieldsChange}
+        />
       )}
     </div>
   )
