@@ -4,139 +4,78 @@ import { useEvent } from '../contexts/EventContext'
 import { 
   ChartBarIcon,
   TrophyIcon,
-  CalendarIcon,
-  UserGroupIcon,
-  EyeIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { apiGet } from '../utils/api'
 
-interface Result {
-  int_teilnehmerid: number
-  participant_name: string
-  club_name: string
-  event_name: string
-  var_disziplin: string
-  dec_wertung: number
-  int_start_nummer: number
-  dat_wertung_datum: string
+interface Participant {
+  id: number
+  name: string
+  club: string
+  startNumber: number
+  age: number
+  scores: { [discipline: string]: number }
+  totalScore: number
   rank: number
-  total_score?: number
 }
 
-interface EventResult {
-  int_eventid: number
-  var_eventname: string
-  dat_eventstartdate: string
-  dat_eventenddate: string
-  participant_count: number
-  discipline_count: number
-}
-
-export function Results() {
+const Results = () => {
   const [searchParams] = useSearchParams()
-  const { selectedEvent, selectedCompetition, selectedSquad } = useEvent()
+  const { selectedEvent } = useEvent()
   
   // URL parameters as fallback (for direct navigation)
   const urlEventId = searchParams.get('eventId')
-  const urlCompetitionId = searchParams.get('competitionId') 
   const urlSquadName = searchParams.get('squadName')
   
-  // Use context values or URL parameters
+  // Use context values or URL parameters - ALWAYS filter by event
   const eventId = selectedEvent?.int_eventid.toString() || urlEventId
-  const competitionId = selectedCompetition?.id.toString() || urlCompetitionId
-  const squadName = selectedSquad?.squad_name || urlSquadName
+  const squadName = urlSquadName
   
-  const [results, setResults] = useState<Result[]>([])
-  const [eventResults, setEventResults] = useState<EventResult[]>([])
-  const [selectedEventForFilter, setSelectedEventForFilter] = useState<number | ''>(eventId ? parseInt(eventId) : '')
-  const [selectedDiscipline, setSelectedDiscipline] = useState<string>('')
-  const [viewMode, setViewMode] = useState<'individual' | 'rankings' | 'events'>('events')
+  const [ranking, setRanking] = useState<Participant[]>([])
+  const [disciplines, setDisciplines] = useState<string[]>([])
+  const [eventName, setEventName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [competitions, setCompetitions] = useState<any[]>([])
+  const [selectedCompetition, setSelectedCompetition] = useState<string>('')
 
   // Helper functions for unified header
   const getResultsStateInfo = (): StateInfo[] => {
-    const totalEvents = eventResults.length
-    const totalResults = results.length
-    const uniqueParticipants = new Set(results.map(r => r.int_teilnehmerid)).size
+    const totalParticipants = ranking.length
+    const totalDisciplines = disciplines.length
+    const completedScores = ranking.reduce((sum, p) => sum + Object.keys(p.scores).length, 0)
 
     return [
       {
-        value: 'events',
-        label: 'Events',
-        count: totalEvents,
-        color: 'bg-blue-100 text-blue-800'
-      },
-      {
-        value: 'results',
-        label: 'Results',
-        count: totalResults,
-        color: 'bg-green-100 text-green-800'
-      },
-      {
         value: 'participants',
         label: 'Participants',
-        count: uniqueParticipants,
-        color: 'bg-purple-100 text-purple-800'
+        count: totalParticipants,
+        color: 'text-blue-600'
+      },
+      {
+        value: 'disciplines',
+        label: 'Disciplines',
+        count: totalDisciplines,
+        color: 'text-green-600'
+      },
+      {
+        value: 'scores',
+        label: 'Scores',
+        count: completedScores,
+        color: 'text-purple-600'
       }
     ]
   }
 
-  const getFilterOptions = () => [
-    {
-      label: 'Event',
-      value: 'event',
-      options: eventResults.map(event => ({
-        value: event.int_eventid.toString(),
-        label: event.var_eventname
-      })),
-      selectedValue: selectedEventForFilter.toString(),
-      onChange: (value: string) => setSelectedEventForFilter(value === '' ? '' : parseInt(value))
-    },
-    {
-      label: 'Discipline',
-      value: 'discipline',
-      options: disciplines.map(discipline => ({
-        value: discipline,
-        label: discipline
-      })),
-      selectedValue: selectedDiscipline,
-      onChange: setSelectedDiscipline
-    }
-  ]
-
   const handleClearAllFilters = () => {
     setSearchTerm('')
-    setSelectedEventForFilter('')
-    setSelectedDiscipline('')
+    setSelectedCompetition('')
   }
-
-  const disciplines = [
-    'Floor Exercise',
-    'Pommel Horse',
-    'Still Rings',
-    'Vault',
-    'Parallel Bars',
-    'Horizontal Bar',
-    'Uneven Bars',
-    'Balance Beam',
-    'All-Around'
-  ]
 
   // Format score with 3 decimal places
   const formatScore = (score: number) => {
     return score.toFixed(3)
-  }
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
   }
 
   // Get medal color for rankings
@@ -155,45 +94,106 @@ export function Results() {
       case 1: return '🥇'
       case 2: return '🥈'
       case 3: return '🥉'
-      default: return `#${rank}`
+      default: return rank.toString()
     }
   }
 
-  // Fetch event results overview
-  const fetchEventResults = async () => {
-    setIsLoading(true)
+  // Fetch available competitions for the event
+  const fetchCompetitions = async () => {
+    if (!eventId) return
+
     try {
-      const data = await apiGet('/events?limit=50')
-      setEventResults(data.events || [])
+      const data = await apiGet(`/competitions?eventId=${eventId}`)
+      // The API returns competitions directly as an array, not wrapped in { competitions: [] }
+      setCompetitions(Array.isArray(data) ? data : [])
     } catch (error) {
-      console.error('Error fetching event results:', error)
-      setEventResults([])
-    } finally {
-      setIsLoading(false)
+      console.error('Error fetching competitions:', error)
+      setCompetitions([])
     }
   }
 
-  // Fetch individual results
-  const fetchResults = async () => {
+  // Fetch ranking data for the specific event
+  const fetchEventRanking = async () => {
+    if (!eventId) return
+    
     setIsLoading(true)
     try {
-      const params = new URLSearchParams({ limit: '50' })
-      if (selectedEventForFilter) params.append('event_id', selectedEventForFilter.toString())
-      if (selectedDiscipline) params.append('discipline', selectedDiscipline)
-      if (searchTerm) params.append('search', searchTerm)
+      // First, fetch participants for the event/competition
+      const participantsParams = new URLSearchParams({ 
+        eventId: eventId
+      })
+      if (selectedCompetition) {
+        participantsParams.append('competitionId', selectedCompetition)
+      }
 
-      const data = await apiGet(`/scores?${params}`)
-      // Add ranking to scores
-      const sortedScores = (data.scores || [])
-        .sort((a: Result, b: Result) => b.dec_wertung - a.dec_wertung)
-        .map((score: Result, index: number) => ({
-          ...score,
-          rank: index + 1
-        }))
-      setResults(sortedScores)
+      const participantsData = await apiGet(`/event-participants?${participantsParams}`)
+      const participants = participantsData.participants || []
+
+      if (participants.length === 0) {
+        setRanking([])
+        setDisciplines([])
+        setEventName(`Event ${eventId}`)
+        return
+      }
+
+      // Then fetch scores for the specific event
+      const scoresParams = new URLSearchParams({ 
+        limit: '1000',
+        eventId: eventId
+      })
+      if (squadName) scoresParams.append('squadName', squadName)
+      if (selectedCompetition) scoresParams.append('competitionId', selectedCompetition)
+
+      const scoresData = await apiGet(`/scores?${scoresParams}`)
+      const scores = scoresData.scores || []
+
+      // Create a map of participant scores
+      const scoresMap = new Map<number, { [discipline: string]: number }>()
+      const disciplineSet = new Set<string>()
+
+      scores.forEach((score: any) => {
+        const participantId = score.int_teilnehmerid || score.participantId
+        const discipline = score.var_disziplin || score.discipline
+        const scoreValue = score.dec_wertung || score.score || 0
+        
+        disciplineSet.add(discipline)
+
+        if (!scoresMap.has(participantId)) {
+          scoresMap.set(participantId, {})
+        }
+        scoresMap.get(participantId)![discipline] = scoreValue
+      })
+
+      // Build ranking list from participants with their scores
+      const participantsList: Participant[] = participants.map((participant: any) => {
+        const participantScores = scoresMap.get(participant.id) || {}
+        const totalScore = Object.values(participantScores).reduce((sum: number, score: number) => sum + score, 0)
+
+        return {
+          id: participant.id,
+          name: `${participant.firstname} ${participant.lastname}`,
+          club: participant.club || 'Unknown Club',
+          startNumber: participant.startNumber || 0,
+          age: participant.age || 0,
+          scores: participantScores,
+          totalScore,
+          rank: 0
+        }
+      })
+
+      // Sort by total score and assign ranks
+      participantsList.sort((a, b) => b.totalScore - a.totalScore)
+      participantsList.forEach((participant, index) => {
+        participant.rank = index + 1
+      })
+
+      setRanking(participantsList)
+      setDisciplines(Array.from(disciplineSet).sort())
+      setEventName(scores[0]?.event_name || scores[0]?.eventName || `Event ${eventId}`)
     } catch (error) {
-      console.error('Error fetching results:', error)
-      setResults([])
+      console.error('Error fetching event ranking:', error)
+      setRanking([])
+      setDisciplines([])
     } finally {
       setIsLoading(false)
     }
@@ -201,18 +201,16 @@ export function Results() {
 
   // Export results to CSV
   const exportResults = () => {
-    if (results.length === 0) return
+    if (ranking.length === 0) return
 
-    const headers = ['Rank', 'Participant', 'Club', 'Event', 'Discipline', 'Score', 'Start #', 'Date']
-    const csvData = results.map(result => [
-      result.rank,
-      result.participant_name,
-      result.club_name,
-      result.event_name,
-      result.var_disziplin,
-      formatScore(result.dec_wertung),
-      result.int_start_nummer,
-      formatDate(result.dat_wertung_datum)
+    const headers = ['Platz', 'Name', 'Verein', 'Jg', ...disciplines, 'Gesamt']
+    const csvData = ranking.map(participant => [
+      participant.rank,
+      participant.name,
+      participant.club,
+      participant.age,
+      ...disciplines.map(discipline => formatScore(participant.scores[discipline] || 0)),
+      formatScore(participant.totalScore)
     ])
 
     const csvContent = [headers, ...csvData]
@@ -223,258 +221,167 @@ export function Results() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `results_${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `results_${eventName}_${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     window.URL.revokeObjectURL(url)
   }
 
+  // Filter participants based on search term
+  const filteredRanking = ranking.filter(participant =>
+    participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    participant.club.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   useEffect(() => {
-    if (viewMode === 'events') {
-      fetchEventResults()
-    } else {
-      fetchResults()
+    if (eventId) {
+      fetchCompetitions()
+      fetchEventRanking()
     }
-  }, [viewMode, selectedEventForFilter, selectedDiscipline, searchTerm])
+  }, [eventId, squadName, selectedCompetition])
+
+  // Show message if no event is selected
+  if (!eventId) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="text-center py-8">
+          <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No Event Selected</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Please select an event to view competition results.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedHeader
         title="Competition Results"
-        description="View competition results and rankings"
+        description={`Rankings for ${eventName}${squadName ? ` - Squad ${squadName}` : ''}`}
         icon={ChartBarIcon}
         stateInfo={getResultsStateInfo()}
         selectedState=""
         onStateChange={() => {}}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants, events..."
-        filterOptions={getFilterOptions()}
+        searchPlaceholder="Search participants, clubs..."
+        filterOptions={[
+          {
+            label: 'Competition',
+            value: 'competition',
+            options: [
+              { value: '', label: 'All Competitions' },
+              ...competitions.map(comp => ({
+                value: comp.id?.toString() || '',
+                label: comp.name || 'Unknown Competition',
+                count: undefined
+              }))
+            ],
+            selectedValue: selectedCompetition,
+            onChange: setSelectedCompetition
+          }
+        ]}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={exportResults}
         showHomeButton={true}
         homeUrl="/dashboard"
-        totalCount={viewMode === 'events' ? eventResults.length : results.length}
+        totalCount={filteredRanking.length}
       />
 
       {/* Event Selection Context */}
-      {(eventId || competitionId || squadName) && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-            <div className="text-sm text-blue-800">
-              <strong>Selected Context:</strong>
-              {eventId && ` Event: ${selectedEvent?.var_eventname || `Event ID ${eventId}`}`}
-              {competitionId && ` • Competition ID: ${competitionId}`}
-              {squadName && ` • Squad: ${squadName}`}
-            </div>
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 mx-6">
+        <div className="flex items-center">
+          <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
+          <div className="text-sm text-blue-800">
+            <strong>Event:</strong> {eventName}
+            {squadName && (
+              <>
+                <span className="mx-2">•</span>
+                <strong>Squad:</strong> {squadName}
+              </>
+            )}
           </div>
-          <p className="text-xs text-blue-600 mt-1">
-            Results are filtered based on your selection from the dashboard.
-          </p>
-        </div>
-      )}
-
-      {/* View Mode Toggle */}
-      <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setViewMode('events')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'events'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Event Overview
-          </button>
-          <button
-            onClick={() => setViewMode('rankings')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'rankings'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Rankings
-          </button>
-          <button
-            onClick={() => setViewMode('individual')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'individual'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Individual Results
-          </button>
         </div>
       </div>
 
-      {/* Content based on view mode */}
-      {viewMode === 'events' ? (
-        /* Event Overview */
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {isLoading ? (
-            <div className="col-span-full flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="ml-3 text-gray-600">Loading events...</p>
-            </div>
-          ) : eventResults.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No events found</p>
-            </div>
-          ) : (
-            eventResults.map((event) => (
-              <div key={event.int_eventid} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {event.var_eventname}
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setSelectedEventForFilter(event.int_eventid)
-                        setViewMode('rankings')
-                      }}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="View Results"
-                    >
-                      <EyeIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      <span>
-                        {formatDate(event.dat_eventstartdate)}
-                        {event.dat_eventstartdate !== event.dat_eventenddate && 
-                          ` - ${formatDate(event.dat_eventenddate)}`
-                        }
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600">
-                      <UserGroupIcon className="h-4 w-4 mr-2" />
-                      <span>{event.participant_count} participants</span>
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-600">
-                      <TrophyIcon className="h-4 w-4 mr-2" />
-                      <span>{event.discipline_count} disciplines</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-gray-100">
-                    <button
-                      onClick={() => {
-                        setSelectedEventForFilter(event.int_eventid)
-                        setViewMode('rankings')
-                      }}
-                      className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors"
-                    >
-                      View Results
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      ) : (
-        /* Results Table */
-        <div className="bg-white rounded-lg shadow-sm border">
-          {isLoading ? (
-            <div className="p-6 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading results...</p>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="p-6 text-center">
-              <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No results found</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {viewMode === 'rankings' && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Rank
-                      </th>
-                    )}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Start #
+      {/* Rankings Table */}
+      <div className="bg-white rounded-lg shadow-sm border mx-6">
+        {isLoading ? (
+          <div className="p-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading results...</p>
+          </div>
+        ) : filteredRanking.length === 0 ? (
+          <div className="p-6 text-center">
+            <TrophyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No results found for this event</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Platz
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Verein
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Jg
+                  </th>
+                  {disciplines.map(discipline => (
+                    <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {discipline.substring(0, 6)}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Participant
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Club
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Event
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Discipline
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Score
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {results.map((result) => (
-                    <tr key={`${result.int_teilnehmerid}-${result.var_disziplin}`} className="hover:bg-gray-50">
-                      {viewMode === 'rankings' && (
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(result.rank)}`}>
-                            {getMedalEmoji(result.rank)}
-                          </span>
-                        </td>
-                      )}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                          {result.int_start_nummer}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">
-                          {result.participant_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {result.club_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {result.event_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          {result.var_disziplin}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatScore(result.dec_wertung)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {formatDate(result.dat_wertung_datum)}
-                      </td>
-                    </tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50">
+                    Gesamt
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredRanking.map((participant) => (
+                  <tr key={participant.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(participant.rank)}`}>
+                        {getMedalEmoji(participant.rank)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">
+                        {participant.name}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-gray-600">
+                      {participant.club}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
+                      {participant.age}
+                    </td>
+                    {disciplines.map(discipline => (
+                      <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center">
+                        <span className="text-sm font-medium">
+                          {participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'}
+                        </span>
+                      </td>
+                    ))}
+                    <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50">
+                      <span className="text-lg font-bold text-blue-900">
+                        {formatScore(participant.totalScore)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
