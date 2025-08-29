@@ -554,7 +554,9 @@ const Results = () => {
   const fetchCertificateLayouts = async () => {
     try {
       const data = await apiGet('/layouts')
-      setCertificateLayouts(data.layouts || [])
+      console.log('Fetched layouts:', data)
+      // The API returns layouts directly as an array
+      setCertificateLayouts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching certificate layouts:', error)
       setCertificateLayouts([])
