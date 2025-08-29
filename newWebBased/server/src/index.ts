@@ -34,6 +34,7 @@ import squadManagementRoutes from './routes/squadManagement';
 import scoresRoutes from './routes/scores';
 import adminRoutes from './routes/admin';
 import layoutRoutes from './routes/layouts';
+import imageRoutes from './routes/images';
 
 const app = express();
 const server = createServer(app);
@@ -81,6 +82,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
@@ -115,6 +119,7 @@ app.use('/api/squad-management', squadManagementRoutes);
 app.use('/api/scores', scoresRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/layouts', layoutRoutes);
+app.use('/api/images', imageRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {

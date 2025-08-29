@@ -69,7 +69,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   const [paperFormat, setPaperFormat] = useState<keyof typeof PAPER_FORMATS>('A4');
   const [canvasSize, setCanvasSize] = useState(PAPER_FORMATS.A4);
   const [zoom, setZoom] = useState(0.3); // Smaller default zoom for larger paper formats
-  const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean }>({});
+  const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean | string }>({});
 
   // Initialize with fit-to-view zoom
   useEffect(() => {
@@ -154,6 +154,21 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   // Check if an image can be loaded
   const checkImageLoad = useCallback((imagePath: string) => {
     if (!imagePath || loadedImages[imagePath] !== undefined) return;
+    
+    // Skip checking local file paths (they can't be loaded in browser)
+    const isLocalPath = imagePath.includes(':\\') || imagePath.startsWith('/');
+    const isUploadPath = imagePath.startsWith('/uploads/');
+    const isUploading = imagePath.includes('🔄');
+    
+    if (isLocalPath && !isUploadPath) {
+      setLoadedImages(prev => ({ ...prev, [imagePath]: 'local' as any }));
+      return;
+    }
+    
+    if (isUploading) {
+      setLoadedImages(prev => ({ ...prev, [imagePath]: 'uploading' as any }));
+      return;
+    }
     
     const img = new Image();
     img.onload = () => {
@@ -413,9 +428,11 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
         );
       case 2: // Image
         const imagePath = field.var_value;
+        const isLocalPath = imagePath && imagePath.includes(':\\') && !imagePath.startsWith('/uploads/');
+        const isUploading = imagePath && imagePath.includes('🔄');
         const isImageLoaded = imagePath && loadedImages[imagePath] === true;
         
-        if (isImageLoaded) {
+        if (isImageLoaded && !isLocalPath && !isUploading) {
           return (
             <div style={{ ...contentStyle, padding: 0, overflow: 'hidden' }}>
               <img 
@@ -435,11 +452,36 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             </div>
           );
         } else {
+          // Show path info for local files, uploading state, or when image can't be loaded
+          let displayText = '';
+          let statusIndicator = '';
+          
+          if (isUploading) {
+            displayText = 'Uploading...';
+            statusIndicator = '🔄';
+          } else if (isLocalPath) {
+            const fileName = imagePath.split(/[\\\/]/).pop() || imagePath;
+            displayText = fileName;
+            statusIndicator = '📁';
+          } else if (imagePath) {
+            const fileName = imagePath.split(/[\\\/]/).pop() || imagePath;
+            displayText = fileName;
+            statusIndicator = '🖼';
+          } else {
+            displayText = 'image.png';
+            statusIndicator = '🖼';
+          }
+          
           return (
             <div style={contentStyle}>
-              <span className="text-purple-600 mr-1">🖼</span>
-              <span className="truncate">{imagePath || 'image.png'}</span>
-              {imagePath && loadedImages[imagePath] === false && (
+              <span className="text-purple-600 mr-1">{statusIndicator}</span>
+              <span className="truncate" title={imagePath || ''}>
+                {displayText}
+              </span>
+              {isLocalPath && (
+                <span className="text-blue-500 text-xs ml-1">(local)</span>
+              )}
+              {imagePath && loadedImages[imagePath] === false && !isLocalPath && !isUploading && (
                 <span className="text-red-500 text-xs ml-1">(not found)</span>
               )}
             </div>
@@ -761,33 +803,90 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     
                     {selectedField.int_typ === 2 ? (
                       <div className="space-y-2">
-                        <input
-                          type="text"
-                          value={selectedField.var_value || ''}
-                          onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
-                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
-                          placeholder="image.png or full path"
-                        />
                         <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            placeholder="Image path or URL"
+                            value={selectedField.var_value || ''}
+                            onChange={(e) => {
+                              updateField(selectedField.int_layout_felderid, { var_value: e.target.value });
+                            }}
+                            className="text-xs flex-1 px-2 py-1 border rounded"
+                            id="image-path"
+                          />
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                // For local files, we'll use the file name
-                                // In a real application, you might upload to a server
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const dataUrl = event.target?.result as string;
-                                  updateField(selectedField.int_layout_felderid, { var_value: dataUrl });
-                                };
-                                reader.readAsDataURL(file);
+                                try {
+                                  // Show uploading state immediately
+                                  const tempPath = '🔄 Uploading...';
+                                  await updateField(selectedField.int_layout_felderid, { var_value: tempPath });
+                                  
+                                  // Upload image to server
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+                                  
+                                  const response = await fetch('/api/images/upload', {
+                                    method: 'POST',
+                                    body: formData,
+                                  });
+                                  
+                                  if (response.ok) {
+                                    const result = await response.json();
+                                    // Store the server path and wait for it to complete
+                                    await updateField(selectedField.int_layout_felderid, { var_value: result.imagePath });
+                                    
+                                    // Force re-check of image loading
+                                    setLoadedImages(prev => {
+                                      const updated = { ...prev };
+                                      delete updated[result.imagePath]; // Remove existing entry to force re-check
+                                      return updated;
+                                    });
+                                    
+                                    // Trigger image load check after a brief delay
+                                    setTimeout(() => {
+                                      checkImageLoad(result.imagePath);
+                                    }, 100);
+                                  } else {
+                                    console.error('Failed to upload image');
+                                    alert('Failed to upload image. Please try again.');
+                                    // Revert to empty
+                                    await updateField(selectedField.int_layout_felderid, { var_value: '' });
+                                  }
+                                } catch (error) {
+                                  console.error('Error uploading image:', error);
+                                  alert('Error uploading image. Please try again.');
+                                  // Revert to empty
+                                  await updateField(selectedField.int_layout_felderid, { var_value: '' });
+                                }
+                                // Clear the input so the same file can be selected again
+                                e.target.value = '';
                               }
                             }}
-                            className="text-xs flex-1"
+                            className="hidden"
                             id="image-upload"
+                            title="Upload image file"
                           />
+                          <label 
+                            htmlFor="image-upload" 
+                            className="px-2 py-1 bg-green-500 text-white text-xs rounded cursor-pointer hover:bg-green-600"
+                          >
+                            Upload
+                          </label>
+                        </div>
+                        
+                        {/* File format and size information */}
+                        <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded border">
+                          <div className="font-medium mb-1">📋 Upload Requirements:</div>
+                          <div className="space-y-1">
+                            <div>• <strong>Formats:</strong> PNG, JPG, JPEG, GIF, WebP, SVG</div>
+                            <div>• <strong>Max Size:</strong> 5 MB per file</div>
+                            <div>• <strong>Recommended:</strong> PNG or JPG for best quality</div>
+                            <div>• <strong>Note:</strong> Images are stored on server for reliable access</div>
+                          </div>
                         </div>
                         {selectedField.var_value && (
                           <div className="text-xs">
@@ -797,7 +896,13 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                             {loadedImages[selectedField.var_value] === false && (
                               <span className="text-red-600">✗ Image not found or failed to load</span>
                             )}
-                            {loadedImages[selectedField.var_value] === undefined && (
+                            {loadedImages[selectedField.var_value] === 'local' && (
+                              <span className="text-blue-600">📁 Local file path</span>
+                            )}
+                            {loadedImages[selectedField.var_value] === 'uploading' && (
+                              <span className="text-orange-600">🔄 Uploading image...</span>
+                            )}
+                            {selectedField.var_value.startsWith('/uploads/') && loadedImages[selectedField.var_value] === undefined && (
                               <span className="text-gray-500">Loading...</span>
                             )}
                           </div>

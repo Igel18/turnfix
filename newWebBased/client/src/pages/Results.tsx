@@ -604,59 +604,156 @@ const Results = () => {
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
 
+      console.log(`PDF page size: ${pageWidth} x ${pageHeight}`)
+      console.log(`Layout: ${layout.var_name} with ${layout.fields.length} fields`)
+
       // Generate certificate for each participant
       certificatesToPrint.forEach((participant, index) => {
         if (index > 0) {
           doc.addPage()
         }
 
+        console.log(`Generating certificate for participant: ${participant.name}`)
+
+        // Add a test text to ensure PDF is working
+        doc.setTextColor(0, 0, 0)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(12)
+        doc.text(`Test Certificate for ${participant.name}`, 50, 50)
+
         // Sort fields by layer (background to foreground)
         const sortedFields = [...layout.fields].sort((a, b) => a.int_layer - b.int_layer)
+        console.log(`Processing ${sortedFields.length} fields for layout: ${layout.var_name}`)
 
         // Render each field
-        sortedFields.forEach(field => {
-          const x = field.rel_x * pageWidth
-          const y = field.rel_y * pageHeight
-          const width = field.rel_w * pageWidth
-          const height = field.rel_h * pageHeight
+        sortedFields.forEach((field, fieldIndex) => {
+          // Normalize coordinates first - the stored values might be in absolute units
+          // Based on TurnFix, let's assume the original coordinate system was much larger
+          // We need to convert these to 0-1 range first
+          
+          let normalizedX = field.rel_x
+          let normalizedY = field.rel_y
+          let normalizedW = field.rel_w
+          let normalizedH = field.rel_h
+          
+          // If coordinates are outside 0-1 range, they need normalization
+          // Based on the console output, it looks like the original system used much larger values
+          if (field.rel_x > 1 || field.rel_y > 1 || field.rel_w > 1 || field.rel_h > 1) {
+            // Detect coordinate system based on the largest values
+            const maxCoordX = Math.max(field.rel_x, field.rel_x + field.rel_w)
+            const maxCoordY = Math.max(field.rel_y, field.rel_y + field.rel_h)
+            
+            // Guess the original coordinate system
+            let originalWidth = 210  // Default A4 width in mm
+            let originalHeight = 297 // Default A4 height in mm
+            
+            // If coordinates are much larger, adjust the assumed system
+            if (maxCoordX > 1000) {
+              originalWidth = Math.max(maxCoordX * 1.2, 2000) // Add some buffer
+            }
+            if (maxCoordY > 1000) {
+              originalHeight = Math.max(maxCoordY * 1.2, 2000) // Add some buffer
+            }
+            
+            normalizedX = field.rel_x / originalWidth
+            normalizedY = field.rel_y / originalHeight
+            normalizedW = field.rel_w / originalWidth
+            normalizedH = field.rel_h / originalHeight
+            
+            console.log(`Normalized field ${fieldIndex}: from (${field.rel_x}, ${field.rel_y}) to (${normalizedX.toFixed(3)}, ${normalizedY.toFixed(3)}) using system ${originalWidth}x${originalHeight}`)
+          }
+          
+          // Now calculate PDF coordinates
+          const x = Math.max(0, Math.min(pageWidth, normalizedX * pageWidth))
+          const y = Math.max(0, Math.min(pageHeight, normalizedY * pageHeight))
+          const width = Math.max(1, Math.min(pageWidth - x, normalizedW * pageWidth))
+          const height = Math.max(1, Math.min(pageHeight - y, normalizedH * pageHeight))
+
+          console.log(`Field ${fieldIndex}: type=${field.int_typ}, pos=(${x.toFixed(1)}, ${y.toFixed(1)}), size=(${width.toFixed(1)}, ${height.toFixed(1)})`)
+
+          // Skip fields that are completely outside the page
+          if (x >= pageWidth || y >= pageHeight || width <= 0 || height <= 0) {
+            console.log(`Skipping field ${fieldIndex} - outside page bounds`)
+            return
+          }
+
+          // Set default text properties
+          doc.setTextColor(0, 0, 0) // Black text
+          doc.setFont('helvetica', 'normal')
 
           switch (field.int_typ) {
             case 0: // Database field
               if (field.var_value && /^\d+$/.test(field.var_value)) {
                 const fieldValue = getDatabaseFieldValue(parseInt(field.var_value), participant, eventName)
+                console.log(`Database field ${field.var_value}: "${fieldValue}"`)
                 
-                // Set font from field settings
-                const fontParts = field.var_font?.split(',') || ['Arial', '12']
-                const fontSize = parseInt(fontParts[1]) || 12
+                // Set font size
+                const fontParts = field.var_font?.split(',') || ['helvetica', '12']
+                const fontSize = Math.max(8, parseInt(fontParts[1]) || 12)
                 doc.setFontSize(fontSize)
+                
+                // Calculate text position (jsPDF uses bottom-left origin for text)
+                const textY = y + (height > 0 ? height/2 + fontSize/3 : fontSize)
                 
                 // Set text alignment
                 const align = field.int_align === 1 ? 'center' : field.int_align === 2 ? 'right' : 'left'
+                let textX = x
+                if (align === 'center') textX = x + width/2
+                if (align === 'right') textX = x + width
                 
-                doc.text(fieldValue, x, y + fontSize, { align: align as any, maxWidth: width })
+                doc.text(fieldValue, textX, textY, { 
+                  align: align as any, 
+                  maxWidth: width > 0 ? width : undefined 
+                })
               }
               break
               
             case 1: // Text field
               if (field.var_value) {
-                const fontParts = field.var_font?.split(',') || ['Arial', '12']
-                const fontSize = parseInt(fontParts[1]) || 12
+                console.log(`Text field: "${field.var_value}"`)
+                
+                const fontParts = field.var_font?.split(',') || ['helvetica', '12']
+                const fontSize = Math.max(8, parseInt(fontParts[1]) || 12)
                 doc.setFontSize(fontSize)
                 
+                // Calculate text position
+                const textY = y + (height > 0 ? height/2 + fontSize/3 : fontSize)
+                
                 const align = field.int_align === 1 ? 'center' : field.int_align === 2 ? 'right' : 'left'
-                doc.text(field.var_value, x, y + fontSize, { align: align as any, maxWidth: width })
+                let textX = x
+                if (align === 'center') textX = x + width/2
+                if (align === 'right') textX = x + width
+                
+                doc.text(field.var_value, textX, textY, { 
+                  align: align as any, 
+                  maxWidth: width > 0 ? width : undefined 
+                })
               }
               break
               
             case 2: // Image field
               // Note: For now, images are not supported in this basic implementation
-              // In a full implementation, you would load and embed the image
+              // Draw a placeholder rectangle
+              if (width > 0 && height > 0) {
+                doc.setDrawColor(200, 200, 200)
+                doc.setLineWidth(1)
+                doc.rect(x, y, width, height)
+                doc.setFontSize(8)
+                doc.text('Image', x + width/2, y + height/2, { align: 'center' })
+              }
               break
               
             case 3: // Line field
+              console.log(`Line field at (${x}, ${y}) to (${x + width}, ${y + height/2})`)
+              doc.setDrawColor(0, 0, 0)
               doc.setLineWidth(1)
-              doc.line(x, y + height/2, x + width, y + height/2)
+              if (width > 0) {
+                doc.line(x, y + height/2, x + width, y + height/2)
+              }
               break
+              
+            default:
+              console.log(`Unknown field type: ${field.int_typ}`)
           }
         })
       })

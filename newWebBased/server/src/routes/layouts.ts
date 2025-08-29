@@ -9,20 +9,23 @@ const prisma = new PrismaClient();
 // Validation schemas
 const createLayoutSchema = z.object({
   name: z.string().min(1, 'Layout name is required').max(100),
-  comment: z.string().optional()
+  comment: z.string().optional().nullable()
 });
 
-const updateLayoutSchema = createLayoutSchema.partial();
+const updateLayoutSchema = z.object({
+  name: z.string().min(1, 'Layout name is required').max(100).optional(),
+  comment: z.string().optional().nullable()
+});
 
 const createLayoutFieldSchema = z.object({
   layoutId: z.number().int().positive(),
   type: z.number().int().min(0).max(10),
   font: z.string().max(150).optional(),
-  x: z.number().min(0).max(1),
-  y: z.number().min(0).max(1),
-  width: z.number().min(0).max(1),
-  height: z.number().min(0).max(1),
-  value: z.string().max(200).optional(),
+  x: z.number().min(0), // Remove max constraint temporarily 
+  y: z.number().min(0), // Remove max constraint temporarily
+  width: z.number().min(0), // Remove max constraint temporarily
+  height: z.number().min(0), // Remove max constraint temporarily
+  value: z.string().max(200).optional(), // Match database constraint: VarChar(200)
   align: z.number().int().min(0).max(2).default(0),
   layer: z.number().int().min(0).max(10).default(0)
 });
@@ -158,6 +161,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const id = parseInt(req.params.id);
+    console.log('Updating layout request:', { id, body: req.body });
+    
     const validatedData = updateLayoutSchema.parse(req.body);
     
     console.log('Updating layout:', id, validatedData);
@@ -198,6 +203,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error updating layout:', error);
     if (error instanceof z.ZodError) {
+      console.error('Validation errors:', error.issues);
       return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
     res.status(500).json({ error: 'Internal server error' });

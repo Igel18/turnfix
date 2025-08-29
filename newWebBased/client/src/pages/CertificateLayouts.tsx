@@ -14,21 +14,22 @@ import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 interface Layout {
   int_layoutid: number
   var_name: string
-  txt_comment: string
+  txt_comment: string | null
   fieldCount?: number
   createdAt?: string
+  fields?: LayoutField[]
 }
 
 interface LayoutField {
   int_layout_felderid: number
   int_layoutid: number
   int_typ: number
-  var_font: string
+  var_font: string | null
   rel_x: number
   rel_y: number
   rel_w: number
   rel_h: number
-  var_value: string
+  var_value: string | null
   int_align: number
   int_layer: number
 }
@@ -184,18 +185,87 @@ export function CertificateLayouts() {
   // Save layout from designer
   const saveLayoutFromDesigner = async (layout: Layout) => {
     try {
-      const updatedLayout = await apiPut(`/layouts/${layout.int_layoutid}`, {
-        name: layout.var_name,
-        comment: layout.txt_comment
-      })
+      console.log('Saving layout:', layout)
+      
+      // Test if the layout exists first
+      try {
+        const existingLayout = await apiGet(`/layouts/${layout.int_layoutid}`)
+        console.log('Existing layout found:', existingLayout)
+      } catch (fetchError) {
+        console.error('Error fetching existing layout:', fetchError)
+        throw new Error('Layout not found on server')
+      }
+      
+      // Prepare the data to send to the server
+      const layoutData = {
+        name: layout.var_name?.trim() || 'Untitled Layout',
+        comment: layout.txt_comment || null
+      }
+      
+      console.log('Sending layout data:', layoutData)
+      console.log('URL:', `/layouts/${layout.int_layoutid}`)
+      console.log('Layout name length:', layoutData.name.length)
+      
+      // Validate name length (API expects max 100 characters)
+      if (layoutData.name.length > 100) {
+        throw new Error('Layout name is too long (max 100 characters)')
+      }
+      
+      // First, update the layout metadata
+      await apiPut(`/layouts/${layout.int_layoutid}`, layoutData)
+      
+      // Then, if there are fields, save them too
+      if (layout.fields && layout.fields.length > 0) {
+        console.log('Saving fields:', layout.fields)
+        
+        // Save each field individually (this might need optimization later)
+        for (const field of layout.fields) {
+          console.log('Processing field:', field)
+          
+          // Truncate value if it's too long (database limit is 200 characters)
+          const truncatedValue = field.var_value && field.var_value.length > 200 
+            ? field.var_value.substring(0, 200) 
+            : field.var_value
+          
+          if (truncatedValue !== field.var_value) {
+            console.warn(`Field value truncated from ${field.var_value?.length} to 200 characters (database limit)`)
+          }
+          
+          const fieldData = {
+            type: field.int_typ,
+            font: field.var_font || null,
+            x: field.rel_x,
+            y: field.rel_y,
+            width: field.rel_w,
+            height: field.rel_h,
+            value: truncatedValue || null,
+            align: field.int_align,
+            layer: field.int_layer
+          }
+          
+          console.log('Sending field data:', fieldData)
+          
+          if (field.int_layout_felderid < 0) {
+            // New field - create it
+            await apiPost(`/layouts/${layout.int_layoutid}/fields`, fieldData)
+          } else {
+            // Existing field - update it
+            await apiPut(`/layouts/${layout.int_layoutid}/fields/${field.int_layout_felderid}`, fieldData)
+          }
+        }
+      }
+      
+      // Refresh the layout from server to get the updated data
+      const refreshedLayout = await apiGet(`/layouts/${layout.int_layoutid}`)
       
       setLayouts(prev => prev.map(l => 
-        l.int_layoutid === layout.int_layoutid ? updatedLayout : l
+        l.int_layoutid === layout.int_layoutid ? refreshedLayout : l
       ))
       setShowDesigner(false)
       setSelectedLayout(null)
     } catch (error) {
       console.error('Error saving layout:', error)
+      alert('Error saving layout. Please check the console for details.')
     }
   }
 
