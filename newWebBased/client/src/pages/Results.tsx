@@ -302,98 +302,223 @@ const Results = () => {
 
   // Export results to PDF
   const exportResultsPDF = () => {
-    if (ranking.length === 0) return
+    if (selectedCompetition) {
+      // Single competition export
+      if (ranking.length === 0) return
 
-    const doc = new jsPDF('landscape')
-    
-    // Add title
-    doc.setFontSize(20)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Competition Results', 20, 20)
-    
-    // Add event info
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Event: ${eventName}`, 20, 35)
-    if (squadName) {
-      doc.text(`Squad: ${squadName}`, 20, 45)
-    }
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, squadName ? 55 : 45)
-    
-    // Prepare table data
-    const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
-    const tableData = filteredRanking.map(participant => [
-      participant.rank,
-      participant.name,
-      participant.club,
-      participant.age,
-      ...disciplines.map(discipline => 
-        participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
-      ),
-      formatScore(participant.totalScore)
-    ])
+      const doc = new jsPDF('landscape')
+      
+      // Add title
+      doc.setFontSize(20)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Competition Results', 20, 20)
+      
+      // Add event info
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Event: ${eventName}`, 20, 35)
+      const selectedCompName = competitions.find(c => c.id?.toString() === selectedCompetition)?.name || 'Unknown Competition'
+      doc.text(`Competition: ${selectedCompName}`, 20, 45)
+      if (squadName) {
+        doc.text(`Squad: ${squadName}`, 20, 55)
+      }
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, squadName ? 65 : 55)
+      
+      // Prepare table data
+      const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+      const tableData = filteredRanking.map(participant => [
+        participant.rank,
+        participant.name,
+        participant.club,
+        participant.age,
+        ...disciplines.map(discipline => 
+          participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
+        ),
+        formatScore(participant.totalScore)
+      ])
 
-    // Generate table
-    autoTable(doc, {
-      head: [headers],
-      body: tableData,
-      startY: squadName ? 65 : 55,
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-      },
-      headStyles: {
-        fillColor: [66, 139, 202],
-        textColor: 255,
-        fontSize: 9,
-        fontStyle: 'bold'
-      },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 15 }, // Rank
-        1: { halign: 'left', cellWidth: 40 },   // Name
-        2: { halign: 'left', cellWidth: 35 },   // Club
-        3: { halign: 'center', cellWidth: 15 }, // Age
-        [headers.length - 1]: { 
-          halign: 'center', 
-          cellWidth: 20,
-          fillColor: [240, 248, 255],
+      // Generate table
+      autoTable(doc, {
+        head: [headers],
+        body: tableData,
+        startY: squadName ? 75 : 65,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [66, 139, 202],
+          textColor: 255,
+          fontSize: 9,
           fontStyle: 'bold'
-        } // Total
-      },
-      alternateRowStyles: {
-        fillColor: [248, 249, 250]
-      },
-      didParseCell: function(data) {
-        // Highlight medal positions
-        if (data.section === 'body' && data.column.index === 0) {
-          const rank = parseInt(data.cell.text[0])
-          if (rank <= 3) {
-            switch (rank) {
-              case 1:
-                data.cell.styles.fillColor = [255, 215, 0] // Gold
-                break
-              case 2:
-                data.cell.styles.fillColor = [192, 192, 192] // Silver
-                break
-              case 3:
-                data.cell.styles.fillColor = [205, 127, 50] // Bronze
-                break
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 }, // Rank
+          1: { halign: 'left', cellWidth: 40 },   // Name
+          2: { halign: 'left', cellWidth: 35 },   // Club
+          3: { halign: 'center', cellWidth: 15 }, // Age
+          [headers.length - 1]: { 
+            halign: 'center', 
+            cellWidth: 20,
+            fillColor: [240, 248, 255],
+            fontStyle: 'bold'
+          } // Total
+        },
+        alternateRowStyles: {
+          fillColor: [248, 249, 250]
+        },
+        didParseCell: function(data) {
+          // Highlight medal positions
+          if (data.section === 'body' && data.column.index === 0) {
+            const rank = parseInt(data.cell.text[0])
+            if (rank <= 3) {
+              switch (rank) {
+                case 1:
+                  data.cell.styles.fillColor = [255, 215, 0] // Gold
+                  break
+                case 2:
+                  data.cell.styles.fillColor = [192, 192, 192] // Silver
+                  break
+                case 3:
+                  data.cell.styles.fillColor = [205, 127, 50] // Bronze
+                  break
+              }
+              data.cell.styles.textColor = [0, 0, 0]
+              data.cell.styles.fontStyle = 'bold'
             }
-            data.cell.styles.textColor = [0, 0, 0]
+          }
+          
+          // Highlight total score column
+          if (data.section === 'body' && data.column.index === headers.length - 1) {
+            data.cell.styles.fillColor = [240, 248, 255]
             data.cell.styles.fontStyle = 'bold'
           }
         }
-        
-        // Highlight total score column
-        if (data.section === 'body' && data.column.index === headers.length - 1) {
-          data.cell.styles.fillColor = [240, 248, 255]
-          data.cell.styles.fontStyle = 'bold'
-        }
-      }
-    })
+      })
 
-    // Save the PDF
-    doc.save(`results_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
+      // Save the PDF
+      doc.save(`results_${selectedCompName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
+    } else {
+      // All competitions export
+      if (filteredCompetitionGroups.length === 0) return
+
+      const doc = new jsPDF('landscape')
+      let currentY = 20
+      
+      // Add title
+      doc.setFontSize(20)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Competition Results - All Competitions', 20, currentY)
+      currentY += 20
+      
+      // Add event info
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Event: ${eventName}`, 20, currentY)
+      currentY += 10
+      if (squadName) {
+        doc.text(`Squad: ${squadName}`, 20, currentY)
+        currentY += 10
+      }
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, currentY)
+      currentY += 20
+
+      // Process each competition group
+      filteredCompetitionGroups.forEach((group) => {
+        // Check if we need a new page
+        if (currentY > 180) {
+          doc.addPage()
+          currentY = 20
+        }
+
+        // Add competition title
+        doc.setFontSize(16)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${group.competitionName} (${group.participants.length} participants)`, 20, currentY)
+        currentY += 15
+
+        // Prepare table data for this competition
+        const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+        const tableData = group.participants.map(participant => [
+          participant.rank,
+          participant.name,
+          participant.club,
+          participant.age,
+          ...disciplines.map(discipline => 
+            participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
+          ),
+          formatScore(participant.totalScore)
+        ])
+
+        // Generate table for this competition
+        autoTable(doc, {
+          head: [headers],
+          body: tableData,
+          startY: currentY,
+          styles: {
+            fontSize: 7,
+            cellPadding: 1.5,
+          },
+          headStyles: {
+            fillColor: [66, 139, 202],
+            textColor: 255,
+            fontSize: 8,
+            fontStyle: 'bold'
+          },
+          columnStyles: {
+            0: { halign: 'center', cellWidth: 12 }, // Rank
+            1: { halign: 'left', cellWidth: 35 },   // Name
+            2: { halign: 'left', cellWidth: 30 },   // Club
+            3: { halign: 'center', cellWidth: 12 }, // Age
+            [headers.length - 1]: { 
+              halign: 'center', 
+              cellWidth: 18,
+              fillColor: [240, 248, 255],
+              fontStyle: 'bold'
+            } // Total
+          },
+          alternateRowStyles: {
+            fillColor: [248, 249, 250]
+          },
+          didParseCell: function(data) {
+            // Highlight medal positions
+            if (data.section === 'body' && data.column.index === 0) {
+              const rank = parseInt(data.cell.text[0])
+              if (rank <= 3) {
+                switch (rank) {
+                  case 1:
+                    data.cell.styles.fillColor = [255, 215, 0] // Gold
+                    break
+                  case 2:
+                    data.cell.styles.fillColor = [192, 192, 192] // Silver
+                    break
+                  case 3:
+                    data.cell.styles.fillColor = [205, 127, 50] // Bronze
+                    break
+                }
+                data.cell.styles.textColor = [0, 0, 0]
+                data.cell.styles.fontStyle = 'bold'
+              }
+            }
+            
+            // Highlight total score column
+            if (data.section === 'body' && data.column.index === headers.length - 1) {
+              data.cell.styles.fillColor = [240, 248, 255]
+              data.cell.styles.fontStyle = 'bold'
+            }
+          },
+          didDrawPage: function(data) {
+            currentY = (data as any).cursor.y + 15
+          }
+        })
+
+        // Add some space between competitions
+        currentY += 10
+      })
+
+      // Save the PDF
+      doc.save(`results_all_competitions_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
+    }
   }
 
   // Filter participants based on search term
