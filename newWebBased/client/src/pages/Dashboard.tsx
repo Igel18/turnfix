@@ -107,6 +107,13 @@ const eventManagementActions = [
     color: 'bg-purple-500'
   },
   {
+    name: 'Competition Status',
+    description: 'View aggregated competition status from squad progress',
+    href: '/competition-status',
+    icon: TrophyIcon,
+    color: 'bg-green-500'
+  },
+  {
     name: 'Score Capture',
     description: 'Enter competition results and scores',
     href: '/score-capture',

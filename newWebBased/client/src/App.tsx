@@ -16,6 +16,7 @@ import CompetitionsDebug from '@/pages/CompetitionsDebug'
 import Disciplines from '@/pages/Disciplines'
 import SquadManagement from '@/pages/SquadManagement'
 import { SquadStatusManagement } from '@/pages/SquadStatusManagement'
+import CompetitionStatusManagement from '@/pages/CompetitionStatusManagement'
 import EventParticipants from '@/pages/EventParticipants'
 import DatabaseConfig from '@/pages/DatabaseConfig'
 import CertificateLayouts from '@/pages/CertificateLayouts'
@@ -41,6 +42,7 @@ function App() {
             <Route path="/competitions-debug" element={<CompetitionsDebug />} />
             <Route path="/squads" element={<SquadManagement />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />
+            <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/disciplines" element={<Disciplines />} />
             <Route path="/database-config" element={<DatabaseConfig />} />
