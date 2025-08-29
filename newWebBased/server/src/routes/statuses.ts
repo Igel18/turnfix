@@ -8,6 +8,9 @@ const prisma = new PrismaClient();
 // Validation schemas
 const createStatusSchema = z.object({
   var_name: z.string().min(1).max(150),
+  ary_colorcode: z.string().max(25).optional().default('{0,0,0}'),
+  bol_bogen: z.boolean().optional().default(true),
+  bol_karte: z.boolean().optional().default(true),
 });
 
 const updateStatusSchema = createStatusSchema.partial();

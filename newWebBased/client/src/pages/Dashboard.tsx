@@ -61,6 +61,13 @@ const databaseManagementActions = [
     color: 'bg-pink-500'
   },
   {
+    name: 'Status Management',
+    description: 'Manage participant statuses and squad states',
+    href: '/status-management',
+    icon: CogIcon,
+    color: 'bg-violet-500'
+  },
+  {
     name: 'Create Event',
     description: 'Set up a new gymnastics competition',
     href: '/events',
@@ -134,11 +141,40 @@ export function Dashboard() {
           fetch('/api/participants')
         ])
 
-        const [events, clubs, participants] = await Promise.all([
-          eventsRes.json(),
-          clubsRes.json(),
-          participantsRes.json()
-        ])
+        // Check if responses are ok and contain JSON
+        let events = { events: [] }
+        let clubs = { clubs: [] }
+        let participants = { participants: [] }
+
+        if (eventsRes.ok) {
+          try {
+            events = await eventsRes.json()
+          } catch (e) {
+            console.warn('Events API returned non-JSON response')
+          }
+        } else {
+          console.warn('Events API returned error:', eventsRes.status, eventsRes.statusText)
+        }
+
+        if (clubsRes.ok) {
+          try {
+            clubs = await clubsRes.json()
+          } catch (e) {
+            console.warn('Clubs API returned non-JSON response')
+          }
+        } else {
+          console.warn('Clubs API returned error:', clubsRes.status, clubsRes.statusText)
+        }
+
+        if (participantsRes.ok) {
+          try {
+            participants = await participantsRes.json()
+          } catch (e) {
+            console.warn('Participants API returned non-JSON response')
+          }
+        } else {
+          console.warn('Participants API returned error:', participantsRes.status, participantsRes.statusText)
+        }
 
         setStatistics({
           activeEvents: events.events?.length || 0,

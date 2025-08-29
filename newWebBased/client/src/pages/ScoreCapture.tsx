@@ -4,7 +4,6 @@ import {
   InformationCircleIcon,
   PlusIcon,
   ClipboardDocumentListIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
@@ -25,6 +24,7 @@ interface Participant {
   isInEvent: boolean;
   registrationDate: string;
   squad_name?: string; // Added by squad lookup
+  int_statusid?: number; // Current status ID
 }
 
 interface Discipline {
@@ -50,6 +50,14 @@ interface Score {
   attempt: number;
   notes?: string;
   status: 'pending' | 'completed' | 'reviewed';
+}
+
+interface Status {
+  int_statusid: number;
+  var_name: string;
+  ary_colorcode: string;
+  bol_bogen: boolean;
+  bol_karte: boolean;
 }
 
 interface Competition {
@@ -89,9 +97,12 @@ export function ScoreCapture() {
   const [squads, setSquads] = useState<Squad[]>([])
   const [scores] = useState<Score[]>([])
   const [competitions, setCompetitions] = useState<Competition[]>([])
+  const [statuses, setStatuses] = useState<Status[]>([])
   const [loading, setLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(false)
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({}) // Changed to string only
+  const [squadStatus, setSquadStatus] = useState<number | null>(null) // Squad-level status for current squad and discipline
+  const [squadDisciplineStatuses, setSquadDisciplineStatuses] = useState<{ [key: string]: number }>({}) // All squad-discipline status combinations
   const [disciplineToCompetitionMap, setDisciplineToCompetitionMap] = useState<Map<number | string, number>>(new Map())
   
   // Selection state - initialized from context
@@ -130,6 +141,17 @@ export function ScoreCapture() {
       }
     }
   }, [contextDiscipline?.int_disziplinid, contextDiscipline?.var_name, activeDiscipline])
+
+  // Update squad status when squad or discipline selection changes
+  useEffect(() => {
+    if (activeSquad && activeDiscipline && squadDisciplineStatuses) {
+      const key = `${activeSquad}-${activeDiscipline}`
+      const currentStatus = squadDisciplineStatuses[key] || null
+      setSquadStatus(currentStatus)
+    } else {
+      setSquadStatus(null)
+    }
+  }, [activeSquad, activeDiscipline, squadDisciplineStatuses])
 
   // Helper function to add delay between API calls
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -221,6 +243,44 @@ export function ScoreCapture() {
       
       // Initialize score matrix with existing scores
       initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], existingScores)
+      
+      // Load available statuses
+      try {
+        const statusesData = await apiGet('/statuses?limit=100')
+        await delay(100)
+        console.log('Loaded statuses:', statusesData)
+        setStatuses(statusesData.statuses || [])
+      } catch (error) {
+        console.error('Error loading statuses:', error)
+        // Continue without statuses if there's an error
+      }
+
+      // Load current squad status from database
+      try {
+        if (eventId) {
+          const squadDisciplinesData = await apiGet(`/squad-disciplines?eventId=${eventId}`)
+          console.log('Loaded squad disciplines:', squadDisciplinesData)
+          
+          // Create a map of squad-discipline combinations to their statuses
+          const statusMap: { [key: string]: number } = {}
+          squadDisciplinesData.squadDisciplines?.forEach((sd: any) => {
+            const key = `${sd.squadName}-${sd.disciplineId}`
+            statusMap[key] = sd.statusId
+          })
+          setSquadDisciplineStatuses(statusMap)
+          
+          // Set current squad status if we have a selected squad and discipline
+          if (activeSquad && activeDiscipline) {
+            const currentKey = `${activeSquad}-${activeDiscipline}`
+            setSquadStatus(statusMap[currentKey] || null)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading squad statuses:', error)
+        // Graceful fallback - continue without status data
+        setSquadDisciplineStatuses({})
+        setSquadStatus(null)
+      }
       
     } catch (error: any) {
       console.error('Error loading initial data:', error)
@@ -357,6 +417,14 @@ export function ScoreCapture() {
       
       if (response.success) {
         console.log('Score saved successfully:', response)
+        
+        // Auto-set status to "Leistung erfasst" (ID: 9) when score is saved
+        // DISABLED: Status management not available until database schema is updated
+        // const leistungErfasstStatus = statuses.find(s => s.var_name === 'Leistungen erfasst')
+        // if (leistungErfasstStatus && !participantStatuses[participantId]) {
+        //   saveParticipantStatus(participantId, leistungErfasstStatus.int_statusid)
+        // }
+        
         // Optionally show success message
         // You could add a toast notification here
       } else {
@@ -368,6 +436,94 @@ export function ScoreCapture() {
       console.error('Error saving score:', error)
       alert('Failed to save score')
     }
+  }
+
+  // Function to save squad status via API
+  const saveSquadStatus = async (statusId: number) => {
+    if (!contextSquad || !activeDiscipline || !eventId) {
+      console.warn('Cannot save squad status: missing squad, discipline, or event')
+      return
+    }
+
+    try {
+      setSquadStatus(statusId)
+      console.log('Saving squad status:', { 
+        squadName: contextSquad.squad_name, 
+        disciplineId: activeDiscipline, 
+        statusId,
+        eventId 
+      })
+      
+      // Make API call to update status
+      const response = await fetch(`/api/squad-disciplines/${encodeURIComponent(contextSquad.squad_name)}/${activeDiscipline}/status?eventId=${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          statusId: statusId
+        }),
+      })
+      
+      if (response.ok) {
+        console.log('Squad status saved successfully')
+        
+        // Update local state
+        const key = `${contextSquad.squad_name}-${activeDiscipline}`
+        setSquadDisciplineStatuses(prev => ({
+          ...prev,
+          [key]: statusId
+        }))
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to save squad status:', errorData)
+        alert(`Failed to save squad status: ${errorData.error || 'Unknown error'}`)
+        
+        // Revert local state on error
+        const key = `${contextSquad.squad_name}-${activeDiscipline}`
+        const originalStatus = squadDisciplineStatuses[key] || null
+        setSquadStatus(originalStatus)
+      }
+      
+    } catch (error) {
+      console.error('Error saving squad status:', error)
+      alert('Failed to save squad status due to network error')
+      
+      // Revert local state on error
+      const key = `${contextSquad.squad_name}-${activeDiscipline}`
+      const originalStatus = squadDisciplineStatuses[key] || null
+      setSquadStatus(originalStatus)
+    }
+  }
+
+  // Function to handle squad status change
+  const handleSquadStatusChange = (statusId: string) => {
+    const numericStatusId = parseInt(statusId)
+    if (!isNaN(numericStatusId)) {
+      saveSquadStatus(numericStatusId)
+    }
+  }
+
+  // Function to get status color style
+  const getStatusColor = (statusId: number): string => {
+    const status = statuses.find(s => s.int_statusid === statusId)
+    if (!status || !status.ary_colorcode) {
+      return 'bg-gray-100 text-gray-800'
+    }
+    
+    // Parse color code (assuming format like "rgb(255,0,0)" or "#ff0000")
+    const colorCode = status.ary_colorcode
+    if (colorCode.includes('255,0,0') || colorCode.includes('#ff0000') || colorCode.includes('red')) {
+      return 'bg-red-100 text-red-800'
+    } else if (colorCode.includes('0,255,0') || colorCode.includes('#00ff00') || colorCode.includes('green')) {
+      return 'bg-green-100 text-green-800'
+    } else if (colorCode.includes('255,255,0') || colorCode.includes('#ffff00') || colorCode.includes('yellow')) {
+      return 'bg-yellow-100 text-yellow-800'
+    } else if (colorCode.includes('0,0,255') || colorCode.includes('#0000ff') || colorCode.includes('blue')) {
+      return 'bg-blue-100 text-blue-800'
+    }
+    
+    return 'bg-gray-100 text-gray-800'
   }
 
   // Helper function to get competition names for a participant
@@ -414,31 +570,6 @@ export function ScoreCapture() {
     }
   }
 
-  // Helper function to check if participant should be shown based on discipline selection
-  const participantHasSelectedDiscipline = (participant: Participant): boolean => {
-    // For score capture, we want to be more permissive - show all participants in the squad
-    // when a discipline is selected, as they might compete in that discipline
-    return true
-    
-    // The original restrictive logic is commented out:
-    /*
-    if (!activeDiscipline || !participant.assignedCompetitions) {
-      return true // Show all if no discipline selected or no competition assignments
-    }
-    
-    // Get the competition ID that has the selected discipline
-    const selectedDisciplineKey = activeDiscipline
-    const competitionWithDiscipline = disciplineToCompetitionMap.get(selectedDisciplineKey)
-    
-    if (!competitionWithDiscipline) {
-      return true // If we can't find the competition for this discipline, show participant
-    }
-    
-    // Check if the participant is assigned to the competition that has this discipline
-    return participant.assignedCompetitions.includes(competitionWithDiscipline)
-    */
-  }
-
   const filteredParticipants = Array.isArray(participants) ? participants.filter(participant => {
     const matchesSearch = 
       participant.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -446,9 +577,8 @@ export function ScoreCapture() {
       participant.club?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesSquad = !activeSquad || participant.squad_name === activeSquad
-    const hasDiscipline = participantHasSelectedDiscipline(participant)
 
-    return matchesSearch && matchesSquad && hasDiscipline
+    return matchesSearch && matchesSquad
   }) : []
 
   // Filter disciplines to show only selected one, or all if none selected
@@ -629,6 +759,41 @@ export function ScoreCapture() {
                 ✓ Squad "{activeSquad}" selected
               </p>
             )}
+            
+            {/* Squad Status Selection */}
+            {activeSquad && activeDiscipline && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Squad Status for {typeof activeDiscipline === 'number' ? 
+                    disciplines.find(d => d.int_disziplinid === activeDiscipline)?.var_shortname || 'Selected Discipline' :
+                    activeDiscipline
+                  }
+                </label>
+                <select
+                  value={squadStatus || ''}
+                  onChange={(e) => handleSquadStatusChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">No Status</option>
+                  {statuses.map(status => (
+                    <option key={status.int_statusid} value={status.int_statusid}>
+                      {status.var_name}
+                    </option>
+                  ))}
+                </select>
+                
+                <p className="mt-1 text-xs text-gray-500">
+                  Status applies to the selected squad and discipline combination
+                </p>
+                
+                {/* Status Color Indicator */}
+                {squadStatus && (
+                  <div className={`inline-block px-3 py-1 mt-2 text-sm rounded-full ${getStatusColor(squadStatus)}`}>
+                    {statuses.find(s => s.int_statusid === squadStatus)?.var_name || 'Unknown Status'}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Device/Discipline Selection */}
@@ -727,23 +892,10 @@ export function ScoreCapture() {
                           )}
                         </th>
                       ))}
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredParticipants.map(participant => {
-                      const participantScores = Array.isArray(displayDisciplines) ? displayDisciplines.map((discipline, index) => {
-                        const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
-                        const key = `${participant.id}-${disciplineId}`
-                        return scoreMatrix[key] || ''
-                      }) : []
-                      
-                      const completedCount = Array.isArray(participantScores) ? participantScores.filter(score => score !== '').length : 0
-                      const totalCount = Array.isArray(displayDisciplines) ? displayDisciplines.length : 0
-                      const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
-                      
                       return (
                         <tr key={participant.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white z-10">
@@ -788,25 +940,6 @@ export function ScoreCapture() {
                               </td>
                             )
                           })}
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <div className="flex items-center justify-center">
-                              {progress === 100 ? (
-                                <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                              ) : progress > 0 ? (
-                                <div className="relative w-12 h-2 bg-gray-200 rounded-full">
-                                  <div 
-                                    className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
-                                    style={{ width: `${progress}%` }}
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {completedCount}/{totalCount}
-                            </div>
-                          </td>
                         </tr>
                       )
                     })}

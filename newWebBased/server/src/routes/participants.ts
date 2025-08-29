@@ -384,4 +384,12 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
   }
 });
 
+// Update participant status - DISABLED: int_statusid column doesn't exist in database yet
+router.put('/:id/status', authenticateToken, async (req: Request, res: Response) => {
+  return res.status(501).json({ 
+    message: 'Status management not available: int_statusid column does not exist in tfx_teilnehmer table',
+    error: 'Database schema needs to be updated to support status management'
+  });
+});
+
 export default router;
