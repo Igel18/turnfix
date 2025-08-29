@@ -145,16 +145,27 @@ const Results = () => {
       if (selectedCompetition) scoresParams.append('competitionId', selectedCompetition)
 
       const scoresData = await apiGet(`/scores?${scoresParams}`)
-      const scores = scoresData.scores || []
+      const scores = scoresData.results || []
+
+      console.log('Fetched scores data:', scoresData)
+      console.log('Scores array:', scores)
+      console.log('First score:', scores[0])
 
       // Create a map of participant scores
       const scoresMap = new Map<number, { [discipline: string]: number }>()
       const disciplineSet = new Set<string>()
 
       scores.forEach((score: any) => {
-        const participantId = score.int_teilnehmerid || score.participantId
-        const discipline = score.var_disziplin || score.discipline
-        const scoreValue = score.dec_wertung || score.score || 0
+        const participantId = score.participantId
+        const discipline = score.discipline?.name || score.disciplineName
+        const scoreValue = score.score || 0
+        
+        console.log('Processing score:', { participantId, discipline, scoreValue })
+        
+        if (!participantId || !discipline || scoreValue === null) {
+          console.log('Skipping invalid score:', { participantId, discipline, scoreValue })
+          return // Skip invalid scores
+        }
         
         disciplineSet.add(discipline)
 
@@ -163,6 +174,9 @@ const Results = () => {
         }
         scoresMap.get(participantId)![discipline] = scoreValue
       })
+
+      console.log('Disciplines found:', Array.from(disciplineSet))
+      console.log('Scores map:', scoresMap)
 
       // Build ranking list from participants with their scores
       const participantsList: Participant[] = participants.map((participant: any) => {
@@ -335,12 +349,18 @@ const Results = () => {
                     Jg
                   </th>
                   {disciplines.map(discipline => (
-                    <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {discipline.substring(0, 6)}
+                    <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{discipline}</span>
+                        <span className="text-[10px] text-gray-400 font-normal">Device</span>
+                      </div>
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50">
-                    Gesamt
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-blue-700">Gesamt</span>
+                      <span className="text-[10px] text-blue-500 font-normal">Total Score</span>
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -364,16 +384,30 @@ const Results = () => {
                       {participant.age}
                     </td>
                     {disciplines.map(discipline => (
-                      <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center">
-                        <span className="text-sm font-medium">
-                          {participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'}
-                        </span>
+                      <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
+                        <div className="flex flex-col items-center">
+                          {participant.scores[discipline] ? (
+                            <span className="text-lg font-bold text-gray-900">
+                              {formatScore(participant.scores[discipline])}
+                            </span>
+                          ) : (
+                            <span className="text-lg font-medium text-gray-400">-</span>
+                          )}
+                          <span className="text-xs text-gray-500 mt-1">
+                            {discipline}
+                          </span>
+                        </div>
                       </td>
                     ))}
-                    <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50">
-                      <span className="text-lg font-bold text-blue-900">
-                        {formatScore(participant.totalScore)}
-                      </span>
+                    <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-bold text-blue-900">
+                          {formatScore(participant.totalScore)}
+                        </span>
+                        <span className="text-xs text-blue-600 mt-1">
+                          Total
+                        </span>
+                      </div>
                     </td>
                   </tr>
                 ))}
