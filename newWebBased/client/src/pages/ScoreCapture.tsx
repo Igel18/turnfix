@@ -222,8 +222,17 @@ export function ScoreCapture() {
       // Initialize score matrix with existing scores
       initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], existingScores)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading initial data:', error)
+      
+      // Handle rate limiting gracefully
+      if (error.message?.includes('429')) {
+        console.warn('Rate limited while loading initial data, API will handle retry automatically');
+        // Don't show error to user for rate limiting
+      } else {
+        // Show error for other types of failures
+        alert('Failed to load initial data. Please refresh the page.');
+      }
     } finally {
       setLoading(false)
       setIsInitializing(false)

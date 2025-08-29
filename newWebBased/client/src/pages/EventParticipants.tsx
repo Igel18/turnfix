@@ -294,10 +294,15 @@ const EventParticipants: React.FC = () => {
 
   useEffect(() => {
     if (eventId) {
-      loadParticipants();
-      loadAvailableParticipants();
-      loadCompetitions();
-      loadClubs();
+      // Add a small delay to prevent simultaneous API calls from multiple components
+      const timeoutId = setTimeout(() => {
+        loadParticipants();
+        loadAvailableParticipants();
+        loadCompetitions();
+        loadClubs();
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [eventId]);
 
@@ -306,9 +311,17 @@ const EventParticipants: React.FC = () => {
       const data = await apiGet(`/event-participants?eventId=${eventId}`)
       setAllParticipants(data.participants || []);
       console.log(`Loaded ${data.participants?.length || 0} participants from API`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading participants:', error);
-      // Use mock data for fallback
+      
+      // Handle rate limiting gracefully
+      if (error.message?.includes('429')) {
+        console.warn('Rate limited while loading participants, will retry...');
+        // Don't show error to user for rate limiting, the API will handle retry
+        return;
+      }
+      
+      // Use mock data for other errors
       setAllParticipants([
         {
           id: 1,
