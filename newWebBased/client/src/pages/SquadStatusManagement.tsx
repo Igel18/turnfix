@@ -136,21 +136,87 @@ export function SquadStatusManagement() {
     }
   }
 
-  // Get status color style
-  const getStatusColor = (colorCode: string): string => {
-    if (!colorCode) return 'bg-gray-100 text-gray-800'
-    
-    if (colorCode.includes('255,0,0') || colorCode.includes('#ff0000') || colorCode.includes('red')) {
-      return 'bg-red-100 text-red-800'
-    } else if (colorCode.includes('0,255,0') || colorCode.includes('#00ff00') || colorCode.includes('green')) {
-      return 'bg-green-100 text-green-800'
-    } else if (colorCode.includes('255,255,0') || colorCode.includes('#ffff00') || colorCode.includes('yellow')) {
-      return 'bg-yellow-100 text-yellow-800'
-    } else if (colorCode.includes('0,0,255') || colorCode.includes('#0000ff') || colorCode.includes('blue')) {
-      return 'bg-blue-100 text-blue-800'
+  // Get status color style from actual color code
+  const getStatusColor = (colorCode: string): { style: React.CSSProperties; className: string } => {
+    if (!colorCode) return { 
+      style: {}, 
+      className: 'bg-gray-100 text-gray-800 border border-gray-200' 
     }
     
-    return 'bg-gray-100 text-gray-800'
+    try {
+      // Handle different color code formats
+      let rgbValues: number[] = []
+      
+      if (colorCode.startsWith('{') && colorCode.endsWith('}')) {
+        // Format: {255,0,0}
+        const cleanCode = colorCode.slice(1, -1)
+        rgbValues = cleanCode.split(',').map(v => parseInt(v.trim()))
+      } else if (colorCode.startsWith('rgb(') && colorCode.endsWith(')')) {
+        // Format: rgb(255,0,0)
+        const cleanCode = colorCode.slice(4, -1)
+        rgbValues = cleanCode.split(',').map(v => parseInt(v.trim()))
+      } else if (colorCode.startsWith('#')) {
+        // Format: #ff0000
+        const hex = colorCode.slice(1)
+        rgbValues = [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16)
+        ]
+      } else {
+        // Try to parse as comma-separated values
+        rgbValues = colorCode.split(',').map(v => parseInt(v.trim()))
+      }
+      
+      if (rgbValues.length === 3 && rgbValues.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
+        const [r, g, b] = rgbValues
+        
+        // Calculate brightness to determine if we need light or dark background
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000
+        
+        let bgR, bgG, bgB, textR, textG, textB
+        
+        if (brightness < 128) {
+          // Dark color - use lighter background with darker text
+          bgR = Math.min(255, r + Math.max(180, 255 - r))
+          bgG = Math.min(255, g + Math.max(180, 255 - g))
+          bgB = Math.min(255, b + Math.max(180, 255 - b))
+          textR = Math.max(0, Math.min(r * 0.3, 80))
+          textG = Math.max(0, Math.min(g * 0.3, 80))
+          textB = Math.max(0, Math.min(b * 0.3, 80))
+        } else {
+          // Light color - use the original color as background with white text
+          bgR = r
+          bgG = g
+          bgB = b
+          textR = textG = textB = brightness > 180 ? 0 : 255
+        }
+        
+        return {
+          style: {
+            backgroundColor: `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`,
+            color: `rgb(${Math.round(textR)}, ${Math.round(textG)}, ${Math.round(textB)})`,
+            borderColor: `rgb(${r}, ${g}, ${b})`
+          },
+          className: 'border'
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to parse color code:', colorCode, error)
+    }
+    
+    // Fallback to generic color mapping
+    if (colorCode.includes('255,0,0') || colorCode.includes('#ff0000') || colorCode.includes('red')) {
+      return { style: {}, className: 'bg-red-100 text-red-800 border border-red-200' }
+    } else if (colorCode.includes('0,255,0') || colorCode.includes('#00ff00') || colorCode.includes('green')) {
+      return { style: {}, className: 'bg-green-100 text-green-800 border border-green-200' }
+    } else if (colorCode.includes('255,255,0') || colorCode.includes('#ffff00') || colorCode.includes('yellow')) {
+      return { style: {}, className: 'bg-yellow-100 text-yellow-800 border border-yellow-200' }
+    } else if (colorCode.includes('0,0,255') || colorCode.includes('#0000ff') || colorCode.includes('blue')) {
+      return { style: {}, className: 'bg-blue-100 text-blue-800 border border-blue-200' }
+    }
+    
+    return { style: {}, className: 'bg-gray-100 text-gray-800 border border-gray-200' }
   }
 
   // Filter data
@@ -243,7 +309,33 @@ export function SquadStatusManagement() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Filters</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Filters & Status Legend</h3>
+        
+        {/* Status Legend */}
+        {uniqueStatuses.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Status Colors</h4>
+            <div className="flex flex-wrap gap-2">
+              {statuses
+                .filter(status => uniqueStatuses.includes(status.var_name))
+                .map(status => {
+                  const colorInfo = getStatusColor(status.ary_colorcode)
+                  return (
+                    <div key={status.int_statusid} className="flex items-center space-x-2">
+                      <span 
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorInfo.className}`}
+                        style={colorInfo.style}
+                      >
+                        {status.var_name}
+                      </span>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Squad</label>
@@ -351,7 +443,10 @@ export function SquadStatusManagement() {
                           </button>
                         </div>
                       ) : (
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status.colorCode)}`}>
+                        <span 
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status.colorCode).className}`}
+                          style={getStatusColor(item.status.colorCode).style}
+                        >
                           {item.status.name}
                         </span>
                       )}
@@ -390,6 +485,7 @@ export function SquadStatusManagement() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">{item.squadName}</h3>
                   <p className="text-sm text-gray-500">{item.disciplineName}</p>
+                  <p className="text-xs text-gray-400">{item.disciplineShort}</p>
                 </div>
                 <button
                   onClick={() => setEditingItem(item)}
@@ -415,7 +511,10 @@ export function SquadStatusManagement() {
                       ))}
                     </select>
                   ) : (
-                    <div className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status.colorCode)}`}>
+                    <div 
+                      className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status.colorCode).className}`}
+                      style={getStatusColor(item.status.colorCode).style}
+                    >
                       {item.status.name}
                     </div>
                   )}
