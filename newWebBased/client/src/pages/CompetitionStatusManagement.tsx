@@ -236,7 +236,7 @@ const CompetitionStatusManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <UnifiedHeader
         title="Competition Status Management"
         description="View aggregated status for competitions based on squad progress"

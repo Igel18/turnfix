@@ -262,7 +262,7 @@ export function SquadStatusManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <UnifiedHeader
         title="Squad Status Management"
         description={`Manage status for squad-discipline combinations (${squadDisciplines.length} combinations loaded)`}
