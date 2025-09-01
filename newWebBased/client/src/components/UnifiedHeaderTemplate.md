@@ -13,47 +13,79 @@ import {
 } from '@heroicons/react/24/outline'
 
 // In your component JSX:
-<UnifiedHeader
-  title="[Page] Management"
-  description="Manage [entities] ([count] [entities] loaded)"
-  icon={YourIcon}
-  
-  // State info badges (optional)
-  stateInfo={getStateInfo()}
-  selectedState={selectedStatus}
-  onStateChange={setSelectedStatus}
-  
-  // Search functionality
-  searchTerm={searchTerm}
-  onSearchChange={setSearchTerm}
-  searchPlaceholder="Search [entities]..."
-  
-  // Filter options (optional)
-  filterOptions={getFilterOptions()}
-  onClearAllFilters={handleClearAllFilters}
-  onExportCSV={handleExportCSV}
-  
-  // REQUIRED: Home button (top right, gray)
-  showHomeButton={true}
-  homeUrl="/dashboard"
-  
-  // OPTIONAL: Secondary action (top right, green) - Import
-  secondaryAction={{
-    label: 'Import [Entities]',
-    icon: ArrowUpTrayIcon,
-    onClick: () => setShowImportModal(true)
-  }}
-  
-  // REQUIRED: Primary action (top right, blue) - Add/New
-  primaryAction={{
-    label: 'Add [Entity]',
-    icon: PlusIcon,
-    onClick: () => setIsModalOpen(true)
-  }}
-  
-  // Count info
-  totalCount={filteredEntities.length}
-/>
+return (
+  <div className="max-w-7xl mx-auto">
+    <UnifiedHeader
+      title="[Page] Management"
+      description="Manage [entities] ([count] [entities] loaded)"
+      icon={YourIcon}
+      
+      // State info badges (optional)
+      stateInfo={getStateInfo()}
+      selectedState={selectedStatus}
+      onStateChange={setSelectedStatus}
+      
+      // Search functionality
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      searchPlaceholder="Search [entities]..."
+      
+      // Filter options (optional)
+      filterOptions={getFilterOptions()}
+      onClearAllFilters={handleClearAllFilters}
+      onExportCSV={handleExportCSV}
+      
+      // REQUIRED: Home button (top right, gray)
+      showHomeButton={true}
+      homeUrl="/dashboard"
+      
+      // OPTIONAL: Secondary action (top right, green) - Import
+      secondaryAction={{
+        label: 'Import [Entities]',
+        icon: ArrowUpTrayIcon,
+        onClick: () => setShowImportModal(true)
+      }}
+      
+      // REQUIRED: Primary action (top right, blue) - Add/New
+      primaryAction={{
+        label: 'Add [Entity]',
+        icon: PlusIcon,
+        onClick: () => setIsModalOpen(true)
+      }}
+      
+      // Count info
+      totalCount={filteredEntities.length}
+    />
+    
+    {/* Your page content goes here */}
+  </div>
+)
+```
+
+## Container Patterns
+
+### Standard Pages (Most management pages)
+```tsx
+<div className="max-w-7xl mx-auto">
+  <UnifiedHeader ... />
+  {/* Content */}
+</div>
+```
+
+### Narrow Pages (Simple forms/settings)
+```tsx
+<div className="max-w-6xl mx-auto">
+  <UnifiedHeader ... />
+  {/* Content */}
+</div>
+```
+
+### Special Layout Pages (With spacing)
+```tsx
+<div className="max-w-7xl mx-auto space-y-6">
+  <UnifiedHeader ... />
+  {/* Content */}
+</div>
 ```
 
 ## Button Order (Right to Left)

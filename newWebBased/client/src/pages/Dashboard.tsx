@@ -191,9 +191,9 @@ export function Dashboard() {
         }
 
         setStatistics({
-          activeEvents: events.events?.length || 0,
-          registeredClubs: clubs.clubs?.length || 0,
-          totalAthletes: participants.participants?.length || 0,
+          activeEvents: (events as any).pagination?.total || 0,
+          registeredClubs: (clubs as any).pagination?.total || 0,
+          totalAthletes: (participants as any).pagination?.total || 0,
           loading: false
         })
       } catch (error) {
