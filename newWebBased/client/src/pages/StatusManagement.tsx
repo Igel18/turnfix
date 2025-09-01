@@ -135,27 +135,23 @@ export function StatusManagement() {
     <div className="max-w-6xl mx-auto">
       <UnifiedHeader
         title="Status Management"
-        description="Manage squad and participant status options"
+        description={`Manage squad and participant status options (${statuses.length} statuses loaded)`}
         icon={TagIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search statuses..."
         onClearAllFilters={() => setSearchTerm('')}
         onExportCSV={() => {}}
+        showHomeButton={true}
+        homeUrl="/dashboard"
+        primaryAction={{
+          label: 'Add Status',
+          icon: PlusIcon,
+          onClick: () => setShowCreateModal(true)
+        }}
         totalCount={statuses.length}
         filteredCount={filteredStatuses.length}
       />
-      
-      {/* Action Button */}
-      <div className="mb-6">
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-        >
-          <PlusIcon className="h-4 w-4 mr-2" />
-          New Status
-        </button>
-      </div>
 
       {loading ? (
         <div className="bg-white rounded-lg shadow-sm border p-6 text-center">

@@ -254,6 +254,7 @@ const CompetitionStatusManagement = () => {
         }}
         stateInfo={getStateInfo()}
         showHomeButton={true}
+        homeUrl="/dashboard"
         primaryAction={{
           label: viewMode === 'table' ? 'Grid View' : 'Table View',
           icon: viewMode === 'table' ? EyeIcon : ClipboardDocumentListIcon,

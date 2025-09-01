@@ -710,6 +710,11 @@ const EventParticipants: React.FC = () => {
         onExportCSV={() => console.log('Export CSV clicked')}
         showHomeButton={true}
         homeUrl="/dashboard"
+        primaryAction={{
+          label: 'Add Participant',
+          icon: UserPlus,
+          onClick: () => setShowAddModal(true)
+        }}
         totalCount={selectedTab === 'participants' ? filteredParticipants.length : competitions.length}
       />
 
@@ -735,13 +740,6 @@ const EventParticipants: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Event Participants ({filteredParticipants.length})
                 </h3>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Add Participant
-                </button>
               </div>
               
               <div className="bg-white rounded-lg border">

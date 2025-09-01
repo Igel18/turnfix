@@ -265,7 +265,7 @@ export function SquadStatusManagement() {
     <div className="space-y-6">
       <UnifiedHeader
         title="Squad Status Management"
-        description="Manage status for squad-discipline combinations"
+        description={`Manage status for squad-discipline combinations (${squadDisciplines.length} combinations loaded)`}
         icon={ClipboardDocumentListIcon}
         searchTerm=""
         onSearchChange={() => {}}
@@ -280,11 +280,14 @@ export function SquadStatusManagement() {
         }}
         stateInfo={getStateInfo()}
         showHomeButton={true}
+        homeUrl="/dashboard"
         primaryAction={{
           label: viewMode === 'table' ? 'Grid View' : 'Table View',
           icon: viewMode === 'table' ? EyeIcon : ClipboardDocumentListIcon,
           onClick: () => setViewMode(viewMode === 'table' ? 'grid' : 'table')
         }}
+        totalCount={squadDisciplines.length}
+        filteredCount={filteredData.length}
       />
 
       {/* Event Selection */}
