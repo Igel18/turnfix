@@ -7,6 +7,7 @@ import {
   XMarkIcon,
   HomeIcon
 } from '@heroicons/react/24/outline'
+import ViewToggle, { type ViewType } from './ViewToggle'
 
 export interface FilterOption {
   value: string
@@ -65,6 +66,11 @@ interface UnifiedHeaderProps {
   showHomeButton?: boolean
   homeUrl?: string
   
+  // View toggle
+  showViewToggle?: boolean
+  viewType?: ViewType
+  onViewTypeChange?: (viewType: ViewType) => void
+  
   // Results info
   totalCount?: number
   filteredCount?: number
@@ -87,6 +93,9 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
   secondaryAction,
   showHomeButton = false,
   homeUrl = '/dashboard',
+  showViewToggle = false,
+  viewType = 'table',
+  onViewTypeChange,
   totalCount,
   filteredCount
 }) => {
@@ -113,6 +122,13 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
               <HomeIcon className="h-5 w-5" />
               <span>Home</span>
             </Link>
+          )}
+          {showViewToggle && onViewTypeChange && (
+            <ViewToggle 
+              viewType={viewType}
+              onViewTypeChange={onViewTypeChange}
+              size="md"
+            />
           )}
           {secondaryAction && (
             <button

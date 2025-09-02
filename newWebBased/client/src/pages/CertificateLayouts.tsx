@@ -5,9 +5,12 @@ import {
   PencilIcon,
   TrashIcon,
   EyeIcon,
-  DocumentDuplicateIcon
+  DocumentDuplicateIcon,
+  PrinterIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import useViewToggle from '@/hooks/useViewToggle'
+import { useCertificateLayout } from '@/contexts/CertificateLayoutContext'
 import LayoutDesigner from '@/components/LayoutDesigner'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 
@@ -38,7 +41,32 @@ export function CertificateLayouts() {
   const [layouts, setLayouts] = useState<Layout[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  
+  // View toggle with persistence
+  const { viewType, handleViewTypeChange } = useViewToggle({ 
+    key: 'certificate-layouts', 
+    defaultView: 'cards' 
+  })
+  
+  // Certificate layout context for persistence
+  const { selectedLayout: contextSelectedLayout, setSelectedLayout: setContextSelectedLayout } = useCertificateLayout()
+
+  // Handler to select layout for printing persistence
+  const handleSelectLayoutForPrinting = (layout: Layout) => {
+    // Convert Layout to CertificateLayout format (they're compatible except for field properties)
+    const certificateLayout = {
+      ...layout,
+      fields: layout.fields?.map(field => ({
+        ...field,
+        var_text: field.var_value, // Map var_value to var_text
+        var_spaltenwert: null // Add missing property
+      }))
+    }
+    setContextSelectedLayout(certificateLayout)
+    // Optional: Show a notification that the layout was selected for printing
+    console.log(`Selected layout "${layout.var_name}" for certificate printing`)
+  }
+  
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingLayout, setEditingLayout] = useState<Layout | null>(null)
   const [selectedLayout, setSelectedLayout] = useState<Layout | null>(null)
@@ -322,33 +350,10 @@ export function CertificateLayouts() {
         showHomeButton={true}
         homeUrl="/dashboard"
         totalCount={filteredLayouts.length}
+        showViewToggle={true}
+        viewType={viewType}
+        onViewTypeChange={handleViewTypeChange}
       />
-
-      {/* View Toggle */}
-      <div className="flex justify-end mb-4 mx-6">
-        <div className="flex rounded-md shadow-sm">
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-md border ${
-              viewMode === 'grid'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Grid View
-          </button>
-          <button
-            onClick={() => setViewMode('table')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-md border-t border-r border-b ${
-              viewMode === 'table'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Table View
-          </button>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="mx-6">
@@ -374,7 +379,7 @@ export function CertificateLayouts() {
               </button>
             </div>
           </div>
-        ) : viewMode === 'grid' ? (
+        ) : viewType === 'cards' ? (
           // Grid View
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredLayouts.map((layout) => (
@@ -433,6 +438,18 @@ export function CertificateLayouts() {
                         <TrashIcon className="h-4 w-4" />
                       </button>
                     </div>
+                    <button
+                      onClick={() => handleSelectLayoutForPrinting(layout)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                        contextSelectedLayout?.int_layoutid === layout.int_layoutid
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                      title="Select for Certificate Printing"
+                    >
+                      <PrinterIcon className="h-4 w-4 inline mr-1" />
+                      {contextSelectedLayout?.int_layoutid === layout.int_layoutid ? 'Selected' : 'Select'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -480,7 +497,7 @@ export function CertificateLayouts() {
                       {layout.fieldCount || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex justify-end items-center space-x-2">
                         <button
                           onClick={() => openLayoutDesigner(layout)}
                           className="text-blue-600 hover:text-blue-900"
@@ -508,6 +525,18 @@ export function CertificateLayouts() {
                           title="Delete Layout"
                         >
                           <TrashIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleSelectLayoutForPrinting(layout)}
+                          className={`px-2 py-1 rounded text-xs font-medium transition-colors ml-2 ${
+                            contextSelectedLayout?.int_layoutid === layout.int_layoutid
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                          title="Select for Certificate Printing"
+                        >
+                          <PrinterIcon className="h-3 w-3 inline mr-1" />
+                          {contextSelectedLayout?.int_layoutid === layout.int_layoutid ? 'Selected' : 'Select'}
                         </button>
                       </div>
                     </td>

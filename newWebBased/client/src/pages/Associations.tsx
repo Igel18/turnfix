@@ -30,6 +30,7 @@ const Associations: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<number | ''>('');
+  const [selectedState, setSelectedState] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssociation, setEditingAssociation] = useState<Association | null>(null);
   const [formData, setFormData] = useState<AssociationForm>({
@@ -45,7 +46,13 @@ const Associations: React.FC = () => {
     
     const matchesCountry = !selectedCountry || association.int_laenderid === selectedCountry;
     
-    return matchesSearch && matchesCountry;
+    // Filter by selected state
+    const matchesState = !selectedState || 
+      (selectedState === 'total') ||
+      (selectedState === 'with-country' && association.int_laenderid) ||
+      (selectedState === 'no-country' && !association.int_laenderid);
+    
+    return matchesSearch && matchesCountry && matchesState;
   });
 
   // Unified Header functions
@@ -57,19 +64,19 @@ const Associations: React.FC = () => {
     return [
       {
         label: 'Total',
-        value: total.toString(),
+        value: 'total',
         count: total,
         color: 'blue'
       },
       {
         label: 'With Country',
-        value: withCountry.toString(),
+        value: 'with-country',
         count: withCountry,
         color: 'green'
       },
       {
         label: 'No Country',
-        value: withoutCountry.toString(),
+        value: 'no-country',
         count: withoutCountry,
         color: 'red'
       }
@@ -97,6 +104,11 @@ const Associations: React.FC = () => {
   const handleClearAllFilters = () => {
     setSearchTerm('');
     setSelectedCountry('');
+    setSelectedState('');
+  };
+
+  const handleStateChange = (state: string) => {
+    setSelectedState(state);
   };
 
   const handleExportCSV = () => {
@@ -258,6 +270,8 @@ const Associations: React.FC = () => {
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search associations..."
         stateInfo={getAssociationStateInfo()}
+        selectedState={selectedState}
+        onStateChange={handleStateChange}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExportCSV}

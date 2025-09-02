@@ -241,12 +241,12 @@ export function SquadStatusManagement() {
     }, {} as { [key: string]: number })
 
     return [
-      { label: 'Total Combinations', value: squadDisciplines.length.toString(), count: squadDisciplines.length, color: 'blue' },
-      { label: 'Squads', value: uniqueSquads.length.toString(), count: uniqueSquads.length, color: 'green' },
-      { label: 'Disciplines', value: uniqueDisciplines.length.toString(), count: uniqueDisciplines.length, color: 'purple' },
+      { label: 'Total Combinations', value: 'total-combinations', count: squadDisciplines.length, color: 'blue' },
+      { label: 'Squads', value: 'unique-squads', count: uniqueSquads.length, color: 'green' },
+      { label: 'Disciplines', value: 'unique-disciplines', count: uniqueDisciplines.length, color: 'purple' },
       ...Object.entries(statusCounts).map(([status, count]) => ({
         label: status,
-        value: count.toString(),
+        value: `status-${status.toLowerCase().replace(/\s+/g, '-')}`,
         count,
         color: 'yellow' as const
       }))

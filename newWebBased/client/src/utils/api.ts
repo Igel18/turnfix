@@ -1,7 +1,7 @@
 // Simple cache for GET requests to avoid duplicate calls
 const requestCache = new Map<string, Promise<any>>();
 const cacheExpiry = new Map<string, number>();
-const CACHE_DURATION = 10000; // 10 seconds - increased to reduce API calls
+const CACHE_DURATION = 30000; // 30 seconds - increased to reduce API calls
 
 // Request queue to limit concurrent requests
 const pendingRequests = new Set<string>();

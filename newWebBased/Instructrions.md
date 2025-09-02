@@ -188,10 +188,23 @@ and
 ---------------
  
 UI: A new button next to the Home button to switch between table view and card view. 
+---
  
 Save the state of the last selected Layout 
+---
+
+
+Competition Management UI: a new posibility to set the max score of all selected devices to a same value
+---
+
+
+Club management view the table has a other look. it has no header and boarder. 
+
+
+On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... 
 
 New view for location management in database groupe in dashboard 
+New view for Personen management in database groupe in dashboard 
 
  
 

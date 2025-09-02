@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { UnifiedHeader } from '../components/UnifiedHeader'
 import { UnifiedDataView } from '../components/UnifiedDataView'
+import useViewToggle from '../hooks/useViewToggle'
 import type { StateInfo } from '../components/UnifiedHeader'
 
 interface Club {
@@ -30,8 +31,12 @@ interface Club {
 }
 
 interface Region {
-  id: number
-  name: string
+  int_gaueid: number
+  var_name: string
+  var_kuerzel?: string
+  int_verbaendeid?: number
+  verband_name?: string
+  verband_kuerzel?: string
 }
 
 interface Contact {
@@ -61,8 +66,13 @@ export function Clubs() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [viewType, setViewType] = useState<'table' | 'cards'>('cards')
   const [activeTab, setActiveTab] = useState('info')
+  
+  // View toggle with persistence
+  const { viewType, handleViewTypeChange } = useViewToggle({ 
+    key: 'clubs', 
+    defaultView: 'cards' 
+  })
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -157,7 +167,7 @@ export function Clubs() {
   const fetchContacts = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/contacts', {
+      const response = await fetch('/api/clubs/data/personen', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -275,31 +285,19 @@ export function Clubs() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      {/* Page Header with Add Button */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center mb-2">
-            <BuildingOfficeIcon className="h-8 w-8 mr-3" />
-            Clubs
-          </h1>
-          <p className="text-gray-600">
-            Manage gymnastics clubs, their contact information, and regional assignments
-          </p>
-        </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Club
-        </button>
-      </div>
-
-      <UnifiedHeader
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="space-y-6">
+        <UnifiedHeader
         title="Clubs"
         description="Manage gymnastics clubs, their contact information, and regional assignments"
         icon={BuildingOfficeIcon}
+        
+        // Primary action
+        primaryAction={{
+          label: 'Add Club',
+          icon: PlusIcon,
+          onClick: openCreateModal
+        }}
         
         // Search functionality
         searchTerm={searchTerm}
@@ -311,6 +309,11 @@ export function Clubs() {
         selectedState={selectedStatus}
         onStateChange={setSelectedStatus}
         
+        // View toggle
+        showViewToggle={true}
+        viewType={viewType}
+        onViewTypeChange={handleViewTypeChange}
+        
         // Clear filters and export
         onClearAllFilters={() => {
           setSearchTerm('')
@@ -318,6 +321,10 @@ export function Clubs() {
           setSelectedStatus('')
         }}
         onExportCSV={() => console.log('Export CSV functionality to be implemented')}
+        
+        // Home button
+        showHomeButton={true}
+        homeUrl="/dashboard"
         
         // Filter options
         filterOptions={[
@@ -329,8 +336,8 @@ export function Clubs() {
             options: [
               { value: '', label: 'All Regions' },
               ...regions.map(region => ({ 
-                value: region.id.toString(), 
-                label: region.name 
+                value: region.int_gaueid.toString(), 
+                label: region.var_name 
               }))
             ]
           }
@@ -343,7 +350,7 @@ export function Clubs() {
         selectedItem={selectedClub}
         isLoading={isLoading}
         viewType={viewType}
-        onViewTypeChange={setViewType}
+        onViewTypeChange={handleViewTypeChange}
         onSelectItem={(club) => setSelectedClub(club as Club)}
         
         // Card rendering
@@ -656,8 +663,8 @@ export function Clubs() {
                   >
                     <option value="">Select a region</option>
                     {regions.map((region) => (
-                      <option key={region.id} value={region.id}>
-                        {region.name}
+                      <option key={region.int_gaueid} value={region.int_gaueid}>
+                        {region.var_name}
                       </option>
                     ))}
                   </select>
@@ -719,6 +726,7 @@ export function Clubs() {
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

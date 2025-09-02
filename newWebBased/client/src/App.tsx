@@ -1,11 +1,12 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { EventProvider } from '@/contexts/EventContext'
+import { CertificateLayoutProvider } from '@/contexts/CertificateLayoutContext'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import Events from '@/pages/Events'
-import ClubsNew from '@/pages/ClubsNew'
+import { Clubs } from '@/pages/Clubs'
 import Regions from '@/pages/Regions'
 import Associations from '@/pages/Associations'
 import Participants from '@/pages/Participants'
@@ -26,13 +27,14 @@ function App() {
   return (
     <AuthProvider>
       <EventProvider>
-        <div className="min-h-screen bg-background">
-          <Routes>
+        <CertificateLayoutProvider>
+          <div className="min-h-screen bg-background">
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/clubs" element={<ClubsNew />} />
+            <Route path="/clubs" element={<Clubs />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/associations" element={<Associations />} />
             <Route path="/participants" element={<Participants />} />
@@ -50,6 +52,7 @@ function App() {
             <Route path="/status-management" element={<StatusManagement />} />
           </Routes>
         </div>
+        </CertificateLayoutProvider>
       </EventProvider>
     </AuthProvider>
   )
