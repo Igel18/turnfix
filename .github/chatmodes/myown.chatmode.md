@@ -65,3 +65,41 @@ so it seems the API and prisma routes are working well. So don't touch them.
 for Server: c:\Users\prudlo\source\repos\turnfix\newWebBased\server
 for Client: c:\Users\prudlo\source\repos\turnfix\newWebBased\client
 
+# Check in
+Do not forget to run the tests after making changes.
+Create new tests for new functionality.
+Do not check in real data of participants / athletes or people.
+
+For now, do not refactore or clean up the code. 
+
+# Debug mode
+if you add `DEBUG=true` to your environment variables, the server will log additional debugging information to the console.
+Only show additional debugging information when this variable is set. 
+Don't hesitate to add such debug informations to console or UI. 
+
+
+# Information 
+## Matching between GymNet XML and Turnfix
+Disciplines: 
+      <Dicipline name="Boden" m="True" f="False" gymnetid="200" turnfixid="74"/>
+      <Dicipline name="Pferd" m="True" f="False" gymnetid="210" turnfixid="31"/>
+      <Dicipline name="Ringe" m="True" f="False" gymnetid="220" turnfixid="50"/>
+      <Dicipline name="Sprung" m="True" f="False" gymnetid="230" turnfixid="71"/>
+      <Dicipline name="Barren" m="True" f="False" gymnetid="240" turnfixid="72"/>
+      <Dicipline name="Reck" m="True" f="False" gymnetid="250" turnfixid="46"/>
+      <Dicipline name="Sprung" m="False" f="True" gymnetid="260" turnfixid="71"/>
+      <Dicipline name="Stufenbarren" m="False" f="True" gymnetid="270" turnfixid="68"/>
+      <Dicipline name="Schwebebalken" m="False" f="True" gymnetid="280" turnfixid="73"/>
+      <Dicipline name="Boden" m="False" f="True" gymnetid="290" turnfixid="74"/>
+      <Dicipline name="Minitrampolin" m="True" f="True" gymnetid="630" turnfixid="77"/>
+      <Dicipline name="Gerätebahn A" m="True" f="True" gymnetid="915" turnfixid="75" />
+      <Dicipline name="Gerätebahn B" m="True" f="True" gymnetid="916" turnfixid="76"/>
+
+Competition
+    Gender: 
+    XML: <waGeschlecht>1</waGeschlecht> -> TurnFix male 
+    XML: <waGeschlecht>2</waGeschlecht> -> TurnFix female
+
+    Participant:
+    XML: <perGeschlecht>1</perGeschlecht> -> TurnFix male
+    XML: <perGeschlecht>2</perGeschlecht> -> TurnFix female

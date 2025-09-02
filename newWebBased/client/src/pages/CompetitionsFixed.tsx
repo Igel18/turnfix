@@ -31,7 +31,8 @@ interface Discipline {
 // Interface for competition display
 interface Competition {
   id: number;
-  name: string;
+  number?: string; // Competition number (waNr)
+  name: string; // Competition name (waBezeichnung)
   description: string;
   date: string;
   location: string;
@@ -48,6 +49,7 @@ interface Competition {
 
 // Interface for form data
 interface CompetitionFormData {
+  number?: string; // Competition number (waNr)
   name: string;
   description: string;
   date: string;
@@ -91,6 +93,7 @@ const Competitions: React.FC = () => {
   const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
   
   const [formData, setFormData] = useState<CompetitionFormData>({
+    number: '',
     name: '',
     description: '',
     date: '',
@@ -189,6 +192,7 @@ const Competitions: React.FC = () => {
     
     try {
       const payload = {
+        ...(formData.number && { number: formData.number }),
         name: formData.name,
         description: formData.description,
         date: formData.date,
@@ -248,6 +252,7 @@ const Competitions: React.FC = () => {
     });
     
     setFormData({
+      number: '',
       name: '',
       description: '',
       date: eventDate,
@@ -264,6 +269,7 @@ const Competitions: React.FC = () => {
   const handleEdit = (competition: Competition) => {
     setEditingCompetition(competition);
     setFormData({
+      number: competition.number || '',
       name: competition.name,
       description: competition.description,
       date: competition.date,
@@ -457,7 +463,14 @@ const Competitions: React.FC = () => {
             <div key={competition.id} className="bg-white rounded-lg shadow-md border hover:shadow-lg transition-shadow">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{competition.name}</h3>
+                  <div className="flex-1">
+                    {competition.number && (
+                      <div className="text-sm font-medium text-blue-600 mb-1">
+                        Nr. {competition.number}
+                      </div>
+                    )}
+                    <h3 className="text-lg font-semibold text-gray-900">{competition.name}</h3>
+                  </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(competition.status)}`}>
                     {competition.status}
                   </span>
@@ -538,36 +551,64 @@ const Competitions: React.FC = () => {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Debug Info */}
-                <div className="bg-gray-100 p-3 rounded text-xs">
-                  <strong>Debug:</strong> Selected disciplines: [{formData.disciplines.map(d => `${d.disciplineId}(${d.maxScore})`).join(', ')}] | 
-                  Submit enabled: {!(loading || formData.disciplines.length === 0)} | 
-                  Form valid: {formData.name && formData.date && formData.disciplines.length > 0}
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm">
+                  <strong>🔧 Debug Info:</strong><br/>
+                  • Form Number: "<span className="font-mono text-blue-700">{formData.number || 'EMPTY'}</span>"<br/>
+                  • Form Name: "<span className="font-mono text-blue-700">{formData.name || 'EMPTY'}</span>"<br/>
+                  • Mode: {editingCompetition ? 
+                    <span className="text-green-600">EDITING (ID: {editingCompetition.id}, Number: "{editingCompetition.number || 'NULL'}")</span> : 
+                    <span className="text-orange-600">CREATING NEW</span>
+                  }
                 </div>
                 {/* Basic Information */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Competition Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🔢 Competition Number
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.number || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.length <= 5) { // Limit to 5 characters
+                            setFormData(prev => ({ ...prev, number: value }));
+                          }
+                        }}
+                        placeholder="e.g. 0113"
+                        maxLength={5}
+                        className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-yellow-700 mt-1">Max 5 characters (current: {(formData.number || '').length}/5)</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        📝 Competition Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+                  
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 

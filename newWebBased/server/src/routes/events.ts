@@ -400,7 +400,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       });
     }
 
+    filePath = req.file.path;
+
     // Read and parse XML file
+    if (!filePath) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'XML file path is undefined' 
+      });
+    }
+    
     const xmlContent = fs.readFileSync(filePath, 'utf-8');
     console.log('📄 XML Content Preview (first 500 chars):');
     console.log(xmlContent.substring(0, 500) + '...');
@@ -609,15 +618,44 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
             if (item && typeof item === 'object') {
               const competition: any = {};
               Object.keys(item).forEach(key => {
-                if (key.toLowerCase().includes('name') || 
+                // DTB GymNet specific field mappings (prioritize these)
+                if (key === 'waName') {
+                  competition.name = item[key];
+                }
+                else if (key === 'waID') {
+                  competition.id = item[key];
+                }
+                else if (key === 'waNr') {
+                  competition.waNr = item[key];
+                  competition.number = item[key]; // Also set as number for compatibility
+                }
+                else if (key === 'waGeschlecht') {
+                  const genderValue = String(item[key]);
+                  if (genderValue === '1') {
+                    competition.gender = 'männlich';
+                  } else if (genderValue === '2') {
+                    competition.gender = 'weiblich';
+                  } else {
+                    competition.gender = 'mixed';
+                  }
+                }
+                else if (key === 'waAlterMin') {
+                  if (!competition.ageInfo) competition.ageInfo = {};
+                  competition.ageInfo.min = parseInt(item[key]) || 0;
+                }
+                else if (key === 'waAlterMax') {
+                  if (!competition.ageInfo) competition.ageInfo = {};
+                  competition.ageInfo.max = parseInt(item[key]) || 0;
+                }
+                // Generic field mappings (fallback)
+                else if (key.toLowerCase().includes('name') || 
                     key.toLowerCase().includes('title') ||
                     key.toLowerCase().includes('bezeichnung') ||
                     key.toLowerCase().includes('wettkampf')) {
-                  competition.name = item[key];
+                  if (!competition.name) competition.name = item[key];
                 }
-                if (key.toLowerCase().includes('id') ||
-                    key.toLowerCase().includes('waid')) {
-                  competition.id = item[key];
+                else if (key.toLowerCase().includes('id')) {
+                  if (!competition.id) competition.id = item[key];
                 }
                 if (key.toLowerCase().includes('date') || 
                     key.toLowerCase().includes('datum')) {
@@ -626,6 +664,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                 if (key.toLowerCase().includes('category') || 
                     key.toLowerCase().includes('kategorie')) {
                   competition.category = item[key];
+                }
+                
+                // Extract competition number/waNr
+                if (key.toLowerCase().includes('wanr') || 
+                    key.toLowerCase().includes('wageschlechtnr') ||
+                    key.toLowerCase().includes('competitionnumber') ||
+                    key.toLowerCase().includes('wettbewerbnr') ||
+                    key.toLowerCase().includes('number')) {
+                  competition.waNr = item[key];
+                  competition.number = item[key]; // Also set as number for compatibility
                 }
                 
                 // Extract gender from waGeschlecht attribute (DTB standard)
@@ -705,6 +753,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
               competition.category = data[key];
             }
             
+            // Extract competition number/waNr
+            if (key.toLowerCase().includes('wanr') || 
+                key.toLowerCase().includes('wageschlechtnr') ||
+                key.toLowerCase().includes('competitionnumber') ||
+                key.toLowerCase().includes('wettbewerbnr') ||
+                key.toLowerCase().includes('number')) {
+              competition.waNr = data[key];
+              competition.number = data[key]; // Also set as number for compatibility
+            }
+            
             // Extract gender from waGeschlecht attribute (DTB standard)
             if (key === 'waGeschlecht') {
               const genderValue = String(data[key]);
@@ -767,17 +825,31 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
             if (item && typeof item === 'object') {
               const participant: any = {};
               Object.keys(item).forEach(key => {
-                // First check for firstName (more specific patterns first)
-                if (key.toLowerCase().includes('firstname') || 
-                    key.toLowerCase().includes('vorname') ||
-                    key.toLowerCase().includes('pervorname')) {
+                // DTB GymNet specific field mappings (prioritize these)
+                if (key === 'perVorname') {
                   participant.firstName = item[key];
+                }
+                else if (key === 'perName') {
+                  participant.lastName = item[key];
+                }
+                else if (key === 'perGeburt') {
+                  participant.birthDate = item[key];
+                }
+                else if (key === 'perGeschlecht') {
+                  participant.gender = item[key];
+                }
+                else if (key === 'perID') {
+                  participant.id = item[key];
+                }
+                // Generic field mappings (fallback)
+                else if (key.toLowerCase().includes('firstname') || 
+                    key.toLowerCase().includes('vorname')) {
+                  if (!participant.firstName) participant.firstName = item[key];
                 }
                 // Then check for lastName (excluding vorname patterns)
                 else if ((key.toLowerCase().includes('name') || 
                          key.toLowerCase().includes('nachname') ||
-                         key.toLowerCase().includes('lastname') ||
-                         key.toLowerCase().includes('pername')) &&
+                         key.toLowerCase().includes('lastname')) &&
                         !key.toLowerCase().includes('vorname') &&
                         !key.toLowerCase().includes('firstname')) {
                   participant.lastName = item[key];
@@ -804,6 +876,14 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                     key.toLowerCase().includes('organization') ||
                     key.toLowerCase().includes('organisation')) {
                   participant.club = item[key];
+                }
+                // Extract competition assignment information
+                if (key.toLowerCase().includes('wanr') || 
+                    key.toLowerCase().includes('wageschlechtnr') ||
+                    key.toLowerCase().includes('competitionnumber') ||
+                    key.toLowerCase().includes('wettbewerbnr') ||
+                    key.toLowerCase().includes('competition')) {
+                  participant.competitionNumber = item[key];
                 }
               });
               if (Object.keys(participant).length > 0) {
@@ -853,6 +933,14 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                 key.toLowerCase().includes('organization') ||
                 key.toLowerCase().includes('organisation')) {
               participant.club = data[key];
+            }
+            // Extract competition assignment information
+            if (key.toLowerCase().includes('wanr') || 
+                key.toLowerCase().includes('wageschlechtnr') ||
+                key.toLowerCase().includes('competitionnumber') ||
+                key.toLowerCase().includes('wettbewerbnr') ||
+                key.toLowerCase().includes('competition')) {
+              participant.competitionNumber = data[key];
             }
           });
           if (Object.keys(participant).length > 0) {
@@ -944,66 +1032,127 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         }
       };
 
-      const processNode = (node: any, path: string = '') => {
+      const processNode = (node: any, path: string = '', competitionContext: any = null) => {
         if (!node || typeof node !== 'object') return;
 
         Object.keys(node).forEach(key => {
           const value = node[key];
           const currentPath = path ? `${path}.${key}` : key;
 
-          // Target specific GymNet XML structures
+          // Check if we're entering a competition context (DTB GymNet structure)
+          let currentCompetitionContext = competitionContext;
+          if (node.waID && node.waNr) { // This node represents a DTB competition
+            currentCompetitionContext = {
+              waID: node.waID,
+              waNr: node.waNr,
+              name: node.waBezeichnung || node.waName || node.Name || '',
+              path: currentPath
+            };
+            
+            console.log(`🏆 Processing competition: ${currentCompetitionContext.name} (waNr: ${currentCompetitionContext.waNr})`);
+            
+            // Extract this competition
+            extractCompetitions([node], currentPath);
+          }
+
+          // Handle DTB GymNet specific structures
           if (key.toLowerCase() === 'wettkampf' || key.toLowerCase() === 'wettkämpfe') {
             if (Array.isArray(value)) {
-              extractCompetitions(value, currentPath);
+              value.forEach((comp: any, index: number) => {
+                processNode(comp, `${currentPath}[${index}]`, null);
+              });
             } else if (value && typeof value === 'object' && value.Wettkampf) {
-              // Handle Wettkämpfe container with Wettkampf array inside
               if (Array.isArray(value.Wettkampf)) {
-                extractCompetitions(value.Wettkampf, `${currentPath}.Wettkampf`);
+                value.Wettkampf.forEach((comp: any, index: number) => {
+                  processNode(comp, `${currentPath}.Wettkampf[${index}]`, null);
+                });
               } else {
-                extractCompetitions([value.Wettkampf], `${currentPath}.Wettkampf`);
+                processNode(value.Wettkampf, `${currentPath}.Wettkampf`, null);
               }
             } else {
-              extractCompetitions([value], currentPath);
+              processNode(value, currentPath, null);
             }
           }
 
-          if (key.toLowerCase() === 'mannschaft' || key.toLowerCase() === 'mannschaften') {
+          else if (key.toLowerCase() === 'mannschaft' || key.toLowerCase() === 'mannschaften') {
             if (Array.isArray(value)) {
+              // Extract clubs and continue processing for participants
               extractClubs(value, currentPath);
+              value.forEach((team: any, index: number) => {
+                processNode(team, `${currentPath}[${index}]`, currentCompetitionContext);
+              });
             } else if (value && typeof value === 'object' && value.Mannschaft) {
-              // Handle Mannschaften container with Mannschaft array inside
               if (Array.isArray(value.Mannschaft)) {
                 extractClubs(value.Mannschaft, `${currentPath}.Mannschaft`);
+                value.Mannschaft.forEach((team: any, index: number) => {
+                  processNode(team, `${currentPath}.Mannschaft[${index}]`, currentCompetitionContext);
+                });
               } else {
                 extractClubs([value.Mannschaft], `${currentPath}.Mannschaft`);
+                processNode(value.Mannschaft, `${currentPath}.Mannschaft`, currentCompetitionContext);
               }
             } else {
               extractClubs([value], currentPath);
+              processNode(value, currentPath, currentCompetitionContext);
             }
           }
 
-          if (key.toLowerCase() === 'tn') {
-            extractParticipants([value], currentPath);
+          else if (key.toLowerCase() === 'teilnehmer') {
+            // Handle Teilnehmer container
+            if (value && typeof value === 'object' && value.TN) {
+              if (Array.isArray(value.TN)) {
+                value.TN.forEach((participant: any) => {
+                  if (currentCompetitionContext) {
+                    participant.competitionNumber = currentCompetitionContext.waNr;
+                    participant.competitionID = currentCompetitionContext.waID;
+                    participant._competitionContext = currentCompetitionContext;
+                    console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}`);
+                  }
+                  extractParticipants([participant], currentPath);
+                });
+              } else {
+                const participant = value.TN;
+                if (currentCompetitionContext) {
+                  participant.competitionNumber = currentCompetitionContext.waNr;
+                  participant.competitionID = currentCompetitionContext.waID;
+                  participant._competitionContext = currentCompetitionContext;
+                  console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}`);
+                }
+                extractParticipants([participant], currentPath);
+              }
+            }
           }
 
-          if (key.toLowerCase() === 'disziplin') {
+          else if (key.toLowerCase() === 'tn') {
+            // Direct TN extraction (fallback)
+            const participant = { ...value };
+            if (currentCompetitionContext) {
+              participant.competitionNumber = currentCompetitionContext.waNr;
+              participant.competitionID = currentCompetitionContext.waID;
+              participant._competitionContext = currentCompetitionContext;
+              console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}`);
+            }
+            extractParticipants([participant], currentPath);
+          }
+
+          else if (key.toLowerCase() === 'disziplin') {
             extractDevices([value], currentPath);
           }
 
-          // Continue recursive processing
-          if (Array.isArray(value)) {
-            value.forEach((item, index) => {
+          // Continue recursive processing with competition context
+          else if (Array.isArray(value)) {
+            value.forEach((item: any, index: number) => {
               if (typeof item === 'object') {
-                processNode(item, `${currentPath}[${index}]`);
+                processNode(item, `${currentPath}[${index}]`, currentCompetitionContext);
               }
             });
           } else if (typeof value === 'object' && value !== null) {
-            processNode(value, currentPath);
+            processNode(value, currentPath, currentCompetitionContext);
           }
         });
       };
 
-      processNode(obj);
+      processNode(parsedXml);
       return result;
     };
 
@@ -1498,24 +1647,24 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           `, createdEvent.int_veranstaltungenid, competition.name.trim());
 
           if ((existingCompetition as any[]).length > 0) {
-            // Update existing competition with age ranges and bereich
+            // Update existing competition with age ranges, bereich, and competition number
             await prisma.$queryRawUnsafe(`
               UPDATE tfx_wettkaempfe 
-              SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4
-              WHERE int_wettkaempfeid = $5
-            `, competition.name.trim(), ageFrom, ageTo, bereichId, (existingCompetition as any[])[0].int_wettkaempfeid);
+              SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4, var_nummer = $5
+              WHERE int_wettkaempfeid = $6
+            `, competition.name.trim(), ageFrom, ageTo, bereichId, competition.waNr || competition.number || null, (existingCompetition as any[])[0].int_wettkaempfeid);
             
             insertionResults.competitions.updated++;
-            console.log(`  ✅ Updated competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId})`);
+            console.log(`  ✅ Updated competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId}, Number: ${competition.waNr || competition.number || 'none'})`);
           } else {
-            // Insert new competition with age ranges and bereich
+            // Insert new competition with age ranges, bereich, and competition number
             await prisma.$queryRawUnsafe(`
-              INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis)
-              VALUES ($1, $2, $3, $4, $5)
-            `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo);
+              INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis, var_nummer)
+              VALUES ($1, $2, $3, $4, $5, $6)
+            `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo, competition.waNr || competition.number || null);
             
             insertionResults.competitions.inserted++;
-            console.log(`  ✅ Inserted competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId})`);
+            console.log(`  ✅ Inserted competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId}, Number: ${competition.waNr || competition.number || 'none'})`);
           }
         } catch (error) {
           console.log(`  ❌ Error processing competition ${competition.name}:`, error);
@@ -1552,20 +1701,47 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
             const participantId = (participantResult as any[])[0].int_teilnehmerid;
             console.log(`    ✅ Found participant in DB with ID: ${participantId}`);
             
-            // Get the first competition for this event to create score entry
-            const firstCompetition = await prisma.tfx_wettkaempfe.findFirst({
-              where: { int_veranstaltungenid: createdEvent.int_veranstaltungenid },
-              orderBy: { int_wettkaempfeid: 'asc' }
-            });
-
-            if (firstCompetition) {
-              console.log(`    🏆 Found competition: ${firstCompetition.var_name} (ID: ${firstCompetition.int_wettkaempfeid})`);
+            // Try to find competition by XML assignment first
+            let targetCompetition = null;
+            if (participant.competitionNumber) {
+              // Extract just the waNr if it's an object
+              const competitionNumber = typeof participant.competitionNumber === 'object' 
+                ? participant.competitionNumber.waNr 
+                : participant.competitionNumber;
               
+              console.log(`    🎯 Looking for competition with number: ${competitionNumber} (type: ${typeof participant.competitionNumber})`);
+              targetCompetition = await prisma.tfx_wettkaempfe.findFirst({
+                where: { 
+                  int_veranstaltungenid: createdEvent.int_veranstaltungenid,
+                  var_nummer: competitionNumber
+                }
+              });
+              
+              if (targetCompetition) {
+                console.log(`    ✅ Found XML-assigned competition: ${targetCompetition.var_name} (Number: ${targetCompetition.var_nummer})`);
+              } else {
+                console.log(`    ⚠️ Competition with number ${competitionNumber} not found, using fallback`);
+              }
+            }
+            
+            // Fall back to first competition if no XML assignment or not found
+            if (!targetCompetition) {
+              targetCompetition = await prisma.tfx_wettkaempfe.findFirst({
+                where: { int_veranstaltungenid: createdEvent.int_veranstaltungenid },
+                orderBy: { int_wettkaempfeid: 'asc' }
+              });
+              
+              if (targetCompetition) {
+                console.log(`    🔄 Using fallback competition: ${targetCompetition.var_name} (ID: ${targetCompetition.int_wettkaempfeid})`);
+              }
+            }
+
+            if (targetCompetition) {
               // Check if participant is already in the event
               const existingEntry = await prisma.tfx_wertungen.findFirst({
                 where: {
                   int_teilnehmerid: participantId,
-                  int_wettkaempfeid: firstCompetition.int_wettkaempfeid
+                  int_wettkaempfeid: targetCompetition.int_wettkaempfeid
                 }
               });
 
@@ -1574,7 +1750,7 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                 await prisma.tfx_wertungen.create({
                   data: {
                     int_teilnehmerid: participantId,
-                    int_wettkaempfeid: firstCompetition.int_wettkaempfeid,
+                    int_wettkaempfeid: targetCompetition.int_wettkaempfeid,
                     int_startnummer: 0, // Will be assigned later
                     var_riege: '', // Will be assigned later
                     int_statusid: 1 // Default status
@@ -1959,6 +2135,40 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error('Error deleting event:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Simple test route for XML import (no auth)
+router.post('/import-test', upload.single('xmlFile'), async (req: any, res) => {
+  console.log('🧪 TEST: XML import started');
+  
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+    
+    const filePath = req.file.path;
+    const xmlContent = fs.readFileSync(filePath, 'utf-8');
+    
+    console.log('📄 XML file received, length:', xmlContent.length);
+    res.json({
+      success: true,
+      message: 'XML import test completed',
+      xmlSize: xmlContent.length,
+      preview: xmlContent.substring(0, 200)
+    });
+    
+    // Clean up
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Test import error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 
