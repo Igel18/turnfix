@@ -27,12 +27,19 @@ interface Event {
 }
 
 interface EventParticipant {
-  int_teilnehmerid: number
-  var_vorname: string
-  var_nachname: string
-  dat_geburtsdatum: string
-  var_geschlecht: string
-  vereins_name: string
+  id: number
+  firstname: string
+  lastname: string
+  club: string
+  clubId: number
+  gender: 'male' | 'female'
+  birthYear: number | null
+  age: number | null
+  squad_name: string | null
+  startet_nicht: boolean
+  isInEvent: boolean
+  assignedCompetitions: number[]
+  registrationDate?: string
 }
 
 interface EventScore {
@@ -59,6 +66,8 @@ const Events: React.FC = () => {
   const [importProgress, setImportProgress] = useState<{ step: string; progress: number } | null>(null)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [activeView, setActiveView] = useState<'list' | 'participants' | 'scores'>('list')
+  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [successMessage, setSuccessMessage] = useState<string>('')
   
   // Import event details state
   const [importEventData, setImportEventData] = useState({
@@ -197,7 +206,7 @@ const Events: React.FC = () => {
   // Fetch participants for selected event
   const fetchEventParticipants = async (eventId: number) => {
     try {
-      const data = await apiGet(`/events/${eventId}/participants`)
+      const data = await apiGet(`/event-participants?eventId=${eventId}`)
       setEventParticipants(data.participants || [])
     } catch (error) {
       console.error('Error fetching event participants:', error)
@@ -208,7 +217,7 @@ const Events: React.FC = () => {
   // Fetch scores for selected event
   const fetchEventScores = async (eventId: number) => {
     try {
-      const data = await apiGet(`/scores?event_id=${eventId}&limit=100`)
+      const data = await apiGet(`/scores?eventId=${eventId}&limit=100`)
       setEventScores(data.scores || [])
     } catch (error) {
       console.error('Error fetching event scores:', error)
@@ -244,14 +253,56 @@ const Events: React.FC = () => {
   }
 
   // Delete event
-  const handleDelete = async (eventId: number) => {
-    if (!confirm('Are you sure you want to delete this event?')) return
+  const handleDelete = async (eventId: number, forceDelete = false) => {
+    if (!forceDelete && !confirm('Are you sure you want to delete this event?')) return
+
+    setErrorMessage('')
+    setSuccessMessage('')
 
     try {
-      await apiDelete(`/events/${eventId}`)
+      const url = forceDelete ? `/events/${eventId}?force=true` : `/events/${eventId}`
+      await apiDelete(url)
+      setSuccessMessage('Event deleted successfully')
       await fetchEvents(currentPage)
-    } catch (error) {
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000)
+    } catch (error: any) {
       console.error('Error deleting event:', error)
+      console.log('Error response status:', error.response?.status)
+      console.log('Error response data:', error.response?.data)
+      
+      // Handle specific error cases
+      if (error.response?.status === 409) {
+        const errorData = error.response.data
+        console.log('409 Error data:', errorData)
+        if (errorData.hasScores) {
+          // Ask user if they want to force delete
+          const forceConfirm = confirm(
+            `This event contains ${errorData.scoresCount} scores and cannot be deleted normally.\n\n` +
+            `Do you want to DELETE ALL DATA associated with this event?\n` +
+            `This will permanently remove:\n` +
+            `- All participant scores\n` +
+            `- All competitions\n` +
+            `- The event itself\n\n` +
+            `This action cannot be undone!`
+          )
+          
+          if (forceConfirm) {
+            // Recursively call with forceDelete = true
+            return handleDelete(eventId, true)
+          }
+        } else {
+          setErrorMessage(errorData.error || 'Cannot delete event with existing data')
+        }
+      } else if (error.response?.status === 404) {
+        setErrorMessage('Event not found')
+      } else {
+        setErrorMessage('Failed to delete event. Please try again.')
+      }
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => setErrorMessage(''), 5000)
     }
   }
 
@@ -462,6 +513,48 @@ const Events: React.FC = () => {
             }}
             totalCount={events.length}
           />
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-green-800">{successMessage}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <button
+                    onClick={() => setErrorMessage('')}
+                    className="text-red-400 hover:text-red-600 focus:outline-none"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -726,26 +819,26 @@ const Events: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {eventParticipants.map((participant) => (
-                            <tr key={participant.int_teilnehmerid} className="hover:bg-gray-50">
+                            <tr key={participant.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="font-medium text-gray-900">
-                                  {participant.var_vorname} {participant.var_nachname}
+                                  {participant.firstname} {participant.lastname}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                {participant.vereins_name}
+                                {participant.club}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  participant.var_geschlecht === 'M' 
+                                  participant.gender === 'male' 
                                     ? 'bg-blue-100 text-blue-800' 
                                     : 'bg-pink-100 text-pink-800'
                                 }`}>
-                                  {participant.var_geschlecht === 'M' ? 'Male' : 'Female'}
+                                  {participant.gender === 'male' ? 'Male' : 'Female'}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                {new Date().getFullYear() - new Date(participant.dat_geburtsdatum).getFullYear()} years
+                                {participant.age ? `${participant.age} years` : 'N/A'}
                               </td>
                             </tr>
                           ))}

@@ -61,7 +61,21 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
       }
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error details from response body
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: `HTTP error! status: ${response.status}` };
+        }
+        
+        // Create an error object that includes the response details
+        const error = new Error(errorData.error || `HTTP error! status: ${response.status}`) as any;
+        error.response = {
+          status: response.status,
+          data: errorData
+        };
+        throw error;
       }
       
       // Parse JSON response automatically

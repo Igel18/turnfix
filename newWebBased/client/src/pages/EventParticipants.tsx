@@ -72,7 +72,7 @@ interface EditParticipantFormProps {
   onCancel: () => void;
 }
 
-const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, eventId, clubs, competitions, onSave, onCancel }) => {
+const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, clubs, competitions, onSave, onCancel }) => {
   const [formData, setFormData] = useState<EditParticipantData>({
     firstname: participant.firstname,
     lastname: participant.lastname,

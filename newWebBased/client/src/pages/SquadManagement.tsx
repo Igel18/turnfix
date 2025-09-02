@@ -37,16 +37,6 @@ interface Squad {
   participants: Participant[];
 }
 
-// Interface for competition data
-interface Competition {
-  id: number;
-  name: string;
-  gender: string;
-  ageFrom: number;
-  ageTo: number;
-  participantCount: number;
-}
-
 const SquadManagement: React.FC = () => {
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
@@ -58,7 +48,6 @@ const SquadManagement: React.FC = () => {
   // State for squads and participants
   const [squads, setSquads] = useState<Squad[]>([]);
   const [availableParticipants, setAvailableParticipants] = useState<Participant[]>([]);
-  const [loading, setLoading] = useState(false);
   
   // UI state
   const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
@@ -78,15 +67,12 @@ const SquadManagement: React.FC = () => {
   }, [eventId]);
 
   const loadSquads = async () => {
-    setLoading(true);
     try {
       const data = await apiGet(`/squad-management?eventId=${eventId}`);
       setSquads(data.squads || []);
     } catch (error) {
       console.error('Error loading squads:', error);
       setSquads([]);
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -164,7 +164,7 @@ router.get('/filtered', authenticateToken, async (req: AuthRequest, res) => {
     
     const query = `
       SELECT 
-        int_disziplinenid, 
+        int_disziplinenid as int_disziplinid, 
         var_name as var_disziplinname, 
         var_einheit as var_disziplinkategorie,
         bol_m as male_allowed,

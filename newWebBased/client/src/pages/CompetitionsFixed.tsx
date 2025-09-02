@@ -39,7 +39,6 @@ interface Competition {
   ageFrom: number;
   ageTo: number;
   disciplines: number[] | Discipline[];
-  maxParticipants?: number;
   registrationDeadline?: string;
   organizer?: string;
   status: 'upcoming' | 'active' | 'completed';
@@ -52,12 +51,10 @@ interface CompetitionFormData {
   name: string;
   description: string;
   date: string;
-  location: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
   ageFrom: number;
   ageTo: number;
-  disciplines: number[];
-  maxParticipants: number | '';
+  disciplines: { disciplineId: number; maxScore: number }[];
   registrationDeadline: string;
   organizer: string;
 }
@@ -75,6 +72,15 @@ const Competitions: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
+  
+  // Helper function to get gender text
+  const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean): string => {
+    if (maleAllowed && femaleAllowed) return 'Mixed';
+    if (maleAllowed && !femaleAllowed) return 'Male';
+    if (!maleAllowed && femaleAllowed) return 'Female';
+    return 'Unknown';
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -88,27 +94,37 @@ const Competitions: React.FC = () => {
     name: '',
     description: '',
     date: '',
-    location: '',
     gender: 'gemischt',
     ageFrom: 6,
     ageTo: 18,
     disciplines: [],
-    maxParticipants: '',
     registrationDeadline: '',
     organizer: ''
   });
 
   // Filter disciplines based on selected gender
   useEffect(() => {
+    console.log('Filtering disciplines. Gender:', formData.gender, 'All disciplines:', disciplines.length);
     if (formData.gender && disciplines.length > 0) {
       const filtered = disciplines.filter(discipline => {
-        if (formData.gender === 'männlich') return discipline.male_allowed;
-        if (formData.gender === 'weiblich') return discipline.female_allowed;
-        if (formData.gender === 'gemischt') return discipline.male_allowed && discipline.female_allowed;
-        return false;
+        const allowed = formData.gender === 'männlich' ? discipline.male_allowed :
+                       formData.gender === 'weiblich' ? discipline.female_allowed :
+                       formData.gender === 'gemischt' ? (discipline.male_allowed || discipline.female_allowed) : // Changed from && to ||
+                       false;
+        
+        console.log(`Discipline ${discipline.var_disziplinname} (ID:${discipline.int_disziplinid}):`, {
+          male_allowed: discipline.male_allowed,
+          female_allowed: discipline.female_allowed,
+          gender: formData.gender,
+          allowed
+        });
+        
+        return allowed;
       });
+      console.log('Filtered disciplines for gender:', filtered.length, filtered.map(d => `${d.var_disziplinname}(${d.int_disziplinid})`));
       setFilteredDisciplines(filtered);
     } else {
+      console.log('Using all disciplines');
       setFilteredDisciplines(disciplines);
     }
   }, [formData.gender, disciplines]);
@@ -123,6 +139,10 @@ const Competitions: React.FC = () => {
   const loadDisciplines = async () => {
     try {
       const data = await apiGet('/disciplines/filtered');
+      console.log('Loaded disciplines:', data);
+      console.log('Disciplines with undefined IDs:', data.filter((d: Discipline) => !d.int_disziplinid));
+      console.log('Total discipline count:', data.length);
+      console.log('Valid discipline count:', data.filter((d: Discipline) => d.int_disziplinid != null).length);
       setDisciplines(data);
     } catch (error) {
       console.error('Error loading disciplines:', error);
@@ -132,6 +152,7 @@ const Competitions: React.FC = () => {
   const loadAgeGroups = async () => {
     try {
       const data = await apiGet('/disciplines/age-groups');
+      console.log('🎂 Loaded age groups:', data);
       setAgeGroups(data);
     } catch (error) {
       console.error('Error loading age groups:', error);
@@ -164,68 +185,76 @@ const Competitions: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     
+    console.log('🚀 Competition submission started');
+    
     try {
       const payload = {
         name: formData.name,
         description: formData.description,
         date: formData.date,
-        location: formData.location,
         gender: formData.gender,
         ageFrom: formData.ageFrom,
         ageTo: formData.ageTo,
         disciplines: formData.disciplines,
-        maxParticipants: typeof formData.maxParticipants === 'string' ? 
-          (formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined) : 
-          formData.maxParticipants,
-        registrationDeadline: formData.registrationDeadline || null,
-        organizer: formData.organizer,
+        ...(formData.registrationDeadline && { registrationDeadline: formData.registrationDeadline }),
+        ...(formData.organizer && { organizer: formData.organizer }),
         ...(eventId && { eventId: parseInt(eventId) })
       };
 
       console.log('Competition submission payload:', payload);
       console.log('Disciplines array:', payload.disciplines, 'Length:', payload.disciplines.length);
 
+      let result;
       if (editingCompetition) {
-        await apiPut(`/competitions/${editingCompetition.id}`, payload);
+        console.log('📝 Updating existing competition...');
+        result = await apiPut(`/competitions/${editingCompetition.id}`, payload);
       } else {
-        await apiPost('/competitions', payload);
+        console.log('➕ Creating new competition...');
+        result = await apiPost('/competitions', payload);
       }
+      
+      console.log('✅ API call successful, result:', result);
 
+      console.log('🔄 Reloading competitions...');
       await loadCompetitions();
+      
+      console.log('🔒 Closing modal and resetting form...');
       setIsModalOpen(false);
       resetForm();
+      
+      console.log('🎉 Competition submission completed successfully!');
     } catch (error) {
-      console.error('Error submitting competition:', error);
+      console.error('❌ Error submitting competition:', error);
+      console.error('Error details:', (error as any)?.response || (error as Error)?.message);
+      alert('Failed to save competition. Please check the console for details.');
     } finally {
+      console.log('🏁 Setting loading to false');
       setLoading(false);
     }
   };
 
   const resetForm = () => {
-    // Pre-populate date and location from selected event
+    // Pre-populate date from selected event
     let eventDate = '';
     if (selectedEvent?.dat_eventstartdate) {
       // Extract date part only (YYYY-MM-DD) from datetime string
       eventDate = selectedEvent.dat_eventstartdate.split('T')[0];
     }
-    const eventLocation = selectedEvent?.var_location || '';
     
     console.log('Presetting competition form with event data:', {
       eventDate,
-      eventLocation,
-      eventName: selectedEvent?.var_eventname
+      eventName: selectedEvent?.var_eventname,
+      eventLocation: selectedEvent?.var_location
     });
     
     setFormData({
       name: '',
       description: '',
       date: eventDate,
-      location: eventLocation,
       gender: 'gemischt',
       ageFrom: 6,
       ageTo: 18,
       disciplines: [],
-      maxParticipants: '',
       registrationDeadline: '',
       organizer: ''
     });
@@ -238,13 +267,15 @@ const Competitions: React.FC = () => {
       name: competition.name,
       description: competition.description,
       date: competition.date,
-      location: competition.location,
       gender: competition.gender,
       ageFrom: competition.ageFrom,
       ageTo: competition.ageTo,
       disciplines: Array.isArray(competition.disciplines) ? 
-        competition.disciplines.map(d => typeof d === 'object' ? d.int_disziplinid : d) : [],
-      maxParticipants: competition.maxParticipants || '',
+        competition.disciplines.map((d: any) => 
+          typeof d === 'object' && d.disciplineId ? 
+            { disciplineId: d.disciplineId, maxScore: d.maxScore || 0 } : 
+            { disciplineId: typeof d === 'number' ? d : d.int_disziplinid, maxScore: 0 }
+        ) : [],
       registrationDeadline: competition.registrationDeadline || '',
       organizer: competition.organizer || ''
     });
@@ -445,7 +476,7 @@ const Competitions: React.FC = () => {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <Users className="w-4 h-4 mr-2" />
-                    {competition.participantCount} / {competition.maxParticipants || '∞'} participants
+                    {competition.participantCount} participants
                   </div>
                   {competition.registrationDeadline && (
                     <div className="flex items-center text-sm text-gray-600">
@@ -508,9 +539,9 @@ const Competitions: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Debug Info */}
                 <div className="bg-gray-100 p-3 rounded text-xs">
-                  <strong>Debug:</strong> Selected disciplines: [{formData.disciplines.join(', ')}] | 
+                  <strong>Debug:</strong> Selected disciplines: [{formData.disciplines.map(d => `${d.disciplineId}(${d.maxScore})`).join(', ')}] | 
                   Submit enabled: {!(loading || formData.disciplines.length === 0)} | 
-                  Form valid: {formData.name && formData.date && formData.location && formData.disciplines.length > 0}
+                  Form valid: {formData.name && formData.date && formData.disciplines.length > 0}
                 </div>
                 {/* Basic Information */}
                 <div className="grid gap-4 md:grid-cols-2">
@@ -540,18 +571,15 @@ const Competitions: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Location *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+                {/* Display venue information (read-only) */}
+                {selectedEvent?.var_location && (
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Event Venue
+                    </label>
+                    <p className="text-sm text-gray-600">{selectedEvent.var_location}</p>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -592,17 +620,29 @@ const Competitions: React.FC = () => {
                     </label>
                     <select
                       value={formData.ageFrom}
-                      onChange={(e) => setFormData(prev => ({ ...prev, ageFrom: parseInt(e.target.value) }))}
+                      onChange={(e) => {
+                        const newAgeFrom = parseInt(e.target.value);
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          ageFrom: newAgeFrom,
+                          // Auto-adjust ageTo if it becomes invalid
+                          ageTo: prev.ageTo < newAgeFrom ? newAgeFrom : prev.ageTo
+                        }));
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      {ageGroups.map(age => (
-                        <option key={age.value} value={age.value}>{age.label}</option>
-                      ))}
+                      {ageGroups.length === 0 ? (
+                        <option value="">Loading ages...</option>
+                      ) : (
+                        ageGroups.map(age => (
+                          <option key={age.value} value={age.value}>{age.label}</option>
+                        ))
+                      )}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Age To
+                      Age To (minimum: {formData.ageFrom} years)
                     </label>
                     <select
                       value={formData.ageTo}
@@ -623,10 +663,25 @@ const Competitions: React.FC = () => {
                   </label>
                   {formData.disciplines.length > 0 && (
                     <div className="mb-2 text-sm text-blue-600">
-                      Selected: {formData.disciplines.map(id => {
-                        const discipline = filteredDisciplines.find(d => d.int_disziplinid === id);
-                        return discipline ? discipline.var_disziplinname : `ID:${id}`;
-                      }).join(', ')}
+                      <span>Selected: </span>
+                      {formData.disciplines.map((disciplineObj, index) => {
+                        const discipline = filteredDisciplines.find(d => d.int_disziplinid === disciplineObj.disciplineId);
+                        const allDisciplineMatch = disciplines.find(d => d.int_disziplinid === disciplineObj.disciplineId);
+                        console.log(`Selected discipline ID:${disciplineObj.disciplineId}:`, {
+                          foundInFiltered: !!discipline,
+                          foundInAll: !!allDisciplineMatch,
+                          disciplineName: discipline?.var_disziplinname || allDisciplineMatch?.var_disziplinname,
+                          maxScore: disciplineObj.maxScore,
+                          filteredCount: filteredDisciplines.length,
+                          totalCount: disciplines.length
+                        });
+                        return (
+                          <span key={`selected-${disciplineObj.disciplineId}`}>
+                            {discipline ? discipline.var_disziplinname : (allDisciplineMatch ? allDisciplineMatch.var_disziplinname : `ID:${disciplineObj.disciplineId}`)} ({disciplineObj.maxScore}pts)
+                            {index < formData.disciplines.length - 1 ? ', ' : ''}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                   <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
@@ -634,66 +689,101 @@ const Competitions: React.FC = () => {
                       <p className="text-gray-500 text-sm">No disciplines available for selected gender</p>
                     ) : (
                       <div className="space-y-2">
-                        {filteredDisciplines.map((discipline) => (
-                          <label key={discipline.int_disziplinid} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-                            <input
-                              type="checkbox"
-                              checked={formData.disciplines.includes(discipline.int_disziplinid)}
-                              onChange={(e) => {
-                                const disciplineId = discipline.int_disziplinid;
-                                console.log('Discipline selection changed:', {
-                                  disciplineId,
-                                  checked: e.target.checked,
-                                  currentDisciplines: formData.disciplines,
-                                  disciplineName: discipline.var_disziplinname
-                                });
-                                
-                                if (e.target.checked) {
-                                  const newDisciplines = [...formData.disciplines, disciplineId];
-                                  console.log('Adding discipline, new array:', newDisciplines);
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    disciplines: newDisciplines
-                                  }));
-                                } else {
-                                  const newDisciplines = formData.disciplines.filter(id => id !== disciplineId);
-                                  console.log('Removing discipline, new array:', newDisciplines);
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    disciplines: newDisciplines
-                                  }));
-                                }
-                              }}
-                              className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <span className="text-sm select-none">
-                              {discipline.var_disziplinname} 
-                              <span className="text-gray-500 ml-1">
-                                ({discipline.var_disziplinkategorie}, {discipline.altersklasse_von}-{discipline.altersklasse_bis} years)
-                              </span>
-                            </span>
-                          </label>
-                        ))}
+                        {filteredDisciplines.map((discipline, index) => {
+                          const disciplineId = discipline.int_disziplinid;
+                          const keyValue = disciplineId ? `discipline-${disciplineId}` : `discipline-index-${index}`;
+                          
+                          
+                          // Check if this discipline is selected
+                          const shouldBeChecked = disciplineId != null && formData.disciplines.some(d => d.disciplineId === Number(disciplineId));
+                          
+                          return (
+                            <label key={keyValue} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded">
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  checked={shouldBeChecked}
+                                  onChange={(e) => {
+                                    // Skip processing if disciplineId is null/undefined
+                                    if (disciplineId == null) {
+                                      console.warn('Cannot select discipline with undefined ID:', discipline.var_disziplinname);
+                                      return;
+                                    }
+                                    
+                                    const numericDisciplineId = Number(disciplineId);
+                                    console.log('Discipline selection changed:', {
+                                      disciplineId: numericDisciplineId,
+                                      checked: e.target.checked,
+                                      currentDisciplines: formData.disciplines,
+                                      disciplineName: discipline.var_disziplinname
+                                    });
+                                    
+                                    if (e.target.checked) {
+                                      // Add discipline if not already present
+                                      if (!formData.disciplines.some(d => d.disciplineId === numericDisciplineId)) {
+                                        const newDisciplines = [...formData.disciplines, { disciplineId: numericDisciplineId, maxScore: 0 }];
+                                        console.log('Adding discipline, new array:', newDisciplines);
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          disciplines: newDisciplines
+                                        }));
+                                      }
+                                    } else {
+                                      const newDisciplines = formData.disciplines.filter(d => d.disciplineId !== numericDisciplineId);
+                                      console.log('Removing discipline, new array:', newDisciplines);
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        disciplines: newDisciplines
+                                      }));
+                                    }
+                                  }}
+                                  className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <span className="text-sm select-none">
+                                  {discipline.var_disziplinname} 
+                                  <span className="text-gray-500 ml-1">
+                                    ({getGenderText(discipline.male_allowed, discipline.female_allowed)}, {discipline.altersklasse_von}-{discipline.altersklasse_bis} years)
+                                  </span>
+                                  <span className="text-blue-500 ml-2 text-xs">
+                                    [ID: {disciplineId} | In Array: {formData.disciplines.some(d => d.disciplineId === Number(disciplineId)) ? 'YES' : 'NO'}]
+                                  </span>
+                                </span>
+                              </div>
+                              {shouldBeChecked && (
+                                <div className="flex items-center ml-4">
+                                  <label className="text-xs text-gray-600 mr-2">Max Score:</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={formData.disciplines.find(d => d.disciplineId === Number(disciplineId))?.maxScore || 0}
+                                    onChange={(e) => {
+                                      const numericDisciplineId = Number(disciplineId);
+                                      const maxScore = parseFloat(e.target.value) || 0;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        disciplines: prev.disciplines.map(d => 
+                                          d.disciplineId === numericDisciplineId 
+                                            ? { ...d, maxScore: Math.max(0, maxScore) }
+                                            : d
+                                        )
+                                      }));
+                                    }}
+                                    className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0"
+                                  />
+                                </div>
+                              )}
+                            </label>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Additional Settings */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Max Participants
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={formData.maxParticipants}
-                      onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: e.target.value as number | '' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="No limit"
-                    />
-                  </div>
+                <div className="grid gap-4 md:grid-cols-1">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Registration Deadline

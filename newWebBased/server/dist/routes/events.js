@@ -718,24 +718,81 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             });
         }
         // Parse dates if provided for use in both event creation and response
-        const parsedStartDate = startDate ? new Date(startDate) : null;
-        const parsedEndDate = endDate ? new Date(endDate) : null;
+        // Ensure dates are never null - use current date as fallback
+        const parsedStartDate = startDate ? new Date(startDate) : new Date();
+        const parsedEndDate = endDate ? new Date(endDate) : new Date();
         // Create the event in the database with extracted data
         let createdEvent = null;
+        let eventCreationError = null;
         try {
             console.log('🎪 Creating Event in Database...');
-            // Use raw SQL to insert into tfx_veranstaltungen
+            console.log('Event details to insert:');
+            console.log(`  - Name: "${eventName.trim()}"`);
+            console.log(`  - Start Date: ${parsedStartDate}`);
+            console.log(`  - End Date: ${parsedEndDate}`);
+            console.log(`  - Location: "${location?.trim() || ''}"`);
+            // Use raw SQL to insert into tfx_veranstaltungen with ALL required fields including missing ones
             const insertQuery = `
         INSERT INTO tfx_veranstaltungen (
           var_name, 
           dat_von, 
           dat_bis, 
           var_veranstalter, 
-          int_wettkampforteid
-        ) VALUES ($1, $2, $3, $4, $5)
+          int_wettkampforteid,
+          int_meldung_an,
+          int_ansprechpartner,
+          int_kontenid,
+          int_hauptwettkampf,
+          int_runde,
+          dat_meldeschluss,
+          bol_rundenwettkampf,
+          int_edv,
+          int_helfer,
+          int_kampfrichter,
+          rel_meldegeld,
+          rel_nachmeldung,
+          bol_faellig_nichtantritt,
+          bol_ummeldung_moeglich,
+          bol_nachmeldung_moeglich,
+          var_meldung_website,
+          var_verwendungszweck,
+          txt_meldung_an,
+          txt_startberechtigung,
+          txt_teilnahmebedingungen,
+          txt_siegerauszeichnung,
+          txt_kampfrichter,
+          txt_hinweise
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
         RETURNING int_veranstaltungenid, var_name
       `;
-            const result = await prisma.$queryRawUnsafe(insertQuery, eventName.trim(), parsedStartDate, parsedEndDate, location?.trim() || '', 1 // Default wettkampforteid - we need this as it's required
+            const result = await prisma.$queryRawUnsafe(insertQuery, eventName.trim(), // $1: var_name
+            parsedStartDate, // $2: dat_von  
+            parsedEndDate, // $3: dat_bis
+            location?.trim() || '', // $4: var_veranstalter
+            1, // $5: int_wettkampforteid - Default wettkampforteid
+            1, // $6: int_meldung_an - Default to 1 (assuming contact person ID)
+            1, // $7: int_ansprechpartner - Default to 1 (assuming contact person ID)
+            1, // $8: int_kontenid - Default to 1 (assuming account ID)
+            null, // $9: int_hauptwettkampf - NULL as it's optional foreign key
+            1, // $10: int_runde - Default to 1
+            parsedEndDate, // $11: dat_meldeschluss - Default to end date
+            false, // $12: bol_rundenwettkampf - Default to false
+            0, // $13: int_edv - Default to 0
+            0, // $14: int_helfer - Default to 0
+            0, // $15: int_kampfrichter - Default to 0
+            0.0, // $16: rel_meldegeld - Default to 0
+            0.0, // $17: rel_nachmeldung - Default to 0
+            false, // $18: bol_faellig_nichtantritt - Default to false
+            false, // $19: bol_ummeldung_moeglich - Default to false
+            false, // $20: bol_nachmeldung_moeglich - Default to false
+            '', // $21: var_meldung_website - Default to empty string
+            '', // $22: var_verwendungszweck - Default to empty string
+            '', // $23: txt_meldung_an - Default to empty string
+            '', // $24: txt_startberechtigung - Default to empty string
+            '', // $25: txt_teilnahmebedingungen - Default to empty string
+            '', // $26: txt_siegerauszeichnung - Default to empty string
+            '', // $27: txt_kampfrichter - Default to empty string
+            '' // $28: txt_hinweise - Default to empty string
             );
             createdEvent = result[0];
             console.log('✅ Event created successfully:');
@@ -743,8 +800,18 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             console.log(`  - Name: ${createdEvent.var_name}`);
         }
         catch (eventError) {
-            console.error('❌ Error creating event:', eventError);
-            // Continue with the import even if event creation fails
+            console.error('❌ Error creating event in database:');
+            console.error('  - Error Message:', eventError instanceof Error ? eventError.message : String(eventError));
+            console.error('  - Error Stack:', eventError instanceof Error ? eventError.stack : 'No stack trace');
+            console.error('  - Parameters used:');
+            console.error(`    * Name: "${eventName.trim()}"`);
+            console.error(`    * Start Date: ${parsedStartDate}`);
+            console.error(`    * End Date: ${parsedEndDate}`);
+            console.error(`    * Location: "${location?.trim() || ''}"`);
+            console.error(`    * Wettkampforteid: 1`);
+            console.error(`    * All other fields: defaults (int_runde=1, booleans=false, numbers=0, strings='')`);
+            eventCreationError = eventError;
+            // Don't continue with the import if event creation fails - this is critical
         }
         // Database insertion for extracted data
         console.log('💾 Starting database insertion process...');
@@ -810,77 +877,109 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 insertionResults.clubs.errors++;
             }
         }
-        // 2. Insert/Update Participants
-        console.log('👥 Processing participants...');
-        for (const participant of extractedData.participants) {
-            try {
-                if (!participant.firstName && !participant.lastName) {
-                    console.log('  ⚠️ Skipping participant with no name');
-                    continue;
-                }
-                const firstName = participant.firstName?.trim() || '';
-                const lastName = participant.lastName?.trim() || '';
-                // Get club ID if club name exists
-                let clubId = null;
-                if (participant.club) {
-                    const clubResult = await prisma.$queryRawUnsafe(`
+        // 2. Insert/Update Participants (only if event was created successfully)
+        if (createdEvent) {
+            console.log('👥 Processing participants...');
+            for (const participant of extractedData.participants) {
+                try {
+                    if (!participant.firstName && !participant.lastName) {
+                        console.log('  ⚠️ Skipping participant with no name');
+                        continue;
+                    }
+                    const firstName = participant.firstName?.trim() || '';
+                    const lastName = participant.lastName?.trim() || '';
+                    // Get club ID if club name exists
+                    let clubId = null;
+                    if (participant.club) {
+                        const clubResult = await prisma.$queryRawUnsafe(`
             SELECT int_vereineid FROM tfx_vereine 
             WHERE LOWER(var_name) = LOWER($1)
             LIMIT 1
           `, participant.club.trim());
-                    if (clubResult.length > 0) {
-                        clubId = clubResult[0].int_vereineid;
+                        if (clubResult.length > 0) {
+                            clubId = clubResult[0].int_vereineid;
+                        }
                     }
-                }
-                // Parse birth date - handle null values properly
-                let birthDate = null;
-                if (participant.birthDate) {
-                    try {
-                        birthDate = new Date(participant.birthDate);
+                    // Parse birth date - handle null values properly for raw SQL
+                    let birthDate = null;
+                    if (participant.birthDate) {
+                        try {
+                            const date = new Date(participant.birthDate);
+                            if (!isNaN(date.getTime())) {
+                                birthDate = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+                            }
+                        }
+                        catch (e) {
+                            console.log(`  ⚠️ Invalid birth date for ${firstName} ${lastName}: ${participant.birthDate}`);
+                        }
                     }
-                    catch (e) {
-                        console.log(`  ⚠️ Invalid birth date for ${firstName} ${lastName}: ${participant.birthDate}`);
+                    // Determine gender (int_geschlecht is required in schema)
+                    let gender = 1; // Default to male (1)
+                    if (participant.gender) {
+                        gender = participant.gender.toLowerCase() === 'w' || participant.gender.toLowerCase() === 'f' ? 2 : 1;
                     }
-                }
-                // Determine gender (int_geschlecht is required in schema)
-                let gender = 1; // Default to male (1)
-                if (participant.gender) {
-                    gender = participant.gender.toLowerCase() === 'w' || participant.gender.toLowerCase() === 'f' ? 2 : 1;
-                }
-                // Check if participant exists (same first name, last name, and birth date)
-                const existingParticipant = await prisma.$queryRawUnsafe(`
+                    // Check if participant exists (same first name, last name, and birth date)
+                    const existingParticipant = await prisma.$queryRawUnsafe(`
           SELECT int_teilnehmerid FROM tfx_teilnehmer 
           WHERE LOWER(var_vorname) = LOWER($1) 
             AND LOWER(var_nachname) = LOWER($2)
-            AND (dat_geburtstag = $3 OR (dat_geburtstag IS NULL AND $3 IS NULL))
+            AND (
+              (dat_geburtstag IS NULL AND $3::text IS NULL) OR
+              (dat_geburtstag IS NOT NULL AND $3::text IS NOT NULL AND dat_geburtstag = $3::date)
+            )
           LIMIT 1
         `, firstName, lastName, birthDate);
-                if (existingParticipant.length > 0) {
-                    // Update existing participant
-                    await prisma.$queryRawUnsafe(`
-            UPDATE tfx_teilnehmer 
-            SET var_vorname = $1, var_nachname = $2, dat_geburtstag = $3, 
-                int_vereineid = COALESCE($4, int_vereineid), int_geschlecht = $5
-            WHERE int_teilnehmerid = $6
-          `, firstName, lastName, birthDate, clubId, gender, existingParticipant[0].int_teilnehmerid);
-                    insertionResults.participants.updated++;
-                    console.log(`  ✅ Updated participant: ${firstName} ${lastName}`);
+                    if (existingParticipant.length > 0) {
+                        // Update existing participant - handle birth date properly
+                        if (birthDate) {
+                            await prisma.$queryRawUnsafe(`
+              UPDATE tfx_teilnehmer 
+              SET var_vorname = $1, var_nachname = $2, dat_geburtstag = $3::date, 
+                  int_vereineid = COALESCE($4, int_vereineid), int_geschlecht = $5
+              WHERE int_teilnehmerid = $6
+            `, firstName, lastName, birthDate, clubId, gender, existingParticipant[0].int_teilnehmerid);
+                        }
+                        else {
+                            await prisma.$queryRawUnsafe(`
+              UPDATE tfx_teilnehmer 
+              SET var_vorname = $1, var_nachname = $2, dat_geburtstag = NULL, 
+                  int_vereineid = COALESCE($3, int_vereineid), int_geschlecht = $4
+              WHERE int_teilnehmerid = $5
+            `, firstName, lastName, clubId, gender, existingParticipant[0].int_teilnehmerid);
+                        }
+                        insertionResults.participants.updated++;
+                        console.log(`  ✅ Updated participant: ${firstName} ${lastName}`);
+                    }
+                    else {
+                        // Insert new participant (int_geschlecht is required)
+                        if (birthDate) {
+                            await prisma.$queryRawUnsafe(`
+              INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
+              VALUES ($1, $2, $3::date, $4, $5)
+            `, firstName, lastName, birthDate, clubId || 1, gender);
+                        }
+                        else {
+                            await prisma.$queryRawUnsafe(`
+              INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
+              VALUES ($1, $2, NULL, $3, $4)
+            `, firstName, lastName, clubId || 1, gender);
+                        }
+                        insertionResults.participants.inserted++;
+                        console.log(`  ✅ Inserted participant: ${firstName} ${lastName}`);
+                    }
+                    // Note: Participants will be manually added to events through the Event Participants page
+                    // The system uses tfx_wertungen (scores) to associate participants with events
+                    console.log(`  � Participant ${firstName} ${lastName} ready for manual event assignment`);
                 }
-                else {
-                    // Insert new participant (int_geschlecht is required)
-                    await prisma.$queryRawUnsafe(`
-            INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
-            VALUES ($1, $2, $3, $4, $5)
-          `, firstName, lastName, birthDate, clubId || 1, gender); // Default vereineid to 1 if not found
-                    insertionResults.participants.inserted++;
-                    console.log(`  ✅ Inserted participant: ${firstName} ${lastName}`);
+                catch (error) {
+                    const name = `${participant.firstName || ''} ${participant.lastName || ''}`.trim();
+                    console.log(`  ❌ Error processing participant ${name}:`, error);
+                    insertionResults.participants.errors++;
                 }
             }
-            catch (error) {
-                const name = `${participant.firstName || ''} ${participant.lastName || ''}`.trim();
-                console.log(`  ❌ Error processing participant ${name}:`, error);
-                insertionResults.participants.errors++;
-            }
+        }
+        else {
+            console.log('⚠️ Skipping participant processing - event creation failed');
         }
         // 3. Insert/Update Competitions (if event was created successfully)
         if (createdEvent && extractedData.competitions.length > 0) {
@@ -890,16 +989,6 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     if (!competition.name || competition.name.trim() === '') {
                         console.log('  ⚠️ Skipping competition with empty name');
                         continue;
-                    }
-                    // Parse competition date
-                    let competitionDate = parsedStartDate; // Default to event start date
-                    if (competition.date) {
-                        try {
-                            competitionDate = new Date(competition.date);
-                        }
-                        catch (e) {
-                            console.log(`  ⚠️ Invalid competition date: ${competition.date}, using event start date`);
-                        }
                     }
                     // Check if competition exists for this event
                     const existingCompetition = await prisma.$queryRawUnsafe(`
@@ -911,18 +1000,18 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         // Update existing competition
                         await prisma.$queryRawUnsafe(`
               UPDATE tfx_wettkaempfe 
-              SET var_name = $1, dat_datum = $2, dt_updated = $3
-              WHERE int_wettkaempfeid = $4
-            `, competition.name.trim(), competitionDate, new Date(), existingCompetition[0].int_wettkaempfeid);
+              SET var_name = $1
+              WHERE int_wettkaempfeid = $2
+            `, competition.name.trim(), existingCompetition[0].int_wettkaempfeid);
                         insertionResults.competitions.updated++;
                         console.log(`  ✅ Updated competition: ${competition.name}`);
                     }
                     else {
-                        // Insert new competition
+                        // Insert new competition (using default values for required fields)
                         await prisma.$queryRawUnsafe(`
-              INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, var_name, dat_datum, dt_created, dt_updated)
+              INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis)
               VALUES ($1, $2, $3, $4, $5)
-            `, createdEvent.int_veranstaltungenid, competition.name.trim(), competitionDate, new Date(), new Date());
+            `, createdEvent.int_veranstaltungenid, 1, competition.name.trim(), 2000, 2030);
                         insertionResults.competitions.inserted++;
                         console.log(`  ✅ Inserted competition: ${competition.name}`);
                     }
@@ -933,64 +1022,69 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 }
             }
         }
-        // 4. Insert/Update Devices/Disciplines
-        console.log('🤸 Processing devices/disciplines...');
-        for (const device of extractedData.devices) {
-            try {
-                const gymnetId = device.id || device.code;
-                const deviceName = device.name?.trim();
-                if (!deviceName) {
-                    console.log('  ⚠️ Skipping device with empty name');
-                    continue;
-                }
-                // Try to map GymNet ID to TurnFix discipline using database IDs
-                let mappedDiscipline = null;
-                if (gymnetId && disciplineMapping[gymnetId]) {
-                    mappedDiscipline = disciplineMapping[gymnetId];
-                    console.log(`  🎯 Mapped GymNet ID ${gymnetId} to TurnFix discipline: ${mappedDiscipline.name} (DB ID: ${mappedDiscipline.id})`);
-                }
-                if (mappedDiscipline) {
-                    // We have a precise mapping - check if this exact discipline exists by database ID
-                    const existingDiscipline = await prisma.$queryRawUnsafe(`
+        // 4. Insert/Update Devices/Disciplines (only if event was created successfully)
+        if (createdEvent) {
+            console.log('🤸 Processing devices/disciplines...');
+            for (const device of extractedData.devices) {
+                try {
+                    const gymnetId = device.id || device.code;
+                    const deviceName = device.name?.trim();
+                    if (!deviceName) {
+                        console.log('  ⚠️ Skipping device with empty name');
+                        continue;
+                    }
+                    // Try to map GymNet ID to TurnFix discipline using database IDs
+                    let mappedDiscipline = null;
+                    if (gymnetId && disciplineMapping[gymnetId]) {
+                        mappedDiscipline = disciplineMapping[gymnetId];
+                        console.log(`  🎯 Mapped GymNet ID ${gymnetId} to TurnFix discipline: ${mappedDiscipline.name} (DB ID: ${mappedDiscipline.id})`);
+                    }
+                    if (mappedDiscipline) {
+                        // We have a precise mapping - check if this exact discipline exists by database ID
+                        const existingDiscipline = await prisma.$queryRawUnsafe(`
             SELECT int_disziplinenid FROM tfx_disziplinen 
             WHERE int_disziplinenid = $1
             LIMIT 1
           `, mappedDiscipline.id);
-                    if (existingDiscipline.length > 0) {
-                        // Discipline exists - we don't need to update it as it's already correct
-                        insertionResults.devices.updated++;
-                        console.log(`  ✅ Found existing discipline: ${mappedDiscipline.name} (DB ID: ${mappedDiscipline.id}) mapped to GymNet ID ${gymnetId}`);
+                        if (existingDiscipline.length > 0) {
+                            // Discipline exists - we don't need to update it as it's already correct
+                            insertionResults.devices.updated++;
+                            console.log(`  ✅ Found existing discipline: ${mappedDiscipline.name} (DB ID: ${mappedDiscipline.id}) mapped to GymNet ID ${gymnetId}`);
+                        }
+                        else {
+                            console.log(`  ⚠️ Expected discipline with ID ${mappedDiscipline.id} not found in database - this may indicate a database schema issue`);
+                            insertionResults.devices.errors++;
+                        }
                     }
                     else {
-                        console.log(`  ⚠️ Expected discipline with ID ${mappedDiscipline.id} not found in database - this may indicate a database schema issue`);
-                        insertionResults.devices.errors++;
-                    }
-                }
-                else {
-                    // No mapping found - handle as before (by name or create new)
-                    console.log(`  ⚠️ No mapping found for GymNet ID ${gymnetId} - falling back to name-based lookup for "${deviceName}"`);
-                    // Check if discipline exists by name or GymNet ID
-                    const existingDiscipline = await prisma.$queryRawUnsafe(`
+                        // No mapping found - handle as before (by name or create new)
+                        console.log(`  ⚠️ No mapping found for GymNet ID ${gymnetId} - falling back to name-based lookup for "${deviceName}"`);
+                        // Check if discipline exists by name or GymNet ID
+                        const existingDiscipline = await prisma.$queryRawUnsafe(`
             SELECT int_disziplinenid FROM tfx_disziplinen 
             WHERE LOWER(var_name) = LOWER($1)
             LIMIT 1
           `, deviceName);
-                    if (existingDiscipline.length > 0) {
-                        // Discipline found by name - just reference it
-                        insertionResults.devices.updated++;
-                        console.log(`  ✅ Found existing discipline: ${deviceName} (unmapped)`);
-                    }
-                    else {
-                        // This discipline doesn't exist - we can't create new ones without required fields
-                        console.log(`  ⚠️ Discipline not found: ${deviceName} - would need sport ID to create new discipline`);
-                        insertionResults.devices.errors++;
+                        if (existingDiscipline.length > 0) {
+                            // Discipline found by name - just reference it
+                            insertionResults.devices.updated++;
+                            console.log(`  ✅ Found existing discipline: ${deviceName} (unmapped)`);
+                        }
+                        else {
+                            // This discipline doesn't exist - we can't create new ones without required fields
+                            console.log(`  ⚠️ Discipline not found: ${deviceName} - would need sport ID to create new discipline`);
+                            insertionResults.devices.errors++;
+                        }
                     }
                 }
+                catch (error) {
+                    console.log(`  ❌ Error processing device ${device.name}:`, error);
+                    insertionResults.devices.errors++;
+                }
             }
-            catch (error) {
-                console.log(`  ❌ Error processing device ${device.name}:`, error);
-                insertionResults.devices.errors++;
-            }
+        }
+        else {
+            console.log('⚠️ Skipping device/discipline processing - event creation failed');
         }
         console.log('💾 Database insertion completed:');
         console.log(`  🏢 Clubs: ${insertionResults.clubs.inserted} inserted, ${insertionResults.clubs.updated} updated, ${insertionResults.clubs.errors} errors`);
@@ -998,11 +1092,13 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         console.log(`  🏆 Competitions: ${insertionResults.competitions.inserted} inserted, ${insertionResults.competitions.updated} updated, ${insertionResults.competitions.errors} errors`);
         console.log(`  🤸 Disciplines: ${insertionResults.devices.inserted} inserted, ${insertionResults.devices.updated} updated, ${insertionResults.devices.errors} errors`);
         // Return structured response with extracted data
-        res.json({
-            success: true,
+        const responseData = {
+            success: createdEvent !== null, // Only successful if event was actually created
             message: createdEvent
                 ? `Event "${createdEvent.var_name}" created successfully and data imported to database`
-                : 'XML erfolgreich geparst und analysiert',
+                : eventCreationError
+                    ? `XML import failed: Could not create event in database. Error: ${eventCreationError instanceof Error ? eventCreationError.message : String(eventCreationError)}`
+                    : 'XML erfolgreich geparst und analysiert, aber kein Event wurde erstellt',
             createdEvent: createdEvent ? {
                 id: createdEvent.int_veranstaltungenid,
                 name: createdEvent.var_name,
@@ -1010,6 +1106,10 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 endDate: parsedEndDate,
                 location: location?.trim() || null,
                 description: description?.trim() || null
+            } : null,
+            eventCreationError: eventCreationError ? {
+                message: eventCreationError instanceof Error ? eventCreationError.message : String(eventCreationError),
+                details: 'Check server logs for detailed error information'
             } : null,
             insertionResults: insertionResults,
             extractedData: {
@@ -1029,14 +1129,20 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 rootElements: Object.keys(parsedXml || {}),
                 potentialDataFound: Object.keys(foundElements).length,
                 fileProcessed: req.file.originalname,
-                nextSteps: [
-                    'Review the extracted clubs, competitions, participants, and devices',
-                    'Verify the data accuracy and completeness',
-                    'Implement database import for the extracted data',
-                    'Add validation and error handling for specific data formats'
+                nextSteps: createdEvent ? [
+                    'Event created successfully',
+                    'Review the extracted and imported data',
+                    'Verify the data accuracy and completeness in the database'
+                ] : [
+                    'Event creation failed - check server logs for details',
+                    'Review the extracted data below for debugging',
+                    'Verify database connection and constraints',
+                    'Ensure all required fields are provided and valid'
                 ]
             }
-        });
+        };
+        // Return appropriate HTTP status
+        res.status(createdEvent ? 200 : 400).json(responseData);
     }
     catch (error) {
         console.error('❌ XML Import Error:', error);

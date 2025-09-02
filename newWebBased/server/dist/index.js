@@ -29,11 +29,16 @@ const countries_1 = __importDefault(require("./routes/countries"));
 const teams_1 = __importDefault(require("./routes/teams"));
 const venues_1 = __importDefault(require("./routes/venues"));
 const participants_1 = __importDefault(require("./routes/participants"));
+const eventParticipants_1 = __importDefault(require("./routes/eventParticipants"));
 const results_1 = __importDefault(require("./routes/results"));
 const competitions_1 = __importDefault(require("./routes/competitions"));
 const squadManagement_1 = __importDefault(require("./routes/squadManagement"));
+const squad_disciplines_1 = __importDefault(require("./routes/squad-disciplines"));
+const competition_status_1 = __importDefault(require("./routes/competition-status"));
 const scores_1 = __importDefault(require("./routes/scores"));
 const admin_1 = __importDefault(require("./routes/admin"));
+const layouts_1 = __importDefault(require("./routes/layouts"));
+const images_1 = __importDefault(require("./routes/images"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
@@ -76,6 +81,8 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+// Serve static files from uploads directory
+app.use('/uploads', express_1.default.static('uploads'));
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
@@ -94,6 +101,7 @@ app.use('/api/associations', associations_1.default);
 app.use('/api/regions', regions_1.default);
 app.use('/api/clubs', clubs_1.default);
 app.use('/api/participants', participants_1.default);
+app.use('/api/event-participants', eventParticipants_1.default);
 app.use('/api/events', events_1.default);
 app.use('/api/areas', areas_1.default);
 app.use('/api/sports', sports_1.default);
@@ -104,8 +112,12 @@ app.use('/api/venues', venues_1.default);
 app.use('/api/results', results_1.default);
 app.use('/api/competitions', competitions_1.default);
 app.use('/api/squad-management', squadManagement_1.default);
+app.use('/api/squad-disciplines', squad_disciplines_1.default);
+app.use('/api/competition-status', competition_status_1.default);
 app.use('/api/scores', scores_1.default);
 app.use('/api/admin', admin_1.default);
+app.use('/api/layouts', layouts_1.default);
+app.use('/api/images', images_1.default);
 // Socket.IO for real-time features
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);

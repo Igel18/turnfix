@@ -11,13 +11,15 @@ const createCompetitionSchema = z.object({
   name: z.string().min(1, 'Competition name is required'),
   description: z.string().optional(),
   date: z.string().min(1, 'Competition date is required'),
-  location: z.string().min(1, 'Location is required'),
+  location: z.string().optional(), // Location is optional since it comes from event
   gender: z.enum(['männlich', 'weiblich', 'gemischt']),
   ageFrom: z.number().min(5).max(99),
   ageTo: z.number().min(5).max(99),
-  disciplines: z.array(z.number()).min(1, 'At least one discipline is required'),
-  maxParticipants: z.number().optional(),
-  registrationDeadline: z.string().optional(),
+  disciplines: z.array(z.object({
+    disciplineId: z.number(),
+    maxScore: z.number().min(0)
+  })).min(1, 'At least one discipline is required'),
+  registrationDeadline: z.string().nullable().optional(),
   organizer: z.string().optional(),
   eventId: z.number().optional()
 });
@@ -65,39 +67,47 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     });
 
     // Transform the data to match the expected format
-    const transformedCompetitions = competitions.map(comp => ({
-      id: comp.int_wettkaempfeid,
-      name: comp.var_name || 'Unnamed Competition',
-      description: `${comp.tfx_bereiche.var_name || ''} - Age ${comp.yer_von}${comp.yer_bis ? `-${comp.yer_bis}` : '+'}`,
-      date: comp.tfx_veranstaltungen.dat_von?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
-      location: comp.tfx_veranstaltungen.tfx_wettkampforte?.var_name || 'TBD',
-      gender: comp.tfx_bereiche.bol_maennlich && comp.tfx_bereiche.bol_weiblich ? 'gemischt' : 
-              comp.tfx_bereiche.bol_maennlich ? 'männlich' : 'weiblich',
-      ageFrom: comp.yer_von,
-      ageTo: comp.yer_bis || comp.yer_von,
-      disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => wd.tfx_disziplinen.int_disziplinenid),
-      maxParticipants: null, // Not available in legacy schema
-      registrationDeadline: comp.tfx_veranstaltungen.dat_meldeschluss?.toISOString().split('T')[0] || null,
-      organizer: comp.tfx_veranstaltungen.var_veranstalter || 'TBD',
-      status: (() => {
-        if (!comp.tfx_veranstaltungen.dat_von) return 'completed';
-        const compDate = new Date(comp.tfx_veranstaltungen.dat_von);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        
-        // Set time to start of day for proper comparison
-        today.setHours(0, 0, 0, 0);
-        tomorrow.setHours(0, 0, 0, 0);
-        compDate.setHours(0, 0, 0, 0);
-        
-        if (compDate.getTime() === today.getTime()) return 'active';
-        if (compDate > today) return 'upcoming';
-        return 'completed';
-      })(),
-      participantCount: 0, // This would need a separate query to count participants
-      createdAt: new Date().toISOString() // Not tracked in legacy schema
-    }));
+    const transformedCompetitions = competitions.map(comp => {
+      // yer_von and yer_bis contain direct age values, not birth years
+      const ageFrom = comp.yer_von || 6;
+      const ageTo = comp.yer_bis || (comp.yer_von || 18);
+      
+      return {
+        id: comp.int_wettkaempfeid,
+        name: comp.var_name || 'Unnamed Competition',
+        description: `${comp.tfx_bereiche.var_name || ''} - Age ${Math.min(ageFrom, ageTo)}-${Math.max(ageFrom, ageTo)}`,
+        date: comp.tfx_veranstaltungen.dat_von?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        location: comp.tfx_veranstaltungen.tfx_wettkampforte?.var_name || 'TBD',
+        gender: comp.tfx_bereiche.bol_maennlich && comp.tfx_bereiche.bol_weiblich ? 'gemischt' : 
+                comp.tfx_bereiche.bol_maennlich ? 'männlich' : 'weiblich',
+        ageFrom: Math.min(ageFrom, ageTo), // Ensure ageFrom is the smaller value
+        ageTo: Math.max(ageFrom, ageTo),   // Ensure ageTo is the larger value
+        disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => ({
+          disciplineId: wd.tfx_disziplinen.int_disziplinenid,
+          maxScore: wd.rel_max || 0
+        })),
+        registrationDeadline: comp.tfx_veranstaltungen.dat_meldeschluss?.toISOString().split('T')[0] || null,
+        organizer: comp.tfx_veranstaltungen.var_veranstalter || 'TBD',
+        status: (() => {
+          if (!comp.tfx_veranstaltungen.dat_von) return 'completed';
+          const compDate = new Date(comp.tfx_veranstaltungen.dat_von);
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+          
+          // Set time to start of day for proper comparison
+          today.setHours(0, 0, 0, 0);
+          tomorrow.setHours(0, 0, 0, 0);
+          compDate.setHours(0, 0, 0, 0);
+          
+          if (compDate.getTime() === today.getTime()) return 'active';
+          if (compDate > today) return 'upcoming';
+          return 'completed';
+        })(),
+        participantCount: 0, // This would need a separate query to count participants
+        createdAt: new Date().toISOString() // Not tracked in legacy schema
+      };
+    });
     
     if (selectedEventId && selectedEventId !== 'undefined') {
       console.log(`Returning ${transformedCompetitions.length} competitions for event ${selectedEventId}`);
@@ -229,7 +239,12 @@ router.get('/:id/disciplines', authenticateToken, async (req: AuthRequest, res) 
 // Create new competition
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    console.log('🏃 Competition POST request received:');
+    console.log('   Headers:', req.headers['content-type']);
+    console.log('   Body:', JSON.stringify(req.body, null, 2));
+    
     const validatedData = createCompetitionSchema.parse(req.body);
+    console.log('✅ Validation passed, data:', JSON.stringify(validatedData, null, 2));
     
     // Validate age range
     if (validatedData.ageFrom >= validatedData.ageTo) {
@@ -238,7 +253,21 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       });
     }
     
+    // Validate event exists
+    const event = await prisma.$queryRawUnsafe(`
+      SELECT int_veranstaltungenid 
+      FROM tfx_veranstaltungen 
+      WHERE int_veranstaltungenid = $1
+    `, validatedData.eventId) as any[];
+    
+    if (event.length === 0) {
+      return res.status(400).json({ 
+        error: 'Event does not exist' 
+      });
+    }
+    
     // Validate disciplines exist and match gender requirements
+    const disciplineIds = validatedData.disciplines.map(d => d.disciplineId);
     const disciplines = await prisma.$queryRawUnsafe(`
       SELECT 
         int_disziplinenid as id,
@@ -247,9 +276,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         bol_w as female_allowed
       FROM tfx_disziplinen
       WHERE int_disziplinenid = ANY($1)
-    `, validatedData.disciplines) as any[];
+    `, disciplineIds) as any[];
     
-    if (disciplines.length !== validatedData.disciplines.length) {
+    if (disciplines.length !== disciplineIds.length) {
       return res.status(400).json({ 
         error: 'One or more selected disciplines do not exist' 
       });
@@ -272,27 +301,93 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       });
     }
     
-    // In a real application, this would insert into a competitions table
-    // For now, we'll return a mock created competition
-    const newCompetition = {
-      id: Date.now(), // Mock ID generation
-      ...validatedData,
-      status: 'upcoming',
+    // Find or create appropriate bereich (gender category)
+    const bereichId = validatedData.gender === 'männlich' ? 1 : 2;
+    
+    // Insert new competition into database
+    const insertedCompetition = await prisma.$queryRawUnsafe(`
+      INSERT INTO tfx_wettkaempfe (
+        int_veranstaltungenid,
+        int_bereicheid,
+        var_name,
+        yer_von,
+        yer_bis,
+        int_typ,
+        int_qualifikation,
+        int_wertungen,
+        bol_streichwertung,
+        bol_ak_anzeigen,
+        bol_wahlwettkampf,
+        int_durchgang,
+        int_bahn,
+        bol_info_anzeigen,
+        bol_kp,
+        bol_sortasc,
+        bol_mansort,
+        bol_gerpkt,
+        int_anz_streich
+      ) VALUES (
+        $1, $2, $3, $4, $5, 0, 0, 1, false, false, false, 1, 1, false, false, false, false, false, 0
+      ) RETURNING int_wettkaempfeid
+    `, 
+      validatedData.eventId,
+      bereichId,
+      validatedData.name,
+      validatedData.ageFrom,
+      validatedData.ageTo
+    ) as any[];
+    
+    const competitionId = insertedCompetition[0].int_wettkaempfeid;
+    
+    // Link disciplines to the competition
+    for (let i = 0; i < validatedData.disciplines.length; i++) {
+      const discipline = validatedData.disciplines[i];
+      await prisma.$queryRawUnsafe(`
+        INSERT INTO tfx_wettkaempfe_x_disziplinen (
+          int_wettkaempfeid,
+          int_disziplinenid,
+          int_sortierung,
+          bol_kp,
+          rel_max
+        ) VALUES ($1, $2, $3, false, $4)
+      `, competitionId, discipline.disciplineId, i + 1, discipline.maxScore || 0);
+    }
+    
+    // Return the created competition with full details
+    const createdCompetition = {
+      id: competitionId,
+      name: validatedData.name,
+      description: validatedData.description || `${validatedData.gender} - Age ${validatedData.ageFrom}-${validatedData.ageTo}`,
+      date: validatedData.date,
+      location: validatedData.location,
+      eventId: validatedData.eventId,
+      gender: validatedData.gender,
+      ageFrom: validatedData.ageFrom,
+      ageTo: validatedData.ageTo,
+      disciplines: validatedData.disciplines.map((d, index) => ({
+        disciplineId: d.disciplineId,
+        maxScore: d.maxScore || 0,
+        sortOrder: index + 1
+      })),
+      registrationDeadline: validatedData.registrationDeadline,
+      organizer: validatedData.organizer || 'TBD',
+      status: 'active',
       participantCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date().toISOString()
     };
     
-    res.status(201).json(newCompetition);
+    console.log(`✅ Created competition: ${validatedData.name} (ID: ${competitionId})`);
+    res.status(201).json(createdCompetition);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log('❌ Validation error:', JSON.stringify(error.issues, null, 2));
       return res.status(400).json({ 
         error: 'Validation error', 
         details: error.issues 
       });
     }
     
-    console.error('Error creating competition:', error);
+    console.error('❌ Error creating competition:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -305,9 +400,9 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     
     // Validate age range if both provided
     if (validatedData.ageFrom && validatedData.ageTo && 
-        validatedData.ageFrom >= validatedData.ageTo) {
+        validatedData.ageFrom > validatedData.ageTo) {
       return res.status(400).json({ 
-        error: 'Age "to" must be greater than age "from"' 
+        error: 'Age "from" must be less than or equal to age "to"' 
       });
     }
     
@@ -321,7 +416,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
           bol_w as female_allowed
         FROM tfx_disziplinen
         WHERE int_disziplinenid = ANY($1)
-      `, validatedData.disciplines) as any[];
+      `, validatedData.disciplines.map(d => d.disciplineId)) as any[];
       
       if (disciplines.length !== validatedData.disciplines.length) {
         return res.status(400).json({ 
@@ -349,27 +444,79 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       }
     }
     
-    // In a real application, this would update the competitions table
-    // For now, return a mock updated competition
-    const updatedCompetition = {
+    // Actually update the competition in the database
+    console.log('Updating competition:', id, 'with data:', validatedData);
+    
+    // Update the main competition record
+    const updatedCompetition = await prisma.tfx_wettkaempfe.update({
+      where: { int_wettkaempfeid: id },
+      data: {
+        var_name: validatedData.name,
+        // Store ages directly as they are (not birth years)
+        yer_von: validatedData.ageFrom || undefined,
+        yer_bis: validatedData.ageTo || undefined,
+      }
+    });
+    
+    // Update event-related fields (organizer and registration deadline)
+    if (validatedData.organizer !== undefined || validatedData.registrationDeadline !== undefined) {
+      const eventUpdateData: any = {};
+      
+      if (validatedData.organizer !== undefined) {
+        eventUpdateData.var_veranstalter = validatedData.organizer;
+      }
+      
+      if (validatedData.registrationDeadline !== undefined) {
+        eventUpdateData.dat_meldeschluss = validatedData.registrationDeadline ? new Date(validatedData.registrationDeadline) : null;
+      }
+      
+      await prisma.tfx_veranstaltungen.update({
+        where: { int_veranstaltungenid: updatedCompetition.int_veranstaltungenid },
+        data: eventUpdateData
+      });
+      
+      console.log('Updated event fields:', eventUpdateData);
+    }
+    
+    // Update disciplines if provided
+    if (validatedData.disciplines) {
+      // First, delete existing discipline associations
+      await prisma.tfx_wettkaempfe_x_disziplinen.deleteMany({
+        where: { int_wettkaempfeid: id }
+      });
+      
+      // Then create new associations
+      if (validatedData.disciplines.length > 0) {
+        await prisma.tfx_wettkaempfe_x_disziplinen.createMany({
+          data: validatedData.disciplines.map(discipline => ({
+            int_wettkaempfeid: id,
+            int_disziplinenid: discipline.disciplineId,
+            rel_max: discipline.maxScore
+          }))
+        });
+      }
+    }
+    
+    // Return the updated competition in the expected format
+    const result = {
       id: id,
-      name: validatedData.name || "Updated Competition",
-      description: validatedData.description || "Updated description",
-      date: validatedData.date || "2024-10-15",
-      location: validatedData.location || "Updated Location",
-      gender: validatedData.gender || "männlich",
-      ageFrom: validatedData.ageFrom || 14,
-      ageTo: validatedData.ageTo || 15,
-      disciplines: validatedData.disciplines || [1, 2, 3, 4],
-      maxParticipants: validatedData.maxParticipants || 50,
-      registrationDeadline: validatedData.registrationDeadline || "2024-10-01",
-      organizer: validatedData.organizer || "Updated Organizer",
+      name: validatedData.name || updatedCompetition.var_name,
+      description: validatedData.description || "Updated competition",
+      date: validatedData.date || new Date().toISOString().split('T')[0],
+      location: validatedData.location || "Updated location",
+      gender: validatedData.gender || "gemischt",
+      ageFrom: validatedData.ageFrom || 6,
+      ageTo: validatedData.ageTo || 18,
+      disciplines: validatedData.disciplines || [],
+      registrationDeadline: validatedData.registrationDeadline || null,
+      organizer: validatedData.organizer || "Updated organizer",
       status: "upcoming",
       participantCount: 0,
       updatedAt: new Date().toISOString()
     };
     
-    res.json(updatedCompetition);
+    console.log('Competition updated successfully:', result);
+    res.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -388,8 +535,31 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const id = parseInt(req.params.id);
     
-    // In a real application, this would delete from the competitions table
-    // For now, return success
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid competition ID' });
+    }
+
+    // First check if competition exists
+    const existingCompetition = await prisma.$queryRaw<any[]>`
+      SELECT int_wettkaempfeid FROM tfx_wettkaempfe 
+      WHERE int_wettkaempfeid = ${id}
+    `;
+
+    if (existingCompetition.length === 0) {
+      return res.status(404).json({ error: 'Competition not found' });
+    }
+
+    // Delete discipline associations first (foreign key constraint)
+    await prisma.tfx_wettkaempfe_x_disziplinen.deleteMany({
+      where: { int_wettkaempfeid: id }
+    });
+
+    // Delete the competition
+    await prisma.$executeRaw`
+      DELETE FROM tfx_wettkaempfe 
+      WHERE int_wettkaempfeid = ${id}
+    `;
+    
     res.json({ message: 'Competition deleted successfully' });
   } catch (error) {
     console.error('Error deleting competition:', error);

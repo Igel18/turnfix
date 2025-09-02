@@ -185,6 +185,7 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
     `, competitionId);
         const transformedDisciplines = disciplines.map((discipline) => ({
             int_disziplinenid: discipline.int_disziplinenid,
+            int_disziplinid: discipline.int_disziplinenid, // Compatibility alias
             var_name: discipline.var_name,
             var_kurz1: discipline.var_kurz1,
             var_kurz2: discipline.var_kurz2,

@@ -103,7 +103,6 @@ export function ScoreCapture() {
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({}) // Changed to string only
   const [squadStatus, setSquadStatus] = useState<number | null>(null) // Squad-level status for current squad and discipline
   const [squadDisciplineStatuses, setSquadDisciplineStatuses] = useState<{ [key: string]: number }>({}) // All squad-discipline status combinations
-  const [disciplineToCompetitionMap, setDisciplineToCompetitionMap] = useState<Map<number | string, number>>(new Map())
   
   // Selection state - initialized from context
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || '')
@@ -204,9 +203,6 @@ export function ScoreCapture() {
           console.error(`Error loading disciplines for competition ${competition.id}:`, error)
         }
       }
-      
-      // Store the mapping in state for filtering
-      setDisciplineToCompetitionMap(disciplineToCompetitionMap)
       
       // Remove duplicate disciplines based on int_disziplinid and var_name
       const uniqueDisciplines = allDisciplines.reduce((acc: Discipline[], current: Discipline) => {

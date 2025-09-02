@@ -8,6 +8,9 @@ const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createStatusSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
+    ary_colorcode: zod_1.z.string().max(25).optional().default('{0,0,0}'),
+    bol_bogen: zod_1.z.boolean().optional().default(true),
+    bol_karte: zod_1.z.boolean().optional().default(true),
 });
 const updateStatusSchema = createStatusSchema.partial();
 // Get all statuses

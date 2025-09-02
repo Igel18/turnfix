@@ -326,5 +326,12 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         return res.status(500).json({ message: 'Failed to delete participant' });
     }
 });
+// Update participant status - DISABLED: int_statusid column doesn't exist in database yet
+router.put('/:id/status', authBypass_1.authenticateToken, async (req, res) => {
+    return res.status(501).json({
+        message: 'Status management not available: int_statusid column does not exist in tfx_teilnehmer table',
+        error: 'Database schema needs to be updated to support status management'
+    });
+});
 exports.default = router;
 //# sourceMappingURL=participants.js.map

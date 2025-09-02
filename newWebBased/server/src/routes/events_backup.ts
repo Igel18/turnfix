@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
-import { z } from 'zod';
 import multer from 'multer';
 import { parseString } from 'xml2js';
 import { promisify } from 'util';
@@ -9,19 +8,6 @@ import fs from 'fs';
 
 const router = Router();
 const prisma = new PrismaClient();
-
-// Validation schemas for event creation
-const createEventSchema = z.object({
-  var_eventname: z.string().min(1, 'Event name is required'),
-  dat_eventstartdate: z.string().min(1, 'Start date is required'),
-  dat_eventenddate: z.string().min(1, 'End date is required'),
-  var_location: z.string().min(1, 'Location is required'),
-  var_description: z.string().nullable().optional(),
-  var_veranstalter: z.string().nullable().optional(),
-  dat_meldeschluss: z.string().nullable().optional()
-});
-
-const updateEventSchema = createEventSchema.partial();
 
 // Configure multer for XML file uploads
 const storage = multer.diskStorage({
@@ -72,14 +58,14 @@ router.get('/', async (req: Request, res: Response) => {
     let paramIndex = 1;
 
     if (search) {
-      whereClause = `WHERE LOWER(v.var_name) LIKE LOWER($${paramIndex}) OR LOWER(v.var_veranstalter) LIKE LOWER($${paramIndex})`;
+      whereClause = `WHERE LOWER(var_name) LIKE LOWER($${paramIndex}) OR LOWER(var_veranstalter) LIKE LOWER($${paramIndex})`;
       params.push(`%${search}%`);
       paramIndex++;
     }
 
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM tfx_veranstaltungen v
+      FROM tfx_veranstaltungen
       ${whereClause}
     `;
     
@@ -88,17 +74,12 @@ router.get('/', async (req: Request, res: Response) => {
 
     const dataQuery = `
       SELECT 
-        v.int_veranstaltungenid as int_eventid,
-        v.var_name as var_eventname,
-        v.dat_von as dat_eventstartdate,
-        v.dat_bis as dat_eventenddate,
-        COALESCE(wf.var_name, v.var_veranstalter, '') as var_location,
-        COALESCE(v.txt_hinweise, '') as var_description,
-        v.var_veranstalter,
-        wf.var_name as venue_name,
-        wf.var_adresse as venue_address,
-        wf.var_plz as venue_postal_code,
-        wf.var_ort as venue_city,
+        int_veranstaltungenid as int_eventid,
+        var_name as var_eventname,
+        dat_von as dat_eventstartdate,
+        dat_bis as dat_eventenddate,
+        var_veranstalter as var_location,
+        COALESCE(txt_hinweise, '') as var_description,
         (SELECT COUNT(*) FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as participant_count,
@@ -106,9 +87,8 @@ router.get('/', async (req: Request, res: Response) => {
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count
       FROM tfx_veranstaltungen v
-      LEFT JOIN tfx_wettkampforte wf ON v.int_wettkampforteid = wf.int_wettkampforteid
       ${whereClause}
-      ORDER BY v.dat_von DESC, v.var_name ASC
+      ORDER BY dat_von DESC, var_name ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
@@ -218,145 +198,6 @@ router.get('/import-gymnet-test', (req, res) => {
     message: 'XML import route is working',
     info: 'Use POST /api/events/import-gymnet with multipart form data containing xmlFile'
   });
-});
-
-// Create new event
-router.post('/', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const validatedData = createEventSchema.parse(req.body);
-
-    // Convert date strings to Date objects
-    const startDate = new Date(validatedData.dat_eventstartdate);
-    const endDate = new Date(validatedData.dat_eventenddate);
-    const registrationDeadline = validatedData.dat_meldeschluss ? new Date(validatedData.dat_meldeschluss) : null;
-
-    // Create the event using Prisma
-    const newEvent = await prisma.tfx_veranstaltungen.create({
-      data: {
-        var_name: validatedData.var_eventname,
-        dat_von: startDate,
-        dat_bis: endDate,
-        var_veranstalter: validatedData.var_location,
-        txt_hinweise: validatedData.var_description || null,
-        dat_meldeschluss: registrationDeadline,
-        // Set default values for required fields
-        int_wettkampforteid: 1, // Default venue ID - you may need to adjust this
-        int_runde: 1
-      }
-    });
-
-    // Format the response to match the expected structure
-    const response = {
-      int_eventid: newEvent.int_veranstaltungenid,
-      var_eventname: newEvent.var_name,
-      dat_eventstartdate: newEvent.dat_von?.toISOString(),
-      dat_eventenddate: newEvent.dat_bis?.toISOString(),
-      var_location: newEvent.var_veranstalter,
-      var_description: newEvent.txt_hinweise || '',
-      dat_meldeschluss: newEvent.dat_meldeschluss?.toISOString() || null,
-      var_veranstalter: newEvent.var_veranstalter,
-      participant_count: 0,
-      score_count: 0
-    };
-
-    console.log('✅ Event created successfully:', {
-      id: newEvent.int_veranstaltungenid,
-      name: newEvent.var_name,
-      dates: `${startDate.toISOString().split('T')[0]} - ${endDate.toISOString().split('T')[0]}`
-    });
-
-    res.status(201).json({ event: response });
-  } catch (error: any) {
-    console.error('Error creating event:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        error: 'Validation error', 
-        details: error.issues 
-      });
-    }
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
-    });
-  }
-});
-
-// Update existing event
-router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid event ID' });
-    }
-
-    const validatedData = updateEventSchema.parse(req.body);
-    
-    // Prepare update data
-    const updateData: any = {};
-    
-    if (validatedData.var_eventname !== undefined) {
-      updateData.var_name = validatedData.var_eventname;
-      updateData.var_bezeichnung = validatedData.var_eventname;
-    }
-    if (validatedData.dat_eventstartdate !== undefined) {
-      updateData.dat_von = new Date(validatedData.dat_eventstartdate);
-    }
-    if (validatedData.dat_eventenddate !== undefined) {
-      updateData.dat_bis = new Date(validatedData.dat_eventenddate);
-    }
-    if (validatedData.var_location !== undefined) {
-      updateData.var_veranstalter = validatedData.var_location;
-    }
-    if (validatedData.var_description !== undefined) {
-      updateData.txt_hinweise = validatedData.var_description || null;
-    }
-    if (validatedData.var_veranstalter !== undefined) {
-      updateData.var_veranstalter = validatedData.var_veranstalter;
-    }
-    if (validatedData.dat_meldeschluss !== undefined) {
-      updateData.dat_meldeschluss = validatedData.dat_meldeschluss ? new Date(validatedData.dat_meldeschluss) : null;
-    }
-
-    // Update the event
-    const updatedEvent = await prisma.tfx_veranstaltungen.update({
-      where: { int_veranstaltungenid: id },
-      data: updateData
-    });
-
-    // Format the response
-    const response = {
-      int_eventid: updatedEvent.int_veranstaltungenid,
-      var_eventname: updatedEvent.var_name,
-      dat_eventstartdate: updatedEvent.dat_von?.toISOString(),
-      dat_eventenddate: updatedEvent.dat_bis?.toISOString(),
-      var_location: updatedEvent.var_veranstalter,
-      var_description: updatedEvent.txt_hinweise || '',
-      dat_meldeschluss: updatedEvent.dat_meldeschluss?.toISOString() || null,
-      var_veranstalter: updatedEvent.var_veranstalter
-    };
-
-    console.log('✅ Event updated successfully:', {
-      id: updatedEvent.int_veranstaltungenid,
-      name: updatedEvent.var_name
-    });
-
-    res.json({ event: response });
-  } catch (error: any) {
-    console.error('Error updating event:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        error: 'Validation error', 
-        details: error.issues 
-      });
-    }
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
-    });
-  }
 });
 
 // Import event from DTB Gymnet XML
@@ -624,58 +465,19 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                   competition.date = item[key];
                 }
                 if (key.toLowerCase().includes('category') || 
-                    key.toLowerCase().includes('kategorie')) {
+                    key.toLowerCase().includes('kategorie') ||
+                    key.toLowerCase().includes('geschlecht')) {
                   competition.category = item[key];
                 }
-                
-                // Extract gender from waGeschlecht attribute (DTB standard)
-                if (key === 'waGeschlecht') {
-                  const genderValue = String(item[key]);
-                  if (genderValue === '1') {
-                    competition.gender = 'männlich';
-                  } else if (genderValue === '2') {
-                    competition.gender = 'weiblich';
-                  } else {
-                    competition.gender = 'mixed';
-                  }
-                }
-                
-                // Extract age range from waAlterMin/waAlterMax attributes (DTB standard)
-                if (key === 'waAlterMin') {
+                if (key.toLowerCase().includes('alter')) {
                   if (!competition.ageInfo) competition.ageInfo = {};
-                  competition.ageInfo.min = parseInt(item[key]) || 0;
-                }
-                if (key === 'waAlterMax') {
-                  if (!competition.ageInfo) competition.ageInfo = {};
-                  competition.ageInfo.max = parseInt(item[key]) || 0;
-                }
-                
-                // Fallback: Extract gender information from other fields
-                if (!competition.gender && (key.toLowerCase().includes('geschlecht') || 
-                    key.toLowerCase().includes('gender') ||
-                    key.toLowerCase().includes('sex'))) {
-                  competition.gender = item[key];
-                }
-                
-                // Fallback: Enhanced age extraction from other fields
-                if (key.toLowerCase().includes('alter') && key !== 'waAlterMin' && key !== 'waAlterMax') {
-                  if (!competition.ageInfo) competition.ageInfo = {};
-                  if (key.toLowerCase().includes('min') || key.toLowerCase().includes('von')) {
-                    competition.ageInfo.min = parseInt(item[key]) || 0;
-                  } else if (key.toLowerCase().includes('max') || key.toLowerCase().includes('bis')) {
-                    competition.ageInfo.max = parseInt(item[key]) || 0;
-                  } else {
-                    // Try to parse age range from string like "17-18" or "17 - 18"
-                    const ageStr = String(item[key]);
-                    const ageMatch = ageStr.match(/(\d+)\s*[-–]\s*(\d+)/);
-                    if (ageMatch) {
-                      competition.ageInfo.min = parseInt(ageMatch[1]);
-                      competition.ageInfo.max = parseInt(ageMatch[2]);
-                    }
+                  if (key.toLowerCase().includes('min')) {
+                    competition.ageInfo.min = item[key];
+                  } else if (key.toLowerCase().includes('max')) {
+                    competition.ageInfo.max = item[key];
                   }
                 }
               });
-              
               if (Object.keys(competition).length > 0) {
                 competition._source = `${currentPath}[${index}]`;
                 result.competitions.push(competition);
@@ -701,58 +503,19 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
               competition.date = data[key];
             }
             if (key.toLowerCase().includes('category') || 
-                key.toLowerCase().includes('kategorie')) {
+                key.toLowerCase().includes('kategorie') ||
+                key.toLowerCase().includes('geschlecht')) {
               competition.category = data[key];
             }
-            
-            // Extract gender from waGeschlecht attribute (DTB standard)
-            if (key === 'waGeschlecht') {
-              const genderValue = String(data[key]);
-              if (genderValue === '1') {
-                competition.gender = 'männlich';
-              } else if (genderValue === '2') {
-                competition.gender = 'weiblich';
-              } else {
-                competition.gender = 'mixed';
-              }
-            }
-            
-            // Extract age range from waAlterMin/waAlterMax attributes (DTB standard)
-            if (key === 'waAlterMin') {
+            if (key.toLowerCase().includes('alter')) {
               if (!competition.ageInfo) competition.ageInfo = {};
-              competition.ageInfo.min = parseInt(data[key]) || 0;
-            }
-            if (key === 'waAlterMax') {
-              if (!competition.ageInfo) competition.ageInfo = {};
-              competition.ageInfo.max = parseInt(data[key]) || 0;
-            }
-            
-            // Fallback: Extract gender information from other fields
-            if (!competition.gender && (key.toLowerCase().includes('geschlecht') || 
-                key.toLowerCase().includes('gender') ||
-                key.toLowerCase().includes('sex'))) {
-              competition.gender = data[key];
-            }
-            
-            // Fallback: Enhanced age extraction from other fields
-            if (key.toLowerCase().includes('alter') && key !== 'waAlterMin' && key !== 'waAlterMax') {
-              if (!competition.ageInfo) competition.ageInfo = {};
-              if (key.toLowerCase().includes('min') || key.toLowerCase().includes('von')) {
-                competition.ageInfo.min = parseInt(data[key]) || 0;
-              } else if (key.toLowerCase().includes('max') || key.toLowerCase().includes('bis')) {
-                competition.ageInfo.max = parseInt(data[key]) || 0;
-              } else {
-                // Try to parse age range from string like "17-18" or "17 - 18"
-                const ageStr = String(data[key]);
-                const ageMatch = ageStr.match(/(\d+)\s*[-–]\s*(\d+)/);
-                if (ageMatch) {
-                  competition.ageInfo.min = parseInt(ageMatch[1]);
-                  competition.ageInfo.max = parseInt(ageMatch[2]);
-                }
+              if (key.toLowerCase().includes('min')) {
+                competition.ageInfo.min = data[key];
+              } else if (key.toLowerCase().includes('max')) {
+                competition.ageInfo.max = data[key];
               }
             }
           });
-          
           if (Object.keys(competition).length > 0) {
             competition._source = currentPath;
             result.competitions.push(competition);
@@ -767,20 +530,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
             if (item && typeof item === 'object') {
               const participant: any = {};
               Object.keys(item).forEach(key => {
-                // First check for firstName (more specific patterns first)
+                if (key.toLowerCase().includes('name') || 
+                    key.toLowerCase().includes('nachname') ||
+                    key.toLowerCase().includes('lastname') ||
+                    key.toLowerCase().includes('pername')) {
+                  participant.lastName = item[key];
+                }
                 if (key.toLowerCase().includes('firstname') || 
                     key.toLowerCase().includes('vorname') ||
                     key.toLowerCase().includes('pervorname')) {
                   participant.firstName = item[key];
-                }
-                // Then check for lastName (excluding vorname patterns)
-                else if ((key.toLowerCase().includes('name') || 
-                         key.toLowerCase().includes('nachname') ||
-                         key.toLowerCase().includes('lastname') ||
-                         key.toLowerCase().includes('pername')) &&
-                        !key.toLowerCase().includes('vorname') &&
-                        !key.toLowerCase().includes('firstname')) {
-                  participant.lastName = item[key];
                 }
                 if (key.toLowerCase().includes('id') ||
                     key.toLowerCase().includes('tnid') ||
@@ -797,14 +556,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                     key.toLowerCase().includes('geschlecht')) {
                   participant.gender = item[key];
                 }
-                // Extract club/verein information
-                if (key.toLowerCase().includes('club') || 
-                    key.toLowerCase().includes('verein') ||
-                    key.toLowerCase().includes('team') ||
-                    key.toLowerCase().includes('organization') ||
-                    key.toLowerCase().includes('organisation')) {
-                  participant.club = item[key];
-                }
               });
               if (Object.keys(participant).length > 0) {
                 participant._source = `${currentPath}[${index}]`;
@@ -816,20 +567,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           // Handle single object case
           const participant: any = {};
           Object.keys(data).forEach(key => {
-            // First check for firstName (more specific patterns first)
+            if (key.toLowerCase().includes('name') || 
+                key.toLowerCase().includes('nachname') ||
+                key.toLowerCase().includes('lastname') ||
+                key.toLowerCase().includes('pername')) {
+              participant.lastName = data[key];
+            }
             if (key.toLowerCase().includes('firstname') || 
                 key.toLowerCase().includes('vorname') ||
                 key.toLowerCase().includes('pervorname')) {
               participant.firstName = data[key];
-            }
-            // Then check for lastName (excluding vorname patterns)
-            else if ((key.toLowerCase().includes('name') || 
-                     key.toLowerCase().includes('nachname') ||
-                     key.toLowerCase().includes('lastname') ||
-                     key.toLowerCase().includes('pername')) &&
-                    !key.toLowerCase().includes('vorname') &&
-                    !key.toLowerCase().includes('firstname')) {
-              participant.lastName = data[key];
             }
             if (key.toLowerCase().includes('id') ||
                 key.toLowerCase().includes('tnid') ||
@@ -845,14 +592,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                 key.toLowerCase().includes('gender') ||
                 key.toLowerCase().includes('geschlecht')) {
               participant.gender = data[key];
-            }
-            // Extract club/verein information
-            if (key.toLowerCase().includes('club') || 
-                key.toLowerCase().includes('verein') ||
-                key.toLowerCase().includes('team') ||
-                key.toLowerCase().includes('organization') ||
-                key.toLowerCase().includes('organisation')) {
-              participant.club = data[key];
             }
           });
           if (Object.keys(participant).length > 0) {
@@ -952,34 +691,12 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           const currentPath = path ? `${path}.${key}` : key;
 
           // Target specific GymNet XML structures
-          if (key.toLowerCase() === 'wettkampf' || key.toLowerCase() === 'wettkämpfe') {
-            if (Array.isArray(value)) {
-              extractCompetitions(value, currentPath);
-            } else if (value && typeof value === 'object' && value.Wettkampf) {
-              // Handle Wettkämpfe container with Wettkampf array inside
-              if (Array.isArray(value.Wettkampf)) {
-                extractCompetitions(value.Wettkampf, `${currentPath}.Wettkampf`);
-              } else {
-                extractCompetitions([value.Wettkampf], `${currentPath}.Wettkampf`);
-              }
-            } else {
-              extractCompetitions([value], currentPath);
-            }
+          if (key.toLowerCase() === 'wettkampf') {
+            extractCompetitions([value], currentPath);
           }
 
-          if (key.toLowerCase() === 'mannschaft' || key.toLowerCase() === 'mannschaften') {
-            if (Array.isArray(value)) {
-              extractClubs(value, currentPath);
-            } else if (value && typeof value === 'object' && value.Mannschaft) {
-              // Handle Mannschaften container with Mannschaft array inside
-              if (Array.isArray(value.Mannschaft)) {
-                extractClubs(value.Mannschaft, `${currentPath}.Mannschaft`);
-              } else {
-                extractClubs([value.Mannschaft], `${currentPath}.Mannschaft`);
-              }
-            } else {
-              extractClubs([value], currentPath);
-            }
+          if (key.toLowerCase() === 'mannschaft') {
+            extractClubs([value], currentPath);
           }
 
           if (key.toLowerCase() === 'tn') {
@@ -1017,57 +734,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
     console.log(`  👥 Participants: ${extractedData.participants.length}`);
     console.log(`  🏋️ Devices: ${extractedData.devices.length}`);
 
-    // Debug: Show the device extraction details
-    if (extractedData.devices.length === 0) {
-      console.log('🔍 DEBUG: No devices found. This could indicate:');
-      console.log('  - Disciplines are nested inside competitions');
-      console.log('  - Different XML structure than expected');
-      console.log('  - Different field names for disciplines');
-      console.log('  - Searching for devices in unexpected XML structure...');
-      
-      // Let's try a more aggressive search for any apparatus/discipline-like content
-      const searchForDevices = (obj: any, path: string = ''): any[] => {
-        const foundDevices: any[] = [];
-        if (obj && typeof obj === 'object') {
-          Object.keys(obj).forEach(key => {
-            const keyLower = key.toLowerCase();
-            if (keyLower.includes('gerät') || 
-                keyLower.includes('apparatus') || 
-                keyLower.includes('disziplin') || 
-                keyLower.includes('discipline') ||
-                keyLower.includes('device') ||
-                keyLower.includes('sport')) {
-              console.log(`  🎯 Found potential device key: "${key}" at path: ${path}.${key}`);
-              if (obj[key]) {
-                foundDevices.push({ key, value: obj[key], path: `${path}.${key}` });
-              }
-            }
-            
-            // Recursively search
-            if (Array.isArray(obj[key])) {
-              obj[key].forEach((item: any, index: number) => {
-                foundDevices.push(...searchForDevices(item, `${path}.${key}[${index}]`));
-              });
-            } else if (obj[key] && typeof obj[key] === 'object') {
-              foundDevices.push(...searchForDevices(obj[key], `${path}.${key}`));
-            }
-          });
-        }
-        return foundDevices;
-      };
-      
-      const foundDeviceData = searchForDevices(parsedXml, 'root');
-      if (foundDeviceData.length > 0) {
-        console.log(`  📊 Found ${foundDeviceData.length} potential device references:`);
-        foundDeviceData.slice(0, 5).forEach((device, index) => {
-          console.log(`    ${index + 1}. Key: "${device.key}" at ${device.path}`);
-          console.log(`       Sample data:`, JSON.stringify(device.value).substring(0, 200));
-        });
-      } else {
-        console.log('  ❌ No device/discipline references found in entire XML structure');
-      }
-    }
-
     // Log detailed findings
     if (extractedData.clubs.length > 0) {
       console.log('🏢 Found Clubs:');
@@ -1080,19 +746,7 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       console.log('🏆 Found Competitions:');
       extractedData.competitions.slice(0, 5).forEach((comp: any, index: number) => {
         console.log(`  ${index + 1}. ${comp.name || 'Unnamed'} (ID: ${comp.id || 'N/A'}) [${comp._source}]`);
-        if (comp.ageInfo && (comp.ageInfo.min || comp.ageInfo.max)) {
-          console.log(`     Ages: ${comp.ageInfo.min || 'N/A'} - ${comp.ageInfo.max || 'N/A'}`);
-        }
-        if (comp.gender) {
-          console.log(`     Gender: ${comp.gender}`);
-        }
-        if (comp.category) {
-          console.log(`     Category: ${comp.category}`);
-        }
       });
-      if (extractedData.competitions.length > 5) {
-        console.log(`  ... and ${extractedData.competitions.length - 5} more competitions`);
-      }
     }
 
     if (extractedData.participants.length > 0) {
@@ -1302,7 +956,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         // Get club ID if club name exists
         let clubId = null;
         if (participant.club) {
-          console.log(`  🔍 Looking for club: "${participant.club.trim()}"`);
           const clubResult = await prisma.$queryRawUnsafe(`
             SELECT int_vereineid FROM tfx_vereine 
             WHERE LOWER(var_name) = LOWER($1)
@@ -1311,18 +964,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           
           if ((clubResult as any[]).length > 0) {
             clubId = (clubResult as any[])[0].int_vereineid;
-            console.log(`  ✅ Found club ID: ${clubId} for "${participant.club}"`);
-          } else {
-            console.log(`  ⚠️ Club not found: "${participant.club}"`);
-            // Try to find similar club names
-            const similarClubs = await prisma.$queryRawUnsafe(`
-              SELECT var_name FROM tfx_vereine 
-              WHERE LOWER(var_name) LIKE LOWER('%' || $1 || '%')
-              LIMIT 3
-            `, participant.club.trim());
-            if ((similarClubs as any[]).length > 0) {
-              console.log(`  💡 Similar clubs found:`, (similarClubs as any[]).map(c => c.var_name));
-            }
           }
         }
 
@@ -1330,23 +971,9 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         let birthDate: string | null = null;
         if (participant.birthDate) {
           try {
-            let date: Date;
-            const birthDateStr = participant.birthDate.toString();
-            
-            // Check if it's German format DD.MM.YYYY
-            if (birthDateStr.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
-              const [day, month, year] = birthDateStr.split('.');
-              // Use UTC to avoid timezone issues
-              date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
-            } else {
-              // Try standard JavaScript date parsing
-              date = new Date(participant.birthDate);
-            }
-            
+            const date = new Date(participant.birthDate);
             if (!isNaN(date.getTime())) {
               birthDate = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
-            } else {
-              console.log(`  ⚠️ Invalid birth date for ${firstName} ${lastName}: ${participant.birthDate}`);
             }
           } catch (e) {
             console.log(`  ⚠️ Invalid birth date for ${firstName} ${lastName}: ${participant.birthDate}`);
@@ -1359,66 +986,59 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           gender = participant.gender.toLowerCase() === 'w' || participant.gender.toLowerCase() === 'f' ? 2 : 1;
         }
 
-        // Check if participant exists (same first name, last name)
-        // Also update participants with null birth dates if we have a valid birth date
+        // Check if participant exists (same first name, last name, and birth date)
         const existingParticipant = await prisma.$queryRawUnsafe(`
-          SELECT int_teilnehmerid, dat_geburtstag FROM tfx_teilnehmer 
+          SELECT int_teilnehmerid FROM tfx_teilnehmer 
           WHERE LOWER(var_vorname) = LOWER($1) 
             AND LOWER(var_nachname) = LOWER($2)
             AND (
               (dat_geburtstag IS NULL AND $3::text IS NULL) OR
-              (dat_geburtstag IS NOT NULL AND $3::text IS NOT NULL AND dat_geburtstag = $3::date) OR
-              (dat_geburtstag IS NULL AND $3::text IS NOT NULL)
+              (dat_geburtstag IS NOT NULL AND $3::text IS NOT NULL AND dat_geburtstag = $3::date)
             )
           LIMIT 1
         `, firstName, lastName, birthDate);
 
         if ((existingParticipant as any[]).length > 0) {
           // Update existing participant - handle birth date properly
-          // Only update club if we found a valid club ID (don't override with null)
-          const participantId = (existingParticipant as any[])[0].int_teilnehmerid;
-          const existingBirthDate = (existingParticipant as any[])[0].dat_geburtstag;
-          const clubInfo = clubId ? `(club ID: ${clubId})` : '(keeping existing club)';
-          const birthDateInfo = (!existingBirthDate && birthDate) ? ' [FIXED BIRTH DATE]' : '';
-          
           if (birthDate) {
             await prisma.$queryRawUnsafe(`
               UPDATE tfx_teilnehmer 
               SET var_vorname = $1, var_nachname = $2, dat_geburtstag = $3::date, 
                   int_vereineid = COALESCE($4, int_vereineid), int_geschlecht = $5
               WHERE int_teilnehmerid = $6
-            `, firstName, lastName, birthDate, clubId, gender, participantId);
+            `, firstName, lastName, birthDate, clubId, gender, (existingParticipant as any[])[0].int_teilnehmerid);
           } else {
             await prisma.$queryRawUnsafe(`
               UPDATE tfx_teilnehmer 
               SET var_vorname = $1, var_nachname = $2, dat_geburtstag = NULL, 
                   int_vereineid = COALESCE($3, int_vereineid), int_geschlecht = $4
               WHERE int_teilnehmerid = $5
-            `, firstName, lastName, clubId, gender, participantId);
+            `, firstName, lastName, clubId, gender, (existingParticipant as any[])[0].int_teilnehmerid);
           }
           
           insertionResults.participants.updated++;
-          console.log(`  ✅ Updated participant: ${firstName} ${lastName} ${clubInfo}${birthDateInfo}`);
+          console.log(`  ✅ Updated participant: ${firstName} ${lastName}`);
         } else {
           // Insert new participant (int_geschlecht is required)
           if (birthDate) {
             await prisma.$queryRawUnsafe(`
               INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
               VALUES ($1, $2, $3::date, $4, $5)
-            `, firstName, lastName, birthDate, clubId, gender);
+            `, firstName, lastName, birthDate, clubId || 1, gender);
           } else {
             await prisma.$queryRawUnsafe(`
               INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
               VALUES ($1, $2, NULL, $3, $4)
-            `, firstName, lastName, clubId, gender);
+            `, firstName, lastName, clubId || 1, gender);
           }
           
           insertionResults.participants.inserted++;
-          const clubInfo = clubId ? `(club ID: ${clubId})` : '(no club)';
-          console.log(`  ✅ Inserted participant: ${firstName} ${lastName} ${clubInfo}`);
+          console.log(`  ✅ Inserted participant: ${firstName} ${lastName}`);
         }
 
-        // Note: Participants will be added to events after competitions are processed
+        // Note: Participants will be manually added to events through the Event Participants page
+        // The system uses tfx_wertungen (scores) to associate participants with events
+        console.log(`  � Participant ${firstName} ${lastName} ready for manual event assignment`);
       } catch (error) {
         const name = `${participant.firstName || ''} ${participant.lastName || ''}`.trim();
         console.log(`  ❌ Error processing participant ${name}:`, error);
@@ -1428,47 +1048,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
     } else {
       console.log('⚠️ Skipping participant processing - event creation failed');
     }
-
-    // Helper function to get or create tfx_bereiche based on gender
-    const getOrCreateBereich = async (gender: string): Promise<number> => {
-      let boolMaennlich = true;
-      let boolWeiblich = true;
-      let bereichName = 'Mixed';
-      
-      if (gender === 'männlich' || gender === 'male') {
-        boolMaennlich = true;
-        boolWeiblich = false;
-        bereichName = 'Männlich';
-      } else if (gender === 'weiblich' || gender === 'female') {
-        boolMaennlich = false;
-        boolWeiblich = true;
-        bereichName = 'Weiblich';
-      }
-      
-      // Try to find existing bereich
-      const existingBereich = await prisma.tfx_bereiche.findFirst({
-        where: {
-          bol_maennlich: boolMaennlich,
-          bol_weiblich: boolWeiblich
-        }
-      });
-      
-      if (existingBereich) {
-        return existingBereich.int_bereicheid;
-      }
-      
-      // Create new bereich if not found
-      const newBereich = await prisma.tfx_bereiche.create({
-        data: {
-          var_name: bereichName,
-          bol_maennlich: boolMaennlich,
-          bol_weiblich: boolWeiblich
-        }
-      });
-      
-      console.log(`  📍 Created new bereich: ${bereichName} (ID: ${newBereich.int_bereicheid})`);
-      return newBereich.int_bereicheid;
-    };
 
     // 3. Insert/Update Competitions (if event was created successfully)
     if (createdEvent && extractedData.competitions.length > 0) {
@@ -1480,16 +1059,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
             continue;
           }
 
-          // Extract age ranges and gender
-          const ageFrom = competition.ageInfo?.min || 2000;
-          const ageTo = competition.ageInfo?.max || 2030;
-          const gender = competition.gender || 'mixed';
-          
-          console.log(`  🔍 Processing: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Gender: ${gender})`);
-          
-          // Get or create appropriate bereich based on gender
-          const bereichId = await getOrCreateBereich(gender);
-          
           // Check if competition exists for this event
           const existingCompetition = await prisma.$queryRawUnsafe(`
             SELECT int_wettkaempfeid FROM tfx_wettkaempfe 
@@ -1498,24 +1067,24 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           `, createdEvent.int_veranstaltungenid, competition.name.trim());
 
           if ((existingCompetition as any[]).length > 0) {
-            // Update existing competition with age ranges and bereich
+            // Update existing competition
             await prisma.$queryRawUnsafe(`
               UPDATE tfx_wettkaempfe 
-              SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4
-              WHERE int_wettkaempfeid = $5
-            `, competition.name.trim(), ageFrom, ageTo, bereichId, (existingCompetition as any[])[0].int_wettkaempfeid);
+              SET var_name = $1
+              WHERE int_wettkaempfeid = $2
+            `, competition.name.trim(), (existingCompetition as any[])[0].int_wettkaempfeid);
             
             insertionResults.competitions.updated++;
-            console.log(`  ✅ Updated competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId})`);
+            console.log(`  ✅ Updated competition: ${competition.name}`);
           } else {
-            // Insert new competition with age ranges and bereich
+            // Insert new competition (using default values for required fields)
             await prisma.$queryRawUnsafe(`
               INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis)
               VALUES ($1, $2, $3, $4, $5)
-            `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo);
+            `, createdEvent.int_veranstaltungenid, 1, competition.name.trim(), 2000, 2030);
             
             insertionResults.competitions.inserted++;
-            console.log(`  ✅ Inserted competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId})`);
+            console.log(`  ✅ Inserted competition: ${competition.name}`);
           }
         } catch (error) {
           console.log(`  ❌ Error processing competition ${competition.name}:`, error);
@@ -1524,189 +1093,77 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       }
     }
 
-    // 3.5. Now assign all participants to the event (after competitions are created)
-    if (createdEvent && extractedData.participants.length > 0) {
-      console.log(`🔗 Assigning ${extractedData.participants.length} participants to event...`);
-      let assignedCount = 0;
-      
-      for (const participant of extractedData.participants) {
-        try {
-          const firstName = participant.firstName?.trim() || '';
-          const lastName = participant.lastName?.trim() || '';
-          
-          if (!firstName || !lastName) {
-            console.log(`  ⚠️ Skipping participant with empty name: '${firstName}' '${lastName}'`);
-            continue;
-          }
-
-          console.log(`  🔍 Processing participant: ${firstName} ${lastName}`);
-
-          // Get the participant ID
-          const participantResult = await prisma.$queryRawUnsafe(`
-            SELECT int_teilnehmerid FROM tfx_teilnehmer 
-            WHERE var_vorname = $1 AND var_nachname = $2 
-            ORDER BY int_teilnehmerid DESC LIMIT 1
-          `, firstName, lastName);
-
-          if ((participantResult as any[]).length > 0) {
-            const participantId = (participantResult as any[])[0].int_teilnehmerid;
-            console.log(`    ✅ Found participant in DB with ID: ${participantId}`);
-            
-            // Get the first competition for this event to create score entry
-            const firstCompetition = await prisma.tfx_wettkaempfe.findFirst({
-              where: { int_veranstaltungenid: createdEvent.int_veranstaltungenid },
-              orderBy: { int_wettkaempfeid: 'asc' }
-            });
-
-            if (firstCompetition) {
-              console.log(`    🏆 Found competition: ${firstCompetition.var_name} (ID: ${firstCompetition.int_wettkaempfeid})`);
-              
-              // Check if participant is already in the event
-              const existingEntry = await prisma.tfx_wertungen.findFirst({
-                where: {
-                  int_teilnehmerid: participantId,
-                  int_wettkaempfeid: firstCompetition.int_wettkaempfeid
-                }
-              });
-
-              if (!existingEntry) {
-                // Create score entry to add participant to event (using the same logic as /event-participants/add)
-                await prisma.tfx_wertungen.create({
-                  data: {
-                    int_teilnehmerid: participantId,
-                    int_wettkaempfeid: firstCompetition.int_wettkaempfeid,
-                    int_startnummer: 0, // Will be assigned later
-                    var_riege: '', // Will be assigned later
-                    int_statusid: 1 // Default status
-                  }
-                });
-                
-                assignedCount++;
-                console.log(`    🔗 Automatically added participant ${firstName} ${lastName} to event (${assignedCount}/${extractedData.participants.length})`);
-                insertionResults.participants.updated++; // Count as updated since they're now in event
-              } else {
-                console.log(`    📝 Participant ${firstName} ${lastName} already in event`);
-              }
-            } else {
-              console.log(`    ⚠️ No competitions found for event - participant ${firstName} ${lastName} not added to event`);
-            }
-          } else {
-            console.log(`    ❌ Participant ${firstName} ${lastName} not found in database`);
-          }
-        } catch (associationError) {
-          console.error(`    ❌ Failed to add participant ${participant.firstName} ${participant.lastName} to event:`, associationError);
-        }
-      }
-      
-      console.log(`🎯 Participant assignment complete: ${assignedCount}/${extractedData.participants.length} participants assigned to event`);
-    }
-
-    // 4. Insert/Update Devices/Disciplines and link them to competitions (enhanced with manual search)
-    console.log('🤸 Starting comprehensive discipline processing...');
-    
-    // Always try to find and link disciplines, regardless of extraction results
+    // 4. Insert/Update Devices/Disciplines (only if event was created successfully)
     if (createdEvent) {
-      // First, get all competitions created for this event
-      const eventCompetitions = await prisma.$queryRawUnsafe(`
-        SELECT int_wettkaempfeid, var_name FROM tfx_wettkaempfe 
-        WHERE int_veranstaltungenid = $1
-      `, createdEvent.int_veranstaltungenid);
-
-      console.log(`  📊 Found ${(eventCompetitions as any[]).length} competitions for this event`);
-
-      // Define common gymnastics disciplines that should be linked to competitions
-      const commonDisciplines = [
-        { name: 'Boden', searchTerms: ['boden', 'floor', 'fx'] },
-        { name: 'Sprung', searchTerms: ['sprung', 'vault', 'vt'] },
-        { name: 'Stufenbarren', searchTerms: ['stufenbarren', 'barren', 'uneven', 'ub'] },
-        { name: 'Schwebebalken', searchTerms: ['schwebebalken', 'balken', 'beam', 'bb'] },
-        { name: 'Reck', searchTerms: ['reck', 'high bar', 'hb'] },
-        { name: 'Pauschenpferd', searchTerms: ['pauschenpferd', 'pommel', 'ph'] },
-        { name: 'Ringe', searchTerms: ['ringe', 'rings', 'sr'] },
-        { name: 'Barren', searchTerms: ['barren', 'parallel', 'pb'] }
-      ];
-
-      let linkedCount = 0;
-      
-      // For each competition, try to link appropriate disciplines
-      for (const competition of (eventCompetitions as any[])) {
-        const competitionName = competition.var_name.toLowerCase();
+      console.log('🤸 Processing devices/disciplines...');
+      for (const device of extractedData.devices) {
+      try {
+        const gymnetId = device.id || device.code;
+        const deviceName = device.name?.trim();
         
-        console.log(`  🔍 Processing competition: "${competition.var_name}"`);
-        
-        // Determine which disciplines to link based on competition name
-        let disciplinesToLink: string[] = [];
-        
-        if (competitionName.includes('vierkampf') && competitionName.includes('w')) {
-          // Women's all-around (4 events)
-          disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'];
-        } else if (competitionName.includes('sechskampf') && competitionName.includes('m')) {
-          // Men's all-around (6 events)
-          disciplinesToLink = ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'];
-        } else if (competitionName.includes('geräte')) {
-          // Generic apparatus competition - link common disciplines
-          disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
-        } else {
-          // For other competitions, link basic disciplines
-          disciplinesToLink = ['Boden', 'Sprung'];
+        if (!deviceName) {
+          console.log('  ⚠️ Skipping device with empty name');
+          continue;
         }
-        
-        console.log(`    📝 Will attempt to link disciplines: ${disciplinesToLink.join(', ')}`);
-        
-        // Link each discipline to this competition
-        for (const disciplineName of disciplinesToLink) {
-          try {
-            // Find the discipline in the database
-            const existingDiscipline = await prisma.$queryRawUnsafe(`
-              SELECT int_disziplinenid FROM tfx_disziplinen 
-              WHERE LOWER(var_name) = LOWER($1)
-              LIMIT 1
-            `, disciplineName);
 
-            if ((existingDiscipline as any[]).length > 0) {
-              const disciplineId = (existingDiscipline as any[])[0].int_disziplinenid;
-              
-              // Check if this competition-discipline link already exists
-              const existingLink = await prisma.$queryRawUnsafe(`
-                SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
-                WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
-                LIMIT 1
-              `, competition.int_wettkaempfeid, disciplineId);
+        // Try to map GymNet ID to TurnFix discipline using database IDs
+        let mappedDiscipline = null;
+        if (gymnetId && disciplineMapping[gymnetId]) {
+          mappedDiscipline = disciplineMapping[gymnetId];
+          console.log(`  🎯 Mapped GymNet ID ${gymnetId} to TurnFix discipline: ${mappedDiscipline.name} (DB ID: ${mappedDiscipline.id})`);
+        }
 
-              if ((existingLink as any[]).length === 0) {
-                // Create the competition-discipline link
-                await prisma.$queryRawUnsafe(`
-                  INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
-                  VALUES ($1, $2, $3)
-                `, competition.int_wettkaempfeid, disciplineId, linkedCount + 1);
-                
-                console.log(`    🔗 Linked discipline "${disciplineName}" to competition "${competition.var_name}"`);
-                linkedCount++;
-                insertionResults.devices.updated++;
-              } else {
-                console.log(`    ✅ Discipline "${disciplineName}" already linked to competition "${competition.var_name}"`);
-              }
-            } else {
-              console.log(`    ⚠️ Discipline "${disciplineName}" not found in database`);
-              insertionResults.devices.errors++;
-            }
-          } catch (linkError) {
-            console.log(`    ❌ Error linking discipline ${disciplineName} to competition ${competition.var_name}:`, linkError);
+        if (mappedDiscipline) {
+          // We have a precise mapping - check if this exact discipline exists by database ID
+          const existingDiscipline = await prisma.$queryRawUnsafe(`
+            SELECT int_disziplinenid FROM tfx_disziplinen 
+            WHERE int_disziplinenid = $1
+            LIMIT 1
+          `, mappedDiscipline.id);
+
+          if ((existingDiscipline as any[]).length > 0) {
+            // Discipline exists - we don't need to update it as it's already correct
+            insertionResults.devices.updated++;
+            console.log(`  ✅ Found existing discipline: ${mappedDiscipline.name} (DB ID: ${mappedDiscipline.id}) mapped to GymNet ID ${gymnetId}`);
+          } else {
+            console.log(`  ⚠️ Expected discipline with ID ${mappedDiscipline.id} not found in database - this may indicate a database schema issue`);
+            insertionResults.devices.errors++;
+          }
+        } else {
+          // No mapping found - handle as before (by name or create new)
+          console.log(`  ⚠️ No mapping found for GymNet ID ${gymnetId} - falling back to name-based lookup for "${deviceName}"`);
+          
+          // Check if discipline exists by name or GymNet ID
+          const existingDiscipline = await prisma.$queryRawUnsafe(`
+            SELECT int_disziplinenid FROM tfx_disziplinen 
+            WHERE LOWER(var_name) = LOWER($1)
+            LIMIT 1
+          `, deviceName);
+
+          if ((existingDiscipline as any[]).length > 0) {
+            // Discipline found by name - just reference it
+            insertionResults.devices.updated++;
+            console.log(`  ✅ Found existing discipline: ${deviceName} (unmapped)`);
+          } else {
+            // This discipline doesn't exist - we can't create new ones without required fields
+            console.log(`  ⚠️ Discipline not found: ${deviceName} - would need sport ID to create new discipline`);
             insertionResults.devices.errors++;
           }
         }
+      } catch (error) {
+        console.log(`  ❌ Error processing device ${device.name}:`, error);
+        insertionResults.devices.errors++;
       }
-      
-      console.log(`  🎯 Discipline linking complete: ${linkedCount} new links created`);
+    }
     } else {
-      console.log('⚠️ Skipping discipline processing - event creation failed');
+      console.log('⚠️ Skipping device/discipline processing - event creation failed');
     }
 
     console.log('💾 Database insertion completed:');
     console.log(`  🏢 Clubs: ${insertionResults.clubs.inserted} inserted, ${insertionResults.clubs.updated} updated, ${insertionResults.clubs.errors} errors`);
     console.log(`  👥 Participants: ${insertionResults.participants.inserted} inserted, ${insertionResults.participants.updated} updated, ${insertionResults.participants.errors} errors`);
     console.log(`  🏆 Competitions: ${insertionResults.competitions.inserted} inserted, ${insertionResults.competitions.updated} updated, ${insertionResults.competitions.errors} errors`);
-    console.log(`  🤸 Disciplines: ${insertionResults.devices.inserted} inserted, ${insertionResults.devices.updated} found/linked, ${insertionResults.devices.errors} errors`);
+    console.log(`  🤸 Disciplines: ${insertionResults.devices.inserted} inserted, ${insertionResults.devices.updated} updated, ${insertionResults.devices.errors} errors`);
 
     // Return structured response with extracted data
     const responseData = {
@@ -1847,120 +1304,4 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/events/:id/participants - Compatibility endpoint
-router.get('/:id/participants', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const eventId = parseInt(req.params.id);
-    
-    if (isNaN(eventId)) {
-      return res.status(400).json({ error: 'Invalid event ID' });
-    }
-
-    // Check if event exists
-    const existingEvent = await prisma.tfx_veranstaltungen.findUnique({
-      where: { int_veranstaltungenid: eventId }
-    });
-
-    if (!existingEvent) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    // Return a redirect or forward the request to the correct endpoint
-    // For now, return a simple message pointing to the correct endpoint
-    res.status(200).json({ 
-      message: 'This endpoint is deprecated. Use /api/event-participants?eventId=' + eventId,
-      redirect: `/api/event-participants?eventId=${eventId}`,
-      participants: []
-    });
-
-  } catch (error: any) {
-    console.error('Error fetching event participants:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// DELETE /api/events/:id - Delete an event
-router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const eventId = parseInt(req.params.id);
-    const forceDelete = req.query.force === 'true';
-    
-    if (isNaN(eventId)) {
-      return res.status(400).json({ error: 'Invalid event ID' });
-    }
-
-    // Check if event exists
-    const existingEvent = await prisma.tfx_veranstaltungen.findUnique({
-      where: { int_veranstaltungenid: eventId }
-    });
-
-    if (!existingEvent) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    // Check if event has associated data (scores/participants)
-    const scoresCount = await prisma.tfx_wertungen.count({
-      where: { 
-        tfx_wettkaempfe: {
-          int_veranstaltungenid: eventId
-        }
-      }
-    });
-
-    if (scoresCount > 0 && !forceDelete) {
-      return res.status(409).json({ 
-        error: 'Cannot delete event with existing scores. Delete scores first.',
-        hasScores: true,
-        scoresCount,
-        hint: 'Use ?force=true to delete event with all associated data'
-      });
-    }
-
-    // If force delete, remove all associated data first
-    if (forceDelete && scoresCount > 0) {
-      console.log(`🗑️ Force deleting event ${existingEvent.var_name} with ${scoresCount} scores...`);
-      
-      // Delete all scores for this event
-      await prisma.tfx_wertungen.deleteMany({
-        where: { 
-          tfx_wettkaempfe: {
-            int_veranstaltungenid: eventId
-          }
-        }
-      });
-      
-      console.log(`🗑️ Deleted ${scoresCount} scores for event ${eventId}`);
-    }
-
-    // Delete associated competitions
-    const competitionsCount = await prisma.tfx_wettkaempfe.count({
-      where: { int_veranstaltungenid: eventId }
-    });
-    
-    await prisma.tfx_wettkaempfe.deleteMany({
-      where: { int_veranstaltungenid: eventId }
-    });
-
-    // Delete the event
-    await prisma.tfx_veranstaltungen.delete({
-      where: { int_veranstaltungenid: eventId }
-    });
-
-    console.log(`🗑️ Event ${existingEvent.var_name} (ID: ${eventId}) deleted successfully`);
-    
-    res.json({ 
-      message: 'Event deleted successfully',
-      eventId,
-      eventName: existingEvent.var_name,
-      deletedScores: forceDelete ? scoresCount : 0,
-      deletedCompetitions: competitionsCount
-    });
-
-  } catch (error: any) {
-    console.error('Error deleting event:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 export default router;
-
