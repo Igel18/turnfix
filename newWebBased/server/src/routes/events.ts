@@ -1505,7 +1505,18 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         // Determine gender (int_geschlecht is required in schema)
         let gender = 1; // Default to male (1)
         if (participant.gender) {
-          gender = participant.gender.toLowerCase() === 'w' || participant.gender.toLowerCase() === 'f' ? 2 : 1;
+          // Handle DTB GymNet format: 1 = male, 2 = female
+          if (participant.gender === '2' || participant.gender === 2) {
+            gender = 2; // Female
+            console.log(`    🚺 Participant ${firstName} ${lastName}: DTB gender '${participant.gender}' → Female (2)`);
+          } else if (participant.gender === '1' || participant.gender === 1) {
+            gender = 1; // Male
+            console.log(`    🚹 Participant ${firstName} ${lastName}: DTB gender '${participant.gender}' → Male (1)`);
+          } else {
+            // Handle text-based gender (fallback for other formats)
+            gender = participant.gender.toLowerCase() === 'w' || participant.gender.toLowerCase() === 'f' ? 2 : 1;
+            console.log(`    ⚪ Participant ${firstName} ${lastName}: Text gender '${participant.gender}' → ${gender === 2 ? 'Female' : 'Male'} (${gender})`);
+          }
         }
 
         // Check if participant exists (same first name, last name)
