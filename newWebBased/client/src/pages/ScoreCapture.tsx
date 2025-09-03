@@ -63,6 +63,7 @@ interface Status {
 interface Competition {
   id: number;
   name: string;
+  number?: string;
   var_name?: string;
   event_id: number;
   disciplines?: Discipline[];
@@ -672,7 +673,11 @@ export function ScoreCapture() {
     <div className="max-w-7xl mx-auto">
       <UnifiedHeader
         title="Score Capture"
-        description="Enter and manage competition scores and results"
+        description={
+          selectedCompetition 
+            ? `Enter and manage scores for ${selectedCompetition.name}${selectedCompetition.number ? ` (Nr. ${selectedCompetition.number})` : ''}` 
+            : "Enter and manage competition scores and results"
+        }
         icon={ClipboardDocumentListIcon}
         stateInfo={getScoreCaptureStateInfo()}
         selectedState={selectedStatus}
@@ -701,7 +706,8 @@ export function ScoreCapture() {
             <div className="text-sm text-blue-800">
               <strong>Selected Context:</strong>
               {eventId && ` Event: ${selectedEvent?.var_eventname || `Event ID ${eventId}`}`}
-              {competitionId && ` • Competition ID: ${competitionId}`}
+              {selectedCompetition && ` • Competition: ${selectedCompetition.name}${selectedCompetition.number ? ` (Nr. ${selectedCompetition.number})` : ''}`}
+              {!selectedCompetition && competitionId && ` • Competition ID: ${competitionId}`}
               {squadName && ` • Squad: ${squadName}`}
             </div>
           </div>

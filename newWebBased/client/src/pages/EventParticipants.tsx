@@ -35,6 +35,7 @@ interface Participant {
 interface Competition {
   id: number;
   name: string;
+  number?: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
   ageFrom: number;
   ageTo: number;
@@ -236,7 +237,7 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
                   className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <span className="text-sm text-gray-700">
-                  {competition.name} ({competition.gender}, Ages {competition.ageFrom}-{competition.ageTo})
+                  {competition.name}{competition.number ? ` (Nr. ${competition.number})` : ''} ({competition.gender}, Ages {competition.ageFrom}-{competition.ageTo})
                 </span>
               </label>
             ))
@@ -400,6 +401,7 @@ const EventParticipants: React.FC = () => {
         {
           id: 1,
           name: 'Men 16-18 Floor Exercise',
+          number: '0001',
           gender: 'männlich',
           ageFrom: 16,
           ageTo: 18,
@@ -410,6 +412,7 @@ const EventParticipants: React.FC = () => {
         {
           id: 2,
           name: 'Women 14-16 Uneven Bars',
+          number: '0002',
           gender: 'weiblich',
           ageFrom: 14,
           ageTo: 16,
@@ -882,7 +885,9 @@ const EventParticipants: React.FC = () => {
                     }`}
                     onClick={() => setSelectedCompetition(competition)}
                   >
-                    <h4 className="font-medium text-gray-900">{competition.name}</h4>
+                    <h4 className="font-medium text-gray-900">
+                      {competition.name}{competition.number ? ` (Nr. ${competition.number})` : ''}
+                    </h4>
                     <p className="text-sm text-gray-500 mt-1">
                       {competition.gender} • Ages {competition.ageFrom}-{competition.ageTo}
                     </p>
@@ -956,12 +961,15 @@ const EventParticipants: React.FC = () => {
               {selectedCompetition ? (
                 <>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    {selectedCompetition.name}
+                    {selectedCompetition.name}{selectedCompetition.number ? ` (Nr. ${selectedCompetition.number})` : ''}
                   </h3>
                   <div className="bg-white rounded-lg border p-4">
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-900 mb-2">Competition Details</h4>
                       <div className="space-y-2 text-sm">
+                        {selectedCompetition.number && (
+                          <p><span className="font-medium">Number:</span> {selectedCompetition.number}</p>
+                        )}
                         <p><span className="font-medium">Gender:</span> {selectedCompetition.gender}</p>
                         <p><span className="font-medium">Age Range:</span> {selectedCompetition.ageFrom}-{selectedCompetition.ageTo} years</p>
                         <p><span className="font-medium">Participants:</span> {selectedCompetition.participantCount} / {selectedCompetition.maxParticipants || '∞'}</p>

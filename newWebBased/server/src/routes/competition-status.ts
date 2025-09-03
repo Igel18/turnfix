@@ -16,6 +16,8 @@ const competitionStatusQuerySchema = z.object({
 interface CompetitionStatusData {
   id: number
   name: string
+  number: string
+  round: number
   description: string
   gender: string
   ageFrom: number
@@ -196,6 +198,8 @@ router.get('/', async (req, res) => {
       competitionStatusData.push({
         id: competition.int_wettkaempfeid,
         name: competition.var_name || 'Unnamed Competition',
+        number: competition.var_nummer || '',
+        round: 1, // Default to round 1, could be enhanced later with actual round data
         description: `${competition.tfx_bereiche?.var_name || ''} - Age ${competition.yer_von}${competition.yer_bis ? `-${competition.yer_bis}` : '+'}`,
         gender: competition.tfx_bereiche?.bol_maennlich && competition.tfx_bereiche?.bol_weiblich ? 'gemischt' : 
                 competition.tfx_bereiche?.bol_maennlich ? 'männlich' : 'weiblich',

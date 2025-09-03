@@ -365,10 +365,10 @@ const CompetitionStatusManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {item.name}
+                            {item.name}{item.number ? ` (Nr. ${item.number})` : ''}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {item.number} - Round {item.round}
+                            Round {item.round}
                           </div>
                         </div>
                       </td>
@@ -436,10 +436,10 @@ const CompetitionStatusManagement = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900 mb-1">
-                          {item.name}
+                          {item.name}{item.number ? ` (Nr. ${item.number})` : ''}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          {item.number} - Round {item.round}
+                          Round {item.round}
                         </p>
                       </div>
                     </div>

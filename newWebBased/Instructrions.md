@@ -221,7 +221,9 @@ When a competition name is visible (eg "Gerätvierkampf w (1-6Jahre)") the  Comp
 - In Score Capture. 
 - In Competition Results. 
 
+--- 
 
+At the Edit Competition UI 
 Konfig section 
 - DB alle infos separat speicher auch passwort 
 - debug 

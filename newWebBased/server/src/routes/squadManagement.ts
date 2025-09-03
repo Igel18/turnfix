@@ -43,7 +43,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       SELECT 
         COALESCE(w.var_riege, 'Unassigned') as squad_name,
         COUNT(DISTINCT t.int_teilnehmerid) as participant_count,
-        STRING_AGG(DISTINCT wk.var_name, ', ') as competition_names
+        STRING_AGG(DISTINCT CONCAT(wk.var_name, ' (Nr. ', COALESCE(wk.var_nummer, 'No Number'), ')'), ', ') as competition_names
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
@@ -78,7 +78,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
                 EXTRACT(YEAR FROM t.dat_geburtstag)
               ELSE NULL
             END as birth_year,
-            STRING_AGG(DISTINCT wk.var_name, ', ') as assigned_competitions
+            STRING_AGG(DISTINCT CONCAT(wk.var_name, ' (Nr. ', COALESCE(wk.var_nummer, 'No Number'), ')'), ', ') as assigned_competitions
           FROM tfx_wertungen w
           INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
           INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
@@ -181,7 +181,7 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
         t.dat_geburtstag,
         t.int_startpassnummer,
         v.var_name as verein_name,
-        STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name), ', ') as competitions,
+        STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name, '|', COALESCE(wk.var_nummer, 'No Number')), ', ') as competitions,
         COUNT(DISTINCT wk.int_wettkaempfeid) as competition_count,
         CASE 
           WHEN t.int_geschlecht = 1 THEN 'male'
@@ -207,11 +207,16 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
     const availableParticipants = await prisma.$queryRawUnsafe(availableParticipantsQuery, parseInt(eventId));
 
     const formattedParticipants = (availableParticipants as any[]).map(participant => {
-      // Parse competition data
+      // Parse competition data with numbers
       const competitions = participant.competitions ? 
         participant.competitions.split(', ').map((comp: string) => {
-          const [id, name] = comp.split(':');
-          return { id: Number(id), name: name || '' };
+          const [idAndName, number] = comp.split('|');
+          const [id, name] = idAndName.split(':');
+          return { 
+            id: Number(id), 
+            name: name || '', 
+            number: number || 'No Number'
+          };
         }) : [];
 
       return {

@@ -255,7 +255,12 @@ const Results = () => {
           totalScore,
           rank: 0,
           competitionId: participant.assignedCompetitions?.[0], // Use first assigned competition
-          competitionName: competitions.find(c => c.id === participant.assignedCompetitions?.[0])?.name || 'Unknown Competition'
+          competitionName: (() => {
+            const comp = competitions.find(c => c.id === participant.assignedCompetitions?.[0])
+            return comp 
+              ? `${comp.name}${comp.number ? ` (Nr. ${comp.number})` : ''}` 
+              : 'Unknown Competition'
+          })()
         }
       })
 
@@ -288,7 +293,10 @@ const Results = () => {
             participant.rank = index + 1
           })
 
-          const competitionName = competitions.find(c => c.id === competitionId)?.name || `Competition ${competitionId}`
+          const competition = competitions.find(c => c.id === competitionId)
+          const competitionName = competition 
+            ? `${competition.name}${competition.number ? ` (Nr. ${competition.number})` : ''}` 
+            : `Competition ${competitionId}`
           groups.push({
             competitionId,
             competitionName,
@@ -359,7 +367,10 @@ const Results = () => {
       doc.setFontSize(12)
       doc.setFont('helvetica', 'normal')
       doc.text(`Event: ${eventName}`, 20, 35)
-      const selectedCompName = competitions.find(c => c.id?.toString() === selectedCompetition)?.name || 'Unknown Competition'
+      const selectedComp = competitions.find(c => c.id?.toString() === selectedCompetition)
+      const selectedCompName = selectedComp 
+        ? `${selectedComp.name}${selectedComp.number ? ` (Nr. ${selectedComp.number})` : ''}` 
+        : 'Unknown Competition'
       doc.text(`Competition: ${selectedCompName}`, 20, 45)
       if (squadName) {
         doc.text(`Squad: ${squadName}`, 20, 55)
@@ -903,7 +914,11 @@ const Results = () => {
       }
 
       // Save the PDF
-      const fileName = `certificates_${selectedCompetition ? competitions.find(c => c.id?.toString() === selectedCompetition)?.name?.replace(/[^a-z0-9]/gi, '_') : 'all'}_${new Date().toISOString().split('T')[0]}.pdf`
+      const selectedCompForFilename = competitions.find(c => c.id?.toString() === selectedCompetition)
+      const compNameForFilename = selectedCompForFilename 
+        ? `${selectedCompForFilename.name}${selectedCompForFilename.number ? `_Nr_${selectedCompForFilename.number}` : ''}`.replace(/[^a-z0-9_]/gi, '_') 
+        : 'all'
+      const fileName = `certificates_${compNameForFilename}_${new Date().toISOString().split('T')[0]}.pdf`
       doc.save(fileName)
       
       // Close modal
@@ -994,7 +1009,7 @@ const Results = () => {
               { value: '', label: 'All Competitions' },
               ...competitions.map(comp => ({
                 value: comp.id?.toString() || '',
-                label: comp.name || 'Unknown Competition',
+                label: `${comp.name || 'Unknown Competition'}${comp.number ? ` (Nr. ${comp.number})` : ''}`,
                 count: undefined
               }))
             ],

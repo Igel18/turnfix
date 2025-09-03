@@ -25,7 +25,7 @@ interface Participant {
   birthYear: number;
   squadId?: number;
   squadName?: string;
-  competitions?: { id: number; name: string }[];
+  competitions?: { id: number; name: string; number: string }[];
   competitionCount?: number;
   competitionNames?: string;
 }
@@ -36,7 +36,7 @@ interface Squad {
   name: string;
   eventId: number;
   participantCount: number;
-  competitions: string[];
+  competitions: { id: number; name: string; number: string }[];
   participants: Participant[];
   isVirtual?: boolean;
   createdAt?: string;
@@ -84,7 +84,28 @@ const forceLoadSquads = async () => {
     // Add cache busting timestamp and force fresh data
     const timestamp = Date.now();
     const data = await apiGet(`/squad-management?eventId=${eventId}&_t=${timestamp}&_force=true`);
-    const newSquads = data.squads || [];
+    const rawSquads = data.squads || [];
+    
+    // Transform competition data from "id:name|number" format to objects
+    const newSquads = rawSquads.map((squad: any) => ({
+      ...squad,
+      competitions: squad.competitions?.map((comp: string) => {
+        if (typeof comp === 'string' && comp.includes(':') && comp.includes('|')) {
+          const [idPart, nameAndNumber] = comp.split(':');
+          const [name, number] = nameAndNumber.split('|');
+          return {
+            id: parseInt(idPart),
+            name: name,
+            number: number === 'No Number' ? '' : number
+          };
+        }
+        // Fallback for old format or string competition names
+        return typeof comp === 'string' 
+          ? { id: 0, name: comp, number: '' }
+          : comp;
+      }) || []
+    }));
+    
     console.log('🔄 Force loading squads:', newSquads.length, 'squads loaded');
     setSquads(newSquads);
     
@@ -127,7 +148,28 @@ const forceLoadAvailableParticipants = async () => {
       // Add cache busting timestamp
       const timestamp = Date.now();
       const data = await apiGet(`/squad-management?eventId=${eventId}&_t=${timestamp}`);
-      const newSquads = data.squads || [];
+      const rawSquads = data.squads || [];
+      
+      // Transform competition data from "id:name|number" format to objects
+      const newSquads = rawSquads.map((squad: any) => ({
+        ...squad,
+        competitions: squad.competitions?.map((comp: string) => {
+          if (typeof comp === 'string' && comp.includes(':') && comp.includes('|')) {
+            const [idPart, nameAndNumber] = comp.split(':');
+            const [name, number] = nameAndNumber.split('|');
+            return {
+              id: parseInt(idPart),
+              name: name,
+              number: number === 'No Number' ? '' : number
+            };
+          }
+          // Fallback for old format or string competition names
+          return typeof comp === 'string' 
+            ? { id: 0, name: comp, number: '' }
+            : comp;
+        }) || []
+      }));
+      
       console.log('🔄 Loading squads:', newSquads.length, 'squads loaded');
       setSquads(newSquads);
       
@@ -364,7 +406,7 @@ const forceLoadAvailableParticipants = async () => {
           { value: '', label: 'All Competitions' },
           ...allCompetitions.map(comp => ({
             value: comp.name,
-            label: `${comp.name} (ID: ${comp.id})`
+            label: `${comp.name} (Nr. ${comp.number})`
           }))
         ],
         selectedValue: competitionFilter,
@@ -503,11 +545,20 @@ const forceLoadAvailableParticipants = async () => {
                   </div>
                   <div className="mt-2">
                     <div className="flex flex-wrap gap-1">
-                      {squad.competitions.slice(0, 2).map((comp, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                          {comp}
-                        </span>
-                      ))}
+                      {squad.competitions.slice(0, 2).map((comp, idx) => {
+                        const compData = typeof comp === 'string' 
+                          ? { name: comp, number: '' }
+                          : comp;
+                        return (
+                          <span 
+                            key={idx} 
+                            className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                            title={`${compData.name}${compData.number ? ` (Nr. ${compData.number})` : ''}`}
+                          >
+                            {compData.name}{compData.number ? ` (Nr. ${compData.number})` : ''}
+                          </span>
+                        );
+                      })}
                       {squad.competitions.length > 2 && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                           +{squad.competitions.length - 2} more
@@ -579,9 +630,9 @@ const forceLoadAvailableParticipants = async () => {
                               <span 
                                 key={idx} 
                                 className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                                title={`Competition ID: ${comp.id}`}
+                                title={`Competition ID: ${comp.id}, Number: ${comp.number}`}
                               >
-                                {comp.name}
+                                {comp.name} (Nr. {comp.number})
                               </span>
                             ))}
                             {participant.competitions.length > 3 && (
@@ -647,7 +698,9 @@ const forceLoadAvailableParticipants = async () => {
                     <div className="space-y-1">
                       {selectedSquad.competitions.map((comp, idx) => (
                         <div key={idx} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                          <span className="text-sm text-gray-900">{comp}</span>
+                          <span className="text-sm text-gray-900">
+                            {comp.name}{comp.number ? ` (Nr. ${comp.number})` : ''}
+                          </span>
                           <Trophy className="w-4 h-4 text-blue-600" />
                         </div>
                       ))}
