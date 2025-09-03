@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TurnfestResults>
+  <Event>
+    <Name>Test XML Competition Assignment</Name>
+    <StartDate>2024-12-12</StartDate>
+    <EndDate>2024-12-12</EndDate>
+    <Location>Test Venue</Location>
+    <waNr>12345</waNr>
+  </Event>
+  
+  <Competition>
+    <Name>Male Youth A</Name>
+    <waNr>101</waNr>
+    <Gender>1</Gender>
+    <AgeGroup>Youth</AgeGroup>
+  </Competition>
+  
+  <Competition>
+    <Name>Female Youth A</Name>
+    <waNr>102</waNr>
+    <Gender>2</Gender>
+    <AgeGroup>Youth</AgeGroup>
+  </Competition>
+  
+  <Competition>
+    <Name>Male Senior</Name>
+    <waNr>103</waNr>
+    <Gender>1</Gender>
+    <AgeGroup>Senior</AgeGroup>
+  </Competition>
+  
+  <Participant>
+    <firstName>Max</firstName>
+    <lastName>TestMale</lastName>
+    <birthDate>2008-05-15</birthDate>
+    <gender>1</gender>
+    <club>Test Club A</club>
+    <waNr>101</waNr>
+  </Participant>
+  
+  <Participant>
+    <firstName>Anna</firstName>
+    <lastName>TestFemale</lastName>
+    <birthDate>2009-03-22</birthDate>
+    <gender>2</gender>
+    <club>Test Club B</club>
+    <waNr>102</waNr>
+  </Participant>
+  
+  <Participant>
+    <firstName>Peter</firstName>
+    <lastName>TestSenior</lastName>
+    <birthDate>1995-07-10</birthDate>
+    <gender>1</gender>
+    <club>Test Club C</club>
+    <waNr>103</waNr>
+  </Participant>
+  
+  <Participant>
+    <firstName>Lisa</firstName>
+    <lastName>NoAssignment</lastName>
+    <birthDate>2010-01-15</birthDate>
+    <gender>2</gender>
+    <club>Test Club D</club>
+  </Participant>
+</TurnfestResults>

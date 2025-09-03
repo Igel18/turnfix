@@ -22,6 +22,8 @@ import EventParticipants from '@/pages/EventParticipants'
 import DatabaseConfig from '@/pages/DatabaseConfig'
 import CertificateLayouts from '@/pages/CertificateLayouts'
 import StatusManagement from '@/pages/StatusManagement'
+import Locations from '@/pages/Locations'
+import Persons from '@/pages/Persons'
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/disciplines" element={<Disciplines />} />
             <Route path="/database-config" element={<DatabaseConfig />} />
+            <Route path="/locations" element={<Locations />} />
+            <Route path="/persons" element={<Persons />} />
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
             <Route path="/status-management" element={<StatusManagement />} />
           </Routes>

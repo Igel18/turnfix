@@ -12,7 +12,8 @@ import {
   MapIcon,
   BuildingLibraryIcon,
   CogIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  UserIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -52,6 +53,20 @@ const databaseManagementActions = [
     href: '/disciplines',
     icon: CogIcon,
     color: 'bg-amber-500'
+  },
+  {
+    name: 'Manage Locations',
+    description: 'Manage competition venues and locations',
+    href: '/locations',
+    icon: MapIcon,
+    color: 'bg-red-500'
+  },
+  {
+    name: 'Manage Persons',
+    description: 'Manage contact persons and individuals',
+    href: '/persons',
+    icon: UserIcon,
+    color: 'bg-orange-500'
   },
   {
     name: 'Certificate Layouts',
