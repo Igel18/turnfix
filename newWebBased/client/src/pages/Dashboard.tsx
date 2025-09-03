@@ -21,97 +21,123 @@ import {
 import { useState, useEffect } from 'react'
 
 // Group 1: Database Management - Athletes, Clubs, Organizations
-const databaseManagementActions = [
+const getDatabaseManagementActions = (statistics: any) => [
   {
     name: 'Manage Regions',
     description: 'Manage gymnastics regions and districts',
     href: '/regions',
     icon: MapIcon,
-    color: 'bg-indigo-500'
+    color: 'bg-indigo-500',
+    count: statistics.totalRegions,
+    countLabel: 'Regions'
   },
   {
     name: 'Manage Associations',
     description: 'Manage gymnastics associations and federations',
     href: '/associations',
     icon: BuildingLibraryIcon,
-    color: 'bg-teal-500'
+    color: 'bg-teal-500',
+    count: statistics.totalAssociations,
+    countLabel: 'Associations'
   },
   {
     name: 'Manage Clubs',
     description: 'Add and edit gymnastics clubs',
     href: '/clubs',
     icon: BuildingOfficeIcon,
-    color: 'bg-green-500'
+    color: 'bg-green-500',
+    count: statistics.registeredClubs,
+    countLabel: 'Clubs'
   },
   {
     name: 'Manage Athletes',
     description: 'Add and manage athletes in the database',
     href: '/participants',
     icon: UserGroupIcon,
-    color: 'bg-purple-500'
+    color: 'bg-purple-500',
+    count: statistics.totalAthletes,
+    countLabel: 'Athletes'
   },
   {
     name: 'Manage Disciplines',
     description: 'Configure gymnastics disciplines and apparatus',
     href: '/disciplines',
     icon: CogIcon,
-    color: 'bg-amber-500'
+    color: 'bg-amber-500',
+    count: statistics.totalDisciplines,
+    countLabel: 'Disciplines'
   },
   {
     name: 'Manage Locations',
     description: 'Manage competition venues and locations',
     href: '/locations',
     icon: MapIcon,
-    color: 'bg-red-500'
+    color: 'bg-red-500',
+    count: statistics.totalLocations,
+    countLabel: 'Locations'
   },
   {
     name: 'Manage Persons',
     description: 'Manage contact persons and individuals',
     href: '/persons',
     icon: UserIcon,
-    color: 'bg-orange-500'
+    color: 'bg-orange-500',
+    count: statistics.totalPersons,
+    countLabel: 'Persons'
   },
   {
     name: 'Manage Sports',
     description: 'Manage sport types and categories',
     href: '/sports',
     icon: BeakerIcon,
-    color: 'bg-emerald-500'
+    color: 'bg-emerald-500',
+    count: statistics.totalSports,
+    countLabel: 'Sports'
   },
   {
     name: 'Manage Formulas',
     description: 'Manage calculation formulas and scoring methods',
     href: '/formulas',
     icon: CalculatorIcon,
-    color: 'bg-cyan-500'
+    color: 'bg-cyan-500',
+    count: statistics.totalFormulas,
+    countLabel: 'Formulas'
   },
   {
     name: 'Manage Discipline Groups',
     description: 'Manage discipline groups and categories',
     href: '/discipline-groups',
     icon: TagIcon,
-    color: 'bg-slate-500'
+    color: 'bg-slate-500',
+    count: statistics.totalDisciplineGroups,
+    countLabel: 'Groups'
   },
   {
     name: 'Certificate Layouts',
     description: 'Design and manage certificate templates and layouts',
     href: '/certificate-layouts',
     icon: DocumentTextIcon,
-    color: 'bg-pink-500'
+    color: 'bg-pink-500',
+    count: statistics.totalCertificateLayouts,
+    countLabel: 'Layouts'
   },
   {
     name: 'Status Management',
     description: 'Manage participant statuses and squad states',
     href: '/status-management',
     icon: CogIcon,
-    color: 'bg-violet-500'
+    color: 'bg-violet-500',
+    count: statistics.totalStatuses,
+    countLabel: 'Statuses'
   },
   {
     name: 'Create Event',
     description: 'Set up a new gymnastics competition',
     href: '/events',
     icon: CalendarDaysIcon,
-    color: 'bg-blue-500'
+    color: 'bg-blue-500',
+    count: statistics.activeEvents,
+    countLabel: 'Events'
   }
 ]
 
@@ -181,6 +207,16 @@ export function Dashboard() {
     activeEvents: 0,
     registeredClubs: 0,
     totalAthletes: 0,
+    totalRegions: 0,
+    totalAssociations: 0,
+    totalDisciplines: 0,
+    totalLocations: 0,
+    totalPersons: 0,
+    totalSports: 0,
+    totalFormulas: 0,
+    totalDisciplineGroups: 0,
+    totalCertificateLayouts: 0,
+    totalStatuses: 0,
     loading: true
   })
 
@@ -190,7 +226,7 @@ export function Dashboard() {
       try {
         const [eventsRes, clubsRes, participantsRes] = await Promise.all([
           fetch('/api/events'),
-          fetch('/api/clubs'),
+          fetch('/api/clubs'), 
           fetch('/api/participants')
         ])
 
@@ -229,15 +265,49 @@ export function Dashboard() {
           console.warn('Participants API returned error:', participantsRes.status, participantsRes.statusText)
         }
 
+        // Fetch additional statistics for database management
+        const additionalApis = [
+          '/api/statuses'
+        ]
+
+        const additionalPromises = additionalApis.map(url => 
+          fetch(url).then(res => res.ok ? res.json() : { pagination: { total: 0 } }).catch(() => ({ pagination: { total: 0 } }))
+        )
+
+        const [statusesData] = await Promise.all(additionalPromises)
+
         setStatistics({
           activeEvents: (events as any).pagination?.total || 0,
           registeredClubs: (clubs as any).pagination?.total || 0,
           totalAthletes: (participants as any).pagination?.total || 0,
+          totalRegions: 0, // TODO: Add API endpoint
+          totalAssociations: 0, // TODO: Add API endpoint
+          totalDisciplines: 0, // TODO: Add API endpoint
+          totalLocations: 0, // TODO: Add API endpoint
+          totalPersons: 0, // TODO: Add API endpoint
+          totalSports: 0, // TODO: Add API endpoint
+          totalFormulas: 0, // TODO: Add API endpoint
+          totalDisciplineGroups: 0, // TODO: Add API endpoint
+          totalCertificateLayouts: 0, // TODO: Add API endpoint
+          totalStatuses: statusesData.pagination?.total || 0,
           loading: false
         })
       } catch (error) {
         console.error('Error fetching statistics:', error)
-        setStatistics(prev => ({ ...prev, loading: false }))
+        setStatistics(prev => ({ 
+          ...prev, 
+          totalRegions: 0,
+          totalAssociations: 0,
+          totalDisciplines: 0,
+          totalLocations: 0,
+          totalPersons: 0,
+          totalSports: 0,
+          totalFormulas: 0,
+          totalDisciplineGroups: 0,
+          totalCertificateLayouts: 0,
+          totalStatuses: 0,
+          loading: false 
+        }))
       }
     }
 
@@ -309,7 +379,7 @@ export function Dashboard() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {databaseManagementActions.map((action) => {
+            {getDatabaseManagementActions(statistics).map((action) => {
               const Icon = action.icon
               return (
                 <Link
@@ -318,13 +388,23 @@ export function Dashboard() {
                   className="group bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className={`${action.color} p-3 rounded-lg text-white group-hover:scale-105 transition-transform`}>
+                    <div className={`${action.color} p-3 rounded-lg text-white group-hover:scale-105 transition-transform relative`}>
                       <Icon className="h-6 w-6" />
+                      {!statistics.loading && action.count !== undefined && (
+                        <div className="absolute -top-2 -right-2 bg-white text-gray-900 text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-gray-100 shadow-sm">
+                          {action.count > 99 ? '99+' : action.count}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
                         {action.name}
                       </h3>
+                      {!statistics.loading && action.count !== undefined && (
+                        <p className="text-xs font-semibold text-blue-600 mt-1">
+                          {action.countLabel}: {action.count}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-600 mt-1">
                         {action.description}
                       </p>
