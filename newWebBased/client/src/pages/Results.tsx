@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useEvent } from '../contexts/EventContext'
+import { useCertificateLayout } from '../contexts/CertificateLayoutContext'
 import { 
   ChartBarIcon,
   TrophyIcon,
@@ -85,9 +86,9 @@ const Results = () => {
   const [selectedCompetition, setSelectedCompetition] = useState<string>('')
   
   // Certificate printing state
+  const { selectedLayout: contextSelectedLayout, setSelectedLayout: setContextSelectedLayout } = useCertificateLayout()
   const [certificateLayouts, setCertificateLayouts] = useState<CertificateLayout[]>([])
   const [showCertificateModal, setShowCertificateModal] = useState(false)
-  const [selectedLayout, setSelectedLayout] = useState<string>('')
   const [selectedPaperFormat, setSelectedPaperFormat] = useState<keyof typeof PAPER_FORMATS>('A4')
   const [certificatesToPrint, setCertificatesToPrint] = useState<Participant[]>([])
   const [isPrintingCertificates, setIsPrintingCertificates] = useState(false)
@@ -407,7 +408,7 @@ const Results = () => {
         alternateRowStyles: {
           fillColor: [248, 249, 250]
         },
-        didParseCell: function(data) {
+        didParseCell: function(data: any) {
           // Highlight medal positions
           if (data.section === 'body' && data.column.index === 0) {
             const rank = parseInt(data.cell.text[0])
@@ -520,7 +521,7 @@ const Results = () => {
           alternateRowStyles: {
             fillColor: [248, 249, 250]
           },
-          didParseCell: function(data) {
+          didParseCell: function(data: any) {
             // Highlight medal positions
             if (data.section === 'body' && data.column.index === 0) {
               const rank = parseInt(data.cell.text[0])
@@ -547,7 +548,7 @@ const Results = () => {
               data.cell.styles.fontStyle = 'bold'
             }
           },
-          didDrawPage: function(data) {
+          didDrawPage: function(data: any) {
             currentY = (data as any).cursor.y + 15
           }
         })
@@ -567,7 +568,44 @@ const Results = () => {
       const data = await apiGet('/layouts')
       console.log('Fetched layouts:', data)
       // The API returns layouts directly as an array
-      setCertificateLayouts(Array.isArray(data) ? data : [])
+      const layouts = Array.isArray(data) ? data : []
+      setCertificateLayouts(layouts)
+      
+      // Log available layout names for debugging
+      if (layouts.length > 0) {
+        console.log('Available layout names:', layouts.map(l => l.var_name));
+      }
+      
+      // Auto-select the first layout if no layout is currently selected and layouts are available
+      if (!contextSelectedLayout && layouts.length > 0) {
+        // Try to find a layout that looks like it's for certificates
+        let preferredLayout = layouts.find(layout => {
+          const name = layout.var_name.toLowerCase();
+          return name.includes('certificate') || 
+                 name.includes('award') || 
+                 name.includes('prize') || 
+                 name.includes('urkunde') || 
+                 name.includes('zeugnis') ||
+                 name.includes('diplom');
+        });
+        
+        // If no preferred layout found, use the first one
+        if (!preferredLayout) {
+          preferredLayout = layouts[0];
+        }
+        
+        console.log('Auto-selecting layout:', preferredLayout.var_name, 'from', layouts.length, 'available layouts');
+        // Convert the layout to match the context type
+        const contextLayout = {
+          ...preferredLayout,
+          fields: preferredLayout.fields?.map((field: any) => ({
+            ...field,
+            var_text: field.var_value, // Map var_value to var_text for context compatibility
+            var_spaltenwert: null // Add missing property for context compatibility
+          }))
+        };
+        setContextSelectedLayout(contextLayout);
+      }
     } catch (error) {
       console.error('Error fetching certificate layouts:', error)
       setCertificateLayouts([])
@@ -638,12 +676,12 @@ const Results = () => {
 
   // Generate certificates for selected participants
   const generateCertificates = async () => {
-    if (!selectedLayout || certificatesToPrint.length === 0) return
+    if (!contextSelectedLayout || certificatesToPrint.length === 0) return
 
     setIsPrintingCertificates(true)
     try {
       // Find the selected layout
-      const layout = certificateLayouts.find(l => l.int_layoutid.toString() === selectedLayout)
+      const layout = certificateLayouts.find(l => l.int_layoutid === contextSelectedLayout.int_layoutid)
       if (!layout) {
         alert('Layout not found')
         return
@@ -864,8 +902,8 @@ const Results = () => {
       // Close modal
       setShowCertificateModal(false)
       setCertificatesToPrint([])
-      setSelectedLayout('')
       setSelectedPaperFormat('A4')
+      // Note: We don't clear the selected layout as it's now managed globally
       
     } catch (error) {
       console.error('Error generating certificates:', error)
@@ -879,6 +917,7 @@ const Results = () => {
   const showCertificateDialog = (participants: Participant[]) => {
     setCertificatesToPrint(participants)
     setShowCertificateModal(true)
+    // Don't reset the selected layout, but ensure layouts are fetched
     fetchCertificateLayouts()
   }
 
@@ -1223,8 +1262,25 @@ const Results = () => {
                   Select Certificate Layout
                 </label>
                 <select
-                  value={selectedLayout}
-                  onChange={(e) => setSelectedLayout(e.target.value)}
+                  value={contextSelectedLayout?.int_layoutid || ''}
+                  onChange={(e) => {
+                    const layoutId = Number(e.target.value);
+                    const layout = certificateLayouts.find(l => l.int_layoutid === layoutId);
+                    if (layout) {
+                      // Convert the layout to match the context type
+                      const contextLayout = {
+                        ...layout,
+                        fields: layout.fields?.map((field: any) => ({
+                          ...field,
+                          var_text: field.var_value, // Map var_value to var_text for context compatibility
+                          var_spaltenwert: null // Add missing property for context compatibility
+                        }))
+                      };
+                      setContextSelectedLayout(contextLayout);
+                    } else {
+                      setContextSelectedLayout(null);
+                    }
+                  }}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="">Choose a layout...</option>
@@ -1261,7 +1317,6 @@ const Results = () => {
                   onClick={() => {
                     setShowCertificateModal(false)
                     setCertificatesToPrint([])
-                    setSelectedLayout('')
                     setSelectedPaperFormat('A4')
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
@@ -1270,7 +1325,7 @@ const Results = () => {
                 </button>
                 <button
                   onClick={generateCertificates}
-                  disabled={!selectedLayout || isPrintingCertificates}
+                  disabled={!contextSelectedLayout || isPrintingCertificates}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {isPrintingCertificates ? 'Generating...' : 'Generate PDF'}

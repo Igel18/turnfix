@@ -4,7 +4,9 @@ import {
   DocumentTextIcon,
   PhotoIcon,
   MinusIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  LockClosedIcon,
+  LockOpenIcon
 } from '@heroicons/react/24/outline';
 
 interface LayoutField {
@@ -70,6 +72,64 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   const [canvasSize, setCanvasSize] = useState(PAPER_FORMATS.A4);
   const [zoom, setZoom] = useState(0.3); // Smaller default zoom for larger paper formats
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean | string }>({});
+  const [aspectRatioLocked, setAspectRatioLocked] = useState<{ [fieldId: number]: boolean }>({});
+
+  // Convert absolute coordinates to relative (0-1 range)
+  // Legacy fields might have absolute coordinates, we need to convert them
+  const normalizeFieldCoordinates = (field: LayoutField) => {
+    const normalizedField = { ...field };
+    
+    // More robust detection: check if ANY coordinate is > 1
+    // Legacy coordinates often have values like 95, 205.5, 20.75 etc.
+    const hasLegacyCoordinates = field.rel_x > 1 || field.rel_y > 1 || 
+                                field.rel_w > 1 || field.rel_h > 1;
+    
+    if (!hasLegacyCoordinates) {
+      // Coordinates are already in 0-1 range, no conversion needed
+      // But ensure they're within valid bounds
+      normalizedField.rel_x = Math.max(0, Math.min(1, field.rel_x));
+      normalizedField.rel_y = Math.max(0, Math.min(1, field.rel_y));
+      normalizedField.rel_w = Math.max(0.001, Math.min(1, field.rel_w));
+      normalizedField.rel_h = Math.max(0.001, Math.min(1, field.rel_h));
+      return normalizedField;
+    }
+    
+    // Legacy conversion for old coordinate system
+    // Based on the console output showing values like 95, 205.5, 20.75, these look like
+    // they could be in millimeters or a coordinate system where:
+    // - DIN A4 is roughly 210mm x 297mm
+    // - The field with width 20.75 should be about 10% of page width
+    
+    const originalWidth = 210;  // A4 width in mm or similar units
+    const originalHeight = 297; // A4 height in mm or similar units
+    
+    // Normalize coordinates from original unit system to 0-1 range
+    normalizedField.rel_x = Math.max(0, Math.min(1, field.rel_x / originalWidth));
+    normalizedField.rel_y = Math.max(0, Math.min(1, field.rel_y / originalHeight));
+    normalizedField.rel_w = Math.max(0.001, Math.min(1, field.rel_w / originalWidth));
+    normalizedField.rel_h = Math.max(0.001, Math.min(1, field.rel_h / originalHeight));
+    
+    return normalizedField;
+  };
+
+  // Normalize fields on component mount and when layout changes
+  useEffect(() => {
+    const normalizedFields = (layout.fields || []).map(field => normalizeFieldCoordinates(field));
+    
+    // Only update if fields have actually changed (to avoid infinite loops)
+    const fieldsChanged = normalizedFields.some((normalized, index) => {
+      const current = fields[index];
+      if (!current) return true;
+      return normalized.rel_x !== current.rel_x || 
+             normalized.rel_y !== current.rel_y ||
+             normalized.rel_w !== current.rel_w ||
+             normalized.rel_h !== current.rel_h;
+    }) || normalizedFields.length !== fields.length;
+    
+    if (fieldsChanged) {
+      setFields(normalizedFields);
+    }
+  }, [layout.fields]);
 
   // Initialize with fit-to-view zoom
   useEffect(() => {
@@ -114,12 +174,20 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       var_font: 'Arial,12,-1,5,50,0,0,0,0,0',
       rel_x: 0.1,
       rel_y: 0.1,
-      rel_w: 0.2,
-      rel_h: 0.05,
+      rel_w: type === 2 ? 0.3 : 0.2, // Larger default width for images
+      rel_h: type === 2 ? 0.2 : 0.05, // Better aspect ratio for images (1.5:1)
       var_value: type === 1 ? 'Sample Text' : '',
       int_align: 0,
       int_layer: fields.length
     };
+
+    // Set aspect ratio lock for new image fields by default
+    if (type === 2) {
+      setAspectRatioLocked(prev => ({
+        ...prev,
+        [newField.int_layout_felderid]: true
+      }));
+    }
 
     const updatedFields = [...fields, newField];
     setFields(updatedFields);
@@ -134,21 +202,85 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     if (selectedField?.int_layout_felderid === fieldId) {
       setSelectedField(null);
     }
+    
+    // Clean up aspect ratio lock state
+    setAspectRatioLocked(prev => {
+      const updated = { ...prev };
+      delete updated[fieldId];
+      return updated;
+    });
+    
     await onFieldsChange(updatedFields);
   };
 
   // Update field properties
   const updateField = async (fieldId: number, updates: Partial<LayoutField>) => {
+    // Ensure coordinates stay within valid bounds
+    const validatedUpdates = { ...updates };
+    
+    if ('rel_x' in validatedUpdates) {
+      validatedUpdates.rel_x = Math.max(0, Math.min(1, validatedUpdates.rel_x!));
+    }
+    if ('rel_y' in validatedUpdates) {
+      validatedUpdates.rel_y = Math.max(0, Math.min(1, validatedUpdates.rel_y!));
+    }
+    if ('rel_w' in validatedUpdates) {
+      validatedUpdates.rel_w = Math.max(0.001, Math.min(1, validatedUpdates.rel_w!));
+    }
+    if ('rel_h' in validatedUpdates) {
+      validatedUpdates.rel_h = Math.max(0.001, Math.min(1, validatedUpdates.rel_h!));
+    }
+    
     const updatedFields = fields.map(field => 
-      field.int_layout_felderid === fieldId ? { ...field, ...updates } : field
+      field.int_layout_felderid === fieldId ? { ...field, ...validatedUpdates } : field
     );
     setFields(updatedFields);
     
     if (selectedField?.int_layout_felderid === fieldId) {
-      setSelectedField({ ...selectedField, ...updates });
+      setSelectedField({ ...selectedField, ...validatedUpdates });
     }
     
     await onFieldsChange(updatedFields);
+  };
+
+  // Toggle aspect ratio lock for any field type
+  const toggleAspectRatioLock = (fieldId: number) => {
+    setAspectRatioLocked(prev => ({
+      ...prev,
+      [fieldId]: !prev[fieldId]
+    }));
+  };
+
+  // Update field size while maintaining aspect ratio if locked
+  const updateFieldSize = async (fieldId: number, dimension: 'width' | 'height', value: number) => {
+    const field = fields.find(f => f.int_layout_felderid === fieldId);
+    if (!field) return;
+
+    const isLocked = aspectRatioLocked[fieldId];
+    if (!isLocked) {
+      await updateField(fieldId, dimension === 'width' ? { rel_w: value } : { rel_h: value });
+      return;
+    }
+
+    // Ensure minimum values and limit to paper size
+    const minValue = 0.001;
+    const maxValue = 1.0; // Limit to paper/canvas size (100% of canvas)
+    const clampedValue = Math.max(minValue, Math.min(maxValue, value));
+    
+    // Calculate current aspect ratio (width/height)
+    const currentAspectRatio = field.rel_w / field.rel_h;
+    
+    if (dimension === 'width') {
+      // Width is driving - calculate new height to maintain aspect ratio
+      const newHeight = clampedValue / currentAspectRatio;
+      const finalHeight = Math.max(minValue, Math.min(maxValue, newHeight));
+      await updateField(fieldId, { rel_w: clampedValue, rel_h: finalHeight });
+    } else {
+      // Height is driving - calculate new width to maintain aspect ratio  
+      const newWidth = clampedValue * currentAspectRatio;
+      const finalWidth = Math.max(minValue, Math.min(maxValue, newWidth));
+      await updateField(fieldId, { rel_h: clampedValue, rel_w: finalWidth });
+    }
   };
 
   // Check if an image can be loaded
@@ -192,14 +324,16 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   // Handle drag start
   const handleDragStart = (e: React.MouseEvent, field: LayoutField) => {
     e.preventDefault();
-    setDragField(field);
-    setSelectedField(field);
+    // Normalize field coordinates for consistent handling
+    const normalizedField = normalizeFieldCoordinates(field);
+    setDragField(normalizedField);
+    setSelectedField(normalizedField);
     
     const canvas = canvasRef.current;
     if (canvas) {
       const rect = canvas.getBoundingClientRect();
-      const fieldX = field.rel_x * canvasSize.width * zoom;
-      const fieldY = field.rel_y * canvasSize.height * zoom;
+      const fieldX = normalizedField.rel_x * canvasSize.width * zoom;
+      const fieldY = normalizedField.rel_y * canvasSize.height * zoom;
       setDragOffset({
         x: e.clientX - rect.left - fieldX,
         y: e.clientY - rect.top - fieldY
@@ -247,67 +381,37 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     return fieldType?.label || 'Unknown';
   };
 
-  // Convert absolute coordinates to relative (0-1 range)
-  // Legacy fields might have absolute coordinates, we need to convert them
-  const normalizeFieldCoordinates = (field: LayoutField) => {
-    const normalizedField = { ...field };
-    
-    // The coordinates appear to be in a different unit system
-    // Based on the console output showing values like 95, 205.5, 20.75, these look like
-    // they could be in millimeters or a coordinate system where:
-    // - DIN A4 is roughly 210mm x 297mm
-    // - The field with width 20.75 should be about 10% of page width
-    
-    // Let's assume the original coordinate system was:
-    // - Width: 210 units (matching A4 width in mm)
-    // - Height: 297 units (matching A4 height in mm)
-    
-    const originalWidth = 210;  // A4 width in mm or similar units
-    const originalHeight = 297; // A4 height in mm or similar units
-    
-    // Always normalize these coordinates as they appear to be in the original unit system
-    normalizedField.rel_x = Math.max(0, Math.min(1, field.rel_x / originalWidth));
-    normalizedField.rel_y = Math.max(0, Math.min(1, field.rel_y / originalHeight));
-    normalizedField.rel_w = Math.max(0.001, Math.min(1, field.rel_w / originalWidth));
-    normalizedField.rel_h = Math.max(0.001, Math.min(1, field.rel_h / originalHeight));
-    
-    return normalizedField;
-  };
-
   // Get field style for rendering
   const getFieldStyle = (field: LayoutField) => {
     const isSelected = selectedField?.int_layout_felderid === field.int_layout_felderid;
     
-    // Normalize coordinates for display
-    const normalizedField = normalizeFieldCoordinates(field);
+    // Fields are already normalized, use them directly
     
     // Debug logging to see actual field values
     if (isSelected) {
       console.log('=== Field Debug Info ===');
-      console.log('Original field data:', field);
-      console.log('Detected coordinate system: 210x297 units (likely mm-based)');
-      console.log('Normalized field data:', normalizedField);
+      console.log('Field data (should be normalized):', field);
       console.log('Calculated CSS position:', {
-        left: `${normalizedField.rel_x * 100}%`,
-        top: `${normalizedField.rel_y * 100}%`,
-        width: `${normalizedField.rel_w * 100}%`,
-        height: `${normalizedField.rel_h * 100}%`
+        left: `${field.rel_x * 100}%`,
+        top: `${field.rel_y * 100}%`,
+        width: `${field.rel_w * 100}%`,
+        height: `${field.rel_h * 100}%`
       });
       console.log('Canvas size:', canvasSize);
       console.log('Zoom:', zoom);
       console.log('Expected size on canvas:', {
-        width: Math.round(normalizedField.rel_w * canvasSize.width),
-        height: Math.round(normalizedField.rel_h * canvasSize.height)
+        width: Math.round(field.rel_w * canvasSize.width),
+        height: Math.round(field.rel_h * canvasSize.height)
       });
       console.log('========================');
     }
     
     return {
       position: 'absolute' as const,
-      left: `${normalizedField.rel_x * 100}%`,
-      top: `${normalizedField.rel_y * 100}%`,
-      width: `${normalizedField.rel_w * 100}%`,
-      height: `${normalizedField.rel_h * 100}%`,
+      left: `${field.rel_x * 100}%`,
+      top: `${field.rel_y * 100}%`,
+      width: `${field.rel_w * 100}%`,
+      height: `${field.rel_h * 100}%`,
       border: isSelected 
         ? '2px solid #3B82F6' 
         : '1px dashed #9CA3AF',
@@ -322,7 +426,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       alignItems: 'center',
       justifyContent: field.int_align === 1 ? 'center' : field.int_align === 2 ? 'flex-end' : 'flex-start',
       padding: '2px 4px',
-      fontSize: `${Math.max(8, Math.min(14, normalizedField.rel_h * canvasSize.height * zoom / 6))}px`,
+      fontSize: `${Math.max(8, Math.min(14, field.rel_h * canvasSize.height * zoom / 6))}px`,
       overflow: 'hidden',
       userSelect: 'none' as const,
       zIndex: field.int_layer + 1,
@@ -765,8 +869,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                 {selectedField && (
                   <div className="text-blue-600">
                     Selected: {getFieldTypeLabel(selectedField.int_typ)} | 
-                    Position: ({Math.round(normalizeFieldCoordinates(selectedField).rel_x * canvasSize.width)}, {Math.round(normalizeFieldCoordinates(selectedField).rel_y * canvasSize.height)})px | 
-                    Size: {Math.round(normalizeFieldCoordinates(selectedField).rel_w * canvasSize.width)} x {Math.round(normalizeFieldCoordinates(selectedField).rel_h * canvasSize.height)}px | 
+                    Position: ({Math.round(selectedField.rel_x * canvasSize.width)}, {Math.round(selectedField.rel_y * canvasSize.height)})px | 
+                    Size: {Math.round(selectedField.rel_w * canvasSize.width)} x {Math.round(selectedField.rel_h * canvasSize.height)}px | 
                     Layer: {selectedField.int_layer}
                   </div>
                 )}
@@ -935,7 +1039,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs text-gray-500 mb-1">
-                          X ({Math.round(normalizeFieldCoordinates(selectedField).rel_x * canvasSize.width)}px)
+                          X Position (0.0-1.0)
                         </label>
                         <input
                           type="number"
@@ -949,7 +1053,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       </div>
                       <div>
                         <label className="block text-xs text-gray-500 mb-1">
-                          Y ({Math.round(normalizeFieldCoordinates(selectedField).rel_y * canvasSize.height)}px)
+                          Y Position (0.0-1.0)
                         </label>
                         <input
                           type="number"
@@ -975,10 +1079,10 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                   {/* Size */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-2">Size</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
                         <label className="block text-xs text-gray-500 mb-1">
-                          Width ({Math.round(normalizeFieldCoordinates(selectedField).rel_w * canvasSize.width)}px)
+                          Width (0.0-1.0)
                         </label>
                         <input
                           type="number"
@@ -986,13 +1090,38 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                           max="1"
                           step="0.001"
                           value={Math.round(selectedField.rel_w * 1000) / 1000}
-                          onChange={(e) => updateField(selectedField.int_layout_felderid, { rel_w: Number(e.target.value) })}
+                          onChange={(e) => updateFieldSize(selectedField.int_layout_felderid, 'width', Number(e.target.value))}
                           className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                         />
                       </div>
-                      <div>
+                      
+                      {/* Aspect ratio lock button for all field types */}
+                      <div className="flex flex-col items-center pt-5">
+                        <button
+                          onClick={() => toggleAspectRatioLock(selectedField.int_layout_felderid)}
+                          className={`p-1 rounded ${
+                            aspectRatioLocked[selectedField.int_layout_felderid] 
+                              ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                              : 'bg-gray-100 text-gray-600 border border-gray-300'
+                          } hover:opacity-80 transition-opacity`}
+                          title={aspectRatioLocked[selectedField.int_layout_felderid] ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+                        >
+                          {aspectRatioLocked[selectedField.int_layout_felderid] ? (
+                            <LockClosedIcon className="h-4 w-4" />
+                          ) : (
+                            <LockOpenIcon className="h-4 w-4" />
+                          )}
+                        </button>
+                        {aspectRatioLocked[selectedField.int_layout_felderid] && (
+                          <div className="text-xs text-blue-600 mt-1 text-center">
+                            {Math.round((selectedField.rel_w / selectedField.rel_h) * 100) / 100}:1
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
                         <label className="block text-xs text-gray-500 mb-1">
-                          Height ({Math.round(normalizeFieldCoordinates(selectedField).rel_h * canvasSize.height)}px)
+                          Height (0.0-1.0)
                         </label>
                         <input
                           type="number"
@@ -1000,7 +1129,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                           max="1"
                           step="0.001"
                           value={Math.round(selectedField.rel_h * 1000) / 1000}
-                          onChange={(e) => updateField(selectedField.int_layout_felderid, { rel_h: Number(e.target.value) })}
+                          onChange={(e) => updateFieldSize(selectedField.int_layout_felderid, 'height', Number(e.target.value))}
                           className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                         />
                       </div>
