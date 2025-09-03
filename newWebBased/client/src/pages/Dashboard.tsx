@@ -326,45 +326,6 @@ export function Dashboard() {
         </p>
       </div>
 
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Active Events</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {statistics.loading ? '...' : statistics.activeEvents}
-              </p>
-            </div>
-            <CalendarDaysIcon className="h-8 w-8 text-blue-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Registered Clubs</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {statistics.loading ? '...' : statistics.registeredClubs}
-              </p>
-            </div>
-            <BuildingOfficeIcon className="h-8 w-8 text-green-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Athletes</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {statistics.loading ? '...' : statistics.totalAthletes}
-              </p>
-            </div>
-            <UserGroupIcon className="h-8 w-8 text-purple-500" />
-          </div>
-        </div>
-      </div>
-
       {/* Action Groups */}
       <div className="space-y-8">
         {/* Database Management Group */}
