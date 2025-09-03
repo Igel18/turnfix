@@ -215,10 +215,10 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'Squad name already exists for this event' });
     }
 
-    console.log(`Created squad "${validatedData.name}" for event ${validatedData.eventId}`);
+    console.log(`Created virtual squad "${validatedData.name}" for event ${validatedData.eventId}`);
 
     res.status(201).json({
-      message: 'Squad created successfully',
+      message: 'Squad created successfully. Assign participants to make it active.',
       squad: {
         id: validatedData.name,
         name: validatedData.name,

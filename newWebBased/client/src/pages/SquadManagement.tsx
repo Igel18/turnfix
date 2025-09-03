@@ -95,14 +95,22 @@ const SquadManagement: React.FC = () => {
         name: newSquadName
       });
       
-      // Reload squads to get updated data
-      await loadSquads();
+      // Show success message with instructions
+      alert(`Squad "${newSquadName}" created successfully! \n\nTo make the squad visible, assign participants to it using the assignment interface below.`);
       
       setNewSquadName('');
       setIsCreateModalOpen(false);
+      
+      // Reload data to refresh the view
+      await loadSquads();
+      await loadAvailableParticipants();
     } catch (error) {
       console.error('Error creating squad:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create squad');
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Failed to create squad. Please try again.');
+      }
     }
   };
 
@@ -444,6 +452,9 @@ const SquadManagement: React.FC = () => {
                 placeholder="Enter squad name..."
                 autoFocus
               />
+              <p className="text-sm text-gray-500 mt-1">
+                Note: Squads become visible in the list once participants are assigned to them.
+              </p>
             </div>
 
             <div className="flex gap-3">
