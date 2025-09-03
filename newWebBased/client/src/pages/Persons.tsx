@@ -6,8 +6,7 @@ import {
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  MapPinIcon,
-  CalendarIcon
+  MapPinIcon
 } from '@heroicons/react/24/outline'
 import { UnifiedHeader } from '../components/UnifiedHeader'
 import { UnifiedDataView } from '../components/UnifiedDataView'
@@ -24,9 +23,6 @@ interface Person {
   var_adresse?: string
   var_plz?: string
   var_ort?: string
-  var_land?: string
-  var_geburtsdatum?: string
-  var_notiz?: string
 }
 
 interface FormData {
@@ -38,9 +34,6 @@ interface FormData {
   var_adresse: string
   var_plz: string
   var_ort: string
-  var_land: string
-  var_geburtsdatum: string
-  var_notiz: string
 }
 
 export default function Persons() {
@@ -66,10 +59,7 @@ export default function Persons() {
     var_fax: '',
     var_adresse: '',
     var_plz: '',
-    var_ort: '',
-    var_land: '',
-    var_geburtsdatum: '',
-    var_notiz: ''
+    var_ort: ''
   })
 
   // Fetch persons
@@ -173,11 +163,10 @@ export default function Persons() {
       'Last Name': person.var_nachname,
       'Email': person.var_email || '',
       'Phone': person.var_telefon || '',
+      'Fax': person.var_fax || '',
       'Address': person.var_adresse || '',
       'Postal Code': person.var_plz || '',
-      'City': person.var_ort || '',
-      'Country': person.var_land || '',
-      'Birth Date': person.var_geburtsdatum || ''
+      'City': person.var_ort || ''
     }))
 
     const csvContent = [
@@ -260,10 +249,7 @@ export default function Persons() {
       var_fax: person.var_fax || '',
       var_adresse: person.var_adresse || '',
       var_plz: person.var_plz || '',
-      var_ort: person.var_ort || '',
-      var_land: person.var_land || '',
-      var_geburtsdatum: person.var_geburtsdatum || '',
-      var_notiz: person.var_notiz || ''
+      var_ort: person.var_ort || ''
     })
     setIsModalOpen(true)
   }
@@ -280,10 +266,7 @@ export default function Persons() {
       var_fax: '',
       var_adresse: '',
       var_plz: '',
-      var_ort: '',
-      var_land: '',
-      var_geburtsdatum: '',
-      var_notiz: ''
+      var_ort: ''
     })
   }
 
@@ -292,8 +275,7 @@ export default function Persons() {
     'Name',
     'Email',
     'Phone',
-    'City',
-    'Actions'
+    'City'
   ]
 
   useEffect(() => {
@@ -347,6 +329,20 @@ export default function Persons() {
           viewType={viewType}
           onViewTypeChange={handleViewTypeChange}
           onSelectItem={() => {}}
+          actionButtons={[
+            {
+              icon: PencilIcon,
+              onClick: (item) => handleEdit(item as Person),
+              className: "text-blue-600 hover:text-blue-900",
+              title: "Edit"
+            },
+            {
+              icon: TrashIcon,
+              onClick: (item) => handleDelete((item as Person).int_personenid),
+              className: "text-red-600 hover:text-red-900",
+              title: "Delete"
+            }
+          ]}
           renderCard={(item) => {
             const person = item as Person
             return (
@@ -380,12 +376,6 @@ export default function Persons() {
                           <span className="ml-6">{person.var_plz} {person.var_ort}</span>
                         </div>
                       )}
-                      {person.var_geburtsdatum && (
-                        <div className="flex items-center">
-                          <CalendarIcon className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{person.var_geburtsdatum}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -412,7 +402,7 @@ export default function Persons() {
           renderTableRow={(item) => {
             const person = item as Person
             return (
-              <tr key={person.int_personenid} className="hover:bg-gray-50">
+              <>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
                     {person.var_vorname} {person.var_nachname}
@@ -426,27 +416,8 @@ export default function Persons() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{person.var_ort || 'N/A'}</div>
-                  {person.var_land && (
-                    <div className="text-sm text-gray-500">{person.var_land}</div>
-                  )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex space-x-2 justify-end">
-                    <button
-                      onClick={() => handleEdit(person)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(person.int_personenid)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              </>
             )
           }}
         />
@@ -523,18 +494,6 @@ export default function Persons() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Birth Date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.var_geburtsdatum}
-                      onChange={(e) => setFormData({ ...formData, var_geburtsdatum: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Address
@@ -567,30 +526,6 @@ export default function Persons() {
                       type="text"
                       value={formData.var_ort}
                       onChange={(e) => setFormData({ ...formData, var_ort: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Country
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.var_land}
-                      onChange={(e) => setFormData({ ...formData, var_land: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      value={formData.var_notiz}
-                      onChange={(e) => setFormData({ ...formData, var_notiz: e.target.value })}
-                      rows={3}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>

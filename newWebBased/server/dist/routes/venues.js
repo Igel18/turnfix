@@ -7,16 +7,10 @@ const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createVenueSchema = zod_1.z.object({
-    var_name: zod_1.z.string().min(1).max(255),
-    var_strasse: zod_1.z.string().optional(),
-    var_plz: zod_1.z.string().optional(),
-    var_ort: zod_1.z.string().optional(),
-    var_land: zod_1.z.string().optional(),
-    var_telefon: zod_1.z.string().optional(),
-    var_fax: zod_1.z.string().optional(),
-    var_email: zod_1.z.string().email().optional().or(zod_1.z.literal('')),
-    var_internet: zod_1.z.string().optional(),
-    var_notiz: zod_1.z.string().optional(),
+    var_name: zod_1.z.string().min(1).max(150),
+    var_adresse: zod_1.z.string().max(200).optional(),
+    var_plz: zod_1.z.string().max(5).optional(),
+    var_ort: zod_1.z.string().max(150).optional(),
 });
 const updateVenueSchema = createVenueSchema.partial();
 // Get all venues
@@ -25,31 +19,51 @@ router.get('/', async (req, res) => {
         const limit = parseInt(req.query.limit) || 50;
         const offset = parseInt(req.query.offset) || 0;
         const search = req.query.search;
-        const whereConditions = {};
+        let whereClause = '';
+        const params = [];
+        let paramIndex = 1;
         if (search) {
-            whereConditions.OR = [
-                { var_name: { contains: search, mode: 'insensitive' } },
-                { var_ort: { contains: search, mode: 'insensitive' } },
-                { var_strasse: { contains: search, mode: 'insensitive' } },
-                { var_plz: { contains: search, mode: 'insensitive' } }
-            ];
+            whereClause = `WHERE 
+        LOWER(var_name) LIKE LOWER($${paramIndex}) OR 
+        LOWER(var_adresse) LIKE LOWER($${paramIndex}) OR 
+        LOWER(var_ort) LIKE LOWER($${paramIndex}) OR 
+        LOWER(var_plz) LIKE LOWER($${paramIndex})`;
+            params.push(`%${search}%`);
+            paramIndex++;
         }
-        const [venues, totalCount] = await Promise.all([
-            prisma.tfx_wettkampforte.findMany({
-                where: whereConditions,
-                skip: offset,
-                take: limit,
-                orderBy: { var_name: 'asc' }
-            }),
-            prisma.tfx_wettkampforte.count({ where: whereConditions })
-        ]);
+        const countQuery = `
+      SELECT COUNT(*) as total
+      FROM tfx_wettkampforte
+      ${whereClause}
+    `;
+        const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
+        const total = parseInt(countResult[0]?.total || '0');
+        const dataQuery = `
+      SELECT 
+        int_wettkampforteid,
+        var_name,
+        var_adresse,
+        var_plz,
+        var_ort
+      FROM tfx_wettkampforte
+      ${whereClause}
+      ORDER BY var_name ASC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+        params.push(limit, offset);
+        const venues = await prisma.$queryRawUnsafe(dataQuery, ...params);
+        // Convert BigInt values to numbers for JSON serialization
+        const venuesData = venues.map((venue) => ({
+            ...venue,
+            int_wettkampforteid: Number(venue.int_wettkampforteid)
+        }));
         res.json({
-            venues,
+            venues: venuesData,
             pagination: {
-                total: totalCount,
+                total,
                 limit,
                 offset,
-                pages: Math.ceil(totalCount / limit)
+                pages: Math.ceil(total / limit)
             }
         });
     }
@@ -65,12 +79,25 @@ router.get('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid venue ID' });
         }
-        const venue = await prisma.tfx_wettkampforte.findUnique({
-            where: { int_wettkampfortid: id }
-        });
-        if (!venue) {
+        const query = `
+      SELECT 
+        int_wettkampforteid,
+        var_name,
+        var_adresse,
+        var_plz,
+        var_ort
+      FROM tfx_wettkampforte
+      WHERE int_wettkampforteid = $1
+    `;
+        const venues = await prisma.$queryRawUnsafe(query, id);
+        if (!venues.length) {
             return res.status(404).json({ error: 'Venue not found' });
         }
+        // Convert BigInt values to numbers for JSON serialization
+        const venue = {
+            ...venues[0],
+            int_wettkampforteid: Number(venues[0].int_wettkampforteid)
+        };
         res.json(venue);
     }
     catch (error) {
@@ -82,9 +109,19 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const validatedData = createVenueSchema.parse(req.body);
-        const venue = await prisma.tfx_wettkampforte.create({
-            data: validatedData
-        });
+        const query = `
+      INSERT INTO tfx_wettkampforte (
+        var_name, var_adresse, var_plz, var_ort
+      ) 
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `;
+        const venues = await prisma.$queryRawUnsafe(query, validatedData.var_name, validatedData.var_adresse || null, validatedData.var_plz || null, validatedData.var_ort || null);
+        // Convert BigInt values to numbers for JSON serialization
+        const venue = {
+            ...venues[0],
+            int_wettkampforteid: Number(venues[0].int_wettkampforteid)
+        };
         res.status(201).json(venue);
     }
     catch (error) {
@@ -103,18 +140,39 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid venue ID' });
         }
         const validatedData = updateVenueSchema.parse(req.body);
-        const venue = await prisma.tfx_wettkampforte.update({
-            where: { int_wettkampfortid: id },
-            data: validatedData
+        // Build dynamic update query
+        const updateFields = [];
+        const params = [];
+        let paramIndex = 1;
+        Object.entries(validatedData).forEach(([key, value]) => {
+            updateFields.push(`${key} = $${paramIndex}`);
+            params.push(value || null);
+            paramIndex++;
         });
+        if (updateFields.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+        const query = `
+      UPDATE tfx_wettkampforte 
+      SET ${updateFields.join(', ')}
+      WHERE int_wettkampforteid = $${paramIndex}
+      RETURNING *
+    `;
+        params.push(id);
+        const venues = await prisma.$queryRawUnsafe(query, ...params);
+        if (!venues.length) {
+            return res.status(404).json({ error: 'Venue not found' });
+        }
+        // Convert BigInt values to numbers for JSON serialization
+        const venue = {
+            ...venues[0],
+            int_wettkampforteid: Number(venues[0].int_wettkampforteid)
+        };
         res.json(venue);
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
             return res.status(400).json({ error: 'Validation failed', details: error.issues });
-        }
-        if (error?.code === 'P2025') {
-            return res.status(404).json({ error: 'Venue not found' });
         }
         console.error('Error updating venue:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -127,16 +185,20 @@ router.delete('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid venue ID' });
         }
-        await prisma.tfx_wettkampforte.delete({
-            where: { int_wettkampfortid: id }
-        });
+        const query = `
+      DELETE FROM tfx_wettkampforte 
+      WHERE int_wettkampforteid = $1
+      RETURNING int_wettkampforteid
+    `;
+        const result = await prisma.$queryRawUnsafe(query, id);
+        if (!result.length) {
+            return res.status(404).json({ error: 'Venue not found' });
+        }
         res.status(204).send();
     }
     catch (error) {
-        if (error?.code === 'P2025') {
-            return res.status(404).json({ error: 'Venue not found' });
-        }
-        if (error?.code === 'P2003') {
+        // Check for foreign key constraint violations
+        if (error?.code === '23503') {
             return res.status(400).json({ error: 'Cannot delete venue with associated records' });
         }
         console.error('Error deleting venue:', error);

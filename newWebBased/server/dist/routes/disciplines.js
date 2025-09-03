@@ -154,7 +154,7 @@ router.get('/filtered', authBypass_1.authenticateToken, async (req, res) => {
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
         const query = `
       SELECT 
-        int_disziplinenid, 
+        int_disziplinenid as int_disziplinid, 
         var_name as var_disziplinname, 
         var_einheit as var_disziplinkategorie,
         bol_m as male_allowed,

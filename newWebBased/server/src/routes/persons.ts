@@ -14,10 +14,7 @@ const createPersonSchema = z.object({
   var_fax: z.string().optional(),
   var_adresse: z.string().optional(),
   var_plz: z.string().optional(),
-  var_ort: z.string().optional(),
-  var_land: z.string().optional(),
-  var_geburtsdatum: z.string().optional(),
-  var_notiz: z.string().optional(),
+  var_ort: z.string().optional()
 });
 
 const updatePersonSchema = createPersonSchema.partial();
@@ -62,10 +59,7 @@ router.get('/', async (req, res) => {
         var_fax,
         var_adresse,
         var_plz,
-        var_ort,
-        var_land,
-        var_geburtsdatum,
-        var_notiz
+        var_ort
       FROM tfx_personen
       ${whereClause}
       ORDER BY var_nachname ASC, var_vorname ASC
@@ -114,10 +108,7 @@ router.get('/:id', async (req, res) => {
         var_fax,
         var_adresse,
         var_plz,
-        var_ort,
-        var_land,
-        var_geburtsdatum,
-        var_notiz
+        var_ort
       FROM tfx_personen
       WHERE int_personenid = $1
     `;
@@ -148,8 +139,8 @@ router.post('/', async (req, res) => {
     const query = `
       INSERT INTO tfx_personen (
         var_vorname, var_nachname, var_email, var_telefon, var_fax,
-        var_adresse, var_plz, var_ort, var_land, var_geburtsdatum, var_notiz
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        var_adresse, var_plz, var_ort
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING int_personenid
     `;
 
@@ -161,10 +152,7 @@ router.post('/', async (req, res) => {
       validatedData.var_fax || null,
       validatedData.var_adresse || null,
       validatedData.var_plz || null,
-      validatedData.var_ort || null,
-      validatedData.var_land || null,
-      validatedData.var_geburtsdatum || null,
-      validatedData.var_notiz || null
+      validatedData.var_ort || null
     ) as any[];
 
     const newPersonId = Number(result[0].int_personenid);

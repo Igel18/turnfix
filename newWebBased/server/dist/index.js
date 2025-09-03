@@ -28,6 +28,7 @@ const statuses_1 = __importDefault(require("./routes/statuses"));
 const countries_1 = __importDefault(require("./routes/countries"));
 const teams_1 = __importDefault(require("./routes/teams"));
 const venues_1 = __importDefault(require("./routes/venues"));
+const persons_1 = __importDefault(require("./routes/persons"));
 const participants_1 = __importDefault(require("./routes/participants"));
 const eventParticipants_1 = __importDefault(require("./routes/eventParticipants"));
 const results_1 = __importDefault(require("./routes/results"));
@@ -50,9 +51,13 @@ const io = new socket_io_1.Server(server, {
 const PORT = process.env.PORT || 3001;
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.'
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000'), // limit each IP to 10000 requests per minute (very high for development)
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    // Skip rate limiting for development environment
+    skip: (req) => process.env.NODE_ENV === 'development' && req.ip === '::1' || req.ip === '127.0.0.1'
 });
 // Middleware
 app.use((0, helmet_1.default)());
@@ -109,6 +114,7 @@ app.use('/api/statuses', statuses_1.default);
 app.use('/api/countries', countries_1.default);
 app.use('/api/teams', teams_1.default);
 app.use('/api/venues', venues_1.default);
+app.use('/api/persons', persons_1.default);
 app.use('/api/results', results_1.default);
 app.use('/api/competitions', competitions_1.default);
 app.use('/api/squad-management', squadManagement_1.default);
