@@ -228,6 +228,10 @@ At the "Edit Competition" UI there is a list of disciplines which can be selecte
 On each paper (either the certificates) there must be a header and a footer. In the header on the Left there must be the name of the event, the Date and the location of the event. On the Right the name of the printing. in the footer must written the actual Date Time and license (GNU GPL v3.1) on the Right and the following: "created with TurnFix" and the URL github.com/Igel18/turnfix
 
 -> Create a template for pdf exports
+---
+on the Competition Status Management 
+        - i'm missing the selected context
+        - there are 2 filters. this must be consolidated. 
 
 Konfig section 
 - DB alle infos separat speicher auch passwort 

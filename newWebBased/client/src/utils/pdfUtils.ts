@@ -75,9 +75,14 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
   // Footer configuration
   const footerY = pageHeight - footerHeight
   
+  // Clear footer area with white background to prevent text overlap
+  doc.setFillColor(255, 255, 255) // White background
+  doc.rect(margin, footerY - 6, pageWidth - (2 * margin), footerHeight + 6, 'F') // Fill rectangle
+  
   // Footer Left: TurnFix branding
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
+  doc.setTextColor(0, 0, 0) // Ensure black text
   doc.text('created with TurnFix', margin, footerY)
   doc.text('github.com/Igel18/turnfix', margin, footerY + 4)
   

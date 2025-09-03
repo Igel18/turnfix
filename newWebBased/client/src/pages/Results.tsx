@@ -387,7 +387,7 @@ const Results = () => {
       doc.setFont('helvetica', 'bold')
       doc.text(selectedCompName, contentArea.startX, contentArea.startY + 10)
       
-      let currentY = contentArea.startY + 20
+      let currentY = contentArea.startY + 35 // Increased spacing to prevent header overlap
       
       // Prepare table data
       const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
@@ -408,6 +408,7 @@ const Results = () => {
         body: tableData,
         startY: currentY,
         pageBreak: 'auto',
+        margin: { top: 35, left: 10, right: 10, bottom: 25 }, // Ensure proper margins on all pages
         styles: {
           fontSize: 8,
           cellPadding: 2,
@@ -461,16 +462,23 @@ const Results = () => {
           }
         },
         didDrawPage: function() {
-          // Add header/footer to each new page
-          addPDFHeaderFooter({
-            doc,
-            event: selectedEvent,
-            documentTitle: 'Competition Results',
-            pageWidth,
-            pageHeight
-          })
+          // Note: Page numbering will be updated after document completion
+          // to ensure correct total page count
         }
       })
+
+      // Update all page headers/footers with correct page numbering
+      const totalPages = (doc as any).internal.getNumberOfPages()
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i)
+        addPDFHeaderFooter({
+          doc,
+          event: selectedEvent,
+          documentTitle: 'Competition Results',
+          pageWidth,
+          pageHeight
+        })
+      }
 
       // Save the PDF
       doc.save(`results_${selectedCompName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
@@ -494,7 +502,7 @@ const Results = () => {
       
       // Get content area (excluding header/footer space)
       const contentArea = getContentArea(pageWidth, pageHeight)
-      let currentY = contentArea.startY + 10
+      let currentY = contentArea.startY + 20 // Increased spacing to prevent header overlap
 
       // Process each competition group
       filteredCompetitionGroups.forEach((group) => {
@@ -508,7 +516,7 @@ const Results = () => {
             pageWidth,
             pageHeight
           })
-          currentY = contentArea.startY + 10
+          currentY = contentArea.startY + 20 // Increased spacing to prevent header overlap
         }
 
         // Add competition title
@@ -536,6 +544,7 @@ const Results = () => {
           body: tableData,
           startY: currentY,
           pageBreak: 'auto',
+          margin: { top: 35, left: 10, right: 10, bottom: 25 }, // Ensure proper margins on all pages
           styles: {
             fontSize: 7,
             cellPadding: 1.5,
@@ -589,14 +598,8 @@ const Results = () => {
             }
           },
           didDrawPage: function(data: any) {
-            // Add header/footer to each new page
-            addPDFHeaderFooter({
-              doc,
-              event: selectedEvent,
-              documentTitle: 'Competition Results - All Competitions',
-              pageWidth,
-              pageHeight
-            })
+            // Note: Page numbering will be updated after document completion
+            // to ensure correct total page count
             currentY = (data as any).cursor.y + 15
           }
         })
@@ -604,6 +607,19 @@ const Results = () => {
         // Add some space between competitions
         currentY += 10
       })
+
+      // Update all page headers/footers with correct page numbering
+      const totalPages = (doc as any).internal.getNumberOfPages()
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i)
+        addPDFHeaderFooter({
+          doc,
+          event: selectedEvent,
+          documentTitle: 'Competition Results - All Competitions',
+          pageWidth,
+          pageHeight
+        })
+      }
 
       // Save the PDF
       doc.save(`results_all_competitions_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
