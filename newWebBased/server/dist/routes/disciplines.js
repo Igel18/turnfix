@@ -22,7 +22,7 @@ const createDisciplineSchema = zod_1.z.object({
     maleAllowed: zod_1.z.boolean().default(true),
     femaleAllowed: zod_1.z.boolean().default(true),
     sportId: zod_1.z.number().default(1),
-    formulaId: zod_1.z.number().optional(),
+    formulaId: zod_1.z.number().nullable().optional(),
     shouldCalculate: zod_1.z.boolean().default(true)
 });
 const updateDisciplineSchema = createDisciplineSchema.partial();
@@ -363,7 +363,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             values.push(validatedData.lanesDivision);
             paramCounter++;
         }
-        if (validatedData.formulaId !== undefined) {
+        if (validatedData.formulaId !== undefined && validatedData.formulaId !== null) {
             updateFields.push(`int_formelid = $${paramCounter}`);
             values.push(validatedData.formulaId);
             paramCounter++;
@@ -428,8 +428,9 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         // Check if discipline is being used in any competitions
         const usageQuery = `
       SELECT COUNT(*) as count
-      FROM tfx_teilnehmer_disziplin
-      WHERE int_disziplinenid = $1
+      FROM tfx_wertungen w
+      JOIN tfx_wettkaempfe_x_disziplinen wd ON w.int_wettkaempfeid = wd.int_wettkaempfeid
+      WHERE wd.int_disziplinenid = $1
     `;
         const usageResult = await prisma.$queryRawUnsafe(usageQuery, disciplineId);
         const usageCount = usageResult[0]?.count || 0;

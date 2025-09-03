@@ -204,25 +204,38 @@ Club management view the table has a other look. it has no header and boarder.
 New view for location management in database groupe in dashboard 
 New view for Personen management in database groupe in dashboard 
 -- 
-new view for sport arten in database groupe in dashboard 
-new view for formeln in database groupe in dashboard 
-new view for Disziplingruppen in database groupe in dashboard 
+on the dashboard in group database management I need 3 new UIs. 
+new view for sport arten -> tfx_sport
+new view for formeln -> tfx_formeln
+new view for Disziplingroups -> tfs_disziplinen_gruppen
+every UI must have a table for the dataelements. It must be possible to add edit and delete elements
 
-On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... 
 
 Riegen einteilen -> 3 Spaltig (Riegen, Starter zugewiesen, Starter nicht zugewiesen)
 
 
-Druck: 
-- Urkunden generierung 
-- Wettkampfbögen 
-- Medallienspiegel 
-- Zeitplan 
+ 
 
 lokalisierung 
 refactoring (nur noch prisma) 
 Geräte mit Icons 
 Über Turnfix 
+
+UI redisign: 
+the activ events, registered clubs, total athletes belong to Database management. Perhaps this info could be at the buttons eg "Manage Athletes"? 
+The UI is very full. usually the database management is not used either to create / import a new event. 
+The most used function is the "event management" section. Do you have two ideas to redisgn the UI that this most used event management is more in scope? 
+Perhaps with shortcut to crate/import a new event. 
+On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... 
+
+The export as pdf is possible on some UIs. We need some more print export as pdf posibilities. So perhaps we should add a new UI in section event management for print / export as pdf. We need: 
+- Urkunden generierung / generate cerificates for a selected person or a selected competition
+- Wettkampfbögen / competition sheets for a selected squad 
+- Medallienspiegel / medal results for the event: it shows how much medals each club has won in this event in sum and seperated by competition 
+- Zeitplan/Timetable it must be possible to print a timetable 
+
+
+
 
 
 in the UI: At each entry from an event must be a information like how much Participants are at this event, how much clubs are participating at this event.

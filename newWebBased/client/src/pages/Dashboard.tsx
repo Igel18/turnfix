@@ -13,7 +13,10 @@ import {
   BuildingLibraryIcon,
   CogIcon,
   DocumentTextIcon,
-  UserIcon
+  UserIcon,
+  BeakerIcon,
+  CalculatorIcon,
+  TagIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -67,6 +70,27 @@ const databaseManagementActions = [
     href: '/persons',
     icon: UserIcon,
     color: 'bg-orange-500'
+  },
+  {
+    name: 'Manage Sports',
+    description: 'Manage sport types and categories',
+    href: '/sports',
+    icon: BeakerIcon,
+    color: 'bg-emerald-500'
+  },
+  {
+    name: 'Manage Formulas',
+    description: 'Manage calculation formulas and scoring methods',
+    href: '/formulas',
+    icon: CalculatorIcon,
+    color: 'bg-cyan-500'
+  },
+  {
+    name: 'Manage Discipline Groups',
+    description: 'Manage discipline groups and categories',
+    href: '/discipline-groups',
+    icon: TagIcon,
+    color: 'bg-slate-500'
   },
   {
     name: 'Certificate Layouts',

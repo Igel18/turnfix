@@ -24,6 +24,9 @@ import CertificateLayouts from '@/pages/CertificateLayouts'
 import StatusManagement from '@/pages/StatusManagement'
 import Locations from '@/pages/Locations'
 import Persons from '@/pages/Persons'
+import Sports from '@/pages/Sports'
+import Formulas from '@/pages/Formulas'
+import DisciplineGroups from '@/pages/DisciplineGroups'
 
 function App() {
   return (
@@ -49,6 +52,9 @@ function App() {
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/disciplines" element={<Disciplines />} />
+            <Route path="/sports" element={<Sports />} />
+            <Route path="/formulas" element={<Formulas />} />
+            <Route path="/discipline-groups" element={<DisciplineGroups />} />
             <Route path="/database-config" element={<DatabaseConfig />} />
             <Route path="/locations" element={<Locations />} />
             <Route path="/persons" element={<Persons />} />
