@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { debugLog } from '../utils/debug';
 import { 
   Plus, 
   Calendar, 
@@ -26,6 +27,24 @@ interface Discipline {
   female_allowed: boolean;
   altersklasse_von: number;
   altersklasse_bis: number;
+}
+
+// Interface for disciplines returned by discipline groups API
+interface DisciplineGroupDiscipline {
+  int_disziplinenid: number;
+  var_name: string;
+  var_kurz1: string;
+  var_kurz2: string;
+  position: number;
+}
+
+// Interface for discipline groups
+interface DisciplineGroup {
+  int_disziplinen_gruppenid: number;
+  var_name: string;
+  txt_comment: string;
+  discipline_count: number;
+  disciplines: DisciplineGroupDiscipline[];
 }
 
 // Interface for competition display
@@ -92,6 +111,12 @@ const Competitions: React.FC = () => {
   const [ageGroups, setAgeGroups] = useState<{ value: number; label: string }[]>([]);
   const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
   
+  // State for discipline groups
+  const [disciplineGroups, setDisciplineGroups] = useState<DisciplineGroup[]>([]);
+  const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
+  const [loadingDisciplineGroups, setLoadingDisciplineGroups] = useState(false);
+  const [bulkMaxScore, setBulkMaxScore] = useState<string>('');
+  
   const [formData, setFormData] = useState<CompetitionFormData>({
     number: '',
     name: '',
@@ -136,6 +161,7 @@ const Competitions: React.FC = () => {
   useEffect(() => {
     loadDisciplines();
     loadAgeGroups();
+    loadDisciplineGroups();
     loadCompetitions();
   }, []);
 
@@ -162,6 +188,23 @@ const Competitions: React.FC = () => {
     }
   };
 
+  const loadDisciplineGroups = async () => {
+    setLoadingDisciplineGroups(true);
+    try {
+      const data = await apiGet('/discipline-groups');
+      console.log('📚 Loaded discipline groups:', data);
+      // The API returns an object with disciplineGroups array, not directly an array
+      const groups = data?.disciplineGroups || [];
+      setDisciplineGroups(Array.isArray(groups) ? groups : []);
+    } catch (error) {
+      console.error('Error loading discipline groups:', error);
+      // Set empty array on error
+      setDisciplineGroups([]);
+    } finally {
+      setLoadingDisciplineGroups(false);
+    }
+  };
+
   const loadCompetitions = async () => {
     setLoading(true);
     try {
@@ -182,6 +225,68 @@ const Competitions: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handler for discipline group selection
+  const handleDisciplineGroupChange = (groupId: number | null) => {
+    setSelectedDisciplineGroup(groupId);
+    
+    if (groupId) {
+      const selectedGroup = disciplineGroups.find(group => group.int_disziplinen_gruppenid === groupId);
+      if (selectedGroup) {
+        console.log('📚 Selected discipline group:', selectedGroup.var_name, 'with', selectedGroup.disciplines.length, 'disciplines');
+        
+        // Clear all existing discipline selections and add only the ones from the selected group
+        const newDisciplines = selectedGroup.disciplines.map(discipline => ({
+          disciplineId: discipline.int_disziplinenid,
+          maxScore: 10 // Default max score for new selections
+        }));
+        
+        console.log('🔄 Replacing all disciplines with group selections:', newDisciplines);
+        
+        setFormData({
+          ...formData,
+          disciplines: newDisciplines
+        });
+      }
+    } else {
+      // If no group is selected, clear the disciplines array
+      console.log('🔄 Clearing all discipline selections');
+      setFormData({
+        ...formData,
+        disciplines: []
+      });
+    }
+  };
+
+  // Handler for bulk max score setting
+  const handleBulkMaxScoreApply = () => {
+    if (!bulkMaxScore || selectedDisciplineGroup === null) return;
+    
+    const selectedGroup = disciplineGroups.find(group => group.int_disziplinen_gruppenid === selectedDisciplineGroup);
+    if (!selectedGroup) return;
+    
+    const maxScore = parseFloat(bulkMaxScore);
+    if (isNaN(maxScore) || maxScore <= 0) {
+      alert('Please enter a valid positive number for the max score');
+      return;
+    }
+    
+    console.log('🎯 Applying bulk max score', maxScore, 'to all selected disciplines from group:', selectedGroup.var_name);
+    
+    // Since disciplines are now only from the selected group, update all of them
+    const updatedDisciplines = formData.disciplines.map(discipline => ({
+      ...discipline,
+      maxScore
+    }));
+    
+    setFormData({
+      ...formData,
+      disciplines: updatedDisciplines
+    });
+    
+    // Clear the bulk score input
+    setBulkMaxScore('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -702,6 +807,60 @@ const Competitions: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Disciplines * ({filteredDisciplines.length} available for {formData.gender}, {formData.disciplines.length} selected)
                   </label>
+                  
+                  {/* Discipline Groups Quick Selection */}
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Quick Select from Discipline Group
+                        </label>
+                        <select
+                          value={selectedDisciplineGroup || ''}
+                          onChange={(e) => handleDisciplineGroupChange(e.target.value ? parseInt(e.target.value) : null)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          disabled={loadingDisciplineGroups}
+                        >
+                          <option value="">Select a discipline group...</option>
+                          {Array.isArray(disciplineGroups) && disciplineGroups.map(group => (
+                            <option key={group.int_disziplinen_gruppenid} value={group.int_disziplinen_gruppenid}>
+                              {group.var_name} ({group.discipline_count} disciplines)
+                            </option>
+                          ))}
+                        </select>
+                        {loadingDisciplineGroups && (
+                          <p className="text-sm text-gray-500 mt-1">Loading discipline groups...</p>
+                        )}
+                      </div>
+                      
+                      {selectedDisciplineGroup && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Set Max Score for Selected Group
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              value={bulkMaxScore}
+                              onChange={(e) => setBulkMaxScore(e.target.value)}
+                              placeholder="Enter max score"
+                              min="0"
+                              step="0.1"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleBulkMaxScoreApply}
+                              disabled={!bulkMaxScore}
+                              className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   {formData.disciplines.length > 0 && (
                     <div className="mb-2 text-sm text-blue-600">
                       <span>Selected: </span>

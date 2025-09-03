@@ -223,7 +223,8 @@ When a competition name is visible (eg "Gerätvierkampf w (1-6Jahre)") the  Comp
 
 --- 
 
-At the Edit Competition UI 
+At the "Edit Competition" UI there is a list of disciplines which can be selected. 1. Add a drop down to select a item from the "Discipline Groups Management" which selects the disciplines from this entry. 2. add a posibility to set the max Score of all selected disciplines in one step to the same value. 
+
 Konfig section 
 - DB alle infos separat speicher auch passwort 
 - debug 
