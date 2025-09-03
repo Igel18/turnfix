@@ -103,3 +103,5 @@ Competition
     Participant:
     XML: <perGeschlecht>1</perGeschlecht> -> TurnFix male
     XML: <perGeschlecht>2</perGeschlecht> -> TurnFix female
+
+# Terminal

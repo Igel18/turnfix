@@ -14,6 +14,13 @@ interface DisciplineGroup {
   }>;
 }
 
+interface Discipline {
+  id: number;
+  name: string;
+  unit?: string;
+  short_name?: string;
+}
+
 interface DisciplineGroupsResponse {
   disciplineGroups: DisciplineGroup[];
   pagination: {
@@ -26,6 +33,8 @@ interface DisciplineGroupsResponse {
 
 const DisciplineGroups: React.FC = () => {
   const [disciplineGroups, setDisciplineGroups] = useState<DisciplineGroup[]>([]);
+  const [allDisciplines, setAllDisciplines] = useState<Discipline[]>([]);
+  const [selectedDisciplines, setSelectedDisciplines] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,6 +54,7 @@ const DisciplineGroups: React.FC = () => {
       var_name: '',
       txt_comment: '',
     });
+    setSelectedDisciplines([]);
     setEditingGroup(null);
   };
 
@@ -75,21 +85,44 @@ const DisciplineGroups: React.FC = () => {
     }
   };
 
+  const fetchAllDisciplines = async () => {
+    try {
+      const response = await fetch('/api/disciplines?limit=1000');
+      if (!response.ok) {
+        throw new Error('Failed to fetch disciplines');
+      }
+      const data = await response.json();
+      // The API returns a flat array, not an object with disciplines property
+      setAllDisciplines(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error fetching disciplines:', err);
+      setAllDisciplines([]);
+    }
+  };
+
   useEffect(() => {
     fetchDisciplineGroups(currentPage, searchTerm);
   }, [currentPage, searchTerm]);
 
-  const handleAddGroup = () => {
+  const handleAddGroup = async () => {
     resetForm();
+    await fetchAllDisciplines();
     setIsModalOpen(true);
   };
 
-  const handleEdit = (group: DisciplineGroup) => {
+  const handleEdit = async (group: DisciplineGroup) => {
     setFormData({
       var_name: group.var_name || '',
       txt_comment: group.txt_comment || '',
     });
     setEditingGroup(group);
+    
+    // Set selected disciplines from the group
+    // Note: disciplines from the group API use int_disziplinenid
+    const disciplineIds = group.disciplines?.map(d => d.int_disziplinenid) || [];
+    setSelectedDisciplines(disciplineIds);
+    
+    await fetchAllDisciplines();
     setIsModalOpen(true);
   };
 
@@ -108,15 +141,18 @@ const DisciplineGroups: React.FC = () => {
       
       const method = editingGroup ? 'PUT' : 'POST';
       
+      const requestBody = {
+        var_name: formData.var_name.trim(),
+        txt_comment: formData.txt_comment.trim() || undefined,
+        disciplineIds: selectedDisciplines,
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          var_name: formData.var_name.trim(),
-          txt_comment: formData.txt_comment.trim() || undefined,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -132,6 +168,21 @@ const DisciplineGroups: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDisciplineToggle = (disciplineId: number) => {
+    setSelectedDisciplines(prev => 
+      prev.includes(disciplineId)
+        ? prev.filter(id => id !== disciplineId)
+        : [...prev, disciplineId]
+    );
+  };
+
+  const getSelectedDisciplineNames = () => {
+    return allDisciplines
+      .filter(d => selectedDisciplines.includes(d.id))
+      .map(d => d.name)
+      .join(', ');
   };
 
   const handleDelete = async (id: number) => {
@@ -425,6 +476,45 @@ const DisciplineGroups: React.FC = () => {
                     rows={3}
                     disabled={isSubmitting}
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assign Disciplines
+                  </label>
+                  <div className="border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                    {allDisciplines.length === 0 ? (
+                      <p className="text-gray-500 text-sm">Loading disciplines...</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {allDisciplines.map((discipline) => (
+                          <label
+                            key={discipline.id}
+                            className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedDisciplines.includes(discipline.id)}
+                              onChange={() => handleDisciplineToggle(discipline.id)}
+                              className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                              disabled={isSubmitting}
+                            />
+                            <span className="text-sm text-gray-700">
+                              {discipline.name}
+                              {discipline.unit && (
+                                <span className="text-gray-500 ml-1">({discipline.unit})</span>
+                              )}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {selectedDisciplines.length > 0 && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      Selected: {getSelectedDisciplineNames()}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4">

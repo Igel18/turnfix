@@ -8,10 +8,36 @@ const prisma = new PrismaClient();
 // Validation schemas
 const createDisciplineGroupSchema = z.object({
   var_name: z.string().min(1).max(100),
-  txt_comment: z.string().optional()
+  txt_comment: z.string().optional(),
+  disciplineIds: z.array(z.number()).optional()
 });
 
-const updateDisciplineGroupSchema = createDisciplineGroupSchema.partial();
+const updateDisciplineGroupSchema = z.object({
+  var_name: z.string().min(1).max(100).optional(),
+  txt_comment: z.string().optional(),
+  disciplineIds: z.array(z.number()).optional()
+});
+
+// Helper function to manage discipline assignments
+const manageDisciplineAssignments = async (groupId: number, disciplineIds: number[] = []) => {
+  // First, remove all existing assignments
+  await prisma.tfx_disgrp_x_disziplinen.deleteMany({
+    where: { int_disziplinen_gruppenid: groupId }
+  });
+
+  // Then, add new assignments with positions
+  if (disciplineIds.length > 0) {
+    const assignments = disciplineIds.map((disciplineId, index) => ({
+      int_disziplinen_gruppenid: groupId,
+      int_disziplinenid: disciplineId,
+      int_pos: index + 1
+    }));
+
+    await prisma.tfx_disgrp_x_disziplinen.createMany({
+      data: assignments
+    });
+  }
+};
 
 // Get all discipline groups
 router.get('/', async (req, res) => {
@@ -157,8 +183,22 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'A discipline group with this name already exists' });
     }
 
+    // Create the discipline group
     const disciplineGroup = await prisma.tfx_disziplinen_gruppen.create({
-      data: validatedData,
+      data: {
+        var_name: validatedData.var_name,
+        txt_comment: validatedData.txt_comment
+      }
+    });
+
+    // Handle discipline assignments if provided
+    if (validatedData.disciplineIds && validatedData.disciplineIds.length > 0) {
+      await manageDisciplineAssignments(disciplineGroup.int_disziplinen_gruppenid, validatedData.disciplineIds);
+    }
+
+    // Fetch the complete group with assignments
+    const completeGroup = await prisma.tfx_disziplinen_gruppen.findUnique({
+      where: { int_disziplinen_gruppenid: disciplineGroup.int_disziplinen_gruppenid },
       include: {
         tfx_disgrp_x_disziplinen: {
           include: {
@@ -168,15 +208,16 @@ router.post('/', async (req, res) => {
                 var_name: true
               }
             }
-          }
+          },
+          orderBy: { int_pos: 'asc' }
         }
       }
     });
 
     const disciplineGroupWithCount = {
-      ...disciplineGroup,
-      discipline_count: disciplineGroup.tfx_disgrp_x_disziplinen.length,
-      disciplines: disciplineGroup.tfx_disgrp_x_disziplinen.map(dx => ({
+      ...completeGroup,
+      discipline_count: completeGroup!.tfx_disgrp_x_disziplinen.length,
+      disciplines: completeGroup!.tfx_disgrp_x_disziplinen.map(dx => ({
         ...dx.tfx_disziplinen,
         position: dx.int_pos
       }))
@@ -225,9 +266,26 @@ router.put('/:id', async (req, res) => {
       }
     }
     
-    const disciplineGroup = await prisma.tfx_disziplinen_gruppen.update({
+    // Update the basic group information
+    const updateData: any = {};
+    if (validatedData.var_name !== undefined) updateData.var_name = validatedData.var_name;
+    if (validatedData.txt_comment !== undefined) updateData.txt_comment = validatedData.txt_comment;
+
+    if (Object.keys(updateData).length > 0) {
+      await prisma.tfx_disziplinen_gruppen.update({
+        where: { int_disziplinen_gruppenid: id },
+        data: updateData
+      });
+    }
+
+    // Handle discipline assignments if provided
+    if (validatedData.disciplineIds !== undefined) {
+      await manageDisciplineAssignments(id, validatedData.disciplineIds);
+    }
+
+    // Fetch the complete updated group
+    const disciplineGroup = await prisma.tfx_disziplinen_gruppen.findUnique({
       where: { int_disziplinen_gruppenid: id },
-      data: validatedData,
       include: {
         tfx_disgrp_x_disziplinen: {
           include: {
@@ -247,8 +305,8 @@ router.put('/:id', async (req, res) => {
 
     const disciplineGroupWithCount = {
       ...disciplineGroup,
-      discipline_count: disciplineGroup.tfx_disgrp_x_disziplinen.length,
-      disciplines: disciplineGroup.tfx_disgrp_x_disziplinen.map(dx => ({
+      discipline_count: disciplineGroup!.tfx_disgrp_x_disziplinen.length,
+      disciplines: disciplineGroup!.tfx_disgrp_x_disziplinen.map(dx => ({
         ...dx.tfx_disziplinen,
         position: dx.int_pos
       }))
