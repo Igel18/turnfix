@@ -78,10 +78,57 @@ const SquadManagement: React.FC = () => {
     }
   }, [eventId]);
 
+// Force reload functions that bypass cache
+const forceLoadSquads = async () => {
+  try {
+    // Add cache busting timestamp and force fresh data
+    const timestamp = Date.now();
+    const data = await apiGet(`/squad-management?eventId=${eventId}&_t=${timestamp}&_force=true`);
+    const newSquads = data.squads || [];
+    console.log('🔄 Force loading squads:', newSquads.length, 'squads loaded');
+    setSquads(newSquads);
+    
+    // Update selected squad with fresh data if one is currently selected
+    if (selectedSquad) {
+      const updatedSquad = newSquads.find((s: Squad) => 
+        s.id === selectedSquad.id || s.name === selectedSquad.name
+      );
+      if (updatedSquad) {
+        console.log('📝 Updating selected squad with fresh data');
+        setSelectedSquad(updatedSquad);
+      } else {
+        // Squad no longer exists (might have been deleted)
+        console.log('❌ Selected squad no longer exists, clearing selection');
+        setSelectedSquad(null);
+      }
+    }
+  } catch (error) {
+    console.error('Error force loading squads:', error);
+    setSquads([]);
+  }
+};
+
+const forceLoadAvailableParticipants = async () => {
+  try {
+    // Add cache busting timestamp and force fresh data
+    const timestamp = Date.now();
+    const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&_t=${timestamp}&_force=true`);
+    const newParticipants = data.participants || [];
+    console.log('🔄 Force loading available participants:', newParticipants.length, 'participants loaded');
+    setAvailableParticipants(newParticipants);
+  } catch (error) {
+    console.error('Error force loading available participants:', error);
+    setAvailableParticipants([]);
+  }
+};
+
   const loadSquads = async () => {
     try {
-      const data = await apiGet(`/squad-management?eventId=${eventId}`);
+      // Add cache busting timestamp
+      const timestamp = Date.now();
+      const data = await apiGet(`/squad-management?eventId=${eventId}&_t=${timestamp}`);
       const newSquads = data.squads || [];
+      console.log('🔄 Loading squads:', newSquads.length, 'squads loaded');
       setSquads(newSquads);
       
       // Update selected squad with fresh data if one is currently selected
@@ -90,9 +137,11 @@ const SquadManagement: React.FC = () => {
           s.id === selectedSquad.id || s.name === selectedSquad.name
         );
         if (updatedSquad) {
+          console.log('📝 Updating selected squad with fresh data');
           setSelectedSquad(updatedSquad);
         } else {
           // Squad no longer exists (might have been deleted)
+          console.log('❌ Selected squad no longer exists, clearing selection');
           setSelectedSquad(null);
         }
       }
@@ -104,8 +153,12 @@ const SquadManagement: React.FC = () => {
 
   const loadAvailableParticipants = async () => {
     try {
-      const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}`);
-      setAvailableParticipants(data.participants || []);
+      // Add cache busting timestamp
+      const timestamp = Date.now();
+      const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&_t=${timestamp}`);
+      const newParticipants = data.participants || [];
+      console.log('🔄 Loading available participants:', newParticipants.length, 'participants loaded');
+      setAvailableParticipants(newParticipants);
     } catch (error) {
       console.error('Error loading available participants:', error);
       setAvailableParticipants([]);
@@ -140,8 +193,10 @@ const SquadManagement: React.FC = () => {
       setIsCreateModalOpen(false);
       
       // Reload data to refresh the view
-      await loadSquads();
-      await loadAvailableParticipants();
+      console.log('🔄 Force reloading data after squad creation...');
+      await forceLoadSquads();
+      await forceLoadAvailableParticipants();
+      console.log('✅ Force data reload completed after squad creation');
     } catch (error) {
       console.error('Error creating squad:', error);
       if (error instanceof Error) {
@@ -168,8 +223,10 @@ const SquadManagement: React.FC = () => {
       await apiDelete(`/squad-management/delete?squadName=${encodeURIComponent(squadName)}&eventId=${eventId}`);
       
       // Reload both squads and available participants
-      await loadSquads();
-      await loadAvailableParticipants();
+      console.log('🔄 Force reloading data after squad deletion...');
+      await forceLoadSquads();
+      await forceLoadAvailableParticipants();
+      console.log('✅ Force data reload completed after squad deletion');
       
       if (selectedSquad && (selectedSquad.id === squadId || selectedSquad.name === squadName)) {
         setSelectedSquad(null);
@@ -213,8 +270,10 @@ const SquadManagement: React.FC = () => {
       
       // Reload both squads and available participants
       // loadSquads() will automatically update selectedSquad with fresh data
-      await loadSquads();
-      await loadAvailableParticipants();
+      console.log('🔄 Force reloading data after participant assignment...');
+      await forceLoadSquads();
+      await forceLoadAvailableParticipants();
+      console.log('✅ Force data reload completed after participant assignment');
     } catch (error) {
       console.error('Error assigning participant to squad:', error);
       alert(error instanceof Error ? error.message : 'Failed to assign participant to squad');
@@ -235,8 +294,10 @@ const SquadManagement: React.FC = () => {
       
       // Reload both squads and available participants
       // loadSquads() will automatically update selectedSquad with fresh data
-      await loadSquads();
-      await loadAvailableParticipants();
+      console.log('🔄 Force reloading data after participant removal...');
+      await forceLoadSquads();
+      await forceLoadAvailableParticipants();
+      console.log('✅ Force data reload completed after participant removal');
     } catch (error) {
       console.error('Error removing participant from squad:', error);
       alert(error instanceof Error ? error.message : 'Failed to remove participant from squad');

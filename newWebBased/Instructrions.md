@@ -213,6 +213,14 @@ every UI must have a table for the dataelements. It must be possible to add edit
 
 
 Riegen einteilen -> 3 Spaltig (Riegen, Starter zugewiesen, Starter nicht zugewiesen)
+---
+When a competition name is visible (eg "Gerätvierkampf w (1-6Jahre)") the  Competition Number (eg "Nr. 0001") must be visible as well. I found this here: 
+- In Squad management. 
+- In Event Paricipants -> competition asignement. 
+- In Competition Status Management. 
+- In Score Capture. 
+- In Competition Results. 
+
 
 Konfig section 
 - DB alle infos separat speicher auch passwort 
