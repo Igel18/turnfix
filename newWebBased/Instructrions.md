@@ -232,8 +232,14 @@ On each paper (either the certificates) there must be a header and a footer. In 
 on the Competition Status Management 
         - i'm missing the selected context
         - there are 2 filters. this must be consolidated. 
+---
+on the Competition Status Management 
+        - The data is not correct 
+        - you see in the image from the Competition management view the correct data (pariticpant count) for the event 46. 
+        - and in the score capture UI you see the correct statut of the tracked scores
 
-Konfig section 
+
+Config section 
 - DB alle infos separat speicher auch passwort 
 - debug 
 - sprache 

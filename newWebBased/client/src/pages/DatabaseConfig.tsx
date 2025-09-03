@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -41,6 +41,7 @@ export default function DatabaseConfig() {
   const [loading, setLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [serverRestart, setServerRestart] = useState(false);
 
   // Load current configuration on component mount
@@ -64,6 +65,7 @@ export default function DatabaseConfig() {
             ...data.config,
             password: storedPassword
           });
+          setConfigLoaded(true);
         }
       } else {
         // If no config found, try to load password from localStorage
@@ -72,9 +74,11 @@ export default function DatabaseConfig() {
           ...prev,
           password: storedPassword
         }));
+        setConfigLoaded(true);
       }
     } catch (error) {
       console.error('Failed to load database configuration:', error);
+      setConfigLoaded(true);
     }
   };
 

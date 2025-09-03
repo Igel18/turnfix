@@ -5,7 +5,8 @@ import {
   EyeIcon,
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
-  ClockIcon
+  ClockIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { useEvent } from '@/contexts/EventContext'
@@ -60,7 +61,7 @@ const CompetitionStatusManagement = () => {
   const [loading, setLoading] = useState(false)
 
   // Filter states
-  const [filterCompetition, setFilterCompetition] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterGender, setFilterGender] = useState('')
 
@@ -195,12 +196,61 @@ const CompetitionStatusManagement = () => {
     return Math.round((item.completedSquadDisciplines / item.totalSquadDisciplines) * 100)
   }
 
+  // Classify a single squad status name into a coarse bucket
+  const classifySquadState = (
+    name: string,
+    id?: number
+  ): 'completed' | 'in_progress' | 'not_started' | 'unknown' => {
+    // Prefer well-known IDs if schema is consistent
+    if (id === 9) return 'completed'
+    if (id === 1) return 'not_started'
+    const n = (name || '').toLowerCase()
+    // Completed keywords (DE/EN)
+    if (/(abgeschlossen|fertig|beendet|completed|complete|done)\b/.test(n)) return 'completed'
+    // Not started keywords (DE/EN)
+    if (/(nicht\s*gestartet|offen|not\s*started|open)\b/.test(n)) return 'not_started'
+    // In progress keywords (DE/EN)
+    if (/(in\s*bearbeitung|läuft|laufend|running|in\s*progress|aktiv|ongoing)\b/.test(n)) return 'in_progress'
+    return 'unknown'
+  }
+
+  // Aggregate overall status from all squads' states
+  const getAggregatedOverallStatus = (item: CompetitionStatus): 'not_started' | 'in_progress' | 'completed' => {
+    const total = item.statusDistribution?.reduce((sum, s) => sum + (s.count || 0), 0) || 0
+    if (total === 0) return 'not_started'
+
+    let completed = 0
+    let notStarted = 0
+    let inProgress = 0
+    let unknown = 0
+
+    for (const s of item.statusDistribution || []) {
+      const bucket = classifySquadState(s.statusName, s.statusId)
+      const c = s.count || 0
+      if (bucket === 'completed') completed += c
+      else if (bucket === 'not_started') notStarted += c
+      else if (bucket === 'in_progress') inProgress += c
+      else unknown += c
+    }
+
+    // If all are clearly in one bucket, use that; otherwise treat mixed/unknown as in_progress
+    if (completed === total) return 'completed'
+    if (notStarted === total) return 'not_started'
+    // If there are unknowns but they dominate exclusively, consider in_progress for safety
+    return 'in_progress'
+  }
+
+  // Get exact status names and counts from Status Management for display
+  const getStatusManagementSummary = (item: CompetitionStatus) => {
+    return item.statusDistribution || []
+  }
+
   // Filter competitions
   const filteredCompetitions = competitionStatuses.filter(item => {
-    if (filterCompetition && !item.name.toLowerCase().includes(filterCompetition.toLowerCase())) {
+    if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false
     }
-    if (filterStatus && !item.overallStatus.toLowerCase().includes(filterStatus.toLowerCase())) {
+    if (filterStatus && !getAggregatedOverallStatus(item).toLowerCase().includes(filterStatus.toLowerCase())) {
       return false
     }
     if (filterGender && !item.gender.toLowerCase().includes(filterGender.toLowerCase())) {
@@ -209,19 +259,25 @@ const CompetitionStatusManagement = () => {
     return true
   })
 
-  // State info for header
+  // Helper functions for unified header
   const getStateInfo = (): StateInfo[] => {
     const total = competitionStatuses.length
-    const completed = competitionStatuses.filter(c => c.overallStatus === 'completed').length
-    const inProgress = competitionStatuses.filter(c => c.overallStatus === 'in_progress').length
-    const notStarted = competitionStatuses.filter(c => c.overallStatus === 'not_started').length
+    const completed = competitionStatuses.filter(c => getAggregatedOverallStatus(c) === 'completed').length
+    const inProgress = competitionStatuses.filter(c => getAggregatedOverallStatus(c) === 'in_progress').length
+    const notStarted = competitionStatuses.filter(c => getAggregatedOverallStatus(c) === 'not_started').length
 
     return [
-      { value: 'completed', label: 'Abgeschlossen', count: completed, color: 'text-green-600' },
-      { value: 'in-progress', label: 'In Bearbeitung', count: inProgress, color: 'text-yellow-600' },
-      { value: 'not_started', label: 'Nicht gestartet', count: notStarted, color: 'text-gray-600' },
-      { value: 'total', label: 'Gesamt', count: total, color: 'text-blue-600' }
+      { value: 'completed', label: 'Completed', count: completed, color: 'text-green-600' },
+      { value: 'in-progress', label: 'In Progress', count: inProgress, color: 'text-yellow-600' },
+      { value: 'not_started', label: 'Not Started', count: notStarted, color: 'text-gray-600' },
+      { value: 'total', label: 'Total', count: total, color: 'text-blue-600' }
     ]
+  }
+
+  const handleClearAllFilters = () => {
+    setSearchTerm('')
+    setFilterStatus('')
+    setFilterGender('')
   }
 
   if (loading) {
@@ -236,23 +292,47 @@ const CompetitionStatusManagement = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto">
       <UnifiedHeader
         title="Competition Status Management"
-        description="View aggregated status for competitions based on squad progress"
+        description={`Competition status overview for ${selectedEvent?.var_eventname || 'Selected Event'}`}
         icon={TrophyIcon}
-        searchTerm=""
-        onSearchChange={() => {}}
-        onClearAllFilters={() => {
-          setFilterCompetition('')
-          setFilterStatus('')
-          setFilterGender('')
-        }}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search competitions..."
+        filterOptions={[
+          {
+            label: 'Status',
+            value: 'status',
+            options: [
+              { value: '', label: 'All Statuses' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'in_progress', label: 'In Progress' },
+              { value: 'not_started', label: 'Not Started' }
+            ],
+            selectedValue: filterStatus,
+            onChange: setFilterStatus
+          },
+          {
+            label: 'Gender',
+            value: 'gender',
+            options: [
+              { value: '', label: 'All Genders' },
+              { value: 'männlich', label: 'Männlich' },
+              { value: 'weiblich', label: 'Weiblich' }
+            ],
+            selectedValue: filterGender,
+            onChange: setFilterGender
+          }
+        ]}
+        onClearAllFilters={handleClearAllFilters}
         onExportCSV={() => {
           // TODO: Implement CSV export
           console.log('Export CSV')
         }}
         stateInfo={getStateInfo()}
+        selectedState=""
+        onStateChange={() => {}}
         showHomeButton={true}
         homeUrl="/dashboard"
         primaryAction={{
@@ -260,11 +340,24 @@ const CompetitionStatusManagement = () => {
           icon: viewMode === 'table' ? EyeIcon : ClipboardDocumentListIcon,
           onClick: () => setViewMode(viewMode === 'table' ? 'grid' : 'table')
         }}
+        totalCount={filteredCompetitions.length}
       />
+
+      {/* Event Selection Context */}
+      {selectedEvent && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 mx-6">
+          <div className="flex items-center">
+            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
+            <div className="text-sm text-blue-800">
+              <strong>Selected Event:</strong> {selectedEvent.var_eventname}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Event Selection */}
       {!selectedEvent && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-white rounded-lg border p-6 mx-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Select Event</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map(event => (
@@ -281,55 +374,9 @@ const CompetitionStatusManagement = () => {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Filters</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Competition</label>
-            <input
-              type="text"
-              placeholder="Filter by competition name..."
-              value={filterCompetition}
-              onChange={(e) => setFilterCompetition(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Statuses</option>
-              <option value="Abgeschlossen">Abgeschlossen</option>
-              <option value="In Bearbeitung">In Bearbeitung</option>
-              <option value="Vorbereitet">Vorbereitet</option>
-              <option value="Nicht gestartet">Nicht gestartet</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-            <select
-              value={filterGender}
-              onChange={(e) => setFilterGender(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Genders</option>
-              <option value="männlich">Männlich</option>
-              <option value="weiblich">Weiblich</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       {/* Competition Status Display */}
       {selectedEventId && (
-        <div className="bg-white rounded-lg border overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border mx-6 overflow-hidden">
           {viewMode === 'table' ? (
             // Table View
             <div className="overflow-x-auto">
@@ -347,6 +394,9 @@ const CompetitionStatusManagement = () => {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Overall Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Squad States
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Progress
@@ -379,13 +429,29 @@ const CompetitionStatusManagement = () => {
                         {item.gender}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        {(() => { const s = getAggregatedOverallStatus(item); return (
                         <span 
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(getOverallStatusColor(item.overallStatus)).className}`}
-                          style={getStatusColor(getOverallStatusColor(item.overallStatus)).style}
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(getOverallStatusColor(s)).className}`}
+                          style={getStatusColor(getOverallStatusColor(s)).style}
                         >
-                          {item.overallStatus === 'completed' ? 'Abgeschlossen' :
-                           item.overallStatus === 'in_progress' ? 'In Bearbeitung' : 'Nicht gestartet'}
+                          {s === 'completed' ? 'Abgeschlossen' : s === 'in_progress' ? 'In Bearbeitung' : 'Nicht gestartet'}
                         </span>
+                        )})()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {(() => { const statuses = getStatusManagementSummary(item); return (
+                          <div className="flex flex-wrap gap-1">
+                            {statuses.map(status => (
+                              <span 
+                                key={status.statusId}
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${getStatusColor(status.colorCode).className}`} 
+                                style={getStatusColor(status.colorCode).style}
+                              >
+                                {status.statusName}: {status.count}
+                              </span>
+                            ))}
+                          </div>
+                        )})()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -399,10 +465,8 @@ const CompetitionStatusManagement = () => {
                             {getCompletionPercentage(item)}%
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {item.statusDistribution.map(status => 
-                            `${status.statusName}: ${status.count}`
-                          ).join(', ')}
+                        <div className="text-xs text-gray-600 mt-1">
+                          Leistungen erfasst: {item.completedSquadDisciplines} / {item.totalSquadDisciplines}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -416,7 +480,8 @@ const CompetitionStatusManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="text-xs">
-                          <div>Total: {item.totalSquadDisciplines}</div>
+                          <div>Teilnehmer: {item.participantCount}</div>
+                          <div>Total Participants × Disziplin: {item.totalSquadDisciplines}</div>
                           <div>Completed: {item.completedSquadDisciplines}</div>
                           <div>In Progress: {item.inProgressSquadDisciplines}</div>
                           <div>Not Started: {item.notStartedSquadDisciplines}</div>
@@ -447,13 +512,14 @@ const CompetitionStatusManagement = () => {
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
-                        <div 
-                          className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(getOverallStatusColor(item.overallStatus)).className}`}
-                          style={getStatusColor(getOverallStatusColor(item.overallStatus)).style}
-                        >
-                          {item.overallStatus === 'completed' ? 'Abgeschlossen' :
-                           item.overallStatus === 'in_progress' ? 'In Bearbeitung' : 'Nicht gestartet'}
-                        </div>
+                        {(() => { const s = getAggregatedOverallStatus(item); return (
+                          <div 
+                            className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(getOverallStatusColor(s)).className}`}
+                            style={getStatusColor(getOverallStatusColor(s)).style}
+                          >
+                            {s === 'completed' ? 'Abgeschlossen' : s === 'in_progress' ? 'In Bearbeitung' : 'Nicht gestartet'}
+                          </div>
+                        )})()}
                       </div>
                       
                       <div>
@@ -478,7 +544,7 @@ const CompetitionStatusManagement = () => {
                         <div className="mt-1 text-sm text-gray-900">
                           <div>{item.gender} • {item.ageFrom}-{item.ageTo} Jahre</div>
                           <div>{item.disciplines_detail.length} Disciplines • {item.participantCount} Participants</div>
-                          <div>Total Squad-Disciplines: {item.totalSquadDisciplines}</div>
+                          <div>Total Participants × Disziplin: {item.totalSquadDisciplines}</div>
                         </div>
                       </div>
                       

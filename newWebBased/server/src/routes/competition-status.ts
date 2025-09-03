@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
   try {
     const { eventId, limit, offset } = competitionStatusQuerySchema.parse(req.query)
 
-    // Get all competitions for the event
+  // Get all competitions for the event
     const competitions = await prisma.tfx_wettkaempfe.findMany({
       where: {
         tfx_veranstaltungen: {
@@ -73,11 +73,59 @@ router.get('/', async (req, res) => {
           include: {
             tfx_disziplinen: true
           }
+        },
+        tfx_wertungen: {
+          where: {
+            int_teilnehmerid: {
+              not: null
+            }
+          }
         }
       },
       skip: offset,
       take: limit
     })
+
+    // Pre-compute participant counts per competition (distinct participants)
+    const competitionIds = competitions.map(c => c.int_wettkaempfeid)
+    let participantCountByCompetition = new Map<number, number>()
+    let completedParticipantDisciplineByCompetition = new Map<number, number>()
+    if (competitionIds.length > 0) {
+      const participantCounts = await prisma.$queryRawUnsafe(
+        `
+        SELECT
+          int_wettkaempfeid,
+          COUNT(DISTINCT int_teilnehmerid) AS count
+        FROM tfx_wertungen
+        WHERE int_wettkaempfeid = ANY($1)
+          AND int_teilnehmerid IS NOT NULL
+        GROUP BY int_wettkaempfeid
+        `,
+        competitionIds
+      ) as Array<{ int_wettkaempfeid: number; count: bigint | number }>
+      participantCountByCompetition = new Map(
+        participantCounts.map(row => [row.int_wettkaempfeid, Number(row.count)])
+      )
+
+      // Completed participant×discipline entries: any score recorded for a participant in a discipline
+      const completedPairs = await prisma.$queryRawUnsafe(
+        `
+        SELECT 
+          w.int_wettkaempfeid,
+          COUNT(DISTINCT (w.int_teilnehmerid, wd.int_disziplinenid)) AS completed_count
+        FROM tfx_wertungen w
+        JOIN tfx_wertungen_details wd ON w.int_wertungenid = wd.int_wertungenid
+        WHERE w.int_wettkaempfeid = ANY($1)
+          AND w.int_teilnehmerid IS NOT NULL
+          AND wd.int_disziplinenid IS NOT NULL
+        GROUP BY w.int_wettkaempfeid
+        `,
+        competitionIds
+      ) as Array<{ int_wettkaempfeid: number; completed_count: bigint | number }>
+      completedParticipantDisciplineByCompetition = new Map(
+        completedPairs.map(row => [row.int_wettkaempfeid, Number(row.completed_count)])
+      )
+    }
 
     // Get all squad-discipline statuses for this event
     const squadDisciplineStatuses = await prisma.tfx_riegen_x_disziplinen.findMany({
@@ -126,32 +174,22 @@ router.get('/', async (req, res) => {
         }
       })
 
-      // Calculate completion metrics based on specific status meanings
-      let completedCount = 0
-      let inProgressCount = 0
-      let notStartedCount = 0
+      // Calculate participant×discipline progress metrics
+      const participantCount = participantCountByCompetition.get(competition.int_wettkaempfeid) || 0
+      const disciplineCount = competitionDisciplineIds.length
+      const totalParticipantDisciplines = participantCount * disciplineCount
+      const completedCount = Math.min(
+        completedParticipantDisciplineByCompetition.get(competition.int_wettkaempfeid) || 0,
+        totalParticipantDisciplines
+      )
+      const inProgressCount = 0 // Not tracked per participant×discipline without additional state
+      const notStartedCount = Math.max(0, totalParticipantDisciplines - completedCount)
 
-      statusCounts.forEach((count, statusId) => {
-        // Define status categories based on actual data
-        // Status 9 = "Leistungen erfasst" = completed
-        // Status 6 = "Wettkampf gestartet" = in progress
-        // Status 1 = "kein Status" = not started
-        // Status 2,3,4,5,7,8,10 = various in progress states
-        
-        if (statusId === 9) { // Leistungen erfasst
-          completedCount += count
-        } else if (statusId === 1) { // kein Status
-          notStartedCount += count
-        } else { // All other statuses considered in progress
-          inProgressCount += count
-        }
-      })
-
-      // Determine overall status
+  // Determine overall status based on participant×discipline completion
       let overallStatus: 'not_started' | 'in_progress' | 'completed'
-      if (completedCount === totalSquadDisciplines && totalSquadDisciplines > 0) {
+  if (completedCount === totalParticipantDisciplines && totalParticipantDisciplines > 0) {
         overallStatus = 'completed'
-      } else if (notStartedCount === totalSquadDisciplines || totalSquadDisciplines === 0) {
+  } else if (notStartedCount === totalParticipantDisciplines || totalParticipantDisciplines === 0) {
         overallStatus = 'not_started'
       } else {
         overallStatus = 'in_progress'
@@ -192,8 +230,7 @@ router.get('/', async (req, res) => {
         }
       })
 
-      // Count participants for this competition (approximate)
-      const participantCount = 0 // This would need a complex query, keeping simple for now
+  // Participants per competition (distinct by participant ID) already computed
 
       competitionStatusData.push({
         id: competition.int_wettkaempfeid,
@@ -203,14 +240,14 @@ router.get('/', async (req, res) => {
         description: `${competition.tfx_bereiche?.var_name || ''} - Age ${competition.yer_von}${competition.yer_bis ? `-${competition.yer_bis}` : '+'}`,
         gender: competition.tfx_bereiche?.bol_maennlich && competition.tfx_bereiche?.bol_weiblich ? 'gemischt' : 
                 competition.tfx_bereiche?.bol_maennlich ? 'männlich' : 'weiblich',
-        ageFrom: competition.yer_von,
-        ageTo: competition.yer_bis || competition.yer_von,
+        ageFrom: competition.yer_von || 6,
+        ageTo: competition.yer_bis || competition.yer_von || 18,
         disciplines: competitionDisciplineIds,
         participantCount,
-        totalSquadDisciplines,
-        completedSquadDisciplines: completedCount,
-        inProgressSquadDisciplines: inProgressCount,
-        notStartedSquadDisciplines: notStartedCount,
+  totalSquadDisciplines: totalParticipantDisciplines,
+  completedSquadDisciplines: completedCount,
+  inProgressSquadDisciplines: inProgressCount,
+  notStartedSquadDisciplines: notStartedCount,
         overallStatus,
         statusDistribution,
         disciplines_detail: disciplineDetails
