@@ -232,6 +232,8 @@ The most used function is the "event management" section. Do you have two ideas 
 Perhaps with shortcut to crate/import a new event. 
 On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... 
 
+Each Event Side has a blue section with "Selected Context: Event: xxx" this must be unified on all event management sides. And here the Event Name is important. Other informations are not reducing the context, so they must be removed. 
+
 The export as pdf is possible on some UIs. We need some more print export as pdf posibilities. So perhaps we should add a new UI in section event management for print / export as pdf. We need: 
 - Urkunden generierung / generate cerificates for a selected person or a selected competition
 - Wettkampfbögen / competition sheets for a selected squad 

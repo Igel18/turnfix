@@ -6,6 +6,9 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 const router = Router();
 const prisma = new PrismaClient();
 
+// In-memory store for virtual squads (squads created but with no participants yet)
+const virtualSquads: Map<string, { eventId: number, name: string, createdAt: Date }> = new Map();
+
 // Validation schemas
 const createSquadSchema = z.object({
   eventId: z.number().int().positive(),
@@ -115,12 +118,41 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       })
     );
 
-    console.log(`Returning ${squads.length} squads for event ${eventId}`);
+    // Add virtual squads for this event (created but with no participants)
+    const virtualSquadsForEvent = Array.from(virtualSquads.values())
+      .filter(vs => vs.eventId === parseInt(eventId))
+      .filter(vs => !squads.some(s => s.name === vs.name)) // Don't add if already exists with participants
+      .map(vs => ({
+        id: vs.name,
+        name: vs.name,
+        eventId: vs.eventId,
+        participantCount: 0,
+        competitions: [],
+        participants: [],
+        isVirtual: true,
+        createdAt: vs.createdAt,
+        hints: {
+          storage: 'Stored in memory only',
+          status: 'Virtual squad - assign participants to save to database',
+          warning: 'Will be lost on server restart if no participants assigned'
+        }
+      }));
+
+    const allSquads = [...squads, ...virtualSquadsForEvent];
+
+    console.log(`Returning ${allSquads.length} squads for event ${eventId} (${squads.length} with participants, ${virtualSquadsForEvent.length} virtual)`);
 
     res.json({
-      squads: squads,
+      squads: allSquads,
       eventId: parseInt(eventId),
-      totalSquads: squads.length
+      totalSquads: allSquads.length,
+      databaseSquads: squads.length,
+      virtualSquads: virtualSquadsForEvent.length,
+      hints: {
+        virtual: 'Virtual squads are temporarily stored in memory',
+        database: 'Database squads are permanently stored and have participants',
+        action: 'Assign participants to virtual squads to save them permanently'
+      }
     });
 
   } catch (error) {
@@ -149,6 +181,8 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
         t.dat_geburtstag,
         t.int_startpassnummer,
         v.var_name as verein_name,
+        STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name), ', ') as competitions,
+        COUNT(DISTINCT wk.int_wettkaempfeid) as competition_count,
         CASE 
           WHEN t.int_geschlecht = 1 THEN 'male'
           WHEN t.int_geschlecht = 2 THEN 'female'
@@ -203,7 +237,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const validatedData = createSquadSchema.parse(req.body);
     
-    // Check if squad name already exists for this event
+    // Check if squad name already exists for this event (in database or virtual store)
     const existingSquad = await prisma.$queryRawUnsafe(`
       SELECT COUNT(*) as count
       FROM tfx_wertungen w
@@ -215,17 +249,37 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'Squad name already exists for this event' });
     }
 
-    console.log(`Created virtual squad "${validatedData.name}" for event ${validatedData.eventId}`);
+    // Check if squad already exists in virtual store
+    const virtualKey = `${validatedData.eventId}-${validatedData.name}`;
+    if (virtualSquads.has(virtualKey)) {
+      return res.status(400).json({ message: 'Squad name already exists for this event' });
+    }
+
+    // Add to virtual squads store
+    virtualSquads.set(virtualKey, {
+      eventId: validatedData.eventId,
+      name: validatedData.name,
+      createdAt: new Date()
+    });
+
+    console.log(`Created virtual squad "${validatedData.name}" for event ${validatedData.eventId}"`);
 
     res.status(201).json({
-      message: 'Squad created successfully. Assign participants to make it active.',
+      message: 'Squad created successfully. You can now assign participants to it.',
       squad: {
         id: validatedData.name,
         name: validatedData.name,
         eventId: validatedData.eventId,
         participantCount: 0,
         competitions: [],
-        participants: []
+        participants: [],
+        isVirtual: true
+      },
+      notice: 'Squad created as virtual squad. It will be stored in database when first participant is assigned.',
+      hints: {
+        storage: 'Currently stored in memory only',
+        nextStep: 'Assign participants to save squad permanently to database',
+        deletion: 'Virtual squad will be automatically removed if no participants are assigned'
       }
     });
 
@@ -255,13 +309,30 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
         )
     `, validatedData.participantId, validatedData.eventId, validatedData.squadName);
 
+    // Remove from virtual squads store since it now has participants
+    const virtualKey = `${validatedData.eventId}-${validatedData.squadName}`;
+    const wasVirtual = virtualSquads.has(virtualKey);
+    if (wasVirtual) {
+      virtualSquads.delete(virtualKey);
+      console.log(`🗄️ Moved squad "${validatedData.squadName}" from virtual storage to database (first participant assigned)`);
+    }
+
     console.log(`Assigned participant ${validatedData.participantId} to squad "${validatedData.squadName}" for event ${validatedData.eventId}`);
 
     res.json({
       message: 'Participant assigned to squad successfully',
       participantId: validatedData.participantId,
       squadName: validatedData.squadName,
-      eventId: validatedData.eventId
+      eventId: validatedData.eventId,
+      notice: wasVirtual ? 'Squad has been moved from virtual storage to database' : 'Participant assigned to existing squad',
+      hints: wasVirtual ? {
+        storage: 'Squad is now permanently stored in database',
+        status: 'Squad moved from memory to database storage',
+        reason: 'First participant assignment triggered database storage'
+      } : {
+        storage: 'Squad already existed in database',
+        status: 'Participant added to existing squad'
+      }
     });
 
   } catch (error) {

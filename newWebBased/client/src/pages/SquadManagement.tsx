@@ -35,6 +35,13 @@ interface Squad {
   participantCount: number;
   competitions: string[];
   participants: Participant[];
+  isVirtual?: boolean;
+  createdAt?: string;
+  hints?: {
+    storage?: string;
+    status?: string;
+    warning?: string;
+  };
 }
 
 const SquadManagement: React.FC = () => {
@@ -54,6 +61,7 @@ const SquadManagement: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Form state for creating squads
   const [newSquadName, setNewSquadName] = useState('');
@@ -69,7 +77,21 @@ const SquadManagement: React.FC = () => {
   const loadSquads = async () => {
     try {
       const data = await apiGet(`/squad-management?eventId=${eventId}`);
-      setSquads(data.squads || []);
+      const newSquads = data.squads || [];
+      setSquads(newSquads);
+      
+      // Update selected squad with fresh data if one is currently selected
+      if (selectedSquad) {
+        const updatedSquad = newSquads.find((s: Squad) => 
+          s.id === selectedSquad.id || s.name === selectedSquad.name
+        );
+        if (updatedSquad) {
+          setSelectedSquad(updatedSquad);
+        } else {
+          // Squad no longer exists (might have been deleted)
+          setSelectedSquad(null);
+        }
+      }
     } catch (error) {
       console.error('Error loading squads:', error);
       setSquads([]);
@@ -89,14 +111,26 @@ const SquadManagement: React.FC = () => {
   const createSquad = async () => {
     if (!newSquadName.trim() || !eventId) return;
     
+    setIsLoading(true);
     try {
-      await apiPost('/squad-management/create', {
+      const response = await apiPost('/squad-management/create', {
         eventId: parseInt(eventId),
         name: newSquadName
       });
       
-      // Show success message with instructions
-      alert(`Squad "${newSquadName}" created successfully! \n\nTo make the squad visible, assign participants to it using the assignment interface below.`);
+      // Show enhanced success message with hints
+      let message = `Squad "${newSquadName}" created successfully!`;
+      if (response.notice) {
+        message += `\n\n📝 ${response.notice}`;
+      }
+      if (response.hints) {
+        message += `\n\n💡 Hints:`;
+        if (response.hints.storage) message += `\n• Storage: ${response.hints.storage}`;
+        if (response.hints.nextStep) message += `\n• Next: ${response.hints.nextStep}`;
+        if (response.hints.deletion) message += `\n• Note: ${response.hints.deletion}`;
+      }
+      
+      alert(message);
       
       setNewSquadName('');
       setIsCreateModalOpen(false);
@@ -111,6 +145,8 @@ const SquadManagement: React.FC = () => {
       } else {
         alert('Failed to create squad. Please try again.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -148,19 +184,38 @@ const SquadManagement: React.FC = () => {
       return;
     }
     
+    setIsLoading(true);
     try {
-      await apiPost('/squad-management/assign', {
+      const response = await apiPost('/squad-management/assign', {
         participantId: participant.id,
         squadName: squadName,
         eventId: parseInt(eventId)
       });
       
+      // Show enhanced feedback with hints
+      let message = response.message || 'Participant assigned successfully';
+      if (response.notice) {
+        message += `\n\n📝 ${response.notice}`;
+      }
+      if (response.hints) {
+        message += `\n\n💡 Storage Info:`;
+        if (response.hints.storage) message += `\n• ${response.hints.storage}`;
+        if (response.hints.status) message += `\n• ${response.hints.status}`;
+        if (response.hints.reason) message += `\n• ${response.hints.reason}`;
+      }
+      
+      // Show toast notification (can be replaced with a proper toast component)
+      console.log('✅ Assignment completed:', message);
+      
       // Reload both squads and available participants
+      // loadSquads() will automatically update selectedSquad with fresh data
       await loadSquads();
       await loadAvailableParticipants();
     } catch (error) {
       console.error('Error assigning participant to squad:', error);
       alert(error instanceof Error ? error.message : 'Failed to assign participant to squad');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,15 +225,19 @@ const SquadManagement: React.FC = () => {
       return;
     }
     
+    setIsLoading(true);
     try {
       await apiDelete(`/squad-management/unassign?participantId=${participantId}&eventId=${eventId}`);
       
       // Reload both squads and available participants
+      // loadSquads() will automatically update selectedSquad with fresh data
       await loadSquads();
       await loadAvailableParticipants();
     } catch (error) {
       console.error('Error removing participant from squad:', error);
       alert(error instanceof Error ? error.message : 'Failed to remove participant from squad');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -236,7 +295,17 @@ const SquadManagement: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto relative">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-sm text-gray-600">Processing...</span>
+          </div>
+        </div>
+      )}
+
       <UnifiedHeader
         title="Squad Management"
         description="Create squads and assign participants to competitions"
@@ -274,6 +343,24 @@ const SquadManagement: React.FC = () => {
         </div>
       )}
 
+      {/* Virtual Squad Information */}
+      {squads.some(s => s.isVirtual) && (
+        <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mx-6 mb-4 rounded">
+          <div className="flex items-start">
+            <InformationCircleIcon className="h-5 w-5 text-orange-600 mr-2 mt-0.5" />
+            <div className="text-sm">
+              <div className="text-orange-800 font-medium mb-1">Virtual Squad Information</div>
+              <div className="text-orange-700 space-y-1">
+                <p>• <strong>Virtual squads</strong> are temporarily stored in memory</p>
+                <p>• They become <strong>permanent</strong> when first participant is assigned</p>
+                <p>• Virtual squads will be <strong>lost on server restart</strong> if empty</p>
+                <p>• Look for the orange "Virtual" badge to identify them</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Squads List */}
@@ -287,15 +374,27 @@ const SquadManagement: React.FC = () => {
                   key={squad.id}
                   className={`bg-white rounded-lg border p-4 cursor-pointer transition-colors ${
                     selectedSquad?.id === squad.id ? 'border-blue-500 bg-blue-50' : 'hover:border-gray-300'
-                  }`}
+                  } ${squad.isVirtual ? 'border-l-4 border-l-orange-400' : ''}`}
                   onClick={() => setSelectedSquad(squad)}
                 >
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{squad.name}</h4>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-gray-900">{squad.name}</h4>
+                        {squad.isVirtual && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            Virtual
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500">
                         {squad.participantCount} participants
                       </p>
+                      {squad.isVirtual && squad.hints && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          💾 {squad.hints.storage}
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={(e) => {
@@ -453,7 +552,7 @@ const SquadManagement: React.FC = () => {
                 autoFocus
               />
               <p className="text-sm text-gray-500 mt-1">
-                Note: Squads become visible in the list once participants are assigned to them.
+                The squad will appear in the list immediately and be ready for participant assignment.
               </p>
             </div>
 
