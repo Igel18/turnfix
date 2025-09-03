@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { debugLog } from '../utils/debug';
+import { debugLog, debugInfo } from '../utils/debug';
 import { 
   Plus, 
   Calendar, 
@@ -132,7 +132,7 @@ const Competitions: React.FC = () => {
 
   // Filter disciplines based on selected gender
   useEffect(() => {
-    console.log('Filtering disciplines. Gender:', formData.gender, 'All disciplines:', disciplines.length);
+    debugLog('Filtering disciplines. Gender:', formData.gender, 'All disciplines:', disciplines.length);
     if (formData.gender && disciplines.length > 0) {
       const filtered = disciplines.filter(discipline => {
         const allowed = formData.gender === 'männlich' ? discipline.male_allowed :
@@ -140,7 +140,7 @@ const Competitions: React.FC = () => {
                        formData.gender === 'gemischt' ? (discipline.male_allowed || discipline.female_allowed) : // Changed from && to ||
                        false;
         
-        console.log(`Discipline ${discipline.var_disziplinname} (ID:${discipline.int_disziplinid}):`, {
+        debugLog(`Discipline ${discipline.var_disziplinname} (ID:${discipline.int_disziplinid}):`, {
           male_allowed: discipline.male_allowed,
           female_allowed: discipline.female_allowed,
           gender: formData.gender,
@@ -149,10 +149,10 @@ const Competitions: React.FC = () => {
         
         return allowed;
       });
-      console.log('Filtered disciplines for gender:', filtered.length, filtered.map(d => `${d.var_disziplinname}(${d.int_disziplinid})`));
+      debugLog('Filtered disciplines for gender:', filtered.length, filtered.map(d => `${d.var_disziplinname}(${d.int_disziplinid})`));
       setFilteredDisciplines(filtered);
     } else {
-      console.log('Using all disciplines');
+      debugLog('Using all disciplines');
       setFilteredDisciplines(disciplines);
     }
   }, [formData.gender, disciplines]);
@@ -168,10 +168,10 @@ const Competitions: React.FC = () => {
   const loadDisciplines = async () => {
     try {
       const data = await apiGet('/disciplines/filtered');
-      console.log('Loaded disciplines:', data);
-      console.log('Disciplines with undefined IDs:', data.filter((d: Discipline) => !d.int_disziplinid));
-      console.log('Total discipline count:', data.length);
-      console.log('Valid discipline count:', data.filter((d: Discipline) => d.int_disziplinid != null).length);
+      debugLog('Loaded disciplines:', data);
+      debugLog('Disciplines with undefined IDs:', data.filter((d: Discipline) => !d.int_disziplinid));
+      debugLog('Total discipline count:', data.length);
+      debugLog('Valid discipline count:', data.filter((d: Discipline) => d.int_disziplinid != null).length);
       setDisciplines(data);
     } catch (error) {
       console.error('Error loading disciplines:', error);
@@ -181,7 +181,7 @@ const Competitions: React.FC = () => {
   const loadAgeGroups = async () => {
     try {
       const data = await apiGet('/disciplines/age-groups');
-      console.log('🎂 Loaded age groups:', data);
+      debugLog('🎂 Loaded age groups:', data);
       setAgeGroups(data);
     } catch (error) {
       console.error('Error loading age groups:', error);
@@ -192,7 +192,7 @@ const Competitions: React.FC = () => {
     setLoadingDisciplineGroups(true);
     try {
       const data = await apiGet('/discipline-groups');
-      console.log('📚 Loaded discipline groups:', data);
+      debugLog('📚 Loaded discipline groups:', data);
       // The API returns an object with disciplineGroups array, not directly an array
       const groups = data?.disciplineGroups || [];
       setDisciplineGroups(Array.isArray(groups) ? groups : []);
@@ -212,14 +212,14 @@ const Competitions: React.FC = () => {
       let url = '/competitions';
       if (eventId) {
         url += `?eventId=${eventId}`;
-        console.log('Loading competitions for eventId:', eventId);
+        debugLog('Loading competitions for eventId:', eventId);
       } else {
-        console.log('Loading all competitions');
+        debugLog('Loading all competitions');
       }
       
       const data = await apiGet(url);
       setCompetitions(data);
-      console.log(`Loaded ${data.length} competitions`);
+      debugLog(`Loaded ${data.length} competitions`);
     } catch (error) {
       console.error('Error loading competitions:', error);
     } finally {
@@ -234,7 +234,7 @@ const Competitions: React.FC = () => {
     if (groupId) {
       const selectedGroup = disciplineGroups.find(group => group.int_disziplinen_gruppenid === groupId);
       if (selectedGroup) {
-        console.log('📚 Selected discipline group:', selectedGroup.var_name, 'with', selectedGroup.disciplines.length, 'disciplines');
+        debugLog('📚 Selected discipline group:', selectedGroup.var_name, 'with', selectedGroup.disciplines.length, 'disciplines');
         
         // Clear all existing discipline selections and add only the ones from the selected group
         const newDisciplines = selectedGroup.disciplines.map(discipline => ({
@@ -242,7 +242,7 @@ const Competitions: React.FC = () => {
           maxScore: 10 // Default max score for new selections
         }));
         
-        console.log('🔄 Replacing all disciplines with group selections:', newDisciplines);
+        debugLog('🔄 Replacing all disciplines with group selections:', newDisciplines);
         
         setFormData({
           ...formData,
@@ -251,7 +251,7 @@ const Competitions: React.FC = () => {
       }
     } else {
       // If no group is selected, clear the disciplines array
-      console.log('🔄 Clearing all discipline selections');
+      debugLog('🔄 Clearing all discipline selections');
       setFormData({
         ...formData,
         disciplines: []
@@ -272,7 +272,7 @@ const Competitions: React.FC = () => {
       return;
     }
     
-    console.log('🎯 Applying bulk max score', maxScore, 'to all selected disciplines from group:', selectedGroup.var_name);
+    debugLog('🎯 Applying bulk max score', maxScore, 'to all selected disciplines from group:', selectedGroup.var_name);
     
     // Since disciplines are now only from the selected group, update all of them
     const updatedDisciplines = formData.disciplines.map(discipline => ({
@@ -293,7 +293,7 @@ const Competitions: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     
-    console.log('🚀 Competition submission started');
+    debugLog('🚀 Competition submission started');
     
     try {
       const payload = {
@@ -310,19 +310,19 @@ const Competitions: React.FC = () => {
         ...(eventId && { eventId: parseInt(eventId) })
       };
 
-      console.log('Competition submission payload:', payload);
-      console.log('Disciplines array:', payload.disciplines, 'Length:', payload.disciplines.length);
+      debugLog('Competition submission payload:', payload);
+      debugLog('Disciplines array:', payload.disciplines, 'Length:', payload.disciplines.length);
 
       let result;
       if (editingCompetition) {
-        console.log('📝 Updating existing competition...');
+        debugLog('📝 Updating existing competition...');
         result = await apiPut(`/competitions/${editingCompetition.id}`, payload);
       } else {
-        console.log('➕ Creating new competition...');
+        debugLog('➕ Creating new competition...');
         result = await apiPost('/competitions', payload);
       }
       
-      console.log('✅ API call successful, result:', result);
+      debugLog('✅ API call successful, result:', result);
 
       console.log('🔄 Reloading competitions...');
       await loadCompetitions();
@@ -656,15 +656,17 @@ const Competitions: React.FC = () => {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Debug Info */}
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm">
-                  <strong>🔧 Debug Info:</strong><br/>
-                  • Form Number: "<span className="font-mono text-blue-700">{formData.number || 'EMPTY'}</span>"<br/>
-                  • Form Name: "<span className="font-mono text-blue-700">{formData.name || 'EMPTY'}</span>"<br/>
-                  • Mode: {editingCompetition ? 
-                    <span className="text-green-600">EDITING (ID: {editingCompetition.id}, Number: "{editingCompetition.number || 'NULL'}")</span> : 
-                    <span className="text-orange-600">CREATING NEW</span>
-                  }
-                </div>
+                {debugInfo(
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm">
+                    <strong>🔧 Debug Info:</strong><br/>
+                    • Form Number: "<span className="font-mono text-blue-700">{formData.number || 'EMPTY'}</span>"<br/>
+                    • Form Name: "<span className="font-mono text-blue-700">{formData.name || 'EMPTY'}</span>"<br/>
+                    • Mode: {editingCompetition ? 
+                      <span className="text-green-600">EDITING (ID: {editingCompetition.id}, Number: "{editingCompetition.number || 'NULL'}")</span> : 
+                      <span className="text-orange-600">CREATING NEW</span>
+                    }
+                  </div>
+                )}
                 {/* Basic Information */}
                 <div className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -867,7 +869,7 @@ const Competitions: React.FC = () => {
                       {formData.disciplines.map((disciplineObj, index) => {
                         const discipline = filteredDisciplines.find(d => d.int_disziplinid === disciplineObj.disciplineId);
                         const allDisciplineMatch = disciplines.find(d => d.int_disziplinid === disciplineObj.disciplineId);
-                        console.log(`Selected discipline ID:${disciplineObj.disciplineId}:`, {
+                        debugLog(`Selected discipline ID:${disciplineObj.disciplineId}:`, {
                           foundInFiltered: !!discipline,
                           foundInAll: !!allDisciplineMatch,
                           disciplineName: discipline?.var_disziplinname || allDisciplineMatch?.var_disziplinname,
@@ -911,7 +913,7 @@ const Competitions: React.FC = () => {
                                     }
                                     
                                     const numericDisciplineId = Number(disciplineId);
-                                    console.log('Discipline selection changed:', {
+                                    debugLog('Discipline selection changed:', {
                                       disciplineId: numericDisciplineId,
                                       checked: e.target.checked,
                                       currentDisciplines: formData.disciplines,
@@ -922,7 +924,7 @@ const Competitions: React.FC = () => {
                                       // Add discipline if not already present
                                       if (!formData.disciplines.some(d => d.disciplineId === numericDisciplineId)) {
                                         const newDisciplines = [...formData.disciplines, { disciplineId: numericDisciplineId, maxScore: 0 }];
-                                        console.log('Adding discipline, new array:', newDisciplines);
+                                        debugLog('Adding discipline, new array:', newDisciplines);
                                         setFormData(prev => ({
                                           ...prev,
                                           disciplines: newDisciplines
@@ -930,7 +932,7 @@ const Competitions: React.FC = () => {
                                       }
                                     } else {
                                       const newDisciplines = formData.disciplines.filter(d => d.disciplineId !== numericDisciplineId);
-                                      console.log('Removing discipline, new array:', newDisciplines);
+                                      debugLog('Removing discipline, new array:', newDisciplines);
                                       setFormData(prev => ({
                                         ...prev,
                                         disciplines: newDisciplines
