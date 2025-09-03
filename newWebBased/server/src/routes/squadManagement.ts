@@ -206,17 +206,29 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
 
     const availableParticipants = await prisma.$queryRawUnsafe(availableParticipantsQuery, parseInt(eventId));
 
-    const formattedParticipants = (availableParticipants as any[]).map(participant => ({
-      id: Number(participant.int_teilnehmerid),
-      firstname: participant.var_vorname,
-      lastname: participant.var_nachname,
-      club: participant.verein_name || 'Unknown Club',
-      clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
-      gender: participant.gender,
-      birthYear: participant.birth_year ? Number(participant.birth_year) : null,
-      squadId: undefined,
-      squadName: undefined
-    }));
+    const formattedParticipants = (availableParticipants as any[]).map(participant => {
+      // Parse competition data
+      const competitions = participant.competitions ? 
+        participant.competitions.split(', ').map((comp: string) => {
+          const [id, name] = comp.split(':');
+          return { id: Number(id), name: name || '' };
+        }) : [];
+
+      return {
+        id: Number(participant.int_teilnehmerid),
+        firstname: participant.var_vorname,
+        lastname: participant.var_nachname,
+        club: participant.verein_name || 'Unknown Club',
+        clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
+        gender: participant.gender,
+        birthYear: participant.birth_year ? Number(participant.birth_year) : null,
+        squadId: undefined,
+        squadName: undefined,
+        competitions: competitions,
+        competitionCount: Number(participant.competition_count) || 0,
+        competitionNames: competitions.map((c: { id: number, name: string }) => c.name).join(', ')
+      };
+    });
 
     console.log(`Returning ${formattedParticipants.length} available participants for event ${eventId}`);
 

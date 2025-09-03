@@ -25,6 +25,9 @@ interface Participant {
   birthYear: number;
   squadId?: number;
   squadName?: string;
+  competitions?: { id: number; name: string }[];
+  competitionCount?: number;
+  competitionNames?: string;
 }
 
 // Interface for squad data
@@ -61,6 +64,7 @@ const SquadManagement: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
+  const [competitionFilter, setCompetitionFilter] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   // Form state for creating squads
@@ -245,10 +249,17 @@ const SquadManagement: React.FC = () => {
     const matchesSearch = 
       participant.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       participant.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.club.toLowerCase().includes(searchTerm.toLowerCase());
+      participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (participant.competitionNames && participant.competitionNames.toLowerCase().includes(searchTerm.toLowerCase()));
+    
     const matchesGender = !genderFilter || participant.gender === genderFilter;
     
-    return matchesSearch && matchesGender;
+    const matchesCompetition = !competitionFilter || 
+      (participant.competitions && participant.competitions.some(comp => 
+        comp.name.toLowerCase().includes(competitionFilter.toLowerCase())
+      ));
+    
+    return matchesSearch && matchesGender && matchesCompetition;
   });
 
   const getSquadStateInfo = (): StateInfo[] => [
@@ -266,19 +277,40 @@ const SquadManagement: React.FC = () => {
     }
   ];
 
-  const getFilterOptions = () => [
-    {
-      label: 'Gender',
-      value: 'gender',
-      options: [
-        { value: '', label: 'All Genders' },
-        { value: 'male', label: 'Male' },
-        { value: 'female', label: 'Female' }
-      ],
-      selectedValue: genderFilter,
-      onChange: setGenderFilter
-    }
-  ];
+  const getFilterOptions = () => {
+    // Get unique competitions from available participants
+    const allCompetitions = availableParticipants
+      .flatMap(p => p.competitions || [])
+      .filter((comp, index, arr) => arr.findIndex(c => c.id === comp.id) === index)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return [
+      {
+        label: 'Gender',
+        value: 'gender',
+        options: [
+          { value: '', label: 'All Genders' },
+          { value: 'male', label: 'Male' },
+          { value: 'female', label: 'Female' }
+        ],
+        selectedValue: genderFilter,
+        onChange: setGenderFilter
+      },
+      {
+        label: 'Competition',
+        value: 'competition',
+        options: [
+          { value: '', label: 'All Competitions' },
+          ...allCompetitions.map(comp => ({
+            value: comp.name,
+            label: `${comp.name} (ID: ${comp.id})`
+          }))
+        ],
+        selectedValue: competitionFilter,
+        onChange: setCompetitionFilter
+      }
+    ];
+  };
 
   if (!eventId) {
     return (
@@ -313,11 +345,12 @@ const SquadManagement: React.FC = () => {
         stateInfo={getSquadStateInfo()}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants..."
+        searchPlaceholder="Search participants, clubs, competitions..."
         filterOptions={getFilterOptions()}
         onClearAllFilters={() => {
           setSearchTerm('');
           setGenderFilter('');
+          setCompetitionFilter('');
         }}
         onExportCSV={() => console.log('Export CSV clicked')}
         showHomeButton={true}
@@ -428,32 +461,81 @@ const SquadManagement: React.FC = () => {
 
           {/* Available Participants */}
           <div className="lg:col-span-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Available Participants ({filteredParticipants.length})
-            </h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Available Participants ({filteredParticipants.length})
+              </h3>
+              {!selectedSquad && filteredParticipants.length > 0 && (
+                <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                  Select a squad to assign
+                </div>
+              )}
+            </div>
+            {/* Information about virtual squads */}
+            {filteredParticipants.length > 0 && squads.some(s => s.isVirtual) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start">
+                  <InformationCircleIcon className="h-4 w-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-blue-800">
+                    <p className="font-medium mb-1">Virtual Squad Assignment</p>
+                    <p>Participants assigned to virtual squads will automatically save the squad to database.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {filteredParticipants.map(participant => (
                 <div
                   key={participant.id}
-                  className="bg-white rounded-lg border p-3 flex items-center justify-between"
+                  className="bg-white rounded-lg border p-3 hover:border-gray-300 transition-colors"
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {participant.firstname} {participant.lastname}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {participant.club} • {participant.gender} • {new Date().getFullYear() - participant.birthYear} years
-                    </p>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-gray-900 truncate">
+                          {participant.firstname} {participant.lastname}
+                        </p>
+                        {selectedSquad && (
+                          <button
+                            onClick={() => assignParticipantToSquad(participant, selectedSquad.id)}
+                            className="ml-2 p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            title="Assign to selected squad"
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {participant.club} • {participant.gender} • {new Date().getFullYear() - participant.birthYear} years
+                      </p>
+                      {participant.competitions && participant.competitions.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-400 mb-1">
+                            Competitions ({participant.competitionCount}):
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {participant.competitions.slice(0, 3).map((comp, idx) => (
+                              <span 
+                                key={idx} 
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                title={`Competition ID: ${comp.id}`}
+                              >
+                                {comp.name}
+                              </span>
+                            ))}
+                            {participant.competitions.length > 3 && (
+                              <span 
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"
+                                title={participant.competitionNames}
+                              >
+                                +{participant.competitions.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {selectedSquad && (
-                    <button
-                      onClick={() => assignParticipantToSquad(participant, selectedSquad.id)}
-                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                      title="Assign to selected squad"
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
