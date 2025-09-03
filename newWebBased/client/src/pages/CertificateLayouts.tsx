@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { 
   DocumentTextIcon,
   PlusIcon,
@@ -297,7 +297,9 @@ export function CertificateLayouts() {
     }
   }
 
-  // Handle field changes from designer
+  // Handle field changes from designer with debouncing
+  const debouncedFieldSave = useRef<{ [fieldId: number]: NodeJS.Timeout }>({})
+  
   const handleFieldsChange = async (fields: LayoutField[]) => {
     if (!selectedLayout) return
     
@@ -312,6 +314,77 @@ export function CertificateLayouts() {
           ? { ...layout, fieldCount: fields.length, fields }
           : layout
       ))
+
+      // Check if we need to handle deletions
+      const currentFieldIds = fields.map(f => f.int_layout_felderid).filter(id => id > 0)
+      const previousFieldIds = selectedLayout.fields?.map(f => f.int_layout_felderid).filter(id => id > 0) || []
+      const deletedFieldIds = previousFieldIds.filter(id => !currentFieldIds.includes(id))
+      
+      // Handle field deletions immediately
+      for (const deletedId of deletedFieldIds) {
+        try {
+          console.log('Deleting field:', deletedId)
+          await apiDelete(`/layouts/${selectedLayout.int_layoutid}/fields/${deletedId}`)
+        } catch (error) {
+          console.error('Error deleting field:', deletedId, error)
+        }
+      }
+
+      // Debounce field updates to avoid excessive API calls
+      for (const field of fields) {
+        // Clear existing timeout for this field
+        if (debouncedFieldSave.current[field.int_layout_felderid]) {
+          clearTimeout(debouncedFieldSave.current[field.int_layout_felderid])
+        }
+        
+        // Set new timeout
+        debouncedFieldSave.current[field.int_layout_felderid] = setTimeout(async () => {
+          try {
+            // Truncate value if it's too long (database limit is 200 characters)
+            const truncatedValue = field.var_value && field.var_value.length > 200 
+              ? field.var_value.substring(0, 200) 
+              : field.var_value
+            
+            const fieldData = {
+              type: field.int_typ,
+              font: field.var_font || null,
+              x: field.rel_x,
+              y: field.rel_y,
+              width: field.rel_w,
+              height: field.rel_h,
+              value: truncatedValue || null,
+              align: field.int_align,
+              layer: field.int_layer
+            }
+            
+            if (field.int_layout_felderid < 0) {
+              // New field - create it
+              console.log('Creating new field:', fieldData)
+              const newField = await apiPost(`/layouts/${selectedLayout.int_layoutid}/fields`, fieldData)
+              
+              // Update field ID in local state
+              field.int_layout_felderid = newField.int_layout_felderid
+              
+              // Update the selected layout with the new field ID
+              setSelectedLayout(prev => ({
+                ...prev!,
+                fields: prev!.fields?.map(f => 
+                  f.int_layout_felderid === field.int_layout_felderid ? { ...f, int_layout_felderid: newField.int_layout_felderid } : f
+                ) || []
+              }))
+            } else {
+              // Existing field - update it
+              console.log('Updating field:', field.int_layout_felderid, fieldData)
+              await apiPut(`/layouts/${selectedLayout.int_layoutid}/fields/${field.int_layout_felderid}`, fieldData)
+            }
+            
+            console.log('Field saved successfully:', field.int_layout_felderid)
+          } catch (error) {
+            console.error('Error saving field:', field.int_layout_felderid, error)
+          }
+        }, 500) // 500ms debounce delay
+      }
+      
     } catch (error) {
       console.error('Error updating fields:', error)
     }
@@ -325,6 +398,15 @@ export function CertificateLayouts() {
 
   useEffect(() => {
     fetchLayouts()
+  }, [])
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(debouncedFieldSave.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout)
+      })
+    }
   }, [])
 
   return (
