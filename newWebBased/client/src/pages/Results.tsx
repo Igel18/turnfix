@@ -1095,7 +1095,7 @@ const Results = () => {
     <div className="max-w-7xl mx-auto">
       <UnifiedHeader
         title="Competition Results"
-        description={`Rankings for ${eventName}${squadName ? ` - Squad ${squadName}` : ''}`}
+        description={`Rankings for ${eventName}`}
         icon={ChartBarIcon}
         stateInfo={getResultsStateInfo()}
         selectedState=""
