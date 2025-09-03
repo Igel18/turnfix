@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from "path"
+import * as path from "path"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,11 +14,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3003',
+        target: 'http://localhost:3002',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:3003',
+        target: 'http://localhost:3002',
         changeOrigin: true,
       }
     }

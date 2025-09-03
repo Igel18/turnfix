@@ -407,7 +407,7 @@ const Results = () => {
         alternateRowStyles: {
           fillColor: [248, 249, 250]
         },
-        didParseCell: function(data) {
+        didParseCell: function(data: any) {
           // Highlight medal positions
           if (data.section === 'body' && data.column.index === 0) {
             const rank = parseInt(data.cell.text[0])
@@ -520,7 +520,7 @@ const Results = () => {
           alternateRowStyles: {
             fillColor: [248, 249, 250]
           },
-          didParseCell: function(data) {
+          didParseCell: function(data: any) {
             // Highlight medal positions
             if (data.section === 'body' && data.column.index === 0) {
               const rank = parseInt(data.cell.text[0])
@@ -547,7 +547,7 @@ const Results = () => {
               data.cell.styles.fontStyle = 'bold'
             }
           },
-          didDrawPage: function(data) {
+          didDrawPage: function(data: any) {
             currentY = (data as any).cursor.y + 15
           }
         })
