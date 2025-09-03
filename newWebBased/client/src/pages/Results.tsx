@@ -167,7 +167,8 @@ const Results = () => {
     try {
       const data = await apiGet(`/competitions?eventId=${eventId}`)
       // The API returns competitions directly as an array, not wrapped in { competitions: [] }
-      setCompetitions(Array.isArray(data) ? data : [])
+      const competitionsArray = Array.isArray(data) ? data : []
+      setCompetitions(competitionsArray)
     } catch (error) {
       console.error('Error fetching competitions:', error)
       setCompetitions([])
@@ -195,7 +196,7 @@ const Results = () => {
         setRanking([])
         setCompetitionGroups([])
         setDisciplines([])
-        setEventName(`Event ${eventId}`)
+        setEventName(selectedEvent?.var_eventname || `Event ${eventId}`)
         return
       }
 
@@ -257,7 +258,7 @@ const Results = () => {
           rank: 0,
           competitionId: participant.assignedCompetitions?.[0], // Use first assigned competition
           competitionName: (() => {
-            const comp = competitions.find(c => c.id === participant.assignedCompetitions?.[0])
+            const comp = competitions.find(c => c.id === participant.assignedCompetitions?.[0] || c.id === Number(participant.assignedCompetitions?.[0]))
             return comp 
               ? `${comp.name}${comp.number ? ` (Nr. ${comp.number})` : ''}` 
               : 'Unknown Competition'
@@ -294,7 +295,7 @@ const Results = () => {
             participant.rank = index + 1
           })
 
-          const competition = competitions.find(c => c.id === competitionId)
+          const competition = competitions.find(c => c.id === competitionId || c.id === Number(competitionId))
           const competitionName = competition 
             ? `${competition.name}${competition.number ? ` (Nr. ${competition.number})` : ''}` 
             : `Competition ${competitionId}`
@@ -313,12 +314,14 @@ const Results = () => {
       }
 
       setDisciplines(Array.from(disciplineSet).sort())
-      setEventName(scores[0]?.event_name || scores[0]?.eventName || `Event ${eventId}`)
+      // Use the selected event name from context, fallback to data from scores or eventId
+      setEventName(selectedEvent?.var_eventname || scores[0]?.event_name || scores[0]?.eventName || `Event ${eventId}`)
     } catch (error) {
       console.error('Error fetching event ranking:', error)
       setRanking([])
       setCompetitionGroups([])
       setDisciplines([])
+      setEventName(selectedEvent?.var_eventname || `Event ${eventId}`)
     } finally {
       setIsLoading(false)
     }
@@ -410,6 +413,7 @@ const Results = () => {
         head: [headers],
         body: tableData,
         startY: currentY,
+        pageBreak: 'auto',
         styles: {
           fontSize: 8,
           cellPadding: 2,
@@ -545,6 +549,7 @@ const Results = () => {
           head: [headers],
           body: tableData,
           startY: currentY,
+          pageBreak: 'auto',
           styles: {
             fontSize: 7,
             cellPadding: 1.5,
@@ -1003,6 +1008,41 @@ const Results = () => {
     participant.club.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  // Get competitions that actually have participants in this event
+  const getAvailableCompetitions = () => {
+    // Return empty array if competitions haven't been loaded yet
+    if (!competitions || competitions.length === 0) {
+      return []
+    }
+    
+    if (selectedCompetition) {
+      // If a competition is selected, show all competitions for switching
+      return competitions.filter(comp => comp.id !== undefined)
+    } else {
+      // Show only competitions that have participants in the current results
+      const competitionsWithParticipants = new Set<number>()
+      
+      // Collect competition IDs from current results
+      if (competitionGroups.length > 0) {
+        competitionGroups.forEach(group => {
+          if (group.competitionId) {
+            competitionsWithParticipants.add(group.competitionId)
+          }
+        })
+      } else if (ranking.length > 0) {
+        ranking.forEach(participant => {
+          if (participant.competitionId) {
+            competitionsWithParticipants.add(participant.competitionId)
+          }
+        })
+      }
+      
+      return competitions.filter(comp => 
+        comp.id !== undefined && competitionsWithParticipants.has(comp.id)
+      )
+    }
+  }
+
   // Filter competition groups based on search term
   const filteredCompetitionGroups = competitionGroups.map(group => ({
     ...group,
@@ -1014,10 +1054,27 @@ const Results = () => {
 
   useEffect(() => {
     if (eventId) {
-      fetchCompetitions()
-      fetchEventRanking()
+      const loadData = async () => {
+        // First fetch competitions, then ranking data
+        await fetchCompetitions()
+        await fetchEventRanking()
+      }
+      loadData()
     }
   }, [eventId, squadName, selectedCompetition])
+
+  // Refresh ranking data when competitions are loaded (only if we have competitions but no proper names yet)
+  useEffect(() => {
+    if (eventId && competitions.length > 0 && competitionGroups.length > 0) {
+      // Check if any competition group still has a generic name (indicating refresh needed)
+      const hasGenericNames = competitionGroups.some(group => 
+        group.competitionName.startsWith('Competition ')
+      )
+      if (hasGenericNames) {
+        fetchEventRanking()
+      }
+    }
+  }, [competitions])
 
   // Show message if no event is selected
   if (!eventId) {
@@ -1052,7 +1109,7 @@ const Results = () => {
             value: 'competition',
             options: [
               { value: '', label: 'All Competitions' },
-              ...competitions.map(comp => ({
+              ...getAvailableCompetitions().map(comp => ({
                 value: comp.id?.toString() || '',
                 label: `${comp.name || 'Unknown Competition'}${comp.number ? ` (Nr. ${comp.number})` : ''}`,
                 count: undefined

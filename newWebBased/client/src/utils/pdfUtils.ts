@@ -22,6 +22,7 @@ interface PDFHeaderFooterOptions {
  * Header Left: Event name, date, location
  * Header Right: Document title (e.g., "Competition Results")
  * Footer Left: "created with TurnFix" and GitHub URL
+ * Footer Center: Page number
  * Footer Right: Current date/time and GNU GPL v3 license
  */
 export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
@@ -80,6 +81,11 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
   doc.text('created with TurnFix', margin, footerY)
   doc.text('github.com/Igel18/turnfix', margin, footerY + 4)
   
+  // Footer Center: Page number
+  const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+  const totalPages = (doc as any).internal.getNumberOfPages()
+  doc.text(`${currentPage} / ${totalPages}`, pageWidth / 2, footerY + 2, { align: 'center' })
+  
   // Footer Right: Date/time and license
   const currentDateTime = new Date().toLocaleString('de-DE')
   doc.text(currentDateTime, pageWidth - margin, footerY, { align: 'right' })
@@ -94,8 +100,8 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
  */
 export const getContentArea = (pageWidth: number = 297, pageHeight: number = 210) => {
   const margin = 10
-  const headerHeight = 27 // Header + separator + spacing
-  const footerHeight = 20 // Footer + separator + spacing
+  const headerHeight = 32 // Header + separator + spacing (increased to prevent overlap)
+  const footerHeight = 25 // Footer + separator + spacing (increased to prevent overlap)
   
   return {
     startX: margin,

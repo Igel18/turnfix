@@ -44,6 +44,10 @@ Unified Style Pattern:
     - use "smart" pagination style for better usability with many pages like on this UI http://localhost:5173/participants 
     - All pages with data views should have a unified filter posibility with a reset button inside. 
 
+    - All pages with event data must have a unified layout and design. 
+        - Selected Context: the name of the event 
+        - a export pdf posibility (with usage of pdf template) 
+        
 ## Database: 
 Do not remove routes because the UI needs them. 
 Use the Prisma Schema for the database connection. 
@@ -105,3 +109,6 @@ Competition
     XML: <perGeschlecht>2</perGeschlecht> -> TurnFix female
 
 # Terminal
+
+# PDF Export 
+Use the pdfUtils functions to generate the PDF document. 
