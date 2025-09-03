@@ -16,7 +16,9 @@ import {
   UserIcon,
   BeakerIcon,
   CalculatorIcon,
-  TagIcon
+  TagIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -141,11 +143,18 @@ const getDatabaseManagementActions = (statistics: any) => [
   }
 ]
 
-// Group 2: Event Management - Competitions, Scoring, Results
-const eventManagementActions = [
+// Group 2: Event Management - Organized into 3 workflow steps
+const eventSetupActions = [
+  {
+    name: 'Manage Events',
+    description: 'Create and configure events',
+    href: '/events',
+    icon: CalendarDaysIcon,
+    color: 'bg-blue-500'
+  },
   {
     name: 'View Competitions',
-    description: 'Browse and manage ongoing competitions',
+    description: 'Define competitions and disciplines',
     href: '/competitions',
     icon: TrophyIcon,
     color: 'bg-yellow-500'
@@ -159,11 +168,14 @@ const eventManagementActions = [
   },
   {
     name: 'Manage Squads',
-    description: 'Create squads and assign participants to competitions',
+    description: 'Create squads and organize participants',
     href: '/squads',
     icon: UserGroupIcon,
     color: 'bg-blue-500'
-  },
+  }
+]
+
+const competitionDayActions = [
   {
     name: 'Squad Status',
     description: 'Manage status for squad-discipline combinations',
@@ -173,7 +185,7 @@ const eventManagementActions = [
   },
   {
     name: 'Competition Status',
-    description: 'View aggregated competition status from squad progress',
+    description: 'Monitor live competition progress',
     href: '/competition-status',
     icon: TrophyIcon,
     color: 'bg-green-500'
@@ -184,7 +196,10 @@ const eventManagementActions = [
     href: '/score-capture',
     icon: ClipboardDocumentListIcon,
     color: 'bg-orange-500'
-  },
+  }
+]
+
+const resultsAwardsActions = [
   {
     name: 'View Results',
     description: 'Check competition results and rankings',
@@ -201,6 +216,26 @@ export function Dashboard() {
     selectedCompetition, 
     selectedSquad
   } = useEvent()
+
+  // UI state - load from localStorage
+  const [isDatabaseManagementCollapsed, setIsDatabaseManagementCollapsed] = useState(() => {
+    const saved = localStorage.getItem('databaseManagementCollapsed')
+    return saved ? JSON.parse(saved) : false
+  })
+  
+  // Event Management step collapse states
+  const [isEventSetupCollapsed, setIsEventSetupCollapsed] = useState(() => {
+    const saved = localStorage.getItem('eventSetupCollapsed')
+    return saved ? JSON.parse(saved) : false
+  })
+  const [isCompetitionDayCollapsed, setIsCompetitionDayCollapsed] = useState(() => {
+    const saved = localStorage.getItem('competitionDayCollapsed')
+    return saved ? JSON.parse(saved) : false
+  })
+  const [isResultsAwardsCollapsed, setIsResultsAwardsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('resultsAwardsCollapsed')
+    return saved ? JSON.parse(saved) : false
+  })
 
   // Statistics state
   const [statistics, setStatistics] = useState({
@@ -314,6 +349,23 @@ export function Dashboard() {
     fetchStatistics()
   }, [])
 
+  // Save collapse state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('databaseManagementCollapsed', JSON.stringify(isDatabaseManagementCollapsed))
+  }, [isDatabaseManagementCollapsed])
+
+  useEffect(() => {
+    localStorage.setItem('eventSetupCollapsed', JSON.stringify(isEventSetupCollapsed))
+  }, [isEventSetupCollapsed])
+
+  useEffect(() => {
+    localStorage.setItem('competitionDayCollapsed', JSON.stringify(isCompetitionDayCollapsed))
+  }, [isCompetitionDayCollapsed])
+
+  useEffect(() => {
+    localStorage.setItem('resultsAwardsCollapsed', JSON.stringify(isResultsAwardsCollapsed))
+  }, [isResultsAwardsCollapsed])
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Welcome Header */}
@@ -330,51 +382,67 @@ export function Dashboard() {
       <div className="space-y-8">
         {/* Database Management Group */}
         <div>
-          <div className="flex items-center mb-6">
-            <div className="bg-gray-100 p-2 rounded-lg mr-3">
-              <BuildingOfficeIcon className="h-6 w-6 text-gray-600" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <div className="bg-gray-100 p-2 rounded-lg mr-3">
+                <BuildingOfficeIcon className="h-6 w-6 text-gray-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Database Management</h2>
+                <p className="text-sm text-gray-600">Manage athletes, clubs, and organizational structure</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Database Management</h2>
-              <p className="text-sm text-gray-600">Manage athletes, clubs, and organizational structure</p>
-            </div>
+            <button
+              onClick={() => setIsDatabaseManagementCollapsed(!isDatabaseManagementCollapsed)}
+              className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <span>{isDatabaseManagementCollapsed ? 'Expand' : 'Collapse'}</span>
+              {isDatabaseManagementCollapsed ? (
+                <ChevronDownIcon className="h-4 w-4" />
+              ) : (
+                <ChevronUpIcon className="h-4 w-4" />
+              )}
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {getDatabaseManagementActions(statistics).map((action) => {
-              const Icon = action.icon
-              return (
-                <Link
-                  key={action.name}
-                  to={action.href}
-                  className="group bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className={`${action.color} p-3 rounded-lg text-white group-hover:scale-105 transition-transform relative`}>
-                      <Icon className="h-6 w-6" />
-                      {!statistics.loading && action.count !== undefined && (
-                        <div className="absolute -top-2 -right-2 bg-white text-gray-900 text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-gray-100 shadow-sm">
-                          {action.count > 99 ? '99+' : action.count}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                        {action.name}
-                      </h3>
-                      {!statistics.loading && action.count !== undefined && (
-                        <p className="text-xs font-semibold text-blue-600 mt-1">
-                          {action.countLabel}: {action.count}
+          
+          {!isDatabaseManagementCollapsed && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {getDatabaseManagementActions(statistics).map((action) => {
+                const Icon = action.icon
+                return (
+                  <Link
+                    key={action.name}
+                    to={action.href}
+                    className="group bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className={`${action.color} p-3 rounded-lg text-white group-hover:scale-105 transition-transform relative`}>
+                        <Icon className="h-6 w-6" />
+                        {!statistics.loading && action.count !== undefined && (
+                          <div className="absolute -top-2 -right-2 bg-white text-gray-900 text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-gray-100 shadow-sm">
+                            {action.count > 99 ? '99+' : action.count}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                          {action.name}
+                        </h3>
+                        {!statistics.loading && action.count !== undefined && (
+                          <p className="text-xs font-semibold text-blue-600 mt-1">
+                            {action.countLabel}: {action.count}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-600 mt-1">
+                          {action.description}
                         </p>
-                      )}
-                      <p className="text-xs text-gray-600 mt-1">
-                        {action.description}
-                      </p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Event Management Group */}
@@ -385,7 +453,7 @@ export function Dashboard() {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Event Management</h2>
-              <p className="text-sm text-gray-600">Select an event to manage competitions, scoring, and results</p>
+              <p className="text-sm text-gray-600">3-step workflow: Setup → Competition → Results</p>
             </div>
           </div>
           
@@ -394,43 +462,187 @@ export function Dashboard() {
             <EventSelector />
           </div>
 
-          {/* Event Management Actions */}
+          {/* Event Management Workflow Steps */}
           {selectedEvent && (
-            <>              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {eventManagementActions.map((action) => {
-                  const Icon = action.icon
-                  return (
-                    <Link
-                      key={action.name}
-                      to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
-                      className="group bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col items-center text-center space-y-4">
-                        <div className={`${action.color} p-3 rounded-lg text-white group-hover:scale-105 transition-transform`}>
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                            {action.name}
-                          </h3>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {action.description}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })}
+            <div className="space-y-6">
+              {/* Step 1: Event Setup */}
+              <div className="bg-white border rounded-lg">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <span className="text-sm font-bold text-blue-600">1</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Event Setup</h3>
+                      <p className="text-sm text-gray-600">Planning & Configuration</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsEventSetupCollapsed(!isEventSetupCollapsed)}
+                    className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <span>{isEventSetupCollapsed ? 'Expand' : 'Collapse'}</span>
+                    {isEventSetupCollapsed ? (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronUpIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                
+                {!isEventSetupCollapsed && (
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {eventSetupActions.map((action) => {
+                        const Icon = action.icon
+                        return (
+                          <Link
+                            key={action.name}
+                            to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
+                            className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
+                          >
+                            <div className="flex flex-col items-center text-center space-y-3">
+                              <div className={`${action.color} p-2 rounded-lg text-white group-hover:scale-105 transition-transform`}>
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                  {action.name}
+                                </h4>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {action.description}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-            </>
+
+              {/* Step 2: Competition Day */}
+              <div className="bg-white border rounded-lg">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-orange-100 p-2 rounded-lg">
+                      <span className="text-sm font-bold text-orange-600">2</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Competition Day</h3>
+                      <p className="text-sm text-gray-600">Live Scoring & Execution</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsCompetitionDayCollapsed(!isCompetitionDayCollapsed)}
+                    className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <span>{isCompetitionDayCollapsed ? 'Expand' : 'Collapse'}</span>
+                    {isCompetitionDayCollapsed ? (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronUpIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                
+                {!isCompetitionDayCollapsed && (
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {competitionDayActions.map((action) => {
+                        const Icon = action.icon
+                        return (
+                          <Link
+                            key={action.name}
+                            to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
+                            className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
+                          >
+                            <div className="flex flex-col items-center text-center space-y-3">
+                              <div className={`${action.color} p-2 rounded-lg text-white group-hover:scale-105 transition-transform`}>
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                  {action.name}
+                                </h4>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {action.description}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Step 3: Results & Awards */}
+              <div className="bg-white border rounded-lg">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <span className="text-sm font-bold text-green-600">3</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Results & Awards</h3>
+                      <p className="text-sm text-gray-600">Final Results & Completion</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsResultsAwardsCollapsed(!isResultsAwardsCollapsed)}
+                    className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <span>{isResultsAwardsCollapsed ? 'Expand' : 'Collapse'}</span>
+                    {isResultsAwardsCollapsed ? (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronUpIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                
+                {!isResultsAwardsCollapsed && (
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {resultsAwardsActions.map((action) => {
+                        const Icon = action.icon
+                        return (
+                          <Link
+                            key={action.name}
+                            to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
+                            className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
+                          >
+                            <div className="flex flex-col items-center text-center space-y-3">
+                              <div className={`${action.color} p-2 rounded-lg text-white group-hover:scale-105 transition-transform`}>
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                  {action.name}
+                                </h4>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {action.description}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
           
           {!selectedEvent && (
             <div className="text-center py-8 text-gray-500">
               <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Select an Event</h3>
-              <p className="text-sm">Choose an event above to access competitions, scoring, and results management.</p>
+              <p className="text-sm">Choose an event above to access the 3-step workflow: Setup → Competition → Results</p>
             </div>
           )}
         </div>

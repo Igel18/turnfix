@@ -237,7 +237,9 @@ on the Competition Status Management
         - The data is not correct 
         - you see in the image from the Competition management view the correct data (pariticpant count) for the event 46. 
         - and in the score capture UI you see the correct statut of the tracked scores
-
+---
+the activ events, registered clubs, total athletes belong to Database management. Perhaps this info could be at the buttons eg "Manage Athletes"? 
+---
 
 Config section 
 - DB alle infos separat speicher auch passwort 
@@ -251,11 +253,10 @@ Geräte mit Icons
 Über Turnfix 
 
 UI redisign: 
-the activ events, registered clubs, total athletes belong to Database management. Perhaps this info could be at the buttons eg "Manage Athletes"? 
-The UI is very full. usually the database management is not used either to create / import a new event. 
+The Dashboard UI is very full. usually the database management is not used either to create / import a new event. 
 The most used function is the "event management" section. Do you have two ideas to redisgn the UI that this most used event management is more in scope? 
 Perhaps with shortcut to crate/import a new event. 
-On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... 
+On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... But don't change anything at the moment. 
 
 Each Event Side has a blue section with "Selected Context: Event: xxx" this must be unified on all event management sides. And here the Event Name is important. Other informations are not reducing the context, so they must be removed. 
 
