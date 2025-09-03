@@ -12,6 +12,7 @@ import {
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
+import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -357,25 +358,39 @@ const Results = () => {
       if (ranking.length === 0) return
 
       const doc = new jsPDF('landscape')
+      const pageFormat = doc.internal.pageSize
+      const pageWidth = pageFormat.width
+      const pageHeight = pageFormat.height
       
-      // Add title
-      doc.setFontSize(20)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Competition Results', 20, 20)
+      // Add header and footer
+      addPDFHeaderFooter({
+        doc,
+        event: selectedEvent,
+        documentTitle: 'Competition Results',
+        pageWidth,
+        pageHeight
+      })
       
-      // Add event info
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Event: ${eventName}`, 20, 35)
+      // Get content area (excluding header/footer space)
+      const contentArea = getContentArea(pageWidth, pageHeight)
+      
+      // Add competition info in content area
       const selectedComp = competitions.find(c => c.id?.toString() === selectedCompetition)
       const selectedCompName = selectedComp 
         ? `${selectedComp.name}${selectedComp.number ? ` (Nr. ${selectedComp.number})` : ''}` 
         : 'Unknown Competition'
-      doc.text(`Competition: ${selectedCompName}`, 20, 45)
+      
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text(selectedCompName, contentArea.startX, contentArea.startY + 10)
+      
+      let currentY = contentArea.startY + 20
       if (squadName) {
-        doc.text(`Squad: ${squadName}`, 20, 55)
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Squad: ${squadName}`, contentArea.startX, currentY)
+        currentY += 10
       }
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, squadName ? 65 : 55)
       
       // Prepare table data
       const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
@@ -394,7 +409,7 @@ const Results = () => {
       autoTable(doc, {
         head: [headers],
         body: tableData,
-        startY: squadName ? 75 : 65,
+        startY: currentY,
         styles: {
           fontSize: 8,
           cellPadding: 2,
@@ -446,6 +461,16 @@ const Results = () => {
             data.cell.styles.fillColor = [240, 248, 255]
             data.cell.styles.fontStyle = 'bold'
           }
+        },
+        didDrawPage: function() {
+          // Add header/footer to each new page
+          addPDFHeaderFooter({
+            doc,
+            event: selectedEvent,
+            documentTitle: 'Competition Results',
+            pageWidth,
+            pageHeight
+          })
         }
       })
 
@@ -456,39 +481,51 @@ const Results = () => {
       if (filteredCompetitionGroups.length === 0) return
 
       const doc = new jsPDF('landscape')
-      let currentY = 20
+      const pageFormat = doc.internal.pageSize
+      const pageWidth = pageFormat.width
+      const pageHeight = pageFormat.height
       
-      // Add title
-      doc.setFontSize(20)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Competition Results - All Competitions', 20, currentY)
-      currentY += 20
+      // Add header and footer
+      addPDFHeaderFooter({
+        doc,
+        event: selectedEvent,
+        documentTitle: 'Competition Results - All Competitions',
+        pageWidth,
+        pageHeight
+      })
       
-      // Add event info
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Event: ${eventName}`, 20, currentY)
-      currentY += 10
+      // Get content area (excluding header/footer space)
+      const contentArea = getContentArea(pageWidth, pageHeight)
+      let currentY = contentArea.startY + 10
+      
+      // Add squad info if available
       if (squadName) {
-        doc.text(`Squad: ${squadName}`, 20, currentY)
-        currentY += 10
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`Squad: ${squadName}`, contentArea.startX, currentY)
+        currentY += 15
       }
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, currentY)
-      currentY += 20
 
       // Process each competition group
       filteredCompetitionGroups.forEach((group) => {
         // Check if we need a new page
-        if (currentY > 180) {
+        if (currentY > contentArea.endY - 50) {
           doc.addPage()
-          currentY = 20
+          addPDFHeaderFooter({
+            doc,
+            event: selectedEvent,
+            documentTitle: 'Competition Results - All Competitions',
+            pageWidth,
+            pageHeight
+          })
+          currentY = contentArea.startY + 10
         }
 
         // Add competition title
-        doc.setFontSize(16)
+        doc.setFontSize(14)
         doc.setFont('helvetica', 'bold')
-        doc.text(`${group.competitionName} (${group.participants.length} participants)`, 20, currentY)
-        currentY += 15
+        doc.text(`${group.competitionName} (${group.participants.length} participants)`, contentArea.startX, currentY)
+        currentY += 12
 
         // Prepare table data for this competition
         const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
@@ -561,6 +598,14 @@ const Results = () => {
             }
           },
           didDrawPage: function(data: any) {
+            // Add header/footer to each new page
+            addPDFHeaderFooter({
+              doc,
+              event: selectedEvent,
+              documentTitle: 'Competition Results - All Competitions',
+              pageWidth,
+              pageHeight
+            })
             currentY = (data as any).cursor.y + 15
           }
         })

@@ -224,6 +224,10 @@ When a competition name is visible (eg "Gerätvierkampf w (1-6Jahre)") the  Comp
 --- 
 
 At the "Edit Competition" UI there is a list of disciplines which can be selected. 1. Add a drop down to select a item from the "Discipline Groups Management" which selects the disciplines from this entry. 2. add a posibility to set the max Score of all selected disciplines in one step to the same value. 
+---
+On each paper (either the certificates) there must be a header and a footer. In the header on the Left there must be the name of the event, the Date and the location of the event. On the Right the name of the printing. in the footer must written the actual Date Time and license (GNU GPL v3.1) on the Right and the following: "created with TurnFix" and the URL github.com/Igel18/turnfix
+
+-> Create a template for pdf exports
 
 Konfig section 
 - DB alle infos separat speicher auch passwort 
@@ -252,8 +256,6 @@ The export as pdf is possible on some UIs. We need some more print export as pdf
 - Zeitplan/Timetable it must be possible to print a timetable 
 Alterntive: 
 - We add a separat UI for each print posibility...? 
-
-On each paper (either the certificates) there must be a header and a footer. In the header on the Left there must be the name of the event, the Date and the location of the event. On the Right the name of the printing. in the footer must written the actual Date Time and license (GNU GPL v3.1) on the Right and the following: "created with TurnFix" and the URL github.com/Igel18/turnfix
 
 
 
