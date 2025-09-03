@@ -388,12 +388,6 @@ const Results = () => {
       doc.text(selectedCompName, contentArea.startX, contentArea.startY + 10)
       
       let currentY = contentArea.startY + 20
-      if (squadName) {
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'normal')
-        doc.text(`Squad: ${squadName}`, contentArea.startX, currentY)
-        currentY += 10
-      }
       
       // Prepare table data
       const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
@@ -501,14 +495,6 @@ const Results = () => {
       // Get content area (excluding header/footer space)
       const contentArea = getContentArea(pageWidth, pageHeight)
       let currentY = contentArea.startY + 10
-      
-      // Add squad info if available
-      if (squadName) {
-        doc.setFontSize(14)
-        doc.setFont('helvetica', 'bold')
-        doc.text(`Squad: ${squadName}`, contentArea.startX, currentY)
-        currentY += 15
-      }
 
       // Process each competition group
       filteredCompetitionGroups.forEach((group) => {
