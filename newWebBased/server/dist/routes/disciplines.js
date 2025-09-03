@@ -9,16 +9,21 @@ const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createDisciplineSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "Name is required"),
-    shortName: zod_1.z.string().min(1, "Short name is required").optional(),
-    displayName: zod_1.z.string().optional(),
-    apparatus: zod_1.z.string().optional(),
+    shortName: zod_1.z.string().min(1, "Short name is required").max(6).optional(),
+    displayName: zod_1.z.string().max(20).optional(),
+    formula: zod_1.z.string().max(300).optional(),
+    inputMask: zod_1.z.string().max(10).optional(),
+    attempts: zod_1.z.number().min(1).default(1),
+    icon: zod_1.z.string().max(50).optional(),
+    shortcut: zod_1.z.string().max(50).optional(),
+    calculationType: zod_1.z.number().min(1).max(3).default(2),
+    unit: zod_1.z.string().max(5).optional(),
+    lanesDivision: zod_1.z.boolean().default(false),
     maleAllowed: zod_1.z.boolean().default(true),
     femaleAllowed: zod_1.z.boolean().default(true),
-    icon: zod_1.z.string().optional(),
-    formula: zod_1.z.string().optional(),
     sportId: zod_1.z.number().default(1),
-    inputMask: zod_1.z.string().optional(),
-    attempts: zod_1.z.number().default(1)
+    formulaId: zod_1.z.number().optional(),
+    shouldCalculate: zod_1.z.boolean().default(true)
 });
 const updateDisciplineSchema = createDisciplineSchema.partial();
 // Get all disciplines
@@ -30,20 +35,25 @@ router.get('/', async (req, res) => {
         var_name as name, 
         var_kurz1 as short_name,
         var_kurz2 as display_name,
-        var_einheit as apparatus,
+        var_formel as formula,
+        var_maske as input_mask,
+        int_versuche as attempts,
+        var_icon as icon,
+        var_kuerzel as shortcut,
+        int_berechnung as calculation_type,
+        var_einheit as unit,
+        bol_bahnen as lanes_division,
         bol_m as male_allowed,
         bol_w as female_allowed,
+        int_sportid as sport_id,
+        int_formelid as formula_id,
+        bol_berechnen as should_calculate,
         CASE 
           WHEN bol_m = true AND bol_w = true THEN 'gemischt'
           WHEN bol_m = true AND bol_w = false THEN 'männlich'
           WHEN bol_m = false AND bol_w = true THEN 'weiblich'
           ELSE 'unbekannt'
-        END as gender_text,
-        var_icon as icon,
-        var_formel as formula,
-        int_sportid as sport_id,
-        var_maske as input_mask,
-        int_versuche as attempts
+        END as gender_text
       FROM tfx_disziplinen
       ORDER BY var_name
     `;
@@ -184,31 +194,41 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         var_name, 
         var_kurz1, 
         var_kurz2, 
-        var_einheit, 
+        var_formel,
+        var_maske, 
+        int_versuche,
+        var_icon,
+        var_kuerzel,
+        int_berechnung,
+        var_einheit,
+        bol_bahnen,
         bol_m, 
         bol_w, 
-        var_icon, 
-        var_formel, 
-        int_sportid, 
-        var_maske, 
-        int_versuche
+        int_sportid,
+        int_formelid,
+        bol_berechnen
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING 
         int_disziplinenid as id,
         var_name as name,
         var_kurz1 as short_name,
         var_kurz2 as display_name,
-        var_einheit as apparatus,
+        var_formel as formula,
+        var_maske as input_mask,
+        int_versuche as attempts,
+        var_icon as icon,
+        var_kuerzel as shortcut,
+        int_berechnung as calculation_type,
+        var_einheit as unit,
+        bol_bahnen as lanes_division,
         bol_m as male_allowed,
         bol_w as female_allowed,
-        var_icon as icon,
-        var_formel as formula,
         int_sportid as sport_id,
-        var_maske as input_mask,
-        int_versuche as attempts
+        int_formelid as formula_id,
+        bol_berechnen as should_calculate
     `;
-        const result = await prisma.$queryRawUnsafe(query, validatedData.name, validatedData.shortName || validatedData.name.substring(0, 10), validatedData.displayName || validatedData.shortName || validatedData.name.substring(0, 5), validatedData.apparatus || '', validatedData.maleAllowed, validatedData.femaleAllowed, validatedData.icon || '', validatedData.formula || '', validatedData.sportId, validatedData.inputMask || '', validatedData.attempts);
+        const result = await prisma.$queryRawUnsafe(query, validatedData.name, validatedData.shortName || validatedData.name.substring(0, 6), validatedData.displayName || validatedData.shortName || validatedData.name.substring(0, 20), validatedData.formula || null, validatedData.inputMask || null, validatedData.attempts, validatedData.icon || null, validatedData.shortcut || null, validatedData.calculationType, validatedData.unit || null, validatedData.lanesDivision, validatedData.maleAllowed, validatedData.femaleAllowed, validatedData.sportId, validatedData.formulaId || null, validatedData.shouldCalculate);
         res.status(201).json({
             success: true,
             message: 'Discipline created successfully',
@@ -288,9 +308,9 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             values.push(validatedData.displayName);
             paramCounter++;
         }
-        if (validatedData.apparatus !== undefined) {
+        if (validatedData.unit !== undefined) {
             updateFields.push(`var_einheit = $${paramCounter}`);
-            values.push(validatedData.apparatus);
+            values.push(validatedData.unit);
             paramCounter++;
         }
         if (validatedData.maleAllowed !== undefined) {
@@ -328,6 +348,31 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             values.push(validatedData.attempts);
             paramCounter++;
         }
+        if (validatedData.shortcut !== undefined) {
+            updateFields.push(`var_kuerzel = $${paramCounter}`);
+            values.push(validatedData.shortcut);
+            paramCounter++;
+        }
+        if (validatedData.calculationType !== undefined) {
+            updateFields.push(`int_berechnung = $${paramCounter}`);
+            values.push(validatedData.calculationType);
+            paramCounter++;
+        }
+        if (validatedData.lanesDivision !== undefined) {
+            updateFields.push(`bol_bahnen = $${paramCounter}`);
+            values.push(validatedData.lanesDivision);
+            paramCounter++;
+        }
+        if (validatedData.formulaId !== undefined) {
+            updateFields.push(`int_formelid = $${paramCounter}`);
+            values.push(validatedData.formulaId);
+            paramCounter++;
+        }
+        if (validatedData.shouldCalculate !== undefined) {
+            updateFields.push(`bol_berechnen = $${paramCounter}`);
+            values.push(validatedData.shouldCalculate);
+            paramCounter++;
+        }
         if (updateFields.length === 0) {
             return res.status(400).json({ error: 'No fields to update' });
         }
@@ -341,14 +386,19 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         var_name as name,
         var_kurz1 as short_name,
         var_kurz2 as display_name,
-        var_einheit as apparatus,
+        var_formel as formula,
+        var_maske as input_mask,
+        int_versuche as attempts,
+        var_icon as icon,
+        var_kuerzel as shortcut,
+        int_berechnung as calculation_type,
+        var_einheit as unit,
+        bol_bahnen as lanes_division,
         bol_m as male_allowed,
         bol_w as female_allowed,
-        var_icon as icon,
-        var_formel as formula,
         int_sportid as sport_id,
-        var_maske as input_mask,
-        int_versuche as attempts
+        int_formelid as formula_id,
+        bol_berechnen as should_calculate
     `;
         const result = await prisma.$queryRawUnsafe(query, ...values);
         const updatedDiscipline = Array.isArray(result) ? result[0] : result;

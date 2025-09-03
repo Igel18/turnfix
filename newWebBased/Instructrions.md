@@ -200,13 +200,30 @@ Competition Management UI: a new posibility to set the max score of all selected
 
 Club management view the table has a other look. it has no header and boarder. 
 
+---
+New view for location management in database groupe in dashboard 
+New view for Personen management in database groupe in dashboard 
+-- 
+new view for sport arten in database groupe in dashboard 
+new view for formeln in database groupe in dashboard 
+new view for Disziplingruppen in database groupe in dashboard 
 
 On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... 
 
-New view for location management in database groupe in dashboard 
-New view for Personen management in database groupe in dashboard 
+Riegen einteilen -> 3 Spaltig (Riegen, Starter zugewiesen, Starter nicht zugewiesen)
 
- 
+
+Druck: 
+- Urkunden generierung 
+- Wettkampfbögen 
+- Medallienspiegel 
+- Zeitplan 
+
+lokalisierung 
+refactoring (nur noch prisma) 
+Geräte mit Icons 
+Über Turnfix 
+
 
 in the UI: At each entry from an event must be a information like how much Participants are at this event, how much clubs are participating at this event.
 
