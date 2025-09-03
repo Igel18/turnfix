@@ -1138,12 +1138,6 @@ const Results = () => {
             <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
             <div className="text-sm text-blue-800">
               <strong>Event:</strong> {eventName}
-              {squadName && (
-                <>
-                  <span className="mx-2">•</span>
-                  <strong>Squad:</strong> {squadName}
-                </>
-              )}
             </div>
           </div>
           <button
