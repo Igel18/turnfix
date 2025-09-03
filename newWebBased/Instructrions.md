@@ -209,11 +209,15 @@ new view for sport arten -> tfx_sport
 new view for formeln -> tfx_formeln
 new view for Disziplingroups -> tfs_disziplinen_gruppen
 every UI must have a table for the dataelements. It must be possible to add edit and delete elements
+---
 
 
 Riegen einteilen -> 3 Spaltig (Riegen, Starter zugewiesen, Starter nicht zugewiesen)
 
-
+Konfig section 
+- DB alle infos separat speicher auch passwort 
+- debug 
+- sprache 
  
 
 lokalisierung 
@@ -233,8 +237,10 @@ The export as pdf is possible on some UIs. We need some more print export as pdf
 - Wettkampfbögen / competition sheets for a selected squad 
 - Medallienspiegel / medal results for the event: it shows how much medals each club has won in this event in sum and seperated by competition 
 - Zeitplan/Timetable it must be possible to print a timetable 
+Alterntive: 
+- We add a separat UI for each print posibility...? 
 
-
+On each paper (either the certificates) there must be a header and a footer. In the header on the Left there must be the name of the event, the Date and the location of the event. On the Right the name of the printing. in the footer must written the actual Date Time and license (GNU GPL v3.1) on the Right and the following: "created with TurnFix" and the URL github.com/Igel18/turnfix
 
 
 

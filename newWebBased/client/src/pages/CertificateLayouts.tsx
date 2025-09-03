@@ -298,7 +298,7 @@ export function CertificateLayouts() {
   }
 
   // Handle field changes from designer with debouncing
-  const debouncedFieldSave = useRef<{ [fieldId: number]: NodeJS.Timeout }>({})
+  const debouncedFieldSave = useRef<{ [fieldId: number]: number }>({})
   
   const handleFieldsChange = async (fields: LayoutField[]) => {
     if (!selectedLayout) return

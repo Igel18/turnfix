@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { apiGet } from '../utils/api'
+import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -693,8 +694,8 @@ const Results = () => {
       const pageWidth = paperSize.width
       const pageHeight = paperSize.height
 
-      console.log(`PDF page size: ${pageWidth} x ${pageHeight}`)
-      console.log(`Layout: ${layout.var_name} with ${layout.fields.length} fields`)
+      debugLog(`PDF page size: ${pageWidth} x ${pageHeight}`)
+      debugLog(`Layout: ${layout.var_name} with ${layout.fields.length} fields`)
 
       // Generate certificate for each participant
       for (let participantIndex = 0; participantIndex < certificatesToPrint.length; participantIndex++) {
@@ -704,31 +705,35 @@ const Results = () => {
           doc.addPage()
         }
 
-        console.log(`Generating certificate for participant: ${participant.name}`)
+        debugLog(`Generating certificate for participant: ${participant.name}`)
 
-        // Add debug info to see coordinate system
-        doc.setTextColor(100, 100, 100)
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        doc.text(`Debug: ${participant.name} - Page: ${pageWidth}x${pageHeight} - Format: ${selectedPaperFormat}`, 20, 20)
+        // Add debug info to see coordinate system (only when debug is enabled)
+        if (isDebugEnabled()) {
+          doc.setTextColor(100, 100, 100)
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(8)
+          doc.text(`Debug: ${participant.name} - Page: ${pageWidth}x${pageHeight} - Format: ${selectedPaperFormat}`, 20, 20)
+        }
 
         // Sort fields by layer (background to foreground)
         const sortedFields = [...layout.fields].sort((a, b) => a.int_layer - b.int_layer)
-        console.log(`Processing ${sortedFields.length} fields for layout: ${layout.var_name}`)
-        
-        // Log all field coordinates to understand the scale
-        console.log('=== Field Coordinates Analysis ===')
-        sortedFields.forEach((field, idx) => {
-          console.log(`Field ${idx}: x=${field.rel_x}, y=${field.rel_y}, w=${field.rel_w}, h=${field.rel_h}, type=${field.int_typ}`)
-        })
+        debugLog(`Processing ${sortedFields.length} fields for layout: ${layout.var_name}`)
         
         // Find the maximum coordinates to understand the scale
         const maxX = Math.max(...sortedFields.map(f => f.rel_x + f.rel_w))
         const maxY = Math.max(...sortedFields.map(f => f.rel_y + f.rel_h))
-        console.log(`Maximum coordinates: X=${maxX}, Y=${maxY}`)
         
-        // Add this info to the PDF for reference
-        doc.text(`Max coords: X=${maxX.toFixed(0)}, Y=${maxY.toFixed(0)}`, 20, 35)
+        // Log all field coordinates to understand the scale (only when debug is enabled)
+        if (isDebugEnabled()) {
+          debugLog('=== Field Coordinates Analysis ===')
+          sortedFields.forEach((field, idx) => {
+            debugLog(`Field ${idx}: x=${field.rel_x}, y=${field.rel_y}, w=${field.rel_w}, h=${field.rel_h}, type=${field.int_typ}`)
+          })
+          debugLog(`Maximum coordinates: X=${maxX}, Y=${maxY}`)
+          
+          // Add this info to the PDF for reference (only in debug mode)
+          doc.text(`Max coords: X=${maxX.toFixed(0)}, Y=${maxY.toFixed(0)}`, 20, 35)
+        }
 
         // Process each field (now with proper async handling for images)
         for (let fieldIndex = 0; fieldIndex < sortedFields.length; fieldIndex++) {
@@ -736,16 +741,16 @@ const Results = () => {
           // Simple coordinate conversion - assume database stores values in 0-1 range
           // If they're larger than 1, divide by the maximum coordinate to normalize
           
-          console.log(`Raw field ${fieldIndex}: x=${field.rel_x}, y=${field.rel_y}, w=${field.rel_w}, h=${field.rel_h}`)
-          console.log(`Field type: ${field.int_typ}, value: "${field.var_value}", font: "${field.var_font}"`)
+          debugLog(`Raw field ${fieldIndex}: x=${field.rel_x}, y=${field.rel_y}, w=${field.rel_w}, h=${field.rel_h}`)
+          debugLog(`Field type: ${field.int_typ}, value: "${field.var_value}", font: "${field.var_font}"`)
           
           // The database coordinates seem to be stored at a different scale than the designer canvas
           // Let's calculate the ratio between database max and designer canvas
           const designerCanvasWidth = 2480  // A4 at 300 DPI from LayoutDesigner
           const designerCanvasHeight = 3508 // A4 at 300 DPI from LayoutDesigner
           
-          console.log(`Database coordinate space: ${maxX.toFixed(1)} x ${maxY.toFixed(1)}`)
-          console.log(`Designer canvas: ${designerCanvasWidth} x ${designerCanvasHeight}`)
+          debugLog(`Database coordinate space: ${maxX.toFixed(1)} x ${maxY.toFixed(1)}`)
+          debugLog(`Designer canvas: ${designerCanvasWidth} x ${designerCanvasHeight}`)
           
           // Calculate the scaling factor from database coordinates to designer canvas
           const dbToDesignerX = designerCanvasWidth / maxX  // Should be ~10.16
@@ -759,9 +764,9 @@ const Results = () => {
           const scaleX = dbToDesignerX * designerToPdfX
           const scaleY = dbToDesignerY * designerToPdfY
           
-          console.log(`DB to Designer scale: X=${dbToDesignerX.toFixed(3)}, Y=${dbToDesignerY.toFixed(3)}`)
-          console.log(`Designer to PDF scale: X=${designerToPdfX.toFixed(3)}, Y=${designerToPdfY.toFixed(3)}`)
-          console.log(`Combined scale: X=${scaleX.toFixed(4)}, Y=${scaleY.toFixed(4)}`)
+          debugLog(`DB to Designer scale: X=${dbToDesignerX.toFixed(3)}, Y=${dbToDesignerY.toFixed(3)}`)
+          debugLog(`Designer to PDF scale: X=${designerToPdfX.toFixed(3)}, Y=${designerToPdfY.toFixed(3)}`)
+          debugLog(`Combined scale: X=${scaleX.toFixed(4)}, Y=${scaleY.toFixed(4)}`)
           
           // Calculate PDF coordinates using the combined scaling
           const x = Math.max(0, field.rel_x * scaleX)
@@ -783,16 +788,18 @@ const Results = () => {
           doc.setTextColor(0, 0, 0) // Black text
           doc.setFont('helvetica', 'normal')
 
-          // Debug: Draw field boundaries (red rectangles) and add field info
-          doc.setDrawColor(255, 0, 0)
-          doc.setLineWidth(0.5)
-          doc.rect(x, y, width, height)
-          
-          // Add field number for debugging
-          doc.setFontSize(8)
-          doc.setTextColor(255, 0, 0)
-          doc.text(`${fieldIndex}`, x, y - 2)
-          doc.setTextColor(0, 0, 0)
+          // Debug: Draw field boundaries (red rectangles) and add field info (only when debug is enabled)
+          if (isDebugEnabled()) {
+            doc.setDrawColor(255, 0, 0)
+            doc.setLineWidth(0.5)
+            doc.rect(x, y, width, height)
+            
+            // Add field number for debugging
+            doc.setFontSize(8)
+            doc.setTextColor(255, 0, 0)
+            doc.text(`${fieldIndex}`, x, y - 2)
+            doc.setTextColor(0, 0, 0)
+          }
 
           switch (field.int_typ) {
             case 0: // Database field
@@ -1309,6 +1316,23 @@ const Results = () => {
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   Choose the same paper format used when designing the layout
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={isDebugEnabled()}
+                    onChange={(e) => setDebugMode(e.target.checked)}
+                    className="mr-2 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Debug Mode
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Show debug information on certificates (field boundaries, coordinates, etc.)
                 </p>
               </div>
 

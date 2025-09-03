@@ -1,4 +1,5 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { 
   TrashIcon, 
   DocumentTextIcon,
@@ -387,17 +388,17 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     
     // Fields are already normalized, use them directly
     
-    // Debug logging to see actual field values
-    if (isSelected) {
-      console.log('=== Field Debug Info ===');
-      console.log('Field data (should be normalized):', field);
-      console.log('Calculated CSS position:', {
+    // Debug logging to see actual field values (only when debug is enabled)
+    if (isSelected && isDebugEnabled()) {
+      debugLog('=== Field Debug Info ===');
+      debugLog('Field data (should be normalized):', field);
+      debugLog('Calculated CSS position:', {
         left: `${field.rel_x * 100}%`,
         top: `${field.rel_y * 100}%`,
         width: `${field.rel_w * 100}%`,
         height: `${field.rel_h * 100}%`
       });
-      console.log('Canvas size:', canvasSize);
+      debugLog('Canvas size:', canvasSize);
       console.log('Zoom:', zoom);
       console.log('Expected size on canvas:', {
         width: Math.round(field.rel_w * canvasSize.width),
