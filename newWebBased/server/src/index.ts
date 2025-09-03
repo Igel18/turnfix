@@ -40,6 +40,7 @@ import scoresRoutes from './routes/scores';
 import adminRoutes from './routes/admin';
 import layoutRoutes from './routes/layouts';
 import imageRoutes from './routes/images';
+import meldematrixRoutes from './routes/meldematrix';
 
 const app = express();
 const server = createServer(app);
@@ -134,6 +135,7 @@ app.use('/api/scores', scoresRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/layouts', layoutRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/api/meldematrix', meldematrixRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {

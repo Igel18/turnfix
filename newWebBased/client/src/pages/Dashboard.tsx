@@ -172,6 +172,13 @@ const eventSetupActions = [
     href: '/squads',
     icon: UserGroupIcon,
     color: 'bg-blue-500'
+  },
+  {
+    name: 'Meldematrix',
+    description: 'Registration matrix: Clubs vs Competitions overview',
+    href: '/meldematrix',
+    icon: DocumentTextIcon,
+    color: 'bg-emerald-500'
   }
 ]
 

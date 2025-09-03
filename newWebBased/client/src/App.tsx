@@ -27,6 +27,7 @@ import Persons from '@/pages/Persons'
 import Sports from '@/pages/Sports'
 import Formulas from '@/pages/Formulas'
 import DisciplineGroups from '@/pages/DisciplineGroups'
+import Meldematrix from '@/pages/Meldematrix'
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
             <Route path="/squad-status" element={<SquadStatusManagement />} />
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />
+            <Route path="/meldematrix" element={<Meldematrix />} />
             <Route path="/disciplines" element={<Disciplines />} />
             <Route path="/sports" element={<Sports />} />
             <Route path="/formulas" element={<Formulas />} />
