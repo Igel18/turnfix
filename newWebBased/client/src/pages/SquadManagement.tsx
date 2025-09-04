@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
-  Plus, 
   Users, 
   Trash2,
   Trophy,
@@ -10,8 +9,8 @@ import {
   ArrowRight,
   ArrowLeft
 } from 'lucide-react';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader';
+import { InformationCircleIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete } from '../utils/api';
 
@@ -65,6 +64,7 @@ const SquadManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [competitionFilter, setCompetitionFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // Form state for creating squads
@@ -365,21 +365,6 @@ const forceLoadAvailableParticipants = async () => {
     return matchesSearch && matchesGender && matchesCompetition;
   });
 
-  const getSquadStateInfo = (): StateInfo[] => [
-    {
-      value: '',
-      label: 'All Squads',
-      count: squads.length,
-      color: 'text-gray-600'
-    },
-    {
-      value: 'participants',
-      label: 'Available Participants',
-      count: availableParticipants.length,
-      color: 'text-blue-600'
-    }
-  ];
-
   const getFilterOptions = () => {
     // Get unique competitions from available participants
     const allCompetitions = availableParticipants
@@ -389,27 +374,23 @@ const forceLoadAvailableParticipants = async () => {
 
     return [
       {
-        label: 'Gender',
         value: 'gender',
+        label: 'Gender',
+        selectedValue: genderFilter,
         options: [
-          { value: '', label: 'All Genders' },
           { value: 'male', label: 'Male' },
           { value: 'female', label: 'Female' }
         ],
-        selectedValue: genderFilter,
         onChange: setGenderFilter
       },
       {
-        label: 'Competition',
         value: 'competition',
-        options: [
-          { value: '', label: 'All Competitions' },
-          ...allCompetitions.map(comp => ({
-            value: comp.name,
-            label: `${comp.name} (Nr. ${comp.number})`
-          }))
-        ],
+        label: 'Competition',
         selectedValue: competitionFilter,
+        options: allCompetitions.map(comp => ({
+          value: comp.name,
+          label: `${comp.name} (Nr. ${comp.number})`
+        })),
         onChange: setCompetitionFilter
       }
     ];
@@ -441,43 +422,30 @@ const forceLoadAvailableParticipants = async () => {
         </div>
       )}
 
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Squad Management"
-        description="Create squads and assign participants to competitions"
-        icon={Users}
-        stateInfo={getSquadStateInfo()}
+        subtitle="Create squads and assign participants to competitions"
+        icon={UserGroupIcon}
+        showEventContext={true}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search participants, clubs, competitions..."
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        hasFilters={true}
         filterOptions={getFilterOptions()}
         onClearAllFilters={() => {
           setSearchTerm('');
           setGenderFilter('');
           setCompetitionFilter('');
         }}
+        showAdd={true}
+        addLabel="New Squad"
+        onAdd={() => setIsCreateModalOpen(true)}
+        showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: 'New Squad',
-          icon: Plus,
-          onClick: () => setIsCreateModalOpen(true)
-        }}
-        totalCount={squads.reduce((sum, squad) => sum + squad.participantCount, 0)}
+        showViewToggle={false}
       />
-
-      {/* Selected Context */}
-      {eventId && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mx-6 mb-4 rounded">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-            <div className="text-sm text-blue-800">
-              <strong>Selected Context:</strong>
-              {eventId && ` Event: ${selectedEvent?.var_eventname || `Event ID ${eventId}`}`}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Virtual Squad Information */}
       {squads.some(s => s.isVirtual) && (

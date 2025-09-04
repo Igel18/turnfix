@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  PlusIcon, 
   MapPinIcon, 
   TrophyIcon,
   CalendarIcon,
@@ -8,7 +7,6 @@ import {
   PencilIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader';
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 
 interface Competition {
@@ -249,33 +247,6 @@ const Competitions: React.FC = () => {
   }
 
   // Helper functions for unified header
-  const getCompetitionStateInfo = (): StateInfo[] => {
-    const upcomingCount = competitions.filter(c => c.status === 'upcoming').length
-    const activeCount = competitions.filter(c => c.status === 'active').length
-    const completedCount = competitions.filter(c => c.status === 'completed').length
-
-    return [
-      {
-        value: 'upcoming',
-        label: 'Upcoming',
-        count: upcomingCount,
-        color: 'bg-blue-100 text-blue-800'
-      },
-      {
-        value: 'active',
-        label: 'Active',
-        count: activeCount,
-        color: 'bg-green-100 text-green-800'
-      },
-      {
-        value: 'completed',
-        label: 'Completed',
-        count: completedCount,
-        color: 'bg-gray-100 text-gray-800'
-      }
-    ]
-  }
-
   const getFilterOptions = () => [
     {
       label: 'Status',
@@ -336,27 +307,22 @@ const Competitions: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Competition Management"
-        description="Organize and manage gymnastics competitions"
+        subtitle="Organize and manage gymnastics competitions"
         icon={TrophyIcon}
-        stateInfo={getCompetitionStateInfo()}
-        selectedState={selectedStatus}
-        onStateChange={setSelectedStatus}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search competitions..."
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
+        showExportCSV={true}
         onExportCSV={handleExportCSV}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: 'Add Competition',
-          icon: PlusIcon,
-          onClick: openCreateModal
-        }}
+        showAdd={true}
+        addLabel="Add Competition"
+        onAdd={openCreateModal}
         totalCount={competitions.length}
+        showEventContext={true}
       />
 
       {/* Competitions Table */}

@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { 
-  InformationCircleIcon,
   PlusIcon,
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
 
@@ -82,7 +80,6 @@ export function ScoreCapture() {
     setSelectedDiscipline
   } = useEvent()
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   
   // URL parameters as fallback (for direct navigation)
@@ -93,13 +90,11 @@ export function ScoreCapture() {
   // Use context values or URL parameters
   const eventId = selectedEvent?.int_eventid.toString() || urlEventId
   const competitionId = selectedCompetition?.id.toString() || urlCompetitionId
-  const squadName = contextSquad?.squad_name || urlSquadName
 
   // State
   const [participants, setParticipants] = useState<Participant[]>([])
   const [disciplines, setDisciplines] = useState<Discipline[]>([])
   const [squads, setSquads] = useState<Squad[]>([])
-  const [scores] = useState<Score[]>([])
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [statuses, setStatuses] = useState<Status[]>([])
   const [loading, setLoading] = useState(false)
@@ -620,52 +615,8 @@ export function ScoreCapture() {
       ) : []
     : Array.isArray(disciplines) ? disciplines : []
 
-  const getScoreCaptureStateInfo = (): StateInfo[] => {
-    const totalScores = (Array.isArray(participants) ? participants.length : 0) * (Array.isArray(disciplines) ? disciplines.length : 0)
-    const completedScores = Array.isArray(scores) ? scores.filter(s => s.status === 'completed').length : 0
-    const reviewedScores = Array.isArray(scores) ? scores.filter(s => s.status === 'reviewed').length : 0
-    const pendingScores = totalScores - completedScores - reviewedScores
-
-    return [
-      {
-        value: 'pending',
-        label: 'Pending Scores',
-        count: pendingScores,
-        color: 'bg-yellow-100 text-yellow-800'
-      },
-      {
-        value: 'completed',
-        label: 'Completed',
-        count: completedScores,
-        color: 'bg-green-100 text-green-800'
-      },
-      {
-        value: 'reviewed',
-        label: 'Reviewed',
-        count: reviewedScores,
-        color: 'bg-blue-100 text-blue-800'
-      }
-    ]
-  }
-
-  const getFilterOptions = () => [
-    {
-      label: 'Status',
-      value: 'status',
-      options: [
-        { value: '', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'reviewed', label: 'Reviewed' }
-      ],
-      selectedValue: selectedStatus,
-      onChange: setSelectedStatus
-    }
-  ]
-
   const handleClearAllFilters = () => {
     setSearchTerm('')
-    setSelectedStatus('')
   }
 
   const handleExportCSV = () => {

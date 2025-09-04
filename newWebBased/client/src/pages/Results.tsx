@@ -4,12 +4,9 @@ import { useEvent } from '../contexts/EventContext'
 import { useCertificateLayout } from '../contexts/CertificateLayoutContext'
 import { 
   ChartBarIcon,
-  TrophyIcon,
-  InformationCircleIcon,
-  DocumentArrowDownIcon,
-  PrinterIcon
+  TrophyIcon
 } from '@heroicons/react/24/outline'
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
 import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
@@ -86,6 +83,7 @@ const Results = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [competitions, setCompetitions] = useState<any[]>([])
   const [selectedCompetition, setSelectedCompetition] = useState<string>('')
+  const [showFilters, setShowFilters] = useState(false)
   
   // Certificate printing state
   const { selectedLayout: contextSelectedLayout, setSelectedLayout: setContextSelectedLayout } = useCertificateLayout()
@@ -95,40 +93,18 @@ const Results = () => {
   const [certificatesToPrint, setCertificatesToPrint] = useState<Participant[]>([])
   const [isPrintingCertificates, setIsPrintingCertificates] = useState(false)
 
-  // Helper functions for unified header
-  const getResultsStateInfo = (): StateInfo[] => {
-    const totalParticipants = selectedCompetition ? 
-      ranking.length : 
-      filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)
-    
-    const totalDisciplines = disciplines.length
-    const completedScores = selectedCompetition ?
-      ranking.reduce((sum, p) => sum + Object.keys(p.scores).length, 0) :
-      filteredCompetitionGroups.reduce((sum, group) => 
-        sum + group.participants.reduce((groupSum, p) => groupSum + Object.keys(p.scores).length, 0), 0
-      )
-
-    return [
-      {
-        value: 'participants',
-        label: 'Participants',
-        count: totalParticipants,
-        color: 'text-blue-600'
-      },
-      {
-        value: 'disciplines',
-        label: 'Disciplines',
-        count: totalDisciplines,
-        color: 'text-green-600'
-      },
-      {
-        value: 'scores',
-        label: 'Scores',
-        count: completedScores,
-        color: 'text-purple-600'
-      }
-    ]
-  }
+  const getFilterOptions = () => [
+    {
+      value: 'competition',
+      label: 'Competition',
+      selectedValue: selectedCompetition,
+      options: getAvailableCompetitions().map(comp => ({
+        value: comp.id?.toString() || '',
+        label: `${comp.name || 'Unknown Competition'}${comp.number ? ` (Nr. ${comp.number})` : ''}`
+      })),
+      onChange: setSelectedCompetition
+    }
+  ];
 
   const handleClearAllFilters = () => {
     setSearchTerm('')
@@ -1095,62 +1071,27 @@ const Results = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Competition Results"
-        description={`Rankings for ${eventName}`}
+        subtitle={`Rankings for ${eventName}`}
         icon={ChartBarIcon}
-        stateInfo={getResultsStateInfo()}
-        selectedState=""
-        onStateChange={() => {}}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search participants, clubs..."
-        filterOptions={[
-          {
-            label: 'Competition',
-            value: 'competition',
-            options: [
-              { value: '', label: 'All Competitions' },
-              ...getAvailableCompetitions().map(comp => ({
-                value: comp.id?.toString() || '',
-                label: `${comp.name || 'Unknown Competition'}${comp.number ? ` (Nr. ${comp.number})` : ''}`,
-                count: undefined
-              }))
-            ],
-            selectedValue: selectedCompetition,
-            onChange: setSelectedCompetition
-          }
-        ]}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        hasFilters={true}
+        filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
+        showExportCSV={true}
         onExportCSV={exportResults}
-        secondaryAction={{
-          label: 'Export PDF',
-          icon: DocumentArrowDownIcon,
-          onClick: exportResultsPDF
-        }}
-        showHomeButton={true}
-        homeUrl="/dashboard"
+        showExportPDF={true}
+        onExportPDF={exportResultsPDF}
+        showPrint={true}
+        onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
         totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
+        showEventContext={true}
       />
-
-      {/* Event Selection Context */}
-      <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 mx-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-            <div className="text-sm text-blue-800">
-              <strong>Event:</strong> {eventName}
-            </div>
-          </div>
-          <button
-            onClick={() => showCertificateDialog(getAllParticipantsForCertificates())}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <PrinterIcon className="h-4 w-4 mr-2" />
-            Print Certificates
-          </button>
-        </div>
-      </div>
 
       {/* Rankings Table */}
       <div className="bg-white rounded-lg shadow-sm border mx-6">

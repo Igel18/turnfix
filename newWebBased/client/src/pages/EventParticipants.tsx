@@ -9,8 +9,8 @@ import {
   UserMinus,
   Edit
 } from 'lucide-react';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader';
+import { UsersIcon } from '@heroicons/react/24/outline';
+import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 
@@ -287,6 +287,7 @@ const EventParticipants: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -648,32 +649,40 @@ const EventParticipants: React.FC = () => {
     return matchesSearch;
   }) : [];
 
-  const getParticipantStateInfo = (): StateInfo[] => [
-    {
-      value: 'participants',
-      label: 'Event Participants',
-      count: filteredParticipants.length,
-      color: 'text-blue-600'
-    },
-    {
-      value: 'assign',
-      label: 'Competition Assignment',
-      count: competitions.length,
-      color: 'text-green-600'
-    }
-  ];
-
   const getFilterOptions = () => [
     {
-      label: 'Gender',
       value: 'gender',
+      label: 'Gender',
+      selectedValue: genderFilter,
       options: [
-        { value: '', label: 'All Genders' },
         { value: 'male', label: 'Male' },
         { value: 'female', label: 'Female' }
       ],
-      selectedValue: genderFilter,
       onChange: setGenderFilter
+    },
+    {
+      value: 'club',
+      label: 'Club',
+      selectedValue: clubFilter,
+      options: [...new Set(allParticipants.map((p: Participant) => p.club))].map(club => ({
+        value: club,
+        label: club
+      })),
+      onChange: setClubFilter
+    },
+    {
+      value: 'age',
+      label: 'Age Group', 
+      selectedValue: ageFilter,
+      options: [
+        { value: '6-8', label: '6-8 years' },
+        { value: '9-10', label: '9-10 years' },
+        { value: '11-12', label: '11-12 years' },
+        { value: '13-14', label: '13-14 years' },
+        { value: '15-16', label: '15-16 years' },
+        { value: '17+', label: '17+ years' }
+      ],
+      onChange: setAgeFilter
     }
   ];
 
@@ -693,16 +702,17 @@ const EventParticipants: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Event Participants"
-        description="Add, remove and assign participants to competitions within the selected event"
-        icon={Users}
-        stateInfo={getParticipantStateInfo()}
-        selectedState={selectedTab}
-        onStateChange={(state) => setSelectedTab(state as 'participants' | 'assign')}
+        subtitle="Add, remove and assign participants to competitions within the selected event"
+        icon={UsersIcon}
+        showEventContext={true}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search participants..."
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        hasFilters={true}
         filterOptions={getFilterOptions()}
         onClearAllFilters={() => {
           setSearchTerm('');
@@ -710,29 +720,13 @@ const EventParticipants: React.FC = () => {
           setClubFilter('');
           setAgeFilter('');
         }}
+        showAdd={true}
+        addLabel="Add Participant"
+        onAdd={() => setShowAddModal(true)}
+        showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: 'Add Participant',
-          icon: UserPlus,
-          onClick: () => setShowAddModal(true)
-        }}
-        totalCount={selectedTab === 'participants' ? filteredParticipants.length : competitions.length}
+        showViewToggle={false}
       />
-
-      {/* Selected Context */}
-      {eventId && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mx-6 mb-4 rounded">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-            <div className="text-sm text-blue-800">
-              <strong>Selected Context:</strong>
-              {eventId && ` Event: ${selectedEvent?.var_eventname || `Event ID ${eventId}`}`}
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="p-6">
         {selectedTab === 'participants' && (

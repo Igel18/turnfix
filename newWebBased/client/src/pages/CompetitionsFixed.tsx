@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { debugLog, debugInfo } from '../utils/debug';
 import { 
-  Plus, 
   Calendar, 
   MapPin, 
   Users, 
@@ -13,8 +12,8 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader';
+import { TrophyIcon } from '@heroicons/react/24/outline';
+import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 
@@ -105,6 +104,7 @@ const Competitions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   
   // State for disciplines and form data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -422,42 +422,20 @@ const Competitions: React.FC = () => {
     return matchesSearch && matchesGender && matchesStatus;
   });
 
-  // Helper functions for UnifiedHeader
-  const getCompetitionStateInfo = (): StateInfo[] => {
-    const stateCounts = competitions.reduce((acc, comp) => {
-      acc[comp.status] = (acc[comp.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return [
-      {
-        value: '',
-        label: 'All Competitions',
-        count: competitions.length,
-        color: 'text-gray-600'
-      },
-      {
-        value: 'upcoming',
-        label: 'Upcoming',
-        count: stateCounts.upcoming || 0,
-        color: 'text-blue-600'
-      },
-      {
-        value: 'active',
-        label: 'Active',
-        count: stateCounts.active || 0,
-        color: 'text-green-600'
-      },
-      {
-        value: 'completed',
-        label: 'Completed',
-        count: stateCounts.completed || 0,
-        color: 'text-gray-600'
-      }
-    ];
-  };
-
+  // Helper functions for UnifiedPageHeader
   const getFilterOptions = () => [
+    {
+      label: 'Status',
+      value: 'status',
+      options: [
+        { value: '', label: 'All Competitions' },
+        { value: 'upcoming', label: 'Upcoming' },
+        { value: 'active', label: 'Active' },
+        { value: 'completed', label: 'Completed' }
+      ],
+      selectedValue: statusFilter,
+      onChange: setStatusFilter
+    },
     {
       label: 'Gender',
       value: 'gender',
@@ -490,62 +468,26 @@ const Competitions: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Competition Management"
-        description="Manage gymnastics competitions with disciplines and categories"
-        icon={Trophy}
-        stateInfo={getCompetitionStateInfo()}
-        selectedState={statusFilter}
-        onStateChange={setStatusFilter}
+        subtitle="Manage gymnastics competitions with disciplines and categories"
+        icon={TrophyIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search competitions..."
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
+        showExportCSV={true}
         onExportCSV={handleExportCSV}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: 'New Competition',
-          icon: Plus,
-          onClick: openCreateModal
-        }}
+        showAdd={true}
+        addLabel="New Competition"
+        onAdd={openCreateModal}
         totalCount={filteredCompetitions.length}
+        showEventContext={true}
+        hasFilters={true}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
       />
-
-      {/* Selected Context */}
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mx-6 mb-4 rounded">
-        <div className="flex items-center">
-          <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-          <div className="text-sm text-blue-800">
-            {eventId ? (
-              <>
-                <strong>Selected Context:</strong>
-                {` Event: ${selectedEvent?.var_eventname || `Event ID ${eventId}`}`}
-                {filteredCompetitions.length > 0 && (
-                  <span className="ml-4">
-                    <span className="font-medium">Competitions:</span> {filteredCompetitions.length}
-                  </span>
-                )}
-              </>
-            ) : (
-              <>
-                <span className="font-medium">Total Competitions:</span> {filteredCompetitions.length}
-                {statusFilter !== 'all' && (
-                  <span className="ml-4">
-                    <span className="font-medium">Filter:</span> {statusFilter === 'active' ? 'Active' : statusFilter === 'completed' ? 'Completed' : 'Draft'}
-                  </span>
-                )}
-                {searchTerm && (
-                  <span className="ml-4">
-                    <span className="font-medium">Search:</span> "{searchTerm}"
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Competitions Content */}
       <div className="p-6">

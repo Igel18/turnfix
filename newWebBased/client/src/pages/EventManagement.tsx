@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import EventSelector from '@/components/EventSelector'
+import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import {
   CalendarDaysIcon,
   UsersIcon,
@@ -8,8 +8,7 @@ import {
   ClipboardDocumentListIcon,
   ChartBarIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
-  HomeIcon
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { apiGet } from '../utils/api'
 
@@ -162,25 +161,22 @@ const EventManagement: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 mb-4">
-        <Link 
-          to="/dashboard" 
-          className="text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center"
-        >
-          <HomeIcon className="h-5 w-5 mr-1" />
-          Dashboard
-        </Link>
-        <span className="text-gray-500">/</span>
-        <span className="text-gray-900 font-medium">Event Management</span>
-      </nav>
-      
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Event Management</h1>
-        <p className="text-gray-600 mt-1">
-          Select an event to view competitions, squads, participants, and their scores
-        </p>
-      </div>
+      <UnifiedPageHeader
+        title="Event Management"
+        subtitle="Select an event to view competitions, squads, participants, and their scores"
+        icon={CalendarDaysIcon}
+        showEventContext={true}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search participants..."
+        showFilters={false}
+        showAdd={false}
+        showImport={false}
+        showViewToggle={false}
+        showExportCSV={false}
+        showExportPDF={false}
+        showPrint={false}
+      />
 
       {/* Event Selector */}
       <EventSelector

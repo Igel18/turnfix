@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { 
-  ClipboardDocumentListIcon,
-  EyeIcon,
   PencilIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline'
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
 
@@ -59,6 +58,7 @@ export function SquadStatusManagement() {
   const [filterSquad, setFilterSquad] = useState('')
   const [filterDiscipline, setFilterDiscipline] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
   
   // View options
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
@@ -233,25 +233,38 @@ export function SquadStatusManagement() {
   const uniqueDisciplines = [...new Set(squadDisciplines.map(item => item.disciplineName))].sort()
   const uniqueStatuses = [...new Set(squadDisciplines.map(item => item.status.name))].sort()
 
-  // State info for header
-  const getStateInfo = (): StateInfo[] => {
-    const statusCounts = squadDisciplines.reduce((acc, item) => {
-      acc[item.status.name] = (acc[item.status.name] || 0) + 1
-      return acc
-    }, {} as { [key: string]: number })
-
-    return [
-      { label: 'Total Combinations', value: 'total-combinations', count: squadDisciplines.length, color: 'blue' },
-      { label: 'Squads', value: 'unique-squads', count: uniqueSquads.length, color: 'green' },
-      { label: 'Disciplines', value: 'unique-disciplines', count: uniqueDisciplines.length, color: 'purple' },
-      ...Object.entries(statusCounts).map(([status, count]) => ({
-        label: status,
-        value: `status-${status.toLowerCase().replace(/\s+/g, '-')}`,
-        count,
-        color: 'yellow' as const
-      }))
-    ]
-  }
+  const getFilterOptions = () => [
+    {
+      value: 'squad',
+      label: 'Squad',
+      selectedValue: filterSquad,
+      options: uniqueSquads.map(squad => ({
+        value: squad,
+        label: squad
+      })),
+      onChange: setFilterSquad
+    },
+    {
+      value: 'discipline',
+      label: 'Discipline',
+      selectedValue: filterDiscipline,
+      options: uniqueDisciplines.map(discipline => ({
+        value: discipline,
+        label: discipline
+      })),
+      onChange: setFilterDiscipline
+    },
+    {
+      value: 'status',
+      label: 'Status',
+      selectedValue: filterStatus,
+      options: uniqueStatuses.map(status => ({
+        value: status,
+        label: status
+      })),
+      onChange: setFilterStatus
+    }
+  ];
 
   if (loading) {
     return (
@@ -263,31 +276,32 @@ export function SquadStatusManagement() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Squad Status Management"
-        description={`Manage status for squad-discipline combinations (${squadDisciplines.length} combinations loaded)`}
-        icon={ClipboardDocumentListIcon}
+        subtitle={`Manage status for squad-discipline combinations (${squadDisciplines.length} combinations loaded)`}
+        icon={UserGroupIcon}
+        showEventContext={true}
         searchTerm=""
         onSearchChange={() => {}}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        hasFilters={true}
+        filterOptions={getFilterOptions()}
         onClearAllFilters={() => {
           setFilterSquad('')
           setFilterDiscipline('')
           setFilterStatus('')
         }}
+        showExportCSV={true}
         onExportCSV={() => {
           // TODO: Implement CSV export
           console.log('Export CSV')
         }}
-        stateInfo={getStateInfo()}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: viewMode === 'table' ? 'Grid View' : 'Table View',
-          icon: viewMode === 'table' ? EyeIcon : ClipboardDocumentListIcon,
-          onClick: () => setViewMode(viewMode === 'table' ? 'grid' : 'table')
-        }}
-        totalCount={squadDisciplines.length}
-        filteredCount={filteredData.length}
+        showAdd={false}
+        showImport={false}
+        viewMode={viewMode}
+        onViewModeChange={(mode) => setViewMode(mode)}
+        showViewToggle={true}
       />
 
       {/* Event Selection */}
@@ -310,93 +324,6 @@ export function SquadStatusManagement() {
           </select>
         </div>
       )}
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Filters & Status Legend</h3>
-        
-        {/* Status Legend */}
-        {uniqueStatuses.length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Status Colors</h4>
-            <div className="flex flex-wrap gap-2">
-              {statuses
-                .filter(status => uniqueStatuses.includes(status.var_name))
-                .map(status => {
-                  const colorInfo = getStatusColor(status.ary_colorcode)
-                  return (
-                    <div key={status.int_statusid} className="flex items-center space-x-2">
-                      <span 
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorInfo.className}`}
-                        style={colorInfo.style}
-                      >
-                        {status.var_name}
-                      </span>
-                    </div>
-                  )
-                })
-              }
-            </div>
-          </div>
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Squad</label>
-            <select
-              value={filterSquad}
-              onChange={(e) => setFilterSquad(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Squads</option>
-              {uniqueSquads.map(squad => (
-                <option key={squad} value={squad}>{squad}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Discipline</label>
-            <select
-              value={filterDiscipline}
-              onChange={(e) => setFilterDiscipline(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Disciplines</option>
-              {uniqueDisciplines.map(discipline => (
-                <option key={discipline} value={discipline}>{discipline}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Statuses</option>
-              {uniqueStatuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="flex items-end">
-            <button
-              onClick={() => {
-                setFilterSquad('')
-                setFilterDiscipline('')
-                setFilterStatus('')
-              }}
-              className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              Reset Filters
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Data Display */}
       {viewMode === 'table' ? (

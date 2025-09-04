@@ -2,13 +2,10 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { 
   TrophyIcon,
-  EyeIcon,
-  ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
-  ClockIcon,
-  InformationCircleIcon
+  ClockIcon
 } from '@heroicons/react/24/outline'
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
 
@@ -64,6 +61,7 @@ const CompetitionStatusManagement = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterGender, setFilterGender] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
 
   // View options
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
@@ -259,26 +257,35 @@ const CompetitionStatusManagement = () => {
     return true
   })
 
-  // Helper functions for unified header
-  const getStateInfo = (): StateInfo[] => {
-    const total = competitionStatuses.length
-    const completed = competitionStatuses.filter(c => getAggregatedOverallStatus(c) === 'completed').length
-    const inProgress = competitionStatuses.filter(c => getAggregatedOverallStatus(c) === 'in_progress').length
-    const notStarted = competitionStatuses.filter(c => getAggregatedOverallStatus(c) === 'not_started').length
-
-    return [
-      { value: 'completed', label: 'Completed', count: completed, color: 'text-green-600' },
-      { value: 'in-progress', label: 'In Progress', count: inProgress, color: 'text-yellow-600' },
-      { value: 'not_started', label: 'Not Started', count: notStarted, color: 'text-gray-600' },
-      { value: 'total', label: 'Total', count: total, color: 'text-blue-600' }
-    ]
-  }
-
   const handleClearAllFilters = () => {
     setSearchTerm('')
     setFilterStatus('')
     setFilterGender('')
   }
+
+  const getFilterOptions = () => [
+    {
+      value: 'status',
+      label: 'Status',
+      selectedValue: filterStatus,
+      options: [
+        { value: 'completed', label: 'Completed' },
+        { value: 'in_progress', label: 'In Progress' },
+        { value: 'not_started', label: 'Not Started' }
+      ],
+      onChange: setFilterStatus
+    },
+    {
+      value: 'gender',
+      label: 'Gender',
+      selectedValue: filterGender,
+      options: [
+        { value: 'männlich', label: 'Männlich' },
+        { value: 'weiblich', label: 'Weiblich' }
+      ],
+      onChange: setFilterGender
+    }
+  ];
 
   if (loading) {
     return (
@@ -293,67 +300,30 @@ const CompetitionStatusManagement = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Competition Status Management"
-        description={`Competition status overview for ${selectedEvent?.var_eventname || 'Selected Event'}`}
+        subtitle={`Competition status overview for ${selectedEvent?.var_eventname || 'Selected Event'}`}
         icon={TrophyIcon}
+        showEventContext={true}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search competitions..."
-        filterOptions={[
-          {
-            label: 'Status',
-            value: 'status',
-            options: [
-              { value: '', label: 'All Statuses' },
-              { value: 'completed', label: 'Completed' },
-              { value: 'in_progress', label: 'In Progress' },
-              { value: 'not_started', label: 'Not Started' }
-            ],
-            selectedValue: filterStatus,
-            onChange: setFilterStatus
-          },
-          {
-            label: 'Gender',
-            value: 'gender',
-            options: [
-              { value: '', label: 'All Genders' },
-              { value: 'männlich', label: 'Männlich' },
-              { value: 'weiblich', label: 'Weiblich' }
-            ],
-            selectedValue: filterGender,
-            onChange: setFilterGender
-          }
-        ]}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        hasFilters={true}
+        filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
+        showExportCSV={true}
         onExportCSV={() => {
           // TODO: Implement CSV export
           console.log('Export CSV')
         }}
-        stateInfo={getStateInfo()}
-        selectedState=""
-        onStateChange={() => {}}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: viewMode === 'table' ? 'Grid View' : 'Table View',
-          icon: viewMode === 'table' ? EyeIcon : ClipboardDocumentListIcon,
-          onClick: () => setViewMode(viewMode === 'table' ? 'grid' : 'table')
-        }}
-        totalCount={filteredCompetitions.length}
+        showAdd={false}
+        showImport={false}
+        viewMode={viewMode}
+        onViewModeChange={(mode) => setViewMode(mode)}
+        showViewToggle={true}
       />
-
-      {/* Event Selection Context */}
-      {selectedEvent && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 mx-6">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-            <div className="text-sm text-blue-800">
-              <strong>Selected Event:</strong> {selectedEvent.var_eventname}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Event Selection */}
       {!selectedEvent && (

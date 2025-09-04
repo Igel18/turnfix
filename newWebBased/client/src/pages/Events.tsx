@@ -4,13 +4,11 @@ import {
   MapPinIcon,
   UsersIcon,
   ClipboardDocumentListIcon,
-  PlusIcon,
   PencilIcon,
   TrashIcon,
-  EyeIcon,
-  DocumentArrowUpIcon
+  EyeIcon
 } from '@heroicons/react/24/outline'
-import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { exportToCSV, getEventCSVData } from '@/utils/csvExport'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 
@@ -81,6 +79,7 @@ const Events: React.FC = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
@@ -100,33 +99,6 @@ const Events: React.FC = () => {
   ]
 
   // Helper functions for unified header
-  const getEventStateInfo = (): StateInfo[] => {
-    const upcomingCount = events.filter(e => e.status === 'upcoming').length
-    const activeCount = events.filter(e => e.status === 'active').length
-    const completedCount = events.filter(e => e.status === 'completed').length
-
-    return [
-      {
-        value: 'upcoming',
-        label: 'Upcoming',
-        count: upcomingCount,
-        color: 'bg-blue-100 text-blue-800'
-      },
-      {
-        value: 'active',
-        label: 'Active',
-        count: activeCount,
-        color: 'bg-green-100 text-green-800'
-      },
-      {
-        value: 'completed',
-        label: 'Completed',
-        count: completedCount,
-        color: 'bg-gray-100 text-gray-800'
-      }
-    ]
-  }
-
   const getFilterOptions = () => [
     {
       label: 'Status',
@@ -486,32 +458,28 @@ const Events: React.FC = () => {
     <div className="max-w-7xl mx-auto">
       {activeView === 'list' ? (
         <div>
-          <UnifiedHeader
+          <UnifiedPageHeader
             title="Event Management"
-            description={`Manage gymnastics events and competitions (${events.length} events loaded)`}
+            subtitle={`Manage gymnastics events and competitions (${events.length} events loaded)`}
             icon={CalendarDaysIcon}
-            stateInfo={getEventStateInfo()}
-            selectedState={selectedStatus}
-            onStateChange={setSelectedStatus}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             searchPlaceholder="Search events..."
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(!showFilters)}
+            hasFilters={true}
             filterOptions={getFilterOptions()}
             onClearAllFilters={handleClearAllFilters}
+            showExportCSV={true}
             onExportCSV={handleExportCSV}
-            showHomeButton={true}
-            homeUrl="/dashboard"
-            primaryAction={{
-              label: 'Add Event',
-              icon: PlusIcon,
-              onClick: openCreateModal
-            }}
-            secondaryAction={{
-              label: 'Import from Gymnet',
-              icon: DocumentArrowUpIcon,
-              onClick: openImportModal
-            }}
+            showAdd={true}
+            addLabel="Add Event"
+            onAdd={openCreateModal}
+            showImport={true}
+            importLabel="Import from Gymnet"
+            onImport={openImportModal}
             totalCount={events.length}
+            showEventContext={false}
           />
 
           {/* Success Message */}

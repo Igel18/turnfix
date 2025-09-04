@@ -259,8 +259,9 @@ start event management
 ---
 Ok. In front of the Headline in the Template there must be a Icon (like in the picture) . 
 The Meldematrix has the filter twice and the search club is not in the filter section. 
+---
 
-the following sides must be have the template: 
+the following sides must use the unified page header : 
 Event Management: 
          - manageme events 
          - View competitions
