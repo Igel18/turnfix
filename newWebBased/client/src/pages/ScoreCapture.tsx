@@ -34,6 +34,7 @@ interface Discipline {
   apparatus?: string;
   attempts: number;
   inputMask?: string;
+  maxScore?: number; // Maximum allowed score for this discipline in the competition
 }
 
 interface Squad {
@@ -192,6 +193,12 @@ export function ScoreCapture() {
           await delay(50) // Delay between each competition request
           const disciplinesData = await apiGet(`/competitions/${competition.id}/disciplines`)
           const competitionDisciplines = disciplinesData.disciplines || []
+          
+          // Log discipline structure to check if maxScore is included
+          if (competitionDisciplines.length > 0) {
+            console.log(`Competition ${competition.id} disciplines:`, competitionDisciplines)
+            console.log('Sample discipline structure:', competitionDisciplines[0])
+          }
           
           // Track which competition each discipline belongs to
           competitionDisciplines.forEach((discipline: Discipline) => {
@@ -567,6 +574,32 @@ export function ScoreCapture() {
     }
   }
 
+  // Helper function to check if score exceeds maximum and validation is enabled
+  const getScoreValidation = (disciplineId: number | string, scoreValue: string) => {
+    const discipline = displayDisciplines.find(d => 
+      d.int_disziplinid === disciplineId || d.var_name === disciplineId
+    )
+    
+    if (!discipline || !discipline.maxScore || discipline.maxScore <= 0) {
+      // No validation if maxScore is 0 or undefined
+      return { isValid: true, message: '' }
+    }
+    
+    const numericScore = parseFloat(scoreValue)
+    if (isNaN(numericScore) || scoreValue === '') {
+      return { isValid: true, message: '' }
+    }
+    
+    if (numericScore > discipline.maxScore) {
+      return { 
+        isValid: false, 
+        message: `Score exceeds maximum of ${discipline.maxScore.toFixed(2)} points`
+      }
+    }
+    
+    return { isValid: true, message: '' }
+  }
+
   const filteredParticipants = Array.isArray(participants) ? participants.filter(participant => {
     const matchesSearch = 
       participant.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -888,10 +921,17 @@ export function ScoreCapture() {
                       </th>
                       {displayDisciplines.map((discipline, index) => (
                         <th key={`header-${discipline.int_disziplinid || `${discipline.var_name}-${index}` || index}`} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {discipline.var_shortname || discipline.var_name}
-                          {discipline.apparatus && (
-                            <div className="text-xs text-gray-400 normal-case">{discipline.apparatus}</div>
-                          )}
+                          <div className="flex flex-col items-center">
+                            <span>{discipline.var_shortname || discipline.var_name}</span>
+                            {discipline.apparatus && (
+                              <div className="text-xs text-gray-400 normal-case">{discipline.apparatus}</div>
+                            )}
+                            {discipline.maxScore && discipline.maxScore > 0 && (
+                              <div className="text-xs text-blue-600 normal-case font-medium mt-1">
+                                Max: {discipline.maxScore.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
                         </th>
                       ))}
                     </tr>
@@ -927,18 +967,36 @@ export function ScoreCapture() {
                             const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${disciplineIndex}` || disciplineIndex;
                             const key = `${participant.id}-${disciplineId}`
                             const score = scoreMatrix[key] ?? '' // Use nullish coalescing to ensure always string
+                            const validation = getScoreValidation(disciplineId, score)
                             
                             return (
                               <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap text-center">
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={score}
-                                  onChange={(e) => handleScoreChange(participant.id, disciplineId, e.target.value)}
-                                  onBlur={() => saveScore(participant.id, disciplineId)}
-                                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  placeholder="0.00"
-                                />
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={score}
+                                    onChange={(e) => handleScoreChange(participant.id, disciplineId, e.target.value)}
+                                    onBlur={() => saveScore(participant.id, disciplineId)}
+                                    className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
+                                      validation.isValid 
+                                        ? 'border-gray-300 focus:ring-blue-500' 
+                                        : 'border-red-300 bg-red-50 focus:ring-red-500'
+                                    }`}
+                                    placeholder="0.00"
+                                    title={!validation.isValid ? validation.message : ''}
+                                  />
+                                  {!validation.isValid && (
+                                    <div className="absolute -bottom-6 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 z-10 whitespace-nowrap">
+                                      ⚠️ {validation.message}
+                                    </div>
+                                  )}
+                                  {discipline.maxScore && discipline.maxScore > 0 && (
+                                    <div className="absolute -top-6 left-0 right-0 text-xs text-gray-500 whitespace-nowrap">
+                                      Max: {discipline.maxScore.toFixed(2)}
+                                    </div>
+                                  )}
+                                </div>
                               </td>
                             )
                           })}
