@@ -105,6 +105,7 @@ const Competitions: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
   
   // State for disciplines and form data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -487,6 +488,9 @@ const Competitions: React.FC = () => {
         hasFilters={true}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        showViewToggle={true}
       />
 
       {/* Competitions Content */}
@@ -505,79 +509,203 @@ const Competitions: React.FC = () => {
             </p>
           </div>
         ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredCompetitions.map((competition) => (
-            <div key={competition.id} className="bg-white rounded-lg shadow-md border hover:shadow-lg transition-shadow">
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    {competition.number && (
-                      <div className="text-sm font-medium text-blue-600 mb-1">
-                        Nr. {competition.number}
+          <>
+            {/* Grid View */}
+            {viewMode === 'grid' && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredCompetitions.map((competition) => (
+                  <div key={competition.id} className="bg-white rounded-lg shadow-md border hover:shadow-lg transition-shadow">
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          {competition.number && (
+                            <div className="text-sm font-medium text-blue-600 mb-1">
+                              Nr. {competition.number}
+                            </div>
+                          )}
+                          <h3 className="text-lg font-semibold text-gray-900">{competition.name}</h3>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(competition.status)}`}>
+                          {competition.status}
+                        </span>
                       </div>
-                    )}
-                    <h3 className="text-lg font-semibold text-gray-900">{competition.name}</h3>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(competition.status)}`}>
-                    {competition.status}
-                  </span>
-                </div>
 
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{competition.description}</p>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{competition.description}</p>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {new Date(competition.date).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {competition.location}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Users className="w-4 h-4 mr-2" />
-                    {competition.participantCount} participants
-                  </div>
-                  {competition.registrationDeadline && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="w-4 h-4 mr-2" />
-                      Deadline: {new Date(competition.registrationDeadline).toLocaleDateString()}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          {new Date(competition.date).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          {competition.location}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Users className="w-4 h-4 mr-2" />
+                          {competition.participantCount} participants
+                        </div>
+                        {competition.registrationDeadline && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Clock className="w-4 h-4 mr-2" />
+                            Deadline: {new Date(competition.registrationDeadline).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div className="flex gap-2">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            {competition.gender}
+                          </span>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            {competition.ageFrom}-{competition.ageTo} years
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleEdit(competition)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            title="Edit competition"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(competition.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            title="Delete competition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                      {competition.gender}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                      {competition.ageFrom}-{competition.ageTo} years
-                    </span>
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleEdit(competition)}
-                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                      title="Edit competition"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(competition.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
-                      title="Delete competition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+            {/* Table View */}
+            {viewMode === 'table' && (
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Competition
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Location
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Participants
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Gender
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Age Group
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredCompetitions.map((competition) => (
+                        <tr key={competition.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="flex items-center">
+                                {competition.number && (
+                                  <span className="text-sm font-medium text-blue-600 mr-2">
+                                    Nr. {competition.number}
+                                  </span>
+                                )}
+                                <div className="text-sm font-medium text-gray-900">
+                                  {competition.name}
+                                </div>
+                              </div>
+                              {competition.description && (
+                                <div className="text-sm text-gray-500 mt-1 max-w-xs truncate">
+                                  {competition.description}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center text-sm text-gray-900">
+                              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                              {new Date(competition.date).toLocaleDateString()}
+                            </div>
+                            {competition.registrationDeadline && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                Deadline: {new Date(competition.registrationDeadline).toLocaleDateString()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center text-sm text-gray-900">
+                              <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                              {competition.location}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center text-sm text-gray-900">
+                              <Users className="w-4 h-4 mr-2 text-gray-400" />
+                              {competition.participantCount}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                              {competition.gender}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                              {competition.ageFrom}-{competition.ageTo} years
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(competition.status)}`}>
+                              {competition.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEdit(competition)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Edit competition"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(competition.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Delete competition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        )
-      }
+            )}
+          </>
+        )}
+      </div>
 
       {/* Modal for Create/Edit Competition */}
       {isModalOpen && (
@@ -985,7 +1113,6 @@ const Competitions: React.FC = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
