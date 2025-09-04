@@ -36,6 +36,19 @@ interface Discipline {
   maxScore?: number; // Maximum allowed score for this discipline in the competition
 }
 
+interface DisciplineField {
+  id: number;
+  disciplineId: number;
+  disciplineName: string;
+  disciplineShort: string;
+  name: string;
+  sortOrder: number | null;
+  isFinalScore: boolean;
+  isStartingScore: boolean;
+  group: number;
+  enabled: boolean;
+}
+
 interface Squad {
   name: string;
   participant_count: number;
@@ -94,9 +107,11 @@ export function ScoreCapture() {
   // State
   const [participants, setParticipants] = useState<Participant[]>([])
   const [disciplines, setDisciplines] = useState<Discipline[]>([])
+  const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([])
   const [squads, setSquads] = useState<Squad[]>([])
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [statuses, setStatuses] = useState<Status[]>([])
+  const [existingScores, setExistingScores] = useState<Score[]>([])
   const [loading, setLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(false)
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({}) // Changed to string only
@@ -139,6 +154,21 @@ export function ScoreCapture() {
       }
     }
   }, [contextDiscipline?.int_disziplinid, contextDiscipline?.var_name, activeDiscipline])
+
+  // Re-initialize score matrix when activeSquad changes (for filtering)
+  useEffect(() => {
+    if (participants.length > 0 && disciplines.length > 0 && existingScores.length > 0) {
+      console.log('Re-initializing score matrix due to squad change:', activeSquad)
+      initializeScoreMatrix(participants, disciplines, existingScores)
+    }
+  }, [activeSquad, participants, disciplines, existingScores])
+
+  // Helper function to get enabled fields for a discipline
+  const getDisciplineFields = (disciplineId: number | string) => {
+    return disciplineFields
+      .filter(field => field.disciplineId === disciplineId && field.enabled)
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+  }
 
   // Update squad status when squad or discipline selection changes
   useEffect(() => {
@@ -225,25 +255,36 @@ export function ScoreCapture() {
       console.log('All loaded disciplines (before dedup):', allDisciplines)
       console.log('Unique disciplines (after dedup):', uniqueDisciplines)
       
+      // Load discipline fields for all disciplines
+      try {
+        const disciplineFieldsData = await apiGet('/discipline-fields')
+        console.log('Loaded discipline fields:', disciplineFieldsData)
+        setDisciplineFields(disciplineFieldsData || [])
+      } catch (error) {
+        console.error('Error loading discipline fields:', error)
+        // Continue without discipline fields if there's an error
+      }
+      
       // Load existing scores for the event (load ALL scores, not just first 100)
-      let existingScores: Score[] = []
+      let loadedScores: Score[] = []
       try {
         console.log('Fetching ALL scores with URL:', `/scores?eventId=${eventId}&limit=1000`)
         const scoresData = await apiGet(`/scores?eventId=${eventId}&limit=1000`)
         console.log('Raw scores response:', scoresData)
-        existingScores = scoresData?.results || []
-        console.log('Loaded existing scores:', existingScores)
-        console.log('Number of existing scores:', existingScores.length)
-        if (existingScores.length > 0) {
-          console.log('Sample score object:', existingScores[0])
+        loadedScores = scoresData?.results || []
+        console.log('Loaded existing scores:', loadedScores)
+        console.log('Number of existing scores:', loadedScores.length)
+        if (loadedScores.length > 0) {
+          console.log('Sample score object:', loadedScores[0])
         }
+        setExistingScores(loadedScores)
       } catch (error) {
         console.error('Error loading existing scores:', error)
         // Continue without scores if there's an error
       }
       
       // Initialize score matrix with existing scores
-      initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], existingScores)
+      initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], loadedScores)
       
       // Load available statuses
       try {
@@ -305,6 +346,8 @@ export function ScoreCapture() {
     console.log('participants:', participants, 'type:', typeof participants, 'isArray:', Array.isArray(participants))
     console.log('disciplines:', disciplines, 'type:', typeof disciplines, 'isArray:', Array.isArray(disciplines))
     console.log('existingScores:', existingScores, 'type:', typeof existingScores, 'isArray:', Array.isArray(existingScores))
+    console.log('activeSquad filter:', activeSquad)
+    console.log('disciplineFields:', disciplineFields)
     
     // Debug the first few score objects to see their actual properties
     if (existingScores.length > 0) {
@@ -319,40 +362,63 @@ export function ScoreCapture() {
     const safeParticipants = Array.isArray(participants) ? participants : []
     const safeDisciplines = Array.isArray(disciplines) ? disciplines : []
     
-    console.log(`Processing ${safeParticipants.length} participants:`)
-    safeParticipants.forEach(p => {
+    // Filter participants by active squad if set
+    const filteredParticipants = !activeSquad 
+      ? safeParticipants 
+      : safeParticipants.filter(participant => participant.squad_name === activeSquad)
+    
+    console.log(`Processing ${filteredParticipants.length} participants (filtered from ${safeParticipants.length} total):`)
+    filteredParticipants.forEach(p => {
       console.log(`Participant ${p.id}: ${p.firstname} ${p.lastname}, Squad: ${p.squad_name}`)
     })
     const safeExistingScores = Array.isArray(existingScores) ? existingScores : []
     
-    console.log('Processing matrix for:', safeParticipants.length, 'participants and', safeDisciplines.length, 'disciplines')
+    console.log('Processing matrix for:', filteredParticipants.length, 'participants and', safeDisciplines.length, 'disciplines')
     console.log('With', safeExistingScores.length, 'existing scores')
     
-    safeParticipants.forEach(participant => {
+    filteredParticipants.forEach(participant => {
       safeDisciplines.forEach((discipline, index) => {
         const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
-        const key = `${participant.id}-${disciplineId}`
         
-        // Debug: Log the search criteria
-        console.log(`Looking for score: participantId=${participant.id}, disciplineId=${discipline.int_disziplinid || disciplineId}`)
-        console.log(`Available scores for participant ${participant.id}:`, safeExistingScores.filter(s => s.participantId === participant.id))
+        // Get enabled fields for this discipline
+        const enabledFields = getDisciplineFields(disciplineId)
+        console.log(`Discipline ${disciplineId} has ${enabledFields.length} enabled fields:`, enabledFields)
         
-        const existingScore = safeExistingScores.find(s => {
-          const matchesParticipant = s.participantId === participant.id
-          const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId
+        if (enabledFields.length === 0) {
+          // Fallback: if no fields configured, use single score per discipline (old behavior)
+          const key = `${participant.id}-${disciplineId}`
           
-          console.log(`Score ${s.id}: participantId=${s.participantId}, disciplineId=${s.disciplineId}, matches participant=${matchesParticipant}, matches discipline=${matchesDiscipline}`)
+          // Debug: Log the search criteria
+          console.log(`Looking for score: participantId=${participant.id}, disciplineId=${discipline.int_disziplinid || disciplineId}`)
+          console.log(`Available scores for participant ${participant.id}:`, safeExistingScores.filter(s => s.participantId === participant.id))
           
-          return matchesParticipant && matchesDiscipline
-        })
-        
-        if (existingScore) {
-          console.log(`✓ Found existing score for key ${key}:`, existingScore)
+          const existingScore = safeExistingScores.find(s => {
+            const matchesParticipant = s.participantId === participant.id
+            const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId
+            
+            console.log(`Score ${s.id}: participantId=${s.participantId}, disciplineId=${s.disciplineId}, matches participant=${matchesParticipant}, matches discipline=${matchesDiscipline}`)
+            
+            return matchesParticipant && matchesDiscipline
+          })
+          
+          if (existingScore) {
+            console.log(`✓ Found existing score for key ${key}:`, existingScore)
+          } else {
+            console.log(`✗ No score found for key ${key}`)
+          }
+          
+          matrix[key] = existingScore ? existingScore.score.toString() : '' // Convert to string
         } else {
-          console.log(`✗ No score found for key ${key}`)
+          // New behavior: create entries for each field
+          enabledFields.forEach(field => {
+            const fieldKey = `${participant.id}-${field.id}`
+            
+            // For now, initialize empty since we don't have field-specific scores yet
+            // TODO: Later we'll need to modify the Score interface and backend to handle field-specific scores
+            matrix[fieldKey] = ''
+            console.log(`Initialized field key ${fieldKey} for field "${field.name}"`)
+          })
         }
-        
-        matrix[key] = existingScore ? existingScore.score.toString() : '' // Convert to string
       })
     })
     
@@ -362,6 +428,14 @@ export function ScoreCapture() {
 
   const handleScoreChange = (participantId: number, disciplineId: number | string, value: string) => {
     const key = `${participantId}-${disciplineId}`
+    setScoreMatrix(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
+  const handleFieldScoreChange = (participantId: number, fieldId: number, value: string) => {
+    const key = `${participantId}-${fieldId}`
     setScoreMatrix(prev => ({
       ...prev,
       [key]: value
@@ -437,6 +511,21 @@ export function ScoreCapture() {
       console.error('Error saving score:', error)
       alert('Failed to save score')
     }
+  }
+
+  // TODO: Placeholder function for field-specific score saving
+  // This will need backend support for field-specific scores
+  const saveFieldScore = async (participantId: number, field: DisciplineField) => {
+    const fieldKey = `${participantId}-${field.id}`
+    const fieldValue = scoreMatrix[fieldKey]
+    
+    if (fieldValue === '' || fieldValue === null || fieldValue === undefined) return
+    
+    console.log(`TODO: Save field score for participant ${participantId}, field "${field.name}" (ID: ${field.id}), value: ${fieldValue}`)
+    console.log('Backend support for field-specific scores is not yet implemented')
+    
+    // For now, show a warning that field-specific saving is not implemented
+    // TODO: Implement field-specific score saving in backend
   }
 
   // Function to save squad status via API
@@ -855,21 +944,31 @@ export function ScoreCapture() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Age/Gender
                       </th>
-                      {displayDisciplines.map((discipline, index) => (
-                        <th key={`header-${discipline.int_disziplinid || `${discipline.var_name}-${index}` || index}`} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          <div className="flex flex-col items-center">
-                            <span>{discipline.var_shortname || discipline.var_name}</span>
-                            {discipline.apparatus && (
-                              <div className="text-xs text-gray-400 normal-case">{discipline.apparatus}</div>
-                            )}
-                            {discipline.maxScore && discipline.maxScore > 0 && (
-                              <div className="text-xs text-blue-600 normal-case font-medium mt-1">
-                                Max: {discipline.maxScore.toFixed(2)}
-                              </div>
-                            )}
-                          </div>
-                        </th>
-                      ))}
+                      {displayDisciplines.map((discipline, index) => {
+                        const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
+                        const enabledFields = getDisciplineFields(disciplineId)
+                        
+                        return (
+                          <th key={`header-${disciplineId}`} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div className="flex flex-col items-center">
+                              <span>{discipline.var_shortname || discipline.var_name}</span>
+                              {discipline.apparatus && (
+                                <div className="text-xs text-gray-400 normal-case">{discipline.apparatus}</div>
+                              )}
+                              {discipline.maxScore && discipline.maxScore > 0 && (
+                                <div className="text-xs text-blue-600 normal-case font-medium mt-1">
+                                  Max: {discipline.maxScore.toFixed(2)}
+                                </div>
+                              )}
+                              {enabledFields.length > 0 && (
+                                <div className="text-xs text-gray-400 normal-case mt-1">
+                                  {enabledFields.map(field => field.name).join(' • ')}
+                                </div>
+                              )}
+                            </div>
+                          </th>
+                        )
+                      })}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -901,40 +1000,87 @@ export function ScoreCapture() {
                           </td>
                           {displayDisciplines.map((discipline, disciplineIndex) => {
                             const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${disciplineIndex}` || disciplineIndex;
-                            const key = `${participant.id}-${disciplineId}`
-                            const score = scoreMatrix[key] ?? '' // Use nullish coalescing to ensure always string
-                            const validation = getScoreValidation(disciplineId, score)
+                            const enabledFields = getDisciplineFields(disciplineId)
                             
-                            return (
-                              <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap text-center">
-                                <div className="relative">
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    value={score}
-                                    onChange={(e) => handleScoreChange(participant.id, disciplineId, e.target.value)}
-                                    onBlur={() => saveScore(participant.id, disciplineId)}
-                                    className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
-                                      validation.isValid 
-                                        ? 'border-gray-300 focus:ring-blue-500' 
-                                        : 'border-red-300 bg-red-50 focus:ring-red-500'
-                                    }`}
-                                    placeholder="0.00"
-                                    title={!validation.isValid ? validation.message : ''}
-                                  />
-                                  {!validation.isValid && (
-                                    <div className="absolute -bottom-6 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 z-10 whitespace-nowrap">
-                                      ⚠️ {validation.message}
-                                    </div>
-                                  )}
-                                  {discipline.maxScore && discipline.maxScore > 0 && (
-                                    <div className="absolute -top-6 left-0 right-0 text-xs text-gray-500 whitespace-nowrap">
-                                      Max: {discipline.maxScore.toFixed(2)}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                            )
+                            if (enabledFields.length === 0) {
+                              // Fallback: single input field (old behavior)
+                              const key = `${participant.id}-${disciplineId}`
+                              const score = scoreMatrix[key] ?? ''
+                              const validation = getScoreValidation(disciplineId, score)
+                              
+                              return (
+                                <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap text-center">
+                                  <div className="relative">
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={score}
+                                      onChange={(e) => handleScoreChange(participant.id, disciplineId, e.target.value)}
+                                      onBlur={() => saveScore(participant.id, disciplineId)}
+                                      className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
+                                        validation.isValid 
+                                          ? 'border-gray-300 focus:ring-blue-500' 
+                                          : 'border-red-300 bg-red-50 focus:ring-red-500'
+                                      }`}
+                                      placeholder="0.00"
+                                      title={!validation.isValid ? validation.message : ''}
+                                    />
+                                    {!validation.isValid && (
+                                      <div className="absolute -bottom-6 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 z-10 whitespace-nowrap">
+                                        ⚠️ {validation.message}
+                                      </div>
+                                    )}
+                                    {discipline.maxScore && discipline.maxScore > 0 && (
+                                      <div className="absolute -top-6 left-0 right-0 text-xs text-gray-500 whitespace-nowrap">
+                                        Max: {discipline.maxScore.toFixed(2)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              )
+                            } else {
+                              // New behavior: multiple input fields for enabled discipline fields
+                              return (
+                                <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap">
+                                  <div className="space-y-2">
+                                    {enabledFields.map(field => {
+                                      const fieldKey = `${participant.id}-${field.id}`
+                                      const fieldValue = scoreMatrix[fieldKey] ?? ''
+                                      const validation = getScoreValidation(disciplineId, fieldValue)
+                                      
+                                      return (
+                                        <div key={`field-${participant.id}-${field.id}`} className="flex flex-col items-center">
+                                          <label className="text-xs text-gray-600 mb-1 text-center" title={field.name}>
+                                            {field.name.length > 8 ? `${field.name.substring(0, 8)}...` : field.name}
+                                          </label>
+                                          <div className="relative">
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              value={fieldValue}
+                                              onChange={(e) => handleFieldScoreChange(participant.id, field.id, e.target.value)}
+                                              onBlur={() => saveFieldScore(participant.id, field)}
+                                              className={`w-16 px-1 py-1 text-xs border rounded focus:ring-2 focus:border-transparent ${
+                                                validation.isValid 
+                                                  ? 'border-gray-300 focus:ring-blue-500' 
+                                                  : 'border-red-300 bg-red-50 focus:ring-red-500'
+                                              }`}
+                                              placeholder="0.00"
+                                              title={`${field.name}${!validation.isValid ? ' - ' + validation.message : ''}`}
+                                            />
+                                            {!validation.isValid && (
+                                              <div className="absolute -bottom-5 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-1 z-10 whitespace-nowrap">
+                                                ⚠️
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                </td>
+                              )
+                            }
                           })}
                         </tr>
                       )

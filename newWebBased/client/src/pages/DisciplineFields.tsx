@@ -144,12 +144,12 @@ export default function DisciplineFields() {
       'Endwert': field.isFinalScore ? 'Ja' : 'Nein',
       'Ausgangswert': field.isStartingScore ? 'Ja' : 'Nein',
       'Gruppe': field.group,
-      'Aktiv': field.enabled ? 'Ja' : 'Nein'
+      'Score Capture': field.enabled ? 'Sichtbar' : 'Versteckt'
     }))
     
     exportToCSV({
       filename: 'disziplinfelder',
-      headers: ['ID', 'Disziplin', 'Feldname', 'Sortierung', 'Endwert', 'Ausgangswert', 'Gruppe', 'Aktiv'],
+      headers: ['ID', 'Disziplin', 'Feldname', 'Sortierung', 'Endwert', 'Ausgangswert', 'Gruppe', 'Score Capture'],
       data: csvData
     })
   }
@@ -191,6 +191,68 @@ export default function DisciplineFields() {
           subtitle="Bewertungsfelder für Disziplinen verwalten"
           icon={CogIcon}
         />
+
+        {/* Info Section */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-900 mb-2">📝 Score Capture Konfiguration</h4>
+          <div className="text-sm text-blue-800">
+            <p className="mb-2">
+              <strong>Diese Felder bestimmen, welche Eingabefelder in der Wettkampferfassung (Score Capture) angezeigt werden.</strong>
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium mb-1">✅ Sichtbare Felder erscheinen als:</p>
+                <ul className="text-xs space-y-1 ml-4">
+                  <li>• D/A-Note (Schwierigkeit)</li>
+                  <li>• E/B-Note (Ausführung)</li>
+                  <li>• Neutrale Abzüge</li>
+                  <li>• Ausgangswert</li>
+                  <li>• Weitere konfigurierte Felder</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium mb-1">⚙️ Konfiguration:</p>
+                <ul className="text-xs space-y-1 ml-4">
+                  <li>• <strong>Sortierung:</strong> Reihenfolge der Felder</li>
+                  <li>• <strong>Gruppe:</strong> Feldgruppierung</li>
+                  <li>• <strong>Typ:</strong> End-/Ausgangswert</li>
+                  <li>• <strong>Sichtbarkeit:</strong> Ein/Aus für Score Capture</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Warning Section - Field Scores Not Saved Yet */}
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h4 className="text-sm font-medium text-amber-900 mb-2">⚠️ Entwicklungshinweis</h4>
+          <div className="text-sm text-amber-800">
+            <p className="mb-2">
+              <strong>Feldspezifische Bewertungen werden derzeit noch nicht in der Datenbank gespeichert.</strong>
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium mb-1">🔄 Aktueller Status:</p>
+                <ul className="text-xs space-y-1 ml-4">
+                  <li>• Felder werden korrekt angezeigt</li>
+                  <li>• Eingaben sind möglich</li>
+                  <li>• UI-Funktionalität vollständig</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium mb-1">🚧 Noch in Entwicklung:</p>
+                <ul className="text-xs space-y-1 ml-4">
+                  <li>• Backend-Speicherung für Feldwerte</li>
+                  <li>• Datenbank-Schema Erweiterung</li>
+                  <li>• Persistierung der Einzelbewertungen</li>
+                </ul>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-amber-700">
+              Die Konfiguration der Felder funktioniert bereits vollständig. Nur die Speicherung der eingegebenen Werte wird noch implementiert.
+            </p>
+          </div>
+        </div>
 
         {/* Actions and Filters */}
         <div className="mb-6 space-y-4">
@@ -299,7 +361,7 @@ export default function DisciplineFields() {
                           Gruppe
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
+                          Score Capture
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Aktionen
@@ -330,7 +392,7 @@ export default function DisciplineFields() {
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-red-100 text-red-800'
                             }`}>
-                              {field.enabled ? 'Aktiv' : 'Inaktiv'}
+                              {field.enabled ? '📝 Sichtbar' : '❌ Versteckt'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -409,13 +471,13 @@ export default function DisciplineFields() {
                           </div>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-500">Status:</span>
+                          <span className="text-sm text-gray-500">Score Capture:</span>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                             field.enabled 
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {field.enabled ? 'Aktiv' : 'Inaktiv'}
+                            {field.enabled ? '📝 Sichtbar' : '❌ Versteckt'}
                           </span>
                         </div>
                       </div>
@@ -523,8 +585,12 @@ export default function DisciplineFields() {
                       onChange={(e) => setFormData({...formData, enabled: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Aktiv</span>
+                    <span className="ml-2 text-sm text-gray-700">📝 Eingabefeld in Score Capture anzeigen</span>
                   </label>
+                  <p className="text-xs text-gray-500 mt-1 ml-6">
+                    ✅ <strong>Aktiviert:</strong> Feld wird als Eingabefeld in der Wettkampferfassung angezeigt (wie D/A-Note, E/B-Note, etc.)<br/>
+                    ❌ <strong>Deaktiviert:</strong> Feld ist nur in der Verwaltung sichtbar, nicht in Score Capture
+                  </p>
                 </div>
 
                 <div className="flex space-x-4 pt-4">
