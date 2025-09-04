@@ -115,6 +115,15 @@ const getDatabaseManagementActions = (statistics: any) => [
     countLabel: 'Groups'
   },
   {
+    name: 'Discipline Fields',
+    description: 'Manage scoring fields for each discipline',
+    href: '/discipline-fields',
+    icon: CogIcon,
+    color: 'bg-purple-500',
+    count: statistics.totalDisciplineFields || 0,
+    countLabel: 'Fields'
+  },
+  {
     name: 'Certificate Layouts',
     description: 'Design and manage certificate templates and layouts',
     href: '/certificate-layouts',
@@ -264,6 +273,7 @@ export function Dashboard() {
     totalSports: 0,
     totalFormulas: 0,
     totalDisciplineGroups: 0,
+    totalDisciplineFields: 0,
     totalCertificateLayouts: 0,
     totalStatuses: 0,
     loading: true
@@ -316,14 +326,15 @@ export function Dashboard() {
 
         // Fetch additional statistics for database management
         const additionalApis = [
-          '/api/statuses'
+          '/api/statuses',
+          '/api/discipline-fields/count'
         ]
 
         const additionalPromises = additionalApis.map(url => 
-          fetch(url).then(res => res.ok ? res.json() : { pagination: { total: 0 } }).catch(() => ({ pagination: { total: 0 } }))
+          fetch(url).then(res => res.ok ? res.json() : { pagination: { total: 0 }, count: 0 }).catch(() => ({ pagination: { total: 0 }, count: 0 }))
         )
 
-        const [statusesData] = await Promise.all(additionalPromises)
+        const [statusesData, disciplineFieldsData] = await Promise.all(additionalPromises)
 
         setStatistics({
           activeEvents: (events as any).pagination?.total || 0,
@@ -337,6 +348,7 @@ export function Dashboard() {
           totalSports: 0, // TODO: Add API endpoint
           totalFormulas: 0, // TODO: Add API endpoint
           totalDisciplineGroups: 0, // TODO: Add API endpoint
+          totalDisciplineFields: disciplineFieldsData?.count || 0,
           totalCertificateLayouts: 0, // TODO: Add API endpoint
           totalStatuses: statusesData.pagination?.total || 0,
           loading: false
@@ -353,6 +365,7 @@ export function Dashboard() {
           totalSports: 0,
           totalFormulas: 0,
           totalDisciplineGroups: 0,
+          totalDisciplineFields: 0,
           totalCertificateLayouts: 0,
           totalStatuses: 0,
           loading: false 

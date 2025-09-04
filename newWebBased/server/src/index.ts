@@ -16,6 +16,7 @@ import { notFoundHandler } from './middleware/notFoundHandler';
 
 // Prisma-based routes using SQL queries
 import disciplineRoutes from './routes/disciplines';
+import disciplineFieldRoutes from './routes/disciplineFields';
 import associationRoutes from './routes/associations';
 import regionRoutes from './routes/regions';
 import clubRoutes from './routes/clubs';
@@ -112,6 +113,7 @@ app.get('/api/test', (req, res) => {
 
 // API Routes - Only Prisma-based routes using direct SQL queries
 app.use('/api/disciplines', disciplineRoutes);
+app.use('/api/discipline-fields', disciplineFieldRoutes);
 app.use('/api/associations', associationRoutes);
 app.use('/api/regions', regionRoutes);
 app.use('/api/clubs', clubRoutes);

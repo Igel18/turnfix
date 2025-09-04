@@ -279,7 +279,8 @@ Event Management:
 ---
 new UI Medallienspiegel / medal results: 
 in Dashboard group "event mangement" in section "Results & Awards": it shows how much medals each club has won in this event in sum and seperated by competition. Use the unified header template. a pdf export must be available. 
-
+--- 
+In UI "Event Management" -> "Edit Event" a field exists "location". here must be the locations used from "Location Management". 
 
 the following sides must use the unified page header : 
 Database Management: 
