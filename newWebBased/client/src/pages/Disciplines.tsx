@@ -45,8 +45,24 @@ interface Category {
   name: string
 }
 
+interface Formula {
+  int_formelid: number
+  var_name: string
+  var_formel?: string
+  int_typ?: number
+  discipline_count: number
+}
+
+interface Sport {
+  int_sportid: number
+  var_name: string
+  discipline_count: number
+}
+
 export default function Disciplines() {
   const [disciplines, setDisciplines] = useState<Discipline[]>([])
+  const [formulas, setFormulas] = useState<Formula[]>([])
+  const [sports, setSports] = useState<Sport[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedGender, setSelectedGender] = useState('')
@@ -74,13 +90,15 @@ export default function Disciplines() {
     lanesDivision: false,
     maleAllowed: true,
     femaleAllowed: true,
-    sportId: 1,
+    sportId: 0, // Will require selection
     formulaId: undefined as number | undefined,
     shouldCalculate: true
   })
 
   useEffect(() => {
     fetchDisciplines()
+    fetchFormulas()
+    fetchSports()
   }, [])
 
   const fetchDisciplines = async () => {
@@ -113,6 +131,30 @@ export default function Disciplines() {
     }
   }
 
+  const fetchFormulas = async () => {
+    try {
+      const data = await apiGet('/formulas?limit=1000') // Get all formulas
+      setFormulas(data?.formulas || [])
+    } catch (error) {
+      console.error('Error fetching formulas:', error)
+    }
+  }
+
+  const fetchSports = async () => {
+    try {
+      const data = await apiGet('/sports?limit=1000') // Get all sports
+      setSports(data?.sports || [])
+    } catch (error) {
+      console.error('Error fetching sports:', error)
+    }
+  }
+
+  // Helper function to get sport name by ID
+  const getSportName = (sportId: number): string => {
+    const sport = sports.find(s => s.int_sportid === sportId)
+    return sport ? sport.var_name : `Sport ID: ${sportId}`
+  }
+
   const handleDelete = async (discipline: Discipline) => {
     if (window.confirm(`Are you sure you want to delete "${discipline.display_name || discipline.name}"?`)) {
       try {
@@ -142,7 +184,7 @@ export default function Disciplines() {
       lanesDivision: false,
       maleAllowed: true,
       femaleAllowed: true,
-      sportId: 1,
+      sportId: 0, // Will require selection
       formulaId: undefined,
       shouldCalculate: true
     })
@@ -179,6 +221,12 @@ export default function Disciplines() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation
+    if (!formData.sportId || formData.sportId === 0) {
+      alert('Please select a sport category')
+      return
+    }
     
     try {
       const disciplineData = {
@@ -315,6 +363,7 @@ export default function Disciplines() {
     const exportData = filteredDisciplines.map(discipline => ({
       'Name': discipline.display_name || discipline.name,
       'Short Name': discipline.short_name,
+      'Sport Category': getSportName(discipline.sport_id),
       'Unit': discipline.unit,
       'Gender': discipline.gender_text,
       'Attempts': discipline.attempts,
@@ -323,7 +372,7 @@ export default function Disciplines() {
     
     exportToCSV({
       filename: 'disciplines.csv',
-      headers: ['Name', 'Short Name', 'Apparatus', 'Gender', 'Attempts', 'Active'],
+      headers: ['Name', 'Short Name', 'Sport Category', 'Unit', 'Gender', 'Attempts', 'Active'],
       data: exportData,
       numberFields: ['Attempts']
     })
@@ -400,6 +449,10 @@ export default function Disciplines() {
                 </div>
 
                 <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Sport Category:</span>
+                    <span className="font-medium">{getSportName(discipline.sport_id)}</span>
+                  </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Apparatus:</span>
                     <span className="font-medium">{discipline.unit}</span>
@@ -517,10 +570,54 @@ export default function Disciplines() {
                 {/* Calculation Settings */}
                 <div className="md:col-span-2">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Calculation & Formula</h3>
+                  
+                  {/* Help Text Section */}
+                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">📋 Formula System Guide</h4>
+                    <div className="text-sm text-blue-800 space-y-2">
+                      <p><strong>How it works:</strong> Formulas are mathematical expressions that transform raw judge scores into final results using the FunctionParser library.</p>
+                      
+                      <p><strong>Variable "x":</strong> Represents the input value from discipline fields (judge scores, measurements, etc.)</p>
+                      
+                      <p><strong>Two Formula Options:</strong></p>
+                      <ul className="text-xs ml-4 space-y-1">
+                        <li>• <strong>Custom Formula:</strong> Enter formula directly in the text area below</li>
+                        <li>• <strong>Predefined Formula:</strong> Select from Formulas Management (overrides custom formula)</li>
+                        <li>• <strong>Priority:</strong> Predefined formula takes precedence if both are set</li>
+                      </ul>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <p className="font-medium mb-1">📐 Supported Functions:</p>
+                          <ul className="text-xs space-y-1">
+                            <li>• Basic: +, -, *, /, ^ (power)</li>
+                            <li>• Math: sin(x), cos(x), tan(x), sqrt(x)</li>
+                            <li>• Logarithms: log(x), ln(x)</li>
+                            <li>• Conditionals: if(condition, true, false)</li>
+                            <li>• Constants: pi, e</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium mb-1">💡 Example Formulas:</p>
+                          <ul className="text-xs space-y-1">
+                            <li>• <code>x</code> - Direct score (no transformation)</li>
+                            <li>• <code>x*2</code> - Double the input score</li>
+                            <li>• <code>20-x</code> - Gymnastics difficulty + execution</li>
+                            <li>• <code>if(x&gt;0,sqrt(x)*10,0)</code> - Track & field points</li>
+                            <li>• <code>sin(x*pi/180)</code> - Angle calculations</li>
+                          </ul>
+                        </div>
+                      </div>
+                      
+                      <p className="mt-2"><strong>⚠️ Note:</strong> Formulas are evaluated for each participant's score, with validation against maximum values and constraints from discipline fields.</p>
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Formula
+                        Custom Formula
+                        <span className="text-xs text-gray-500 ml-1">(Mathematical expression with variable "x")</span>
                       </label>
                       <textarea
                         maxLength={300}
@@ -528,36 +625,123 @@ export default function Disciplines() {
                         value={formData.formula}
                         onChange={(e) => setFormData({...formData, formula: e.target.value})}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter calculation formula"
+                        placeholder="e.g., x*2, 20-x, if(x>0,sqrt(x)*10,0)"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter custom formula to transform input scores. Use "x" as the variable for input values.
+                        {formData.formulaId ? (
+                          <span className="text-orange-600 block mt-1">
+                            ⚠️ This field will be ignored because a predefined formula is selected above.
+                          </span>
+                        ) : (
+                          <span className="text-green-600 block mt-1">
+                            ✓ This custom formula will be used for calculations.
+                          </span>
+                        )}
+                      </p>
                     </div>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Calculation Type
+                          Calculation Type (Decimal Places)
+                          <span className="text-xs text-gray-500 ml-1">(Result precision)</span>
                         </label>
                         <select
                           value={formData.calculationType}
                           onChange={(e) => setFormData({...formData, calculationType: parseInt(e.target.value)})}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value={1}>Type 1</option>
-                          <option value={2}>Type 2</option>
-                          <option value={3}>Type 3</option>
+                          <option value={0}>0 decimals (e.g., 15)</option>
+                          <option value={1}>1 decimal (e.g., 15.5)</option>
+                          <option value={2}>2 decimals (e.g., 15.75)</option>
+                          <option value={3}>3 decimals (e.g., 15.750)</option>
                         </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Number of decimal places for calculated results display.
+                        </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Formula ID
+                          Predefined Formula
+                          <span className="text-xs text-gray-500 ml-1">(Select from Formulas Management)</span>
                         </label>
-                        <input
-                          type="number"
+                        <select
                           value={formData.formulaId || ''}
                           onChange={(e) => setFormData({...formData, formulaId: e.target.value ? parseInt(e.target.value) : undefined})}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Formula reference ID"
-                        />
+                        >
+                          <option value="">No predefined formula</option>
+                          {formulas.map(formula => (
+                            <option key={formula.int_formelid} value={formula.int_formelid}>
+                              {formula.var_name}
+                              {formula.var_formel && (
+                                ` - ${formula.var_formel.length > 30 ? formula.var_formel.substring(0, 30) + '...' : formula.var_formel}`
+                              )}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Choose a predefined formula from Formulas Management ({formulas.length} available), or leave empty to use the custom formula field above. 
+                          {formData.formulaId && (
+                            <>
+                              <br />
+                              <span className="text-blue-600">
+                                ✓ Using predefined formula (overrides custom formula field)
+                              </span>
+                            </>
+                          )}
+                          {formulas.length === 0 && (
+                            <>
+                              <br />
+                              <span className="text-orange-600">
+                                ⚠️ No formulas available. Create formulas in Formulas Management first.
+                              </span>
+                            </>
+                          )}
+                        </p>
                       </div>
+                      
+                      {/* Should Calculate Toggle */}
+                      <div>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.shouldCalculate}
+                            onChange={(e) => setFormData({...formData, shouldCalculate: e.target.checked})}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">Enable automatic calculation</span>
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          When enabled, formulas are automatically applied to input scores during result processing.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Formula & Fields Relationship */}
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-yellow-900 mb-2">🔗 Formula & Discipline Fields Connection</h4>
+                    <div className="text-sm text-yellow-800">
+                      <p className="mb-2">
+                        <strong>Formula Processing Flow:</strong>
+                      </p>
+                      <ol className="text-xs space-y-1 ml-4">
+                        <li>1. Judge enters score → Stored in discipline field (tfx_disziplinen_felder)</li>
+                        <li>2. System retrieves formula → From predefined formula (if selected) OR custom formula field</li>
+                        <li>3. FunctionParser processes → Parses formula string with variable "x"</li>
+                        <li>4. Score evaluation → Formula.Eval([input_value]) calculates result</li>
+                        <li>5. Validation occurs → Against field constraints and maximum values</li>
+                        <li>6. Result displayed → Formatted using calculation type (decimal places)</li>
+                      </ol>
+                      <div className="mt-2 p-2 bg-yellow-100 rounded border border-yellow-300">
+                        <p className="text-xs">
+                          <strong>💡 Formula Priority:</strong> Predefined Formula (from dropdown) → Custom Formula (text field) → Direct score (x)
+                        </p>
+                      </div>
+                      <p className="mt-2 text-xs">
+                        <strong>🔧 Tip:</strong> Configure discipline fields first to define what judges can enter, then choose/create formulas to transform those inputs into final scores.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -623,7 +807,10 @@ export default function Disciplines() {
 
                 {/* Unit & Sport Settings */}
                 <div className="md:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Unit & Sport Settings</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Unit & Sport Category
+                    <span className="text-sm text-gray-500 ml-2">(Classification and measurement settings)</span>
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -640,16 +827,48 @@ export default function Disciplines() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sport ID
+                        Sport Category
+                        <span className="text-xs text-gray-500 ml-1">(Select from Sports Management)</span>
                       </label>
-                      <input
-                        type="number"
-                        min={1}
+                      <select
                         required
-                        value={formData.sportId}
-                        onChange={(e) => setFormData({...formData, sportId: parseInt(e.target.value)})}
+                        value={formData.sportId || ''}
+                        onChange={(e) => setFormData({...formData, sportId: e.target.value ? parseInt(e.target.value) : 0})}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      >
+                        <option value="">Select a sport category</option>
+                        {sports.map(sport => (
+                          <option key={sport.int_sportid} value={sport.int_sportid}>
+                            {sport.var_name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Choose the sport category for this discipline ({sports.length} available).
+                        {sports.length === 0 && (
+                          <>
+                            <br />
+                            <span className="text-orange-600">
+                              ⚠️ No sports available. Create sport categories in Sports Management first.
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Sport & Unit Info */}
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">🏃 Sport Categories & Units</h4>
+                    <div className="text-sm text-gray-600">
+                      <p className="mb-2">
+                        <strong>Sport Categories:</strong> Group related disciplines together (e.g., "Gymnastics", "Swimming", "Athletics").
+                        Each discipline belongs to exactly one sport category for organizational purposes.
+                      </p>
+                      <p>
+                        <strong>Units:</strong> Specify the measurement unit for results (e.g., "pts" for points, "m" for meters, "s" for seconds).
+                        This helps with result display and comparison within the same unit type.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -696,15 +915,6 @@ export default function Disciplines() {
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />
                           <span className="ml-2 text-sm text-gray-700">Lanes Division</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.shouldCalculate}
-                            onChange={(e) => setFormData({...formData, shouldCalculate: e.target.checked})}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">Should Calculate</span>
                         </label>
                       </div>
                     </div>
