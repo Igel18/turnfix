@@ -13,6 +13,8 @@ import { InformationCircleIcon, UserGroupIcon } from '@heroicons/react/24/outlin
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete } from '../utils/api';
+import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
+import jsPDF from 'jspdf';
 
 // Interface for participant data
 interface Participant {
@@ -348,6 +350,118 @@ const forceLoadAvailableParticipants = async () => {
     }
   };
 
+  // PDF Export Function
+  const exportSquadsPDF = () => {
+    if (!selectedEvent) return;
+
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, 'Squad Management');
+    
+    let yPosition = contentArea.startY + 10;
+    const leftMargin = contentArea.startX;
+    const rightMargin = contentArea.endX;
+    
+    // Title
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Squad Management Overview', leftMargin, yPosition);
+    yPosition += 15;
+
+    // Summary
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Squads: ${squads.length}`, leftMargin, yPosition);
+    const totalParticipants = squads.reduce((sum, squad) => sum + squad.participantCount, 0);
+    doc.text(`Total Participants: ${totalParticipants}`, leftMargin + 60, yPosition);
+    yPosition += 15;
+
+    // Iterate through squads
+    squads.forEach((squad) => {
+      // Check if we need a new page
+      if (yPosition > contentArea.endY - 40) {
+        doc.addPage();
+        setupPDFWithHeaderFooter(doc, selectedEvent, 'Squad Management');
+        yPosition = contentArea.startY + 10;
+      }
+
+      // Squad Header
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${squad.name} (${squad.participantCount} participants)`, leftMargin, yPosition);
+      yPosition += 8;
+
+      // Squad Competitions
+      if (squad.competitions && squad.competitions.length > 0) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Competitions:', leftMargin + 5, yPosition);
+        yPosition += 5;
+        
+        squad.competitions.forEach((competition) => {
+          doc.setFont('helvetica', 'normal');
+          const compText = competition.number ? 
+            `• ${competition.name} (Nr. ${competition.number})` : 
+            `• ${competition.name}`;
+          doc.text(compText, leftMargin + 10, yPosition);
+          yPosition += 4;
+        });
+        yPosition += 3;
+      }
+
+      // Squad Participants
+      if (squad.participants && squad.participants.length > 0) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Participants:', leftMargin + 5, yPosition);
+        yPosition += 5;
+
+        // Participants table header
+        doc.setFont('helvetica', 'bold');
+        doc.text('Name', leftMargin + 10, yPosition);
+        doc.text('Birth Year', leftMargin + 80, yPosition);
+        doc.text('Club', leftMargin + 120, yPosition);
+        yPosition += 2;
+        
+        // Draw header underline
+        doc.line(leftMargin + 10, yPosition, rightMargin - 10, yPosition);
+        yPosition += 3;
+
+        // Participants data
+        doc.setFont('helvetica', 'normal');
+        squad.participants.forEach((participant) => {
+          // Check if we need a new page
+          if (yPosition > contentArea.endY - 10) {
+            doc.addPage();
+            setupPDFWithHeaderFooter(doc, selectedEvent, 'Squad Management');
+            yPosition = contentArea.startY + 10;
+          }
+
+          const name = `${participant.firstname} ${participant.lastname}`;
+          const birthYear = participant.birthYear ? participant.birthYear.toString() : 'N/A';
+          const club = participant.club || 'No Club';
+
+          doc.text(name, leftMargin + 10, yPosition);
+          doc.text(birthYear, leftMargin + 80, yPosition);
+          doc.text(club, leftMargin + 120, yPosition);
+          yPosition += 4;
+        });
+      } else {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.text('No participants assigned', leftMargin + 10, yPosition);
+        yPosition += 5;
+      }
+
+      yPosition += 8; // Space between squads
+    });
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `squad-management-${selectedEvent.var_eventname.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.pdf`;
+    
+    doc.save(filename);
+  };
+
   const filteredParticipants = availableParticipants.filter(participant => {
     const matchesSearch = 
       participant.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -444,6 +558,8 @@ const forceLoadAvailableParticipants = async () => {
         onAdd={() => setIsCreateModalOpen(true)}
         showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
+        showExportPDF={true}
+        onExportPDF={exportSquadsPDF}
         showViewToggle={false}
       />
 
