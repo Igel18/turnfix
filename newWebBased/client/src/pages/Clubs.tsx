@@ -11,6 +11,7 @@ import {
   GlobeAltIcon
 } from '@heroicons/react/24/outline'
 import { UnifiedHeader } from '../components/UnifiedHeader'
+import UnifiedPageHeader from '../components/UnifiedPageHeader'
 import { UnifiedDataView } from '../components/UnifiedDataView'
 import useViewToggle from '../hooks/useViewToggle'
 import type { StateInfo } from '../components/UnifiedHeader'
@@ -63,6 +64,7 @@ export function Clubs() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState<number | ''>('')
   const [selectedStatus, setSelectedStatus] = useState<string>('')
+  const [showFilters, setShowFilters] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -287,62 +289,30 @@ export function Clubs() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="space-y-6">
-        <UnifiedHeader
-        title="Clubs"
-        description="Manage gymnastics clubs, their contact information, and regional assignments"
-        icon={BuildingOfficeIcon}
-        
-        // Primary action
-        primaryAction={{
-          label: 'Add Club',
-          icon: PlusIcon,
-          onClick: openCreateModal
-        }}
-        
-        // Search functionality
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search clubs by name..."
-        
-        // State info badges
-        stateInfo={getClubStateInfo()}
-        selectedState={selectedStatus}
-        onStateChange={setSelectedStatus}
-        
-        // View toggle
-        showViewToggle={true}
-        viewType={viewType}
-        onViewTypeChange={handleViewTypeChange}
-        
-        // Clear filters and export
-        onClearAllFilters={() => {
-          setSearchTerm('')
-          setSelectedRegion('')
-          setSelectedStatus('')
-        }}
-        onExportCSV={() => console.log('Export CSV functionality to be implemented')}
-        
-        // Home button
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        
-        // Filter options
-        filterOptions={[
-          {
-            label: 'Region',
-            value: 'region',
-            selectedValue: selectedRegion.toString(),
-            onChange: (value) => setSelectedRegion(value === '' ? '' : parseInt(value)),
-            options: [
-              { value: '', label: 'All Regions' },
-              ...regions.map(region => ({ 
-                value: region.int_gaueid.toString(), 
-                label: region.var_name 
-              }))
-            ]
-          }
-        ]}
-      />
+        <UnifiedPageHeader
+          title="Clubs"
+          subtitle="Manage gymnastics clubs, their contact information, and regional assignments"
+          icon={BuildingOfficeIcon}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search clubs by name..."
+          hasFilters={true}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          onClearAllFilters={() => {
+            setSearchTerm('')
+            setSelectedRegion('')
+            setSelectedStatus('')
+          }}
+          showExportCSV={true}
+          onExportCSV={() => console.log('Export CSV functionality to be implemented')}
+          showAdd={true}
+          onAdd={openCreateModal}
+          addLabel="Add Club"
+          showViewToggle={true}
+          viewMode={viewType === 'cards' ? 'grid' : 'table'}
+          onViewModeChange={(mode) => handleViewTypeChange(mode === 'grid' ? 'cards' : 'table')}
+        />
 
       {/* Unified Data View */}
       <UnifiedDataView

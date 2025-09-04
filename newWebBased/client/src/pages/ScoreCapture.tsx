@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
+import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
 
 // Interfaces
@@ -82,6 +83,7 @@ export function ScoreCapture() {
   } = useEvent()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
   
   // URL parameters as fallback (for direct navigation)
   const urlEventId = searchParams.get('eventId')
@@ -704,51 +706,34 @@ export function ScoreCapture() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <UnifiedHeader
+      <UnifiedPageHeader
         title="Score Capture"
-        description={
+        subtitle={
           selectedCompetition 
             ? `Enter and manage scores for ${selectedCompetition.name}${selectedCompetition.number ? ` (Nr. ${selectedCompetition.number})` : ''}` 
             : "Enter and manage competition scores and results"
         }
         icon={ClipboardDocumentListIcon}
-        stateInfo={getScoreCaptureStateInfo()}
-        selectedState={selectedStatus}
-        onStateChange={setSelectedStatus}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search participants..."
-        filterOptions={getFilterOptions()}
+        hasFilters={true}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
         onClearAllFilters={handleClearAllFilters}
+        showExportCSV={true}
         onExportCSV={handleExportCSV}
-        showHomeButton={true}
-        homeUrl="/dashboard"
-        primaryAction={{
-          label: 'Refresh Data',
-          icon: PlusIcon,
-          onClick: loadInitialData
-        }}
-        totalCount={(participants || []).length}
+        showEventContext={true}
+        customBelowActions={
+          <button
+            onClick={loadInitialData}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Refresh Data
+          </button>
+        }
       />
-
-      {/* Event Selection Context */}
-      {(eventId || competitionId || squadName) && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-            <div className="text-sm text-blue-800">
-              <strong>Selected Context:</strong>
-              {eventId && ` Event: ${selectedEvent?.var_eventname || `Event ID ${eventId}`}`}
-              {selectedCompetition && ` • Competition: ${selectedCompetition.name}${selectedCompetition.number ? ` (Nr. ${selectedCompetition.number})` : ''}`}
-              {!selectedCompetition && competitionId && ` • Competition ID: ${competitionId}`}
-              {squadName && ` • Squad: ${squadName}`}
-            </div>
-          </div>
-          <p className="text-xs text-blue-600 mt-1">
-            Score capture is focused on your selection from the dashboard.
-          </p>
-        </div>
-      )}
       
       {/* Squad and Device Selection */}
       {!loading && (

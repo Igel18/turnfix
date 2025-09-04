@@ -9,6 +9,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader';
+import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 
 interface Competition {
   int_eventid: number;

@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useEvent } from '../contexts/EventContext'
 import { 
-  DocumentArrowDownIcon,
-  PrinterIcon,
-  FunnelIcon,
   XMarkIcon,
-  HomeIcon
+  TableCellsIcon
 } from '@heroicons/react/24/outline'
+import UnifiedPageHeader from '../components/UnifiedPageHeader'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -270,6 +268,21 @@ export default function Meldematrix() {
     setClubFilter('')
   }
 
+  // Filter options for the unified header
+  const filterOptions = [
+    {
+      value: 'gender',
+      label: 'Gender',
+      selectedValue: genderFilter,
+      onChange: (value: string) => setGenderFilter(value || 'all'),
+      options: [
+        { value: 'männlich', label: 'Männlich' },
+        { value: 'weiblich', label: 'Weiblich' },
+        { value: 'gemischt', label: 'Gemischt' }
+      ]
+    }
+  ]
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -297,109 +310,26 @@ export default function Meldematrix() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link 
-              to="/dashboard"
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <HomeIcon className="h-4 w-4 mr-2" />
-              Home
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Meldematrix</h1>
-              <p className="text-gray-600 mt-1">
-                Registration overview: Clubs vs Competitions
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <FunnelIcon className="h-4 w-4 mr-2" />
-              Filters
-            </button>
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <PrinterIcon className="h-4 w-4 mr-2" />
-              Print
-            </button>
-            <button
-              onClick={handleExportPDF}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-              Export PDF
-            </button>
-          </div>
-        </div>
+      <UnifiedPageHeader
+        title="Meldematrix"
+        subtitle="Registration overview: Clubs vs Competitions"
+        icon={TableCellsIcon}
+        hasFilters={true}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        searchTerm={clubFilter}
+        onSearchChange={setClubFilter}
+        searchPlaceholder="Search clubs..."
+        filterOptions={filterOptions}
+        onClearAllFilters={clearFilters}
+        showPrint={true}
+        onPrint={handlePrint}
+        showExportPDF={true}
+        onExportPDF={handleExportPDF}
+        showEventContext={true}
+      />
 
-        {/* Event Context */}
-        {selectedEvent && (
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
-            <p className="text-sm text-blue-800">
-              <span className="font-medium">Selected Event:</span> {selectedEvent.var_eventname}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Filters */}
-      {showFilters && (
-        <div className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Filters</h3>
-            <button
-              onClick={() => setShowFilters(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
-              <select
-                value={genderFilter}
-                onChange={(e) => setGenderFilter(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Genders</option>
-                <option value="männlich">Männlich</option>
-                <option value="weiblich">Weiblich</option>
-                <option value="gemischt">Gemischt</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Club Name
-              </label>
-              <input
-                type="text"
-                value={clubFilter}
-                onChange={(e) => setClubFilter(e.target.value)}
-                placeholder="Search clubs..."
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Clear All Filters
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Remove the old manual filters section since it's now handled by UnifiedPageHeader */}
 
       {/* Matrix Table */}
       <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">

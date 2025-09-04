@@ -241,6 +241,39 @@ on the Competition Status Management
 the activ events, registered clubs, total athletes belong to Database management. Perhaps this info could be at the buttons eg "Manage Athletes"? 
 ---
 
+
+UI redisign: 
+The Dashboard UI is very full. usually the database management is not used either to create / import a new event. 
+The most used function is the "event management" section. Do you have two ideas to redisgn the UI that this most used event management is more in scope? 
+Perhaps with shortcut to crate/import a new event. 
+On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... But don't change anything at the moment. 
+---
+I like the Header from Meldematrix (see picture)
+Use this as new template for the header of each UI from the Dashboard
+        - On the left Side the Home button 
+        - next to the Home button the Headline with short information under it
+        - on the right must be "Filter" to expand the Filter view, Print and export pdf 
+        - unter this must be the buttons to add, import and switch from grid to table view 
+        - under the header there must be the blue context selector over the hole width. But only make this visible in the event Management UIs.
+start event management
+---
+Ok. In front of the Headline in the Template there must be a Icon (like in the picture) . 
+The Meldematrix has the filter twice and the search club is not in the filter section. 
+
+the following sides must be have the template: 
+Event Management: 
+         - manageme events 
+         - View competitions
+         - Event Participants 
+         - Manage Squads 
+         - Meldematrix -> already use this template 
+         - Squad Status
+         - Competition Status 
+         - Score Capture 
+         - View Results 
+         
+
+
 Config section 
 - DB alle infos separat speicher auch passwort 
 - debug 
@@ -251,12 +284,6 @@ lokalisierung
 refactoring (nur noch prisma) 
 Geräte mit Icons 
 Über Turnfix 
-
-UI redisign: 
-The Dashboard UI is very full. usually the database management is not used either to create / import a new event. 
-The most used function is the "event management" section. Do you have two ideas to redisgn the UI that this most used event management is more in scope? 
-Perhaps with shortcut to crate/import a new event. 
-On every side the Table and cards should have the same look and feel: Same delete button, same change button, same look button, ... But don't change anything at the moment. 
 
 Each Event Side has a blue section with "Selected Context: Event: xxx" this must be unified on all event management sides. And here the Event Name is important. Other informations are not reducing the context, so they must be removed. 
 

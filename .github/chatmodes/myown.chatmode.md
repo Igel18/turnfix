@@ -48,6 +48,8 @@ Unified Style Pattern:
         - Selected Context: the name of the event 
         - a export pdf posibility (with usage of pdf template) 
         
+Header should use the UnifiedPageHeader.tsx 
+
 ## Database: 
 Do not remove routes because the UI needs them. 
 Use the Prisma Schema for the database connection. 
