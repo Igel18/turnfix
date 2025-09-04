@@ -89,7 +89,21 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
   // Footer Center: Page number
   const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
   const totalPages = (doc as any).internal.getNumberOfPages()
-  doc.text(`${currentPage} / ${totalPages}`, pageWidth / 2, footerY + 2, { align: 'center' })
+  
+  // For didDrawPage callbacks, we need to get total pages differently
+  let pageText = `${currentPage}`
+  try {
+    if (totalPages > 0) {
+      pageText = `${currentPage} / ${totalPages}`
+    } else {
+      // During didDrawPage, total pages might not be available yet
+      pageText = `Seite ${currentPage}`
+    }
+  } catch (e) {
+    pageText = `Seite ${currentPage}`
+  }
+  
+  doc.text(pageText, pageWidth / 2, footerY + 2, { align: 'center' })
   
   // Footer Right: Date/time and license
   const currentDateTime = new Date().toLocaleString('de-DE')

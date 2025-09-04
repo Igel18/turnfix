@@ -213,6 +213,13 @@ const resultsAwardsActions = [
     href: '/results',
     icon: ChartBarIcon,
     color: 'bg-red-500'
+  },
+  {
+    name: 'Medallienspiegel',
+    description: 'Medal standings by club',
+    href: '/medallienspiegel',
+    icon: TrophyIcon,
+    color: 'bg-yellow-500'
   }
 ]
 

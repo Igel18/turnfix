@@ -261,6 +261,10 @@ Ok. In front of the Headline in the Template there must be a Icon (like in the p
 The Meldematrix has the filter twice and the search club is not in the filter section. 
 ---
 
+Each Event Side has a blue section with "Selected Context: Event: xxx" this must be unified on all event management sides. And here the Event Name is important. Other informations are not reducing the context, so they must be removed. 
+--- 
+
+
 the following sides must use the unified page header : 
 Event Management: 
          - manageme events 
@@ -272,8 +276,26 @@ Event Management:
          - Competition Status 
          - Score Capture 
          - View Results 
-         
+---
+new UI Medallienspiegel / medal results: 
+in Dashboard group "event mangement" in section "Results & Awards": it shows how much medals each club has won in this event in sum and seperated by competition. Use the unified header template. a pdf export must be available. 
 
+
+the following sides must use the unified page header : 
+Database Management: 
+        - Manage Regions 
+        - Manage Associsations 
+        - Manage Clubs 
+        - Manage Athletes 
+        - Manage Disciplines 
+        - Manage Locations 
+        - Manage Persons 
+        - Manage Sports 
+        - Manage Formulas 
+        - Manage Discipline Groups 
+        - Manage Certificate Layouts 
+        - Status Management 
+        - Create event ->  already use this template 
 
 Config section 
 - DB alle infos separat speicher auch passwort 
@@ -286,12 +308,9 @@ refactoring (nur noch prisma)
 Geräte mit Icons 
 Über Turnfix 
 
-Each Event Side has a blue section with "Selected Context: Event: xxx" this must be unified on all event management sides. And here the Event Name is important. Other informations are not reducing the context, so they must be removed. 
-
 The export as pdf is possible on some UIs. We need some more print export as pdf posibilities. So perhaps we should add a new UI in section event management for print / export as pdf. We need: 
 - Urkunden generierung / generate cerificates for a selected person or a selected competition
 - Wettkampfbögen / competition sheets for a selected squad 
-- Medallienspiegel / medal results for the event: it shows how much medals each club has won in this event in sum and seperated by competition 
 - Zeitplan/Timetable it must be possible to print a timetable 
 Alterntive: 
 - We add a separat UI for each print posibility...? 

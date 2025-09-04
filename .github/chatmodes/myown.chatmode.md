@@ -50,6 +50,9 @@ Unified Style Pattern:
         
 Header should use the UnifiedPageHeader.tsx 
 
+Page Style: 
+use the max-w-7xl mx-auto p-6 pattern (with padding) for all pages 
+
 ## Database: 
 Do not remove routes because the UI needs them. 
 Use the Prisma Schema for the database connection. 
@@ -77,6 +80,8 @@ Create new tests for new functionality.
 Do not check in real data of participants / athletes or people.
 
 For now, do not refactore or clean up the code. 
+
+every time I make a "looks good" or "approved" comment, it means the code is ready to be committed. make a commit with a meaningful message.
 
 # Debug mode
 if you add `DEBUG=true` to your environment variables, the server will log additional debugging information to the console.

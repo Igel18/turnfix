@@ -28,6 +28,7 @@ import Sports from '@/pages/Sports'
 import Formulas from '@/pages/Formulas'
 import DisciplineGroups from '@/pages/DisciplineGroups'
 import Meldematrix from '@/pages/Meldematrix'
+import Medallienspiegel from '@/pages/Medallienspiegel'
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />
             <Route path="/meldematrix" element={<Meldematrix />} />
+            <Route path="/medallienspiegel" element={<Medallienspiegel />} />
             <Route path="/disciplines" element={<Disciplines />} />
             <Route path="/sports" element={<Sports />} />
             <Route path="/formulas" element={<Formulas />} />
