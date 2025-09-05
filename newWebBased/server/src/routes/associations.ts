@@ -32,6 +32,20 @@ const associationQuerySchema = z.object({
   offset: z.string().transform(Number).default(0)
 });
 
+// Get associations count
+router.get('/count', async (req: Request, res: Response) => {
+  try {
+    const count = await prisma.tfx_verbaende.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting associations:', error);
+    res.status(500).json({ 
+      error: 'Failed to count associations',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Get all associations with search and pagination
 router.get('/', async (req: Request, res: Response) => {
   try {

@@ -28,6 +28,20 @@ const createDisciplineSchema = z.object({
 
 const updateDisciplineSchema = createDisciplineSchema.partial();
 
+// Get disciplines count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_disziplinen.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting disciplines:', error);
+    res.status(500).json({ 
+      error: 'Failed to count disciplines',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Get all disciplines
 router.get('/', async (req, res) => {
   try {

@@ -14,6 +14,20 @@ const createFormulaSchema = z.object({
 
 const updateFormulaSchema = createFormulaSchema.partial();
 
+// Get formulas count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_formeln.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting formulas:', error);
+    res.status(500).json({ 
+      error: 'Failed to count formulas',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Get all formulas
 router.get('/', async (req, res) => {
   try {

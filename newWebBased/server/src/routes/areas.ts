@@ -14,6 +14,20 @@ const createAreaSchema = z.object({
 
 const updateAreaSchema = createAreaSchema.partial();
 
+// Get areas count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_bereiche.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting areas:', error);
+    res.status(500).json({ 
+      error: 'Failed to count areas',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Get all areas
 router.get('/', async (req, res) => {
   try {

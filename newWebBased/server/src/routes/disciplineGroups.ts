@@ -18,6 +18,20 @@ const updateDisciplineGroupSchema = z.object({
   disciplineIds: z.array(z.number()).optional()
 });
 
+// Get discipline groups count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_disziplinen_gruppen.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting discipline groups:', error);
+    res.status(500).json({ 
+      error: 'Failed to count discipline groups',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Helper function to manage discipline assignments
 const manageDisciplineAssignments = async (groupId: number, disciplineIds: number[] = []) => {
   // First, remove all existing assignments

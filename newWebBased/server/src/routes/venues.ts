@@ -15,6 +15,20 @@ const createVenueSchema = z.object({
 
 const updateVenueSchema = createVenueSchema.partial();
 
+// Get venues count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_wettkampforte.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting venues:', error);
+    res.status(500).json({ 
+      error: 'Failed to count venues',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Get all venues
 router.get('/', async (req, res) => {
   try {

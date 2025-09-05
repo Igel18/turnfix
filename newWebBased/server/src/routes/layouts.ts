@@ -30,6 +30,20 @@ const createLayoutFieldSchema = z.object({
   layer: z.number().int().min(0).max(10).default(0)
 });
 
+// Get layouts count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_layouts.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting layouts:', error);
+    res.status(500).json({ 
+      error: 'Failed to count layouts',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 const updateLayoutFieldSchema = createLayoutFieldSchema.partial();
 
 // Get all layouts

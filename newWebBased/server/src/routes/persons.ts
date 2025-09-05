@@ -19,6 +19,20 @@ const createPersonSchema = z.object({
 
 const updatePersonSchema = createPersonSchema.partial();
 
+// Get persons count
+router.get('/count', async (req, res) => {
+  try {
+    const count = await prisma.tfx_personen.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting persons:', error);
+    res.status(500).json({ 
+      error: 'Failed to count persons',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
+});
+
 // Get all persons
 router.get('/', async (req, res) => {
   try {

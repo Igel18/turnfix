@@ -326,30 +326,51 @@ export function Dashboard() {
 
         // Fetch additional statistics for database management
         const additionalApis = [
-          '/api/statuses',
-          '/api/discipline-fields/count'
+          '/api/areas/count',
+          '/api/associations/count', 
+          '/api/disciplines/count',
+          '/api/venues/count',
+          '/api/persons/count',
+          '/api/sports/count',
+          '/api/formulas/count',
+          '/api/discipline-groups/count',
+          '/api/discipline-fields/count',
+          '/api/layouts/count',
+          '/api/statuses'
         ]
 
         const additionalPromises = additionalApis.map(url => 
           fetch(url).then(res => res.ok ? res.json() : { pagination: { total: 0 }, count: 0 }).catch(() => ({ pagination: { total: 0 }, count: 0 }))
         )
 
-        const [statusesData, disciplineFieldsData] = await Promise.all(additionalPromises)
+        const [
+          areasData,
+          associationsData,
+          disciplinesData,
+          venuesData,
+          personsData,
+          sportsData,
+          formulasData,
+          disciplineGroupsData,
+          disciplineFieldsData,
+          layoutsData,
+          statusesData
+        ] = await Promise.all(additionalPromises)
 
         setStatistics({
           activeEvents: (events as any).pagination?.total || 0,
           registeredClubs: (clubs as any).pagination?.total || 0,
           totalAthletes: (participants as any).pagination?.total || 0,
-          totalRegions: 0, // TODO: Add API endpoint
-          totalAssociations: 0, // TODO: Add API endpoint
-          totalDisciplines: 0, // TODO: Add API endpoint
-          totalLocations: 0, // TODO: Add API endpoint
-          totalPersons: 0, // TODO: Add API endpoint
-          totalSports: 0, // TODO: Add API endpoint
-          totalFormulas: 0, // TODO: Add API endpoint
-          totalDisciplineGroups: 0, // TODO: Add API endpoint
+          totalRegions: areasData?.count || 0,
+          totalAssociations: associationsData?.count || 0,
+          totalDisciplines: disciplinesData?.count || 0,
+          totalLocations: venuesData?.count || 0,
+          totalPersons: personsData?.count || 0,
+          totalSports: sportsData?.count || 0,
+          totalFormulas: formulasData?.count || 0,
+          totalDisciplineGroups: disciplineGroupsData?.count || 0,
           totalDisciplineFields: disciplineFieldsData?.count || 0,
-          totalCertificateLayouts: 0, // TODO: Add API endpoint
+          totalCertificateLayouts: layoutsData?.count || 0,
           totalStatuses: statusesData.pagination?.total || 0,
           loading: false
         })
@@ -357,17 +378,6 @@ export function Dashboard() {
         console.error('Error fetching statistics:', error)
         setStatistics(prev => ({ 
           ...prev, 
-          totalRegions: 0,
-          totalAssociations: 0,
-          totalDisciplines: 0,
-          totalLocations: 0,
-          totalPersons: 0,
-          totalSports: 0,
-          totalFormulas: 0,
-          totalDisciplineGroups: 0,
-          totalDisciplineFields: 0,
-          totalCertificateLayouts: 0,
-          totalStatuses: 0,
           loading: false 
         }))
       }
