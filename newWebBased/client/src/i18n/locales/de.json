@@ -1,0 +1,413 @@
+{
+  "app": {
+    "name": "TurnFix",
+    "title": "Turnwettkampf-Verwaltung"
+  },
+  "navigation": {
+    "dashboard": "Home",
+    "events": "Veranstaltungen",
+    "scoreCapture": "Wertungserfassung",
+    "competitions": "Wettkämpfe",
+    "results": "Ergebnisse",
+    "databaseManagement": "Datenverwaltung",
+    "manageDisciplines": "Disziplinen verwalten",
+    "clubs": "Vereine",
+    "participants": "Teilnehmer",
+    "regions": "Regionen",
+    "associations": "Verbände",
+    "configuration": "Einstellungen",
+    "logout": "Abmelden"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück, {{username}}!",
+    "subtitle": "Verwalten Sie Ihre Turnwettkämpfe und Veranstaltungen von diesem Startbildschirm aus.",
+    "databaseManagement": {
+      "title": "Datenverwaltung",
+      "subtitle": "Verwalten Sie Athleten, Vereine und Organisationsstrukturen",
+      "regions": {
+        "title": "Gebiete verwalten",
+        "description": "Turngebiete und Bezirke verwalten"
+      },
+      "associations": {
+        "title": "Verbände verwalten",
+        "description": "Turnverbände und Föderationen verwalten"
+      },
+      "clubs": {
+        "title": "Vereine verwalten",
+        "description": "Turnvereine hinzufügen und bearbeiten"
+      },
+      "athletes": {
+        "title": "Athleten verwalten",
+        "description": "Athleten in der Datenbank hinzufügen und verwalten"
+      },
+      "disciplines": {
+        "title": "Disziplinen verwalten",
+        "description": "Turndisziplinen und Geräte konfigurieren"
+      },
+      "locations": {
+        "title": "Austragungsorte verwalten",
+        "description": "Wettkampfstätten und Austragungsorte verwalten"
+      },
+      "persons": {
+        "title": "Personen verwalten",
+        "description": "Kontaktpersonen und Einzelpersonen verwalten"
+      },
+      "sports": {
+        "title": "Sportarten verwalten",
+        "description": "Sportarten und Kategorien verwalten"
+      },
+      "formulas": {
+        "title": "Formeln verwalten",
+        "description": "Bewertungsformeln und Berechnungen verwalten"
+      },
+      "disciplineGroups": {
+        "title": "Disziplingruppen verwalten",
+        "description": "Disziplingruppen und Kategorien verwalten"
+      },
+      "disciplineFields": {
+        "title": "Disziplinfelder",
+        "description": "Bewertungsfelder für jede Disziplin verwalten"
+      },
+      "certificateLayouts": {
+        "title": "Zertifikat-Layouts",
+        "description": "Zertifikatvorlagen und -layouts entwerfen und verwalten"
+      },
+      "statusManagement": {
+        "title": "Statusverwaltung",
+        "description": "Teilnehmerstatus und Riegenzustände verwalten"
+      },
+      "createEvent": {
+        "title": "Veranstaltung erstellen",
+        "description": "Neuen Turnwettkampf einrichten"
+      }
+    },
+    "eventManagement": {
+      "title": "Veranstaltungsverwaltung",
+      "subtitle": "3-Schritte-Workflow: Setup → Wettkampf → Ergebnisse",
+      "eventSetup": {
+        "title": "Veranstaltungsaufbau",
+        "subtitle": "Planung & Konfiguration",
+        "manageEvents": {
+          "title": "Veranstaltungen verwalten",
+          "description": "Veranstaltungen erstellen und konfigurieren"
+        },
+        "viewCompetitions": {
+          "title": "Wettkämpfe anzeigen",
+          "description": "Wettkämpfe und Disziplinen definieren"
+        },
+        "eventParticipants": {
+          "title": "Veranstaltungsteilnehmer",
+          "description": "Teilnehmer zur Veranstaltung hinzufügen und Wettkämpfen zuordnen"
+        },
+        "manageSquads": {
+          "title": "Riegen verwalten",
+          "description": "Riegen erstellen und Teilnehmer organisieren"
+        },
+        "meldematrix": {
+          "title": "Meldematrix",
+          "description": "Meldematrix: Übersicht Vereine vs. Wettkämpfe"
+        }
+      },
+      "competitionDay": {
+        "title": "Wettkampftag",
+        "subtitle": "Live-Verwaltung & Bewertung",
+        "squadStatus": {
+          "title": "Riegen-Status",
+          "description": "Status für Riegen-Disziplin-Kombinationen verwalten"
+        },
+        "scoreCapture": {
+          "title": "Wertungserfassung",
+          "description": "Noten eingeben und Live-Bewertung verwalten"
+        },
+        "competitionStatus": {
+          "title": "Wettkampfstatus",
+          "description": "Wettkampffortschritt und Status überwachen"
+        }
+      },
+      "resultsAwards": {
+        "title": "Ergebnisse & Auszeichnungen",
+        "subtitle": "Analyse & Anerkennung",
+        "results": {
+          "title": "Ergebnisse",
+          "description": "Wettkampfergebnisse anzeigen und verwalten"
+        },
+        "medals": {
+          "title": "Medaillen",
+          "description": "Medaillenspiegel und Siegerehrungen"
+        }
+      },
+      "selectEvent": {
+        "title": "Veranstaltung auswählen",
+        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 3-Schritte-Workflow zuzugreifen: Setup → Wettkampf → Ergebnisse"
+      }
+    },
+    "configuration": {
+      "title": "Einstellungen",
+      "subtitle": "Anwendungseinstellungen, Datenbankkonfiguration und Systemeinstellungen",
+      "applicationSettings": {
+        "title": "Anwendungseinstellungen",
+        "description": "Datenbank, Debug-Modus, Sprache, Ports und andere Systemeinstellungen konfigurieren"
+      }
+    },
+    "recentActivity": {
+      "title": "Letzte Aktivitäten"
+    },
+    "buttons": {
+      "expand": "Erweitern",
+      "collapse": "Zuklappen"
+    }
+  },
+  "configuration": {
+    "title": "Einstellungen",
+    "subtitle": "Anwendungseinstellungen und Einstellungen verwalten",
+    "searchPlaceholder": "Konfigurationseinstellungen suchen...",
+    "sectionsTitle": "Einstellungsbereiche",
+    "saveConfiguration": "Einstellungen speichern",
+    "saving": "Speichern...",
+    "testConnection": "Verbindung testen",
+    "sections": {
+      "database": {
+        "title": "Datenbankkonfiguration",
+        "description": "Datenbankverbindungseinstellungen und Anmeldedaten",
+        "host": {
+          "label": "Datenbank-Host",
+          "description": "Hostname oder IP-Adresse des Datenbankservers"
+        },
+        "port": {
+          "label": "Datenbank-Port",
+          "description": "Portnummer des Datenbankservers"
+        },
+        "name": {
+          "label": "Datenbankname",
+          "description": "Name der Datenbank"
+        },
+        "user": {
+          "label": "Datenbankbenutzer",
+          "description": "Datenbankbenutzername"
+        },
+        "password": {
+          "label": "Datenbankpasswort",
+          "description": "Datenbankpasswort (verschlüsselte Speicherung)"
+        },
+        "ssl": {
+          "label": "SSL-Verbindung verwenden",
+          "description": "SSL/TLS für Datenbankverbindung aktivieren"
+        }
+      },
+      "application": {
+        "title": "Anwendungseinstellungen",
+        "description": "Allgemeine Anwendungskonfiguration",
+        "name": {
+          "label": "Anwendungsname",
+          "description": "Anzeigename für die Anwendung"
+        },
+        "version": {
+          "label": "Anwendungsversion",
+          "description": "Aktuelle Anwendungsversion (schreibgeschützt)"
+        },
+        "debug": {
+          "label": "Debug-Modus",
+          "description": "Debug-Protokollierung und zusätzliche Informationen aktivieren"
+        },
+        "serverPort": {
+          "label": "Server-Port",
+          "description": "Backend-Server Portnummer"
+        },
+        "clientPort": {
+          "label": "Client-Port",
+          "description": "Frontend-Entwicklungsserver Port"
+        }
+      },
+      "localization": {
+        "title": "Sprache & Lokalisierung",
+        "description": "Sprach- und Regionaleinstellungen",
+        "language": {
+          "label": "Standardsprache",
+          "description": "Standardsprache für die Anwendung",
+          "options": {
+            "de": "Deutsch (German)",
+            "en": "English",
+            "fr": "Français (French)",
+            "es": "Español (Spanish)"
+          }
+        },
+        "dateFormat": {
+          "label": "Datumsformat",
+          "description": "Standard-Datumsanzeigeformat",
+          "options": {
+            "DD.MM.YYYY": "DD.MM.YYYY (Deutsch)",
+            "MM/DD/YYYY": "MM/DD/YYYY (US)",
+            "YYYY-MM-DD": "YYYY-MM-DD (ISO)",
+            "DD/MM/YYYY": "DD/MM/YYYY (UK)"
+          }
+        },
+        "timezone": {
+          "label": "Zeitzone",
+          "description": "Standard-Zeitzone für die Anwendung",
+          "options": {
+            "Europe/Berlin": "Europe/Berlin (CET/CEST)",
+            "Europe/London": "Europe/London (GMT/BST)",
+            "America/New_York": "America/New_York (EST/EDT)",
+            "Asia/Tokyo": "Asia/Tokyo (JST)"
+          }
+        }
+      },
+      "security": {
+        "title": "Sicherheitseinstellungen",
+        "description": "Sicherheits- und Authentifizierungskonfiguration",
+        "sessionTimeout": {
+          "label": "Sitzungstimeout (Minuten)",
+          "description": "Automatische Abmeldung nach Inaktivität (in Minuten)"
+        },
+        "passwordMinLength": {
+          "label": "Minimale Passwortlänge",
+          "description": "Mindestlänge für Passwörter"
+        },
+        "maxLoginAttempts": {
+          "label": "Max. Anmeldeversuche",
+          "description": "Maximale fehlgeschlagene Anmeldeversuche vor Kontosperrung"
+        },
+        "requireHttps": {
+          "label": "HTTPS erforderlich",
+          "description": "HTTPS-Verbindungen in der Produktion erzwingen"
+        }
+      },
+      "imports": {
+        "title": "Import- & Export-Einstellungen",
+        "description": "Dateiimport- und Exportkonfiguration",
+        "maxFileSize": {
+          "label": "Max. Dateigröße (MB)",
+          "description": "Maximale Dateigröße für Importe (in Megabyte)"
+        },
+        "allowedTypes": {
+          "label": "Erlaubte Dateitypen",
+          "description": "Kommagetrennte Liste erlaubter Dateierweiterungen"
+        },
+        "autoBackup": {
+          "label": "Automatische Sicherung",
+          "description": "Automatische Sicherungen vor Importen erstellen"
+        },
+        "validateImports": {
+          "label": "Importe validieren",
+          "description": "Validierungsprüfungen für importierte Daten durchführen"
+        }
+      },
+      "printing": {
+        "title": "Druck- & PDF-Einstellungen",
+        "description": "Druck- und PDF-Generierungskonfiguration",
+        "pageSize": {
+          "label": "Standard-Seitengröße",
+          "description": "Standard-Seitengröße für PDF-Exporte",
+          "options": {
+            "A4": "A4 (210 × 297 mm)",
+            "A3": "A3 (297 × 420 mm)",
+            "Letter": "Letter (8.5 × 11 in)",
+            "Legal": "Legal (8.5 × 14 in)"
+          }
+        },
+        "orientation": {
+          "label": "Standard-Ausrichtung",
+          "description": "Standard-Seitenausrichtung",
+          "options": {
+            "portrait": "Hochformat",
+            "landscape": "Querformat"
+          }
+        },
+        "quality": {
+          "label": "PDF-Qualität",
+          "description": "PDF-Generierungsqualitätseinstellung",
+          "options": {
+            "low": "Niedrig (kleinere Dateigröße)",
+            "medium": "Mittel",
+            "high": "Hoch (bessere Qualität)"
+          }
+        },
+        "watermark": {
+          "label": "Wasserzeichen einschließen",
+          "description": "TurnFix-Wasserzeichen zu generierten PDFs hinzufügen"
+        }
+      },
+      "logging": {
+        "title": "Protokollierungskonfiguration",
+        "description": "Anwendungsprotokollierung und Überwachungseinstellungen",
+        "level": {
+          "label": "Protokollstufe",
+          "description": "Minimale Protokollstufe zum Aufzeichnen",
+          "options": {
+            "error": "Fehler (nur Fehler)",
+            "warn": "Warnung (Warnungen und Fehler)",
+            "info": "Info (allgemeine Informationen)",
+            "debug": "Debug (detaillierte Fehlersuche)"
+          }
+        },
+        "retention": {
+          "label": "Protokollaufbewahrung (Tage)",
+          "description": "Anzahl der Tage, um Protokolldateien zu behalten"
+        },
+        "auditLog": {
+          "label": "Audit-Protokollierung aktivieren",
+          "description": "Benutzeraktionen und Datenänderungen verfolgen"
+        },
+        "dbQueries": {
+          "label": "Datenbankabfragen protokollieren",
+          "description": "Alle Datenbankabfragen protokollieren (nur Debug-Modus)"
+        }
+      }
+    },
+    "common": {
+      "enable": "Diese Einstellung aktivieren",
+      "required": "*"
+    },
+    "messages": {
+      "saveSuccess": "Einstellungen erfolgreich gespeichert",
+      "saveFailed": "Fehler beim Speichern der Einstellungen",
+      "loadFailed": "Fehler beim Laden der Einstellungen",
+      "dbTestSuccess": "Datenbankverbindung erfolgreich",
+      "dbTestFailed": "Datenbankverbindung fehlgeschlagen",
+      "resetSuccess": "Konfiguration auf Standardwerte zurückgesetzt",
+      "resetFailed": "Fehler beim Zurücksetzen der Konfiguration",
+      "exportSuccess": "Konfiguration erfolgreich exportiert",
+      "exportFailed": "Fehler beim Exportieren der Konfiguration",
+      "importSuccess": "Konfiguration erfolgreich importiert",
+      "importFailed": "Fehler beim Importieren der Konfiguration"
+    }
+  },
+  "common": {
+    "loading": "Lädt...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "search": "Suchen",
+    "filter": "Filter",
+    "reset": "Zurücksetzen",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Information"
+  },
+  "home": {
+    "welcome": "Willkommen bei TurnFix",
+    "description": "Modernes Turnwettkampf-Verwaltungssystem mit Echtzeit-Bewertung, Teilnehmerverfolgung und umfassender Analyse.",
+    "enterDashboard": "Zum Dashboard",
+    "viewEvents": "Veranstaltungen anzeigen",
+    "databaseConfig": "Datenbankeinstellungen",
+    "authNote": "Benutzerauthentifizierung vorübergehend deaktiviert - Vollzugriff verfügbar"
+  },
+  "login": {
+    "title": "TurnFix Anmeldung",
+    "subtitle": "Moderne Turnwettkampf-Verwaltung",
+    "authDisabled": "Benutzerauthentifizierung ist vorübergehend deaktiviert",
+    "directAccess": "Sie können direkt auf die Anwendung zugreifen, ohne sich anzumelden.",
+    "goToDashboard": "Zum Dashboard",
+    "backToHome": "Zurück zur Startseite"
+  }
+}

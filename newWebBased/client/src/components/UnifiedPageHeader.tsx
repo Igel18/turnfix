@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { 
   HomeIcon,
   FunnelIcon,
@@ -13,6 +14,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
 interface FilterOption {
   value: string
@@ -107,6 +109,7 @@ export default function UnifiedPageHeader({
   customActions,
   customBelowActions
 }: UnifiedPageHeaderProps) {
+  const { t } = useTranslation()
   const { selectedEvent } = useEvent()
 
   return (
@@ -119,7 +122,7 @@ export default function UnifiedPageHeader({
             className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <HomeIcon className="h-4 w-4 mr-2" />
-            Home
+            {t('navigation.dashboard')}
           </Link>
           <div>
             <div className="flex items-center space-x-3">
@@ -141,7 +144,7 @@ export default function UnifiedPageHeader({
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <FunnelIcon className="h-4 w-4 mr-2" />
-              Filters
+              {t('common.filter')}
             </button>
           )}
           
@@ -176,6 +179,9 @@ export default function UnifiedPageHeader({
           )}
           
           {customActions}
+          
+          {/* Language Switcher - Always visible */}
+          <LanguageSwitcher />
         </div>
       </div>
 

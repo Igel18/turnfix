@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { useEvent } from '../contexts/EventContext'
 import EventSelector from '@/components/EventSelector'
@@ -233,6 +234,7 @@ const resultsAwardsActions = [
 ]
 
 export function Dashboard() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { 
     selectedEvent, 
@@ -278,6 +280,67 @@ export function Dashboard() {
     totalStatuses: 0,
     loading: true
   })
+
+  // Helper function to translate action names and descriptions
+  const translateAction = (action: any) => {
+    // Map action names to translation keys
+    const nameKeyMap: { [key: string]: string } = {
+      'Manage Events': 'dashboard.eventManagement.eventSetup.manageEvents.title',
+      'View Competitions': 'dashboard.eventManagement.eventSetup.viewCompetitions.title',
+      'Event Participants': 'dashboard.eventManagement.eventSetup.eventParticipants.title',
+      'Starting Order': 'dashboard.eventManagement.competitionDay.startingOrder.title',
+      'Score Capture': 'dashboard.eventManagement.competitionDay.scoreCapture.title',
+      'Live Results': 'dashboard.eventManagement.competitionDay.liveResults.title',
+      'Final Results': 'dashboard.eventManagement.resultsAwards.finalResults.title',
+      'Export Results': 'dashboard.eventManagement.resultsAwards.exportResults.title',
+      'Certificates': 'dashboard.eventManagement.resultsAwards.certificates.title',
+      'Manage Regions': 'dashboard.databaseManagement.regions.title',
+      'Manage Associations': 'dashboard.databaseManagement.associations.title',
+      'Manage Clubs': 'dashboard.databaseManagement.clubs.title',
+      'Manage Athletes': 'dashboard.databaseManagement.athletes.title',
+      'Manage Disciplines': 'dashboard.databaseManagement.disciplines.title',
+      'Manage Locations': 'dashboard.databaseManagement.locations.title',
+      'Manage Persons': 'dashboard.databaseManagement.persons.title',
+      'Manage Sports': 'dashboard.databaseManagement.sports.title',
+      'Manage Formulas': 'dashboard.databaseManagement.formulas.title',
+      'Manage Discipline Groups': 'dashboard.databaseManagement.disciplineGroups.title',
+      'Discipline Fields': 'dashboard.databaseManagement.disciplineFields.title',
+      'Certificate Layouts': 'dashboard.databaseManagement.certificateLayouts.title',
+      'Status Management': 'dashboard.databaseManagement.statusManagement.title',
+      'Create Event': 'dashboard.databaseManagement.createEvent.title'
+    }
+
+    const descriptionKeyMap: { [key: string]: string } = {
+      'Manage Events': 'dashboard.eventManagement.eventSetup.manageEvents.description',
+      'View Competitions': 'dashboard.eventManagement.eventSetup.viewCompetitions.description',
+      'Event Participants': 'dashboard.eventManagement.eventSetup.eventParticipants.description',
+      'Starting Order': 'dashboard.eventManagement.competitionDay.startingOrder.description',
+      'Score Capture': 'dashboard.eventManagement.competitionDay.scoreCapture.description',
+      'Live Results': 'dashboard.eventManagement.competitionDay.liveResults.description',
+      'Final Results': 'dashboard.eventManagement.resultsAwards.finalResults.description',
+      'Export Results': 'dashboard.eventManagement.resultsAwards.exportResults.description',
+      'Certificates': 'dashboard.eventManagement.resultsAwards.certificates.description',
+      'Manage Regions': 'dashboard.databaseManagement.regions.description',
+      'Manage Associations': 'dashboard.databaseManagement.associations.description',
+      'Manage Clubs': 'dashboard.databaseManagement.clubs.description',
+      'Manage Athletes': 'dashboard.databaseManagement.athletes.description',
+      'Manage Disciplines': 'dashboard.databaseManagement.disciplines.description',
+      'Manage Locations': 'dashboard.databaseManagement.locations.description',
+      'Manage Persons': 'dashboard.databaseManagement.persons.description',
+      'Manage Sports': 'dashboard.databaseManagement.sports.description',
+      'Manage Formulas': 'dashboard.databaseManagement.formulas.description',
+      'Manage Discipline Groups': 'dashboard.databaseManagement.disciplineGroups.description',
+      'Discipline Fields': 'dashboard.databaseManagement.disciplineFields.description',
+      'Certificate Layouts': 'dashboard.databaseManagement.certificateLayouts.description',
+      'Status Management': 'dashboard.databaseManagement.statusManagement.description',
+      'Create Event': 'dashboard.databaseManagement.createEvent.description'
+    }
+
+    return {
+      name: nameKeyMap[action.name] ? t(nameKeyMap[action.name]) : action.name,
+      description: descriptionKeyMap[action.name] ? t(descriptionKeyMap[action.name]) : action.description
+    }
+  }
 
   // Fetch statistics from API
   useEffect(() => {
@@ -408,10 +471,10 @@ export function Dashboard() {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {user?.username || 'User'}!
+          {t('dashboard.welcome', { username: user?.username || 'User' })}
         </h1>
         <p className="text-gray-600 mt-2">
-          Manage your gymnastics competitions and events from this dashboard.
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
@@ -425,15 +488,15 @@ export function Dashboard() {
                 <BuildingOfficeIcon className="h-6 w-6 text-gray-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Database Management</h2>
-                <p className="text-sm text-gray-600">Manage athletes, clubs, and organizational structure</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.databaseManagement.title')}</h2>
+                <p className="text-sm text-gray-600">{t('dashboard.databaseManagement.subtitle')}</p>
               </div>
             </div>
             <button
               onClick={() => setIsDatabaseManagementCollapsed(!isDatabaseManagementCollapsed)}
               className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <span>{isDatabaseManagementCollapsed ? 'Expand' : 'Collapse'}</span>
+              <span>{isDatabaseManagementCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
               {isDatabaseManagementCollapsed ? (
                 <ChevronDownIcon className="h-4 w-4" />
               ) : (
@@ -463,7 +526,7 @@ export function Dashboard() {
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                          {action.name}
+                          {translateAction(action).name}
                         </h3>
                         {!statistics.loading && action.count !== undefined && (
                           <p className="text-xs font-semibold text-blue-600 mt-1">
@@ -471,7 +534,7 @@ export function Dashboard() {
                           </p>
                         )}
                         <p className="text-xs text-gray-600 mt-1">
-                          {action.description}
+                          {translateAction(action).description}
                         </p>
                       </div>
                     </div>
@@ -489,8 +552,8 @@ export function Dashboard() {
               <CalendarDaysIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Event Management</h2>
-              <p className="text-sm text-gray-600">3-step workflow: Setup → Competition → Results</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.eventManagement.title')}</h2>
+              <p className="text-sm text-gray-600">{t('dashboard.eventManagement.subtitle')}</p>
             </div>
           </div>
           
@@ -510,8 +573,8 @@ export function Dashboard() {
                       <span className="text-sm font-bold text-blue-600">1</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Event Setup</h3>
-                      <p className="text-sm text-gray-600">Planning & Configuration</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.eventManagement.eventSetup.title')}</h3>
+                      <p className="text-sm text-gray-600">{t('dashboard.eventManagement.eventSetup.subtitle')}</p>
                     </div>
                   </div>
                   <button
@@ -544,10 +607,10 @@ export function Dashboard() {
                               </div>
                               <div>
                                 <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                  {action.name}
+                                  {translateAction(action).name}
                                 </h4>
                                 <p className="text-xs text-gray-600 mt-1">
-                                  {action.description}
+                                  {translateAction(action).description}
                                 </p>
                               </div>
                             </div>
@@ -567,8 +630,8 @@ export function Dashboard() {
                       <span className="text-sm font-bold text-orange-600">2</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Competition Day</h3>
-                      <p className="text-sm text-gray-600">Live Scoring & Execution</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.eventManagement.competitionDay.title')}</h3>
+                      <p className="text-sm text-gray-600">{t('dashboard.eventManagement.competitionDay.subtitle')}</p>
                     </div>
                   </div>
                   <button
@@ -601,10 +664,10 @@ export function Dashboard() {
                               </div>
                               <div>
                                 <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                  {action.name}
+                                  {translateAction(action).name}
                                 </h4>
                                 <p className="text-xs text-gray-600 mt-1">
-                                  {action.description}
+                                  {translateAction(action).description}
                                 </p>
                               </div>
                             </div>
@@ -624,8 +687,8 @@ export function Dashboard() {
                       <span className="text-sm font-bold text-green-600">3</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Results & Awards</h3>
-                      <p className="text-sm text-gray-600">Final Results & Completion</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.eventManagement.resultsAwards.title')}</h3>
+                      <p className="text-sm text-gray-600">{t('dashboard.eventManagement.resultsAwards.subtitle')}</p>
                     </div>
                   </div>
                   <button
@@ -658,10 +721,10 @@ export function Dashboard() {
                               </div>
                               <div>
                                 <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                  {action.name}
+                                  {translateAction(action).name}
                                 </h4>
                                 <p className="text-xs text-gray-600 mt-1">
-                                  {action.description}
+                                  {translateAction(action).description}
                                 </p>
                               </div>
                             </div>

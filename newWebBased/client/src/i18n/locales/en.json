@@ -1,0 +1,413 @@
+{
+  "app": {
+    "name": "TurnFix",
+    "title": "Gymnastics Competition Management"
+  },
+  "navigation": {
+    "dashboard": "Home",
+    "events": "Events",
+    "scoreCapture": "Score Capture",
+    "competitions": "Competitions",
+    "results": "Results",
+    "databaseManagement": "Database Management",
+    "manageDisciplines": "Manage Disciplines",
+    "clubs": "Clubs",
+    "participants": "Participants",
+    "regions": "Regions",
+    "associations": "Associations",
+    "configuration": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {{username}}!",
+    "subtitle": "Manage your gymnastics competitions and events from this home screen.",
+    "databaseManagement": {
+      "title": "Database Management",
+      "subtitle": "Manage athletes, clubs, and organizational structure",
+      "regions": {
+        "title": "Manage Regions",
+        "description": "Manage gymnastics regions and districts"
+      },
+      "associations": {
+        "title": "Manage Associations", 
+        "description": "Manage gymnastics associations and federations"
+      },
+      "clubs": {
+        "title": "Manage Clubs",
+        "description": "Add and edit gymnastics clubs"
+      },
+      "athletes": {
+        "title": "Manage Athletes",
+        "description": "Add and manage athletes in the database"
+      },
+      "disciplines": {
+        "title": "Manage Disciplines",
+        "description": "Configure gymnastics disciplines and apparatus"
+      },
+      "locations": {
+        "title": "Manage Locations",
+        "description": "Manage competition venues and locations"
+      },
+      "persons": {
+        "title": "Manage Persons",
+        "description": "Manage contact persons and individuals"
+      },
+      "sports": {
+        "title": "Manage Sports",
+        "description": "Manage sport types and categories"
+      },
+      "formulas": {
+        "title": "Manage Formulas",
+        "description": "Manage scoring formulas and calculations"
+      },
+      "disciplineGroups": {
+        "title": "Manage Discipline Groups",
+        "description": "Manage discipline groups and categories"
+      },
+      "disciplineFields": {
+        "title": "Discipline Fields",
+        "description": "Manage scoring fields for each discipline"
+      },
+      "certificateLayouts": {
+        "title": "Certificate Layouts",
+        "description": "Design and manage certificate templates and layouts"
+      },
+      "statusManagement": {
+        "title": "Status Management",
+        "description": "Manage participant statuses and squad states"
+      },
+      "createEvent": {
+        "title": "Create Event",
+        "description": "Set up a new gymnastics competition"
+      }
+    },
+    "eventManagement": {
+      "title": "Event Management",
+      "subtitle": "3-step workflow: Setup → Competition → Results",
+      "eventSetup": {
+        "title": "Event Setup",
+        "subtitle": "Planning & Configuration",
+        "manageEvents": {
+          "title": "Manage Events",
+          "description": "Create and configure events"
+        },
+        "viewCompetitions": {
+          "title": "View Competitions",
+          "description": "Define competitions and disciplines"
+        },
+        "eventParticipants": {
+          "title": "Event Participants",
+          "description": "Add participants to event and assign to competitions"
+        },
+        "manageSquads": {
+          "title": "Manage Squads",
+          "description": "Create squads and organize participants"
+        },
+        "meldematrix": {
+          "title": "Meldematrix",
+          "description": "Registration matrix: Clubs vs Competitions overview"
+        }
+      },
+      "competitionDay": {
+        "title": "Competition Day",
+        "subtitle": "Live Management & Scoring",
+        "squadStatus": {
+          "title": "Squad Status",
+          "description": "Manage status for squad-discipline combinations"
+        },
+        "scoreCapture": {
+          "title": "Score Capture",
+          "description": "Enter scores and manage live scoring"
+        },
+        "competitionStatus": {
+          "title": "Competition Status",
+          "description": "Monitor competition progress and status"
+        }
+      },
+      "resultsAwards": {
+        "title": "Results & Awards",
+        "subtitle": "Analysis & Recognition",
+        "results": {
+          "title": "Results",
+          "description": "View and manage competition results"
+        },
+        "medals": {
+          "title": "Medals",
+          "description": "Medal standings and award ceremonies"
+        }
+      },
+      "selectEvent": {
+        "title": "Select an Event",
+        "description": "Choose an event above to access the 3-step workflow: Setup → Competition → Results"
+      }
+    },
+    "configuration": {
+      "title": "Settings",
+      "subtitle": "Application settings, database configuration, and system preferences",
+      "applicationSettings": {
+        "title": "Application Settings",
+        "description": "Configure database, debug mode, language, ports, and other system settings"
+      }
+    },
+    "recentActivity": {
+      "title": "Recent Activity"
+    },
+    "buttons": {
+      "expand": "Expand",
+      "collapse": "Collapse"
+    }
+  },
+  "configuration": {
+    "title": "Settings",
+    "subtitle": "Manage application settings and preferences",
+    "searchPlaceholder": "Search configuration settings...",
+    "sectionsTitle": "Settings Sections",
+    "saveConfiguration": "Save Settings",
+    "saving": "Saving...",
+    "testConnection": "Test Connection",
+    "sections": {
+      "database": {
+        "title": "Database Configuration",
+        "description": "Database connection settings and credentials",
+        "host": {
+          "label": "Database Host",
+          "description": "Database server hostname or IP address"
+        },
+        "port": {
+          "label": "Database Port", 
+          "description": "Database server port number"
+        },
+        "name": {
+          "label": "Database Name",
+          "description": "Name of the database"
+        },
+        "user": {
+          "label": "Database User",
+          "description": "Database username"
+        },
+        "password": {
+          "label": "Database Password",
+          "description": "Database password (encrypted storage)"
+        },
+        "ssl": {
+          "label": "Use SSL Connection",
+          "description": "Enable SSL/TLS for database connection"
+        }
+      },
+      "application": {
+        "title": "Application Settings",
+        "description": "General application configuration",
+        "name": {
+          "label": "Application Name",
+          "description": "Display name for the application"
+        },
+        "version": {
+          "label": "Application Version",
+          "description": "Current application version (read-only)"
+        },
+        "debug": {
+          "label": "Debug Mode",
+          "description": "Enable debug logging and additional information"
+        },
+        "serverPort": {
+          "label": "Server Port",
+          "description": "Backend server port number"
+        },
+        "clientPort": {
+          "label": "Client Port",
+          "description": "Frontend development server port"
+        }
+      },
+      "localization": {
+        "title": "Language & Localization",
+        "description": "Language and regional settings",
+        "language": {
+          "label": "Default Language",
+          "description": "Default language for the application",
+          "options": {
+            "de": "Deutsch (German)",
+            "en": "English",
+            "fr": "Français (French)",
+            "es": "Español (Spanish)"
+          }
+        },
+        "dateFormat": {
+          "label": "Date Format",
+          "description": "Default date display format",
+          "options": {
+            "DD.MM.YYYY": "DD.MM.YYYY (German)",
+            "MM/DD/YYYY": "MM/DD/YYYY (US)",
+            "YYYY-MM-DD": "YYYY-MM-DD (ISO)",
+            "DD/MM/YYYY": "DD/MM/YYYY (UK)"
+          }
+        },
+        "timezone": {
+          "label": "Timezone",
+          "description": "Default timezone for the application",
+          "options": {
+            "Europe/Berlin": "Europe/Berlin (CET/CEST)",
+            "Europe/London": "Europe/London (GMT/BST)",
+            "America/New_York": "America/New_York (EST/EDT)",
+            "Asia/Tokyo": "Asia/Tokyo (JST)"
+          }
+        }
+      },
+      "security": {
+        "title": "Security Settings",
+        "description": "Security and authentication configuration",
+        "sessionTimeout": {
+          "label": "Session Timeout (minutes)",
+          "description": "Automatic logout after inactivity (in minutes)"
+        },
+        "passwordMinLength": {
+          "label": "Minimum Password Length",
+          "description": "Minimum required password length"
+        },
+        "maxLoginAttempts": {
+          "label": "Max Login Attempts",
+          "description": "Maximum failed login attempts before account lockout"
+        },
+        "requireHttps": {
+          "label": "Require HTTPS",
+          "description": "Force HTTPS connections in production"
+        }
+      },
+      "imports": {
+        "title": "Import & Export Settings",
+        "description": "File import and export configuration",
+        "maxFileSize": {
+          "label": "Max File Size (MB)",
+          "description": "Maximum file size for imports (in megabytes)"
+        },
+        "allowedTypes": {
+          "label": "Allowed File Types",
+          "description": "Comma-separated list of allowed file extensions"
+        },
+        "autoBackup": {
+          "label": "Automatic Backup",
+          "description": "Create automatic backups before imports"
+        },
+        "validateImports": {
+          "label": "Validate Imports",
+          "description": "Perform validation checks on imported data"
+        }
+      },
+      "printing": {
+        "title": "Print & PDF Settings",
+        "description": "Printing and PDF generation configuration",
+        "pageSize": {
+          "label": "Default Page Size",
+          "description": "Default page size for PDF exports",
+          "options": {
+            "A4": "A4 (210 × 297 mm)",
+            "A3": "A3 (297 × 420 mm)",
+            "Letter": "Letter (8.5 × 11 in)",
+            "Legal": "Legal (8.5 × 14 in)"
+          }
+        },
+        "orientation": {
+          "label": "Default Orientation",
+          "description": "Default page orientation",
+          "options": {
+            "portrait": "Portrait",
+            "landscape": "Landscape"
+          }
+        },
+        "quality": {
+          "label": "PDF Quality",
+          "description": "PDF generation quality setting",
+          "options": {
+            "low": "Low (smaller file size)",
+            "medium": "Medium",
+            "high": "High (better quality)"
+          }
+        },
+        "watermark": {
+          "label": "Include Watermark",
+          "description": "Add TurnFix watermark to generated PDFs"
+        }
+      },
+      "logging": {
+        "title": "Logging Configuration",
+        "description": "Application logging and monitoring settings",
+        "level": {
+          "label": "Log Level",
+          "description": "Minimum log level to record",
+          "options": {
+            "error": "Error (errors only)",
+            "warn": "Warning (warnings and errors)",
+            "info": "Info (general information)",
+            "debug": "Debug (detailed debugging)"
+          }
+        },
+        "retention": {
+          "label": "Log Retention (days)",
+          "description": "Number of days to keep log files"
+        },
+        "auditLog": {
+          "label": "Enable Audit Logging",
+          "description": "Track user actions and data changes"
+        },
+        "dbQueries": {
+          "label": "Log Database Queries",
+          "description": "Log all database queries (debug mode only)"
+        }
+      }
+    },
+    "common": {
+      "enable": "Enable this setting",
+      "required": "*"
+    },
+    "messages": {
+      "saveSuccess": "Settings saved successfully",
+      "saveFailed": "Failed to save settings",
+      "loadFailed": "Failed to load settings",
+      "dbTestSuccess": "Database connection successful",
+      "dbTestFailed": "Database connection failed",
+      "resetSuccess": "Configuration reset to defaults",
+      "resetFailed": "Failed to reset configuration",
+      "exportSuccess": "Configuration exported successfully",
+      "exportFailed": "Failed to export configuration",
+      "importSuccess": "Configuration imported successfully",
+      "importFailed": "Failed to import configuration"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "export": "Export",
+    "import": "Import",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "home": {
+    "welcome": "Welcome to TurnFix",
+    "description": "Modern gymnastics competition management system with real-time scoring, participant tracking, and comprehensive analytics.",
+    "enterDashboard": "Enter Dashboard",
+    "viewEvents": "View Events",
+    "databaseConfig": "Database Config",
+    "authNote": "User authentication temporarily disabled - Full access available"
+  },
+  "login": {
+    "title": "TurnFix Login",
+    "subtitle": "Modern Gymnastics Competition Management",
+    "authDisabled": "User authentication is temporarily disabled",
+    "directAccess": "You can access the application directly without logging in.",
+    "goToDashboard": "Go to Dashboard",
+    "backToHome": "Back to Home"
+  }
+}

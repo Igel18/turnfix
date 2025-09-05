@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useLanguage } from '../contexts/LanguageContext'
 import { 
   CogIcon,
   CircleStackIcon,
@@ -33,6 +35,8 @@ interface ConfigSetting {
 }
 
 const Configuration: React.FC = () => {
+  const { t, i18n } = useTranslation()
+  const { changeLanguage } = useLanguage()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
   const [loading, setLoading] = useState(false)
@@ -42,109 +46,109 @@ const Configuration: React.FC = () => {
 
   useEffect(() => {
     loadConfiguration()
-  }, [])
+  }, [t]) // Reload when language changes
 
   const loadConfiguration = async () => {
     setLoading(true)
     try {
       const response = await apiGet('/configuration')
       
-      // Initialize configuration sections with default values if not loaded from API
+      // Initialize configuration sections with translations
       const defaultSections: ConfigSection[] = [
         {
           id: 'database',
-          name: 'Database Configuration',
+          name: t('configuration.sections.database.title'),
           icon: CircleStackIcon,
-          description: 'Database connection settings and credentials',
+          description: t('configuration.sections.database.description'),
           settings: [
             {
               key: 'db_host',
-              label: 'Database Host',
+              label: t('configuration.sections.database.host.label'),
               type: 'text',
               value: response?.database?.host || 'localhost',
-              description: 'Database server hostname or IP address',
+              description: t('configuration.sections.database.host.description'),
               required: true
             },
             {
               key: 'db_port',
-              label: 'Database Port',
+              label: t('configuration.sections.database.port.label'),
               type: 'number',
               value: response?.database?.port || 5432,
-              description: 'Database server port number',
+              description: t('configuration.sections.database.port.description'),
               required: true
             },
             {
               key: 'db_name',
-              label: 'Database Name',
+              label: t('configuration.sections.database.name.label'),
               type: 'text',
               value: response?.database?.name || 'turnfix',
-              description: 'Name of the database',
+              description: t('configuration.sections.database.name.description'),
               required: true
             },
             {
               key: 'db_user',
-              label: 'Database User',
+              label: t('configuration.sections.database.user.label'),
               type: 'text',
               value: response?.database?.user || 'postgres',
-              description: 'Database username',
+              description: t('configuration.sections.database.user.description'),
               required: true
             },
             {
               key: 'db_password',
-              label: 'Database Password',
+              label: t('configuration.sections.database.password.label'),
               type: 'password',
               value: response?.database?.password || '',
-              description: 'Database password (encrypted storage)',
+              description: t('configuration.sections.database.password.description'),
               required: true,
               sensitive: true
             },
             {
               key: 'db_ssl',
-              label: 'Use SSL Connection',
+              label: t('configuration.sections.database.ssl.label'),
               type: 'boolean',
               value: response?.database?.ssl || false,
-              description: 'Enable SSL/TLS for database connection'
+              description: t('configuration.sections.database.ssl.description')
             }
           ]
         },
         {
           id: 'application',
-          name: 'Application Settings',
+          name: t('configuration.sections.application.title'),
           icon: CogIcon,
-          description: 'General application configuration',
+          description: t('configuration.sections.application.description'),
           settings: [
             {
               key: 'app_name',
-              label: 'Application Name',
+              label: t('configuration.sections.application.name.label'),
               type: 'text',
               value: response?.application?.name || 'TurnFix',
-              description: 'Display name for the application'
+              description: t('configuration.sections.application.name.description')
             },
             {
               key: 'app_version',
-              label: 'Application Version',
+              label: t('configuration.sections.application.version.label'),
               type: 'text',
               value: response?.application?.version || '2.0.0',
-              description: 'Current application version (read-only)'
+              description: t('configuration.sections.application.version.description')
             },
             {
               key: 'debug_mode',
-              label: 'Debug Mode',
+              label: t('configuration.sections.application.debug.label'),
               type: 'boolean',
               value: response?.application?.debug || false,
-              description: 'Enable debug logging and additional information'
+              description: t('configuration.sections.application.debug.description')
             },
             {
               key: 'server_port',
-              label: 'Server Port',
+              label: t('configuration.sections.application.serverPort.label'),
               type: 'number',
               value: response?.application?.serverPort || 3001,
-              description: 'Backend server port number',
+              description: t('configuration.sections.application.serverPort.description'),
               required: true
             },
             {
               key: 'client_port',
-              label: 'Client Port',
+              label: t('configuration.sections.application.clientPort.label'),
               type: 'number',
               value: response?.application?.clientPort || 5173,
               description: 'Frontend development server port',
@@ -442,12 +446,12 @@ const Configuration: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedPageHeader
-        title="Configuration"
-        subtitle="Manage application settings and preferences"
+        title={t('configuration.title')}
+        subtitle={t('configuration.subtitle')}
         icon={CogIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search configuration settings..."
+        searchPlaceholder={t('configuration.searchPlaceholder')}
         showEventContext={false}
         customActions={
           <div className="flex space-x-3">
@@ -458,7 +462,7 @@ const Configuration: React.FC = () => {
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 <CircleStackIcon className="h-4 w-4 mr-2" />
-                Test Connection
+                {t('configuration.testConnection')}
               </button>
             )}
             <button
@@ -466,7 +470,7 @@ const Configuration: React.FC = () => {
               disabled={saving}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save Configuration'}
+              {saving ? t('configuration.saving') : t('configuration.saveConfiguration')}
             </button>
           </div>
         }

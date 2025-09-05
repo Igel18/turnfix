@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { EventProvider } from '@/contexts/EventContext'
 import { CertificateLayoutProvider } from '@/contexts/CertificateLayoutContext'
+import { LanguageProvider } from '@/contexts/LanguageContext'
+import './i18n'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
@@ -35,10 +37,11 @@ import Configuration from '@/pages/Configuration'
 function App() {
   return (
     <AuthProvider>
-      <EventProvider>
-        <CertificateLayoutProvider>
-          <div className="min-h-screen bg-background">
-            <Routes>
+      <LanguageProvider>
+        <EventProvider>
+          <CertificateLayoutProvider>
+            <div className="min-h-screen bg-background">
+              <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -72,6 +75,7 @@ function App() {
         </div>
         </CertificateLayoutProvider>
       </EventProvider>
+      </LanguageProvider>
     </AuthProvider>
   )
 }

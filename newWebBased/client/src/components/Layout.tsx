@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useRef } from 'react'
 import { 
   HomeIcon,
@@ -34,6 +35,7 @@ const databaseMenuItems = [
 
 export function Layout() {
   const { user } = useAuth() // Only need user for display
+  const { t } = useTranslation()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false)
@@ -45,6 +47,25 @@ export function Layout() {
 
   const isDatabasePathActive = () => {
     return databaseMenuItems.some(item => isActivePath(item.href))
+  }
+
+  // Translation helper for menu items
+  const translateMenuItem = (name: string) => {
+    const menuTranslationMap: { [key: string]: string } = {
+      'Dashboard': 'navigation.dashboard',
+      'Events': 'navigation.events',
+      'Score Capture': 'navigation.scoreCapture',
+      'Competitions': 'navigation.competitions',
+      'Results': 'navigation.results',
+      'Database Management': 'navigation.databaseManagement',
+      'Manage Disciplines': 'navigation.manageDisciplines',
+      'Clubs': 'navigation.clubs',
+      'Participants': 'navigation.participants',
+      'Regions': 'navigation.regions',
+      'Associations': 'navigation.associations'
+    }
+    
+    return menuTranslationMap[name] ? t(menuTranslationMap[name]) : name
   }
 
   // Close dropdown when clicking outside
@@ -100,7 +121,7 @@ export function Layout() {
                     }`}
                   >
                     <Icon className="h-4 w-4 mr-2" />
-                    {item.name}
+                    {translateMenuItem(item.name)}
                   </Link>
                 )
               })}
@@ -116,7 +137,7 @@ export function Layout() {
                   }`}
                 >
                   <CircleStackIcon className="h-4 w-4 mr-2" />
-                  Database Management
+                  {translateMenuItem('Database Management')}
                   <ChevronDownIcon className="h-4 w-4 ml-1" />
                 </button>
                 
@@ -137,7 +158,7 @@ export function Layout() {
                             }`}
                           >
                             <Icon className="h-4 w-4 mr-3" />
-                            {item.name}
+                            {translateMenuItem(item.name)}
                           </Link>
                         )
                       })}
@@ -178,7 +199,7 @@ export function Layout() {
                     }`}
                   >
                     <Icon className="h-5 w-5 mr-3" />
-                    {item.name}
+                    {translateMenuItem(item.name)}
                   </Link>
                 )
               })}
@@ -186,7 +207,7 @@ export function Layout() {
               {/* Database Management Section in Mobile */}
               <div className="pt-2">
                 <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Database Management
+                  {translateMenuItem('Database Management')}
                 </div>
                 {databaseMenuItems.map((item) => {
                   const Icon = item.icon
@@ -202,7 +223,7 @@ export function Layout() {
                       }`}
                     >
                       <Icon className="h-5 w-5 mr-3" />
-                      {item.name}
+                      {translateMenuItem(item.name)}
                     </Link>
                   )
                 })}
