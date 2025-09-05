@@ -282,26 +282,30 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     
     const query = `
       SELECT 
-        int_disziplinenid as id, 
-        var_name as name, 
-        var_kurz1 as short_name,
-        var_kurz2 as display_name,
-        var_einheit as apparatus,
-        bol_m as male_allowed,
-        bol_w as female_allowed,
+        d.int_disziplinenid as id, 
+        d.var_name as name, 
+        d.var_kurz1 as short_name,
+        d.var_kurz2 as display_name,
+        d.var_einheit as apparatus,
+        d.bol_m as male_allowed,
+        d.bol_w as female_allowed,
         CASE 
-          WHEN bol_m = true AND bol_w = true THEN 'gemischt'
-          WHEN bol_m = true AND bol_w = false THEN 'männlich'
-          WHEN bol_m = false AND bol_w = true THEN 'weiblich'
+          WHEN d.bol_m = true AND d.bol_w = true THEN 'gemischt'
+          WHEN d.bol_m = true AND d.bol_w = false THEN 'männlich'
+          WHEN d.bol_m = false AND d.bol_w = true THEN 'weiblich'
           ELSE 'unbekannt'
         END as gender_text,
-        var_icon as icon,
-        var_formel as formula,
-        int_sportid as sport_id,
-        var_maske as input_mask,
-        int_versuche as attempts
-      FROM tfx_disziplinen
-      WHERE int_disziplinenid = $1
+        d.var_icon as icon,
+        d.var_formel as formula,
+        d.int_sportid as sport_id,
+        d.var_maske as input_mask,
+        d.int_versuche as attempts,
+        d.int_formelid as formula_id,
+        f.var_name as formula_name,
+        f.var_formel as advanced_formula
+      FROM tfx_disziplinen d
+      LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
+      WHERE d.int_disziplinenid = $1
     `;
     
     const result = await prisma.$queryRawUnsafe(query, disciplineId);

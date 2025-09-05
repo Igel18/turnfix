@@ -376,7 +376,3 @@ Please consider the environment before printing this e-mail.
 
 Internal
 
-
-Wenn ich die DB mal ändern mag: 
-        - Disziplinfelder Werte in DB speichern 
-        - ggf. noch über neben Ausgangswert mit angeben

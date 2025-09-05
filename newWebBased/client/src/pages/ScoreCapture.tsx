@@ -157,10 +157,13 @@ export function ScoreCapture() {
 
   // Re-initialize score matrix when activeSquad changes (for filtering)
   useEffect(() => {
-    if (participants.length > 0 && disciplines.length > 0 && existingScores.length > 0) {
-      console.log('Re-initializing score matrix due to squad change:', activeSquad)
-      initializeScoreMatrix(participants, disciplines, existingScores)
+    const reinitializeMatrix = async () => {
+      if (participants.length > 0 && disciplines.length > 0 && existingScores.length > 0) {
+        console.log('Re-initializing score matrix due to squad change:', activeSquad)
+        await initializeScoreMatrix(participants, disciplines, existingScores)
+      }
     }
+    reinitializeMatrix()
   }, [activeSquad, participants, disciplines, existingScores])
 
   // Helper function to get enabled fields for a discipline
@@ -168,6 +171,104 @@ export function ScoreCapture() {
     return disciplineFields
       .filter(field => field.disciplineId === disciplineId && field.enabled)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+  }
+
+  // Generic formula parsing helper - converts formula variables to readable field names
+  const parseFormulaDisplay = (formula: string, fieldNames: string[], finalFieldName: string) => {
+    if (!formula || fieldNames.length === 0) {
+      return null;
+    }
+
+    // Create a mapping of formula variables (A, B, C, etc.) to actual field names
+    const variableMap: {[key: string]: string} = {};
+    const variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    
+    // Map variables to field names (excluding final score field)
+    const inputFields = fieldNames.filter(name => 
+      !name.toLowerCase().includes('endwert') && 
+      !name.toLowerCase().includes('final') &&
+      !name.toLowerCase().includes('total')
+    );
+    
+    inputFields.forEach((fieldName, index) => {
+      if (index < variables.length) {
+        variableMap[variables[index]] = fieldName;
+      }
+    });
+
+    // Replace formula variables with field names
+    let displayFormula = formula;
+    
+    // Replace variables in order (longer first to avoid partial replacements)
+    variables.forEach(variable => {
+      if (variableMap[variable]) {
+        const regex = new RegExp(`\\b${variable}\\b`, 'g');
+        displayFormula = displayFormula.replace(regex, variableMap[variable]);
+      }
+    });
+
+    return `${finalFieldName} = ${displayFormula}`;
+  }
+
+  // Generic formula evaluation helper
+  const evaluateFormula = (formula: string, fieldValues: {[key: string]: number}) => {
+    if (!formula) {
+      return 0;
+    }
+
+    // Create a mapping of formula variables to values
+    const variableMap: {[key: string]: number} = {};
+    const variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    
+    // Map available field values to formula variables
+    const availableFields = Object.keys(fieldValues);
+    availableFields.forEach((fieldName, index) => {
+      if (index < variables.length && fieldValues[fieldName] !== undefined) {
+        variableMap[variables[index]] = fieldValues[fieldName];
+      }
+    });
+
+    // Also try direct field name mapping for common patterns
+    if (fieldValues['D/A-Note'] !== undefined) variableMap['A'] = fieldValues['D/A-Note'];
+    if (fieldValues['E/B-Note'] !== undefined) variableMap['B'] = fieldValues['E/B-Note'];
+    if (fieldValues['Neutrale Abzüge'] !== undefined) variableMap['C'] = fieldValues['Neutrale Abzüge'];
+    if (fieldValues['Ausgangswert'] !== undefined) variableMap['D'] = fieldValues['Ausgangswert'];
+
+    console.log('Formula evaluation:', { formula, fieldValues, variableMap });
+
+    try {
+      // Replace variables in the formula with their values
+      let evalFormula = formula;
+      variables.forEach(variable => {
+        if (variableMap[variable] !== undefined) {
+          const regex = new RegExp(`\\b${variable}\\b`, 'g');
+          evalFormula = evalFormula.replace(regex, variableMap[variable].toString());
+        } else {
+          // Replace undefined variables with 0
+          const regex = new RegExp(`\\b${variable}\\b`, 'g');
+          evalFormula = evalFormula.replace(regex, '0');
+        }
+      });
+
+      // Replace common math operations and evaluate safely
+      evalFormula = evalFormula.replace(/\s+/g, ''); // Remove spaces
+      
+      // Basic safety check - only allow numbers, basic operators, and parentheses
+      if (!/^[0-9+\-*/.() ]+$/.test(evalFormula)) {
+        console.warn('Formula contains invalid characters:', evalFormula);
+        return 0;
+      }
+
+      // Evaluate the formula safely
+      const result = Function(`"use strict"; return (${evalFormula})`)();
+      
+      console.log(`Formula "${formula}" with values ${JSON.stringify(variableMap)} = ${result}`);
+      return isNaN(result) ? 0 : result;
+      
+    } catch (error) {
+      console.error('Error evaluating formula:', formula, error);
+      return 0;
+    }
   }
 
   // Update squad status when squad or discipline selection changes
@@ -250,10 +351,37 @@ export function ScoreCapture() {
         }
         return acc
       }, [])
+
+      // Enhance disciplines with detailed information including formulas
+      const enhancedDisciplines = await Promise.all(
+        uniqueDisciplines.map(async (discipline) => {
+          try {
+            if (discipline.int_disziplinid) {
+              await delay(25) // Small delay between requests
+              const detailedDiscipline = await apiGet(`/disciplines/${discipline.int_disziplinid}`)
+              console.log(`Enhanced discipline ${discipline.int_disziplinid}:`, detailedDiscipline)
+              // Merge the detailed info with the existing discipline
+              return {
+                ...discipline,
+                ...detailedDiscipline,
+                // Preserve original structure but add formula and other details
+                var_formel: detailedDiscipline.advanced_formula || detailedDiscipline.formula || detailedDiscipline.var_formel,
+                formula_name: detailedDiscipline.formula_name,
+                maxScore: discipline.maxScore || detailedDiscipline.maxScore
+              }
+            }
+            return discipline
+          } catch (error) {
+            console.error(`Error loading detailed info for discipline ${discipline.int_disziplinid}:`, error)
+            return discipline
+          }
+        })
+      )
       
-      setDisciplines(uniqueDisciplines)
+      setDisciplines(enhancedDisciplines)
       console.log('All loaded disciplines (before dedup):', allDisciplines)
       console.log('Unique disciplines (after dedup):', uniqueDisciplines)
+      console.log('Enhanced disciplines (with formulas):', enhancedDisciplines)
       
       // Load discipline fields for all disciplines
       try {
@@ -284,7 +412,7 @@ export function ScoreCapture() {
       }
       
       // Initialize score matrix with existing scores
-      initializeScoreMatrix(participantsData || [], uniqueDisciplines || [], loadedScores)
+      await initializeScoreMatrix(participantsData || [], enhancedDisciplines || [], loadedScores)
       
       // Load available statuses
       try {
@@ -341,7 +469,7 @@ export function ScoreCapture() {
     }
   }
 
-  const initializeScoreMatrix = (participants: Participant[], disciplines: Discipline[], existingScores: Score[]) => {
+  const initializeScoreMatrix = async (participants: Participant[], disciplines: Discipline[], existingScores: Score[]) => {
     console.log('initializeScoreMatrix called with:')
     console.log('participants:', participants, 'type:', typeof participants, 'isArray:', Array.isArray(participants))
     console.log('disciplines:', disciplines, 'type:', typeof disciplines, 'isArray:', Array.isArray(disciplines))
@@ -413,14 +541,38 @@ export function ScoreCapture() {
           enabledFields.forEach(field => {
             const fieldKey = `${participant.id}-${field.id}`
             
-            // For now, initialize empty since we don't have field-specific scores yet
-            // TODO: Later we'll need to modify the Score interface and backend to handle field-specific scores
+            // Initialize empty - will be populated with jury results below
             matrix[fieldKey] = ''
             console.log(`Initialized field key ${fieldKey} for field "${field.name}"`)
           })
         }
       })
     })
+
+    // Load existing jury results for field-specific scores
+    if (eventId && filteredParticipants.length > 0) {
+      try {
+        console.log('Loading jury results for event:', eventId)
+        const juryResults = await apiGet(`/jury-results?eventId=${eventId}&limit=1000`)
+        console.log('Loaded jury results:', juryResults.results?.length || 0, 'entries')
+        
+        // Add field-specific scores to matrix
+        if (juryResults.results) {
+          juryResults.results.forEach((result: any) => {
+            // Check if this result is for a participant in our filtered list
+            const isForFilteredParticipant = filteredParticipants.some(p => p.id === result.participantId)
+            if (isForFilteredParticipant) {
+              const fieldKey = `${result.participantId}-${result.disciplineFieldId}`
+              matrix[fieldKey] = result.performance?.toString() || ''
+              console.log(`Loaded field score: ${fieldKey} = ${result.performance} (field: ${result.fieldName})`)
+            }
+          })
+        }
+      } catch (error) {
+        console.error('Error loading jury results:', error)
+        // Continue without field scores if loading fails
+      }
+    }
     
     console.log('Final score matrix:', matrix)
     setScoreMatrix(matrix)
@@ -440,6 +592,18 @@ export function ScoreCapture() {
       ...prev,
       [key]: value
     }))
+    
+    // Auto-save after a short delay (debounced)
+    clearTimeout((window as any).fieldSaveTimeout)
+    ;(window as any).fieldSaveTimeout = setTimeout(() => {
+      if (value && value.trim() !== '') {
+        const field = disciplineFields.find(f => f.id === fieldId)
+        if (field) {
+          console.log(`Auto-saving field score: participant=${participantId}, field=${fieldId}, value=${value}`)
+          saveFieldScore(participantId, field)
+        }
+      }
+    }, 1000) // Save 1 second after user stops typing
   }
 
   const saveScore = async (participantId: number, disciplineId: number | string) => {
@@ -513,19 +677,126 @@ export function ScoreCapture() {
     }
   }
 
-  // TODO: Placeholder function for field-specific score saving
-  // This will need backend support for field-specific scores
+  // Save field-specific score using jury results API
   const saveFieldScore = async (participantId: number, field: DisciplineField) => {
     const fieldKey = `${participantId}-${field.id}`
     const fieldValue = scoreMatrix[fieldKey]
     
-    if (fieldValue === '' || fieldValue === null || fieldValue === undefined) return
+    if (fieldValue === '' || fieldValue === null || fieldValue === undefined) {
+      console.log(`Skipping save for empty field: ${fieldKey}`)
+      return
+    }
     
-    console.log(`TODO: Save field score for participant ${participantId}, field "${field.name}" (ID: ${field.id}), value: ${fieldValue}`)
-    console.log('Backend support for field-specific scores is not yet implemented')
+    const numericValue = parseFloat(fieldValue)
+    if (isNaN(numericValue)) {
+      console.log(`Skipping save for non-numeric value: ${fieldValue}`)
+      return
+    }
     
-    // For now, show a warning that field-specific saving is not implemented
-    // TODO: Implement field-specific score saving in backend
+    console.log(`Saving field score for participant ${participantId}, field "${field.name}" (ID: ${field.id}), value: ${numericValue}`)
+    
+    try {
+      const scoreData = {
+        participantId: participantId,
+        disciplineFieldId: field.id,
+        attempt: 1, // Default attempt
+        performance: numericValue,
+        type: 0 // Default type (0=Pflicht, 1=Kür) - TODO: determine from context
+      }
+      
+      console.log('Sending to API:', scoreData)
+      
+      // Use the new jury results save endpoint
+      const response = await apiPost('/jury-results/save-field-score', scoreData)
+      
+      console.log('API Response:', response)
+      
+      if (response.success) {
+        console.log('✅ Field score saved successfully:', response.data)
+        // Show brief success indicator
+        const fieldElement = document.querySelector(`input[data-field="${fieldKey}"]`)
+        if (fieldElement) {
+          fieldElement.classList.add('bg-green-50', 'border-green-300')
+          setTimeout(() => {
+            fieldElement.classList.remove('bg-green-50', 'border-green-300')
+          }, 2000)
+        }
+      } else {
+        console.error('❌ Failed to save field score:', response)
+        alert(`Failed to save ${field.name}: ${response.error || 'Unknown error'}`)
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error saving field score:', error)
+      alert(`Failed to save ${field.name}: ${error.message || 'Network error'}`)
+    }
+  }
+
+  // Calculate final scores for a discipline based on field values and formula
+  const calculateDisciplineScores = async (disciplineId: number | string, fields: DisciplineField[]) => {
+    console.log(`Calculating scores for discipline ${disciplineId}`)
+    
+    // Find the discipline to get its formula
+    const discipline = displayDisciplines.find(d => 
+      d.int_disziplinid === disciplineId || d.var_name === disciplineId
+    )
+    
+    if (!discipline) {
+      console.error('Discipline not found for calculation')
+      return
+    }
+
+    const formula = (discipline as any).var_formel || '1*x'
+    const formulaName = (discipline as any).formula_name || ''
+    console.log(`Using formula: ${formula} (${formulaName})`)
+
+    // Find the final score field (Endwert)
+    const finalScoreField = fields.find(field => field.isFinalScore || field.name.toLowerCase().includes('endwert'))
+    
+    if (!finalScoreField) {
+      console.log('No final score field found, cannot calculate')
+      alert('No final score field configured for calculation')
+      return
+    }
+
+    // Calculate for each participant
+    filteredParticipants.forEach(participant => {
+      try {
+        // Get all field values for this participant
+        const fieldValues: {[key: string]: number} = {}
+        fields.forEach(field => {
+          const fieldKey = `${participant.id}-${field.id}`
+          const value = scoreMatrix[fieldKey]
+          if (value && !isNaN(parseFloat(value))) {
+            fieldValues[field.name] = parseFloat(value)
+          }
+        })
+
+        console.log(`Participant ${participant.id} field values:`, fieldValues)
+
+        // Use generic formula evaluation
+        const calculatedScore = evaluateFormula(formula, fieldValues);
+        
+        console.log(`Calculated score for ${participant.firstname} ${participant.lastname}: ${calculatedScore}`)
+
+        // Update the final score field in the matrix
+        const finalScoreKey = `${participant.id}-${finalScoreField.id}`
+        setScoreMatrix(prev => ({
+          ...prev,
+          [finalScoreKey]: calculatedScore.toFixed(2)
+        }))
+
+        // Auto-save the calculated score
+        setTimeout(() => {
+          saveFieldScore(participant.id, finalScoreField)
+        }, 100)
+
+      } catch (error) {
+        console.error(`Error calculating score for participant ${participant.id}:`, error)
+      }
+    })
+
+    alert(`Calculated final scores for ${filteredParticipants.length} participants`)
   }
 
   // Function to save squad status via API
@@ -965,6 +1236,45 @@ export function ScoreCapture() {
                                   {enabledFields.map(field => field.name).join(' • ')}
                                 </div>
                               )}
+                              {/* Formula display */}
+                              {(discipline as any).var_formel && (
+                                <div className="text-xs text-purple-600 normal-case mt-1 font-mono">
+                                  {(() => {
+                                    const formula = (discipline as any).var_formel;
+                                    const formulaName = (discipline as any).formula_name;
+                                    
+                                    // Generate meaningful formula display based on enabled fields
+                                    const fieldNames = enabledFields.filter(f => !f.isFinalScore).map(f => f.name);
+                                    const finalField = enabledFields.find(f => f.isFinalScore);
+                                    const finalFieldName = finalField?.name || 'Endwert';
+                                    
+                                    // Use generic formula parser if we have multiple fields
+                                    if (enabledFields.length > 1) {
+                                      const parsedFormula = parseFormulaDisplay(formula, fieldNames, finalFieldName);
+                                      if (parsedFormula) {
+                                        return parsedFormula;
+                                      }
+                                    }
+                                    
+                                    // Fallback display for any formula
+                                    if (formulaName) {
+                                      return `${formulaName}: ${formula}`;
+                                    } else {
+                                      return `Formula: ${formula}`;
+                                    }
+                                  })()}
+                                </div>
+                              )}
+                              {/* Calculate button for disciplines with formulas and final score field */}
+                              {(discipline as any).var_formel && enabledFields.length > 0 && enabledFields.some(f => f.isFinalScore) && (
+                                <button
+                                  onClick={() => calculateDisciplineScores(disciplineId, enabledFields)}
+                                  className="mt-1 px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
+                                  title="Calculate final scores based on field values and formula"
+                                >
+                                  Calculate
+                                </button>
+                              )}
                             </div>
                           </th>
                         )
@@ -1058,9 +1368,10 @@ export function ScoreCapture() {
                                               type="number"
                                               step="0.01"
                                               value={fieldValue}
+                                              data-field={fieldKey}
                                               onChange={(e) => handleFieldScoreChange(participant.id, field.id, e.target.value)}
                                               onBlur={() => saveFieldScore(participant.id, field)}
-                                              className={`w-16 px-1 py-1 text-xs border rounded focus:ring-2 focus:border-transparent ${
+                                              className={`w-16 px-1 py-1 text-xs border rounded focus:ring-2 focus:border-transparent transition-colors ${
                                                 validation.isValid 
                                                   ? 'border-gray-300 focus:ring-blue-500' 
                                                   : 'border-red-300 bg-red-50 focus:ring-red-500'

@@ -110,9 +110,35 @@ export default function DisciplineFields() {
       try {
         await apiDelete(`/discipline-fields/${id}`)
         fetchDisciplineFields()
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error deleting discipline field:', error)
-        alert('Fehler beim Löschen des Disziplinfelds')
+        
+        // Provide specific error messages based on error content
+        if (error.message?.includes('existing jury results')) {
+          alert(
+            `Das Disziplinfeld "${name}" kann nicht gelöscht werden, da bereits Jury-Bewertungen dafür existieren.\n\n` +
+            `Alternativen:\n` +
+            `• Feld deaktivieren (in Score Capture ausblenden)\n` +
+            `• Zuerst alle zugehörigen Bewertungen löschen\n` +
+            `• Feld umbenennen statt löschen`
+          )
+        } else if (error.message?.includes('referenced by')) {
+          alert(
+            `Das Disziplinfeld "${name}" wird noch verwendet und kann daher nicht gelöscht werden.\n\n` +
+            `Bitte entfernen Sie zuerst alle Verweise auf dieses Feld.`
+          )
+        } else if (error.message?.includes('constraint')) {
+          alert(
+            `Das Disziplinfeld "${name}" kann aufgrund von Datenbank-Einschränkungen nicht gelöscht werden.\n\n` +
+            `Möglicherweise existieren noch verknüpfte Datensätze.`
+          )
+        } else {
+          alert(
+            `Fehler beim Löschen des Disziplinfelds "${name}".\n\n` +
+            `Details: ${error.message || 'Unbekannter Fehler'}\n\n` +
+            `Versuchen Sie es später erneut oder wenden Sie sich an den Administrator.`
+          )
+        }
       }
     }
   }
@@ -223,33 +249,66 @@ export default function DisciplineFields() {
           </div>
         </div>
 
-        {/* Warning Section - Field Scores Not Saved Yet */}
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <h4 className="text-sm font-medium text-amber-900 mb-2">⚠️ Entwicklungshinweis</h4>
-          <div className="text-sm text-amber-800">
+        {/* Info Section - Field Scores Implementation Status */}
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h4 className="text-sm font-medium text-green-900 mb-2">✅ Feldspezifische Bewertungen</h4>
+          <div className="text-sm text-green-800">
             <p className="mb-2">
-              <strong>Feldspezifische Bewertungen werden derzeit noch nicht in der Datenbank gespeichert.</strong>
+              <strong>Feldspezifische Bewertungen werden bereits in der Datenbank gespeichert (tfx_jury_results).</strong>
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="font-medium mb-1">🔄 Aktueller Status:</p>
+                <p className="font-medium mb-1">� Funktionalität:</p>
                 <ul className="text-xs space-y-1 ml-4">
                   <li>• Felder werden korrekt angezeigt</li>
-                  <li>• Eingaben sind möglich</li>
-                  <li>• UI-Funktionalität vollständig</li>
+                  <li>• Eingaben werden gespeichert</li>
+                  <li>• API-Anbindung implementiert</li>
+                  <li>• Datenbank-Integration aktiv</li>
                 </ul>
               </div>
               <div>
-                <p className="font-medium mb-1">🚧 Noch in Entwicklung:</p>
+                <p className="font-medium mb-1">� Technische Details:</p>
                 <ul className="text-xs space-y-1 ml-4">
-                  <li>• Backend-Speicherung für Feldwerte</li>
-                  <li>• Datenbank-Schema Erweiterung</li>
-                  <li>• Persistierung der Einzelbewertungen</li>
+                  <li>• <strong>Tabelle:</strong> tfx_jury_results</li>
+                  <li>• <strong>API:</strong> /api/jury-results</li>
+                  <li>• <strong>Felder:</strong> Teilnehmer, Feld, Wert</li>
+                  <li>• <strong>Integration:</strong> Score Capture UI</li>
                 </ul>
               </div>
             </div>
-            <p className="mt-2 text-xs text-amber-700">
-              Die Konfiguration der Felder funktioniert bereits vollständig. Nur die Speicherung der eingegebenen Werte wird noch implementiert.
+            <p className="mt-2 text-xs text-green-700">
+              Die Konfiguration und Speicherung der Felder funktioniert vollständig. Jury-Bewertungen werden korrekt in der Datenbank persistiert.
+            </p>
+          </div>
+        </div>
+
+        {/* Info Section - Field Deletion Rules */}
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h4 className="text-sm font-medium text-red-900 mb-2">🚫 Löschen von Disziplinfeldern</h4>
+          <div className="text-sm text-red-800">
+            <p className="mb-2">
+              <strong>Felder mit bestehenden Jury-Bewertungen können nicht gelöscht werden.</strong>
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium mb-1">❌ Löschen nicht möglich wenn:</p>
+                <ul className="text-xs space-y-1 ml-4">
+                  <li>• Jury-Bewertungen existieren</li>
+                  <li>• Feld in Wettkämpfen verwendet wird</li>
+                  <li>• Referenzen in anderen Tabellen</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium mb-1">✅ Alternativen:</p>
+                <ul className="text-xs space-y-1 ml-4">
+                  <li>• <strong>Deaktivieren:</strong> Feld ausblenden</li>
+                  <li>• <strong>Umbenennen:</strong> Feld anpassen</li>
+                  <li>• <strong>Bewertungen löschen:</strong> Dann Feld entfernen</li>
+                </ul>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-red-700">
+              Diese Schutzmaßnahme verhindert Datenverlust und stellt die Integrität der Wettkampfdaten sicher.
             </p>
           </div>
         </div>
