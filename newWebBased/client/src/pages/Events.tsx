@@ -24,6 +24,14 @@ interface Event {
   status: 'upcoming' | 'active' | 'completed'
 }
 
+interface Venue {
+  int_wettkampforteid: number
+  var_name: string
+  var_adresse?: string
+  var_plz?: string
+  var_ort?: string
+}
+
 interface EventParticipant {
   id: number
   firstname: string
@@ -53,6 +61,7 @@ interface EventScore {
 const Events: React.FC = () => {
   // State management
   const [events, setEvents] = useState<Event[]>([])
+  const [venues, setVenues] = useState<Venue[]>([])
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [eventParticipants, setEventParticipants] = useState<EventParticipant[]>([])
   const [eventScores, setEventScores] = useState<EventScore[]>([])
@@ -197,6 +206,17 @@ const Events: React.FC = () => {
     }
   }
 
+  // Fetch venues for location dropdown
+  const fetchVenues = async () => {
+    try {
+      const data = await apiGet('/venues?limit=1000')
+      setVenues(data.venues || [])
+    } catch (error) {
+      console.error('Error fetching venues:', error)
+      setVenues([])
+    }
+  }
+
   // Create or update event
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -210,15 +230,28 @@ const Events: React.FC = () => {
         var_description: formData.var_description || null
       }
 
+      console.log('=== CLIENT DEBUG: Saving event ===')
+      console.log('Editing event:', editingEvent)
+      console.log('Event data being sent:', eventData)
+      console.log('Form data state:', formData)
+
+      let response
       if (editingEvent) {
-        await apiPut(`/events/${editingEvent.int_eventid}`, eventData)
+        console.log(`Making PUT request to /events/${editingEvent.int_eventid}`)
+        response = await apiPut(`/events/${editingEvent.int_eventid}`, eventData)
       } else {
-        await apiPost('/events', eventData)
+        console.log('Making POST request to /events')
+        response = await apiPost('/events', eventData)
       }
 
+      console.log('=== CLIENT DEBUG: Server response ===')
+      console.log('Response:', response)
+
+      console.log('=== CLIENT DEBUG: Refreshing events list ===')
       await fetchEvents(currentPage)
       setIsModalOpen(false)
       resetForm()
+      console.log('=== CLIENT DEBUG: Save operation completed ===')
     } catch (error) {
       console.error('Error saving event:', error)
     }
@@ -299,11 +332,13 @@ const Events: React.FC = () => {
       var_description: event.var_description || ''
     })
     setIsModalOpen(true)
+    fetchVenues() // Load venues for dropdown
   }
 
   const openCreateModal = () => {
     resetForm()
     setIsModalOpen(true)
+    fetchVenues() // Load venues for dropdown
   }
 
   const openImportModal = () => {
@@ -947,14 +982,25 @@ const Events: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Location *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.var_location}
                     onChange={(e) => setFormData({ ...formData, var_location: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Event venue"
-                  />
+                  >
+                    <option value="">Select a venue...</option>
+                    {venues.map((venue) => (
+                      <option key={venue.int_wettkampforteid} value={venue.var_name}>
+                        {venue.var_name}
+                        {venue.var_ort && ` (${venue.var_ort})`}
+                      </option>
+                    ))}
+                  </select>
+                  {venues.length === 0 && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      No venues found. You can manage venues in Database Management → Manage Locations.
+                    </p>
+                  )}
                 </div>
 
                 <div>

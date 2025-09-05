@@ -282,6 +282,9 @@ in Dashboard group "event mangement" in section "Results & Awards": it shows how
 --- 
 In UI "Event Management" -> "Edit Event" a field exists "location". here must be the locations used from "Location Management". 
 
+---
+Status Seite für Wettkämpfe -> mit Fertig Meldung und plausibilitätscheck?
+---
 the following sides must use the unified page header : 
 Database Management: 
         - Manage Regions 
@@ -340,7 +343,6 @@ User Management with Admin Rights
 
  
 
-Status Seite für Wettkämpfe -> mit Fertig Meldung und plausibilitätscheck?
 
  
 
@@ -362,17 +364,4 @@ Sprache wie browser
 
  
 
-Viele Grüße
-
-Dominik
-
- 
-
-KUKA Deutschland GmbH   Board of Directors: Michael Jürgens (Chairman), Dirk Busch, Johan Naten, Hui Zhang   Registered Office: Augsburg HRB 14914
-
-This e-mail may contain confidential and/or privileged information. If you are not the intended recipient (or have received this e-mail in error) please notify the sender immediately and destroy this e-mail. Any unauthorized copying, disclosure or distribution of contents of this e-mail is strictly forbidden.
-
-Please consider the environment before printing this e-mail.
-
-Internal
 

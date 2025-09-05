@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { z } from 'zod';
 import multer from 'multer';
+// Fixed var_bezeichnung field issue
 import { parseString } from 'xml2js';
 import { promisify } from 'util';
 import fs from 'fs';
@@ -230,19 +231,38 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     const endDate = new Date(validatedData.dat_eventenddate);
     const registrationDeadline = validatedData.dat_meldeschluss ? new Date(validatedData.dat_meldeschluss) : null;
 
+    // Find the venue by name to get the venue ID
+    let venueId = 1; // Default venue ID
+    if (validatedData.var_location) {
+      const venue = await prisma.tfx_wettkampforte.findFirst({
+        where: { var_name: validatedData.var_location }
+      });
+      
+      if (venue) {
+        venueId = venue.int_wettkampforteid;
+        console.log(`🏢 Found venue for new event: ${venue.var_name} (ID: ${venue.int_wettkampforteid})`);
+      } else {
+        console.log(`⚠️ Venue not found: ${validatedData.var_location}, using default venue ID 1`);
+      }
+    }
+
     // Create the event using Prisma
     const newEvent = await prisma.tfx_veranstaltungen.create({
       data: {
         var_name: validatedData.var_eventname,
         dat_von: startDate,
         dat_bis: endDate,
-        var_veranstalter: validatedData.var_location,
         txt_hinweise: validatedData.var_description || null,
         dat_meldeschluss: registrationDeadline,
-        // Set default values for required fields
-        int_wettkampforteid: 1, // Default venue ID - you may need to adjust this
+        // Set venue ID and default values for required fields
+        int_wettkampforteid: venueId,
         int_runde: 1
       }
+    });
+
+    // Get the venue name for the response
+    const venue = await prisma.tfx_wettkampforte.findUnique({
+      where: { int_wettkampforteid: newEvent.int_wettkampforteid }
     });
 
     // Format the response to match the expected structure
@@ -251,7 +271,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       var_eventname: newEvent.var_name,
       dat_eventstartdate: newEvent.dat_von?.toISOString(),
       dat_eventenddate: newEvent.dat_bis?.toISOString(),
-      var_location: newEvent.var_veranstalter,
+      var_location: venue?.var_name || '',
       var_description: newEvent.txt_hinweise || '',
       dat_meldeschluss: newEvent.dat_meldeschluss?.toISOString() || null,
       var_veranstalter: newEvent.var_veranstalter,
@@ -296,7 +316,6 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     
     if (validatedData.var_eventname !== undefined) {
       updateData.var_name = validatedData.var_eventname;
-      updateData.var_bezeichnung = validatedData.var_eventname;
     }
     if (validatedData.dat_eventstartdate !== undefined) {
       updateData.dat_von = new Date(validatedData.dat_eventstartdate);
@@ -305,7 +324,17 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       updateData.dat_bis = new Date(validatedData.dat_eventenddate);
     }
     if (validatedData.var_location !== undefined) {
-      updateData.var_veranstalter = validatedData.var_location;
+      // Find the venue by name to get the venue ID
+      const venue = await prisma.tfx_wettkampforte.findFirst({
+        where: { var_name: validatedData.var_location }
+      });
+      
+      if (venue) {
+        updateData.int_wettkampforteid = venue.int_wettkampforteid;
+        console.log(`🏢 Found venue: ${venue.var_name} (ID: ${venue.int_wettkampforteid})`);
+      } else {
+        console.log(`⚠️ Venue not found: ${validatedData.var_location}, keeping existing venue`);
+      }
     }
     if (validatedData.var_description !== undefined) {
       updateData.txt_hinweise = validatedData.var_description || null;
@@ -323,13 +352,18 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       data: updateData
     });
 
+    // Get the venue name for the response
+    const venue = await prisma.tfx_wettkampforte.findUnique({
+      where: { int_wettkampforteid: updatedEvent.int_wettkampforteid }
+    });
+
     // Format the response
     const response = {
       int_eventid: updatedEvent.int_veranstaltungenid,
       var_eventname: updatedEvent.var_name,
       dat_eventstartdate: updatedEvent.dat_von?.toISOString(),
       dat_eventenddate: updatedEvent.dat_bis?.toISOString(),
-      var_location: updatedEvent.var_veranstalter,
+      var_location: venue?.var_name || '',
       var_description: updatedEvent.txt_hinweise || '',
       dat_meldeschluss: updatedEvent.dat_meldeschluss?.toISOString() || null,
       var_veranstalter: updatedEvent.var_veranstalter
