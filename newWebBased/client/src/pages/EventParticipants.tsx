@@ -9,10 +9,17 @@ import {
   UserMinus,
   Edit
 } from 'lucide-react';
-import { UsersIcon } from '@heroicons/react/24/outline';
+import { 
+  UsersIcon,
+  DocumentArrowDownIcon,
+  TagIcon
+} from '@heroicons/react/24/outline';
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
+import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Interface for participant data
 interface Participant {
@@ -293,6 +300,20 @@ const EventParticipants: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addModalSearchTerm, setAddModalSearchTerm] = useState('');
   const [editingParticipant, setEditingParticipant] = useState<number | null>(null);
+  
+  // PDF Label Configuration Modal State
+  const [showLabelModal, setShowLabelModal] = useState(false);
+  const [labelConfig, setLabelConfig] = useState({
+    rows: 8,
+    columns: 4,
+    width: 48.5, // mm
+    height: 16.9, // mm
+    marginTop: 15, // mm
+    marginLeft: 10, // mm
+    marginRight: 10, // mm
+    marginBottom: 15, // mm
+    showBorders: true
+  });
 
   useEffect(() => {
     if (eventId) {
@@ -620,6 +641,159 @@ const EventParticipants: React.FC = () => {
     return true;
   };
 
+  // PDF Export Functions
+  const exportParticipantsListPDF = () => {
+    const eventParticipants = filteredParticipants.filter(p => p.isInEvent)
+    
+    if (!selectedEvent || eventParticipants.length === 0) {
+      alert('No participants to export')
+      return
+    }
+
+    const doc = new jsPDF('p', 'mm', 'a4')
+    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, 'Event Participants List')
+    
+    // Prepare data for the table
+    const tableData = eventParticipants.map((participant, index) => [
+      (index + 1).toString(),
+      `${participant.firstname} ${participant.lastname}`,
+      participant.club,
+      participant.gender === 'male' ? 'Male' : 'Female',
+      participant.age.toString(),
+      participant.birthYear.toString(),
+      participant.startet_nicht ? 'Not Starting' : 'Active'
+    ])
+
+    autoTable(doc, {
+      head: [['#', 'Name', 'Club', 'Gender', 'Age', 'Birth Year', 'Status']],
+      body: tableData,
+      startY: contentArea.startY + 10,
+      margin: { left: 10, right: 10 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [66, 135, 245],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250]
+      },
+      tableLineColor: [200, 200, 200],
+      tableLineWidth: 0.1,
+    })
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `event-participants-list-${selectedEvent.var_eventname.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.pdf`
+    
+    doc.save(filename)
+  }
+
+  const exportParticipantsLabelsPDF = () => {
+    const eventParticipants = filteredParticipants.filter(p => p.isInEvent)
+    
+    if (!selectedEvent || eventParticipants.length === 0) {
+      alert('No participants to export')
+      return
+    }
+
+    const config = labelConfig
+    const doc = new jsPDF('p', 'mm', 'a4')
+    
+    // A4 dimensions: 210 x 297 mm
+    const pageWidth = 210
+    const pageHeight = 297
+    
+    // Calculate available area for labels
+    const availableWidth = pageWidth - config.marginLeft - config.marginRight
+    const availableHeight = pageHeight - config.marginTop - config.marginBottom
+    
+    // Calculate actual label dimensions including spacing
+    const labelWidth = availableWidth / config.columns
+    const labelHeight = availableHeight / config.rows
+    
+    let currentPage = 1
+    let currentRow = 0
+    let currentCol = 0
+    
+    eventParticipants.forEach((participant, index) => {
+      // Check if we need a new page
+      if (index > 0 && currentRow === 0 && currentCol === 0) {
+        doc.addPage()
+        currentPage++
+      }
+      
+      // Calculate position
+      const x = config.marginLeft + (currentCol * labelWidth)
+      const y = config.marginTop + (currentRow * labelHeight)
+      
+      // Draw border if enabled
+      if (config.showBorders) {
+        doc.setDrawColor(200, 200, 200)
+        doc.setLineWidth(0.1)
+        doc.rect(x, y, labelWidth, labelHeight)
+      }
+      
+      // Add participant information
+      const name = `${participant.firstname} ${participant.lastname}`
+      const club = participant.club
+      
+      // Get competition names for this participant
+      const participantCompetitions = competitions
+        .filter(comp => participant.assignedCompetitions.includes(comp.id))
+        .map(comp => comp.number ? `${comp.number} ${comp.name}` : comp.name)
+        .join(', ')
+      
+      // Get squad information
+      const squadInfo = participant.squad_name || 'No Squad'
+      
+      // Set font for label content
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      
+      // Name (top of label)
+      const nameY = y + 4
+      doc.text(name, x + 2, nameY, { maxWidth: labelWidth - 4 })
+      
+      // Club
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      const clubY = nameY + 4
+      doc.text(club, x + 2, clubY, { maxWidth: labelWidth - 4 })
+      
+      // Competition information
+      if (participantCompetitions) {
+        doc.setFontSize(7)
+        const competitionY = clubY + 3
+        doc.text(participantCompetitions, x + 2, competitionY, { maxWidth: labelWidth - 4 })
+      }
+      
+      // Squad information (bottom of label)
+      doc.setFontSize(7)
+      const squadY = y + labelHeight - 2
+      doc.text(squadInfo, x + 2, squadY, { maxWidth: labelWidth - 4 })
+      
+      // Move to next position
+      currentCol++
+      if (currentCol >= config.columns) {
+        currentCol = 0
+        currentRow++
+        if (currentRow >= config.rows) {
+          currentRow = 0
+        }
+      }
+    })
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `event-participants-labels-${selectedEvent.var_eventname.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.pdf`
+    
+    doc.save(filename)
+  }
+
   const filteredParticipants = allParticipants.filter(participant => {
     const matchesSearch = 
       participant.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -726,6 +900,26 @@ const EventParticipants: React.FC = () => {
         showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
         showViewToggle={false}
+        customActions={
+          filteredParticipants.filter(p => p.isInEvent).length > 0 ? (
+            <div className="flex space-x-2">
+              <button
+                onClick={exportParticipantsListPDF}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                Export List PDF
+              </button>
+              <button
+                onClick={() => setShowLabelModal(true)}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <TagIcon className="h-4 w-4 mr-2" />
+                Export Labels PDF
+              </button>
+            </div>
+          ) : null
+        }
       />
 
       <div className="p-6">
@@ -1070,6 +1264,184 @@ const EventParticipants: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Label Configuration Modal */}
+      {showLabelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-90vh overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Label Configuration</h2>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Rows
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={labelConfig.rows}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, rows: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Columns
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={labelConfig.columns}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, columns: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Label Width (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="200"
+                    step="0.1"
+                    value={labelConfig.width}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, width: parseFloat(e.target.value) || 48.5 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Label Height (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="100"
+                    step="0.1"
+                    value={labelConfig.height}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, height: parseFloat(e.target.value) || 16.9 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Top Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginTop}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginTop: parseFloat(e.target.value) || 15 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bottom Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginBottom}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginBottom: parseFloat(e.target.value) || 15 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Left Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginLeft}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginLeft: parseFloat(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Right Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginRight}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginRight: parseFloat(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="showBorders"
+                  checked={labelConfig.showBorders}
+                  onChange={(e) => setLabelConfig({ ...labelConfig, showBorders: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="showBorders" className="ml-2 block text-sm text-gray-900">
+                  Show label borders (for alignment)
+                </label>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Preview Info</h4>
+                <p className="text-sm text-gray-600">
+                  Layout: {labelConfig.rows} × {labelConfig.columns} labels per page<br/>
+                  Label size: {labelConfig.width} × {labelConfig.height} mm<br/>
+                  Total labels per page: {labelConfig.rows * labelConfig.columns}<br/>
+                  Pages needed: {Math.ceil(filteredParticipants.filter(p => p.isInEvent).length / (labelConfig.rows * labelConfig.columns))}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowLabelModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  exportParticipantsLabelsPDF()
+                  setShowLabelModal(false)
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Export Labels PDF
+              </button>
             </div>
           </div>
         </div>

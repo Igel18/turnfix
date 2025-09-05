@@ -11,9 +11,14 @@ import {
   ClipboardDocumentListIcon,
   ChartBarIcon,
   EyeIcon,
-  HomeIcon
+  HomeIcon,
+  DocumentArrowDownIcon,
+  TagIcon
 } from '@heroicons/react/24/outline'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
+import { setupPDFWithHeaderFooter } from '../utils/pdfUtils'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface Event {
   int_eventid: number
@@ -59,6 +64,20 @@ export function CreateEvent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [activeView, setActiveView] = useState<'list' | 'participants' | 'scores'>('list')
+
+  // PDF Label Configuration Modal State
+  const [showLabelModal, setShowLabelModal] = useState(false)
+  const [labelConfig, setLabelConfig] = useState({
+    rows: 8,
+    columns: 4,
+    width: 48.5, // mm
+    height: 16.9, // mm
+    marginTop: 15, // mm
+    marginLeft: 10, // mm
+    marginRight: 10, // mm
+    marginBottom: 15, // mm
+    showBorders: true
+  })
 
   // Form state for creating/editing events
   const [formData, setFormData] = useState({
@@ -225,6 +244,146 @@ export function CreateEvent() {
   const handleBackToList = () => {
     setSelectedEvent(null)
     setActiveView('list')
+  }
+
+  // PDF Export Functions
+  const exportParticipantsListPDF = () => {
+    if (!selectedEvent || eventParticipants.length === 0) {
+      alert('No participants to export')
+      return
+    }
+
+    const doc = new jsPDF('p', 'mm', 'a4')
+    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, 'Participants List')
+    
+    // Prepare data for the table
+    const tableData = eventParticipants.map((participant, index) => [
+      (index + 1).toString(),
+      `${participant.var_vorname} ${participant.var_nachname}`,
+      participant.vereins_name,
+      participant.var_geschlecht === 'M' ? 'Male' : 'Female',
+      (new Date().getFullYear() - new Date(participant.dat_geburtsdatum).getFullYear()).toString(),
+      new Date(participant.dat_geburtsdatum).toLocaleDateString('de-DE')
+    ])
+
+    autoTable(doc, {
+      head: [['#', 'Name', 'Club', 'Gender', 'Age', 'Birth Date']],
+      body: tableData,
+      startY: contentArea.startY + 10,
+      margin: { left: 10, right: 10 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [66, 135, 245],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250]
+      },
+      tableLineColor: [200, 200, 200],
+      tableLineWidth: 0.1,
+    })
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `participants-list-${selectedEvent.var_eventname.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.pdf`
+    
+    doc.save(filename)
+  }
+
+  const exportParticipantsLabelsPDF = () => {
+    if (!selectedEvent || eventParticipants.length === 0) {
+      alert('No participants to export')
+      return
+    }
+
+    const config = labelConfig
+    const doc = new jsPDF('p', 'mm', 'a4')
+    
+    // A4 dimensions: 210 x 297 mm
+    const pageWidth = 210
+    const pageHeight = 297
+    
+    // Calculate available area for labels
+    const availableWidth = pageWidth - config.marginLeft - config.marginRight
+    const availableHeight = pageHeight - config.marginTop - config.marginBottom
+    
+    // Calculate actual label dimensions including spacing
+    const labelWidth = availableWidth / config.columns
+    const labelHeight = availableHeight / config.rows
+    
+    let currentPage = 1
+    let currentRow = 0
+    let currentCol = 0
+    
+    eventParticipants.forEach((participant, index) => {
+      // Check if we need a new page
+      if (index > 0 && currentRow === 0 && currentCol === 0) {
+        doc.addPage()
+        currentPage++
+      }
+      
+      // Calculate position
+      const x = config.marginLeft + (currentCol * labelWidth)
+      const y = config.marginTop + (currentRow * labelHeight)
+      
+      // Draw border if enabled
+      if (config.showBorders) {
+        doc.setDrawColor(200, 200, 200)
+        doc.setLineWidth(0.1)
+        doc.rect(x, y, labelWidth, labelHeight)
+      }
+      
+      // Add participant information
+      const name = `${participant.var_vorname} ${participant.var_nachname}`
+      const club = participant.vereins_name
+      const birthYear = new Date(participant.dat_geburtsdatum).getFullYear().toString()
+      const gender = participant.var_geschlecht === 'M' ? 'M' : 'W'
+      
+      // Set font for label content
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      
+      // Name (top of label)
+      const nameY = y + 4
+      doc.text(name, x + 2, nameY, { maxWidth: labelWidth - 4 })
+      
+      // Club and details
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      const clubY = nameY + 4
+      doc.text(club, x + 2, clubY, { maxWidth: labelWidth - 4 })
+      
+      // Birth year and gender
+      const detailsY = clubY + 3
+      doc.text(`${birthYear} (${gender})`, x + 2, detailsY)
+      
+      // Event name (bottom of label)
+      if (selectedEvent.var_eventname.length > 0) {
+        doc.setFontSize(7)
+        const eventY = y + labelHeight - 2
+        doc.text(selectedEvent.var_eventname, x + 2, eventY, { maxWidth: labelWidth - 4 })
+      }
+      
+      // Move to next position
+      currentCol++
+      if (currentCol >= config.columns) {
+        currentCol = 0
+        currentRow++
+        if (currentRow >= config.rows) {
+          currentRow = 0
+        }
+      }
+    })
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `participants-labels-${selectedEvent.var_eventname.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.pdf`
+    
+    doc.save(filename)
   }
 
   useEffect(() => {
@@ -580,7 +739,27 @@ export function CreateEvent() {
             <div className="p-6">
               {activeView === 'participants' ? (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Participants</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Event Participants</h3>
+                    {eventParticipants.length > 0 && (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={exportParticipantsListPDF}
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                          Export List PDF
+                        </button>
+                        <button
+                          onClick={() => setShowLabelModal(true)}
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          <TagIcon className="h-4 w-4 mr-2" />
+                          Export Labels PDF
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {eventParticipants.length === 0 ? (
                     <div className="text-center py-12">
                       <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -805,6 +984,184 @@ export function CreateEvent() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Label Configuration Modal */}
+      {showLabelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-90vh overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Label Configuration</h2>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Rows
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={labelConfig.rows}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, rows: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Columns
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={labelConfig.columns}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, columns: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Label Width (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="200"
+                    step="0.1"
+                    value={labelConfig.width}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, width: parseFloat(e.target.value) || 48.5 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Label Height (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="100"
+                    step="0.1"
+                    value={labelConfig.height}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, height: parseFloat(e.target.value) || 16.9 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Top Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginTop}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginTop: parseFloat(e.target.value) || 15 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bottom Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginBottom}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginBottom: parseFloat(e.target.value) || 15 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Left Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginLeft}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginLeft: parseFloat(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Right Margin (mm)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={labelConfig.marginRight}
+                    onChange={(e) => setLabelConfig({ ...labelConfig, marginRight: parseFloat(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="showBorders"
+                  checked={labelConfig.showBorders}
+                  onChange={(e) => setLabelConfig({ ...labelConfig, showBorders: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="showBorders" className="ml-2 block text-sm text-gray-900">
+                  Show label borders (for alignment)
+                </label>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Preview Info</h4>
+                <p className="text-sm text-gray-600">
+                  Layout: {labelConfig.rows} × {labelConfig.columns} labels per page<br/>
+                  Label size: {labelConfig.width} × {labelConfig.height} mm<br/>
+                  Total labels per page: {labelConfig.rows * labelConfig.columns}<br/>
+                  Pages needed: {Math.ceil(eventParticipants.length / (labelConfig.rows * labelConfig.columns))}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowLabelModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  exportParticipantsLabelsPDF()
+                  setShowLabelModal(false)
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Export Labels PDF
+              </button>
             </div>
           </div>
         </div>
