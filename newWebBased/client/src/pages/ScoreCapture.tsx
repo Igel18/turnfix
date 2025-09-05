@@ -24,6 +24,7 @@ interface Participant {
   registrationDate: string;
   squad_name?: string; // Added by squad lookup
   int_statusid?: number; // Current status ID
+  startNumber?: number | null; // Start number for the event
 }
 
 interface Discipline {
@@ -961,7 +962,8 @@ export function ScoreCapture() {
     const matchesSearch = 
       participant.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       participant.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.club?.toLowerCase().includes(searchTerm.toLowerCase())
+      participant.club?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
     
     const matchesSquad = !activeSquad || participant.squad_name === activeSquad
 
@@ -983,6 +985,7 @@ export function ScoreCapture() {
     // CSV export functionality for score data
     const csvData = Array.isArray(participants) ? participants.map(participant => {
       const row: any = {
+        'Start Number': participant.startNumber || '',
         'Participant': `${participant.firstname} ${participant.lastname}`,
         'Club': participant.club,
         'Gender': participant.gender,
@@ -1027,7 +1030,7 @@ export function ScoreCapture() {
         icon={ClipboardDocumentListIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants..."
+        searchPlaceholder="Search participants by name, club, or start number..."
         hasFilters={true}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
@@ -1287,6 +1290,11 @@ export function ScoreCapture() {
                         <tr key={participant.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white z-10">
                             <div className="text-sm font-medium text-gray-900">
+                              {participant.startNumber && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                  StNr.: {participant.startNumber}
+                                </span>
+                              )}
                               {participant.firstname} {participant.lastname}
                             </div>
                             {getParticipantCompetitions(participant).length > 0 ? (

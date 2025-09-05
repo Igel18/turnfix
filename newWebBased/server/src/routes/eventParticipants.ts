@@ -43,6 +43,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         v.var_name as verein_name,
         w.var_riege as squad_name,
         w.bol_startet_nicht,
+        w.int_startnummer,
         CASE 
           WHEN t.int_geschlecht = 1 THEN 'male'
           WHEN t.int_geschlecht = 2 THEN 'female'
@@ -70,7 +71,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     
     eventParticipantsQuery += `
       GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
-               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name, w.var_riege, w.bol_startet_nicht
+               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name, w.var_riege, w.bol_startet_nicht, w.int_startnummer
       ORDER BY t.var_nachname ASC, t.var_vorname ASC
     `;
 
@@ -103,6 +104,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           age: participant.age ? Number(participant.age) : null,
           squad_name: participant.squad_name || null,
           startet_nicht: participant.bol_startet_nicht || false,
+          startNumber: participant.int_startnummer ? Number(participant.int_startnummer) : null,
           isInEvent: true,
           assignedCompetitions: (assignments as any[]).map(a => Number(a.int_wettkaempfeid)),
           registrationDate: participant.registration_date
@@ -159,6 +161,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         age: participant.age ? Number(participant.age) : null,
         squad_name: null, // Available participants don't have squads assigned
         startet_nicht: false, // Available participants are not marked as not starting
+        startNumber: null, // Available participants don't have start numbers yet
         isInEvent: false,
         assignedCompetitions: [],
         registrationDate: undefined
@@ -208,24 +211,45 @@ router.post('/add', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'Participant is already registered for this event' });
     }
 
+    // Generate unique start number for this event
+    const maxStartNumber = await prisma.tfx_wertungen.findFirst({
+      where: {
+        tfx_wettkaempfe: {
+          int_veranstaltungenid: validatedData.eventId
+        },
+        int_startnummer: {
+          not: null
+        }
+      },
+      orderBy: {
+        int_startnummer: 'desc'
+      },
+      select: {
+        int_startnummer: true
+      }
+    });
+
+    const nextStartNumber = (maxStartNumber?.int_startnummer || 0) + 1;
+
     // Create initial score entry to register participant for the event
     const scoreEntry = await prisma.tfx_wertungen.create({
       data: {
         int_teilnehmerid: validatedData.participantId,
         int_wettkaempfeid: firstCompetition.int_wettkaempfeid,
-        int_startnummer: 0, // Will be assigned later
+        int_startnummer: nextStartNumber, // Assign unique start number
         var_riege: '', // Will be assigned later
         int_statusid: 1 // Default status
       }
     });
 
-    console.log(`Added participant ${validatedData.participantId} to event ${validatedData.eventId}`);
+    console.log(`Added participant ${validatedData.participantId} to event ${validatedData.eventId} with start number ${nextStartNumber}`);
 
     res.status(201).json({
       message: 'Participant added to event successfully',
       scoreId: Number(scoreEntry.int_wertungenid),
       participantId: validatedData.participantId,
-      eventId: validatedData.eventId
+      eventId: validatedData.eventId,
+      startNumber: nextStartNumber
     });
 
   } catch (error) {

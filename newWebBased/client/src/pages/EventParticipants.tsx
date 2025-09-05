@@ -33,6 +33,7 @@ interface Participant {
   age: number;
   squad_name?: string;
   startet_nicht: boolean;
+  startNumber?: number | null;
   isInEvent: boolean;
   assignedCompetitions: number[];
   registrationDate?: string;
@@ -359,7 +360,8 @@ const EventParticipants: React.FC = () => {
           startet_nicht: false,
           isInEvent: true,
           assignedCompetitions: [1, 3],
-          registrationDate: '2023-10-15'
+          registrationDate: '2023-10-15',
+          startNumber: 1
         }
       ]);
     }
@@ -397,7 +399,8 @@ const EventParticipants: React.FC = () => {
         startet_nicht: p.startet_nicht || false,
         isInEvent: p.isInEvent || false,
         assignedCompetitions: p.assignedCompetitions || [],
-        registrationDate: p.registrationDate
+        registrationDate: p.registrationDate,
+        startNumber: p.startNumber || p.int_startnummer
       }));
 
       setAvailableParticipants(normalizedParticipants);
@@ -740,6 +743,7 @@ const EventParticipants: React.FC = () => {
       // Add participant information
       const name = `${participant.firstname} ${participant.lastname}`
       const club = participant.club
+      const startNumber = participant.startNumber ? `#${participant.startNumber}` : ''
       
       // Get competition names for this participant
       const participantCompetitions = competitions
@@ -757,6 +761,14 @@ const EventParticipants: React.FC = () => {
       // Name (top of label)
       const nameY = y + 4
       doc.text(name, x + 2, nameY, { maxWidth: labelWidth - 4 })
+      
+      // Start number (top right)
+      if (startNumber) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(12)
+        const startNumberWidth = doc.getTextWidth(startNumber)
+        doc.text(startNumber, x + labelWidth - startNumberWidth - 2, nameY)
+      }
       
       // Club
       doc.setFont('helvetica', 'normal')
@@ -950,6 +962,9 @@ const EventParticipants: React.FC = () => {
                               Participant
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Start #
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Club
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -980,6 +995,11 @@ const EventParticipants: React.FC = () => {
                                   <div className="text-sm text-gray-500">
                                     ID: {participant.id}
                                   </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    #{participant.startNumber || '-'}
+                                  </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {participant.club}

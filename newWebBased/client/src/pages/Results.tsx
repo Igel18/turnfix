@@ -307,9 +307,10 @@ const Results = () => {
   const exportResults = () => {
     if (ranking.length === 0) return
 
-    const headers = ['Platz', 'Name', 'Verein', 'Jg', ...disciplines, 'Gesamt']
+    const headers = ['Platz', 'Start #', 'Name', 'Verein', 'Jg', ...disciplines, 'Gesamt']
     const csvData = ranking.map(participant => [
       participant.rank,
+      participant.startNumber || '',
       participant.name,
       participant.club,
       participant.age,
@@ -366,9 +367,10 @@ const Results = () => {
       let currentY = contentArea.startY + 35 // Increased spacing to prevent header overlap
       
       // Prepare table data
-      const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+      const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...disciplines, 'Total']
       const tableData = filteredRanking.map(participant => [
         participant.rank,
+        participant.startNumber || '',
         participant.name,
         participant.club,
         participant.age,
@@ -502,9 +504,10 @@ const Results = () => {
         currentY += 12
 
         // Prepare table data for this competition
-        const headers = ['Rank', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+        const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...disciplines, 'Total']
         const tableData = group.participants.map(participant => [
           participant.rank,
+          participant.startNumber || '',
           participant.name,
           participant.club,
           participant.age,
@@ -983,7 +986,8 @@ const Results = () => {
   // Filter participants based on search term
   const filteredRanking = ranking.filter(participant =>
     participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    participant.club.toLowerCase().includes(searchTerm.toLowerCase())
+    participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
   )
 
   // Get competitions that actually have participants in this event
@@ -1026,7 +1030,8 @@ const Results = () => {
     ...group,
     participants: group.participants.filter(participant =>
       participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.club.toLowerCase().includes(searchTerm.toLowerCase())
+      participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
     )
   })).filter(group => group.participants.length > 0)
 
@@ -1077,7 +1082,7 @@ const Results = () => {
         icon={ChartBarIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants, clubs..."
+        searchPlaceholder="Search participants, clubs, start numbers..."
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
         hasFilters={true}
@@ -1115,6 +1120,9 @@ const Results = () => {
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Platz
                     </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Start #
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Name
                     </th>
@@ -1147,6 +1155,15 @@ const Results = () => {
                         <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(participant.rank)}`}>
                           {getMedalEmoji(participant.rank)}
                         </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        {participant.startNumber ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {participant.startNumber}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
@@ -1213,6 +1230,9 @@ const Results = () => {
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Platz
                           </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Start #
+                          </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Name
                           </th>
@@ -1245,6 +1265,15 @@ const Results = () => {
                               <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${getMedalColor(participant.rank)}`}>
                                 {getMedalEmoji(participant.rank)}
                               </span>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-center">
+                              {participant.startNumber ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {participant.startNumber}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
                               <div className="font-medium text-gray-900">
