@@ -285,7 +285,10 @@ In UI "Event Management" -> "Edit Event" a field exists "location". here must be
 ---
 Status Seite für Wettkämpfe -> mit Fertig Meldung und plausibilitätscheck?
 ---
-the following sides must use the unified page header : 
+I need a Config section. Perhaps it is placed beside the DB Configuration but in a separate groupe? 1. It must contain the database configuration. But all things must be stored. The Passwort sometimes is gone. 2. to enable / disable the debug mode stored in the env file. 3. the language settings 4. the Ports 5. do you know something else what should be inside this configuration? 
+---
+Is there a template or something for the page unification? If not this should be created that it can used for other UIs.
+the following UIs must use the unified page header and this template: 
 Database Management: 
         - Manage Regions 
         - Manage Associsations 
@@ -301,11 +304,7 @@ Database Management:
         - Status Management 
         - Create event ->  already use this template 
 
-Config section 
-- DB alle infos separat speicher auch passwort 
-- debug 
-- sprache 
- 
+
 
 lokalisierung 
 refactoring (nur noch prisma) 

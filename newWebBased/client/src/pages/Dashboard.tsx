@@ -683,6 +683,40 @@ export function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* Configuration Group */}
+        <div>
+          <div className="flex items-center mb-6">
+            <div className="bg-gray-100 p-2 rounded-lg mr-3">
+              <CogIcon className="h-6 w-6 text-gray-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Configuration</h2>
+              <p className="text-sm text-gray-600">Application settings, database configuration, and system preferences</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Link
+              to="/configuration"
+              className="group bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+            >
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="bg-blue-500 p-3 rounded-lg text-white group-hover:scale-105 transition-transform">
+                  <CogIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                    Application Settings
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Configure database, debug mode, language, ports, and other system settings
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Recent Activity Section */}

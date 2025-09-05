@@ -30,6 +30,7 @@ import Formulas from '@/pages/Formulas'
 import DisciplineGroups from '@/pages/DisciplineGroups'
 import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
+import Configuration from '@/pages/Configuration'
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
             <Route path="/persons" element={<Persons />} />
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
             <Route path="/status-management" element={<StatusManagement />} />
+            <Route path="/configuration" element={<Configuration />} />
           </Routes>
         </div>
         </CertificateLayoutProvider>

@@ -44,6 +44,7 @@ import imageRoutes from './routes/images';
 import meldematrixRoutes from './routes/meldematrix';
 import medalRoutes from './routes/medals';
 import juryResultRoutes from './routes/juryResults';
+import configurationRoutes from './routes/configuration';
 
 const app = express();
 const server = createServer(app);
@@ -142,6 +143,7 @@ app.use('/api/images', imageRoutes);
 app.use('/api/meldematrix', meldematrixRoutes);
 app.use('/api/medals', medalRoutes);
 app.use('/api/jury-results', juryResultRoutes);
+app.use('/api/configuration', configurationRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {
