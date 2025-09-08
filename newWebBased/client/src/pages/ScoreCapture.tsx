@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+
 import { useSearchParams } from 'react-router-dom'
 import { 
   PlusIcon,
@@ -84,6 +85,8 @@ interface Competition {
 }
 
 export function ScoreCapture() {
+  // Track pending Endwert edits to avoid UI flicker
+  const [pendingEndwerts, setPendingEndwerts] = useState<{[key: string]: string}>({});
   const [searchParams] = useSearchParams()
   const { 
     selectedEvent, 
@@ -317,29 +320,32 @@ export function ScoreCapture() {
       let allDisciplines: Discipline[] = []
       const disciplineToCompetitionMap = new Map<number | string, number>()
       
+      console.log('🔍 DEBUG: Starting discipline loading for competitions:', competitionsData?.map((c: any) => ({ id: c.id, name: c.name })))
+      
       for (const competition of competitionsData || []) {
         try {
           await delay(50) // Delay between each competition request
+          console.log(`🔍 Loading disciplines for competition ${competition.id} (${competition.name})`)
           const disciplinesData = await apiGet(`/competitions/${competition.id}/disciplines`)
           const competitionDisciplines = disciplinesData.disciplines || []
           
-          // Log discipline structure to check if maxScore is included
-          if (competitionDisciplines.length > 0) {
-            console.log(`Competition ${competition.id} disciplines:`, competitionDisciplines)
-            console.log('Sample discipline structure:', competitionDisciplines[0])
-          }
+          console.log(`🔍 Competition ${competition.id} returned ${competitionDisciplines.length} disciplines:`, 
+            competitionDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })))
           
           // Track which competition each discipline belongs to
           competitionDisciplines.forEach((discipline: Discipline) => {
             const disciplineKey = discipline.int_disziplinid || discipline.var_name
             disciplineToCompetitionMap.set(disciplineKey, competition.id)
+            console.log(`🔍 Mapped discipline "${discipline.var_name}" (ID: ${discipline.int_disziplinid}) to competition ${competition.id}`)
           })
           
           allDisciplines = [...allDisciplines, ...competitionDisciplines]
         } catch (error) {
-          console.error(`Error loading disciplines for competition ${competition.id}:`, error)
+          console.error(`❌ Error loading disciplines for competition ${competition.id}:`, error)
         }
       }
+      
+      console.log('🔍 Final discipline-to-competition mapping:', Array.from(disciplineToCompetitionMap.entries()))
       
       // Remove duplicate disciplines based on int_disziplinid and var_name
       const uniqueDisciplines = allDisciplines.reduce((acc: Discipline[], current: Discipline) => {
@@ -508,47 +514,59 @@ export function ScoreCapture() {
     filteredParticipants.forEach(participant => {
       safeDisciplines.forEach((discipline, index) => {
         const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
-        
         // Get enabled fields for this discipline
         const enabledFields = getDisciplineFields(disciplineId)
-        console.log(`Discipline ${disciplineId} has ${enabledFields.length} enabled fields:`, enabledFields)
-        
         if (enabledFields.length === 0) {
           // Fallback: if no fields configured, use single score per discipline (old behavior)
-          const key = `${participant.id}-${disciplineId}`
-          
-          // Debug: Log the search criteria
-          console.log(`Looking for score: participantId=${participant.id}, disciplineId=${discipline.int_disziplinid || disciplineId}`)
-          console.log(`Available scores for participant ${participant.id}:`, safeExistingScores.filter(s => s.participantId === participant.id))
-          
-          const existingScore = safeExistingScores.find(s => {
-            const matchesParticipant = s.participantId === participant.id
-            const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId
-            
-            console.log(`Score ${s.id}: participantId=${s.participantId}, disciplineId=${s.disciplineId}, matches participant=${matchesParticipant}, matches discipline=${matchesDiscipline}`)
-            
-            return matchesParticipant && matchesDiscipline
-          })
-          
-          if (existingScore) {
-            console.log(`✓ Found existing score for key ${key}:`, existingScore)
+          const key = `${participant.id}-${disciplineId}`;
+          // Prefer pending value if present
+          if (pendingEndwerts[key] !== undefined) {
+            matrix[key] = pendingEndwerts[key];
           } else {
-            console.log(`✗ No score found for key ${key}`)
+            const existingScore = safeExistingScores.find(s => {
+              const matchesParticipant = s.participantId === participant.id;
+              const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId;
+              return matchesParticipant && matchesDiscipline;
+            });
+            matrix[key] = existingScore ? existingScore.score.toString() : '';
           }
-          
-          matrix[key] = existingScore ? existingScore.score.toString() : '' // Convert to string
         } else {
           // New behavior: create entries for each field
           enabledFields.forEach(field => {
-            const fieldKey = `${participant.id}-${field.id}`
-            
-            // Initialize empty - will be populated with jury results below
-            matrix[fieldKey] = ''
-            console.log(`Initialized field key ${fieldKey} for field "${field.name}"`)
-          })
+            const fieldKey = `${participant.id}-${field.id}`;
+            matrix[fieldKey] = '';
+          });
+          
+          // IMPORTANT: Also create the main score entry for Endwert (official)
+          const key = `${participant.id}-${disciplineId}`;
+          // On refresh, pendingEndwerts will be empty, so prioritize DB values
+          const existingScore = safeExistingScores.find(s => {
+            const matchesParticipant = s.participantId === participant.id;
+            const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId;
+            return matchesParticipant && matchesDiscipline;
+          });
+          
+          if (pendingEndwerts[key] !== undefined) {
+            matrix[key] = pendingEndwerts[key];
+          } else if (existingScore) {
+            matrix[key] = existingScore.score.toString();
+          } else {
+            matrix[key] = '';
+          }
+          
+          console.log(`Initialized Endwert for ${participant.firstname} ${participant.lastname} (${participant.id}) - ${discipline.var_name} (${disciplineId}): ${matrix[key]} (from ${existingScore ? 'DB' : 'default'})`);
+          
+          // Debug: Check for any field conflicts with the main score key
+          const conflictingFields = enabledFields.filter(field => {
+            const fieldKey = `${participant.id}-${field.id}`;
+            return fieldKey === key;
+          });
+          if (conflictingFields.length > 0) {
+            console.warn(`⚠️  Key conflict detected for ${key}:`, conflictingFields);
+          }
         }
-      })
-    })
+      });
+    });
 
     // Load existing jury results for field-specific scores
     if (eventId && filteredParticipants.length > 0) {
@@ -613,10 +631,22 @@ export function ScoreCapture() {
     // the selected discipline belongs to
     if (!competitionId && !disciplineId) return
     
-    const key = `${participantId}-${disciplineId}`
-    const scoreValue = scoreMatrix[key]
+    // Get the score value directly from the matrix using the standard key
+    const regularKey = `${participantId}-${disciplineId}`
+    let scoreValue = scoreMatrix[regularKey]
     
-    if (scoreValue === '' || scoreValue === null || scoreValue === undefined) return
+    console.log('🔍 saveScore called with:', { 
+      participantId, 
+      disciplineId, 
+      regularKey, 
+      scoreValue, 
+      availableScoreKeys: Object.keys(scoreMatrix).filter(k => k.includes(`${participantId}-`)) 
+    })
+    
+    if (scoreValue === '' || scoreValue === null || scoreValue === undefined) {
+      console.log('❌ No valid score value to save:', scoreValue)
+      return
+    }
     
     // Only save if we have a valid numeric discipline ID
     // If disciplineId is a string (fallback ID), we need to find the actual discipline
@@ -632,31 +662,89 @@ export function ScoreCapture() {
       if (discipline && discipline.int_disziplinid) {
         numericDisciplineId = discipline.int_disziplinid
       } else {
-        console.log('Cannot save score: invalid discipline ID:', disciplineId)
+        console.log('❌ Cannot save score: invalid discipline ID:', disciplineId)
         return // Skip saving if we can't resolve to a numeric ID
       }
     }
     
     if (!numericDisciplineId) {
-      console.log('Cannot save score: no valid numeric discipline ID found')
+      console.log('❌ Cannot save score: no valid numeric discipline ID found')
       return
     }
-    
+
     try {
+      // Find the correct competition ID for this discipline
+      let actualCompetitionId = competitionId ? parseInt(competitionId) : null;
+      
+      console.log('🔍 Determining competition ID...')
+      console.log('🔍 Current competitionId from context/URL:', actualCompetitionId)
+      console.log('🔍 Looking for discipline:', numericDisciplineId)
+      console.log('🔍 Available competitions:', competitions.map(c => ({ 
+        id: c.id, 
+        name: c.name, 
+        disciplineCount: c.disciplines?.length || 0,
+        disciplineIds: c.disciplines?.map(d => d.int_disziplinid) || []
+      })))
+      
+      if (!actualCompetitionId) {
+        // Try to find the competition that contains this discipline
+        console.log('🔍 Method 1: Looking for competition containing discipline:', numericDisciplineId);
+        
+        const disciplineCompetition = competitions.find(comp => 
+          comp.disciplines?.some(d => d.int_disziplinid === numericDisciplineId)
+        );
+        
+        if (disciplineCompetition) {
+          actualCompetitionId = disciplineCompetition.id;
+          console.log(`✅ Method 1 Success: Found competition ID ${actualCompetitionId} (${disciplineCompetition.name}) for discipline ${numericDisciplineId}`);
+        } else {
+          console.log('❌ Method 1 Failed: No competition found containing this discipline');
+          
+          // Fallback: if participant has assigned competitions, use the first one
+          const participant = participants.find(p => p.id === participantId);
+          console.log('🔍 Method 2: Using participant assigned competitions:', participant?.assignedCompetitions);
+          
+          if (participant && participant.assignedCompetitions && participant.assignedCompetitions.length > 0) {
+            actualCompetitionId = participant.assignedCompetitions[0];
+            console.log(`✅ Method 2 Success: Using participant's first assigned competition: ${actualCompetitionId}`);
+          } else {
+            console.log('❌ Method 2 Failed: Participant has no assigned competitions');
+            
+            // Last resort: use the first available competition
+            if (competitions.length > 0) {
+              actualCompetitionId = competitions[0].id;
+              console.log(`✅ Method 3 Success: Using first available competition as fallback: ${actualCompetitionId} (${competitions[0].name})`);
+            } else {
+              console.error('❌ Method 3 Failed: No competitions available at all');
+              console.error('❌ Debug info:');
+              console.error('❌   - Discipline ID:', numericDisciplineId);
+              console.error('❌   - Participant:', participant);
+              console.error('❌   - Available competitions:', competitions);
+              alert('Error: Could not determine competition for this discipline. Please check that the discipline is properly assigned to a competition.');
+              return;
+            }
+          }
+        }
+      } else {
+        console.log(`✅ Using provided competition ID: ${actualCompetitionId}`);
+      }
+      
       const scoreData = {
-        competitionId: competitionId ? parseInt(competitionId) : 1, // fallback to competition 1
+        competitionId: actualCompetitionId,
         participantId: participantId,
         disciplineId: numericDisciplineId,
         score: typeof scoreValue === 'string' ? parseFloat(scoreValue) : scoreValue
       }
       
-      console.log('Saving score:', scoreData)
+      console.log('🟢 Sending score data to API:', scoreData)
       
       // Use the new save-value endpoint
       const response = await apiPost('/scores/save-value', scoreData)
       
+      console.log('🟢 API Response:', response)
+      
       if (response.success) {
-        console.log('Score saved successfully:', response)
+        console.log('✅ Score saved successfully to database:', response)
         
         // Auto-set status to "Leistung erfasst" (ID: 9) when score is saved
         // DISABLED: Status management not available until database schema is updated
@@ -668,17 +756,15 @@ export function ScoreCapture() {
         // Optionally show success message
         // You could add a toast notification here
       } else {
-        console.error('Failed to save score:', response)
-        alert('Failed to save score')
+        console.error('❌ API returned failure:', response)
+        alert('Failed to save score: ' + (response.error || 'Unknown error'))
       }
       
     } catch (error) {
-      console.error('Error saving score:', error)
+      console.error('❌ Error saving score:', error)
       alert('Failed to save score')
     }
-  }
-
-  // Save field-specific score using jury results API
+  }  // Save field-specific score using jury results API
   const saveFieldScore = async (participantId: number, field: DisciplineField) => {
     const fieldKey = `${participantId}-${field.id}`
     const fieldValue = scoreMatrix[fieldKey]
@@ -1363,31 +1449,177 @@ export function ScoreCapture() {
                               return (
                                 <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap">
                                   <div className="space-y-2">
-                                    {/* Display existing total score from tfx_wertungen_details if available */}
+                                    {/* Editable total score (Endwert) from tfx_wertungen_details */}
                                     {(() => {
-                                      const existingTotalScore = existingScores.find(s => 
-                                        s.participantId === participant.id && s.disciplineId === disciplineId
-                                      )?.score;
-                                      
-                                      if (existingTotalScore && existingTotalScore > 0) {
-                                        return (
-                                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded">
-                                            <div className="text-xs text-green-600 font-medium text-center">Endwert</div>
-                                            <div className="text-sm font-bold text-green-700 text-center">
-                                              {existingTotalScore.toFixed(2)}
-                                            </div>
-                                          </div>
-                                        );
+                                      // Green Endwert (tfx_wertungen_details) - simplified
+                                      const safeExistingScores = Array.isArray(existingScores) ? existingScores : [];
+                                      const existingScore = safeExistingScores.find(s => s.participantId === participant.id && s.disciplineId === disciplineId);
+                                      const existingTotalScore = existingScore?.score || 0;
+                                      const matrixKey = `${participant.id}-${disciplineId}`;
+                                      // Prioritize matrix value if not empty, otherwise use DB value
+                                      const matrixValue = scoreMatrix[matrixKey];
+                                      let currentEndwert = '';
+                                      if (matrixValue !== undefined && matrixValue !== '') {
+                                        currentEndwert = matrixValue;
+                                      } else if (existingTotalScore !== 0) {
+                                        currentEndwert = existingTotalScore.toString();
+                                      } else {
+                                        currentEndwert = '';
                                       }
-                                      return null;
+
+                                      console.log('Endwert for participant', participant.id, 'discipline', disciplineId, ':', {
+                                        existingTotalScore,
+                                        matrixValue: scoreMatrix[matrixKey],
+                                        currentEndwert
+                                      });
+
+                                      // Grey Endwert (tfx_jury_results): find the field with name 'Endwert' or isFinalScore
+                                      const juryEndwertField = enabledFields.find(f => f.isFinalScore || f.name.toLowerCase().includes('endwert'));
+                                      const juryFieldKey = juryEndwertField ? `${participant.id}-${juryEndwertField.id}` : null;
+                                      const juryEndwert = juryFieldKey ? (scoreMatrix[juryFieldKey] ?? '') : '';
+
+                                      // Calculate handler: set both Endwerts to the calculated value and save both
+                                      const handleCalculate = async () => {
+                                        let calcValue = currentEndwert;
+                                        // If juryEndwert is filled, prefer that for calculation
+                                        if (juryEndwert && !isNaN(parseFloat(juryEndwert))) {
+                                          calcValue = juryEndwert;
+                                        }
+                                        if (!calcValue || isNaN(parseFloat(calcValue))) return;
+                                        // Set both fields
+                                        setScoreMatrix(prev => ({
+                                          ...prev,
+                                          [matrixKey]: calcValue,
+                                          ...(juryFieldKey ? { [juryFieldKey]: calcValue } : {})
+                                        }));
+                                        // Save both
+                                        await saveScore(participant.id, disciplineId);
+                                        if (juryFieldKey && juryEndwertField) {
+                                          await saveFieldScore(participant.id, juryEndwertField);
+                                        }
+                                      };
+
+                                      return (
+                                        <div className="mb-2">
+                                          {/* Green Endwert (official) */}
+                                          <div className="p-2 bg-green-50 border border-green-200 rounded mb-1">
+                                            <div className="text-xs text-green-600 font-medium text-center mb-1">Endwert (offiziell)</div>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              value={currentEndwert}
+                                              onChange={e => {
+                                                const value = e.target.value;
+                                                setScoreMatrix(prev => ({
+                                                  ...prev,
+                                                  [matrixKey]: value
+                                                }));
+                                              }}
+                                              onBlur={async (e) => {
+                                                const value = e.target.value; // Use the current input value directly
+                                                if (value && value.trim() !== '' && !isNaN(parseFloat(value))) {
+                                                  console.log('🟢 Saving official Endwert:', value, 'for participant', participant.id, 'discipline', disciplineId);
+                                                  
+                                                  // Update scoreMatrix immediately
+                                                  setScoreMatrix(prev => ({
+                                                    ...prev,
+                                                    [matrixKey]: value
+                                                  }));
+                                                  
+                                                  // Track pending save
+                                                  setPendingEndwerts(prev => ({ ...prev, [matrixKey]: value }));
+                                                  
+                                                  // Update local existingScores state for immediate UI feedback
+                                                  setExistingScores(prev => {
+                                                    const safePrev = Array.isArray(prev) ? prev : [];
+                                                    let numericDisciplineId: number;
+                                                    if (typeof disciplineId === 'number') {
+                                                      numericDisciplineId = disciplineId;
+                                                    } else {
+                                                      const found = disciplines.find(d => d.var_name === disciplineId);
+                                                      numericDisciplineId = found?.int_disziplinid || 0;
+                                                    }
+                                                    const idx = safePrev.findIndex(s => s.participantId === participant.id && s.disciplineId === numericDisciplineId);
+                                                    if (idx !== -1) {
+                                                      const updated = [...safePrev];
+                                                      updated[idx] = { ...updated[idx], score: parseFloat(value) };
+                                                      return updated;
+                                                    } else {
+                                                      return [...safePrev, {
+                                                        participantId: participant.id,
+                                                        disciplineId: numericDisciplineId,
+                                                        competitionId: competitionId ? parseInt(competitionId) : 1,
+                                                        score: parseFloat(value),
+                                                        attempt: 1,
+                                                        status: 'completed'
+                                                      }];
+                                                    }
+                                                  });
+                                                  
+                                                  // Save to database
+                                                  try {
+                                                    console.log('🟢 Calling saveScore...');
+                                                    await saveScore(participant.id, disciplineId);
+                                                    console.log('✅ SaveScore completed successfully');
+                                                  } catch (error) {
+                                                    console.error('❌ SaveScore failed:', error);
+                                                    alert('Failed to save Endwert. Please try again.');
+                                                  }
+                                                } else {
+                                                  console.log('⚠️  Skipping save - invalid value:', value);
+                                                }
+                                              }}
+                                              className="w-full text-sm font-bold text-green-700 text-center bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded px-1"
+                                              placeholder="0.00"
+                                              title="Click to edit total score (Endwert)"
+                                            />
+                                          </div>
+                                          {/* Grey Endwert (jury) */}
+                                          {juryFieldKey && (
+                                            <div className="p-2 bg-gray-100 border border-gray-300 rounded mb-1">
+                                              <div className="text-xs text-gray-600 font-medium text-center mb-1">Endwert (Jury)</div>
+                                              <input
+                                                type="number"
+                                                step="0.01"
+                                                value={juryEndwert}
+                                                onChange={e => {
+                                                  const value = e.target.value;
+                                                  setScoreMatrix(prev => ({ ...prev, [juryFieldKey]: value }));
+                                                }}
+                                                onBlur={async () => {
+                                                  if (juryFieldKey && juryEndwertField) {
+                                                    await saveFieldScore(participant.id, juryEndwertField);
+                                                  }
+                                                }}
+                                                className="w-full text-sm font-bold text-gray-700 text-center bg-transparent border-0 focus:ring-1 focus:ring-gray-400 rounded px-1"
+                                                placeholder="0.00"
+                                                title="Jury result Endwert"
+                                              />
+                                            </div>
+                                          )}
+                                          {/* Calculate button */}
+                                          <div className="flex justify-center mt-1">
+                                            <button
+                                              type="button"
+                                              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                                              onClick={handleCalculate}
+                                            >
+                                              Calculate & Save Both
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
                                     })()}
                                     
-                                    {/* Individual field inputs */}
-                                    {enabledFields.map(field => {
-                                      const fieldKey = `${participant.id}-${field.id}`
-                                      const fieldValue = scoreMatrix[fieldKey] ?? ''
-                                      const validation = getScoreValidation(disciplineId, fieldValue)
-                                      
+                                    {/* Individual field inputs (hide Endwert field if already shown above) */}
+                                    {enabledFields.filter(field => {
+                                      // Hide jury Endwert field if it's already shown as the grey box above
+                                      if (field.isFinalScore || field.name.toLowerCase().includes('endwert')) return false;
+                                      return true;
+                                    }).map(field => {
+                                      const fieldKey = `${participant.id}-${field.id}`;
+                                      const fieldValue = scoreMatrix[fieldKey] ?? '';
+                                      const validation = getScoreValidation(disciplineId, fieldValue);
                                       return (
                                         <div key={`field-${participant.id}-${field.id}`} className="flex flex-col items-center">
                                           <label className="text-xs text-gray-600 mb-1 text-center" title={field.name}>
@@ -1400,7 +1632,15 @@ export function ScoreCapture() {
                                               value={fieldValue}
                                               data-field={fieldKey}
                                               onChange={(e) => handleFieldScoreChange(participant.id, field.id, e.target.value)}
-                                              onBlur={() => saveFieldScore(participant.id, field)}
+                                              onBlur={(e) => {
+                                                const value = e.target.value;
+                                                if (value && value.trim() !== '') {
+                                                  console.log(`🟡 Saving individual field: ${field.name} = ${value}`);
+                                                  saveFieldScore(participant.id, field);
+                                                } else {
+                                                  console.log(`⚠️  Skipping save for empty field: ${field.name}`);
+                                                }
+                                              }}
                                               className={`w-16 px-1 py-1 text-xs border rounded focus:ring-2 focus:border-transparent transition-colors ${
                                                 validation.isValid 
                                                   ? 'border-gray-300 focus:ring-blue-500' 
@@ -1416,7 +1656,7 @@ export function ScoreCapture() {
                                             )}
                                           </div>
                                         </div>
-                                      )
+                                      );
                                     })}
                                   </div>
                                 </td>

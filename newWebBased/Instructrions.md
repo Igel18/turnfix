@@ -292,6 +292,29 @@ At the Competitions Day the Jury has select the event then the squad and the dev
 Do you have a idea for that? Show me a short concept.
 
 ---
+At add participant in EventParticipants not all athletes are available... oder vielleicht ist nur ein Filter aktiv? 
+-
+Squad zum teilnehmer hinzufügen -> 
+Error updating participant details: PrismaClientKnownRequestError: 
+Invalid `prisma.tfx_wertungen.updateMany()` invocation in
+C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server\src\routes\eventParticipants.ts:507:34
+
+  504 if (squad_name !== undefined) updateData.var_riege = squad_name;
+  505 if (startet_nicht !== undefined) updateData.bol_startet_nicht = startet_nicht;
+  506
+→ 507 await prisma.tfx_wertungen.updateMany(
+The provided value for the column is too long for the column's type. Column: (not available)
+    at $n.handleRequestError (C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server\src\routes\eventParticipants.ts:507:7 {       
+  code: 'P2000',
+  clientVersion: '5.22.0',
+  meta: { modelName: 'tfx_wertungen', column_name: '(not available)' }
+}
+
+
 Is there a template or something for the page unification? If not this should be created that it can used for other UIs.
 the following UIs must use the unified page header and this template: 
 Database Management: 
