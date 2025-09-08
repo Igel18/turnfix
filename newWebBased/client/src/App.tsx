@@ -33,6 +33,7 @@ import DisciplineGroups from '@/pages/DisciplineGroups'
 import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
+import JuryPortal from '@/pages/JuryPortal'
 
 function App() {
   return (
@@ -71,6 +72,7 @@ function App() {
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
             <Route path="/status-management" element={<StatusManagement />} />
             <Route path="/configuration" element={<Configuration />} />
+            <Route path="/jury" element={<JuryPortal />} />
           </Routes>
         </div>
         </CertificateLayoutProvider>

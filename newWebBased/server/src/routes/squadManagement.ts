@@ -66,6 +66,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             t.int_geschlecht,
             t.dat_geburtstag,
             t.int_startpassnummer,
+            w.int_startnummer,
             v.var_name as verein_name,
             w.var_riege,
             CASE 
@@ -86,8 +87,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
           GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
                    t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, 
-                   v.var_name, w.var_riege
-          ORDER BY t.var_nachname ASC, t.var_vorname ASC
+                   w.int_startnummer, v.var_name, w.var_riege
+          ORDER BY w.int_startnummer ASC, t.var_nachname ASC, t.var_vorname ASC
         `;
 
         const participants = await prisma.$queryRawUnsafe(
@@ -110,6 +111,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             clubId: p.int_vereineid ? Number(p.int_vereineid) : 0,
             gender: p.gender,
             birthYear: p.birth_year ? Number(p.birth_year) : null,
+            startNumber: p.int_startnummer ? Number(p.int_startnummer) : null,
             squadId: squad.squad_name,
             squadName: squad.squad_name,
             assignedCompetitions: p.assigned_competitions ? p.assigned_competitions.split(', ') : []
@@ -484,6 +486,39 @@ router.delete('/delete', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error deleting squad:', error);
     res.status(500).json({ message: 'Failed to delete squad' });
+  }
+});
+
+// Mark squad as completed for a specific device/discipline
+router.post('/complete', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { eventId, squadName, disciplineId, status } = req.body;
+    
+    console.log(`Squad Complete API: eventId=${eventId}, squadName=${squadName}, disciplineId=${disciplineId}, status=${status}`);
+    
+    if (!eventId || !squadName || !disciplineId || !status) {
+      return res.status(400).json({ message: 'All fields are required: eventId, squadName, disciplineId, status' });
+    }
+
+    // Update the squad status for this discipline
+    // Since we don't have a specific squad completion table, we'll log this for now
+    // In a full implementation, you might want to create a squad_status table
+    console.log(`Squad "${squadName}" marked as "${status}" for discipline ${disciplineId} in event ${eventId}`);
+    
+    // For now, we'll just return success
+    // In a real implementation, you might update a database table tracking squad completion status
+    res.json({
+      message: 'Squad marked as completed',
+      eventId: eventId,
+      squadName: squadName,
+      disciplineId: disciplineId,
+      status: status,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error marking squad as complete:', error);
+    res.status(500).json({ message: 'Failed to mark squad as complete' });
   }
 });
 

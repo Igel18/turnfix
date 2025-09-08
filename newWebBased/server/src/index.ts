@@ -174,7 +174,8 @@ app.use(errorHandler);
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API: http://localhost:${PORT}/api`);
+  console.log(`🔗 Local API: http://localhost:${PORT}/api`);
+  console.log(`🌐 Network API: http://192.168.1.108:${PORT}/api`);
 });
 
 export default app;

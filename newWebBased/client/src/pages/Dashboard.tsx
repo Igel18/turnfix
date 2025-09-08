@@ -213,6 +213,13 @@ const competitionDayActions = [
     href: '/score-capture',
     icon: ClipboardDocumentListIcon,
     color: 'bg-orange-500'
+  },
+  {
+    name: 'Jury Portal',
+    description: 'Simplified jury interface for competition day',
+    href: '/jury',
+    icon: TrophyIcon,
+    color: 'bg-blue-600'
   }
 ]
 
@@ -290,6 +297,7 @@ export function Dashboard() {
       'Event Participants': 'dashboard.eventManagement.eventSetup.eventParticipants.title',
       'Starting Order': 'dashboard.eventManagement.competitionDay.startingOrder.title',
       'Score Capture': 'dashboard.eventManagement.competitionDay.scoreCapture.title',
+      'Jury Portal': 'dashboard.eventManagement.competitionDay.juryPortal.title',
       'Live Results': 'dashboard.eventManagement.competitionDay.liveResults.title',
       'Final Results': 'dashboard.eventManagement.resultsAwards.finalResults.title',
       'Export Results': 'dashboard.eventManagement.resultsAwards.exportResults.title',
@@ -316,6 +324,7 @@ export function Dashboard() {
       'Event Participants': 'dashboard.eventManagement.eventSetup.eventParticipants.description',
       'Starting Order': 'dashboard.eventManagement.competitionDay.startingOrder.description',
       'Score Capture': 'dashboard.eventManagement.competitionDay.scoreCapture.description',
+      'Jury Portal': 'dashboard.eventManagement.competitionDay.juryPortal.description',
       'Live Results': 'dashboard.eventManagement.competitionDay.liveResults.description',
       'Final Results': 'dashboard.eventManagement.resultsAwards.finalResults.description',
       'Export Results': 'dashboard.eventManagement.resultsAwards.exportResults.description',

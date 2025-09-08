@@ -287,6 +287,11 @@ Status Seite für Wettkämpfe -> mit Fertig Meldung und plausibilitätscheck?
 ---
 I need a Config section. Perhaps it is placed beside the DB Configuration but in a separate groupe? 1. It must contain the database configuration. But all things must be stored. The Passwort sometimes is gone. 2. to enable / disable the debug mode stored in the env file. 3. the language settings 4. the Ports 5. do you know something else what should be inside this configuration? 
 ---
+
+At the Competitions Day the Jury has select the event then the squad and the device to see all the participant. So it has to see the list from score capture. after each exercise from the participant that the jury has to put in the results. The Jury must see one following the actual and one past participant. The Jury uses different devices like Windos PC, IPad ore Smartphone. But the jury should not destroy anything else and should not confused by the so much posibilities to choose in the dashboard.  
+Do you have a idea for that? Show me a short concept.
+
+---
 Is there a template or something for the page unification? If not this should be created that it can used for other UIs.
 the following UIs must use the unified page header and this template: 
 Database Management: 
