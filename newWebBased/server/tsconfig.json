@@ -4,7 +4,7 @@
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -21,12 +21,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": [
     "node_modules", 
     "dist", 
     "prisma", 
-    "**/*.test.ts",
     "src/checkDb.ts",
     "src/seedData.ts", 
     "src/routes/events-new.ts",

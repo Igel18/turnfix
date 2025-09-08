@@ -119,3 +119,6 @@ Competition
 
 # PDF Export 
 Use the pdfUtils functions to generate the PDF document. 
+
+# Testing Setup Summary
+Run all tests with coverage to see the current coverage status. 
