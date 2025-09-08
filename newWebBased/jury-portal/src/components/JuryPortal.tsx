@@ -15,6 +15,7 @@ interface Participant {
   lastname?: string;  // API sometimes uses this format
   clubName: string;
   wertungenId?: number;
+  assignedCompetitions?: number[];
 }
 
 interface Squad {
@@ -41,6 +42,7 @@ interface Competition {
   id: number;
   name: string;
   eventId: number;
+  disciplines?: Device[];
 }
 
 interface ApiParticipant {
@@ -54,6 +56,7 @@ interface ApiParticipant {
   startNumber?: number;
   participantId?: number;
   wertungenId?: number;
+  assignedCompetitions?: number[];
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -71,6 +74,7 @@ const JuryPortal: React.FC = () => {
   const [squads, setSquads] = useState<Squad[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Fetch events
@@ -140,50 +144,71 @@ const JuryPortal: React.FC = () => {
     fetchSquads();
   }, [selectedEvent]);
 
-  // Fetch devices (disciplines) when squad is selected
+  // Fetch devices (disciplines) when squad is selected - use same logic as Score Capture
   useEffect(() => {
     const fetchDevices = async () => {
       if (!selectedEvent || !selectedSquad) return;
       
       try {
         setLoading(true);
+        console.log('🔍 JURY: Loading disciplines for event:', selectedEvent);
         
-        // First try to get squad-specific disciplines
-        const squadDisciplinesResponse = await fetch(`${API_BASE_URL}/squad-disciplines?eventId=${selectedEvent}&squadName=${encodeURIComponent(selectedSquad.name)}`);
+        // Load all competitions for the event (same as Score Capture)
+        const competitionsData = await fetch(`${API_BASE_URL}/competitions?eventId=${selectedEvent}`);
+        const competitionsResponse = await competitionsData.json();
+        console.log('🔍 JURY: Loaded competitions:', competitionsResponse);
         
-        let formattedDevices = [];
+        // Load all disciplines from all competitions and track their competition associations
+        let allDisciplines: Device[] = [];
+        const disciplineToCompetitionMap = new Map<number | string, number>();
         
-        if (squadDisciplinesResponse.ok) {
-          const squadDisciplinesData = await squadDisciplinesResponse.json();
-          console.log('Squad disciplines API response:', squadDisciplinesData);
-          
-          // Use squad-specific disciplines if available
-          formattedDevices = (squadDisciplinesData?.squadDisciplines || []).map((squadDiscipline: any) => ({
-            id: squadDiscipline.disciplineId,
-            name: squadDiscipline.disciplineName,
-            disciplineId: squadDiscipline.disciplineId,
-            icon: getDeviceIcon(squadDiscipline.disciplineName)
-          }));
+        for (const competition of competitionsResponse || []) {
+          try {
+            console.log(`🔍 JURY: Loading disciplines for competition ${competition.id} (${competition.name})`);
+            const disciplinesData = await fetch(`${API_BASE_URL}/competitions/${competition.id}/disciplines`);
+            const disciplinesResponse = await disciplinesData.json();
+            const competitionDisciplines = disciplinesResponse.disciplines || [];
+            
+            console.log(`🔍 JURY: Competition ${competition.id} returned ${competitionDisciplines.length} disciplines:`, 
+              competitionDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
+            
+            // Track which competition each discipline belongs to
+            competitionDisciplines.forEach((discipline: any) => {
+              const disciplineKey = discipline.int_disziplinid || discipline.var_name;
+              disciplineToCompetitionMap.set(disciplineKey, competition.id);
+              console.log(`🔍 JURY: Mapped discipline "${discipline.var_name}" (ID: ${discipline.int_disziplinid}) to competition ${competition.id}`);
+            });
+            
+            // Transform to Device format
+            const transformedDisciplines = competitionDisciplines.map((discipline: any) => ({
+              id: discipline.int_disziplinid,
+              name: discipline.var_name,
+              disciplineId: discipline.int_disziplinid,
+              icon: getDeviceIcon(discipline.var_name)
+            }));
+            
+            allDisciplines = [...allDisciplines, ...transformedDisciplines];
+          } catch (error) {
+            console.error(`❌ JURY: Error loading disciplines for competition ${competition.id}:`, error);
+          }
         }
         
-        // Fallback to all disciplines if no squad-specific ones found
-        if (formattedDevices.length === 0) {
-          console.log('No squad-specific disciplines found, falling back to all disciplines');
-          const disciplinesResponse = await fetch(`${API_BASE_URL}/disciplines`);
-          const disciplinesData = await disciplinesResponse.json();
-          
-          formattedDevices = (disciplinesData || []).map((discipline: any) => ({
-            id: discipline.id,
-            name: discipline.name,
-            disciplineId: discipline.id,
-            icon: getDeviceIcon(discipline.name)
-          }));
-        }
+        // Remove duplicate disciplines based on disciplineId
+        const uniqueDisciplines = allDisciplines.reduce((acc: Device[], current: Device) => {
+          const existingIndex = acc.findIndex(d => d.disciplineId === current.disciplineId);
+          if (existingIndex === -1) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
         
-        console.log('Processed devices:', formattedDevices);
-        setDevices(formattedDevices);
+        console.log('🔍 JURY: Final discipline-to-competition mapping:', Array.from(disciplineToCompetitionMap.entries()));
+        console.log('🔍 JURY: Unique disciplines available:', uniqueDisciplines);
+        
+        setCompetitions(competitionsResponse || []);
+        setDevices(uniqueDisciplines);
       } catch (error) {
-        console.error('Error fetching devices:', error);
+        console.error('❌ JURY: Error fetching devices:', error);
         setDevices([]);
       } finally {
         setLoading(false);
@@ -206,43 +231,37 @@ const JuryPortal: React.FC = () => {
         
         console.log('Selected squad participants:', squadParticipants);
         
-        // Format participants for scoring and fetch existing scores
+        // Format participants for scoring and fetch existing scores (same logic as Score Capture)
         const formattedParticipantsPromises = squadParticipants.map(async (participant: any, index: number) => {
-          // Fetch existing scores for this participant and discipline
+          // Fetch existing scores for this participant and discipline using Score Capture's approach
           let existingScore = null;
           try {
-            // Use the new wertungen-details API to check for main discipline scores (from tfx_wertungen_details)
-            const queryParticipantId = participant.id; // Use the actual participant ID
-            const scoresResponse = await fetch(`${API_BASE_URL}/wertungen-details/by-participant/${queryParticipantId}/discipline/${selectedDevice?.disciplineId}`);
+            console.log(`🔍 JURY: Checking existing scores for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
+            
+            // Use the same scores API as Score Capture
+            const scoresResponse = await fetch(`${API_BASE_URL}/scores?eventId=${selectedEvent}&limit=1000`);
             if (scoresResponse.ok) {
-              const scoreData = await scoresResponse.json();
-              console.log(`Fetched main discipline score for participant ${participant.id} (discipline ${selectedDevice?.disciplineId}):`, scoreData);
+              const scoresData = await scoresResponse.json();
+              const scores = scoresData?.results || [];
               
-              if (scoreData && scoreData.score !== undefined && scoreData.score !== null) {
-                existingScore = parseFloat(scoreData.score);
-                console.log(`Found existing main discipline score for participant ${participant.id}:`, existingScore);
+              // Find score for this participant and discipline
+              const existingScoreRecord = scores.find((s: any) => {
+                const matchesParticipant = s.participantId === participant.id;
+                const matchesDiscipline = s.disciplineId === selectedDevice?.disciplineId;
+                return matchesParticipant && matchesDiscipline;
+              });
+              
+              if (existingScoreRecord) {
+                existingScore = existingScoreRecord.score;
+                console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore);
               } else {
-                console.log(`No main discipline score found for participant ${participant.id}, checking detailed field scores...`);
-                
-                // Fallback: check jury results for detailed field scores
-                const detailedScoresResponse = await fetch(`${API_BASE_URL}/jury-results?participantId=${participant.wertungenId || participant.id}&disciplineId=${selectedDevice?.disciplineId}`);
-                if (detailedScoresResponse.ok) {
-                  const detailedScores = await detailedScoresResponse.json();
-                  if (detailedScores.results && detailedScores.results.length > 0) {
-                    const totalScore = detailedScores.results.reduce((sum: number, score: any) => {
-                      const performance = parseFloat(score.performance || 0);
-                      return sum + performance;
-                    }, 0);
-                    existingScore = totalScore > 0 ? totalScore : null;
-                    console.log(`Calculated total from field scores for participant ${participant.id}:`, existingScore);
-                  }
-                }
+                console.log(`ℹ️ JURY: No existing score found for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
               }
             } else {
-              console.log(`Main score API response not ok for participant ${participant.id}:`, scoresResponse.status);
+              console.log(`❌ JURY: Scores API response not ok:`, scoresResponse.status);
             }
           } catch (error) {
-            console.warn('Could not fetch existing scores for participant:', participant.id, error);
+            console.warn('⚠️ JURY: Could not fetch existing scores for participant:', participant.id, error);
           }
 
           return {
@@ -301,25 +320,64 @@ const JuryPortal: React.FC = () => {
   const previousParticipant = participants[currentParticipantIndex - 1];
   const nextParticipant = participants[currentParticipantIndex + 1];
 
+  // Update score input when current participant changes
+  useEffect(() => {
+    if (currentParticipant && currentParticipant.currentScore) {
+      setScore(currentParticipant.currentScore.toString());
+    } else {
+      setScore('');
+    }
+  }, [currentParticipantIndex, currentParticipant]);
+
   const handleScoreSubmit = async () => {
     if (!currentParticipant || !score || !selectedDevice) return;
     
     try {
       setLoading(true);
       
-      // Save main discipline score to tfx_wertungen_details (following C++ logic)
+      console.log('🔍 JURY: Determining competition ID for score save...');
+      
+      // Find the correct competition ID for this discipline (same logic as Score Capture)
+      let actualCompetitionId = null;
+      
+      // Try to find the competition that contains this discipline
+      const disciplineCompetition = competitions.find(comp => 
+        comp.disciplines?.some(d => d.disciplineId === selectedDevice.disciplineId)
+      );
+      
+      if (disciplineCompetition) {
+        actualCompetitionId = disciplineCompetition.id;
+        console.log(`✅ JURY: Found competition ID ${actualCompetitionId} (${disciplineCompetition.name}) for discipline ${selectedDevice.disciplineId}`);
+      } else {
+        // Fallback: if participant has assigned competitions, use the first one
+        const participant = participants.find((p: any) => p.id === currentParticipant.participantId);
+        if (participant && participant.assignedCompetitions && participant.assignedCompetitions.length > 0) {
+          actualCompetitionId = participant.assignedCompetitions[0];
+          console.log(`✅ JURY: Using participant's first assigned competition: ${actualCompetitionId}`);
+        } else {
+          // Last resort: use the first available competition
+          if (competitions.length > 0) {
+            actualCompetitionId = competitions[0].id;
+            console.log(`✅ JURY: Using first available competition as fallback: ${actualCompetitionId} (${competitions[0].name})`);
+          } else {
+            console.error('❌ JURY: Could not determine competition for discipline:', selectedDevice.disciplineId);
+            alert('Error: Could not determine competition for this discipline. Please check that the discipline is properly assigned to a competition.');
+            return;
+          }
+        }
+      }
+      
+      // Use the same save-value endpoint as Score Capture
       const scoreData = {
+        competitionId: actualCompetitionId,
         participantId: currentParticipant.participantId,
         disciplineId: selectedDevice.disciplineId,
-        score: parseFloat(score),
-        attempt: 1,
-        type: 0, // 0=Pflicht, 1=Kür
-        eventId: selectedEvent
+        score: parseFloat(score)
       };
 
-      console.log('Saving main discipline score:', scoreData);
+      console.log('🟢 JURY: Sending score data to API:', scoreData);
 
-      const response = await fetch(`${API_BASE_URL}/wertungen-details/save-main-score`, {
+      const response = await fetch(`${API_BASE_URL}/scores/save-value`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -328,43 +386,28 @@ const JuryPortal: React.FC = () => {
       });
 
       if (response.ok) {
-        console.log('✅ Main discipline score saved successfully');
+        const responseData = await response.json();
+        console.log('✅ JURY: Score saved successfully:', responseData);
         
-        // Update participant status
+        // Update participant status and score
         const updatedParticipants = [...participants];
         if (updatedParticipants[currentParticipantIndex]) {
           updatedParticipants[currentParticipantIndex].status = 'completed';
           updatedParticipants[currentParticipantIndex].currentScore = parseFloat(score);
         }
         
-        // Find next participant without a score
-        const nextUncompletedIndex = updatedParticipants.findIndex((p, index) => 
-          index > currentParticipantIndex && !p.currentScore
-        );
-        
-        if (nextUncompletedIndex >= 0) {
-          // Set previous current participant status based on whether they have a score
-          if (currentParticipantIndex >= 0 && currentParticipantIndex < updatedParticipants.length) {
-            updatedParticipants[currentParticipantIndex].status = 'completed';
-          }
-          // Set next participant as current
-          updatedParticipants[nextUncompletedIndex].status = 'current';
-          setCurrentParticipantIndex(nextUncompletedIndex);
-        } else {
-          // All participants completed
-          if (currentParticipantIndex >= 0 && currentParticipantIndex < updatedParticipants.length) {
-            updatedParticipants[currentParticipantIndex].status = 'completed';
-          }
-        }
-        
         setParticipants(updatedParticipants);
         setScore('');
+        
+        // Optional: Show success message
+        console.log('✅ Score saved! You can now navigate to the next participant or continue scoring.');
       } else {
         const errorData = await response.json();
-        alert(`Error saving score: ${errorData.error}`);
+        console.error('❌ JURY: API returned error:', errorData);
+        alert(`Error saving score: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error submitting score:', error);
+      console.error('❌ JURY: Error submitting score:', error);
       alert('Error submitting score');
     } finally {
       setLoading(false);
@@ -608,6 +651,34 @@ const JuryPortal: React.FC = () => {
                 <p className="text-lg font-semibold">{currentParticipant.name}</p>
                 <p className="text-sm text-gray-600">{currentParticipant.club}</p>
                 
+                {/* Participant Navigation Controls */}
+                <div className="mt-4 flex justify-center space-x-2">
+                  <button
+                    onClick={() => {
+                      if (currentParticipantIndex > 0) {
+                        setCurrentParticipantIndex(currentParticipantIndex - 1);
+                        setScore(''); // Clear score when changing participant
+                      }
+                    }}
+                    disabled={currentParticipantIndex <= 0}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ← Vorherig
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (currentParticipantIndex < participants.length - 1) {
+                        setCurrentParticipantIndex(currentParticipantIndex + 1);
+                        setScore(''); // Clear score when changing participant
+                      }
+                    }}
+                    disabled={currentParticipantIndex >= participants.length - 1}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Nächste →
+                  </button>
+                </div>
+                
                 {/* Score Input */}
                 <div className="mt-6 space-y-4">
                   <input
@@ -674,13 +745,17 @@ const JuryPortal: React.FC = () => {
                 {participants.map((participant, index) => (
                   <div 
                     key={participant.id} 
-                    className={`flex items-center justify-between p-2 rounded ${
+                    className={`flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-100 transition-colors ${
                       index === currentParticipantIndex 
                         ? 'bg-blue-100 border-l-4 border-blue-500' 
                         : participant.status === 'completed' 
                         ? 'bg-green-50' 
                         : 'bg-gray-50'
                     }`}
+                    onClick={() => {
+                      setCurrentParticipantIndex(index);
+                      setScore(''); // Clear score when switching participant
+                    }}
                   >
                     <div>
                       <span className="font-medium">#{participant.startNumber} {participant.name}</span>
