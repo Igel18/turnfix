@@ -6,7 +6,7 @@ interface Participant {
   name: string;
   club: string;
   startNumber: number;
-  currentScore?: number;
+  currentScore?: string;
   status: 'completed' | 'current' | 'pending';
   participantId: number;
   firstName: string;
@@ -177,6 +177,9 @@ const JuryPortal: React.FC = () => {
         
         setParticipants(filteredParticipants);
         setCurrentParticipantIndex(0);
+
+        // Fetch scores for all participants
+        await fetchParticipantScores(filteredParticipants);
       } catch (error) {
         console.error('Error fetching participants:', error);
         setParticipants([]);
@@ -187,6 +190,48 @@ const JuryPortal: React.FC = () => {
 
     fetchParticipants();
   }, [selectedEvent, selectedSquad, selectedDevice]);
+
+  // Function to fetch scores for all participants
+  const fetchParticipantScores = async (participantsList: Participant[]) => {
+    if (!selectedDevice?.disciplineId) return;
+
+    try {
+      const updatedParticipants = await Promise.all(
+        participantsList.map(async (participant) => {
+          try {
+            // Use wertungenId if available, otherwise use participantId
+            const idToUse = participant.wertungenId || participant.participantId;
+            const response = await fetch(
+              `${API_BASE_URL}/jury-results?participantId=${idToUse}&disciplineId=${selectedDevice.disciplineId}`
+            );
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+              // Calculate total score from all results
+              const totalScore = data.results.reduce((sum: number, result: any) => {
+                return sum + (parseFloat(result.performance) || 0);
+              }, 0);
+              
+              return {
+                ...participant,
+                status: 'completed' as const,
+                currentScore: totalScore.toFixed(2)
+              };
+            }
+            
+            return participant;
+          } catch (error) {
+            console.error(`Error fetching score for participant ${participant.id}:`, error);
+            return participant;
+          }
+        })
+      );
+
+      setParticipants(updatedParticipants);
+    } catch (error) {
+      console.error('Error fetching participant scores:', error);
+    }
+  };
 
   const getDeviceIcon = (deviceName: string): string => {
     const iconMap: { [key: string]: string } = {
@@ -246,7 +291,7 @@ const JuryPortal: React.FC = () => {
         const updatedParticipants = [...participants];
         if (updatedParticipants[currentParticipantIndex]) {
           updatedParticipants[currentParticipantIndex].status = 'completed';
-          updatedParticipants[currentParticipantIndex].currentScore = parseFloat(score);
+          updatedParticipants[currentParticipantIndex].currentScore = parseFloat(score).toFixed(2);
         }
         
         // Move to next participant

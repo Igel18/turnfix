@@ -211,24 +211,35 @@ const JuryPortal: React.FC = () => {
           // Fetch existing scores for this participant and discipline
           let existingScore = null;
           try {
-            const scoresResponse = await fetch(`${API_BASE_URL}/jury-results?participantId=${participant.wertungenId || participant.id}&disciplineId=${selectedDevice?.disciplineId}`);
+            // Use the new wertungen-details API to check for main discipline scores (from tfx_wertungen_details)
+            const queryParticipantId = participant.id; // Use the actual participant ID
+            const scoresResponse = await fetch(`${API_BASE_URL}/wertungen-details/by-participant/${queryParticipantId}/discipline/${selectedDevice?.disciplineId}`);
             if (scoresResponse.ok) {
-              const scores = await scoresResponse.json();
-              console.log(`Fetched scores for participant ${participant.id} (wertungenId: ${participant.wertungenId}):`, scores);
-              if (scores.results && scores.results.length > 0) {
-                // Use the latest score (or sum of scores if multiple fields)
-                const totalScore = scores.results.reduce((sum: number, score: any) => {
-                  const performance = parseFloat(score.performance || 0);
-                  console.log(`Adding performance ${performance} from score:`, score);
-                  return sum + performance;
-                }, 0);
-                existingScore = totalScore > 0 ? totalScore : null;
-                console.log(`Calculated total score for participant ${participant.id}:`, existingScore);
+              const scoreData = await scoresResponse.json();
+              console.log(`Fetched main discipline score for participant ${participant.id} (discipline ${selectedDevice?.disciplineId}):`, scoreData);
+              
+              if (scoreData && scoreData.score !== undefined && scoreData.score !== null) {
+                existingScore = parseFloat(scoreData.score);
+                console.log(`Found existing main discipline score for participant ${participant.id}:`, existingScore);
               } else {
-                console.log(`No scores found for participant ${participant.id}`);
+                console.log(`No main discipline score found for participant ${participant.id}, checking detailed field scores...`);
+                
+                // Fallback: check jury results for detailed field scores
+                const detailedScoresResponse = await fetch(`${API_BASE_URL}/jury-results?participantId=${participant.wertungenId || participant.id}&disciplineId=${selectedDevice?.disciplineId}`);
+                if (detailedScoresResponse.ok) {
+                  const detailedScores = await detailedScoresResponse.json();
+                  if (detailedScores.results && detailedScores.results.length > 0) {
+                    const totalScore = detailedScores.results.reduce((sum: number, score: any) => {
+                      const performance = parseFloat(score.performance || 0);
+                      return sum + performance;
+                    }, 0);
+                    existingScore = totalScore > 0 ? totalScore : null;
+                    console.log(`Calculated total from field scores for participant ${participant.id}:`, existingScore);
+                  }
+                }
               }
             } else {
-              console.log(`API response not ok for participant ${participant.id}:`, scoresResponse.status);
+              console.log(`Main score API response not ok for participant ${participant.id}:`, scoresResponse.status);
             }
           } catch (error) {
             console.warn('Could not fetch existing scores for participant:', participant.id, error);
@@ -296,28 +307,19 @@ const JuryPortal: React.FC = () => {
     try {
       setLoading(true);
       
-      // Find a discipline field for this device (use the first enabled one)
-      const disciplineFieldsResponse = await fetch(`${API_BASE_URL}/discipline-fields`);
-      const disciplineFields = await disciplineFieldsResponse.json();
-      const relevantField = disciplineFields.find((field: any) => 
-        field.disciplineId === selectedDevice.disciplineId && field.enabled
-      );
-      
-      if (!relevantField) {
-        alert('No discipline field found for this device');
-        return;
-      }
-
+      // Save main discipline score to tfx_wertungen_details (following C++ logic)
       const scoreData = {
         participantId: currentParticipant.participantId,
-        disciplineFieldId: relevantField.id,
+        disciplineId: selectedDevice.disciplineId,
+        score: parseFloat(score),
         attempt: 1,
-        performance: parseFloat(score),
-        type: 0,
+        type: 0, // 0=Pflicht, 1=Kür
         eventId: selectedEvent
       };
 
-      const response = await fetch(`${API_BASE_URL}/jury-results/save-field-score`, {
+      console.log('Saving main discipline score:', scoreData);
+
+      const response = await fetch(`${API_BASE_URL}/wertungen-details/save-main-score`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -326,6 +328,8 @@ const JuryPortal: React.FC = () => {
       });
 
       if (response.ok) {
+        console.log('✅ Main discipline score saved successfully');
+        
         // Update participant status
         const updatedParticipants = [...participants];
         if (updatedParticipants[currentParticipantIndex]) {

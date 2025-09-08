@@ -1363,6 +1363,26 @@ export function ScoreCapture() {
                               return (
                                 <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap">
                                   <div className="space-y-2">
+                                    {/* Display existing total score from tfx_wertungen_details if available */}
+                                    {(() => {
+                                      const existingTotalScore = existingScores.find(s => 
+                                        s.participantId === participant.id && s.disciplineId === disciplineId
+                                      )?.score;
+                                      
+                                      if (existingTotalScore && existingTotalScore > 0) {
+                                        return (
+                                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded">
+                                            <div className="text-xs text-green-600 font-medium text-center">Endwert</div>
+                                            <div className="text-sm font-bold text-green-700 text-center">
+                                              {existingTotalScore.toFixed(2)}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    })()}
+                                    
+                                    {/* Individual field inputs */}
                                     {enabledFields.map(field => {
                                       const fieldKey = `${participant.id}-${field.id}`
                                       const fieldValue = scoreMatrix[fieldKey] ?? ''

@@ -312,26 +312,33 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
   try {
     const validatedData = juryResultCreateSchema.parse(req.body);
     console.log('Saving field score:', validatedData);
+    console.log('DEBUG: eventId in request:', validatedData.eventId);
+    console.log('DEBUG: competitionId in request:', validatedData.competitionId);
 
     // First, we need to find the wertungenid for this participant
     // The participantId in the request is actually the participant ID, not the wertungenid
+    // We need to filter by event to get the correct wertungenid for this specific event
     const wertungenQuery = `
-      SELECT int_wertungenid
-      FROM tfx_wertungen 
-      WHERE int_teilnehmerid = $1
-      ${validatedData.competitionId ? 'AND int_wkid = $2' : ''}
+      SELECT w.int_wertungenid
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE w.int_teilnehmerid = $1
+      AND wk.int_veranstaltungenid = $2
+      ORDER BY w.int_wertungenid DESC
       LIMIT 1
     `;
 
-    const queryParams = [validatedData.participantId];
-    if (validatedData.competitionId) {
-      queryParams.push(validatedData.competitionId);
-    }
+    const queryParams = [validatedData.participantId, validatedData.eventId];
+    
+    console.log('DEBUG: Final query:', wertungenQuery);
+    console.log('DEBUG: Query params:', queryParams);
 
     const wertungenResult = await prisma.$queryRawUnsafe(
       wertungenQuery,
       ...queryParams
     ) as any[];
+    
+    console.log('DEBUG: Query result:', wertungenResult);
 
     if (!wertungenResult || wertungenResult.length === 0) {
       return res.status(400).json({ 

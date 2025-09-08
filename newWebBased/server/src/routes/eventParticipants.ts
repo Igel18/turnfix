@@ -44,6 +44,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         w.var_riege as squad_name,
         w.bol_startet_nicht,
         w.int_startnummer,
+        w.int_wertungenid,
         CASE 
           WHEN t.int_geschlecht = 1 THEN 'male'
           WHEN t.int_geschlecht = 2 THEN 'female'
@@ -71,7 +72,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     
     eventParticipantsQuery += `
       GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
-               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name, w.var_riege, w.bol_startet_nicht, w.int_startnummer
+               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name, w.var_riege, w.bol_startet_nicht, w.int_startnummer, w.int_wertungenid
       ORDER BY t.var_nachname ASC, t.var_vorname ASC
     `;
 
@@ -105,6 +106,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           squad_name: participant.squad_name || null,
           startet_nicht: participant.bol_startet_nicht || false,
           startNumber: participant.int_startnummer ? Number(participant.int_startnummer) : null,
+          wertungenId: participant.int_wertungenid ? Number(participant.int_wertungenid) : null,
           isInEvent: true,
           assignedCompetitions: (assignments as any[]).map(a => Number(a.int_wettkaempfeid)),
           registrationDate: participant.registration_date
@@ -162,6 +164,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         squad_name: null, // Available participants don't have squads assigned
         startet_nicht: false, // Available participants are not marked as not starting
         startNumber: null, // Available participants don't have start numbers yet
+        wertungenId: null, // Available participants don't have wertungenId yet
         isInEvent: false,
         assignedCompetitions: [],
         registrationDate: undefined
