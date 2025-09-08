@@ -702,7 +702,9 @@ export function ScoreCapture() {
         disciplineFieldId: field.id,
         attempt: 1, // Default attempt
         performance: numericValue,
-        type: 0 // Default type (0=Pflicht, 1=Kür) - TODO: determine from context
+        type: 0, // Default type (0=Pflicht, 1=Kür) - TODO: determine from context
+        eventId: selectedEvent?.int_eventid,
+        competitionId: selectedCompetition?.id
       }
       
       console.log('Sending to API:', scoreData)

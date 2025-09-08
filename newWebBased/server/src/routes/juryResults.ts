@@ -8,11 +8,13 @@ const prisma = new PrismaClient();
 
 // Validation schemas
 const juryResultCreateSchema = z.object({
-  participantId: z.number().int().positive().describe('Score ID (int_wertungenid)'),
+  participantId: z.number().int().positive().describe('Participant ID (int_teilnehmerid) - will be converted to wertungenid'),
   disciplineFieldId: z.number().int().positive(),
   attempt: z.number().int().min(1).default(1),
   performance: z.number(),
-  type: z.number().int().min(0).max(1).default(0).describe('0=Pflicht, 1=Kür')
+  type: z.number().int().min(0).max(1).default(0).describe('0=Pflicht, 1=Kür'),
+  eventId: z.number().int().positive().optional(),
+  competitionId: z.number().int().positive().optional()
 });
 
 const juryResultUpdateSchema = juryResultCreateSchema.partial();
@@ -142,6 +144,36 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     const validatedData = juryResultCreateSchema.parse(req.body);
     console.log('Creating jury result:', validatedData);
 
+    // Find the wertungenid from the participant data
+    console.log(`Looking up wertungenid for participantId: ${validatedData.participantId}`);
+    
+    const wertungenQuery = `
+      SELECT w.pk_wertungen AS wertungenid 
+      FROM tfx_wertungen w
+      WHERE w.int_teilnehmerid = $1
+      ${validatedData.competitionId ? 'AND w.int_wkid = $2' : ''}
+      LIMIT 1
+    `;
+    
+    const queryParams = [validatedData.participantId];
+    if (validatedData.competitionId) {
+      queryParams.push(validatedData.competitionId);
+    }
+    
+    const wertungenResult = await prisma.$queryRawUnsafe(wertungenQuery, ...queryParams) as any[];
+    
+    if (!wertungenResult || wertungenResult.length === 0) {
+      console.error(`No wertungenid found for participantId: ${validatedData.participantId}`);
+      return res.status(404).json({ 
+        error: 'Participant not found in competition', 
+        participantId: validatedData.participantId,
+        competitionId: validatedData.competitionId 
+      });
+    }
+    
+    const wertungenId = wertungenResult[0].wertungenid;
+    console.log(`Found wertungenid: ${wertungenId}`);
+
     // Insert new jury result
     const insertQuery = `
       INSERT INTO tfx_jury_results 
@@ -152,7 +184,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 
     const created = await prisma.$queryRawUnsafe(
       insertQuery,
-      validatedData.participantId,
+      wertungenId,  // Use the looked up wertungenid instead of participantId
       validatedData.disciplineFieldId,
       validatedData.attempt,
       validatedData.performance,
@@ -281,6 +313,35 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
     const validatedData = juryResultCreateSchema.parse(req.body);
     console.log('Saving field score:', validatedData);
 
+    // First, we need to find the wertungenid for this participant
+    // The participantId in the request is actually the participant ID, not the wertungenid
+    const wertungenQuery = `
+      SELECT int_wertungenid
+      FROM tfx_wertungen 
+      WHERE int_teilnehmerid = $1
+      ${validatedData.competitionId ? 'AND int_wkid = $2' : ''}
+      LIMIT 1
+    `;
+
+    const queryParams = [validatedData.participantId];
+    if (validatedData.competitionId) {
+      queryParams.push(validatedData.competitionId);
+    }
+
+    const wertungenResult = await prisma.$queryRawUnsafe(
+      wertungenQuery,
+      ...queryParams
+    ) as any[];
+
+    if (!wertungenResult || wertungenResult.length === 0) {
+      return res.status(400).json({ 
+        error: 'No evaluation record found for this participant. Participant must be registered for a competition first.' 
+      });
+    }
+
+    const wertungenId = wertungenResult[0].int_wertungenid;
+    console.log(`Found wertungenid ${wertungenId} for participant ${validatedData.participantId}`);
+
     // Check if jury result already exists
     const existingQuery = `
       SELECT int_juryresultsid as id
@@ -293,7 +354,7 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
 
     const existing = await prisma.$queryRawUnsafe(
       existingQuery,
-      validatedData.participantId,
+      wertungenId,  // Use the correct wertungenid
       validatedData.disciplineFieldId,
       validatedData.attempt,
       validatedData.type
@@ -328,7 +389,7 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
 
       result = await prisma.$queryRawUnsafe(
         insertQuery,
-        validatedData.participantId,
+        wertungenId,  // Use the correct wertungenid instead of participantId
         validatedData.disciplineFieldId,
         validatedData.attempt,
         validatedData.performance,

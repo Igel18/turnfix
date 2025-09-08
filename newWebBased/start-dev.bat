@@ -9,7 +9,7 @@ start "TurnFix Backend" cmd /k "npm run dev"
 echo.
 echo === Starting Frontend Client ===
 cd /d "C:\Users\prudlo\source\repos\turnfix\newWebBased\client"
-start "TurnFix Frontend" cmd /k "npm run dev"
+start "TurnFix Frontend" cmd /k "npm run dev -- --host 0.0.0.0"
 
 echo.
 echo === Creating Test User ===
