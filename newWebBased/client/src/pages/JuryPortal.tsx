@@ -201,17 +201,45 @@ const JuryPortal: React.FC = () => {
           try {
             // Use wertungenId if available, otherwise use participantId
             const idToUse = participant.wertungenId || participant.participantId;
-            const response = await fetch(
-              `${API_BASE_URL}/jury-results?participantId=${idToUse}&disciplineId=${selectedDevice.disciplineId}`
-            );
-            const data = await response.json();
             
-            if (data.results && data.results.length > 0) {
-              // Calculate total score from all results
-              const totalScore = data.results.reduce((sum: number, result: any) => {
-                return sum + (parseFloat(result.performance) || 0);
-              }, 0);
+            // Try to get scores from main scores endpoint first
+            let totalScore = 0;
+            let hasScore = false;
+            
+            try {
+              const scoresResponse = await fetch(
+                `${API_BASE_URL}/scores?participantId=${idToUse}&disciplineId=${selectedDevice.disciplineId}&limit=100`
+              );
+              const scoresData = await scoresResponse.json();
               
+              if (scoresData.results && scoresData.results.length > 0) {
+                totalScore = scoresData.results.reduce((sum: number, result: any) => {
+                  return sum + (parseFloat(result.score) || 0);
+                }, 0);
+                hasScore = true;
+                console.log(`✅ Found score for ${participant.firstName} ${participant.lastName}: ${totalScore}`);
+              }
+            } catch (error) {
+              console.log(`No scores found in main scores table for participant ${idToUse}, trying jury results...`);
+            }
+            
+            // If no score found in main scores, try jury-results as fallback
+            if (!hasScore) {
+              const response = await fetch(
+                `${API_BASE_URL}/jury-results?participantId=${idToUse}&disciplineId=${selectedDevice.disciplineId}`
+              );
+              const data = await response.json();
+              
+              if (data.results && data.results.length > 0) {
+                totalScore = data.results.reduce((sum: number, result: any) => {
+                  return sum + (parseFloat(result.performance) || 0);
+                }, 0);
+                hasScore = true;
+                console.log(`✅ Found jury score for ${participant.firstName} ${participant.lastName}: ${totalScore}`);
+              }
+            }
+            
+            if (hasScore) {
               return {
                 ...participant,
                 status: 'completed' as const,

@@ -514,6 +514,8 @@ export function ScoreCapture() {
     filteredParticipants.forEach(participant => {
       safeDisciplines.forEach((discipline, index) => {
         const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
+        console.log(`Processing ${participant.firstname} ${participant.lastname} (ID: ${participant.id}) - ${discipline.var_name} (DisciplineID: ${disciplineId}, int_disziplinid: ${discipline.int_disziplinid})`);
+        
         // Get enabled fields for this discipline
         const enabledFields = getDisciplineFields(disciplineId)
         if (enabledFields.length === 0) {
@@ -525,7 +527,17 @@ export function ScoreCapture() {
           } else {
             const existingScore = safeExistingScores.find(s => {
               const matchesParticipant = s.participantId === participant.id;
-              const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId;
+              // Improved discipline matching: check multiple possible ways disciplines might be referenced
+              const matchesDiscipline = 
+                s.disciplineId === discipline.int_disziplinid || 
+                s.disciplineId === disciplineId ||
+                s.disciplineId === (discipline as any).disciplineId || // From competitions API
+                (typeof disciplineId === 'number' && s.disciplineId === disciplineId) ||
+                (typeof disciplineId === 'string' && disciplineId.includes('-') && s.disciplineId === parseInt(disciplineId.split('-')[0]));
+              
+              if (matchesParticipant && matchesDiscipline) {
+                console.log(`✅ Found existing score for ${participant.firstname} ${participant.lastname} - ${discipline.var_name}: ${s.score}`);
+              }
               return matchesParticipant && matchesDiscipline;
             });
             matrix[key] = existingScore ? existingScore.score.toString() : '';
@@ -542,7 +554,17 @@ export function ScoreCapture() {
           // On refresh, pendingEndwerts will be empty, so prioritize DB values
           const existingScore = safeExistingScores.find(s => {
             const matchesParticipant = s.participantId === participant.id;
-            const matchesDiscipline = s.disciplineId === discipline.int_disziplinid || s.disciplineId === disciplineId;
+            // Improved discipline matching: check multiple possible ways disciplines might be referenced
+            const matchesDiscipline = 
+              s.disciplineId === discipline.int_disziplinid || 
+              s.disciplineId === disciplineId ||
+              s.disciplineId === (discipline as any).disciplineId || // From competitions API
+              (typeof disciplineId === 'number' && s.disciplineId === disciplineId) ||
+              (typeof disciplineId === 'string' && disciplineId.includes('-') && s.disciplineId === parseInt(disciplineId.split('-')[0]));
+            
+            if (matchesParticipant && matchesDiscipline) {
+              console.log(`✅ Found existing score for ${participant.firstname} ${participant.lastname} - ${discipline.var_name}: ${s.score}`);
+            }
             return matchesParticipant && matchesDiscipline;
           });
           
