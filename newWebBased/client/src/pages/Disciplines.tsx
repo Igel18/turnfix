@@ -9,6 +9,7 @@ import {
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { exportToCSV } from '@/utils/csvExport'
 import { apiGet, apiDelete, apiPost, apiPut } from '@/utils/api'
+import { getIconUrl } from '@/utils/iconUtils'
 
 interface Discipline {
   id: number
@@ -431,11 +432,26 @@ export default function Disciplines() {
             {filteredDisciplines.map((discipline) => (
               <div key={discipline.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {discipline.display_name || discipline.name}
-                    </h3>
-                    <p className="text-sm text-gray-600">{discipline.short_name}</p>
+                  <div className="flex items-center space-x-3">
+                    {discipline.icon && (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={getIconUrl(discipline.icon) || ''}
+                          alt={`${discipline.display_name || discipline.name} icon`}
+                          className="w-8 h-8 object-contain"
+                          onError={(e) => {
+                            // Hide the image if it fails to load
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">
+                        {discipline.display_name || discipline.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">{discipline.short_name}</p>
+                    </div>
                   </div>
                   <div className="flex space-x-1">
                     <button
@@ -794,14 +810,38 @@ export default function Disciplines() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Icon
                       </label>
-                      <input
-                        type="text"
-                        maxLength={50}
-                        value={formData.icon}
-                        onChange={(e) => setFormData({...formData, icon: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Icon name/path"
-                      />
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-grow">
+                          <input
+                            type="text"
+                            maxLength={50}
+                            value={formData.icon}
+                            onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Icon name/path (e.g., :/icons/100.png)"
+                          />
+                        </div>
+                        {formData.icon && (
+                          <div className="flex-shrink-0 w-10 h-10 border border-gray-200 rounded-md flex items-center justify-center bg-gray-50">
+                            <img 
+                              src={getIconUrl(formData.icon) || ''}
+                              alt="Icon preview"
+                              className="w-8 h-8 object-contain"
+                              onError={(e) => {
+                                // Show a placeholder or hide if icon fails to load
+                                e.currentTarget.style.display = 'none';
+                              }}
+                              onLoad={(e) => {
+                                // Show the image when it loads successfully
+                                e.currentTarget.style.display = 'block';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Examples: :/icons/boden.png, :/icons/ringe.png, :/icons/sprung.png
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">

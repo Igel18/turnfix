@@ -82,8 +82,9 @@ router.get('/', async (req, res) => {
       ORDER BY var_name
     `;
     
-    const disciplines = await prisma.$queryRawUnsafe(query, ...params);
-    res.json(disciplines);
+    const rawDisciplines = await prisma.$queryRawUnsafe(query, ...params) as any[];
+    
+    res.json(rawDisciplines);
   } catch (error) {
     console.error('Error fetching disciplines:', error);
     res.status(500).json({ error: 'Internal server error' });
