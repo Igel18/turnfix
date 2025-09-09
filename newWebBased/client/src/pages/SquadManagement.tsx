@@ -356,43 +356,6 @@ const forceLoadAvailableParticipants = async () => {
     }
   };
 
-  // DEBUG: Quick test function
-  const testSquadAssignment = async () => {
-    if (!eventId) return;
-    
-    console.log('🧪 Starting squad assignment test...');
-    
-    try {
-      // Create a test squad
-      console.log('1️⃣ Creating test squad...');
-      const createResponse = await apiPost('/squad-management/create', {
-        eventId: parseInt(eventId),
-        name: 'DebugSquad' + Date.now()
-      });
-      console.log('✅ Squad created:', createResponse);
-      
-      // Assign first available participant
-      if (availableParticipants.length > 0) {
-        const testParticipant = availableParticipants[0];
-        console.log('2️⃣ Assigning participant:', testParticipant);
-        
-        const assignResponse = await apiPost('/squad-management/assign', {
-          participantId: testParticipant.id,
-          squadName: createResponse.squad.name,
-          eventId: parseInt(eventId)
-        });
-        console.log('✅ Assignment completed:', assignResponse);
-        
-        // Force reload
-        console.log('3️⃣ Reloading data...');
-        await forceLoadSquads();
-        console.log('✅ Test completed!');
-      }
-    } catch (error) {
-      console.error('❌ Test failed:', error);
-    }
-  };
-
   const removeParticipantFromSquad = async (participantId: number) => {
     if (!eventId) {
       console.error('Event ID not found');
@@ -648,21 +611,7 @@ const forceLoadAvailableParticipants = async () => {
         </div>
       )}
 
-      {/* DEBUG: Test Button */}
-      <div className="bg-yellow-50 border border-yellow-200 p-4 mx-6 mb-4 rounded">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-yellow-800">Debug Test</h4>
-            <p className="text-sm text-yellow-700">Test squad creation and assignment</p>
-          </div>
-          <button
-            onClick={testSquadAssignment}
-            className="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-700"
-          >
-            🧪 Test Assignment
-          </button>
-        </div>
-      </div>
+
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -122,6 +122,10 @@
         "competitionStatus": {
           "title": "Competition Status",
           "description": "Monitor competition progress and status"
+        },
+        "juryPortal": {
+          "title": "Jury Portal",
+          "description": "Simplified jury interface for competition day"
         }
       },
       "resultsAwards": {

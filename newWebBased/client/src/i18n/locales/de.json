@@ -122,6 +122,10 @@
         "competitionStatus": {
           "title": "Wettkampfstatus",
           "description": "Wettkampffortschritt und Status überwachen"
+        },
+        "juryPortal": {
+          "title": "Kampfrichter-Portal",
+          "description": "Vereinfachte Kampfrichter-Oberfläche für den Wettkampftag"
         }
       },
       "resultsAwards": {
