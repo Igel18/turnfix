@@ -59,16 +59,29 @@ export default function Meldematrix() {
         setLoading(true)
         setError(null)
 
+        console.log(`Fetching meldematrix data for event ${eventId}`)
+
         // Fetch meldematrix data from the specialized endpoint
         const response = await fetch(`/api/meldematrix?eventId=${eventId}`)
-        if (!response.ok) throw new Error('Failed to fetch meldematrix data')
+        
+        console.log(`API response status: ${response.status}`)
+        
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error(`API error response: ${errorText}`)
+          throw new Error(`Failed to fetch meldematrix data: ${response.status} ${response.statusText}`)
+        }
+        
         const data = await response.json()
+        console.log('API response data:', data)
         
         if (!data.success) {
-          throw new Error(data.error || 'API returned error')
+          throw new Error(data.error || data.message || 'API returned error')
         }
 
         const { clubs, competitions, registrationMatrix } = data.data
+        
+        console.log(`Found ${clubs?.length || 0} clubs, ${competitions?.length || 0} competitions`)
         
         // Transform and set the data
         setClubs(clubs || [])
