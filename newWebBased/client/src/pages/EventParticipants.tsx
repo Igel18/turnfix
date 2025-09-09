@@ -288,6 +288,11 @@ const EventParticipants: React.FC = () => {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   
+  // State for participant counts from API
+  const [totalInEvent, setTotalInEvent] = useState<number>(0);
+  const [totalAvailable, setTotalAvailable] = useState<number>(0);
+  const [includeAvailable, setIncludeAvailable] = useState<boolean>(true);
+  
   // UI state
   const [selectedTab, setSelectedTab] = useState<'participants' | 'assign'>('participants');
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
@@ -330,11 +335,20 @@ const EventParticipants: React.FC = () => {
     }
   }, [eventId]);
 
+  // Reload participants when includeAvailable toggle changes
+  useEffect(() => {
+    if (eventId && includeAvailable !== undefined) {
+      loadParticipants();
+    }
+  }, [includeAvailable]);
+
   const loadParticipants = async () => {
     try {
-      const data = await apiGet(`/event-participants?eventId=${eventId}`)
+      const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=${includeAvailable}`)
       setAllParticipants(data.participants || []);
-      console.log(`Loaded ${data.participants?.length || 0} participants from API`);
+      setTotalInEvent(data.totalInEvent || 0);
+      setTotalAvailable(data.totalAvailable || 0);
+      console.log(`Loaded ${data.participants?.length || 0} participants from API (${data.totalInEvent || 0} in event, ${data.totalAvailable || 0} available)`);
     } catch (error: any) {
       console.error('Error loading participants:', error);
       
@@ -941,8 +955,25 @@ const EventParticipants: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Event Participants ({filteredParticipants.length})
+                  Event Participants ({totalInEvent})
+                  {includeAvailable && totalAvailable > 0 && (
+                    <span className="text-sm font-normal text-gray-600 ml-2">
+                      + {totalAvailable} available
+                    </span>
+                  )}
                 </h3>
+                
+                <div className="flex items-center space-x-3">
+                  <label className="flex items-center text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={includeAvailable}
+                      onChange={(e) => setIncludeAvailable(e.target.checked)}
+                      className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Include available participants
+                  </label>
+                </div>
               </div>
               
               <div className="bg-white rounded-lg border">
@@ -1110,7 +1141,12 @@ const EventParticipants: React.FC = () => {
             {/* Event Participants for Assignment */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Event Participants ({filteredParticipants.length})
+                Event Participants ({totalInEvent})
+                {includeAvailable && totalAvailable > 0 && (
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    + {totalAvailable} available
+                  </span>
+                )}
               </h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {filteredParticipants.map(participant => {

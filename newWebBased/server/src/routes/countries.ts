@@ -63,7 +63,7 @@ router.get('/:id', async (req, res) => {
     }
 
     const country = await (prisma as any).tfx_laender.findUnique({
-      where: { int_landid: id }
+      where: { int_laenderid: id }
     });
 
     if (!country) {
@@ -107,7 +107,7 @@ router.put('/:id', async (req, res) => {
     const validatedData = updateCountrySchema.parse(req.body);
     
     const country = await (prisma as any).tfx_laender.update({
-      where: { int_landid: id },
+      where: { int_laenderid: id },
       data: validatedData
     });
 
@@ -133,7 +133,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     await (prisma as any).tfx_laender.delete({
-      where: { int_landid: id }
+      where: { int_laenderid: id }
     });
 
     res.status(204).send();

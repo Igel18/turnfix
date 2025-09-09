@@ -266,7 +266,7 @@ describe('Specialized Gymnastics APIs', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(Array.isArray(response.body) || response.body.medals).toBeTruthy();
+      expect(Array.isArray(response.body) || response.body.results).toBeTruthy();
     });
 
     it('should support filtering by event', async () => {
@@ -367,7 +367,7 @@ describe('Specialized Gymnastics APIs', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(Array.isArray(response.body) || response.body.juryResults).toBeTruthy();
+      expect(Array.isArray(response.body) || response.body.results).toBeTruthy();
     });
 
     it('should support filtering by event', async () => {

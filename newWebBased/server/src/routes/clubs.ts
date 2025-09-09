@@ -119,7 +119,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid club ID' });
+      return res.status(400).json({ error: 'Invalid club ID' });
     }
 
     const query = `
@@ -146,7 +146,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const club = result[0];
 
     if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      return res.status(404).json({ error: 'Club not found' });
     }
 
     // Convert BigInt values to numbers for JSON serialization
@@ -236,9 +236,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Error creating club:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid club data', errors: error.issues });
+      return res.status(400).json({ error: 'Invalid club data', details: error.issues });
     }
-    return res.status(500).json({ message: 'Failed to create club' });
+    return res.status(500).json({ error: 'Failed to create club' });
   }
 });
 
@@ -247,7 +247,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid club ID' });
+      return res.status(400).json({ error: 'Invalid club ID' });
     }
 
     const data = clubUpdateSchema.parse(req.body);
@@ -264,7 +264,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     });
 
     if (updates.length === 0) {
-      return res.status(400).json({ message: 'No data to update' });
+      return res.status(400).json({ error: 'No data to update' });
     }
 
     params.push(id);
@@ -299,7 +299,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const club = updatedClub[0];
 
     if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      return res.status(404).json({ error: 'Club not found' });
     }
 
     // Convert BigInt values to numbers for JSON serialization
@@ -315,9 +315,9 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
   } catch (error) {
     console.error('Error updating club:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid club data', errors: error.issues });
+      return res.status(400).json({ error: 'Invalid club data', details: error.issues });
     }
-    return res.status(500).json({ message: 'Failed to update club' });
+    return res.status(500).json({ error: 'Failed to update club' });
   }
 });
 
@@ -326,7 +326,16 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid club ID' });
+      return res.status(400).json({ error: 'Invalid club ID' });
+    }
+
+    // Check if club exists first
+    const existsQuery = 'SELECT COUNT(*) as count FROM tfx_vereine WHERE int_vereineid = $1';
+    const existsResult = await (prisma as any).$queryRawUnsafe(existsQuery, id) as any[];
+    const exists = Number(existsResult[0]?.count) > 0;
+
+    if (!exists) {
+      return res.status(404).json({ error: 'Club not found' });
     }
 
     // Check if club has athletes
@@ -337,7 +346,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 
     if (Number(athleteCount[0]?.count) > 0) {
       return res.status(409).json({
-        message: 'Cannot delete club with existing athletes. Please reassign or remove athletes first.'
+        error: 'Cannot delete club with existing athletes. Please reassign or remove athletes first.'
       });
     }
 
@@ -346,7 +355,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     res.json({ message: 'Club deleted successfully' });
   } catch (error) {
     console.error('Error deleting club:', error);
-    return res.status(500).json({ message: 'Failed to delete club' });
+    return res.status(500).json({ error: 'Failed to delete club' });
   }
 });
 

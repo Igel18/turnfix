@@ -156,7 +156,7 @@ const JuryPortal: React.FC = () => {
       
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/event-participants?eventId=${selectedEvent}`);
+        const response = await fetch(`${API_BASE_URL}/event-participants?eventId=${selectedEvent}&includeAvailable=true`);
         const data = await response.json();
         
         // Filter participants by squad and get those who should compete in this device

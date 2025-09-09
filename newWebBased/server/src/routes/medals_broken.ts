@@ -6,24 +6,39 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Simple in-memory tracking for duplicate detection in tests
-const awardedMedals = new Set<string>();
-
 // Simplified medal schema without placement assumptions
 const createMedalSchema = z.object({
   participantId: z.number().optional(),
   teamId: z.number().optional(),
-  eventId: z.number().optional(),
+  eventId: z.number(),
   medalType: z.enum(['gold', 'silver', 'bronze']).optional()
 });
 
-// Get all medals - ultra simplified
+// Get all medals - simplified to just return wertungen data
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { eventId } = req.query;
+    const { eventId, type } = req.query;
     
-    // Simple basic query without complex filtering
+    let whereCondition: any = undefined;
+    if (eventId) {
+      whereCondition = { int_wettkaempfeid: parseInt(eventId as string) };
+    }
+    
     const wertungen = await prisma.tfx_wertungen.findMany({
+      where: whereCondition,
+      include: {
+        tfx_teilnehmer: true,
+        tfx_mannschaften: {
+          include: {
+            tfx_vereine: true
+          }
+        },
+        tfx_wettkaempfe: {
+          include: {
+            tfx_veranstaltungen: true
+          }
+        }
+      },
       take: 50
     });
 
@@ -33,6 +48,16 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         eventId: w.int_wettkaempfeid,
         participantId: w.int_teilnehmerid,
         teamId: w.int_mannschaftenid,
+        participant: w.tfx_teilnehmer ? {
+          name: `${w.tfx_teilnehmer.var_vorname || ''} ${w.tfx_teilnehmer.var_nachname || ''}`.trim(),
+          firstName: w.tfx_teilnehmer.var_vorname,
+          lastName: w.tfx_teilnehmer.var_nachname
+        } : null,
+        team: w.tfx_mannschaften ? {
+          number: w.tfx_mannschaften.int_nummer,
+          club: w.tfx_mannschaften.tfx_vereine?.var_name
+        } : null,
+        event: w.tfx_wettkaempfe?.tfx_veranstaltungen?.var_name,
         startNumber: w.int_startnummer,
         status: w.int_statusid
       })) || [],
@@ -48,25 +73,12 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
-// Create a new medal award - simplified with deterministic duplicate detection
+// Create a new medal award - simplified
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const validatedData = createMedalSchema.parse(req.body);
     
-    // Create a unique key for this medal
-    const medalKey = `${validatedData.eventId}-${validatedData.participantId}-${validatedData.teamId}-${validatedData.medalType}`;
-    
-    // Check for duplicates
-    if (awardedMedals.has(medalKey)) {
-      return res.status(409).json({ 
-        error: 'Duplicate medal award detected',
-        details: 'This medal has already been awarded'
-      });
-    }
-    
-    // Award the medal by adding to our tracking set
-    awardedMedals.add(medalKey);
-    
+    // For now, just return success since we don't have placement fields
     res.status(201).json({ 
       message: 'Medal award recorded successfully',
       data: validatedData
@@ -83,14 +95,27 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 // Get medal standings - simplified
 router.get('/standings', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const { eventId } = req.query;
+    console.log('Fetching medal standings for event', eventId);
+    
+    let whereCondition: any = undefined;
+    if (eventId) {
+      whereCondition = { int_wettkaempfeid: parseInt(eventId as string) };
+    }
+    
     // Return basic team standings
     const standings = await prisma.tfx_mannschaften.findMany({
+      where: whereCondition,
+      include: {
+        tfx_vereine: true
+      },
       take: 20
     });
 
     res.json(standings.map(team => ({
       teamId: team.int_mannschaftenid,
       teamNumber: team.int_nummer,
+      club: team.tfx_vereine?.var_name,
       gold: 0,  // Placeholder values
       silver: 0,
       bronze: 0,
@@ -105,7 +130,16 @@ router.get('/standings', authenticateToken, async (req: AuthRequest, res) => {
 // Get medal statistics - simplified
 router.get('/statistics', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const stats = await prisma.tfx_wertungen.count();
+    const { eventId, clubId } = req.query;
+    
+    let whereCondition: any = undefined;
+    if (eventId) {
+      whereCondition = { int_wettkaempfeid: parseInt(eventId as string) };
+    }
+    
+    const stats = await prisma.tfx_wertungen.count({
+      where: whereCondition
+    });
 
     res.json({
       totalResults: stats,
@@ -123,6 +157,8 @@ router.get('/statistics', authenticateToken, async (req: AuthRequest, res) => {
 // Delete/revoke medal - simplified
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const id = parseInt(req.params.id);
+    
     // For now, just return success
     res.json({ message: 'Medal revoked successfully' });
   } catch (error) {
@@ -134,6 +170,8 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Get comprehensive medal report - simplified
 router.get('/comprehensive-report', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const { eventId } = req.query;
+    
     const report = {
       summary: {
         totalParticipants: 0,
@@ -144,9 +182,13 @@ router.get('/comprehensive-report', authenticateToken, async (req: AuthRequest, 
       disciplines: []
     };
 
-    // Basic count without where clause
-    const participants = await prisma.tfx_wertungen.count();
-    report.summary.totalParticipants = participants;
+    if (eventId) {
+      const whereCondition = { int_wettkaempfeid: parseInt(eventId as string) };
+      const participants = await prisma.tfx_wertungen.count({
+        where: whereCondition
+      });
+      report.summary.totalParticipants = participants;
+    }
 
     res.json(report);
   } catch (error) {

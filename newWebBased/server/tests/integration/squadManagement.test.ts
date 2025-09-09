@@ -31,7 +31,7 @@ describe('Squad Management API', () => {
   describe('GET /api/squad-management', () => {
     it('should return a list of squads', async () => {
       const response = await request(app)
-        .get('/api/squad-management')
+        .get('/api/squad-management?eventId=9025')
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -48,7 +48,7 @@ describe('Squad Management API', () => {
 
     it('should support filtering by discipline', async () => {
       const response = await request(app)
-        .get('/api/squad-management?disciplineId=1')
+        .get('/api/squad-management?eventId=9025&disciplineId=1')
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -56,7 +56,7 @@ describe('Squad Management API', () => {
 
     it('should support filtering by status', async () => {
       const response = await request(app)
-        .get('/api/squad-management?status=active')
+        .get('/api/squad-management?eventId=9025&status=active')
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -84,17 +84,12 @@ describe('Squad Management API', () => {
   describe('POST /api/squad-management', () => {
     it('should handle squad creation', async () => {
       const newSquadData = {
-        name: 'Test Squad 1',
-        eventId: testEvent.int_eventid,
-        disciplineId: 1,
-        capacity: 8,
-        startTime: '09:00',
-        endTime: '12:00',
-        status: 'active'
+        name: 'Test1',  // Use short name due to 5-character database constraint
+        eventId: testEvent.int_eventid
       };
 
       const response = await request(app)
-        .post('/api/squad-management')
+        .post('/api/squad-management/create')
         .send(newSquadData)
         .expect((res) => {
           expect([200, 201, 400, 422]).toContain(res.status);
@@ -110,7 +105,7 @@ describe('Squad Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/squad-management')
+        .post('/api/squad-management/create')
         .send(invalidData)
         .expect((res) => {
           expect([400, 422]).toContain(res.status);
@@ -119,7 +114,7 @@ describe('Squad Management API', () => {
 
     it('should validate time formats', async () => {
       const invalidData = {
-        name: 'Test Squad',
+        name: 'Test1',  // Use short name for database constraint
         eventId: testEvent.int_eventid,
         disciplineId: 1,
         startTime: 'invalid-time',
@@ -127,7 +122,7 @@ describe('Squad Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/squad-management')
+        .post('/api/squad-management/create')
         .send(invalidData)
         .expect((res) => {
           expect([400, 422]).toContain(res.status);
@@ -136,14 +131,14 @@ describe('Squad Management API', () => {
 
     it('should validate capacity limits', async () => {
       const invalidData = {
-        name: 'Test Squad',
+        name: 'Test2',  // Use short name for database constraint
         eventId: testEvent.int_eventid,
         disciplineId: 1,
         capacity: 0 // Invalid capacity
       };
 
       const response = await request(app)
-        .post('/api/squad-management')
+        .post('/api/squad-management/create')
         .send(invalidData)
         .expect((res) => {
           expect([400, 422]).toContain(res.status);

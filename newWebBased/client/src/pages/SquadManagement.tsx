@@ -135,7 +135,7 @@ const forceLoadAvailableParticipants = async () => {
   try {
     // Add cache busting timestamp and force fresh data
     const timestamp = Date.now();
-    const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&_t=${timestamp}&_force=true`);
+    const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&includeAvailable=true&_t=${timestamp}&_force=true`);
     const newParticipants = data.participants || [];
     console.log('🔄 Force loading available participants:', newParticipants.length, 'participants loaded');
     setAvailableParticipants(newParticipants);
@@ -199,7 +199,7 @@ const forceLoadAvailableParticipants = async () => {
     try {
       // Add cache busting timestamp
       const timestamp = Date.now();
-      const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&_t=${timestamp}`);
+      const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&includeAvailable=true&_t=${timestamp}`);
       const newParticipants = data.participants || [];
       console.log('🔄 Loading available participants:', newParticipants.length, 'participants loaded');
       setAvailableParticipants(newParticipants);
@@ -241,12 +241,27 @@ const forceLoadAvailableParticipants = async () => {
       await forceLoadSquads();
       await forceLoadAvailableParticipants();
       console.log('✅ Force data reload completed after squad creation');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating squad:', error);
-      if (error instanceof Error) {
-        alert(error.message);
+      
+      // Handle specific error response from the server
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle character limit error specifically  
+        if (errorData.constraint === 'varchar(5)') {
+          alert(`❌ Squad name too long!\n\n${errorData.message}\n\n💡 ${errorData.hint}\n\nProvided: "${errorData.providedName}" (${errorData.nameLength} characters)\nMaximum: 5 characters`);
+        } else if (errorData.errors) {
+          // Handle validation errors
+          const errorMessages = errorData.errors.map((err: any) => err.message).join('\n');
+          alert(`❌ Validation failed!\n\n${errorMessages}`);
+        } else {
+          // Handle other API errors
+          alert(`❌ Squad creation failed!\n\n${errorData.message || 'Unknown error occurred'}`);
+        }
       } else {
-        alert('Failed to create squad. Please try again.');
+        // Handle network or other errors
+        alert(`❌ Squad creation failed!\n\n${error instanceof Error ? error.message : 'Failed to create squad. Please try again.'}`);
       }
     } finally {
       setIsLoading(false);
@@ -318,11 +333,63 @@ const forceLoadAvailableParticipants = async () => {
       await forceLoadSquads();
       await forceLoadAvailableParticipants();
       console.log('✅ Force data reload completed after participant assignment');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning participant to squad:', error);
-      alert(error instanceof Error ? error.message : 'Failed to assign participant to squad');
+      
+      // Handle specific error response from the server
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle character limit error specifically
+        if (errorData.constraint === 'varchar(5)') {
+          alert(`❌ Squad name too long!\n\n${errorData.message}\n\n💡 ${errorData.hint}\n\nProvided: "${errorData.providedName}" (${errorData.nameLength} characters)\nMaximum: 5 characters`);
+        } else {
+          // Handle other API errors
+          alert(`❌ Assignment failed!\n\n${errorData.message || 'Unknown error occurred'}`);
+        }
+      } else {
+        // Handle network or other errors
+        alert(`❌ Assignment failed!\n\n${error instanceof Error ? error.message : 'Failed to assign participant to squad'}`);
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // DEBUG: Quick test function
+  const testSquadAssignment = async () => {
+    if (!eventId) return;
+    
+    console.log('🧪 Starting squad assignment test...');
+    
+    try {
+      // Create a test squad
+      console.log('1️⃣ Creating test squad...');
+      const createResponse = await apiPost('/squad-management/create', {
+        eventId: parseInt(eventId),
+        name: 'DebugSquad' + Date.now()
+      });
+      console.log('✅ Squad created:', createResponse);
+      
+      // Assign first available participant
+      if (availableParticipants.length > 0) {
+        const testParticipant = availableParticipants[0];
+        console.log('2️⃣ Assigning participant:', testParticipant);
+        
+        const assignResponse = await apiPost('/squad-management/assign', {
+          participantId: testParticipant.id,
+          squadName: createResponse.squad.name,
+          eventId: parseInt(eventId)
+        });
+        console.log('✅ Assignment completed:', assignResponse);
+        
+        // Force reload
+        console.log('3️⃣ Reloading data...');
+        await forceLoadSquads();
+        console.log('✅ Test completed!');
+      }
+    } catch (error) {
+      console.error('❌ Test failed:', error);
     }
   };
 
@@ -581,6 +648,22 @@ const forceLoadAvailableParticipants = async () => {
         </div>
       )}
 
+      {/* DEBUG: Test Button */}
+      <div className="bg-yellow-50 border border-yellow-200 p-4 mx-6 mb-4 rounded">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-sm font-medium text-yellow-800">Debug Test</h4>
+            <p className="text-sm text-yellow-700">Test squad creation and assignment</p>
+          </div>
+          <button
+            onClick={testSquadAssignment}
+            className="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-700"
+          >
+            🧪 Test Assignment
+          </button>
+        </div>
+      </div>
+
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Squads List */}
@@ -821,25 +904,36 @@ const forceLoadAvailableParticipants = async () => {
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Squad Name *
+                Squad Name * <span className="text-sm text-gray-500">(max 5 characters)</span>
               </label>
               <input
                 type="text"
                 value={newSquadName}
                 onChange={(e) => setNewSquadName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                maxLength={5}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  newSquadName.length > 5 ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter squad name..."
                 autoFocus
               />
-              <p className="text-sm text-gray-500 mt-1">
-                The squad will appear in the list immediately and be ready for participant assignment.
-              </p>
+              <div className="flex justify-between items-center mt-1">
+                <p className={`text-sm ${newSquadName.length > 5 ? 'text-red-500' : 'text-gray-500'}`}>
+                  {newSquadName.length > 5 
+                    ? 'Squad name is too long! Maximum 5 characters allowed.' 
+                    : 'The squad will appear in the list immediately and be ready for participant assignment.'
+                  }
+                </p>
+                <span className={`text-xs ${newSquadName.length > 5 ? 'text-red-500' : 'text-gray-400'}`}>
+                  {newSquadName.length}/5
+                </span>
+              </div>
             </div>
 
             <div className="flex gap-3">
               <button
                 onClick={createSquad}
-                disabled={!newSquadName.trim()}
+                disabled={!newSquadName.trim() || newSquadName.length > 5}
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <CheckCircle className="w-5 h-5" />

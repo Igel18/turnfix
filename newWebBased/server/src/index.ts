@@ -13,6 +13,7 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
+// import { notFoundHandler } from './middleware/notFoundHandler';
 
 // Prisma-based routes using SQL queries
 import disciplineRoutes from './routes/disciplines';

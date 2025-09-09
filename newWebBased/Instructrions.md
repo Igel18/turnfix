@@ -294,6 +294,8 @@ Do you have a idea for that? Show me a short concept.
 ---
 At add participant in EventParticipants not all athletes are available... oder vielleicht ist nur ein Filter aktiv? 
 -
+At event participants only the first 100 participants are available. 
+
 Squad zum teilnehmer hinzufügen -> 
 Error updating participant details: PrismaClientKnownRequestError: 
 Invalid `prisma.tfx_wertungen.updateMany()` invocation in

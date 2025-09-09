@@ -104,7 +104,7 @@ describe('Participants API', () => {
         .expect(200);
 
       expect(response.body.var_vorname || response.body.firstName).toBe('John');
-      expect(response.body.var_name || response.body.lastName).toBe('Doe');
+      expect(response.body.var_nachname || response.body.lastName).toBe('Doe');
       expect(response.body.int_teilnehmerid || response.body.id).toBe(testParticipant.int_teilnehmerid);
     });
 
@@ -129,10 +129,10 @@ describe('Participants API', () => {
     it('should create a new participant with valid data', async () => {
       const newParticipantData = {
         var_vorname: 'Jane',
-        var_name: 'Smith',
-        dat_geburt: '1998-03-20T00:00:00.000Z',
-        var_geschlecht: 'f',
-        int_vereinid: 1
+        var_nachname: 'Smith',
+        dat_geburtstag: '1998-03-20T00:00:00.000Z',
+        int_geschlecht: 2,
+        int_vereineid: 1
       };
 
       const response = await request(app)
@@ -141,7 +141,7 @@ describe('Participants API', () => {
         .expect(201);
 
       expect(response.body.var_vorname || response.body.firstName).toBe('Jane');
-      expect(response.body.var_name || response.body.lastName).toBe('Smith');
+      expect(response.body.var_nachname || response.body.lastName).toBe('Smith');
       expect(response.body.int_teilnehmerid || response.body.id).toBeDefined();
 
       // Cleanup created participant
@@ -188,7 +188,7 @@ describe('Participants API', () => {
     it('should update an existing participant', async () => {
       const updateData = {
         var_vorname: 'Updated John',
-        var_name: 'Updated Doe'
+        var_nachname: 'Updated Doe'
       };
 
       const response = await request(app)
@@ -197,7 +197,7 @@ describe('Participants API', () => {
         .expect(200);
 
       expect(response.body.var_vorname || response.body.firstName).toBe('Updated John');
-      expect(response.body.var_name || response.body.lastName).toBe('Updated Doe');
+      expect(response.body.var_nachname || response.body.lastName).toBe('Updated Doe');
     });
 
     it('should return 404 for non-existent participant', async () => {

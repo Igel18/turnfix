@@ -142,7 +142,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid participant ID' });
+      return res.status(400).json({ error: 'Invalid participant ID' });
     }
     
     const query = `
@@ -175,7 +175,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     const participant = (result as any[])[0];
     
     if (!participant) {
-      return res.status(404).json({ message: 'Participant not found' });
+      return res.status(404).json({ error: 'Participant not found' });
     }
     
     // Convert BigInt values to numbers for JSON serialization
@@ -261,9 +261,9 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error creating participant:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid participant data', errors: error.issues });
+      return res.status(400).json({ error: 'Invalid participant data', details: error.issues });
     }
-    return res.status(500).json({ message: 'Failed to create participant' });
+    return res.status(500).json({ error: 'Failed to create participant' });
   }
 });
 
@@ -272,7 +272,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid participant ID' });
+      return res.status(400).json({ error: 'Invalid participant ID' });
     }
     
     const data = participantUpdateSchema.parse(req.body);
@@ -330,7 +330,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     const participant = (updatedParticipant as any[])[0];
     
     if (!participant) {
-      return res.status(404).json({ message: 'Participant not found' });
+      return res.status(404).json({ error: 'Participant not found' });
     }
     
     // Convert BigInt values to numbers for JSON serialization
@@ -346,9 +346,9 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error updating participant:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid participant data', errors: error.issues });
+      return res.status(400).json({ error: 'Invalid participant data', details: error.issues });
     }
-    return res.status(500).json({ message: 'Failed to update participant' });
+    return res.status(500).json({ error: 'Failed to update participant' });
   }
 });
 
@@ -357,7 +357,16 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid participant ID' });
+      return res.status(400).json({ error: 'Invalid participant ID' });
+    }
+    
+    // Check if participant exists first
+    const existsQuery = 'SELECT COUNT(*) as count FROM tfx_teilnehmer WHERE int_teilnehmerid = $1';
+    const existsResult = await prisma.$queryRawUnsafe(existsQuery, id);
+    const exists = Number((existsResult as any[])[0]?.count) > 0;
+    
+    if (!exists) {
+      return res.status(404).json({ error: 'Participant not found' });
     }
     
     // Check if participant has scores/competitions
@@ -368,11 +377,11 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     
     if (Number((competitionCount as any[])[0]?.count) > 0) {
       return res.status(409).json({ 
-        message: 'Cannot delete participant with existing competition entries. Please remove competition entries first.' 
+        error: 'Cannot delete participant with existing competition entries. Please remove competition entries first.' 
       });
     }
     
-    const result = await prisma.$queryRawUnsafe(
+    await prisma.$queryRawUnsafe(
       'DELETE FROM tfx_teilnehmer WHERE int_teilnehmerid = $1',
       id
     );
@@ -380,7 +389,7 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     res.json({ message: 'Participant deleted successfully' });
   } catch (error) {
     console.error('Error deleting participant:', error);
-    return res.status(500).json({ message: 'Failed to delete participant' });
+    return res.status(500).json({ error: 'Failed to delete participant' });
   }
 });
 

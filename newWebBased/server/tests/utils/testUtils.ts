@@ -71,19 +71,45 @@ export class TestUtils {
   }
 
   /**
-   * Clean up test data
+   * Clean up test data - only delete records created during testing
    */
   static async cleanup() {
     const prisma = this.getPrisma();
     
     try {
-      // Delete in reverse order of dependencies
-      await prisma.tfx_wertungen_details.deleteMany({});
-      await prisma.tfx_wertungen_x_disziplinen.deleteMany({});
-      await prisma.tfx_wertungen.deleteMany({});
-      await prisma.tfx_teilnehmer.deleteMany({});
-      await prisma.tfx_wettkaempfe.deleteMany({});
-      await prisma.tfx_veranstaltungen.deleteMany({});
+      // Only clean up test data by using specific test identifiers
+      // Don't clean up existing production data
+      
+      // Delete test competitions (those with test names)
+      await prisma.tfx_wertungen.deleteMany({
+        where: {
+          tfx_wettkaempfe: {
+            var_name: {
+              contains: 'Test'
+            }
+          }
+        }
+      });
+      
+      await prisma.tfx_wettkaempfe.deleteMany({
+        where: {
+          var_name: {
+            contains: 'Test'
+          }
+        }
+      });
+      
+      // Delete test events (those with test names)
+      await prisma.tfx_veranstaltungen.deleteMany({
+        where: {
+          var_name: {
+            contains: 'Test'
+          }
+        }
+      });
+      
+      // Don't delete participants as they may be referenced by existing data
+      
     } catch (error) {
       console.warn('Cleanup warning:', error);
     }

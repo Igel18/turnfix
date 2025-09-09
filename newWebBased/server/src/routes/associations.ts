@@ -6,28 +6,26 @@ import { PrismaClient } from '@prisma/client';
 const router = Router();
 const prisma = new PrismaClient();
 
-// Validation schemas
+// Validation schemas for gaue (regions/districts)
 const associationBaseSchema = z.object({
   var_name: z.string().min(1).max(150),
   var_kuerzel: z.string().max(8).nullable().optional(),
-  int_laenderid: z.number().int().nullable().optional()
+  int_verbaendeid: z.number().int().default(1) // Default federation ID
 });
 
 const associationCreateSchema = associationBaseSchema.transform(data => ({
   ...data,
-  var_kuerzel: data.var_kuerzel || null,
-  int_laenderid: data.int_laenderid || null
+  var_kuerzel: data.var_kuerzel || null
 }));
 
 const associationUpdateSchema = associationBaseSchema.partial().transform(data => ({
   ...data,
-  var_kuerzel: data.var_kuerzel !== undefined ? (data.var_kuerzel || null) : undefined,
-  int_laenderid: data.int_laenderid !== undefined ? (data.int_laenderid || null) : undefined
+  var_kuerzel: data.var_kuerzel !== undefined ? (data.var_kuerzel || null) : undefined
 }));
 
 const associationQuerySchema = z.object({
   search: z.string().optional(),
-  country_id: z.string().transform(Number).optional(),
+  federation_id: z.string().transform(Number).optional(),
   limit: z.string().transform(Number).default(50),
   offset: z.string().transform(Number).default(0)
 });
@@ -35,7 +33,7 @@ const associationQuerySchema = z.object({
 // Get associations count
 router.get('/count', async (req: Request, res: Response) => {
   try {
-    const count = await prisma.tfx_verbaende.count();
+    const count = await prisma.tfx_gaue.count();
     res.json({ count });
   } catch (error) {
     console.error('Error counting associations:', error);
@@ -56,22 +54,22 @@ router.get('/', async (req: Request, res: Response) => {
     let paramIndex = 1;
     
     if (query.search) {
-      whereClause += ` WHERE LOWER(v.var_name) LIKE LOWER($${paramIndex}) OR LOWER(v.var_kuerzel) LIKE LOWER($${paramIndex})`;
+      whereClause += ` WHERE LOWER(g.var_name) LIKE LOWER($${paramIndex}) OR LOWER(g.var_kuerzel) LIKE LOWER($${paramIndex})`;
       params.push(`%${query.search}%`);
       paramIndex++;
     }
     
-    if (query.country_id) {
+    if (query.federation_id) {
       whereClause += query.search ? ' AND' : ' WHERE';
-      whereClause += ` v.int_laenderid = $${paramIndex}`;
-      params.push(query.country_id);
+      whereClause += ` g.int_verbaendeid = $${paramIndex}`;
+      params.push(query.federation_id);
       paramIndex++;
     }
     
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM tfx_verbaende v
-      LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
+      FROM tfx_gaue g
+      LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       ${whereClause}
     `;
     
@@ -80,16 +78,16 @@ router.get('/', async (req: Request, res: Response) => {
     
     const dataQuery = `
       SELECT 
-        v.int_verbaendeid,
-        v.var_name,
-        v.var_kuerzel,
-        v.int_laenderid,
-        l.var_name as country_name,
-        l.var_kuerzel as country_kuerzel
-      FROM tfx_verbaende v
-      LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
+        g.int_gaueid,
+        g.var_name,
+        g.var_kuerzel,
+        g.int_verbaendeid,
+        v.var_name as federation_name,
+        v.var_kuerzel as federation_kuerzel
+      FROM tfx_gaue g
+      LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       ${whereClause}
-      ORDER BY v.var_name ASC
+      ORDER BY g.var_name ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
@@ -121,15 +119,15 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     const query = `
       SELECT 
-        v.int_verbaendeid,
-        v.var_name,
-        v.var_kuerzel,
-        v.int_laenderid,
-        l.var_name as country_name,
-        l.var_kuerzel as country_kuerzel
-      FROM tfx_verbaende v
-      LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
-      WHERE v.int_verbaendeid = $1
+        g.int_gaueid,
+        g.var_name,
+        g.var_kuerzel,
+        g.int_verbaendeid,
+        v.var_name as federation_name,
+        v.var_kuerzel as federation_kuerzel
+      FROM tfx_gaue g
+      LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
+      WHERE g.int_gaueid = $1
     `;
 
     const associations = await prisma.$queryRawUnsafe(query, id) as any[];
@@ -152,43 +150,39 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     const data = associationCreateSchema.parse(req.body);
     console.log('Parsed association data:', data);
     
-    // Use default country (Deutschland = 1) if no country is selected
-    // This handles the NOT NULL constraint on int_laenderid
-    const countryId = data.int_laenderid || 1;
-    
     const insertQuery = `
-      INSERT INTO tfx_verbaende (var_name, var_kuerzel, int_laenderid)
+      INSERT INTO tfx_gaue (var_name, var_kuerzel, int_verbaendeid)
       VALUES ($1, $2, $3)
-      RETURNING int_verbaendeid
+      RETURNING int_gaueid
     `;
 
-    console.log('Executing insert query with params:', [data.var_name, data.var_kuerzel, countryId]);
+    console.log('Executing insert query with params:', [data.var_name, data.var_kuerzel, data.int_verbaendeid]);
     const result = await prisma.$queryRawUnsafe(
       insertQuery,
       data.var_name,
       data.var_kuerzel,
-      countryId
+      data.int_verbaendeid
     ) as any[];
 
     console.log('Insert result:', result);
-    const associationId = result[0]?.int_verbaendeid;
+    const associationId = result[0]?.int_gaueid;
 
     if (!associationId) {
       throw new Error('Failed to get association ID from insert result');
     }
 
-    // Fetch the created association with country data
+    // Fetch the created association with federation data
     const fetchQuery = `
       SELECT 
-        v.int_verbaendeid,
-        v.var_name,
-        v.var_kuerzel,
-        v.int_laenderid,
-        l.var_name as country_name,
-        l.var_kuerzel as country_kuerzel
-      FROM tfx_verbaende v
-      LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
-      WHERE v.int_verbaendeid = $1
+        g.int_gaueid,
+        g.var_name,
+        g.var_kuerzel,
+        g.int_verbaendeid,
+        v.var_name as federation_name,
+        v.var_kuerzel as federation_kuerzel
+      FROM tfx_gaue g
+      LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
+      WHERE g.int_gaueid = $1
     `;
 
     const associations = await prisma.$queryRawUnsafe(fetchQuery, associationId) as any[];
@@ -198,13 +192,12 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error creating association:', error);
     if (error instanceof Error) {
-      console.error('Error stack:', error.stack);
+      console.log('Error details:', error.message);
     }
     if (error instanceof z.ZodError) {
-      console.log('Validation error details:', JSON.stringify(error.issues, null, 2));
-      return res.status(400).json({ error: error.issues });
+      return res.status(400).json({ error: 'Invalid association data', details: error.issues });
     }
-    res.status(500).json({ error: 'Failed to create association' });
+    return res.status(500).json({ error: 'Failed to create association' });
   }
 });
 
@@ -231,9 +224,9 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       updates.push(`var_kuerzel = $${paramIndex++}`);
       params.push(data.var_kuerzel);
     }
-    if (data.int_laenderid !== undefined) {
-      updates.push(`int_laenderid = $${paramIndex++}`);
-      params.push(data.int_laenderid || null);
+    if (data.int_verbaendeid !== undefined) {
+      updates.push(`int_verbaendeid = $${paramIndex++}`);
+      params.push(data.int_verbaendeid);
     }
 
     if (updates.length === 0) {
@@ -241,31 +234,31 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     }
 
     const updateQuery = `
-      UPDATE tfx_verbaende 
+      UPDATE tfx_gaue 
       SET ${updates.join(', ')}
-      WHERE int_verbaendeid = $${paramIndex}
-      RETURNING int_verbaendeid
+      WHERE int_gaueid = $${paramIndex}
+      RETURNING int_gaueid
     `;
     params.push(id);
-
+    
     const result = await prisma.$queryRawUnsafe(updateQuery, ...params) as any[];
     
     if (!result || result.length === 0) {
       return res.status(404).json({ error: 'Association not found' });
     }
 
-    // Fetch updated association with country data
+    // Fetch updated association with federation data
     const fetchQuery = `
       SELECT 
-        v.int_verbaendeid,
-        v.var_name,
-        v.var_kuerzel,
-        v.int_laenderid,
-        l.var_name as country_name,
-        l.var_kuerzel as country_kuerzel
-      FROM tfx_verbaende v
-      LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
-      WHERE v.int_verbaendeid = $1
+        g.int_gaueid,
+        g.var_name,
+        g.var_kuerzel,
+        g.int_verbaendeid,
+        v.var_name as federation_name,
+        v.var_kuerzel as federation_kuerzel
+      FROM tfx_gaue g
+      LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
+      WHERE g.int_gaueid = $1
     `;
 
     const associations = await prisma.$queryRawUnsafe(fetchQuery, id) as any[];
@@ -273,13 +266,11 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error updating association:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.issues });
+      return res.status(400).json({ error: 'Invalid association data', details: error.issues });
     }
     res.status(500).json({ error: 'Failed to update association' });
   }
-});
-
-// Delete association
+});// Delete association
 router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
@@ -287,23 +278,28 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
       return res.status(400).json({ error: 'Invalid association ID' });
     }
 
-    // Check if association is being used by regions
-    const regionCheckQuery = 'SELECT COUNT(*) as count FROM tfx_gaue WHERE int_verbaendeid = $1';
-    const regionCheck = await prisma.$queryRawUnsafe(regionCheckQuery, id) as any[];
-    const regionCount = parseInt(regionCheck[0]?.count || '0');
+    // Check if association exists first
+    const existsQuery = 'SELECT COUNT(*) as count FROM tfx_gaue WHERE int_gaueid = $1';
+    const existsResult = await prisma.$queryRawUnsafe(existsQuery, id) as any[];
+    const exists = Number(existsResult[0]?.count) > 0;
 
-    if (regionCount > 0) {
-      return res.status(400).json({ 
-        error: `Cannot delete association. It is currently assigned to ${regionCount} region(s).` 
+    if (!exists) {
+      return res.status(404).json({ error: 'Association not found' });
+    }
+
+    // Check if association is being used by clubs
+    const clubCheckQuery = 'SELECT COUNT(*) as count FROM tfx_vereine WHERE int_gaueid = $1';
+    const clubCheck = await prisma.$queryRawUnsafe(clubCheckQuery, id) as any[];
+    const clubCount = parseInt(clubCheck[0]?.count || '0');
+
+    if (clubCount > 0) {
+      return res.status(409).json({ 
+        error: `Cannot delete association. It is currently assigned to ${clubCount} club(s).` 
       });
     }
 
-    const deleteQuery = 'DELETE FROM tfx_verbaende WHERE int_verbaendeid = $1 RETURNING int_verbaendeid';
-    const result = await prisma.$queryRawUnsafe(deleteQuery, id) as any[];
-    
-    if (!result || result.length === 0) {
-      return res.status(404).json({ error: 'Association not found' });
-    }
+    const deleteQuery = 'DELETE FROM tfx_gaue WHERE int_gaueid = $1';
+    await prisma.$queryRawUnsafe(deleteQuery, id);
 
     res.json({ message: 'Association deleted successfully' });
   } catch (error) {
@@ -313,19 +309,19 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 });
 
 // Get data endpoints for dropdowns
-router.get('/data/laender', async (req: Request, res: Response) => {
+router.get('/data/verbaende', async (req: Request, res: Response) => {
   try {
     const query = `
-      SELECT int_laenderid, var_name, var_kuerzel
-      FROM tfx_laender
+      SELECT int_verbaendeid, var_name, var_kuerzel
+      FROM tfx_verbaende
       ORDER BY var_name ASC
     `;
     
-    const countries = await prisma.$queryRawUnsafe(query) as any[];
-    res.json(countries);
+    const federations = await prisma.$queryRawUnsafe(query) as any[];
+    res.json(federations);
   } catch (error) {
-    console.error('Error fetching countries:', error);
-    res.status(500).json({ error: 'Failed to fetch countries' });
+    console.error('Error fetching federations:', error);
+    res.status(500).json({ error: 'Failed to fetch federations' });
   }
 });
 

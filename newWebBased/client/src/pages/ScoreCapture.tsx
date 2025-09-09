@@ -297,7 +297,7 @@ export function ScoreCapture() {
     setIsInitializing(true)
     try {
       // Load all participants for the event
-      const participantsResponse = await apiGet(`/event-participants?eventId=${eventId}`)
+      const participantsResponse = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=true`)
       await delay(100) // Small delay between requests
       
       // Extract the participants array from the response object

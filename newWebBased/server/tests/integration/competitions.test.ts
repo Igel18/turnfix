@@ -77,9 +77,10 @@ describe('Competitions API', () => {
     it('should return 400 for invalid competition ID', async () => {
       const response = await request(app)
         .get('/api/competitions/invalid-id')
-        .expect((res) => {
-          expect([400, 404]).toContain(res.status);
-        });
+        .expect(400);
+        
+      expect(response.body).toBeDefined();
+      expect(response.body.error).toBe('Invalid competition ID');
     });
   });
 
@@ -145,11 +146,10 @@ describe('Competitions API', () => {
       const response = await request(app)
         .put('/api/competitions/99999')
         .send(updateData)
-        .expect((res) => {
-          expect([404, 400]).toContain(res.status);
-        });
+        .expect(404);
 
       expect(response.body).toBeDefined();
+      expect(response.body.error).toBe('Competition not found');
     });
 
     it('should handle validation errors gracefully', async () => {

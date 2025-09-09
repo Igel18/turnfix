@@ -150,6 +150,11 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const id = parseInt(req.params.id);
     
+    // Validate ID parameter
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid competition ID' });
+    }
+    
     // Fetch actual competition data from database
     const competition = await prisma.tfx_wettkaempfe.findUnique({
       where: {
@@ -461,6 +466,11 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     const id = parseInt(req.params.id);
     console.log(`🔧 PUT competition ${id} - Request body:`, JSON.stringify(req.body, null, 2));
     
+    // Validate ID parameter
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid competition ID' });
+    }
+    
     const validatedData = updateCompetitionSchema.parse(req.body);
     console.log(`✅ PUT competition ${id} - Validated data:`, JSON.stringify(validatedData, null, 2));
     
@@ -601,6 +611,14 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
         error: 'Validation error', 
         details: error.issues 
       });
+    }
+    
+    // Handle Prisma errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === 'P2025') {
+        // Record to update not found
+        return res.status(404).json({ error: 'Competition not found' });
+      }
     }
     
     console.error('Error updating competition:', error);

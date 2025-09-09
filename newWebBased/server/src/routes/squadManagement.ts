@@ -12,19 +12,19 @@ const virtualSquads: Map<string, { eventId: number, name: string, createdAt: Dat
 // Validation schemas
 const createSquadSchema = z.object({
   eventId: z.number().int().positive(),
-  name: z.string().min(1).max(50),
+  name: z.string().min(1).max(5, 'Squad name must be 5 characters or less (database constraint)'),
 });
 
 const assignParticipantToSquadSchema = z.object({
   participantId: z.number().int().positive(),
-  squadName: z.string().min(1).max(50),
+  squadName: z.string().min(1).max(5, 'Squad name must be 5 characters or less (database constraint)'),
   eventId: z.number().int().positive(),
 });
 
 const updateSquadSchema = z.object({
   eventId: z.number().int().positive(),
   oldSquadName: z.string().min(1),
-  newSquadName: z.string().min(1).max(50),
+  newSquadName: z.string().min(1).max(5, 'Squad name must be 5 characters or less (database constraint)'),
 });
 
 // Get all squads for an event with participants
@@ -37,6 +37,43 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     if (!eventId) {
       return res.status(400).json({ message: 'Event ID is required' });
     }
+
+    // DEBUG: First check what squads exist in database
+    const debugSquadQuery = `
+      SELECT DISTINCT w.var_riege, COUNT(*) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege IS NOT NULL AND w.var_riege != ''
+      GROUP BY w.var_riege
+    `;
+    
+    const debugResults = await prisma.$queryRawUnsafe(debugSquadQuery, parseInt(eventId));
+    console.log(`🔍 DEBUG: Found ${(debugResults as any[]).length} squads in database:`, debugResults);
+
+    // DEBUG: Check participant 237 specifically
+    const debugParticipantQuery = `
+      SELECT w.int_teilnehmerid, w.var_riege, wk.var_name 
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE w.int_teilnehmerid = 237 AND wk.int_veranstaltungenid = $1
+      LIMIT 5
+    `;
+    
+    const debugParticipant = await prisma.$queryRawUnsafe(debugParticipantQuery, parseInt(eventId));
+    console.log(`🔍 DEBUG: Participant 237 in event ${eventId}:`, debugParticipant);
+
+    // DEBUG: Get first few actual participants in this event
+    const debugActualParticipants = `
+      SELECT DISTINCT w.int_teilnehmerid, t.var_vorname, t.var_nachname, w.var_riege
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE wk.int_veranstaltungenid = $1
+      LIMIT 5
+    `;
+    
+    const actualParticipants = await prisma.$queryRawUnsafe(debugActualParticipants, parseInt(eventId));
+    console.log(`🔍 DEBUG: First 5 actual participants in event ${eventId}:`, actualParticipants);
 
     // Get all squads (riegen) for this event with participant information
     const squadQuery = `
@@ -167,46 +204,85 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 router.get('/available-participants', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const eventId = req.query.eventId as string;
+    const includeAvailable = req.query.includeAvailable === 'true';
     
     if (!eventId) {
       return res.status(400).json({ message: 'Event ID is required' });
     }
 
-    // Get participants registered for the event but not assigned to any squad
-    const availableParticipantsQuery = `
-      SELECT 
-        t.int_teilnehmerid,
-        t.var_vorname,
-        t.var_nachname,
-        t.int_vereineid,
-        t.int_geschlecht,
-        t.dat_geburtstag,
-        t.int_startpassnummer,
-        v.var_name as verein_name,
-        STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name, '|', COALESCE(wk.var_nummer, 'No Number')), ', ') as competitions,
-        COUNT(DISTINCT wk.int_wettkaempfeid) as competition_count,
-        CASE 
-          WHEN t.int_geschlecht = 1 THEN 'male'
-          WHEN t.int_geschlecht = 2 THEN 'female'
-          ELSE 'other'
-        END as gender,
-        CASE 
-          WHEN t.dat_geburtstag IS NOT NULL THEN 
-            EXTRACT(YEAR FROM t.dat_geburtstag)
-          ELSE NULL
-        END as birth_year
-      FROM tfx_wertungen w
-      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
-      LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-      WHERE wk.int_veranstaltungenid = $1 
-        AND (w.var_riege IS NULL OR w.var_riege = '' OR w.var_riege = 'Unassigned')
-      GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
-               t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name
-      ORDER BY t.var_nachname ASC, t.var_vorname ASC
-    `;
+    console.log(`Squad Management API: eventId=${eventId}, includeAvailable=${includeAvailable}`);
 
-    const availableParticipants = await prisma.$queryRawUnsafe(availableParticipantsQuery, parseInt(eventId));
+    // Get participants based on includeAvailable parameter
+    let availableParticipantsQuery: string;
+    let queryParams: any[];
+    
+    if (includeAvailable) {
+      // Get all participants from the system for potential squad assignment
+      availableParticipantsQuery = `
+        SELECT 
+          t.int_teilnehmerid,
+          t.var_vorname,
+          t.var_nachname,
+          t.int_vereineid,
+          t.int_geschlecht,
+          t.dat_geburtstag,
+          t.int_startpassnummer,
+          v.var_name as verein_name,
+          '' as competitions,
+          0 as competition_count,
+          CASE 
+            WHEN t.int_geschlecht = 1 THEN 'male'
+            WHEN t.int_geschlecht = 2 THEN 'female'
+            ELSE 'other'
+          END as gender,
+          CASE 
+            WHEN t.dat_geburtstag IS NOT NULL THEN 
+              EXTRACT(YEAR FROM t.dat_geburtstag)
+            ELSE NULL
+          END as birth_year
+        FROM tfx_teilnehmer t
+        LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+        ORDER BY t.var_nachname ASC, t.var_vorname ASC
+      `;
+      queryParams = [];
+    } else {
+      // Get participants registered for the event but not assigned to any squad
+      availableParticipantsQuery = `
+        SELECT 
+          t.int_teilnehmerid,
+          t.var_vorname,
+          t.var_nachname,
+          t.int_vereineid,
+          t.int_geschlecht,
+          t.dat_geburtstag,
+          t.int_startpassnummer,
+          v.var_name as verein_name,
+          STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name, '|', COALESCE(wk.var_nummer, 'No Number')), ', ') as competitions,
+          COUNT(DISTINCT wk.int_wettkaempfeid) as competition_count,
+          CASE 
+            WHEN t.int_geschlecht = 1 THEN 'male'
+            WHEN t.int_geschlecht = 2 THEN 'female'
+            ELSE 'other'
+          END as gender,
+          CASE 
+            WHEN t.dat_geburtstag IS NOT NULL THEN 
+              EXTRACT(YEAR FROM t.dat_geburtstag)
+            ELSE NULL
+          END as birth_year
+        FROM tfx_wertungen w
+        INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+        INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+        LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+        WHERE wk.int_veranstaltungenid = $1 
+          AND (w.var_riege IS NULL OR w.var_riege = '' OR w.var_riege = 'Unassigned')
+        GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
+                 t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name
+        ORDER BY t.var_nachname ASC, t.var_vorname ASC
+      `;
+      queryParams = [parseInt(eventId)];
+    }
+
+    const availableParticipants = await prisma.$queryRawUnsafe(availableParticipantsQuery, ...queryParams);
 
     const formattedParticipants = (availableParticipants as any[]).map(participant => {
       // Parse competition data with numbers
@@ -316,6 +392,26 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const validatedData = assignParticipantToSquadSchema.parse(req.body);
     
+    console.log(`🚀 Attempting to assign participant ${validatedData.participantId} to squad "${validatedData.squadName}" for event ${validatedData.eventId}`);
+    
+    // Check if participant exists in this event first
+    const participantCheck = await prisma.$queryRawUnsafe(`
+      SELECT COUNT(*) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE w.int_teilnehmerid = $1 AND wk.int_veranstaltungenid = $2
+    `, validatedData.participantId, validatedData.eventId);
+    
+    const participantExists = (participantCheck as any[])[0].count > 0;
+    console.log(`🔍 Participant ${validatedData.participantId} exists in event ${validatedData.eventId}: ${participantExists}`);
+    
+    if (!participantExists) {
+      return res.status(400).json({ 
+        message: `Participant ${validatedData.participantId} is not registered for event ${validatedData.eventId}`,
+        hint: 'Make sure the participant is properly registered for this event before assigning to a squad'
+      });
+    }
+    
     // Update all wertungen entries for this participant in this event to the new squad
     const updateResult = await prisma.$queryRawUnsafe(`
       UPDATE tfx_wertungen 
@@ -327,6 +423,19 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
           WHERE int_veranstaltungenid = $2
         )
     `, validatedData.participantId, validatedData.eventId, validatedData.squadName);
+
+    console.log(`📝 Update result:`, updateResult);
+
+    // Verify the assignment worked
+    const verifyQuery = await prisma.$queryRawUnsafe(`
+      SELECT w.var_riege, COUNT(*) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE w.int_teilnehmerid = $1 AND wk.int_veranstaltungenid = $2
+      GROUP BY w.var_riege
+    `, validatedData.participantId, validatedData.eventId);
+    
+    console.log(`✅ Verification: Participant ${validatedData.participantId} squad assignments:`, verifyQuery);
 
     // Remove from virtual squads store since it now has participants
     const virtualKey = `${validatedData.eventId}-${validatedData.squadName}`;
@@ -356,6 +465,30 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
 
   } catch (error) {
     console.error('Error assigning participant to squad:', error);
+    
+    // Handle specific database constraint violations
+    if (error instanceof Error) {
+      // Check for PostgreSQL string length constraint violation
+      if (error.message.includes('22001') || error.message.includes('Wert zu lang für Typ character varying(5)')) {
+        try {
+          const validatedData = assignParticipantToSquadSchema.parse(req.body);
+          return res.status(400).json({ 
+            message: 'Squad name is too long. Maximum 5 characters allowed.',
+            hint: 'The database constraint limits squad names to 5 characters or less.',
+            constraint: 'varchar(5)',
+            providedName: validatedData.squadName,
+            nameLength: validatedData.squadName.length
+          });
+        } catch (parseError) {
+          return res.status(400).json({ 
+            message: 'Squad name is too long. Maximum 5 characters allowed.',
+            hint: 'The database constraint limits squad names to 5 characters or less.',
+            constraint: 'varchar(5)'
+          });
+        }
+      }
+    }
+    
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Invalid data', errors: error.issues });
     }

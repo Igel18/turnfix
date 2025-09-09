@@ -35,7 +35,7 @@ describe('Scores API', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(Array.isArray(response.body) || response.body.scores).toBeTruthy();
+      expect(Array.isArray(response.body) || response.body.results).toBeTruthy();
     });
 
     it('should support filtering by event', async () => {

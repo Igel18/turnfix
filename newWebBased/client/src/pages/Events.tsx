@@ -187,7 +187,9 @@ const Events: React.FC = () => {
   // Fetch participants for selected event
   const fetchEventParticipants = async (eventId: number) => {
     try {
-      const data = await apiGet(`/event-participants?eventId=${eventId}`)
+      console.log(`[CLIENT DEBUG] fetchEventParticipants called with eventId=${eventId}`);
+      const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=true`)
+      console.log(`[CLIENT DEBUG] fetchEventParticipants response:`, data);
       setEventParticipants(data.participants || [])
     } catch (error) {
       console.error('Error fetching event participants:', error)
@@ -472,6 +474,7 @@ const Events: React.FC = () => {
   }
 
   const handleSelectEvent = (event: Event) => {
+    console.log(`[CLIENT DEBUG] handleSelectEvent called with event:`, event);
     setSelectedEvent(event)
     setActiveView('participants')
     fetchEventParticipants(event.int_eventid)
