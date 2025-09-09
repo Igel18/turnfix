@@ -144,69 +144,174 @@ const JuryPortal: React.FC = () => {
     fetchSquads();
   }, [selectedEvent]);
 
-  // Fetch devices (disciplines) when squad is selected - use same logic as Score Capture
+  // Fetch devices (disciplines) when squad is selected - use EXACT same logic as Score Capture
   useEffect(() => {
     const fetchDevices = async () => {
       if (!selectedEvent || !selectedSquad) return;
       
       try {
         setLoading(true);
-        console.log('🔍 JURY: Loading disciplines for event:', selectedEvent);
+        console.log('🔍 JURY: Loading disciplines for event:', selectedEvent, 'squad:', selectedSquad.name);
         
-        // Load all competitions for the event (same as Score Capture)
+        // Helper function to add delay between API calls (same as Score Capture)
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+        
+        // Load all disciplines/competitions for the event (same as Score Capture)
         const competitionsData = await fetch(`${API_BASE_URL}/competitions?eventId=${selectedEvent}`);
         const competitionsResponse = await competitionsData.json();
+        await delay(100);
         console.log('🔍 JURY: Loaded competitions:', competitionsResponse);
         
-        // Load all disciplines from all competitions and track their competition associations
-        let allDisciplines: Device[] = [];
-        const disciplineToCompetitionMap = new Map<number | string, number>();
+        // Load all disciplines from all competitions and track their competition associations (EXACT COPY from Score Capture)
+        let allDisciplines: any[] = []
+        const disciplineToCompetitionMap = new Map<number | string, number>()
+        
+        console.log('🔍 JURY DEBUG: Starting discipline loading for competitions:', competitionsResponse?.map((c: any) => ({ id: c.id, name: c.name })))
         
         for (const competition of competitionsResponse || []) {
           try {
-            console.log(`🔍 JURY: Loading disciplines for competition ${competition.id} (${competition.name})`);
-            const disciplinesData = await fetch(`${API_BASE_URL}/competitions/${competition.id}/disciplines`);
-            const disciplinesResponse = await disciplinesData.json();
-            const competitionDisciplines = disciplinesResponse.disciplines || [];
+            await delay(50) // Delay between each competition request
+            console.log(`🔍 JURY: Loading disciplines for competition ${competition.id} (${competition.name})`)
+            const disciplinesResponse = await fetch(`${API_BASE_URL}/competitions/${competition.id}/disciplines`)
+            const disciplinesData = await disciplinesResponse.json()
+            const competitionDisciplines = disciplinesData.disciplines || []
             
             console.log(`🔍 JURY: Competition ${competition.id} returned ${competitionDisciplines.length} disciplines:`, 
-              competitionDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
+              competitionDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })))
             
             // Track which competition each discipline belongs to
             competitionDisciplines.forEach((discipline: any) => {
-              const disciplineKey = discipline.int_disziplinid || discipline.var_name;
-              disciplineToCompetitionMap.set(disciplineKey, competition.id);
-              console.log(`🔍 JURY: Mapped discipline "${discipline.var_name}" (ID: ${discipline.int_disziplinid}) to competition ${competition.id}`);
-            });
+              const disciplineKey = discipline.int_disziplinid || discipline.var_name
+              disciplineToCompetitionMap.set(disciplineKey, competition.id)
+              console.log(`🔍 JURY: Mapped discipline "${discipline.var_name}" (ID: ${discipline.int_disziplinid}) to competition ${competition.id}`)
+            })
             
-            // Transform to Device format
-            const transformedDisciplines = competitionDisciplines.map((discipline: any) => ({
-              id: discipline.int_disziplinid,
-              name: discipline.var_name,
-              disciplineId: discipline.int_disziplinid,
-              icon: getDeviceIcon(discipline.var_name)
-            }));
-            
-            allDisciplines = [...allDisciplines, ...transformedDisciplines];
+            allDisciplines = [...allDisciplines, ...competitionDisciplines]
           } catch (error) {
-            console.error(`❌ JURY: Error loading disciplines for competition ${competition.id}:`, error);
+            console.error(`❌ JURY: Error loading disciplines for competition ${competition.id}:`, error)
           }
         }
         
-        // Remove duplicate disciplines based on disciplineId
-        const uniqueDisciplines = allDisciplines.reduce((acc: Device[], current: Device) => {
-          const existingIndex = acc.findIndex(d => d.disciplineId === current.disciplineId);
-          if (existingIndex === -1) {
-            acc.push(current);
-          }
-          return acc;
-        }, []);
+        console.log('🔍 JURY: Final discipline-to-competition mapping:', Array.from(disciplineToCompetitionMap.entries()))
         
-        console.log('🔍 JURY: Final discipline-to-competition mapping:', Array.from(disciplineToCompetitionMap.entries()));
-        console.log('🔍 JURY: Unique disciplines available:', uniqueDisciplines);
+        // Remove duplicate disciplines based on int_disziplinid and var_name (EXACT COPY from Score Capture)
+        const uniqueDisciplines = allDisciplines.reduce((acc: any[], current: any) => {
+          const existingIndex = acc.findIndex(d => 
+            (d.int_disziplinid && current.int_disziplinid && d.int_disziplinid === current.int_disziplinid) ||
+            (d.var_name === current.var_name && d.int_disziplinid === current.int_disziplinid)
+          )
+          if (existingIndex === -1) {
+            acc.push(current)
+          }
+          return acc
+        }, [])
+
+        console.log('🔍 JURY: All loaded disciplines (before dedup):', allDisciplines)
+        console.log('🔍 JURY: Unique disciplines (after dedup):', uniqueDisciplines)
+        
+        // Now apply the EXACT SAME filtering logic as Score Capture
+        // Load all participants for the event to get assignedCompetitions data
+        const participantsResponse = await fetch(`${API_BASE_URL}/event-participants?eventId=${selectedEvent}&includeAvailable=true`);
+        const participantsData = await participantsResponse.json();
+        const allEventParticipants = participantsData?.participants || [];
+        
+        console.log('🔍 JURY: Loaded all event participants for filtering:', allEventParticipants.length);
+        
+        const squadParticipants = selectedSquad.participants || [];
+        console.log('🔍 JURY: Squad participants for filtering:', squadParticipants.length);
+        
+        if (squadParticipants.length === 0) {
+          console.log('🔍 JURY: No participants in squad, showing no devices');
+          setDevices([]);
+          return;
+        }
+
+        // Get the participant IDs from the squad
+        const squadParticipantIds = new Set(squadParticipants.map((p: any) => p.id || p.participantId));
+        console.log('🔍 JURY: Squad participant IDs:', Array.from(squadParticipantIds));
+        
+        // Find the full participant data for squad members (with assignedCompetitions)
+        const squadParticipantsWithCompetitions = allEventParticipants.filter((participant: any) => 
+          squadParticipantIds.has(participant.id)
+        );
+        
+        console.log('🔍 JURY: Squad participants with competition data:', squadParticipantsWithCompetitions.length);
+        console.log('🔍 JURY: Sample participant assignedCompetitions:', squadParticipantsWithCompetitions[0]?.assignedCompetitions);
+
+        // Get available disciplines for this squad using EXACT SAME logic as Score Capture
+        const participantCompetitionIds = new Set<number>();
+        
+        // Approach 1: Check assignedCompetitions field (same as Score Capture)
+        squadParticipantsWithCompetitions.forEach((participant: any) => {
+          if (participant.assignedCompetitions && Array.isArray(participant.assignedCompetitions)) {
+            participant.assignedCompetitions.forEach((competitionId: number) => {
+              participantCompetitionIds.add(competitionId);
+            });
+          }
+        });
+        
+        console.log('🔍 JURY: Competitions from assignedCompetitions:', Array.from(participantCompetitionIds));
+        
+        // Get disciplines from these competitions (same as Score Capture)
+        const availableDisciplineIds = new Set<number>();
+        competitionsResponse.forEach((competition: any) => {
+          if (participantCompetitionIds.has(competition.id)) {
+            console.log('🔍 JURY: Found matching competition:', competition.id, competition.name);
+            console.log('🔍 JURY: Competition disciplines property:', competition.disciplines);
+            
+            if (competition.disciplines && Array.isArray(competition.disciplines)) {
+              console.log('🔍 JURY: Competition has', competition.disciplines.length, 'disciplines');
+              competition.disciplines.forEach((discipline: any) => {
+                console.log('🔍 JURY: Processing discipline:', discipline);
+                // Handle different discipline structure formats
+                const disciplineId = discipline.int_disziplinid || discipline.disciplineId;
+                if (disciplineId) {
+                  availableDisciplineIds.add(disciplineId);
+                  console.log('🔍 JURY: Added discipline ID:', disciplineId);
+                } else {
+                  console.log('🔍 JURY: Discipline missing both int_disziplinid and disciplineId:', discipline);
+                }
+              });
+            } else {
+              console.log('🔍 JURY: Competition has no disciplines property or it is not an array');
+            }
+          }
+        });
+        
+        console.log('🔍 JURY: Available discipline IDs for squad:', Array.from(availableDisciplineIds));
+        
+        // Filter disciplines using EXACT SAME logic as Score Capture
+        const filteredDisciplines = uniqueDisciplines.filter((discipline: any) => {
+          return availableDisciplineIds.has(discipline.int_disziplinid);
+        });
+        
+        console.log('🔍 JURY: Filtered disciplines using Score Capture logic:', filteredDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
+        
+        // Transform to Device format (same structure as before)
+        const devicesList = filteredDisciplines.map((discipline: any) => ({
+          id: discipline.int_disziplinid,
+          name: discipline.var_name,
+          disciplineId: discipline.int_disziplinid,
+          icon: getDeviceIcon(discipline.var_name)
+        }));
+        
+        console.log('🔍 JURY: Final devices list:', devicesList);
+        
+        // Fallback: if no disciplines found, show all disciplines (same as Score Capture fallback)
+        if (devicesList.length === 0) {
+          console.log('🔍 JURY: No filtered disciplines found, using fallback to all unique disciplines');
+          const fallbackDevices = uniqueDisciplines.map((discipline: any) => ({
+            id: discipline.int_disziplinid,
+            name: discipline.var_name,
+            disciplineId: discipline.int_disziplinid,
+            icon: getDeviceIcon(discipline.var_name)
+          }));
+          setDevices(fallbackDevices);
+        } else {
+          setDevices(devicesList);
+        }
         
         setCompetitions(competitionsResponse || []);
-        setDevices(uniqueDisciplines);
       } catch (error) {
         console.error('❌ JURY: Error fetching devices:', error);
         setDevices([]);
@@ -308,8 +413,10 @@ const JuryPortal: React.FC = () => {
       'Reck': '🏃',
       'Barren': '💪', 
       'Pferd': '🏇',
+      'Pauschenpferd': '🏇',
       'Stufenbarren': '🤸‍♀️',
       'Schwebebalken': '⚖️',
+      'Balken': '⚖️',
       'Sprung': '🤾',
       'Ringe': '💍'
     };
