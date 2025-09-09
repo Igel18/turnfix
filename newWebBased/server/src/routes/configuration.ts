@@ -16,21 +16,47 @@ const ENCRYPTION_KEY = process.env.CONFIG_ENCRYPTION_KEY || 'turnfix-config-key-
 
 // Utility functions for encryption/decryption
 const encrypt = (text: string): string => {
-  const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return encrypted;
+  try {
+    const algorithm = 'aes-256-cbc';
+    const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    // Prepend IV to encrypted data
+    return iv.toString('hex') + ':' + encrypted;
+  } catch (error) {
+    console.error('Encryption failed:', error);
+    return text; // Fallback to unencrypted text
+  }
 };
 
 const decrypt = (text: string): string => {
   try {
-    const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
-    let decrypted = decipher.update(text, 'hex', 'utf8');
+    // Handle unencrypted text (backward compatibility)
+    if (!text.includes(':')) {
+      return text;
+    }
+    
+    const algorithm = 'aes-256-cbc';
+    const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+    const [ivHex, encryptedText] = text.split(':');
+    
+    if (!ivHex || !encryptedText) {
+      return text; // Fallback if format is invalid
+    }
+    
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
   } catch (error) {
     console.error('Decryption failed:', error);
-    return '';
+    return text; // Fallback to original text
   }
 };
 
@@ -103,11 +129,20 @@ const loadConfig = async (): Promise<AppConfig> => {
       config.database.db_password = decrypt(config.database.db_password);
     }
     
+    if (process.env.DEBUG === 'true') {
+      console.log('🔧 DEBUG: Loaded config from file with database:', config.database?.db_name);
+    }
     return config;
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       // Return default configuration if file doesn't exist
-      return getDefaultConfig();
+      const defaultConfig = getDefaultConfig();
+      if (process.env.DEBUG === 'true') {
+        console.log('🔧 DEBUG: No config file found, using default config with database:', defaultConfig.database?.db_name);
+        console.log('🔧 DEBUG: Environment DATABASE_URL:', process.env.DATABASE_URL);
+        console.log('🔧 DEBUG: Environment DATABASE_NAME:', process.env.DATABASE_NAME);
+      }
+      return defaultConfig;
     }
     throw error;
   }
@@ -140,17 +175,75 @@ const saveConfig = async (config: AppConfig): Promise<boolean> => {
   }
 };
 
+// Helper function to parse DATABASE_URL
+const parseDatabaseUrl = (url: string): { host: string; port: number; database: string; user: string; password: string; ssl: boolean } | null => {
+  try {
+    const regex = /postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)(?:\?(.+))?/;
+    const match = url.match(regex);
+    
+    if (!match) return null;
+    
+    const queryParams = match[6] ? new URLSearchParams(match[6]) : new URLSearchParams();
+    const ssl = queryParams.get('sslmode') === 'require' || queryParams.get('ssl') === 'true';
+    
+    return {
+      user: match[1],
+      password: match[2],
+      host: match[3],
+      port: parseInt(match[4]),
+      database: match[5],
+      ssl
+    };
+  } catch (error) {
+    console.error('Error parsing DATABASE_URL:', error);
+    return null;
+  }
+};
+
 // Get default configuration
 const getDefaultConfig = (): AppConfig => {
-  return {
-    database: {
+  // Parse DATABASE_URL if available
+  let dbConfig = {
+    db_host: 'localhost',
+    db_port: 5432,
+    db_name: 'turnfix',
+    db_user: 'postgres',
+    db_password: '',
+    db_ssl: false
+  };
+
+  if (process.env.DATABASE_URL) {
+    const parsed = parseDatabaseUrl(process.env.DATABASE_URL);
+    if (parsed) {
+      dbConfig = {
+        db_host: parsed.host,
+        db_port: parsed.port,
+        db_name: parsed.database,
+        db_user: parsed.user,
+        db_password: parsed.password,
+        db_ssl: parsed.ssl
+      };
+      if (process.env.DEBUG === 'true') {
+        console.log('🔧 DEBUG: Using DATABASE_URL with db_name:', parsed.database);
+      }
+    }
+  } else {
+    // Fallback to individual environment variables
+    dbConfig = {
       db_host: process.env.DATABASE_HOST || 'localhost',
       db_port: parseInt(process.env.DATABASE_PORT || '5432'),
       db_name: process.env.DATABASE_NAME || 'turnfix',
       db_user: process.env.DATABASE_USER || 'postgres',
       db_password: process.env.DATABASE_PASSWORD || '',
       db_ssl: process.env.DATABASE_SSL === 'true'
-    },
+    };
+    if (process.env.DEBUG === 'true') {
+      console.log('🔧 DEBUG: Using individual env vars with db_name:', process.env.DATABASE_NAME || 'turnfix');
+    }
+  }
+
+  return {
+    database: dbConfig,
     application: {
       app_name: 'TurnFix',
       app_version: '2.0.0',
@@ -294,9 +387,32 @@ router.post('/test-database', async (req, res) => {
     }
   } catch (error: any) {
     console.error('Database connection test failed:', error);
+    
+    // Provide more specific error messages based on the error type
+    let userMessage = 'Database connection failed';
+    let errorCode = 'CONNECTION_FAILED';
+    
+    if (error.message) {
+      if (error.message.includes('Authentication failed') || error.message.includes('credentials')) {
+        userMessage = 'Authentication failed - Invalid username or password';
+        errorCode = 'AUTH_FAILED';
+      } else if (error.message.includes('Connection refused') || error.message.includes('ECONNREFUSED')) {
+        userMessage = 'Cannot connect to database server - Server may be down or wrong host/port';
+        errorCode = 'CONNECTION_REFUSED';
+      } else if (error.message.includes('database') && error.message.includes('does not exist')) {
+        userMessage = 'Database does not exist - Please check the database name';
+        errorCode = 'DB_NOT_FOUND';
+      } else if (error.message.includes('timeout')) {
+        userMessage = 'Connection timeout - Server may be unreachable';
+        errorCode = 'TIMEOUT';
+      }
+    }
+    
     res.status(500).json({ 
-      error: 'Database connection failed',
-      details: process.env.DEBUG === 'true' ? error.message : 'Please check your database configuration'
+      error: userMessage,
+      errorCode,
+      details: process.env.DEBUG === 'true' ? error.message : undefined,
+      timestamp: new Date().toISOString()
     });
   }
 });

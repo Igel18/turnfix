@@ -65,7 +65,7 @@ const Configuration: React.FC = () => {
               key: 'db_host',
               label: t('configuration.sections.database.host.label'),
               type: 'text',
-              value: response?.database?.host || 'localhost',
+              value: response?.database?.db_host || 'localhost',
               description: t('configuration.sections.database.host.description'),
               required: true
             },
@@ -73,7 +73,7 @@ const Configuration: React.FC = () => {
               key: 'db_port',
               label: t('configuration.sections.database.port.label'),
               type: 'number',
-              value: response?.database?.port || 5432,
+              value: response?.database?.db_port || 5432,
               description: t('configuration.sections.database.port.description'),
               required: true
             },
@@ -81,7 +81,7 @@ const Configuration: React.FC = () => {
               key: 'db_name',
               label: t('configuration.sections.database.name.label'),
               type: 'text',
-              value: response?.database?.name || 'turnfix',
+              value: response?.database?.db_name || 'turnfix',
               description: t('configuration.sections.database.name.description'),
               required: true
             },
@@ -89,7 +89,7 @@ const Configuration: React.FC = () => {
               key: 'db_user',
               label: t('configuration.sections.database.user.label'),
               type: 'text',
-              value: response?.database?.user || 'postgres',
+              value: response?.database?.db_user || 'postgres',
               description: t('configuration.sections.database.user.description'),
               required: true
             },
@@ -97,7 +97,7 @@ const Configuration: React.FC = () => {
               key: 'db_password',
               label: t('configuration.sections.database.password.label'),
               type: 'password',
-              value: response?.database?.password || '',
+              value: response?.database?.db_password || '',
               description: t('configuration.sections.database.password.description'),
               required: true,
               sensitive: true
@@ -106,7 +106,7 @@ const Configuration: React.FC = () => {
               key: 'db_ssl',
               label: t('configuration.sections.database.ssl.label'),
               type: 'boolean',
-              value: response?.database?.ssl || false,
+              value: response?.database?.db_ssl || false,
               description: t('configuration.sections.database.ssl.description')
             }
           ]
@@ -121,28 +121,28 @@ const Configuration: React.FC = () => {
               key: 'app_name',
               label: t('configuration.sections.application.name.label'),
               type: 'text',
-              value: response?.application?.name || 'TurnFix',
+              value: response?.application?.app_name || 'TurnFix',
               description: t('configuration.sections.application.name.description')
             },
             {
               key: 'app_version',
               label: t('configuration.sections.application.version.label'),
               type: 'text',
-              value: response?.application?.version || '2.0.0',
+              value: response?.application?.app_version || '2.0.0',
               description: t('configuration.sections.application.version.description')
             },
             {
               key: 'debug_mode',
               label: t('configuration.sections.application.debug.label'),
               type: 'boolean',
-              value: response?.application?.debug || false,
+              value: response?.application?.debug_mode || false,
               description: t('configuration.sections.application.debug.description')
             },
             {
               key: 'server_port',
               label: t('configuration.sections.application.serverPort.label'),
               type: 'number',
-              value: response?.application?.serverPort || 3001,
+              value: response?.application?.server_port || 3001,
               description: t('configuration.sections.application.serverPort.description'),
               required: true
             },
@@ -150,7 +150,7 @@ const Configuration: React.FC = () => {
               key: 'client_port',
               label: t('configuration.sections.application.clientPort.label'),
               type: 'number',
-              value: response?.application?.clientPort || 5173,
+              value: response?.application?.client_port || 5173,
               description: 'Frontend development server port',
               required: true
             }
@@ -166,7 +166,7 @@ const Configuration: React.FC = () => {
               key: 'default_language',
               label: 'Default Language',
               type: 'select',
-              value: response?.localization?.language || 'de',
+              value: response?.localization?.default_language || 'de',
               description: 'Default language for the application',
               options: [
                 { value: 'de', label: 'Deutsch (German)' },
@@ -179,7 +179,7 @@ const Configuration: React.FC = () => {
               key: 'date_format',
               label: 'Date Format',
               type: 'select',
-              value: response?.localization?.dateFormat || 'DD.MM.YYYY',
+              value: response?.localization?.date_format || 'DD.MM.YYYY',
               description: 'Default date display format',
               options: [
                 { value: 'DD.MM.YYYY', label: 'DD.MM.YYYY (German)' },
@@ -426,9 +426,24 @@ const Configuration: React.FC = () => {
 
       await apiPost('/configuration/test-database', dbConfig)
       setMessage({ type: 'success', text: 'Database connection successful' })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Database connection test failed:', error)
-      setMessage({ type: 'error', text: 'Database connection failed' })
+      
+      // Extract more specific error message from the API response
+      let errorMessage = 'Database connection failed'
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error
+      } else if (error.response?.data?.details && process.env.NODE_ENV === 'development') {
+        errorMessage = error.response.data.details
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      setMessage({ 
+        type: 'error', 
+        text: errorMessage
+      })
     } finally {
       setLoading(false)
     }
