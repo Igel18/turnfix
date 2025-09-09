@@ -495,7 +495,11 @@ export function ScoreCapture() {
     const matrix: {[key: string]: string} = {} // Changed to string only
     
     const safeParticipants = Array.isArray(participants) ? participants : []
-    const safeDisciplines = Array.isArray(disciplines) ? disciplines : []
+    const safeDisciplines = getFilteredDisciplines() // Use filtered disciplines instead of raw disciplines
+    
+    console.log('🎯 Matrix creation - Active squad:', activeSquad)
+    console.log('🎯 Matrix creation - Filtered disciplines count:', safeDisciplines.length)
+    console.log('🎯 Matrix creation - Filtered disciplines:', safeDisciplines.map(d => d.var_name))
     
     // Filter participants by active squad if set
     const filteredParticipants = !activeSquad 
@@ -618,6 +622,124 @@ export function ScoreCapture() {
     console.log('Final score matrix:', matrix)
     setScoreMatrix(matrix)
   }
+
+  // Always show all squads - this is the first selection
+  const getFilteredSquads = () => {
+    return squads || [];
+  };
+
+  // Smart filtering: Show only disciplines that have participants from the selected squad
+  const getFilteredDisciplines = () => {
+    if (!activeSquad) {
+      return []; // Don't show any disciplines until squad is selected
+    }
+    
+    // Get participants in the selected squad
+    const squadParticipants = participants.filter(p => p.squad_name === activeSquad);
+    
+    console.log('🔍 DEBUG: Squad filtering for:', activeSquad);
+    console.log('🔍 DEBUG: All participants:', participants.length);
+    console.log('🔍 DEBUG: Squad participants:', squadParticipants.length);
+    
+    if (squadParticipants.length === 0) {
+      console.log('🔍 DEBUG: No participants in squad');
+      return []; // No participants in squad
+    }
+    
+    // Debug: Check the structure of participant data
+    console.log('🔍 DEBUG: First squad participant:', squadParticipants[0]);
+    console.log('🔍 DEBUG: assignedCompetitions field:', squadParticipants[0]?.assignedCompetitions);
+    
+    // Try multiple approaches to find competition assignments
+    const participantCompetitionIds = new Set<number>();
+    
+    // Approach 1: Check assignedCompetitions field
+    squadParticipants.forEach(participant => {
+      if (participant.assignedCompetitions && Array.isArray(participant.assignedCompetitions)) {
+        participant.assignedCompetitions.forEach(competitionId => {
+          participantCompetitionIds.add(competitionId);
+        });
+      }
+    });
+    
+    console.log('🔍 DEBUG: Competitions from assignedCompetitions:', Array.from(participantCompetitionIds));
+    
+    // Approach 2: If no competitions found via assignedCompetitions, 
+    // use existing scores to determine which competitions participants compete in
+    if (participantCompetitionIds.size === 0) {
+      console.log('🔍 DEBUG: No assignedCompetitions found, checking existing scores...');
+      
+      squadParticipants.forEach(participant => {
+        existingScores.forEach(score => {
+          if (score.participantId === participant.id && score.competitionId) {
+            participantCompetitionIds.add(score.competitionId);
+          }
+        });
+      });
+      
+      console.log('🔍 DEBUG: Competitions from existing scores:', Array.from(participantCompetitionIds));
+    }
+    
+    // Approach 3: If still no competitions found, fall back to showing all disciplines
+    // This ensures the interface remains functional even if competition assignments are missing
+    if (participantCompetitionIds.size === 0) {
+      console.log('🔍 DEBUG: No competition assignments found, falling back to all disciplines');
+      console.log('🔍 DEBUG: Available disciplines:', disciplines?.map(d => d.var_name) || []);
+      return disciplines || [];
+    }
+    
+    // Get disciplines from these competitions
+    const availableDisciplineIds = new Set<number>();
+    competitions.forEach(competition => {
+      if (participantCompetitionIds.has(competition.id)) {
+        console.log('🔍 DEBUG: Found matching competition:', competition.id, competition.name);
+        console.log('🔍 DEBUG: Competition object:', competition);
+        console.log('🔍 DEBUG: Competition disciplines property:', competition.disciplines);
+        
+        if (competition.disciplines && Array.isArray(competition.disciplines)) {
+          console.log('🔍 DEBUG: Competition has', competition.disciplines.length, 'disciplines');
+          competition.disciplines.forEach(discipline => {
+            console.log('🔍 DEBUG: Processing discipline:', discipline);
+            // Handle different discipline structure formats
+            const disciplineId = discipline.int_disziplinid || (discipline as any).disciplineId;
+            if (disciplineId) {
+              availableDisciplineIds.add(disciplineId);
+              console.log('🔍 DEBUG: Added discipline ID:', disciplineId);
+            } else {
+              console.log('🔍 DEBUG: Discipline missing both int_disziplinid and disciplineId:', discipline);
+            }
+          });
+        } else {
+          console.log('🔍 DEBUG: Competition has no disciplines property or it is not an array');
+          console.log('🔍 DEBUG: Attempting to load disciplines for competition', competition.id);
+          
+          // If disciplines are not loaded, we need to trigger loading them
+          // This might happen for competitions that weren't initially loaded
+          // For now, we'll fall back to showing all disciplines
+        }
+      }
+    });
+    
+    console.log('🔍 DEBUG: Available competition IDs:', Array.from(participantCompetitionIds));
+    console.log('🔍 DEBUG: All competitions:', competitions.map(c => ({ id: c.id, name: c.name })));
+    console.log('🔍 DEBUG: Available discipline IDs:', Array.from(availableDisciplineIds));
+    
+    // If no disciplines found (e.g., competitions don't have disciplines loaded yet), 
+    // fall back to showing all disciplines to keep the interface functional
+    if (availableDisciplineIds.size === 0) {
+      console.log('🔍 DEBUG: No disciplines found from competitions, falling back to all disciplines');
+      return disciplines || [];
+    }
+    
+    // Filter disciplines to only show those available for this squad
+    const filteredDisciplines = (disciplines || []).filter(discipline => 
+      availableDisciplineIds.has(discipline.int_disziplinid)
+    );
+    
+    console.log('🔍 DEBUG: Final filtered disciplines:', filteredDisciplines.map(d => d.var_name));
+    
+    return filteredDisciplines;
+  };
 
   const handleScoreChange = (participantId: number, disciplineId: number | string, value: string) => {
     const key = `${participantId}-${disciplineId}`
@@ -1165,13 +1287,22 @@ export function ScoreCapture() {
           {/* Squad Selection */}
           <div className="bg-white rounded-lg border p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Select Squad
+              <span className="inline-flex items-center">
+                <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">1</span>
+                Select Squad
+              </span>
             </label>
             <select
               value={activeSquad}
               onChange={(e) => {
                 const squadName = e.target.value
                 setActiveSquad(squadName)
+                
+                // Reset discipline selection when squad changes
+                if (activeDiscipline) {
+                  setActiveDiscipline('');
+                  setSelectedDiscipline(null);
+                }
                 
                 // Store in context
                 if (squadName) {
@@ -1192,16 +1323,23 @@ export function ScoreCapture() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Choose a squad...</option>
-              {squads.map((squad) => (
+              {getFilteredSquads().map((squad) => (
                 <option key={squad.name} value={squad.name}>
                   {squad.name} ({squad.participant_count} participants)
                 </option>
               ))}
             </select>
             {activeSquad && (
-              <p className="mt-2 text-sm text-green-600">
-                ✓ Squad "{activeSquad}" selected
-              </p>
+              <div className="mt-2">
+                <p className="text-sm text-green-600">
+                  ✓ Squad "{activeSquad}" selected
+                </p>
+                {activeDiscipline && (
+                  <p className="text-xs text-blue-600">
+                    Ready to capture scores for this squad-discipline combination
+                  </p>
+                )}
+              </div>
             )}
             
             {/* Squad Status Selection */}
@@ -1243,7 +1381,13 @@ export function ScoreCapture() {
           {/* Device/Discipline Selection */}
           <div className="bg-white rounded-lg border p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Select Device/Apparatus
+              <span className="inline-flex items-center">
+                <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2 ${
+                  activeSquad ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'
+                }`}>2</span>
+                Select Device/Apparatus
+                {!activeSquad && <span className="text-gray-400 ml-2">(requires squad selection)</span>}
+              </span>
             </label>
             <select
               value={activeDiscipline === '' ? '' : String(activeDiscipline)}
@@ -1267,21 +1411,54 @@ export function ScoreCapture() {
                   }
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+                !activeSquad ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
+              disabled={!activeSquad}
             >
-              <option value="">Choose a device...</option>
-              {(disciplines || []).map((discipline, index) => (
-                <option key={`discipline-${discipline.int_disziplinid || index}-${discipline.var_name}`} value={discipline.int_disziplinid || discipline.var_name}>
-                  {discipline.var_name} {discipline.apparatus && `(${discipline.apparatus})`}
-                </option>
-              ))}
+              {!activeSquad ? (
+                <option value="">First select a squad...</option>
+              ) : getFilteredDisciplines().length === 0 ? (
+                <option value="">No devices available for this squad</option>
+              ) : (
+                <>
+                  <option value="">Choose a device...</option>
+                  {getFilteredDisciplines().map((discipline, index) => (
+                    <option key={`discipline-${discipline.int_disziplinid || index}-${discipline.var_name}`} value={discipline.int_disziplinid || discipline.var_name}>
+                      {discipline.var_name} {discipline.apparatus && `(${discipline.apparatus})`}
+                    </option>
+                  ))}
+                </>
+              )}
             </select>
-            {activeDiscipline && (
-              <p className="mt-2 text-sm text-green-600">
-                ✓ Device "{(disciplines || []).find(d => 
-                  d.int_disziplinid === activeDiscipline || d.var_name === activeDiscipline
-                )?.var_name}" selected
-              </p>
+            {!activeSquad && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  ← Please select a squad first to see available devices
+                </p>
+              </div>
+            )}
+            {activeDiscipline && activeSquad && (
+              <div className="mt-2">
+                <p className="text-sm text-green-600">
+                  ✓ Device "{(disciplines || []).find(d => 
+                    d.int_disziplinid === activeDiscipline || d.var_name === activeDiscipline
+                  )?.var_name}" selected
+                </p>
+                <p className="text-xs text-blue-600">
+                  Ready to capture scores for squad "{activeSquad}"
+                </p>
+              </div>
+            )}
+            {activeSquad && !activeDiscipline && getFilteredDisciplines().length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-blue-600">
+                  {getFilteredDisciplines().length} device(s) available for scoring
+                </p>
+                <p className="text-xs text-gray-500">
+                  Select the device you want to capture scores for
+                </p>
+              </div>
             )}
           </div>
         </div>
