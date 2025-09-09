@@ -21,6 +21,7 @@ You don't have to ask for permission to restart the server.
 You don't have to ask for permission to restart the client.
 
 I'm using powershell smaller V7 to run the server and client. So you cannot use && as separator. Use semicolon instead. 
+Do not use curl. use Powershell instead. 
 
 Don't use Dummy implementations. I have real test data in the Database. 
 When using Prisma, make sure to leverage the full power of the query engine and avoid unnecessary complexity in your queries.

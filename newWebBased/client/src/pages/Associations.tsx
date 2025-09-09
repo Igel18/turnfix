@@ -142,14 +142,14 @@ const Associations: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await fetch('/api/associations/data/laender');
+      const response = await fetch('/api/countries');
 
       if (!response.ok) {
         throw new Error('Failed to fetch countries');
       }
 
       const data = await response.json();
-      setCountries(data || []);
+      setCountries(data?.countries || []);
     } catch (error) {
       console.error('Error fetching countries:', error);
     }

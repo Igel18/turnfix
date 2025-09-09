@@ -172,7 +172,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                 onClick={() => onStateChange?.(state.value)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${
                   selectedState === state.value
-                    ? `${state.color} border-opacity-30`
+                    ? `bg-${state.color}-100 text-${state.color}-800 border-${state.color}-200`
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-200'
                 }`}
               >
@@ -246,8 +246,8 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All {filter.label}</option>
-                {filter.options.map((option) => (
-                  <option key={option.value} value={option.value}>
+                {filter.options.map((option, index) => (
+                  <option key={`${filter.value}-${option.value}-${index}`} value={option.value}>
                     {option.label} {option.count ? `(${option.count})` : ''}
                   </option>
                 ))}

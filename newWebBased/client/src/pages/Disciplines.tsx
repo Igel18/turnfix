@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   PlusIcon,
   TrophyIcon,
@@ -284,7 +284,7 @@ export default function Disciplines() {
     return true
   })
 
-  const getDisciplineStateInfo = (): StateInfo[] => [
+  const getDisciplineStateInfo = useMemo((): StateInfo[] => [
     { 
       label: 'Total', 
       value: 'total',
@@ -315,49 +315,72 @@ export default function Disciplines() {
       count: apparatus.length, 
       color: 'orange' 
     }
-  ]
+  ], [disciplines, apparatus])
 
-  const getFilterOptions = () => [
-    {
-      label: 'Gender',
-      value: 'gender',
-      selectedValue: selectedGender,
-      onChange: setSelectedGender,
-      options: [
-        { value: '', label: 'All Genders' },
-        { value: 'male', label: 'Male Only' },
-        { value: 'female', label: 'Female Only' },
-        { value: 'both', label: 'Both Genders' }
-      ]
-    },
-    {
+  const getFilterOptions = useMemo(() => {
+    // Only include apparatus filter if we have data
+    const apparatusFilter = apparatus.length > 0 ? {
       label: 'Apparatus',
       value: 'apparatus',
       selectedValue: selectedApparatus,
       onChange: setSelectedApparatus,
       options: [
         { value: '', label: 'All Apparatus' },
-        ...apparatus.map(app => ({
+        ...apparatus.map((app) => ({
           value: app.unit,
           label: app.unit,
           count: app.discipline_count
         }))
       ]
-    },
-    {
+    } : null
+    
+    // Only include category filter if we have data
+    const categoryFilter = categories.length > 0 ? {
       label: 'Category',
       value: 'category',
       selectedValue: selectedCategory,
       onChange: setSelectedCategory,
       options: [
         { value: '', label: 'All Categories' },
-        ...categories.map(cat => ({
+        ...categories.map((cat) => ({
           value: cat.id.toString(),
           label: cat.name
         }))
       ]
-    }
-  ]
+    } : null
+
+    const filters = [
+      {
+        label: 'Gender',
+        value: 'gender',
+        selectedValue: selectedGender,
+        onChange: setSelectedGender,
+        options: [
+          { value: '', label: 'All Genders' },
+          { value: 'male', label: 'Male Only' },
+          { value: 'female', label: 'Female Only' },
+          { value: 'both', label: 'Both Genders' }
+        ]
+      },
+      apparatusFilter,
+      categoryFilter
+    ].filter((filter): filter is NonNullable<typeof filter> => filter !== null)
+    
+    return filters
+  }, [selectedGender, selectedApparatus, selectedCategory, apparatus, categories])
+
+  const handleClearAllFilters = useCallback(() => {
+    setSearchTerm('')
+    setSelectedGender('')
+    setSelectedApparatus('')
+    setSelectedCategory('')
+  }, [])
+
+  const primaryAction = useMemo(() => ({
+    label: 'Add Discipline',
+    icon: PlusIcon,
+    onClick: handleAddDiscipline
+  }), [handleAddDiscipline])
 
   const handleExport = () => {
     const exportData = filteredDisciplines.map(discipline => ({
@@ -387,20 +410,11 @@ export default function Disciplines() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search disciplines..."
-        stateInfo={getDisciplineStateInfo()}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={() => {
-          setSearchTerm('')
-          setSelectedGender('')
-          setSelectedApparatus('')
-          setSelectedCategory('')
-        }}
+        stateInfo={getDisciplineStateInfo}
+        filterOptions={getFilterOptions}
+        onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExport}
-        primaryAction={{
-          label: 'Add Discipline',
-          icon: PlusIcon,
-          onClick: handleAddDiscipline
-        }}
+        primaryAction={primaryAction}
         showHomeButton={true}
         totalCount={disciplines.length}
         filteredCount={filteredDisciplines.length}
