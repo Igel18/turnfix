@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { useEvent } from '../contexts/EventContext'
 import EventSelector from '@/components/EventSelector'
+import { apiGet } from '../utils/api' // Add this import
 import { 
   CalendarDaysIcon,
   BuildingOfficeIcon,
@@ -398,21 +399,21 @@ export function Dashboard() {
 
         // Fetch additional statistics for database management
         const additionalApis = [
-          '/api/areas/count',
-          '/api/associations/count', 
-          '/api/disciplines/count',
-          '/api/venues/count',
-          '/api/persons/count',
-          '/api/sports/count',
-          '/api/formulas/count',
-          '/api/discipline-groups/count',
-          '/api/discipline-fields/count',
-          '/api/layouts/count',
-          '/api/statuses'
+          '/areas/count',
+          '/associations/count', 
+          '/disciplines/count',
+          '/venues/count',
+          '/persons/count',
+          '/sports/count',
+          '/formulas/count',
+          '/discipline-groups/count',
+          '/discipline-fields/count',
+          '/layouts/count',
+          '/statuses'
         ]
 
         const additionalPromises = additionalApis.map(url => 
-          fetch(url).then(res => res.ok ? res.json() : { pagination: { total: 0 }, count: 0 }).catch(() => ({ pagination: { total: 0 }, count: 0 }))
+          apiGet(url).then(res => res).catch(() => ({ pagination: { total: 0 }, count: 0 }))
         )
 
         const [
