@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import DisciplineFormModal from '../components/DisciplineFormModal';
 import { 
   CogIcon, 
   PencilIcon, 
-  TrashIcon,
-  EyeIcon 
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import { getIconUrl } from '../utils/iconUtils';
 

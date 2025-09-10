@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useEvent } from '../contexts/EventContext'
 import { 
-  XMarkIcon,
   TableCellsIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '../components/UnifiedPageHeader'

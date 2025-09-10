@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLanguage } from '../contexts/LanguageContext'
 import { 
   CogIcon,
   CircleStackIcon,
@@ -35,8 +34,7 @@ interface ConfigSetting {
 }
 
 const Configuration: React.FC = () => {
-  const { t, i18n } = useTranslation()
-  const { changeLanguage } = useLanguage()
+  const { t } = useTranslation()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
   const [loading, setLoading] = useState(false)

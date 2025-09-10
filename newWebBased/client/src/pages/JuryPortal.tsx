@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Trophy, Smartphone, Monitor, Tablet, ArrowLeft } from 'lucide-react';
+import { Users, Trophy, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { getIconUrl } from '../utils/iconUtils';
 
 interface Participant {
@@ -28,34 +28,6 @@ interface Device {
   icon?: string; // Database icon path
   disciplineId: number;
 }
-
-interface Event {
-  int_eventid: number;
-  var_eventname: string;
-  dat_eventstartdate: string;
-  dat_eventenddate: string;
-}
-
-interface Competition {
-  id: number;
-  name: string;
-  eventId: number;
-}
-
-interface ApiParticipant {
-  id: number;
-  firstName: string;
-  lastName: string;
-  club?: {
-    name: string;
-  };
-  clubName?: string;
-  startNumber?: number;
-  participantId?: number;
-  wertungenId?: number;
-}
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const JuryPortal: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);

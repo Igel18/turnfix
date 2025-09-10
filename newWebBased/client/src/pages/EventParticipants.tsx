@@ -295,7 +295,7 @@ const EventParticipants: React.FC = () => {
   const [totalInEvent, setTotalInEvent] = useState<number>(0);
   
   // UI state
-  const [selectedTab, setSelectedTab] = useState<'participants' | 'assign'>('participants');
+  const [selectedTab] = useState<'participants' | 'assign'>('participants');
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');

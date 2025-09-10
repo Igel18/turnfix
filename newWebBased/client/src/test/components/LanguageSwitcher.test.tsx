@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 
 // Mock the LanguageContext
 const mockLanguageContext = {
@@ -89,11 +88,6 @@ describe('LanguageSwitcher', () => {
   });
 
   it('handles missing language gracefully', () => {
-    const mockContextWithMissingLang = {
-      ...mockLanguageContext,
-      currentLanguage: 'fr',
-    };
-
     vi.mocked(mockLanguageContext).currentLanguage = 'fr';
     
     render(<LanguageSwitcher />);

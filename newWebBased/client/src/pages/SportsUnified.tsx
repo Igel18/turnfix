@@ -26,7 +26,6 @@ interface FormData {
 
 const SportsUnified: React.FC = () => {
   const [sports, setSports] = useState<Sport[]>([]);
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Filter states
@@ -64,7 +63,6 @@ const SportsUnified: React.FC = () => {
         const data = await disciplinesResponse.json();
         // Disciplines API returns data directly as an array, not wrapped in an object
         disciplinesData = Array.isArray(data) ? data : [];
-        setDisciplines(disciplinesData);
       }
 
       // Calculate discipline count for each sport
@@ -77,7 +75,6 @@ const SportsUnified: React.FC = () => {
     } catch (error) {
       console.error('Error fetching sports:', error);
       setSports([]);
-      setDisciplines([]);
     } finally {
       setIsLoading(false);
     }

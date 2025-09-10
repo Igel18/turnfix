@@ -95,8 +95,6 @@ export default function UnifiedPageHeader({
   onToggleFilters,
   hasFilters = false,
   filterOptions = [],
-  selectedFilters = [],
-  onFilterChange,
   onClearAllFilters,
   showHelpPanel = false,
   onToggleHelpPanel,
