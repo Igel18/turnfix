@@ -14,7 +14,7 @@ const participantCreateSchema = z.object({
   int_geschlecht: z.number().int().min(0).max(2),
   int_vereineid: z.number().int(),
   bool_nur_jahr: z.boolean().optional(),
-  int_startpassnummer: z.number().int().optional(),
+  int_startpassnummer: z.number().int().optional().nullable().transform(val => val === null ? undefined : val),
 });
 
 const participantUpdateSchema = participantCreateSchema.partial();

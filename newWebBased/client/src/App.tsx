@@ -11,7 +11,7 @@ import Events from '@/pages/Events'
 import { Clubs } from '@/pages/Clubs'
 import Regions from '@/pages/Regions'
 import Associations from '@/pages/Associations'
-import Participants from '@/pages/Participants'
+import ParticipantsUnified from '@/pages/ParticipantsUnified'
 import Results from '@/pages/Results'
 import ScoreCapture from '@/pages/ScoreCapture'
 import CompetitionsFixed from '@/pages/CompetitionsFixed'
@@ -50,7 +50,7 @@ function App() {
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/associations" element={<Associations />} />
-            <Route path="/participants" element={<Participants />} />
+            <Route path="/participants" element={<ParticipantsUnified />} />
             <Route path="/results" element={<Results />} />
             <Route path="/score-capture" element={<ScoreCapture />} />
             <Route path="/competitions" element={<CompetitionsFixed />} />
