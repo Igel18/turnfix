@@ -31,32 +31,11 @@ interface Device {
   disciplineId: number;
 }
 
-interface Event {
-  int_eventid: number;
-  var_eventname: string;
-  dat_eventstartdate: string;
-  dat_eventenddate: string;
-}
-
 interface Competition {
   id: number;
   name: string;
   eventId: number;
   disciplines?: Device[];
-}
-
-interface ApiParticipant {
-  id: number;
-  firstName: string;
-  lastName: string;
-  club?: {
-    name: string;
-  };
-  clubName?: string;
-  startNumber?: number;
-  participantId?: number;
-  wertungenId?: number;
-  assignedCompetitions?: number[];
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
