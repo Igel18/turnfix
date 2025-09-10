@@ -68,17 +68,29 @@ const Regions: React.FC = () => {
   const getFilterOptions = () => [
     {
       label: 'Association',
-      value: 'verband',
+      value: '',
+      selectedValue: selectedVerband.toString(),
       options: [
-        { value: '', label: 'All Associations' },
         ...verbaende.map(verband => ({
           value: verband.int_verbaendeid.toString(),
-          label: verband.var_name,
-          count: regions.filter(r => r.int_verbaendeid === verband.int_verbaendeid).length
+          label: verband.var_name
         }))
       ],
-      selectedValue: selectedVerband.toString(),
       onChange: (value: string) => setSelectedVerband(value === '' ? '' : parseInt(value))
+    },
+    {
+      label: 'Region Type',
+      value: '',
+      selectedValue: '',
+      options: [
+        { value: 'all', label: 'All Types' },
+        { value: 'district', label: 'Districts' },
+        { value: 'region', label: 'Regions' }
+      ],
+      onChange: (value: string) => {
+        // This could filter by region type if we had that data
+        console.log('Region type filter:', value);
+      }
     }
   ];
 

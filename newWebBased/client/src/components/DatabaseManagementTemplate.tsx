@@ -106,7 +106,9 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   // Filter state management
   const [showFiltersState, setShowFiltersState] = React.useState(showFilters);
   const handleToggleFilters = () => {
-    setShowFiltersState(!showFiltersState);
+    const newState = !showFiltersState;
+    console.log('Filter toggle clicked:', newState);
+    setShowFiltersState(newState);
     if (onToggleFilters) {
       onToggleFilters();
     }
