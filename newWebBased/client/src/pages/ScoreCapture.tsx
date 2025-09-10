@@ -9,6 +9,7 @@ import {
 import { useEvent } from '../contexts/EventContext'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
+import { getIconUrl } from '../utils/iconUtils'
 
 // Interfaces
 interface Participant {
@@ -36,6 +37,7 @@ interface Discipline {
   attempts: number;
   inputMask?: string;
   maxScore?: number; // Maximum allowed score for this discipline in the competition
+  icon?: string; // Icon path from database
 }
 
 interface DisciplineField {
@@ -1389,74 +1391,73 @@ export function ScoreCapture() {
                 {!activeSquad && <span className="text-gray-400 ml-2">(requires squad selection)</span>}
               </span>
             </label>
-            <select
-              value={activeDiscipline === '' ? '' : String(activeDiscipline)}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === '') {
-                  setActiveDiscipline('');
-                  setSelectedDiscipline(null);
-                } else {
-                  // Try to parse as number first, if it fails use the string value
-                  const numValue = parseInt(value);
-                  const disciplineValue = isNaN(numValue) ? value : numValue;
-                  setActiveDiscipline(disciplineValue);
-                  
-                  // Store in context
-                  const selectedDisciplineData = disciplines.find(d => 
-                    d.int_disziplinid === disciplineValue || d.var_name === disciplineValue
-                  )
-                  if (selectedDisciplineData) {
-                    setSelectedDiscipline(selectedDisciplineData)
-                  }
-                }
-              }}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                !activeSquad ? 'bg-gray-100 cursor-not-allowed' : ''
-              }`}
-              disabled={!activeSquad}
-            >
-              {!activeSquad ? (
-                <option value="">First select a squad...</option>
-              ) : getFilteredDisciplines().length === 0 ? (
-                <option value="">No devices available for this squad</option>
-              ) : (
-                <>
-                  <option value="">Choose a device...</option>
-                  {getFilteredDisciplines().map((discipline, index) => (
-                    <option key={`discipline-${discipline.int_disziplinid || index}-${discipline.var_name}`} value={discipline.int_disziplinid || discipline.var_name}>
-                      {discipline.var_name} {discipline.apparatus && `(${discipline.apparatus})`}
-                    </option>
-                  ))}
-                </>
-              )}
-            </select>
-            {!activeSquad && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">
-                  ← Please select a squad first to see available devices
-                </p>
+            
+            {!activeSquad ? (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">First select a squad to see available devices...</p>
+              </div>
+            ) : getFilteredDisciplines().length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">No devices available for this squad</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                {getFilteredDisciplines().map((discipline, index) => (
+                  <div
+                    key={`discipline-${discipline.int_disziplinid || index}-${discipline.var_name}`}
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                      (activeDiscipline === discipline.int_disziplinid || activeDiscipline === discipline.var_name)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => {
+                      const disciplineValue = discipline.int_disziplinid || discipline.var_name;
+                      setActiveDiscipline(disciplineValue);
+                      setSelectedDiscipline(discipline);
+                    }}
+                  >
+                    <div className="text-center">
+                      {discipline.icon && (
+                        <div className="flex justify-center mb-2">
+                          <img 
+                            src={getIconUrl(discipline.icon) || ''}
+                            alt={`${discipline.var_name} icon`}
+                            className="w-8 h-8 object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <h3 className="font-medium text-sm">{discipline.var_name}</h3>
+                      {discipline.apparatus && (
+                        <p className="text-xs text-gray-500 mt-1">({discipline.apparatus})</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
+            
             {activeDiscipline && activeSquad && (
-              <div className="mt-2">
-                <p className="text-sm text-green-600">
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-700">
                   ✓ Device "{(disciplines || []).find(d => 
                     d.int_disziplinid === activeDiscipline || d.var_name === activeDiscipline
                   )?.var_name}" selected
                 </p>
-                <p className="text-xs text-blue-600">
+                <p className="text-xs text-green-600">
                   Ready to capture scores for squad "{activeSquad}"
                 </p>
               </div>
             )}
             {activeSquad && !activeDiscipline && getFilteredDisciplines().length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm text-blue-600">
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
                   {getFilteredDisciplines().length} device(s) available for scoring
                 </p>
-                <p className="text-xs text-gray-500">
-                  Select the device you want to capture scores for
+                <p className="text-xs text-blue-600">
+                  Click on the device you want to capture scores for
                 </p>
               </div>
             )}

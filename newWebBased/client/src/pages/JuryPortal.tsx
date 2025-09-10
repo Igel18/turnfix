@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Trophy, Smartphone, Monitor, Tablet, ArrowLeft } from 'lucide-react';
+import { getIconUrl } from '../utils/iconUtils';
 
 interface Participant {
   id: number;
@@ -24,7 +25,7 @@ interface Squad {
 interface Device {
   id: number;
   name: string;
-  icon: string;
+  icon?: string; // Database icon path
   disciplineId: number;
 }
 
@@ -134,7 +135,7 @@ const JuryPortal: React.FC = () => {
           id: discipline.id,
           name: discipline.name,
           disciplineId: discipline.id,
-          icon: getDeviceIcon(discipline.name)
+          icon: discipline.icon // Use actual icon from database
         }));
         
         setDevices(formattedDevices);
@@ -259,20 +260,6 @@ const JuryPortal: React.FC = () => {
     } catch (error) {
       console.error('Error fetching participant scores:', error);
     }
-  };
-
-  const getDeviceIcon = (deviceName: string): string => {
-    const iconMap: { [key: string]: string } = {
-      'Boden': '🤸',
-      'Reck': '🏃',
-      'Barren': '💪', 
-      'Pferd': '🏇',
-      'Stufenbarren': '🤸‍♀️',
-      'Schwebebalken': '⚖️',
-      'Sprung': '🤾',
-      'Ringe': '💍'
-    };
-    return iconMap[deviceName] || '�';
   };
 
   const currentParticipant = participants[currentParticipantIndex];
@@ -487,7 +474,23 @@ const JuryPortal: React.FC = () => {
                       setStep('scoring');
                     }}
                   >
-                    <div className="text-4xl mb-4">{device.icon}</div>
+                    <div className="flex justify-center mb-4">
+                      {device.icon ? (
+                        <img 
+                          src={getIconUrl(device.icon) || ''}
+                          alt={`${device.name} icon`}
+                          className="w-16 h-16 object-contain"
+                          onError={(e) => {
+                            // Fallback to default icon if image fails to load
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Trophy className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
                     <h3 className="text-xl font-semibold">{device.name}</h3>
                   </div>
                 ))
