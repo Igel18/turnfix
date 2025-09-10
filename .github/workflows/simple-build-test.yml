@@ -1,0 +1,89 @@
+name: Simple Build Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: turnfix
+          POSTGRES_PASSWORD: turnfix_test
+          POSTGRES_DB: turnfix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+
+    - name: Debug environment
+      run: |
+        echo "Node version: $(node --version)"
+        echo "npm version: $(npm --version)"
+        echo "Current PATH: $PATH"
+        which node
+        which npm
+        ls -la newWebBased/
+
+    - name: Install dependencies step by step
+      run: |
+        cd newWebBased
+        echo "Installing root dependencies..."
+        npm install
+        
+        echo "Installing server dependencies..."
+        cd server
+        npm install
+        
+        echo "Checking for Prisma..."
+        ls -la node_modules/.bin/ | grep prisma || echo "Prisma not found in node_modules/.bin"
+        
+        echo "Checking package.json for Prisma..."
+        grep -i prisma package.json || echo "Prisma not found in package.json"
+
+    - name: Manual Prisma installation
+      run: |
+        cd newWebBased/server
+        echo "Manually installing Prisma..."
+        npm install prisma @prisma/client
+        
+        echo "Checking installation..."
+        ls -la node_modules/.bin/ | grep prisma
+        
+        echo "Testing Prisma command..."
+        ./node_modules/.bin/prisma --version
+
+    - name: Generate Prisma client
+      run: |
+        cd newWebBased/server
+        ./node_modules/.bin/prisma generate
+
+    - name: Run migrations
+      run: |
+        cd newWebBased/server
+        cat > .env << EOF
+        DATABASE_URL="postgresql://turnfix:turnfix_test@localhost:5432/turnfix_test"
+        JWT_SECRET="test-secret"
+        NODE_ENV=test
+        EOF
+        ./node_modules/.bin/prisma migrate deploy
+
+    - name: Test build
+      run: |
+        cd newWebBased/server
+        npm run build

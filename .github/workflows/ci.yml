@@ -71,6 +71,9 @@ jobs:
     - name: Generate Prisma client and run migrations
       run: |
         cd newWebBased/server
+        # Ensure Prisma is available
+        npm list @prisma/client || npm install @prisma/client prisma
+        npx prisma --version
         npx prisma generate
         npx prisma migrate deploy
 

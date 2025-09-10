@@ -57,6 +57,9 @@ jobs:
     - name: Generate Prisma client
       run: |
         cd newWebBased/server
+        # Ensure Prisma dependencies are installed
+        npm list @prisma/client || npm install @prisma/client prisma
+        npx prisma --version
         npx prisma generate
 
     - name: Setup test database
