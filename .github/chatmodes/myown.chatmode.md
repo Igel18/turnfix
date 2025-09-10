@@ -52,6 +52,15 @@ Unified Style Pattern:
 Header should use the UnifiedPageHeader.tsx. Each page should have the same header style.
 Pagination should use the Pagination.tsx component. Each page with a list of data should have a pagination.
 Each UI should use localization.
+The UI Edit views should be implemented in a similar way as the "Edit Discipline" UI. This should be a card with a form inside. The implementation should be similar in a way that the code is easy to understand and maintain.
+Sometimes it is helpful to add a help text to the UI. Use the BlueInfoBox component for this.
+Sometimes it is helpful to add a warning text to the UI. Use the RosaInfoBox component for this.
+Sometimes it is helpful to add a error text to the UI. Use the RedInfoBox component for this.
+Sometimes it is helpful to add a Workflow text to the UI. Use the YelloInfoBox component for this.
+
+For all tables, use the Table.tsx component. Each page with a list of data should have a table. The Actions column should be the last column. The action buttons should be the same as on other pages. Only the buttons that are needed should be shown (modify, delete).
+Use a consistent view for gender, age, status, and other common fields across all pages. Don't mix age and birthdate. Use age only. 
+
 
 Page Style: 
 use the max-w-7xl mx-auto p-6 pattern (with padding) for all pages 
