@@ -38,7 +38,8 @@ interface Competition {
   disciplines?: Device[];
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// API configuration - always use relative URLs for Vite proxy
+const API_BASE_URL = '/api';
 
 const JuryPortal: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
