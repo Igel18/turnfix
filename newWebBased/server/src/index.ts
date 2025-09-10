@@ -2,6 +2,20 @@ import { config } from 'dotenv';
 // Load environment variables first
 config();
 
+console.log('🚀 Starting TurnFix server...');
+
+// Add global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+console.log('🔧 Importing express...');
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -187,6 +201,8 @@ app.set('io', io);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+console.log('🔧 About to start server on port', PORT);
+
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -194,4 +210,9 @@ server.listen(PORT, () => {
   console.log(`🌐 Network API: http://192.168.1.108:${PORT}/api`);
 });
 
+server.on('error', (error: any) => {
+  console.error('❌ Server error:', error);
+});
+
 export default app;
+// Force restart

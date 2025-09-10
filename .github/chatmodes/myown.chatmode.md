@@ -48,6 +48,9 @@ Unified Style Pattern:
     - All pages with event data must have a unified layout and design. 
         - Selected Context: the name of the event 
         - a export pdf posibility (with usage of pdf template) 
+        - unifieddataview.tsx 
+        - unifiedfilter.tsx
+        - unifiedpageheader.tsx
         
 Header should use the UnifiedPageHeader.tsx. Each page should have the same header style.
 Pagination should use the Pagination.tsx component. Each page with a list of data should have a pagination.

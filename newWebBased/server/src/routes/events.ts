@@ -105,7 +105,11 @@ router.get('/', async (req: Request, res: Response) => {
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as participant_count,
         (SELECT COUNT(*) FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
-         WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count
+         WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count,
+        (SELECT COUNT(DISTINCT t.int_vereineid) FROM tfx_wertungen wr
+         JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
+         JOIN tfx_teilnehmer t ON wr.int_teilnehmerid = t.int_teilnehmerid
+         WHERE w.int_veranstaltungenid = v.int_veranstaltungenid AND t.int_vereineid IS NOT NULL) as club_count
       FROM tfx_veranstaltungen v
       LEFT JOIN tfx_wettkampforte wf ON v.int_wettkampforteid = wf.int_wettkampforteid
       ${whereClause}
@@ -135,6 +139,7 @@ router.get('/', async (req: Request, res: Response) => {
         int_eventid: Number(event.int_eventid),
         participant_count: Number(event.participant_count || 0),
         score_count: Number(event.score_count || 0),
+        club_count: Number(event.club_count || 0),
         dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
         dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null,
         status
@@ -142,7 +147,7 @@ router.get('/', async (req: Request, res: Response) => {
     });
     
     console.log(`=== EVENTS: Sending ${formattedEvents.length} events to client ===`);
-    console.log('First event sample:', JSON.stringify(formattedEvents[0], null, 2));
+    console.log('First event sample:', formattedEvents[0]?.var_eventname || 'No events available');
     
     const response = {
       events: formattedEvents,

@@ -20,6 +20,7 @@ import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
 import SmartPagination from '@/components/SmartPagination';
 import { usePagination } from '@/hooks/usePagination';
+import useViewToggle from '@/hooks/useViewToggle';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -306,6 +307,12 @@ const EventParticipants: React.FC = () => {
   const pagination = usePagination({ 
     itemsPerPage: 50,
     resetDependencies: [searchTerm, genderFilter, clubFilter, ageFilter]
+  });
+  
+  // View toggle with persistence
+  const { viewType, handleViewTypeChange } = useViewToggle({ 
+    key: 'event-participants', 
+    defaultView: 'table' 
   });
   
   // Modal states
@@ -932,7 +939,9 @@ const EventParticipants: React.FC = () => {
         onAdd={() => setShowAddModal(true)}
         showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
-        showViewToggle={false}
+        showViewToggle={true}
+        viewMode={viewType === 'cards' ? 'grid' : 'table'}
+        onViewModeChange={(mode) => handleViewTypeChange(mode === 'grid' ? 'cards' : 'table')}
         customActions={
           filteredParticipants.filter(p => p.isInEvent).length > 0 ? (
             <div className="flex space-x-2">
@@ -981,7 +990,8 @@ const EventParticipants: React.FC = () => {
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
+                      {viewType === 'table' ? (
+                        <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1093,6 +1103,98 @@ const EventParticipants: React.FC = () => {
                           ))}
                         </tbody>
                       </table>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                          {paginatedParticipants.map((participant) => (
+                            <div key={participant.id} className="bg-white rounded-lg border shadow-sm p-6">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <span className="text-2xl font-bold text-gray-900">
+                                      #{participant.startNumber || '—'}
+                                    </span>
+                                    <div>
+                                      <h3 className="text-lg font-medium text-gray-900">
+                                        {participant.firstname} {participant.lastname}
+                                      </h3>
+                                      <p className="text-sm text-gray-500">
+                                        Born: {participant.birthYear}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Age:</span>
+                                      <span className="font-medium">{participant.age}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Gender:</span>
+                                      <span className="font-medium capitalize">{participant.gender}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Club:</span>
+                                      <span className="font-medium">{participant.club}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Squad:</span>
+                                      <span className="font-medium">{participant.squad_name || '—'}</span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="mt-4 flex flex-wrap gap-2">
+                                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                                      participant.startet_nicht 
+                                        ? 'bg-red-100 text-red-800' 
+                                        : 'bg-green-100 text-green-800'
+                                    }`}>
+                                      {participant.startet_nicht ? 'Not Starting' : 'Active'}
+                                    </span>
+                                    {participant.assignedCompetitions && participant.assignedCompetitions.length > 0 && (
+                                      <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded">
+                                        {participant.assignedCompetitions.length} Competition(s)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div className="ml-4 flex flex-col gap-2">
+                                  <button
+                                    onClick={() => setEditingParticipant(participant.id)}
+                                    className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
+                                    title="Edit participant"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => removeParticipantFromEvent(participant.id)}
+                                    className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
+                                    title="Remove from event"
+                                  >
+                                    <UserMinus className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {editingParticipant === participant.id && (
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                  <EditParticipantForm
+                                    participant={participant}
+                                    eventId={eventId!}
+                                    clubs={clubs}
+                                    competitions={competitions}
+                                    onSave={async (updatedData) => {
+                                      await updateParticipantDetails(participant.id, updatedData);
+                                      setEditingParticipant(null);
+                                    }}
+                                    onCancel={() => setEditingParticipant(null)}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
