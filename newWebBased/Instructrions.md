@@ -295,6 +295,7 @@ Do you have a idea for that? Show me a short concept.
 At add participant in EventParticipants not all athletes are available... oder vielleicht ist nur ein Filter aktiv? 
 -
 At event participants only the first 100 participants are available. 
+---
 
 Squad zum teilnehmer hinzufügen -> 
 Error updating participant details: PrismaClientKnownRequestError: 
@@ -315,10 +316,10 @@ The provided value for the column is too long for the column's type. Column: (no
   clientVersion: '5.22.0',
   meta: { modelName: 'tfx_wertungen', column_name: '(not available)' }
 }
-
+---
 
 Is there a template or something for the page unification? If not this should be created that it can used for other UIs.
-the following UIs must use the unified page header and this template: 
+the following UIs must use the unified page header and unified pagination and this template: 
 Database Management: 
         - Manage Regions 
         - Manage Associsations 

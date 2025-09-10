@@ -134,8 +134,9 @@ const forceLoadSquads = async () => {
 const forceLoadAvailableParticipants = async () => {
   try {
     // Add cache busting timestamp and force fresh data
+    // Use includeAvailable=false to only show event participants
     const timestamp = Date.now();
-    const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&includeAvailable=true&_t=${timestamp}&_force=true`);
+    const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&includeAvailable=false&_t=${timestamp}&_force=true`);
     const newParticipants = data.participants || [];
     console.log('🔄 Force loading available participants:', newParticipants.length, 'participants loaded');
     setAvailableParticipants(newParticipants);
@@ -198,8 +199,9 @@ const forceLoadAvailableParticipants = async () => {
   const loadAvailableParticipants = async () => {
     try {
       // Add cache busting timestamp
+      // Use includeAvailable=false to only show event participants
       const timestamp = Date.now();
-      const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&includeAvailable=true&_t=${timestamp}`);
+      const data = await apiGet(`/squad-management/available-participants?eventId=${eventId}&includeAvailable=false&_t=${timestamp}`);
       const newParticipants = data.participants || [];
       console.log('🔄 Loading available participants:', newParticipants.length, 'participants loaded');
       setAvailableParticipants(newParticipants);
