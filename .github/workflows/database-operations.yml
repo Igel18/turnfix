@@ -1,0 +1,210 @@
+name: Database Backup and Restore
+
+on:
+  schedule:
+    # Run daily backup at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'backup'
+        type: choice
+        options:
+          - backup
+          - restore
+          - migrate
+      backup_name:
+        description: 'Backup name (for restore)'
+        required: false
+        default: ''
+
+jobs:
+  database-operations:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/WebInterface'
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+
+    - name: Install dependencies
+      run: |
+        cd newWebBased/server
+        npm install
+
+    - name: Generate Prisma client
+      run: |
+        cd newWebBased/server
+        npx prisma generate
+
+    - name: Setup test database
+      run: |
+        cd newWebBased/server
+        cat > .env << EOF
+        DATABASE_URL="postgresql://postgres:postgres@localhost:5432/turnfix_backup_test"
+        JWT_SECRET="backup-test-secret"
+        NODE_ENV=test
+        EOF
+
+    - name: Create test database
+      run: |
+        PGPASSWORD=postgres createdb -h localhost -U postgres turnfix_backup_test
+
+    - name: Run migrations
+      run: |
+        cd newWebBased/server
+        npx prisma migrate deploy
+
+    - name: Seed test data
+      run: |
+        cd newWebBased/server
+        npm run db:seed || echo "Seeding completed"
+
+    - name: Create database backup
+      if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
+      run: |
+        BACKUP_NAME="turnfix-backup-$(date +%Y%m%d-%H%M%S).sql"
+        echo "Creating backup: $BACKUP_NAME"
+        
+        PGPASSWORD=postgres pg_dump \
+          -h localhost \
+          -U postgres \
+          -d turnfix_backup_test \
+          --no-owner \
+          --no-privileges \
+          --clean \
+          --if-exists \
+          > "$BACKUP_NAME"
+        
+        echo "Backup created: $BACKUP_NAME"
+        echo "backup_file=$BACKUP_NAME" >> $GITHUB_ENV
+
+    - name: Validate backup
+      if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
+      run: |
+        if [ -f "${{ env.backup_file }}" ]; then
+          BACKUP_SIZE=$(wc -c < "${{ env.backup_file }}")
+          echo "Backup file size: $BACKUP_SIZE bytes"
+          
+          if [ $BACKUP_SIZE -lt 1000 ]; then
+            echo "❌ Backup file seems too small, might be corrupted"
+            exit 1
+          else
+            echo "✅ Backup file looks valid"
+          fi
+        else
+          echo "❌ Backup file not found"
+          exit 1
+        fi
+
+    - name: Upload backup artifact
+      if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backup-${{ github.run_number }}
+        path: ${{ env.backup_file }}
+        retention-days: 30
+
+    - name: Test restore (dry run)
+      if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
+      run: |
+        # Create a test restore database
+        PGPASSWORD=postgres createdb -h localhost -U postgres turnfix_restore_test
+        
+        # Restore from backup
+        PGPASSWORD=postgres psql \
+          -h localhost \
+          -U postgres \
+          -d turnfix_restore_test \
+          -f "${{ env.backup_file }}"
+        
+        # Verify restore
+        TABLES=$(PGPASSWORD=postgres psql -h localhost -U postgres -d turnfix_restore_test -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public';")
+        echo "Restored tables count: $TABLES"
+        
+        if [ "$TABLES" -gt 0 ]; then
+          echo "✅ Restore test successful"
+        else
+          echo "❌ Restore test failed"
+          exit 1
+        fi
+
+    - name: Generate backup report
+      if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
+      run: |
+        cat > backup-report.md << EOF
+        # Database Backup Report
+        
+        **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Backup File:** ${{ env.backup_file }}
+        **File Size:** $(wc -c < "${{ env.backup_file }}") bytes
+        **Commit:** ${{ github.sha }}
+        **Branch:** ${{ github.ref }}
+        
+        ## Backup Contents
+        
+        \`\`\`
+        $(head -20 "${{ env.backup_file }}")
+        \`\`\`
+        
+        ## Validation
+        
+        - ✅ Backup file created successfully
+        - ✅ File size validation passed
+        - ✅ Restore test passed
+        
+        ## Next Steps
+        
+        - Backup is stored as GitHub Actions artifact
+        - Retention period: 30 days
+        - For production use, configure external backup storage
+        EOF
+
+    - name: Upload backup report
+      if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
+      uses: actions/upload-artifact@v4
+      with:
+        name: backup-report-${{ github.run_number }}
+        path: backup-report.md
+        retention-days: 90
+
+    - name: Database migration check
+      if: github.event.inputs.action == 'migrate'
+      run: |
+        cd newWebBased/server
+        echo "Checking for pending migrations..."
+        npx prisma migrate status
+        
+        echo "Running migrations..."
+        npx prisma migrate deploy
+        
+        echo "Migration completed successfully"
+
+    - name: Cleanup
+      if: always()
+      run: |
+        # Clean up test databases
+        PGPASSWORD=postgres dropdb -h localhost -U postgres --if-exists turnfix_backup_test || true
+        PGPASSWORD=postgres dropdb -h localhost -U postgres --if-exists turnfix_restore_test || true

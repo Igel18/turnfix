@@ -1,0 +1,99 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+
+    - name: Update server dependencies
+      run: |
+        cd newWebBased/server
+        npm update
+        npm audit fix --force || true
+
+    - name: Update client dependencies
+      run: |
+        cd newWebBased/client
+        npm update
+        npm audit fix --force || true
+
+    - name: Update jury portal dependencies
+      run: |
+        cd newWebBased/jury-portal
+        npm update
+        npm audit fix --force || true
+
+    - name: Update root dependencies
+      run: |
+        cd newWebBased
+        npm update
+
+    - name: Check for changes
+      id: changes
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Pull Request
+      if: steps.changes.outputs.changes == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update dependencies'
+        title: 'chore: automated dependency updates'
+        body: |
+          ## 🔄 Automated Dependency Updates
+          
+          This PR contains automated dependency updates for the TurnFix Web application.
+          
+          ### Changes Made:
+          - Updated npm dependencies to latest compatible versions
+          - Applied security fixes where available
+          - Updated package-lock.json files
+          
+          ### Testing:
+          Please verify that all tests pass and the application builds successfully.
+          
+          ### Review Checklist:
+          - [ ] All builds pass
+          - [ ] Tests are passing
+          - [ ] No breaking changes introduced
+          - [ ] Security vulnerabilities addressed
+          
+          *This PR was created automatically by GitHub Actions.*
+        branch: chore/dependency-updates
+        base: WebInterface
+        labels: |
+          dependencies
+          automated
+        reviewers: |
+          ${{ github.repository_owner }}
+
+  dependabot-auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+    - name: Enable auto-merge for Dependabot PRs
+      run: |
+        echo "This job would enable auto-merge for Dependabot PRs"
+        echo "Configure Dependabot in .github/dependabot.yml for automated dependency management"
