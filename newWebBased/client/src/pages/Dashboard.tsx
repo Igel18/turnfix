@@ -492,7 +492,10 @@ export function Dashboard() {
       <div className="space-y-8">
         {/* Database Management Group */}
         <div>
-          <div className="flex items-center justify-between mb-6">
+          <div 
+            className="flex items-center justify-between mb-6 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors border border-transparent hover:border-gray-200"
+            onClick={() => setIsDatabaseManagementCollapsed(!isDatabaseManagementCollapsed)}
+          >
             <div className="flex items-center">
               <div className="bg-gray-100 p-2 rounded-lg mr-3">
                 <BuildingOfficeIcon className="h-6 w-6 text-gray-600" />
@@ -502,17 +505,14 @@ export function Dashboard() {
                 <p className="text-sm text-gray-600">{t('dashboard.databaseManagement.subtitle')}</p>
               </div>
             </div>
-            <button
-              onClick={() => setIsDatabaseManagementCollapsed(!isDatabaseManagementCollapsed)}
-              className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
+            <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
               <span>{isDatabaseManagementCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
               {isDatabaseManagementCollapsed ? (
                 <ChevronDownIcon className="h-4 w-4" />
               ) : (
                 <ChevronUpIcon className="h-4 w-4" />
               )}
-            </button>
+            </div>
           </div>
           
           {!isDatabaseManagementCollapsed && (
@@ -577,7 +577,10 @@ export function Dashboard() {
             <div className="space-y-6">
               {/* Step 1: Event Setup */}
               <div className="bg-white border rounded-lg">
-                <div className="flex items-center justify-between p-4 border-b">
+                <div 
+                  className="flex items-center justify-between p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsEventSetupCollapsed(!isEventSetupCollapsed)}
+                >
                   <div className="flex items-center space-x-3">
                     <div className="bg-blue-100 p-2 rounded-lg">
                       <span className="text-sm font-bold text-blue-600">1</span>
@@ -587,17 +590,14 @@ export function Dashboard() {
                       <p className="text-sm text-gray-600">{t('dashboard.eventManagement.eventSetup.subtitle')}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsEventSetupCollapsed(!isEventSetupCollapsed)}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <span>{isEventSetupCollapsed ? 'Expand' : 'Collapse'}</span>
+                  <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
+                    <span>{isEventSetupCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
                     {isEventSetupCollapsed ? (
                       <ChevronDownIcon className="h-4 w-4" />
                     ) : (
                       <ChevronUpIcon className="h-4 w-4" />
                     )}
-                  </button>
+                  </div>
                 </div>
                 
                 {!isEventSetupCollapsed && (
@@ -634,7 +634,10 @@ export function Dashboard() {
 
               {/* Step 2: Competition Day */}
               <div className="bg-white border rounded-lg">
-                <div className="flex items-center justify-between p-4 border-b">
+                <div 
+                  className="flex items-center justify-between p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsCompetitionDayCollapsed(!isCompetitionDayCollapsed)}
+                >
                   <div className="flex items-center space-x-3">
                     <div className="bg-orange-100 p-2 rounded-lg">
                       <span className="text-sm font-bold text-orange-600">2</span>
@@ -644,17 +647,14 @@ export function Dashboard() {
                       <p className="text-sm text-gray-600">{t('dashboard.eventManagement.competitionDay.subtitle')}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsCompetitionDayCollapsed(!isCompetitionDayCollapsed)}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <span>{isCompetitionDayCollapsed ? 'Expand' : 'Collapse'}</span>
+                  <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
+                    <span>{isCompetitionDayCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
                     {isCompetitionDayCollapsed ? (
                       <ChevronDownIcon className="h-4 w-4" />
                     ) : (
                       <ChevronUpIcon className="h-4 w-4" />
                     )}
-                  </button>
+                  </div>
                 </div>
                 
                 {!isCompetitionDayCollapsed && (
@@ -691,7 +691,10 @@ export function Dashboard() {
 
               {/* Step 3: Results & Awards */}
               <div className="bg-white border rounded-lg">
-                <div className="flex items-center justify-between p-4 border-b">
+                <div 
+                  className="flex items-center justify-between p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsResultsAwardsCollapsed(!isResultsAwardsCollapsed)}
+                >
                   <div className="flex items-center space-x-3">
                     <div className="bg-green-100 p-2 rounded-lg">
                       <span className="text-sm font-bold text-green-600">3</span>
@@ -701,17 +704,14 @@ export function Dashboard() {
                       <p className="text-sm text-gray-600">{t('dashboard.eventManagement.resultsAwards.subtitle')}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsResultsAwardsCollapsed(!isResultsAwardsCollapsed)}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <span>{isResultsAwardsCollapsed ? 'Expand' : 'Collapse'}</span>
+                  <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
+                    <span>{isResultsAwardsCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
                     {isResultsAwardsCollapsed ? (
                       <ChevronDownIcon className="h-4 w-4" />
                     ) : (
                       <ChevronUpIcon className="h-4 w-4" />
                     )}
-                  </button>
+                  </div>
                 </div>
                 
                 {!isResultsAwardsCollapsed && (
