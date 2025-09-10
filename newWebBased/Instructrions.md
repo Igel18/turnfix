@@ -335,11 +335,11 @@ Database Management:
         - Status Management 
         - Create event ->  already use this template 
 
-
-
+---
+Geräte mit Icons 
+---
 lokalisierung 
 refactoring (nur noch prisma) 
-Geräte mit Icons 
 Über Turnfix 
 
 The export as pdf is possible on some UIs. We need some more print export as pdf posibilities. So perhaps we should add a new UI in section event management for print / export as pdf. We need: 

@@ -6,7 +6,7 @@ import { exportToCSV } from '@/utils/csvExport';
 interface Region {
   int_gaueid: number;
   var_name: string;
-  var_kuerzel: string;
+  var_kurz: string;
   int_verbaendeid?: number;
   verband_name?: string;
 }
@@ -40,7 +40,7 @@ const Regions: React.FC = () => {
         setLoading(true);
         const [regionsResponse, verbaendeResponse] = await Promise.all([
           fetch('/api/regions'),
-          fetch('/api/associations')
+          fetch('/api/verbaende')
         ]);
 
         if (!regionsResponse.ok || !verbaendeResponse.ok) {
@@ -52,8 +52,8 @@ const Regions: React.FC = () => {
           verbaendeResponse.json()
         ]);
 
-        setRegions(regionsData.regions || regionsData);
-        setVerbaende(verbaendeData.associations || verbaendeData);
+        setRegions(regionsData);
+        setVerbaende(verbaendeData);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -85,7 +85,7 @@ const Regions: React.FC = () => {
   // Filter data
   const filteredRegions = regions.filter(region => {
     const matchesSearch = region.var_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         region.var_kuerzel.toLowerCase().includes(searchTerm.toLowerCase());
+                         region.var_kurz.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesVerband = selectedVerband === '' || region.int_verbaendeid === selectedVerband;
     return matchesSearch && matchesVerband;
   });
@@ -101,7 +101,7 @@ const Regions: React.FC = () => {
     setEditingRegion(region);
     setFormData({
       var_name: region.var_name,
-      var_kurz: region.var_kuerzel,
+      var_kurz: region.var_kurz,
       int_verbaendeid: region.int_verbaendeid?.toString() || ''
     });
     setIsModalOpen(true);
@@ -119,8 +119,7 @@ const Regions: React.FC = () => {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          var_name: formData.var_name,
-          var_kuerzel: formData.var_kurz,
+          ...formData,
           int_verbaendeid: formData.int_verbaendeid ? parseInt(formData.int_verbaendeid) : null
         })
       });
@@ -169,7 +168,7 @@ const Regions: React.FC = () => {
         const verband = verbaende.find(v => v.int_verbaendeid === region.int_verbaendeid);
         return {
           'Region Name': region.var_name,
-          'Abbreviation': region.var_kuerzel,
+          'Abbreviation': region.var_kurz,
           'Association': verband?.var_name || 'No Association'
         };
       })
@@ -194,7 +193,7 @@ const Regions: React.FC = () => {
               <div className="flex items-center">
                 <span className="text-sm text-gray-500 w-20">Code:</span>
                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                  {region.var_kuerzel}
+                  {region.var_kurz}
                 </span>
               </div>
               <div className="flex items-center">
@@ -269,7 +268,7 @@ const Regions: React.FC = () => {
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                {region.var_kuerzel}
+                {region.var_kurz}
               </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
