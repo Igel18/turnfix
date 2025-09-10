@@ -29,7 +29,7 @@ import LocationsUnified from '@/pages/LocationsUnified'
 import LocationsDebug from '@/pages/LocationsDebug'
 import PersonsUnified from '@/pages/PersonsUnified'
 import SportsUnified from '@/pages/SportsUnified'
-import Formulas from '@/pages/Formulas'
+import FormulasUnified from '@/pages/FormulasUnified'
 import DisciplineGroups from '@/pages/DisciplineGroups'
 import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
@@ -65,7 +65,7 @@ function App() {
             <Route path="/disciplines" element={<DisciplinesUnified />} />
             <Route path="/discipline-fields" element={<DisciplineFields />} />
             <Route path="/sports" element={<SportsUnified />} />
-            <Route path="/formulas" element={<Formulas />} />
+            <Route path="/formulas" element={<FormulasUnified />} />
             <Route path="/discipline-groups" element={<DisciplineGroups />} />
             <Route path="/database-config" element={<DatabaseConfig />} />
             <Route path="/locations" element={<LocationsUnified />} />
