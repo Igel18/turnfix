@@ -1,0 +1,700 @@
+{
+  "app": {
+    "name": "TurnFix",
+    "title": "Turnwettkampf-Verwaltung"
+  },
+  "navigation": {
+    "dashboard": "Home",
+    "events": "Veranstaltungen",
+    "scoreCapture": "Wertungserfassung",
+    "competitions": "Wettkämpfe",
+    "results": "Ergebnisse",
+    "databaseManagement": "Datenverwaltung",
+    "manageDisciplines": "Disziplinen verwalten",
+    "clubs": "Vereine",
+    "participants": "Teilnehmer",
+    "regions": "Regionen",
+    "associations": "Verbände",
+    "configuration": "Einstellungen",
+    "logout": "Abmelden"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück, {{username}}!",
+    "subtitle": "Verwalten Sie Ihre Turnwettkämpfe und Veranstaltungen von diesem Startbildschirm aus.",
+    "databaseManagement": {
+      "title": "Datenverwaltung",
+      "subtitle": "Verwalten Sie Athleten, Vereine und Organisationsstrukturen",
+      "regions": {
+        "title": "Gebiete verwalten",
+        "description": "Turngebiete und Bezirke verwalten"
+      },
+      "associations": {
+        "title": "Verbände verwalten",
+        "description": "Turnverbände und Föderationen verwalten"
+      },
+      "clubs": {
+        "title": "Vereine verwalten",
+        "description": "Turnvereine hinzufügen und bearbeiten"
+      },
+      "athletes": {
+        "title": "Athleten verwalten",
+        "description": "Athleten in der Datenbank hinzufügen und verwalten"
+      },
+      "disciplines": {
+        "title": "Disziplinen verwalten",
+        "description": "Turndisziplinen und Geräte konfigurieren"
+      },
+      "locations": {
+        "title": "Austragungsorte verwalten",
+        "description": "Wettkampfstätten und Austragungsorte verwalten"
+      },
+      "persons": {
+        "title": "Personen verwalten",
+        "description": "Kontaktpersonen und Einzelpersonen verwalten"
+      },
+      "sports": {
+        "title": "Sportarten verwalten",
+        "description": "Sportarten und Kategorien verwalten"
+      },
+      "formulas": {
+        "title": "Formeln verwalten",
+        "description": "Bewertungsformeln und Berechnungen verwalten"
+      },
+      "disciplineGroups": {
+        "title": "Disziplingruppen verwalten",
+        "description": "Disziplingruppen und Kategorien verwalten"
+      },
+      "disciplineFields": {
+        "title": "Disziplinfelder",
+        "description": "Bewertungsfelder für jede Disziplin verwalten"
+      },
+      "certificateLayouts": {
+        "title": "Zertifikat-Layouts",
+        "description": "Zertifikatvorlagen und -layouts entwerfen und verwalten"
+      },
+      "statusManagement": {
+        "title": "Statusverwaltung",
+        "description": "Teilnehmerstatus und Riegenzustände verwalten"
+      },
+      "createEvent": {
+        "title": "Veranstaltung erstellen",
+        "description": "Neuen Turnwettkampf einrichten"
+      }
+    },
+    "eventManagement": {
+      "title": "Veranstaltungsverwaltung",
+      "subtitle": "3-Schritte-Workflow: Setup → Wettkampf → Ergebnisse",
+      "eventSetup": {
+        "title": "Veranstaltungsaufbau",
+        "subtitle": "Planung & Konfiguration",
+        "manageEvents": {
+          "title": "Veranstaltungen verwalten",
+          "description": "Veranstaltungen erstellen und konfigurieren"
+        },
+        "viewCompetitions": {
+          "title": "Wettkämpfe anzeigen",
+          "description": "Wettkämpfe und Disziplinen definieren"
+        },
+        "eventParticipants": {
+          "title": "Veranstaltungsteilnehmer",
+          "description": "Teilnehmer zur Veranstaltung hinzufügen und Wettkämpfen zuordnen"
+        },
+        "manageSquads": {
+          "title": "Riegen verwalten",
+          "description": "Riegen erstellen und Teilnehmer organisieren"
+        },
+        "meldematrix": {
+          "title": "Meldematrix",
+          "description": "Meldematrix: Übersicht Vereine vs. Wettkämpfe"
+        }
+      },
+      "competitionDay": {
+        "title": "Wettkampftag",
+        "subtitle": "Live-Verwaltung & Bewertung",
+        "squadStatus": {
+          "title": "Riegen-Status",
+          "description": "Status für Riegen-Disziplin-Kombinationen verwalten"
+        },
+        "scoreCapture": {
+          "title": "Wertungserfassung",
+          "description": "Noten eingeben und Live-Bewertung verwalten"
+        },
+        "competitionStatus": {
+          "title": "Wettkampfstatus",
+          "description": "Wettkampffortschritt und Status überwachen"
+        },
+        "juryPortal": {
+          "title": "Kampfrichter-Portal",
+          "description": "Vereinfachte Kampfrichter-Oberfläche für den Wettkampftag (öffnet in neuem Fenster)"
+        }
+      },
+      "resultsAwards": {
+        "title": "Ergebnisse & Auszeichnungen",
+        "subtitle": "Analyse & Anerkennung",
+        "results": {
+          "title": "Ergebnisse",
+          "description": "Wettkampfergebnisse anzeigen und verwalten"
+        },
+        "medals": {
+          "title": "Medaillen",
+          "description": "Medaillenspiegel und Siegerehrungen"
+        }
+      },
+      "selectEvent": {
+        "title": "Veranstaltung auswählen",
+        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 3-Schritte-Workflow zuzugreifen: Setup → Wettkampf → Ergebnisse"
+      }
+    },
+    "configuration": {
+      "title": "Einstellungen",
+      "subtitle": "Anwendungseinstellungen, Datenbankkonfiguration und Systemeinstellungen",
+      "applicationSettings": {
+        "title": "Anwendungseinstellungen",
+        "description": "Datenbank, Debug-Modus, Sprache, Ports und andere Systemeinstellungen konfigurieren"
+      }
+    },
+    "buttons": {
+      "expand": "Erweitern",
+      "collapse": "Zuklappen"
+    }
+  },
+  "configuration": {
+    "title": "Einstellungen",
+    "subtitle": "Anwendungseinstellungen und Einstellungen verwalten",
+    "searchPlaceholder": "Konfigurationseinstellungen suchen...",
+    "sectionsTitle": "Einstellungsbereiche",
+    "saveConfiguration": "Einstellungen speichern",
+    "saving": "Speichern...",
+    "testConnection": "Verbindung testen",
+    "sections": {
+      "database": {
+        "title": "Datenbankkonfiguration",
+        "description": "Datenbankverbindungseinstellungen und Anmeldedaten",
+        "host": {
+          "label": "Datenbank-Host",
+          "description": "Hostname oder IP-Adresse des Datenbankservers"
+        },
+        "port": {
+          "label": "Datenbank-Port",
+          "description": "Portnummer des Datenbankservers"
+        },
+        "name": {
+          "label": "Datenbankname",
+          "description": "Name der Datenbank"
+        },
+        "user": {
+          "label": "Datenbankbenutzer",
+          "description": "Datenbankbenutzername"
+        },
+        "password": {
+          "label": "Datenbankpasswort",
+          "description": "Datenbankpasswort (verschlüsselte Speicherung)"
+        },
+        "ssl": {
+          "label": "SSL-Verbindung verwenden",
+          "description": "SSL/TLS für Datenbankverbindung aktivieren"
+        }
+      },
+      "application": {
+        "title": "Anwendungseinstellungen",
+        "description": "Allgemeine Anwendungskonfiguration",
+        "name": {
+          "label": "Anwendungsname",
+          "description": "Anzeigename für die Anwendung"
+        },
+        "version": {
+          "label": "Anwendungsversion",
+          "description": "Aktuelle Anwendungsversion (schreibgeschützt)"
+        },
+        "debug": {
+          "label": "Debug-Modus",
+          "description": "Debug-Protokollierung und zusätzliche Informationen aktivieren"
+        },
+        "serverPort": {
+          "label": "Server-Port",
+          "description": "Backend-Server Portnummer"
+        },
+        "clientPort": {
+          "label": "Client-Port",
+          "description": "Frontend-Entwicklungsserver Port"
+        }
+      },
+      "localization": {
+        "title": "Sprache & Lokalisierung",
+        "description": "Sprach- und Regionaleinstellungen",
+        "language": {
+          "label": "Standardsprache",
+          "description": "Standardsprache für die Anwendung",
+          "options": {
+            "de": "Deutsch (German)",
+            "en": "English",
+            "fr": "Français (French)",
+            "es": "Español (Spanish)"
+          }
+        },
+        "dateFormat": {
+          "label": "Datumsformat",
+          "description": "Standard-Datumsanzeigeformat",
+          "options": {
+            "DD.MM.YYYY": "DD.MM.YYYY (Deutsch)",
+            "MM/DD/YYYY": "MM/DD/YYYY (US)",
+            "YYYY-MM-DD": "YYYY-MM-DD (ISO)",
+            "DD/MM/YYYY": "DD/MM/YYYY (UK)"
+          }
+        },
+        "timezone": {
+          "label": "Zeitzone",
+          "description": "Standard-Zeitzone für die Anwendung",
+          "options": {
+            "Europe/Berlin": "Europe/Berlin (CET/CEST)",
+            "Europe/London": "Europe/London (GMT/BST)",
+            "America/New_York": "America/New_York (EST/EDT)",
+            "Asia/Tokyo": "Asia/Tokyo (JST)"
+          }
+        }
+      },
+      "security": {
+        "title": "Sicherheitseinstellungen",
+        "description": "Sicherheits- und Authentifizierungskonfiguration",
+        "sessionTimeout": {
+          "label": "Sitzungstimeout (Minuten)",
+          "description": "Automatische Abmeldung nach Inaktivität (in Minuten)"
+        },
+        "passwordMinLength": {
+          "label": "Minimale Passwortlänge",
+          "description": "Mindestlänge für Passwörter"
+        },
+        "maxLoginAttempts": {
+          "label": "Max. Anmeldeversuche",
+          "description": "Maximale fehlgeschlagene Anmeldeversuche vor Kontosperrung"
+        },
+        "requireHttps": {
+          "label": "HTTPS erforderlich",
+          "description": "HTTPS-Verbindungen in der Produktion erzwingen"
+        }
+      },
+      "imports": {
+        "title": "Import- & Export-Einstellungen",
+        "description": "Dateiimport- und Exportkonfiguration",
+        "maxFileSize": {
+          "label": "Max. Dateigröße (MB)",
+          "description": "Maximale Dateigröße für Importe (in Megabyte)"
+        },
+        "allowedTypes": {
+          "label": "Erlaubte Dateitypen",
+          "description": "Kommagetrennte Liste erlaubter Dateierweiterungen"
+        },
+        "autoBackup": {
+          "label": "Automatische Sicherung",
+          "description": "Automatische Sicherungen vor Importen erstellen"
+        },
+        "validateImports": {
+          "label": "Importe validieren",
+          "description": "Validierungsprüfungen für importierte Daten durchführen"
+        }
+      },
+      "printing": {
+        "title": "Druck- & PDF-Einstellungen",
+        "description": "Druck- und PDF-Generierungskonfiguration",
+        "pageSize": {
+          "label": "Standard-Seitengröße",
+          "description": "Standard-Seitengröße für PDF-Exporte",
+          "options": {
+            "A4": "A4 (210 × 297 mm)",
+            "A3": "A3 (297 × 420 mm)",
+            "Letter": "Letter (8.5 × 11 in)",
+            "Legal": "Legal (8.5 × 14 in)"
+          }
+        },
+        "orientation": {
+          "label": "Standard-Ausrichtung",
+          "description": "Standard-Seitenausrichtung",
+          "options": {
+            "portrait": "Hochformat",
+            "landscape": "Querformat"
+          }
+        },
+        "quality": {
+          "label": "PDF-Qualität",
+          "description": "PDF-Generierungsqualitätseinstellung",
+          "options": {
+            "low": "Niedrig (kleinere Dateigröße)",
+            "medium": "Mittel",
+            "high": "Hoch (bessere Qualität)"
+          }
+        },
+        "watermark": {
+          "label": "Wasserzeichen einschließen",
+          "description": "TurnFix-Wasserzeichen zu generierten PDFs hinzufügen"
+        }
+      },
+      "logging": {
+        "title": "Protokollierungskonfiguration",
+        "description": "Anwendungsprotokollierung und Überwachungseinstellungen",
+        "level": {
+          "label": "Protokollstufe",
+          "description": "Minimale Protokollstufe zum Aufzeichnen",
+          "options": {
+            "error": "Fehler (nur Fehler)",
+            "warn": "Warnung (Warnungen und Fehler)",
+            "info": "Info (allgemeine Informationen)",
+            "debug": "Debug (detaillierte Fehlersuche)"
+          }
+        },
+        "retention": {
+          "label": "Protokollaufbewahrung (Tage)",
+          "description": "Anzahl der Tage, um Protokolldateien zu behalten"
+        },
+        "auditLog": {
+          "label": "Audit-Protokollierung aktivieren",
+          "description": "Benutzeraktionen und Datenänderungen verfolgen"
+        },
+        "dbQueries": {
+          "label": "Datenbankabfragen protokollieren",
+          "description": "Alle Datenbankabfragen protokollieren (nur Debug-Modus)"
+        }
+      }
+    },
+    "common": {
+      "enable": "Diese Einstellung aktivieren",
+      "required": "*"
+    },
+    "messages": {
+      "saveSuccess": "Einstellungen erfolgreich gespeichert",
+      "saveFailed": "Fehler beim Speichern der Einstellungen",
+      "loadFailed": "Fehler beim Laden der Einstellungen",
+      "dbTestSuccess": "Datenbankverbindung erfolgreich",
+      "dbTestFailed": "Datenbankverbindung fehlgeschlagen",
+      "resetSuccess": "Konfiguration auf Standardwerte zurückgesetzt",
+      "resetFailed": "Fehler beim Zurücksetzen der Konfiguration",
+      "exportSuccess": "Konfiguration erfolgreich exportiert",
+      "exportFailed": "Fehler beim Exportieren der Konfiguration",
+      "importSuccess": "Konfiguration erfolgreich importiert",
+      "importFailed": "Fehler beim Importieren der Konfiguration"
+    }
+  },
+  "common": {
+    "loading": "Lädt...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "search": "Suchen",
+    "filter": "Filter",
+    "reset": "Zurücksetzen",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Information"
+  },
+  "events": {
+    "title": "Veranstaltungsverwaltung",
+    "subtitle": "Turnwettkämpfe und Veranstaltungen verwalten",
+    "subtitleWithCount": "Turnwettkämpfe und Veranstaltungen verwalten ({{count}} Veranstaltungen geladen)",
+    "searchPlaceholder": "Veranstaltungen suchen...",
+    "addEvent": "Veranstaltung hinzufügen",
+    "editEvent": "Veranstaltung bearbeiten",
+    "deleteEvent": "Veranstaltung löschen",
+    "noEvents": "Keine Veranstaltungen gefunden",
+    "loadingEvents": "Veranstaltungen werden geladen...",
+    "table": {
+      "eventName": "Veranstaltungsname",
+      "dates": "Termine",
+      "location": "Austragungsort",
+      "participants": "Teilnehmer",
+      "clubs": "Vereine",
+      "actions": "Aktionen",
+      "to": "bis"
+    },
+    "card": {
+      "participants": "{{count}} Teilnehmer",
+      "clubs": "{{count}} Vereine",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    },
+    "form": {
+      "eventName": "Veranstaltungsname",
+      "eventNamePlaceholder": "Name der Veranstaltung eingeben",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum", 
+      "location": "Austragungsort",
+      "locationPlaceholder": "Austragungsort auswählen",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung der Veranstaltung (optional)",
+      "organizer": "Veranstalter",
+      "organizerPlaceholder": "Name des Veranstalters",
+      "registrationDeadline": "Meldeschluss",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "creating": "Erstelle...",
+      "updating": "Aktualisiere..."
+    },
+    "status": {
+      "upcoming": "Bevorstehend",
+      "active": "Aktiv",
+      "completed": "Abgeschlossen"
+    },
+    "filters": {
+      "status": "Status",
+      "location": "Austragungsort",
+      "dateRange": "Datumsbereich",
+      "organizer": "Veranstalter",
+      "clearAll": "Alle Filter löschen"
+    },
+    "messages": {
+      "createSuccess": "Veranstaltung erfolgreich erstellt",
+      "updateSuccess": "Veranstaltung erfolgreich aktualisiert",
+      "deleteSuccess": "Veranstaltung erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Veranstaltung",
+      "updateError": "Fehler beim Aktualisieren der Veranstaltung",
+      "deleteError": "Fehler beim Löschen der Veranstaltung",
+      "loadError": "Fehler beim Laden der Veranstaltungen",
+      "confirmDelete": "Möchten Sie diese Veranstaltung wirklich löschen?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "export": {
+      "csv": "Als CSV exportieren",
+      "filename": "veranstaltungen"
+    }
+  },
+  "participants": {
+    "title": "Teilnehmerverwaltung",
+    "subtitle": "Teilnehmer und ihre Wettkampfdaten verwalten",
+    "searchPlaceholder": "Teilnehmer suchen...",
+    "addParticipant": "Teilnehmer hinzufügen",
+    "editParticipant": "Teilnehmer bearbeiten",
+    "deleteParticipant": "Teilnehmer löschen",
+    "noParticipants": "Keine Teilnehmer gefunden",
+    "loadingParticipants": "Lade Teilnehmer...",
+    "table": {
+      "name": "Name",
+      "age": "Alter",
+      "gender": "Geschlecht",
+      "club": "Verein",
+      "startNumber": "Startnummer",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "firstName": "Vorname",
+      "firstNamePlaceholder": "Vorname eingeben",
+      "lastName": "Nachname",
+      "lastNamePlaceholder": "Nachname eingeben",
+      "birthDate": "Geburtsdatum",
+      "gender": "Geschlecht",
+      "genderPlaceholder": "Geschlecht auswählen",
+      "club": "Verein",
+      "clubPlaceholder": "Verein auswählen",
+      "startNumber": "Startnummer",
+      "startNumberPlaceholder": "Startnummer (optional)",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "creating": "Erstelle...",
+      "updating": "Aktualisiere..."
+    },
+    "gender": {
+      "male": "Männlich",
+      "female": "Weiblich"
+    },
+    "filters": {
+      "club": "Verein",
+      "gender": "Geschlecht",
+      "age": "Alter",
+      "ageAll": "Alle Altersgruppen",
+      "ageChild": "Kinder (6-11)",
+      "ageYouth": "Jugend (12-17)",
+      "ageAdult": "Erwachsene (18+)",
+      "clearAll": "Alle Filter zurücksetzen"
+    },
+    "messages": {
+      "createSuccess": "Teilnehmer erfolgreich erstellt",
+      "updateSuccess": "Teilnehmer erfolgreich aktualisiert",
+      "deleteSuccess": "Teilnehmer erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Teilnehmers",
+      "updateError": "Fehler beim Aktualisieren des Teilnehmers",
+      "deleteError": "Fehler beim Löschen des Teilnehmers",
+      "loadError": "Fehler beim Laden der Teilnehmer",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Teilnehmer löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "export": {
+      "csv": "Als CSV exportieren",
+      "filename": "participants"
+    },
+    "pagination": {
+      "showing": "Zeige {{start}} bis {{end}} von {{total}} Teilnehmern",
+      "previous": "Vorherige",
+      "next": "Nächste",
+      "page": "Seite {{page}} von {{total}}"
+    }
+  },
+  "clubs": {
+    "title": "Vereinsverwaltung",
+    "subtitle": "Turnvereine und ihre Informationen verwalten",
+    "searchPlaceholder": "Vereine suchen...",
+    "addClub": "Verein hinzufügen",
+    "editClub": "Verein bearbeiten",
+    "deleteClub": "Verein löschen",
+    "noClubs": "Keine Vereine gefunden",
+    "loadingClubs": "Lade Vereine...",
+    "table": {
+      "name": "Vereinsname",
+      "location": "Ort",
+      "association": "Verband",
+      "participants": "Teilnehmer",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Vereinsname",
+      "namePlaceholder": "Vereinsname eingeben",
+      "location": "Ort",
+      "locationPlaceholder": "Ort eingeben",
+      "association": "Verband",
+      "associationPlaceholder": "Verband auswählen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Verein erfolgreich erstellt",
+      "updateSuccess": "Verein erfolgreich aktualisiert",
+      "deleteSuccess": "Verein erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Vereins",
+      "updateError": "Fehler beim Aktualisieren des Vereins",
+      "deleteError": "Fehler beim Löschen des Vereins",
+      "loadError": "Fehler beim Laden der Vereine",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Verein löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  },
+  "disciplines": {
+    "title": "Disziplinenverwaltung",
+    "subtitle": "Turndisziplinen und Geräte verwalten",
+    "searchPlaceholder": "Disziplinen suchen...",
+    "addDiscipline": "Disziplin hinzufügen",
+    "editDiscipline": "Disziplin bearbeiten",
+    "deleteDiscipline": "Disziplin löschen",
+    "noDisciplines": "Keine Disziplinen gefunden",
+    "loadingDisciplines": "Lade Disziplinen...",
+    "table": {
+      "name": "Disziplinname",
+      "description": "Beschreibung",
+      "gender": "Geschlecht",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Disziplinname",
+      "namePlaceholder": "Disziplinname eingeben",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung eingeben",
+      "gender": "Geschlecht",
+      "genderMale": "Männlich",
+      "genderFemale": "Weiblich",
+      "genderBoth": "Beide",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Disziplin erfolgreich erstellt",
+      "updateSuccess": "Disziplin erfolgreich aktualisiert",
+      "deleteSuccess": "Disziplin erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Disziplin",
+      "updateError": "Fehler beim Aktualisieren der Disziplin",
+      "deleteError": "Fehler beim Löschen der Disziplin",
+      "loadError": "Fehler beim Laden der Disziplinen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Disziplin löschen möchten?"
+    }
+  },
+  "regions": {
+    "title": "Regionenverwaltung",
+    "subtitle": "Turngebiete und Bezirke verwalten",
+    "searchPlaceholder": "Regionen suchen...",
+    "addRegion": "Region hinzufügen",
+    "editRegion": "Region bearbeiten",
+    "deleteRegion": "Region löschen",
+    "noRegions": "Keine Regionen gefunden",
+    "loadingRegions": "Lade Regionen...",
+    "table": {
+      "name": "Regionname",
+      "code": "Code",
+      "description": "Beschreibung",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Regionname",
+      "namePlaceholder": "Regionname eingeben",
+      "code": "Code",
+      "codePlaceholder": "Regionscode eingeben",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung eingeben",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Region erfolgreich erstellt",
+      "updateSuccess": "Region erfolgreich aktualisiert",
+      "deleteSuccess": "Region erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Region",
+      "updateError": "Fehler beim Aktualisieren der Region",
+      "deleteError": "Fehler beim Löschen der Region",
+      "loadError": "Fehler beim Laden der Regionen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Region löschen möchten?"
+    }
+  },
+  "associations": {
+    "title": "Verbandsverwaltung",
+    "subtitle": "Turnverbände und Föderationen verwalten",
+    "searchPlaceholder": "Verbände suchen...",
+    "addAssociation": "Verband hinzufügen",
+    "editAssociation": "Verband bearbeiten",
+    "deleteAssociation": "Verband löschen",
+    "noAssociations": "Keine Verbände gefunden",
+    "loadingAssociations": "Lade Verbände...",
+    "table": {
+      "name": "Verbandsname",
+      "region": "Region",
+      "clubs": "Vereine",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Verbandsname",
+      "namePlaceholder": "Verbandsname eingeben",
+      "region": "Region",
+      "regionPlaceholder": "Region auswählen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Verband erfolgreich erstellt",
+      "updateSuccess": "Verband erfolgreich aktualisiert",
+      "deleteSuccess": "Verband erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Verbands",
+      "updateError": "Fehler beim Aktualisieren des Verbands",
+      "deleteError": "Fehler beim Löschen des Verbands",
+      "loadError": "Fehler beim Laden der Verbände",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Verband löschen möchten?"
+    }
+  },
+  "home": {
+    "welcome": "Willkommen bei TurnFix",
+    "description": "Modernes Turnwettkampf-Verwaltungssystem mit Echtzeit-Bewertung, Teilnehmerverfolgung und umfassender Analyse.",
+    "enterDashboard": "Zum Dashboard",
+    "viewEvents": "Veranstaltungen anzeigen",
+    "databaseConfig": "Datenbankeinstellungen",
+    "authNote": "Benutzerauthentifizierung vorübergehend deaktiviert - Vollzugriff verfügbar"
+  },
+  "login": {
+    "title": "TurnFix Anmeldung",
+    "subtitle": "Moderne Turnwettkampf-Verwaltung",
+    "authDisabled": "Benutzerauthentifizierung ist vorübergehend deaktiviert",
+    "directAccess": "Sie können direkt auf die Anwendung zugreifen, ohne sich anzumelden.",
+    "goToDashboard": "Zum Dashboard",
+    "backToHome": "Zurück zur Startseite"
+  }
+}

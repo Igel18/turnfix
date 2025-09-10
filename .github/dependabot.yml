@@ -1,0 +1,74 @@
+version: 2
+updates:
+  # Root package
+  - package-ecosystem: "npm"
+    directory: "/newWebBased"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Server dependencies
+  - package-ecosystem: "npm"
+    directory: "/newWebBased/server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "server"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Client dependencies
+  - package-ecosystem: "npm"
+    directory: "/newWebBased/client"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "client"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Jury portal dependencies
+  - package-ecosystem: "npm"
+    directory: "/newWebBased/jury-portal"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "jury-portal"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"

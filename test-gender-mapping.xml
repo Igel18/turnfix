@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GymNetExportStructure>
+    <Wettkaempfe>
+        <Wettkampf>
+            <waID>999</waID>
+            <waNr>999</waNr>
+            <waName>Gender Test Competition</waName>
+            <waGeschlecht>2</waGeschlecht>
+            <waTyp>0</waTyp>
+            <waAltersklasse>13</waAltersklasse>
+            <Mannschaften>
+                <Mannschaft>
+                    <manNr>1</manNr>
+                    <manName>Test Team</manName>
+                    <Teilnehmer>
+                        <TN>
+                            <perID>9999001</perID>
+                            <perName>TestFemale</perName>
+                            <perVorname>Emma</perVorname>
+                            <perGeburt>01.01.2012</perGeburt>
+                            <perGeschlecht>2</perGeschlecht>
+                            <espID>1000001</espID>
+                            <verName>Test Club</verName>
+                        </TN>
+                        <TN>
+                            <perID>9999002</perID>
+                            <perName>TestMale</perName>
+                            <perVorname>Max</perVorname>
+                            <perGeburt>01.01.2012</perGeburt>
+                            <perGeschlecht>1</perGeschlecht>
+                            <espID>1000002</espID>
+                            <verName>Test Club</verName>
+                        </TN>
+                    </Teilnehmer>
+                </Mannschaft>
+            </Mannschaften>
+        </Wettkampf>
+    </Wettkaempfe>
+</GymNetExportStructure>

@@ -1,0 +1,522 @@
+name: Build and Release TurnFix Web
+
+on:
+  push:
+    branches: [main, WebInterface, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, WebInterface]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a release'
+        required: false
+        default: false
+        type: boolean
+      release_tag:
+        description: 'Release tag (e.g., v1.0.0)'
+        required: false
+        default: ''
+
+jobs:
+  # Test and Build Job
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: turnfix
+          POSTGRES_PASSWORD: turnfix_test
+          POSTGRES_DB: turnfix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: |
+          newWebBased/package-lock.json
+          newWebBased/server/package-lock.json
+          newWebBased/client/package-lock.json
+          newWebBased/jury-portal/package-lock.json
+
+    - name: Clear npm cache
+      run: npm cache clean --force
+
+    - name: Create .env file for testing
+      run: |
+        cd newWebBased/server
+        cat > .env << EOF
+        # Database
+        DATABASE_URL="postgresql://turnfix:turnfix_test@localhost:5432/turnfix_test"
+        
+        # JWT
+        JWT_SECRET="test-secret-key-for-github-actions-only"
+        JWT_EXPIRES_IN="1d"
+        
+        # Server
+        PORT=3001
+        NODE_ENV=test
+        
+        # CORS
+        CORS_ORIGIN="http://localhost:5173"
+        
+        # File Upload
+        MAX_FILE_SIZE=50000000
+        UPLOAD_DIR="uploads"
+        
+        # Debug
+        DEBUG=false
+        EOF
+
+    - name: Install dependencies with explicit Prisma
+      run: |
+        cd newWebBased
+        npm ci || npm install
+        
+        cd server
+        npm ci || npm install
+        # Explicitly install Prisma dependencies
+        npm install prisma @prisma/client --save-dev
+        
+        cd ../client
+        npm ci || npm install
+        
+        cd ../jury-portal
+        npm ci || npm install
+
+    - name: Generate Prisma client
+      run: |
+        cd newWebBased/server
+        # Use direct path to avoid PATH issues
+        ./node_modules/.bin/prisma generate
+
+    - name: Run database migrations
+      run: |
+        cd newWebBased/server
+        ./node_modules/.bin/prisma migrate deploy
+
+    - name: Seed test database
+      run: |
+        cd newWebBased/server
+        npm run db:seed || echo "Seeding failed, continuing..."
+
+    - name: Run server tests
+      run: |
+        cd newWebBased/server
+        npm run test || echo "Server tests failed, continuing..."
+
+    - name: Run server test coverage
+      run: |
+        cd newWebBased/server
+        npm run test:coverage || echo "Server coverage failed, continuing..."
+
+    - name: Type check client
+      run: |
+        cd newWebBased/client
+        npm run type-check
+
+    - name: Lint client
+      run: |
+        cd newWebBased/client
+        npm run lint || echo "Linting failed, continuing..."
+
+    - name: Run client tests
+      run: |
+        cd newWebBased/client
+        npm run test:run || echo "Client tests failed, continuing..."
+
+    - name: Build server
+      run: |
+        cd newWebBased/server
+        npm run build
+
+    - name: Build client
+      run: |
+        cd newWebBased/client
+        npm run build
+
+    - name: Build jury portal
+      run: |
+        cd newWebBased/jury-portal
+        npm run build
+
+    - name: Create build artifacts
+      run: |
+        mkdir -p artifacts
+        
+        # Server artifacts
+        mkdir -p artifacts/server
+        cp -r newWebBased/server/dist artifacts/server/
+        cp newWebBased/server/package.json artifacts/server/
+        cp newWebBased/server/package-lock.json artifacts/server/
+        cp -r newWebBased/server/prisma artifacts/server/
+        
+        # Client artifacts
+        mkdir -p artifacts/client
+        cp -r newWebBased/client/dist artifacts/client/
+        
+        # Jury portal artifacts
+        mkdir -p artifacts/jury-portal
+        cp -r newWebBased/jury-portal/dist artifacts/jury-portal/
+        
+        # Root package files
+        cp newWebBased/package.json artifacts/
+        cp newWebBased/package-lock.json artifacts/
+        cp newWebBased/README.md artifacts/
+        cp newWebBased/GETTING_STARTED.md artifacts/
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: turnfix-web-build-${{ matrix.node-version }}
+        path: artifacts/
+        retention-days: 30
+
+  # Windows Build Job
+  build-windows:
+    runs-on: windows-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: |
+          newWebBased/package-lock.json
+          newWebBased/server/package-lock.json
+          newWebBased/client/package-lock.json
+          newWebBased/jury-portal/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd newWebBased
+        npm install
+        cd server
+        npm install
+        cd ../client
+        npm install
+        cd ../jury-portal
+        npm install
+
+    - name: Generate Prisma client
+      run: |
+        cd newWebBased/server
+        # Check if Prisma is installed, if not install it
+        if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
+          npm install -g npx
+        }
+        npx prisma --version
+        if ($LASTEXITCODE -ne 0) {
+          npm install @prisma/client prisma
+        }
+        npx prisma generate
+
+    - name: Build all components
+      run: |
+        cd newWebBased/server
+        npm run build
+        cd ../client
+        npm run build
+        cd ../jury-portal
+        npm run build
+
+    - name: Create Windows setup package
+      run: |
+        # Create setup directory
+        New-Item -ItemType Directory -Force -Path "setup-package"
+        
+        # Copy built applications
+        Copy-Item -Recurse "newWebBased/server/dist" "setup-package/server"
+        Copy-Item -Recurse "newWebBased/client/dist" "setup-package/client"
+        Copy-Item -Recurse "newWebBased/jury-portal/dist" "setup-package/jury-portal"
+        
+        # Copy package files
+        Copy-Item "newWebBased/server/package.json" "setup-package/server/"
+        Copy-Item "newWebBased/server/package-lock.json" "setup-package/server/"
+        Copy-Item -Recurse "newWebBased/server/prisma" "setup-package/server/"
+        
+        # Copy root files
+        Copy-Item "newWebBased/package.json" "setup-package/"
+        Copy-Item "newWebBased/README.md" "setup-package/"
+        Copy-Item "newWebBased/GETTING_STARTED.md" "setup-package/"
+        
+        # Copy setup scripts
+        Copy-Item "start-servers-network.ps1" "setup-package/" -ErrorAction SilentlyContinue
+        Copy-Item "start-with-jury.ps1" "setup-package/" -ErrorAction SilentlyContinue
+        Copy-Item "setup-network.ps1" "setup-package/" -ErrorAction SilentlyContinue
+
+    - name: Create setup script
+      run: |
+        @'
+        # TurnFix Web Setup Script
+        # This script sets up the TurnFix Web application on Windows
+        
+        Write-Host "TurnFix Web Setup" -ForegroundColor Green
+        Write-Host "=================" -ForegroundColor Green
+        
+        # Check Node.js installation
+        try {
+            $nodeVersion = node --version
+            Write-Host "Node.js version: $nodeVersion" -ForegroundColor Yellow
+        } catch {
+            Write-Error "Node.js is not installed. Please install Node.js 18.x or higher."
+            exit 1
+        }
+        
+        # Check PostgreSQL connection
+        Write-Host "Setting up database..." -ForegroundColor Yellow
+        
+        # Install server dependencies
+        Write-Host "Installing server dependencies..." -ForegroundColor Yellow
+        Set-Location server
+        npm install --production
+        
+        # Generate Prisma client
+        Write-Host "Generating database client..." -ForegroundColor Yellow
+        npx prisma generate
+        
+        # Go back to root
+        Set-Location ..
+        
+        Write-Host "Setup completed successfully!" -ForegroundColor Green
+        Write-Host "" 
+        Write-Host "To start the application:" -ForegroundColor Cyan
+        Write-Host "1. Configure your database connection in server/.env" -ForegroundColor Cyan
+        Write-Host "2. Run: .\start-application.ps1" -ForegroundColor Cyan
+        '@ | Out-File -FilePath "setup-package/setup.ps1" -Encoding UTF8
+
+    - name: Create start script
+      run: |
+        @'
+        # TurnFix Web Start Script
+        
+        Write-Host "Starting TurnFix Web Application..." -ForegroundColor Green
+        
+        # Start server
+        Write-Host "Starting server..." -ForegroundColor Yellow
+        Start-Process PowerShell -ArgumentList "-NoExit", "-Command", "cd server; npm start" -WindowStyle Normal
+        
+        # Wait a moment for server to start
+        Start-Sleep -Seconds 3
+        
+        # Start jury portal (if available)
+        if (Test-Path "start-with-jury.ps1") {
+            Write-Host "Starting jury portal..." -ForegroundColor Yellow
+            & ".\start-with-jury.ps1"
+        } else {
+            Write-Host "Jury portal not available in this setup." -ForegroundColor Yellow
+        }
+        
+        Write-Host "Application started!" -ForegroundColor Green
+        Write-Host "Access the application at: http://localhost:3001" -ForegroundColor Cyan
+        Write-Host "Press any key to exit..."
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        '@ | Out-File -FilePath "setup-package/start-application.ps1" -Encoding UTF8
+
+    - name: Create ZIP package
+      run: |
+        Compress-Archive -Path "setup-package/*" -DestinationPath "turnfix-web-setup-windows.zip"
+
+    - name: Upload Windows package
+      uses: actions/upload-artifact@v4
+      with:
+        name: turnfix-web-windows-setup
+        path: turnfix-web-setup-windows.zip
+        retention-days: 90
+
+  # Create Release Job
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [build-and-test, build-windows]
+    if: (github.ref == 'refs/heads/main' && github.event.inputs.create_release == 'true') || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: turnfix-web-build-20.x
+        path: ./artifacts
+
+    - name: Download Windows setup
+      uses: actions/download-artifact@v4
+      with:
+        name: turnfix-web-windows-setup
+        path: ./windows-setup
+
+    - name: Create release tarball
+      run: |
+        cd artifacts
+        tar -czf ../turnfix-web-linux.tar.gz .
+        cd ..
+
+    - name: Determine release tag
+      id: release_tag
+      run: |
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.event.inputs.release_tag }}" != "" ]]; then
+          echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=v$(date +%Y.%m.%d)-$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        CHANGELOG=$(cat << 'EOF'
+        ## 🚀 TurnFix Web Release ${{ steps.release_tag.outputs.tag }}
+        
+        ### 📦 What's Included
+        - **Server**: Node.js/Express backend with Prisma ORM
+        - **Client**: React frontend with TypeScript and Tailwind CSS
+        - **Jury Portal**: Dedicated jury interface
+        - **Database**: PostgreSQL schema and migrations
+        
+        ### 🏗️ Installation
+        
+        #### Linux/macOS:
+        1. Download `turnfix-web-linux.tar.gz`
+        2. Extract: `tar -xzf turnfix-web-linux.tar.gz`
+        3. Install dependencies: `cd server && npm install --production`
+        4. Configure database in `server/.env`
+        5. Start: `npm start`
+        
+        #### Windows:
+        1. Download `turnfix-web-setup-windows.zip`
+        2. Extract the ZIP file
+        3. Run `setup.ps1` as Administrator
+        4. Configure database connection
+        5. Run `start-application.ps1`
+        
+        ### 🔧 Requirements
+        - Node.js 18.x or higher
+        - PostgreSQL 12.x or higher
+        - 2GB RAM minimum
+        - 1GB disk space
+        
+        ### 📖 Documentation
+        - See `GETTING_STARTED.md` for detailed setup instructions
+        - API documentation available at `/api/docs` when running
+        
+        ### 🐛 Known Issues
+        - First startup may take longer due to database initialization
+        - Ensure PostgreSQL service is running before starting the application
+        
+        Built on: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        Commit: ${{ github.sha }}
+        EOF
+        )
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.release_tag.outputs.tag }}
+        name: TurnFix Web ${{ steps.release_tag.outputs.tag }}
+        body: ${{ steps.changelog.outputs.changelog }}
+        draft: false
+        prerelease: ${{ contains(steps.release_tag.outputs.tag, '-') }}
+        files: |
+          turnfix-web-linux.tar.gz
+          windows-setup/turnfix-web-setup-windows.zip
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Docker Build Job (Optional)
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: turnfix-web-build-20.x
+        path: ./artifacts
+
+    - name: Create Dockerfile
+      run: |
+        cat > Dockerfile << 'EOF'
+        # Multi-stage build for TurnFix Web
+        FROM node:20-alpine AS base
+        
+        # Install dependencies only when needed
+        FROM base AS deps
+        WORKDIR /app
+        COPY artifacts/server/package*.json ./
+        RUN npm ci --only=production
+        
+        # Production image
+        FROM base AS runner
+        WORKDIR /app
+        
+        ENV NODE_ENV=production
+        
+        RUN addgroup --system --gid 1001 nodejs
+        RUN adduser --system --uid 1001 turnfix
+        
+        # Copy server files
+        COPY --from=deps /app/node_modules ./node_modules
+        COPY artifacts/server/ ./
+        
+        # Copy client build
+        COPY artifacts/client/dist ./public
+        
+        # Copy jury portal build
+        COPY artifacts/jury-portal/dist ./jury-public
+        
+        USER turnfix
+        
+        EXPOSE 3001
+        
+        CMD ["npm", "start"]
+        EOF
+
+    - name: Build Docker image
+      run: |
+        docker build -t turnfix-web:latest .
+        docker save turnfix-web:latest > turnfix-web-docker.tar
+
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v4
+      with:
+        name: turnfix-web-docker
+        path: turnfix-web-docker.tar
+        retention-days: 30

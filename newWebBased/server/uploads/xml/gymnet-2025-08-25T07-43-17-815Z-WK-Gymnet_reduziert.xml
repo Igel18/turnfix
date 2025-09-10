@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wettkämpfe>
+    <Wettkampf>
+        <waID>72600</waID>
+        <waNr>0006</waNr>
+        <waBezeichnung>Gerätvierkampf w (15-16Jahre)</waBezeichnung>
+        <waFolge>0</waFolge>
+        <waGeschlecht>2</waGeschlecht>
+        <waAlterMin>15</waAlterMin>
+        <waAlterMax>16</waAlterMax>
+        <waAnzahlMin>1</waAnzahlMin>
+        <waAnzahlMax>1</waAnzahlMax>
+        <Mannschaften>
+            <Mannschaft>
+                <etID>528960</etID>
+                <etRiege>0</etRiege>
+                <etStartnummer>0</etStartnummer>
+                <etBezeichnung></etBezeichnung>
+                <etErfasst>0</etErfasst>
+                <etPunkte>0,000</etPunkte>
+                <etPlatzierung>0</etPlatzierung>
+                <verID>3538</verID>
+                <verDTBKennung>0271500</verDTBKennung>
+                <verKurzname>TSV Markt Wald</verKurzname>
+                <Teilnehmer>
+                    <TN>
+                        <espID>902000</espID>
+                        <espStartnummer>0</espStartnummer>
+                        <espZusatz></espZusatz>
+                        <perID>865163</perID>
+                        <perName>Musterfrau</perName>
+                        <perVorname>Max</perVorname>
+                        <perGeburt>23.09.2021</perGeburt>
+                        <perGeschlecht>w</perGeschlecht>
+                    </TN>
+                </Teilnehmer>
+                <Disziplinen>
+                    <Disziplin>
+                        <wedDisID>599</wedDisID>
+                        <wedDisNr>260</wedDisNr>
+                        <wedDisName>Sprung w.</wedDisName>
+                        <wtdPosition>1</wtdPosition>
+                        <wtdID>454888</wtdID>
+                        <wtdBestzeit></wtdBestzeit>
+                        <wtdSprung1>0</wtdSprung1>
+                        <wtdSprung2>0</wtdSprung2>
+                        <wtdWertung></wtdWertung>
+                        <wtdVersuch1></wtdVersuch1>
+                        <wtdVersuch2></wtdVersuch2>
+                        <wtdVersuch3></wtdVersuch3>
+                        <wtdVersuch4></wtdVersuch4>
+                        <wtdVersuch5></wtdVersuch5>
+                        <wtdVersuch6></wtdVersuch6>
+                        <wtdVersuch7></wtdVersuch7>
+                        <wtdVersuch8></wtdVersuch8>
+                        <wtdVersuch9></wtdVersuch9>
+                        <wtdVersuch10></wtdVersuch10>
+                        <wtdPunkte></wtdPunkte>
+                        <wdtErfasst></wdtErfasst>
+                        <wtdLauf>0</wtdLauf>
+                        <wtdBahn>0</wtdBahn>
+                        <wtdOrtID>0</wtdOrtID>
+                        <wtdOrtZusatz></wtdOrtZusatz>
+                        <wtdDatum></wtdDatum>
+                        <wtdZeit></wtdZeit>
+                    </Disziplin>
+                    <Disziplin>
+                        <wedDisID>609</wedDisID><wedDisNr>270</wedDisNr><wedDisName>Reck/StuBa.</wedDisName><wtdPosition>2</wtdPosition><wtdID>454889</wtdID>
+                        <wtdBestzeit></wtdBestzeit><wtdSprung1>0</wtdSprung1><wtdSprung2>0</wtdSprung2><wtdWertung></wtdWertung><wtdVersuch1></wtdVersuch1><wtdVersuch2></wtdVersuch2>
+                        <wtdVersuch3></wtdVersuch3><wtdVersuch4></wtdVersuch4><wtdVersuch5></wtdVersuch5><wtdVersuch6></wtdVersuch6><wtdVersuch7></wtdVersuch7><wtdVersuch8></wtdVersuch8>
+                        <wtdVersuch9></wtdVersuch9><wtdVersuch10></wtdVersuch10><wtdPunkte></wtdPunkte><wdtErfasst></wdtErfasst>
+                        <wtdLauf>0</wtdLauf><wtdBahn>0</wtdBahn><wtdOrtID>0</wtdOrtID><wtdOrtZusatz></wtdOrtZusatz><wtdDatum></wtdDatum><wtdZeit></wtdZeit>
+                    </Disziplin>
+                    <Disziplin>
+                        <wedDisID>619</wedDisID><wedDisNr>280</wedDisNr><wedDisName>Schwebebalken</wedDisName><wtdPosition>3</wtdPosition><wtdID>454890</wtdID><wtdBestzeit></wtdBestzeit><wtdSprung1>0</wtdSprung1><wtdSprung2>0</wtdSprung2><wtdWertung></wtdWertung><wtdVersuch1></wtdVersuch1><wtdVersuch2></wtdVersuch2><wtdVersuch3></wtdVersuch3><wtdVersuch4></wtdVersuch4><wtdVersuch5></wtdVersuch5><wtdVersuch6></wtdVersuch6><wtdVersuch7></wtdVersuch7><wtdVersuch8></wtdVersuch8><wtdVersuch9></wtdVersuch9><wtdVersuch10></wtdVersuch10><wtdPunkte></wtdPunkte><wdtErfasst></wdtErfasst><wtdLauf>0</wtdLauf><wtdBahn>0</wtdBahn><wtdOrtID>0</wtdOrtID><wtdOrtZusatz></wtdOrtZusatz><wtdDatum></wtdDatum><wtdZeit></wtdZeit></Disziplin><Disziplin><wedDisID>629</wedDisID><wedDisNr>290</wedDisNr><wedDisName>Boden w.</wedDisName><wtdPosition>4</wtdPosition><wtdID>454891</wtdID><wtdBestzeit></wtdBestzeit><wtdSprung1>0</wtdSprung1><wtdSprung2>0</wtdSprung2><wtdWertung></wtdWertung><wtdVersuch1></wtdVersuch1><wtdVersuch2></wtdVersuch2><wtdVersuch3></wtdVersuch3><wtdVersuch4></wtdVersuch4><wtdVersuch5></wtdVersuch5><wtdVersuch6></wtdVersuch6><wtdVersuch7></wtdVersuch7><wtdVersuch8></wtdVersuch8><wtdVersuch9></wtdVersuch9><wtdVersuch10></wtdVersuch10><wtdPunkte></wtdPunkte><wdtErfasst></wdtErfasst><wtdLauf>0</wtdLauf><wtdBahn>0</wtdBahn><wtdOrtID>0</wtdOrtID><wtdOrtZusatz></wtdOrtZusatz><wtdDatum></wtdDatum><wtdZeit></wtdZeit>
+                    </Disziplin>
+                </Disziplinen>
+            </Mannschaft>
+        </Mannschaften>
+    </Wettkampf>
+</Wettkämpfe>
