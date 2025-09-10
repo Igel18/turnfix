@@ -24,7 +24,7 @@ import CompetitionStatusManagement from '@/pages/CompetitionStatusManagement'
 import EventParticipants from '@/pages/EventParticipants'
 import DatabaseConfig from '@/pages/DatabaseConfig'
 import CertificateLayouts from '@/pages/CertificateLayouts'
-import StatusManagement from '@/pages/StatusManagement'
+import StatusUnified from '@/pages/StatusUnified'
 import LocationsUnified from '@/pages/LocationsUnified'
 import LocationsDebug from '@/pages/LocationsDebug'
 import PersonsUnified from '@/pages/PersonsUnified'
@@ -72,7 +72,7 @@ function App() {
             <Route path="/locations-debug" element={<LocationsDebug />} />
             <Route path="/persons" element={<PersonsUnified />} />
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
-            <Route path="/status-management" element={<StatusManagement />} />
+            <Route path="/status-management" element={<StatusUnified />} />
             <Route path="/configuration" element={<Configuration />} />
             <Route path="/jury" element={<JuryPortal />} />
           </Routes>
