@@ -415,4 +415,90 @@ router.delete('/:id/fields/:fieldId', authenticateToken, async (req: AuthRequest
   }
 });
 
+// Duplicate layout
+router.post('/:id/duplicate', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const sourceId = parseInt(req.params.id);
+    const { name } = req.body; // New name for the duplicated layout
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required for duplicated layout' });
+    }
+
+    console.log('Duplicating layout:', sourceId, 'with new name:', name);
+
+    // Get the source layout with its fields
+    const sourceLayout = await prisma.tfx_layouts.findUnique({
+      where: { int_layoutid: sourceId },
+      include: {
+        tfx_layout_felder: true
+      }
+    });
+
+    if (!sourceLayout) {
+      return res.status(404).json({ error: 'Source layout not found' });
+    }
+
+    // Create the new layout
+    const newLayout = await prisma.tfx_layouts.create({
+      data: {
+        var_name: name,
+        txt_comment: sourceLayout.txt_comment ? `Copy of ${sourceLayout.var_name}` : null
+      }
+    });
+
+    // Duplicate all fields
+    if (sourceLayout.tfx_layout_felder.length > 0) {
+      await prisma.tfx_layout_felder.createMany({
+        data: sourceLayout.tfx_layout_felder.map(field => ({
+          int_layoutid: newLayout.int_layoutid,
+          int_typ: field.int_typ,
+          var_font: field.var_font,
+          rel_x: field.rel_x,
+          rel_y: field.rel_y,
+          rel_w: field.rel_w,
+          rel_h: field.rel_h,
+          var_value: field.var_value,
+          int_align: field.int_align,
+          int_layer: field.int_layer
+        }))
+      });
+    }
+
+    // Return the new layout with its fields
+    const duplicatedLayout = await prisma.tfx_layouts.findUnique({
+      where: { int_layoutid: newLayout.int_layoutid },
+      include: {
+        tfx_layout_felder: true
+      }
+    });
+
+    const transformedLayout = {
+      int_layoutid: duplicatedLayout!.int_layoutid,
+      var_name: duplicatedLayout!.var_name,
+      txt_comment: duplicatedLayout!.txt_comment,
+      fieldCount: duplicatedLayout!.tfx_layout_felder.length,
+      fields: duplicatedLayout!.tfx_layout_felder.map(field => ({
+        int_layout_felderid: field.int_layout_felderid,
+        int_layoutid: field.int_layoutid,
+        int_typ: field.int_typ,
+        var_font: field.var_font,
+        rel_x: field.rel_x,
+        rel_y: field.rel_y,
+        rel_w: field.rel_w,
+        rel_h: field.rel_h,
+        var_value: field.var_value,
+        int_align: field.int_align,
+        int_layer: field.int_layer
+      }))
+    };
+
+    console.log('Layout duplicated successfully');
+    res.status(201).json(transformedLayout);
+  } catch (error) {
+    console.error('Error duplicating layout:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

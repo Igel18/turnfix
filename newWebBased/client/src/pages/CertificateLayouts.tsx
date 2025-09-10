@@ -4,7 +4,6 @@ import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
-  EyeIcon,
   DocumentDuplicateIcon,
   PrinterIcon
 } from '@heroicons/react/24/outline'
@@ -67,16 +66,10 @@ export function CertificateLayouts() {
     console.log(`Selected layout "${layout.var_name}" for certificate printing`)
   }
   
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingLayout, setEditingLayout] = useState<Layout | null>(null)
   const [selectedLayout, setSelectedLayout] = useState<Layout | null>(null)
   const [showDesigner, setShowDesigner] = useState(false)
 
-  // Form state for creating/editing layouts
-  const [formData, setFormData] = useState({
-    name: '',
-    comment: ''
-  })
+  // Form state no longer needed since we create layouts directly
 
   // Helper functions for unified header
   const getLayoutsStateInfo = (): StateInfo[] => {
@@ -124,64 +117,56 @@ export function CertificateLayouts() {
     }
   }
 
-  // Create new layout
+  // Create new layout and open designer immediately
   const handleCreateLayout = async () => {
-    if (!formData.name.trim()) return
-
     try {
       const newLayout = await apiPost('/layouts', {
-        name: formData.name,
-        comment: formData.comment
+        name: 'New Layout',
+        comment: ''
       })
       
       setLayouts(prev => [...prev, newLayout])
-      setShowCreateModal(false)
-      setFormData({ name: '', comment: '' })
+      
+      // Immediately open the designer for the new layout
+      setSelectedLayout(newLayout)
+      setShowDesigner(true)
     } catch (error) {
       console.error('Error creating layout:', error)
     }
   }
 
-  // Update layout
-  const handleUpdateLayout = async () => {
-    if (!editingLayout || !formData.name.trim()) return
-
-    try {
-      const updatedLayout = await apiPut(`/layouts/${editingLayout.int_layoutid}`, {
-        name: formData.name,
-        comment: formData.comment
-      })
-      
-      setLayouts(prev => prev.map(layout => 
-        layout.int_layoutid === editingLayout.int_layoutid ? updatedLayout : layout
-      ))
-      setEditingLayout(null)
-      setFormData({ name: '', comment: '' })
-    } catch (error) {
-      console.error('Error updating layout:', error)
-    }
-  }
+  // Update layout (now handled in the designer)
+  // This function is no longer needed since editing is done in the designer
 
   // Delete layout
   const handleDeleteLayout = async (layoutId: number) => {
+    console.log('Delete button clicked for layout ID:', layoutId)
+    
     if (!confirm('Are you sure you want to delete this layout? This action cannot be undone.')) {
+      console.log('Delete cancelled by user')
       return
     }
 
+    console.log('Attempting to delete layout:', layoutId)
     try {
-      await apiDelete(`/layouts/${layoutId}`)
+      const response = await apiDelete(`/layouts/${layoutId}`)
+      console.log('Delete response:', response)
       setLayouts(prev => prev.filter(layout => layout.int_layoutid !== layoutId))
+      console.log('Layout removed from state')
     } catch (error) {
       console.error('Error deleting layout:', error)
+      alert('Error deleting layout: ' + (error instanceof Error ? error.message : String(error)))
     }
   }
 
   // Duplicate layout
   const handleDuplicateLayout = async (layout: Layout) => {
+    const newName = prompt(`Enter name for duplicated layout:`, `${layout.var_name} (Copy)`)
+    if (!newName || !newName.trim()) return
+
     try {
-      const duplicatedLayout = await apiPost('/layouts', {
-        name: `${layout.var_name} (Copy)`,
-        comment: layout.txt_comment
+      const duplicatedLayout = await apiPost(`/layouts/${layout.int_layoutid}/duplicate`, {
+        name: newName.trim()
       })
       
       setLayouts(prev => [...prev, duplicatedLayout])
@@ -195,16 +180,7 @@ export function CertificateLayouts() {
     console.log('Export layouts functionality to be implemented')
   }
 
-  // Open edit modal
-  const openEditModal = (layout: Layout) => {
-    setEditingLayout(layout)
-    setFormData({
-      name: layout.var_name || '',
-      comment: layout.txt_comment || ''
-    })
-  }
-
-  // Open layout designer
+  // Open layout designer (now handles both design and edit)
   const openLayoutDesigner = (layout: Layout) => {
     setSelectedLayout(layout)
     setShowDesigner(true)
@@ -298,7 +274,7 @@ export function CertificateLayouts() {
   }
 
   // Handle field changes from designer with debouncing
-  const debouncedFieldSave = useRef<{ [fieldId: number]: number }>({})
+  const debouncedFieldSave = useRef<{ [fieldId: number]: NodeJS.Timeout }>({})
   
   const handleFieldsChange = async (fields: LayoutField[]) => {
     if (!selectedLayout) return
@@ -427,7 +403,7 @@ export function CertificateLayouts() {
         primaryAction={{
           label: 'New Layout',
           icon: PlusIcon,
-          onClick: () => setShowCreateModal(true)
+          onClick: handleCreateLayout
         }}
         showHomeButton={true}
         homeUrl="/dashboard"
@@ -453,7 +429,7 @@ export function CertificateLayouts() {
             </p>
             <div className="mt-6">
               <button
-                onClick={() => setShowCreateModal(true)}
+                onClick={handleCreateLayout}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
@@ -494,14 +470,7 @@ export function CertificateLayouts() {
                       <button
                         onClick={() => openLayoutDesigner(layout)}
                         className="text-blue-600 hover:text-blue-800 p-1"
-                        title="Design Layout"
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => openEditModal(layout)}
-                        className="text-gray-600 hover:text-gray-800 p-1"
-                        title="Edit Layout"
+                        title="Edit/Design Layout"
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
@@ -583,14 +552,7 @@ export function CertificateLayouts() {
                         <button
                           onClick={() => openLayoutDesigner(layout)}
                           className="text-blue-600 hover:text-blue-900"
-                          title="Design Layout"
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => openEditModal(layout)}
-                          className="text-gray-600 hover:text-gray-900"
-                          title="Edit Layout"
+                          title="Edit/Design Layout"
                         >
                           <PencilIcon className="h-4 w-4" />
                         </button>
@@ -629,67 +591,6 @@ export function CertificateLayouts() {
           </div>
         )}
       </div>
-
-      {/* Create/Edit Modal */}
-      {(showCreateModal || editingLayout) && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {editingLayout ? 'Edit Layout' : 'Create New Layout'}
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Layout Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter layout name"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.comment}
-                    onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter layout description"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false)
-                    setEditingLayout(null)
-                    setFormData({ name: '', comment: '' })
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={editingLayout ? handleUpdateLayout : handleCreateLayout}
-                  disabled={!formData.name.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md"
-                >
-                  {editingLayout ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Layout Designer */}
       {showDesigner && selectedLayout && (
