@@ -49,7 +49,9 @@ Unified Style Pattern:
         - Selected Context: the name of the event 
         - a export pdf posibility (with usage of pdf template) 
         
-Header should use the UnifiedPageHeader.tsx 
+Header should use the UnifiedPageHeader.tsx. Each page should have the same header style.
+Pagination should use the Pagination.tsx component. Each page with a list of data should have a pagination.
+Each UI should use localization.
 
 Page Style: 
 use the max-w-7xl mx-auto p-6 pattern (with padding) for all pages 

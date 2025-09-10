@@ -18,6 +18,8 @@ import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
+import SmartPagination from '@/components/SmartPagination';
+import { usePagination } from '@/hooks/usePagination';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -290,8 +292,6 @@ const EventParticipants: React.FC = () => {
   
   // State for participant counts from API
   const [totalInEvent, setTotalInEvent] = useState<number>(0);
-  const [totalAvailable, setTotalAvailable] = useState<number>(0);
-  const [includeAvailable, setIncludeAvailable] = useState<boolean>(true);
   
   // UI state
   const [selectedTab, setSelectedTab] = useState<'participants' | 'assign'>('participants');
@@ -301,6 +301,12 @@ const EventParticipants: React.FC = () => {
   const [clubFilter, setClubFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Pagination hook with automatic reset on filter changes
+  const pagination = usePagination({ 
+    itemsPerPage: 50,
+    resetDependencies: [searchTerm, genderFilter, clubFilter, ageFilter]
+  });
   
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -335,20 +341,12 @@ const EventParticipants: React.FC = () => {
     }
   }, [eventId]);
 
-  // Reload participants when includeAvailable toggle changes
-  useEffect(() => {
-    if (eventId && includeAvailable !== undefined) {
-      loadParticipants();
-    }
-  }, [includeAvailable]);
-
   const loadParticipants = async () => {
     try {
-      const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=${includeAvailable}`)
+      const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=false`)
       setAllParticipants(data.participants || []);
       setTotalInEvent(data.totalInEvent || 0);
-      setTotalAvailable(data.totalAvailable || 0);
-      console.log(`Loaded ${data.participants?.length || 0} participants from API (${data.totalInEvent || 0} in event, ${data.totalAvailable || 0} available)`);
+      console.log(`Loaded ${data.participants?.length || 0} participants from API (${data.totalInEvent || 0} in event)`);
     } catch (error: any) {
       console.error('Error loading participants:', error);
       
@@ -833,6 +831,15 @@ const EventParticipants: React.FC = () => {
     return matchesSearch && matchesGender && matchesClub && matchesAge;
   });
 
+  // Pagination logic using the hook
+  const { 
+    paginatedItems: paginatedParticipants, 
+    totalPages, 
+    totalItems: totalParticipants,
+    startIndex,
+    endIndex 
+  } = pagination.getPaginatedItems(filteredParticipants);
+
   const filteredAvailableParticipants = Array.isArray(availableParticipants) ? availableParticipants.filter(participant => {
     // Ensure participant has required properties
     if (!participant || typeof participant !== 'object') return false;
@@ -955,25 +962,13 @@ const EventParticipants: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Event Participants ({totalInEvent})
-                  {includeAvailable && totalAvailable > 0 && (
+                  Event Participants ({totalParticipants})
+                  {totalPages > 1 && (
                     <span className="text-sm font-normal text-gray-600 ml-2">
-                      + {totalAvailable} available
+                      Showing {startIndex + 1}-{Math.min(endIndex, totalParticipants)} of {totalParticipants} (Page {pagination.currentPage} of {totalPages})
                     </span>
                   )}
                 </h3>
-                
-                <div className="flex items-center space-x-3">
-                  <label className="flex items-center text-sm text-gray-600">
-                    <input
-                      type="checkbox"
-                      checked={includeAvailable}
-                      onChange={(e) => setIncludeAvailable(e.target.checked)}
-                      className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    Include available participants
-                  </label>
-                </div>
               </div>
               
               <div className="bg-white rounded-lg border">
@@ -1016,7 +1011,7 @@ const EventParticipants: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {filteredParticipants.map(participant => (
+                          {paginatedParticipants.map(participant => (
                             <React.Fragment key={participant.id}>
                               <tr className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -1101,6 +1096,13 @@ const EventParticipants: React.FC = () => {
                     </div>
                   )}
                 </div>
+                
+                {/* Smart Pagination */}
+                <SmartPagination
+                  currentPage={pagination.currentPage}
+                  totalPages={totalPages}
+                  onPageChange={pagination.setCurrentPage}
+                />
               </div>
             </div>
           </div>
@@ -1142,11 +1144,6 @@ const EventParticipants: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Event Participants ({totalInEvent})
-                {includeAvailable && totalAvailable > 0 && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
-                    + {totalAvailable} available
-                  </span>
-                )}
               </h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {filteredParticipants.map(participant => {
