@@ -11,7 +11,8 @@ import {
   Squares2X2Icon,
   TableCellsIcon,
   MagnifyingGlassIcon,
-  XMarkIcon
+  XMarkIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -43,6 +44,13 @@ interface UnifiedPageHeaderProps {
   selectedFilters?: string[]
   onFilterChange?: (filterType: string, value: string) => void
   onClearAllFilters?: () => void
+  
+  // Help panel functionality
+  showHelpPanel?: boolean
+  onToggleHelpPanel?: () => void
+  hasHelpContent?: boolean
+  helpContent?: ReactNode
+  helpLabel?: string
   
   // Action buttons (right side)
   onPrint?: () => void
@@ -90,6 +98,11 @@ export default function UnifiedPageHeader({
   selectedFilters = [],
   onFilterChange,
   onClearAllFilters,
+  showHelpPanel = false,
+  onToggleHelpPanel,
+  hasHelpContent = false,
+  helpContent,
+  helpLabel = "Help & Documentation",
   onPrint,
   onExportPDF,
   onExportCSV,
@@ -145,6 +158,16 @@ export default function UnifiedPageHeader({
             >
               <FunnelIcon className="h-4 w-4 mr-2" />
               {t('common.filter')}
+            </button>
+          )}
+          
+          {hasHelpContent && (
+            <button
+              onClick={onToggleHelpPanel}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <QuestionMarkCircleIcon className="h-4 w-4 mr-2" />
+              {helpLabel}
             </button>
           )}
           
@@ -322,6 +345,27 @@ export default function UnifiedPageHeader({
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Panel Section */}
+      {showHelpPanel && helpContent && (
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-blue-900 flex items-center">
+              <QuestionMarkCircleIcon className="h-5 w-5 mr-2" />
+              {helpLabel}
+            </h3>
+            <button
+              onClick={onToggleHelpPanel}
+              className="text-blue-400 hover:text-blue-600"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="text-blue-800">
+            {helpContent}
           </div>
         </div>
       )}

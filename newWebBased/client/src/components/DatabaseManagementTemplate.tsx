@@ -33,6 +33,12 @@ interface DatabaseManagementTemplateProps {
   filterOptions?: FilterOption[];
   onClearAllFilters?: () => void;
   
+  // Help/Documentation panel
+  showHelpPanel?: boolean;
+  onToggleHelpPanel?: () => void;
+  helpContent?: ReactNode;
+  helpLabel?: string;
+  
   // Pagination
   itemsPerPage?: number;
   
@@ -80,6 +86,10 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   onToggleFilters,
   filterOptions = [],
   onClearAllFilters,
+  showHelpPanel = false,
+  onToggleHelpPanel,
+  helpContent,
+  helpLabel = "Help & Documentation",
   itemsPerPage = 10,
   viewStorageKey,
   defaultView = 'table',
@@ -111,6 +121,17 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
     setShowFiltersState(newState);
     if (onToggleFilters) {
       onToggleFilters();
+    }
+  };
+
+  // Help panel state management
+  const [showHelpPanelState, setShowHelpPanelState] = React.useState(showHelpPanel);
+  const handleToggleHelpPanel = () => {
+    const newState = !showHelpPanelState;
+    console.log('Help panel toggle clicked:', newState);
+    setShowHelpPanelState(newState);
+    if (onToggleHelpPanel) {
+      onToggleHelpPanel();
     }
   };
 
@@ -279,6 +300,11 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
         hasFilters={filterOptions.length > 0}
         filterOptions={filterOptions}
         onClearAllFilters={onClearAllFilters}
+        showHelpPanel={showHelpPanelState}
+        onToggleHelpPanel={handleToggleHelpPanel}
+        hasHelpContent={!!helpContent}
+        helpContent={helpContent}
+        helpLabel={helpLabel}
         showAdd={!!onAdd}
         addLabel={addLabel}
         onAdd={onAdd}

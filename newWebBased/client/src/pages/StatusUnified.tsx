@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, SwatchIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate';
 import StatusFormModal from '../components/StatusFormModal';
+import { BlueInfoBox, GreenInfoBox, RedInfoBox, InfoList, FeatureList } from '../components/InfoBoxes';
 
 interface Status {
   int_statusid: number;
@@ -22,6 +23,9 @@ const StatusUnified: React.FC = () => {
   // Filter states
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [colorTypeFilter, setColorTypeFilter] = useState('all');
+
+  // Help panel state
+  const [showHelpPanel, setShowHelpPanel] = useState(false);
 
   useEffect(() => {
     fetchStatuses();
@@ -409,6 +413,46 @@ const StatusUnified: React.FC = () => {
     }
   ];
 
+  // Help content for the status management
+  const helpContent = (
+    <div className="space-y-4">
+      <BlueInfoBox title="Status Management Overview">
+        <div className="space-y-2">
+          <p>
+            This page manages status definitions used for squad-discipline combinations throughout the gymnastics management system.
+          </p>
+          <InfoList items={[
+            { label: "Purpose", value: "Define colored status indicators for tracking progress" },
+            { label: "Usage", value: "Used in Squad Status Management for discipline progress tracking" },
+            { label: "Storage", value: "Colors stored in {R,G,B} format (e.g., {255,0,0} for red)" }
+          ]} />
+        </div>
+      </BlueInfoBox>
+
+      <GreenInfoBox title="Status Configuration">
+        <div className="space-y-2">
+          <p><strong>Visibility Settings:</strong></p>
+          <FeatureList features={[
+            "Results Sheet (Bogen): Display status in competition results",
+            "Score Card (Karte): Show status on individual score cards",
+            "Both settings can be configured independently"
+          ]} />
+        </div>
+      </GreenInfoBox>
+
+      <RedInfoBox title="Important Notes">
+        <div className="space-y-2">
+          <p><strong>Deletion Restrictions:</strong></p>
+          <FeatureList features={[
+            "Status entries in use cannot be deleted",
+            "Check Squad Status Management before removal",
+            "Consider deactivating instead of deleting active statuses"
+          ]} />
+        </div>
+      </RedInfoBox>
+    </div>
+  );
+
   return (
     <>
       <DatabaseManagementTemplate
@@ -430,6 +474,10 @@ const StatusUnified: React.FC = () => {
         filterOptions={filterOptions}
         onClearAllFilters={handleClearAllFilters}
         showFilters={true}
+        showHelpPanel={showHelpPanel}
+        onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
+        helpContent={helpContent}
+        helpLabel="Status Help"
       />
       
       {!loading && (

@@ -17,7 +17,7 @@ import ScoreCapture from '@/pages/ScoreCapture'
 import CompetitionsFixed from '@/pages/CompetitionsFixed'
 import CompetitionsDebug from '@/pages/CompetitionsDebug'
 import DisciplinesUnified from '@/pages/DisciplinesUnified'
-import DisciplineFields from '@/pages/DisciplineFields'
+import DisciplineFieldsUnified from '@/pages/DisciplineFieldsUnified'
 import SquadManagement from '@/pages/SquadManagement'
 import { SquadStatusManagement } from '@/pages/SquadStatusManagement'
 import CompetitionStatusManagement from '@/pages/CompetitionStatusManagement'
@@ -63,7 +63,7 @@ function App() {
             <Route path="/meldematrix" element={<Meldematrix />} />
             <Route path="/medallienspiegel" element={<Medallienspiegel />} />
             <Route path="/disciplines" element={<DisciplinesUnified />} />
-            <Route path="/discipline-fields" element={<DisciplineFields />} />
+            <Route path="/discipline-fields" element={<DisciplineFieldsUnified />} />
             <Route path="/sports" element={<SportsUnified />} />
             <Route path="/formulas" element={<FormulasUnified />} />
             <Route path="/discipline-groups" element={<DisciplineGroupsUnified />} />
