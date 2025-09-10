@@ -468,6 +468,222 @@
       "filename": "veranstaltungen"
     }
   },
+  "participants": {
+    "title": "Teilnehmerverwaltung",
+    "subtitle": "Teilnehmer und ihre Wettkampfdaten verwalten",
+    "searchPlaceholder": "Teilnehmer suchen...",
+    "addParticipant": "Teilnehmer hinzufügen",
+    "editParticipant": "Teilnehmer bearbeiten",
+    "deleteParticipant": "Teilnehmer löschen",
+    "noParticipants": "Keine Teilnehmer gefunden",
+    "loadingParticipants": "Lade Teilnehmer...",
+    "table": {
+      "name": "Name",
+      "age": "Alter",
+      "gender": "Geschlecht",
+      "club": "Verein",
+      "startNumber": "Startnummer",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "firstName": "Vorname",
+      "firstNamePlaceholder": "Vorname eingeben",
+      "lastName": "Nachname",
+      "lastNamePlaceholder": "Nachname eingeben",
+      "birthDate": "Geburtsdatum",
+      "gender": "Geschlecht",
+      "genderPlaceholder": "Geschlecht auswählen",
+      "club": "Verein",
+      "clubPlaceholder": "Verein auswählen",
+      "startNumber": "Startnummer",
+      "startNumberPlaceholder": "Startnummer (optional)",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "creating": "Erstelle...",
+      "updating": "Aktualisiere..."
+    },
+    "gender": {
+      "male": "Männlich",
+      "female": "Weiblich"
+    },
+    "filters": {
+      "club": "Verein",
+      "gender": "Geschlecht",
+      "age": "Alter",
+      "ageAll": "Alle Altersgruppen",
+      "ageChild": "Kinder (6-11)",
+      "ageYouth": "Jugend (12-17)",
+      "ageAdult": "Erwachsene (18+)",
+      "clearAll": "Alle Filter zurücksetzen"
+    },
+    "messages": {
+      "createSuccess": "Teilnehmer erfolgreich erstellt",
+      "updateSuccess": "Teilnehmer erfolgreich aktualisiert",
+      "deleteSuccess": "Teilnehmer erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Teilnehmers",
+      "updateError": "Fehler beim Aktualisieren des Teilnehmers",
+      "deleteError": "Fehler beim Löschen des Teilnehmers",
+      "loadError": "Fehler beim Laden der Teilnehmer",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Teilnehmer löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "export": {
+      "csv": "Als CSV exportieren",
+      "filename": "participants"
+    },
+    "pagination": {
+      "showing": "Zeige {{start}} bis {{end}} von {{total}} Teilnehmern",
+      "previous": "Vorherige",
+      "next": "Nächste",
+      "page": "Seite {{page}} von {{total}}"
+    }
+  },
+  "clubs": {
+    "title": "Vereinsverwaltung",
+    "subtitle": "Turnvereine und ihre Informationen verwalten",
+    "searchPlaceholder": "Vereine suchen...",
+    "addClub": "Verein hinzufügen",
+    "editClub": "Verein bearbeiten",
+    "deleteClub": "Verein löschen",
+    "noClubs": "Keine Vereine gefunden",
+    "loadingClubs": "Lade Vereine...",
+    "table": {
+      "name": "Vereinsname",
+      "location": "Ort",
+      "association": "Verband",
+      "participants": "Teilnehmer",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Vereinsname",
+      "namePlaceholder": "Vereinsname eingeben",
+      "location": "Ort",
+      "locationPlaceholder": "Ort eingeben",
+      "association": "Verband",
+      "associationPlaceholder": "Verband auswählen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Verein erfolgreich erstellt",
+      "updateSuccess": "Verein erfolgreich aktualisiert",
+      "deleteSuccess": "Verein erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Vereins",
+      "updateError": "Fehler beim Aktualisieren des Vereins",
+      "deleteError": "Fehler beim Löschen des Vereins",
+      "loadError": "Fehler beim Laden der Vereine",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Verein löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  },
+  "disciplines": {
+    "title": "Disziplinenverwaltung",
+    "subtitle": "Turndisziplinen und Geräte verwalten",
+    "searchPlaceholder": "Disziplinen suchen...",
+    "addDiscipline": "Disziplin hinzufügen",
+    "editDiscipline": "Disziplin bearbeiten",
+    "deleteDiscipline": "Disziplin löschen",
+    "noDisciplines": "Keine Disziplinen gefunden",
+    "loadingDisciplines": "Lade Disziplinen...",
+    "table": {
+      "name": "Disziplinname",
+      "description": "Beschreibung",
+      "gender": "Geschlecht",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Disziplinname",
+      "namePlaceholder": "Disziplinname eingeben",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung eingeben",
+      "gender": "Geschlecht",
+      "genderMale": "Männlich",
+      "genderFemale": "Weiblich",
+      "genderBoth": "Beide",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Disziplin erfolgreich erstellt",
+      "updateSuccess": "Disziplin erfolgreich aktualisiert",
+      "deleteSuccess": "Disziplin erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Disziplin",
+      "updateError": "Fehler beim Aktualisieren der Disziplin",
+      "deleteError": "Fehler beim Löschen der Disziplin",
+      "loadError": "Fehler beim Laden der Disziplinen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Disziplin löschen möchten?"
+    }
+  },
+  "regions": {
+    "title": "Regionenverwaltung",
+    "subtitle": "Turngebiete und Bezirke verwalten",
+    "searchPlaceholder": "Regionen suchen...",
+    "addRegion": "Region hinzufügen",
+    "editRegion": "Region bearbeiten",
+    "deleteRegion": "Region löschen",
+    "noRegions": "Keine Regionen gefunden",
+    "loadingRegions": "Lade Regionen...",
+    "table": {
+      "name": "Regionname",
+      "code": "Code",
+      "description": "Beschreibung",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Regionname",
+      "namePlaceholder": "Regionname eingeben",
+      "code": "Code",
+      "codePlaceholder": "Regionscode eingeben",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung eingeben",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Region erfolgreich erstellt",
+      "updateSuccess": "Region erfolgreich aktualisiert",
+      "deleteSuccess": "Region erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Region",
+      "updateError": "Fehler beim Aktualisieren der Region",
+      "deleteError": "Fehler beim Löschen der Region",
+      "loadError": "Fehler beim Laden der Regionen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Region löschen möchten?"
+    }
+  },
+  "associations": {
+    "title": "Verbandsverwaltung",
+    "subtitle": "Turnverbände und Föderationen verwalten",
+    "searchPlaceholder": "Verbände suchen...",
+    "addAssociation": "Verband hinzufügen",
+    "editAssociation": "Verband bearbeiten",
+    "deleteAssociation": "Verband löschen",
+    "noAssociations": "Keine Verbände gefunden",
+    "loadingAssociations": "Lade Verbände...",
+    "table": {
+      "name": "Verbandsname",
+      "region": "Region",
+      "clubs": "Vereine",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Verbandsname",
+      "namePlaceholder": "Verbandsname eingeben",
+      "region": "Region",
+      "regionPlaceholder": "Region auswählen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Verband erfolgreich erstellt",
+      "updateSuccess": "Verband erfolgreich aktualisiert",
+      "deleteSuccess": "Verband erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Verbands",
+      "updateError": "Fehler beim Aktualisieren des Verbands",
+      "deleteError": "Fehler beim Löschen des Verbands",
+      "loadError": "Fehler beim Laden der Verbände",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Verband löschen möchten?"
+    }
+  },
   "home": {
     "welcome": "Willkommen bei TurnFix",
     "description": "Modernes Turnwettkampf-Verwaltungssystem mit Echtzeit-Bewertung, Teilnehmerverfolgung und umfassender Analyse.",

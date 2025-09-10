@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { exportToCSV, getParticipantCSVData } from '@/utils/csvExport'
 
@@ -29,6 +30,8 @@ interface Club {
 }
 
 export function Participants() {
+  const { t } = useTranslation()
+  
   const [participants, setParticipants] = useState<Participant[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -290,15 +293,15 @@ export function Participants() {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedHeader
-        title="Athlete Management"
-        description="Manage athletes and their competition data"
+        title={t('participants.title')}
+        description={t('participants.subtitle')}
         icon={UserGroupIcon}
         stateInfo={getParticipantStateInfo()}
         selectedState={selectedStatus}
         onStateChange={setSelectedStatus}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search athletes..."
+        searchPlaceholder={t('participants.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExportCSV}

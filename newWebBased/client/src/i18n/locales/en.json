@@ -468,6 +468,222 @@
       "filename": "events"
     }
   },
+  "participants": {
+    "title": "Participant Management",
+    "subtitle": "Manage participants and their competition data",
+    "searchPlaceholder": "Search participants...",
+    "addParticipant": "Add Participant",
+    "editParticipant": "Edit Participant",
+    "deleteParticipant": "Delete Participant",
+    "noParticipants": "No participants found",
+    "loadingParticipants": "Loading participants...",
+    "table": {
+      "name": "Name",
+      "age": "Age",
+      "gender": "Gender",
+      "club": "Club",
+      "startNumber": "Start Number",
+      "actions": "Actions"
+    },
+    "form": {
+      "firstName": "First Name",
+      "firstNamePlaceholder": "Enter first name",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Enter last name",
+      "birthDate": "Birth Date",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender",
+      "club": "Club",
+      "clubPlaceholder": "Select club",
+      "startNumber": "Start Number",
+      "startNumberPlaceholder": "Start number (optional)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "updating": "Updating..."
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "filters": {
+      "club": "Club",
+      "gender": "Gender",
+      "age": "Age",
+      "ageAll": "All Age Groups",
+      "ageChild": "Children (6-11)",
+      "ageYouth": "Youth (12-17)",
+      "ageAdult": "Adults (18+)",
+      "clearAll": "Clear All Filters"
+    },
+    "messages": {
+      "createSuccess": "Participant created successfully",
+      "updateSuccess": "Participant updated successfully",
+      "deleteSuccess": "Participant deleted successfully",
+      "createError": "Error creating participant",
+      "updateError": "Error updating participant",
+      "deleteError": "Error deleting participant",
+      "loadError": "Error loading participants",
+      "confirmDelete": "Are you sure you want to delete this participant?",
+      "deleteWarning": "This action cannot be undone."
+    },
+    "export": {
+      "csv": "Export to CSV",
+      "filename": "participants"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}} participants",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}} of {{total}}"
+    }
+  },
+  "clubs": {
+    "title": "Club Management",
+    "subtitle": "Manage gymnastics clubs and their information",
+    "searchPlaceholder": "Search clubs...",
+    "addClub": "Add Club",
+    "editClub": "Edit Club",
+    "deleteClub": "Delete Club",
+    "noClubs": "No clubs found",
+    "loadingClubs": "Loading clubs...",
+    "table": {
+      "name": "Club Name",
+      "location": "Location",
+      "association": "Association",
+      "participants": "Participants",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Club Name",
+      "namePlaceholder": "Enter club name",
+      "location": "Location",
+      "locationPlaceholder": "Enter location",
+      "association": "Association",
+      "associationPlaceholder": "Select association",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "createSuccess": "Club created successfully",
+      "updateSuccess": "Club updated successfully",
+      "deleteSuccess": "Club deleted successfully",
+      "createError": "Error creating club",
+      "updateError": "Error updating club",
+      "deleteError": "Error deleting club",
+      "loadError": "Error loading clubs",
+      "confirmDelete": "Are you sure you want to delete this club?",
+      "deleteWarning": "This action cannot be undone."
+    }
+  },
+  "disciplines": {
+    "title": "Discipline Management",
+    "subtitle": "Manage gymnastics disciplines and apparatus",
+    "searchPlaceholder": "Search disciplines...",
+    "addDiscipline": "Add Discipline",
+    "editDiscipline": "Edit Discipline",
+    "deleteDiscipline": "Delete Discipline",
+    "noDisciplines": "No disciplines found",
+    "loadingDisciplines": "Loading disciplines...",
+    "table": {
+      "name": "Discipline Name",
+      "description": "Description",
+      "gender": "Gender",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Discipline Name",
+      "namePlaceholder": "Enter discipline name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description",
+      "gender": "Gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "genderBoth": "Both",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "createSuccess": "Discipline created successfully",
+      "updateSuccess": "Discipline updated successfully",
+      "deleteSuccess": "Discipline deleted successfully",
+      "createError": "Error creating discipline",
+      "updateError": "Error updating discipline",
+      "deleteError": "Error deleting discipline",
+      "loadError": "Error loading disciplines",
+      "confirmDelete": "Are you sure you want to delete this discipline?"
+    }
+  },
+  "regions": {
+    "title": "Region Management",
+    "subtitle": "Manage gymnastics regions and districts",
+    "searchPlaceholder": "Search regions...",
+    "addRegion": "Add Region",
+    "editRegion": "Edit Region",
+    "deleteRegion": "Delete Region",
+    "noRegions": "No regions found",
+    "loadingRegions": "Loading regions...",
+    "table": {
+      "name": "Region Name",
+      "code": "Code",
+      "description": "Description",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Region Name",
+      "namePlaceholder": "Enter region name",
+      "code": "Code",
+      "codePlaceholder": "Enter region code",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "createSuccess": "Region created successfully",
+      "updateSuccess": "Region updated successfully",
+      "deleteSuccess": "Region deleted successfully",
+      "createError": "Error creating region",
+      "updateError": "Error updating region",
+      "deleteError": "Error deleting region",
+      "loadError": "Error loading regions",
+      "confirmDelete": "Are you sure you want to delete this region?"
+    }
+  },
+  "associations": {
+    "title": "Association Management",
+    "subtitle": "Manage gymnastics associations and federations",
+    "searchPlaceholder": "Search associations...",
+    "addAssociation": "Add Association",
+    "editAssociation": "Edit Association",
+    "deleteAssociation": "Delete Association",
+    "noAssociations": "No associations found",
+    "loadingAssociations": "Loading associations...",
+    "table": {
+      "name": "Association Name",
+      "region": "Region",
+      "clubs": "Clubs",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Association Name",
+      "namePlaceholder": "Enter association name",
+      "region": "Region",
+      "regionPlaceholder": "Select region",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "createSuccess": "Association created successfully",
+      "updateSuccess": "Association updated successfully",
+      "deleteSuccess": "Association deleted successfully",
+      "createError": "Error creating association",
+      "updateError": "Error updating association",
+      "deleteError": "Error deleting association",
+      "loadError": "Error loading associations",
+      "confirmDelete": "Are you sure you want to delete this association?"
+    }
+  },
   "home": {
     "welcome": "Welcome to TurnFix",
     "description": "Modern gymnastics competition management system with real-time scoring, participant tracking, and comprehensive analytics.",

@@ -9,6 +9,7 @@ import {
   PhoneIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import UnifiedHeader, { StateInfo } from '@/components/UnifiedHeader'
 import { exportToCSV } from '@/utils/csvExport'
 
@@ -40,6 +41,8 @@ interface ClubFormData {
 }
 
 const ClubsNew: React.FC = () => {
+  const { t } = useTranslation();
+  
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -270,15 +273,15 @@ const ClubsNew: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedHeader
-        title="Club Management"
-        description={`Manage gymnastics clubs and organizations (${clubs.length} clubs loaded)`}
+        title={t('clubs.title')}
+        description={t('clubs.subtitle')}
         icon={BuildingOfficeIcon}
         stateInfo={getClubStateInfo()}
         selectedState={selectedStatus}
         onStateChange={setSelectedStatus}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search clubs..."
+        searchPlaceholder={t('clubs.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExportCSV}
