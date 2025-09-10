@@ -341,6 +341,7 @@ Geräte mit Icons
 lokalisierung 
 refactoring (nur noch prisma) 
 Über Turnfix 
+DB cleanup: complete oder nur Personen und Vereine
 
 The export as pdf is possible on some UIs. We need some more print export as pdf posibilities. So perhaps we should add a new UI in section event management for print / export as pdf. We need: 
 - Urkunden generierung / generate cerificates for a selected person or a selected competition

@@ -25,7 +25,8 @@ import EventParticipants from '@/pages/EventParticipants'
 import DatabaseConfig from '@/pages/DatabaseConfig'
 import CertificateLayouts from '@/pages/CertificateLayouts'
 import StatusManagement from '@/pages/StatusManagement'
-import Locations from '@/pages/Locations'
+import LocationsUnified from '@/pages/LocationsUnified'
+import LocationsDebug from '@/pages/LocationsDebug'
 import Persons from '@/pages/Persons'
 import Sports from '@/pages/Sports'
 import Formulas from '@/pages/Formulas'
@@ -67,7 +68,8 @@ function App() {
             <Route path="/formulas" element={<Formulas />} />
             <Route path="/discipline-groups" element={<DisciplineGroups />} />
             <Route path="/database-config" element={<DatabaseConfig />} />
-            <Route path="/locations" element={<Locations />} />
+            <Route path="/locations" element={<LocationsUnified />} />
+            <Route path="/locations-debug" element={<LocationsDebug />} />
             <Route path="/persons" element={<Persons />} />
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
             <Route path="/status-management" element={<StatusManagement />} />
