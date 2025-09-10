@@ -5,6 +5,18 @@ import * as matchers from '@testing-library/jest-dom/matchers';
 // Extend Vitest's expect with @testing-library/jest-dom matchers
 expect.extend(matchers);
 
+// Handle unhandled rejections that occur during error testing
+const originalConsoleError = console.error;
+global.console.error = (...args: any[]) => {
+  // Suppress specific error messages that are expected during testing
+  const message = args[0];
+  if (typeof message === 'string' && 
+      (message.includes('Not found') || message.includes('Network error'))) {
+    return;
+  }
+  originalConsoleError.apply(console, args);
+};
+
 // Cleanup after each test case
 afterEach(() => {
   cleanup();

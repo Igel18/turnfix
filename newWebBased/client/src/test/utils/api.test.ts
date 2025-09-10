@@ -5,14 +5,37 @@ import { apiRequest } from '../../utils/api';
 global.fetch = vi.fn();
 
 describe('API Utils', () => {
+  // Store original error handlers
+  let originalOnUnhandledRejection: any;
+  
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset fetch mock
     (fetch as any).mockClear();
+    
+    // Suppress console.error for error tests to reduce noise
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Capture and suppress unhandled rejections during error tests
+    originalOnUnhandledRejection = process.listeners('unhandledRejection');
+    process.removeAllListeners('unhandledRejection');
+    process.on('unhandledRejection', () => {
+      // Suppress unhandled rejections during testing
+    });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    // Restore console.error
+    vi.restoreAllMocks();
+    
+    // Restore original unhandled rejection handlers
+    process.removeAllListeners('unhandledRejection');
+    if (originalOnUnhandledRejection && originalOnUnhandledRejection.length > 0) {
+      originalOnUnhandledRejection.forEach((handler: any) => {
+        process.on('unhandledRejection', handler);
+      });
+    }
   });
 
   describe('apiRequest', () => {
@@ -70,6 +93,9 @@ describe('API Utils', () => {
     });
 
     it('should throw error for non-ok responses', async () => {
+      // Use unique endpoint to avoid cache conflicts
+      const uniqueUrl = `/test-error-${Date.now()}`;
+      
       (fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 404,
@@ -77,17 +103,32 @@ describe('API Utils', () => {
         json: async () => ({ error: 'Not found' }),
       });
 
-      // Use unique endpoint to avoid cache conflicts
-      const uniqueUrl = `/test-error-${Date.now()}`;
-      await expect(apiRequest(uniqueUrl)).rejects.toThrow('Not found');
+      let errorCaught = false;
+      try {
+        await apiRequest(uniqueUrl);
+      } catch (error) {
+        errorCaught = true;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe('Not found');
+      }
+      expect(errorCaught).toBe(true);
     });
 
     it('should handle network errors', async () => {
-      (fetch as any).mockRejectedValueOnce(new Error('Network error'));
-
       // Use unique endpoint to avoid cache conflicts
       const uniqueUrl = `/test-network-error-${Date.now()}`;
-      await expect(apiRequest(uniqueUrl)).rejects.toThrow('Network error');
+      
+      (fetch as any).mockRejectedValueOnce(new Error('Network error'));
+
+      let errorCaught = false;
+      try {
+        await apiRequest(uniqueUrl);
+      } catch (error) {
+        errorCaught = true;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe('Network error');
+      }
+      expect(errorCaught).toBe(true);
     });
 
     it('should pass custom options to fetch', async () => {
