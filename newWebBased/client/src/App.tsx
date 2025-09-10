@@ -8,7 +8,7 @@ import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import Events from '@/pages/Events'
-import { Clubs } from '@/pages/Clubs'
+import ClubsUnified from '@/pages/ClubsUnified'
 import Regions from '@/pages/Regions'
 import Associations from '@/pages/Associations'
 import ParticipantsUnified from '@/pages/ParticipantsUnified'
@@ -47,7 +47,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/clubs" element={<Clubs />} />
+            <Route path="/clubs" element={<ClubsUnified />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/associations" element={<Associations />} />
             <Route path="/participants" element={<ParticipantsUnified />} />
