@@ -125,7 +125,7 @@
         },
         "juryPortal": {
           "title": "Jury Portal",
-          "description": "Simplified jury interface for competition day"
+          "description": "Simplified jury interface for competition day (opens in new window)"
         }
       },
       "resultsAwards": {

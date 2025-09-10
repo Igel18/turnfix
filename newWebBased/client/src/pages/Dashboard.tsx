@@ -20,7 +20,8 @@ import {
   CalculatorIcon,
   TagIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  ArrowTopRightOnSquareIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -217,10 +218,11 @@ const competitionDayActions = [
   },
   {
     name: 'Jury Portal',
-    description: 'Simplified jury interface for competition day',
-    href: '/jury',
+    description: 'Simplified jury interface for competition day (opens in new window)',
+    href: 'http://localhost:5174',
     icon: TrophyIcon,
-    color: 'bg-blue-600'
+    color: 'bg-blue-600',
+    external: true
   }
 ]
 
@@ -662,10 +664,46 @@ export function Dashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {competitionDayActions.map((action) => {
                         const Icon = action.icon
+                        const linkUrl = action.external 
+                          ? action.href 
+                          : `${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`
+                        
+                        if (action.external) {
+                          return (
+                            <a
+                              key={action.name}
+                              href={linkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
+                            >
+                              <div className="flex flex-col items-center text-center space-y-3">
+                                <div className={`${action.color} p-2 rounded-lg text-white group-hover:scale-105 transition-transform relative`}>
+                                  <Icon className="h-5 w-5" />
+                                  {action.external && (
+                                    <ArrowTopRightOnSquareIcon className="h-3 w-3 absolute -top-1 -right-1 bg-white text-gray-600 rounded-sm" />
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                    {translateAction(action).name}
+                                    {action.external && (
+                                      <ArrowTopRightOnSquareIcon className="h-3 w-3 inline ml-1 text-gray-400" />
+                                    )}
+                                  </h4>
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    {translateAction(action).description}
+                                  </p>
+                                </div>
+                              </div>
+                            </a>
+                          )
+                        }
+                        
                         return (
                           <Link
                             key={action.name}
-                            to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
+                            to={linkUrl}
                             className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
                           >
                             <div className="flex flex-col items-center text-center space-y-3">

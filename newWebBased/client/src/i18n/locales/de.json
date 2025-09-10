@@ -125,7 +125,7 @@
         },
         "juryPortal": {
           "title": "Kampfrichter-Portal",
-          "description": "Vereinfachte Kampfrichter-Oberfläche für den Wettkampftag"
+          "description": "Vereinfachte Kampfrichter-Oberfläche für den Wettkampftag (öffnet in neuem Fenster)"
         }
       },
       "resultsAwards": {
