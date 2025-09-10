@@ -75,6 +75,12 @@ const DisciplinesUnified: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Filter states
+  const [sportFilter, setSportFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [formulaFilter, setFormulaFilter] = useState('');
+  
   const [formData, setFormData] = useState<FormData>({
     name: '',
     shortName: '',
@@ -263,14 +269,33 @@ const DisciplinesUnified: React.FC = () => {
     }
   };
 
-  // Filter disciplines based on search term
+  // Clear all filters
+  const handleClearAllFilters = () => {
+    setSportFilter('');
+    setGenderFilter('');
+    setFormulaFilter('');
+  };
+
+  // Filter disciplines based on search term and filters
   const filteredDisciplines = disciplines.filter(discipline => {
     const matchesSearch = searchTerm === '' || 
       discipline.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       discipline.short_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (discipline.display_name && discipline.display_name.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    return matchesSearch;
+    const matchesSport = !sportFilter || discipline.sport_id.toString() === sportFilter;
+    
+    const matchesGender = !genderFilter || 
+      (genderFilter === 'male' && discipline.male_allowed && !discipline.female_allowed) ||
+      (genderFilter === 'female' && discipline.female_allowed && !discipline.male_allowed) ||
+      (genderFilter === 'both' && discipline.male_allowed && discipline.female_allowed);
+    
+    const hasFormula = discipline.formula_id || (discipline.formula && discipline.formula.trim());
+    const matchesFormula = !formulaFilter ||
+      (formulaFilter === 'yes' && hasFormula) ||
+      (formulaFilter === 'no' && !hasFormula);
+    
+    return matchesSearch && matchesSport && matchesGender && matchesFormula;
   });
 
   // Filter options for the template
@@ -278,6 +303,8 @@ const DisciplinesUnified: React.FC = () => {
     {
       value: '',
       label: 'Sport',
+      selectedValue: sportFilter,
+      onChange: setSportFilter,
       options: [
         { value: '', label: 'All Sports' },
         ...(Array.isArray(sports) ? sports.map(sport => ({ 
@@ -289,6 +316,8 @@ const DisciplinesUnified: React.FC = () => {
     {
       value: '',
       label: 'Gender',
+      selectedValue: genderFilter,
+      onChange: setGenderFilter,
       options: [
         { value: '', label: 'All Genders' },
         { value: 'male', label: 'Male Only' },
@@ -299,6 +328,8 @@ const DisciplinesUnified: React.FC = () => {
     {
       value: '',
       label: 'Has Formula',
+      selectedValue: formulaFilter,
+      onChange: setFormulaFilter,
       options: [
         { value: '', label: 'All Disciplines' },
         { value: 'yes', label: 'Has Formula' },
@@ -556,6 +587,7 @@ const DisciplinesUnified: React.FC = () => {
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search disciplines..."
         filterOptions={getFilterOptions()}
+        onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
         addLabel="Create Discipline"
         onEdit={handleEdit}
