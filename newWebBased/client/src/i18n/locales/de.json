@@ -398,6 +398,76 @@
     "warning": "Warnung",
     "info": "Information"
   },
+  "events": {
+    "title": "Veranstaltungsverwaltung",
+    "subtitle": "Turnwettkämpfe und Veranstaltungen verwalten",
+    "subtitleWithCount": "Turnwettkämpfe und Veranstaltungen verwalten ({{count}} Veranstaltungen geladen)",
+    "searchPlaceholder": "Veranstaltungen suchen...",
+    "addEvent": "Veranstaltung hinzufügen",
+    "editEvent": "Veranstaltung bearbeiten",
+    "deleteEvent": "Veranstaltung löschen",
+    "noEvents": "Keine Veranstaltungen gefunden",
+    "loadingEvents": "Veranstaltungen werden geladen...",
+    "table": {
+      "eventName": "Veranstaltungsname",
+      "dates": "Termine",
+      "location": "Austragungsort",
+      "participants": "Teilnehmer",
+      "clubs": "Vereine",
+      "actions": "Aktionen",
+      "to": "bis"
+    },
+    "card": {
+      "participants": "{{count}} Teilnehmer",
+      "clubs": "{{count}} Vereine",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    },
+    "form": {
+      "eventName": "Veranstaltungsname",
+      "eventNamePlaceholder": "Name der Veranstaltung eingeben",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum", 
+      "location": "Austragungsort",
+      "locationPlaceholder": "Austragungsort auswählen",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung der Veranstaltung (optional)",
+      "organizer": "Veranstalter",
+      "organizerPlaceholder": "Name des Veranstalters",
+      "registrationDeadline": "Meldeschluss",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "creating": "Erstelle...",
+      "updating": "Aktualisiere..."
+    },
+    "status": {
+      "upcoming": "Bevorstehend",
+      "active": "Aktiv",
+      "completed": "Abgeschlossen"
+    },
+    "filters": {
+      "status": "Status",
+      "location": "Austragungsort",
+      "dateRange": "Datumsbereich",
+      "organizer": "Veranstalter",
+      "clearAll": "Alle Filter löschen"
+    },
+    "messages": {
+      "createSuccess": "Veranstaltung erfolgreich erstellt",
+      "updateSuccess": "Veranstaltung erfolgreich aktualisiert",
+      "deleteSuccess": "Veranstaltung erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Veranstaltung",
+      "updateError": "Fehler beim Aktualisieren der Veranstaltung",
+      "deleteError": "Fehler beim Löschen der Veranstaltung",
+      "loadError": "Fehler beim Laden der Veranstaltungen",
+      "confirmDelete": "Möchten Sie diese Veranstaltung wirklich löschen?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "export": {
+      "csv": "Als CSV exportieren",
+      "filename": "veranstaltungen"
+    }
+  },
   "home": {
     "welcome": "Willkommen bei TurnFix",
     "description": "Modernes Turnwettkampf-Verwaltungssystem mit Echtzeit-Bewertung, Teilnehmerverfolgung und umfassender Analyse.",

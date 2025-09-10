@@ -398,6 +398,76 @@
     "warning": "Warning",
     "info": "Information"
   },
+  "events": {
+    "title": "Event Management",
+    "subtitle": "Manage gymnastics events and competitions",
+    "subtitleWithCount": "Manage gymnastics events and competitions ({{count}} events loaded)",
+    "searchPlaceholder": "Search events...",
+    "addEvent": "Add Event",
+    "editEvent": "Edit Event",
+    "deleteEvent": "Delete Event",
+    "noEvents": "No events found",
+    "loadingEvents": "Loading events...",
+    "table": {
+      "eventName": "Event Name",
+      "dates": "Dates",
+      "location": "Location",
+      "participants": "Participants",
+      "clubs": "Clubs",
+      "actions": "Actions",
+      "to": "to"
+    },
+    "card": {
+      "participants": "{{count}} participants",
+      "clubs": "{{count}} clubs",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "eventName": "Event Name",
+      "eventNamePlaceholder": "Enter event name",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "location": "Location",
+      "locationPlaceholder": "Select location",
+      "description": "Description",
+      "descriptionPlaceholder": "Event description (optional)",
+      "organizer": "Organizer",
+      "organizerPlaceholder": "Organizer name",
+      "registrationDeadline": "Registration Deadline",
+      "save": "Save",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "updating": "Updating..."
+    },
+    "status": {
+      "upcoming": "Upcoming",
+      "active": "Active",
+      "completed": "Completed"
+    },
+    "filters": {
+      "status": "Status",
+      "location": "Location",
+      "dateRange": "Date Range",
+      "organizer": "Organizer",
+      "clearAll": "Clear All Filters"
+    },
+    "messages": {
+      "createSuccess": "Event created successfully",
+      "updateSuccess": "Event updated successfully",
+      "deleteSuccess": "Event deleted successfully",
+      "createError": "Error creating event",
+      "updateError": "Error updating event",
+      "deleteError": "Error deleting event",
+      "loadError": "Error loading events",
+      "confirmDelete": "Are you sure you want to delete this event?",
+      "deleteWarning": "This action cannot be undone."
+    },
+    "export": {
+      "csv": "Export to CSV",
+      "filename": "events"
+    }
+  },
   "home": {
     "welcome": "Welcome to TurnFix",
     "description": "Modern gymnastics competition management system with real-time scoring, participant tracking, and comprehensive analytics.",

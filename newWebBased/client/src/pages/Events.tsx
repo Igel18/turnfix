@@ -6,6 +6,7 @@ import {
   PencilIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { DatabaseManagementTemplate } from '@/components/DatabaseManagementTemplate'
 import { exportToCSV, getEventCSVData } from '@/utils/csvExport'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
@@ -32,6 +33,8 @@ interface Venue {
 }
 
 const Events: React.FC = () => {
+  const { t } = useTranslation()
+  
   // State management
   const [events, setEvents] = useState<Event[]>([])
   const [venues, setVenues] = useState<Venue[]>([])
@@ -68,15 +71,15 @@ const Events: React.FC = () => {
   })
 
   const statusOptions = [
-    { value: 'upcoming', label: 'Upcoming', color: 'bg-blue-100 text-blue-800' },
-    { value: 'active', label: 'Active', color: 'bg-green-100 text-green-800' },
-    { value: 'completed', label: 'Completed', color: 'bg-gray-100 text-gray-800' }
+    { value: 'upcoming', label: t('events.status.upcoming'), color: 'bg-blue-100 text-blue-800' },
+    { value: 'active', label: t('events.status.active'), color: 'bg-green-100 text-green-800' },
+    { value: 'completed', label: t('events.status.completed'), color: 'bg-gray-100 text-gray-800' }
   ]
 
   // Filter configuration for DatabaseManagementTemplate
   const getFilterConfig = () => [
     {
-      label: 'Status',
+      label: t('events.filters.status'),
       value: 'status',
       options: statusOptions.map(status => ({
         value: status.value,
@@ -203,7 +206,7 @@ const Events: React.FC = () => {
 
   // Delete event
   const handleDelete = async (eventId: number, forceDelete = false) => {
-    if (!forceDelete && !confirm('Are you sure you want to delete this event?')) return
+    if (!forceDelete && !confirm(t('events.messages.confirmDelete'))) return
 
     setErrorMessage('')
 
@@ -440,12 +443,12 @@ const Events: React.FC = () => {
 
           <div className="flex items-center text-sm text-gray-600">
             <UsersIcon className="h-4 w-4 mr-2" />
-            <span>{event.participant_count} participants</span>
+            <span>{t('events.card.participants', { count: event.participant_count })}</span>
           </div>
 
           <div className="flex items-center text-sm text-gray-600">
             <MapPinIcon className="h-4 w-4 mr-2" />
-            <span>{event.club_count || 0} clubs</span>
+            <span>{t('events.card.clubs', { count: event.club_count || 0 })}</span>
           </div>
 
           {event.var_description && (
@@ -463,14 +466,14 @@ const Events: React.FC = () => {
             className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
           >
             <PencilIcon className="h-4 w-4" />
-            <span>Edit</span>
+            <span>{t('events.card.edit')}</span>
           </button>
           <button
             onClick={() => handleDelete(event.int_eventid)}
             className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
           >
             <TrashIcon className="h-4 w-4" />
-            <span>Delete</span>
+            <span>{t('events.card.delete')}</span>
           </button>
         </div>
       </div>
@@ -480,15 +483,15 @@ const Events: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <DatabaseManagementTemplate
-          title="Event Management"
-          subtitle={`Manage gymnastics events and competitions (${events.length} events loaded)`}
+          title={t('events.title')}
+          subtitle={t('events.subtitleWithCount', { count: events.length })}
           icon={CalendarDaysIcon}
           data={events}
           isLoading={isLoading}
           error={errorMessage}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          searchPlaceholder="Search events..."
+          searchPlaceholder={t('events.searchPlaceholder')}
           showFilters={showFilters}
           onToggleFilters={() => setShowFilters(!showFilters)}
           filterOptions={getFilterConfig()}
@@ -497,28 +500,28 @@ const Events: React.FC = () => {
           viewStorageKey="events"
           defaultView="table"
           onAdd={openCreateModal}
-          addLabel="Add Event"
+          addLabel={t('events.addEvent')}
           onEdit={openEditModal}
           onDelete={(event) => handleDelete(event.int_eventid)}
           renderTableHeaders={() => (
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Event Name
+                {t('events.table.eventName')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Dates
+                {t('events.table.dates')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Location
+                {t('events.table.location')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Participants
+                {t('events.table.participants')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Clubs
+                {t('events.table.clubs')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+                {t('events.table.actions')}
               </th>
             </tr>
           )}
@@ -535,7 +538,7 @@ const Events: React.FC = () => {
               <td className="px-6 py-4 whitespace-nowrap text-sm">
                 <div>{formatDate(event.dat_eventstartdate)}</div>
                 {event.dat_eventstartdate !== event.dat_eventenddate && (
-                  <div className="text-gray-500">to {formatDate(event.dat_eventenddate)}</div>
+                  <div className="text-gray-500">{t('events.table.to')} {formatDate(event.dat_eventenddate)}</div>
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -561,14 +564,14 @@ const Events: React.FC = () => {
                   <button
                     onClick={() => openEditModal(event)}
                     className="text-blue-600 hover:text-blue-800"
-                    title="Edit"
+                    title={t('events.editEvent')}
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(event.int_eventid)}
                     className="text-red-600 hover:text-red-800"
-                    title="Delete"
+                    title={t('events.deleteEvent')}
                   >
                     <TrashIcon className="h-4 w-4" />
                   </button>
@@ -595,13 +598,13 @@ const Events: React.FC = () => {
           <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {editingEvent ? 'Edit Event' : 'Add New Event'}
+                {editingEvent ? t('events.editEvent') : t('events.addEvent')}
               </h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Event Name *
+                    {t('events.form.eventName')} *
                   </label>
                   <input
                     type="text"
@@ -609,14 +612,14 @@ const Events: React.FC = () => {
                     value={formData.var_eventname}
                     onChange={(e) => setFormData({ ...formData, var_eventname: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter event name"
+                    placeholder={t('events.form.eventNamePlaceholder')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Date *
+                      {t('events.form.startDate')} *
                     </label>
                     <input
                       type="date"
@@ -629,7 +632,7 @@ const Events: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End Date *
+                      {t('events.form.endDate')} *
                     </label>
                     <input
                       type="date"
@@ -643,7 +646,7 @@ const Events: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location *
+                    {t('events.form.location')} *
                   </label>
                   <select
                     required
@@ -651,7 +654,7 @@ const Events: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, var_location: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="">Select a venue...</option>
+                    <option value="">{t('events.form.locationPlaceholder')}</option>
                     {venues.map((venue) => (
                       <option key={venue.int_wettkampforteid} value={venue.var_name}>
                         {venue.var_name}
@@ -668,14 +671,14 @@ const Events: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                    {t('events.form.description')}
                   </label>
                   <textarea
                     value={formData.var_description}
                     onChange={(e) => setFormData({ ...formData, var_description: e.target.value })}
                     rows={3}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Optional description"
+                    placeholder={t('events.form.descriptionPlaceholder')}
                   />
                 </div>
 
@@ -685,13 +688,13 @@ const Events: React.FC = () => {
                     onClick={() => setIsModalOpen(false)}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('events.form.cancel')}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
-                    {editingEvent ? 'Update' : 'Create'} Event
+                    {editingEvent ? t('events.form.updating') : t('events.form.creating')}
                   </button>
                 </div>
               </form>
