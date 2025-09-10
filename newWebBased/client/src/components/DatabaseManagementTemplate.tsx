@@ -170,8 +170,12 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {paginatedItems.map((item, index) => 
-            renderTableRow ? renderTableRow(item, startIndex + index) : (
-              <tr key={item.id || index}>
+            renderTableRow ? (
+              <React.Fragment key={item.id || item.int_sportid || item.int_disciplineid || index}>
+                {renderTableRow(item, startIndex + index)}
+              </React.Fragment>
+            ) : (
+              <tr key={item.id || item.int_sportid || item.int_disciplineid || index}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {item.name || item.var_name || 'N/A'}
                 </td>
@@ -215,8 +219,12 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   const defaultCards = () => (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {paginatedItems.map((item, index) => 
-        renderCard ? renderCard(item, startIndex + index) : (
-          <div key={item.id || index} className="bg-white overflow-hidden shadow rounded-lg">
+        renderCard ? (
+          <React.Fragment key={item.id || item.int_sportid || item.int_disciplineid || index}>
+            {renderCard(item, startIndex + index)}
+          </React.Fragment>
+        ) : (
+          <div key={item.id || item.int_sportid || item.int_disciplineid || index} className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {item.name || item.var_name || 'N/A'}

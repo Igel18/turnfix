@@ -28,7 +28,7 @@ import StatusManagement from '@/pages/StatusManagement'
 import LocationsUnified from '@/pages/LocationsUnified'
 import LocationsDebug from '@/pages/LocationsDebug'
 import PersonsUnified from '@/pages/PersonsUnified'
-import Sports from '@/pages/Sports'
+import SportsUnified from '@/pages/SportsUnified'
 import Formulas from '@/pages/Formulas'
 import DisciplineGroups from '@/pages/DisciplineGroups'
 import Meldematrix from '@/pages/Meldematrix'
@@ -64,7 +64,7 @@ function App() {
             <Route path="/medallienspiegel" element={<Medallienspiegel />} />
             <Route path="/disciplines" element={<DisciplinesUnified />} />
             <Route path="/discipline-fields" element={<DisciplineFields />} />
-            <Route path="/sports" element={<Sports />} />
+            <Route path="/sports" element={<SportsUnified />} />
             <Route path="/formulas" element={<Formulas />} />
             <Route path="/discipline-groups" element={<DisciplineGroups />} />
             <Route path="/database-config" element={<DatabaseConfig />} />

@@ -293,7 +293,7 @@ export default function UnifiedPageHeader({
             )}
             
             {filterOptions.map((option, index) => (
-              <div key={index}>
+              <div key={option.value || option.label || index}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {option.label}
                 </label>
