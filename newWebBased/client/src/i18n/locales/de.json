@@ -153,9 +153,6 @@
         "description": "Datenbank, Debug-Modus, Sprache, Ports und andere Systemeinstellungen konfigurieren"
       }
     },
-    "recentActivity": {
-      "title": "Letzte Aktivitäten"
-    },
     "buttons": {
       "expand": "Erweitern",
       "collapse": "Zuklappen"

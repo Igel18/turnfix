@@ -829,46 +829,6 @@ export function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Recent Activity Section */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <CalendarDaysIcon className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">New event "Spring Championships" created</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                <div className="bg-green-100 p-2 rounded-full">
-                  <UserGroupIcon className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">15 new participants registered</p>
-                  <p className="text-xs text-gray-500">4 hours ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                <div className="bg-purple-100 p-2 rounded-full">
-                  <TrophyIcon className="h-4 w-4 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Competition results uploaded for "Youth Cup"</p>
-                  <p className="text-xs text-gray-500">6 hours ago</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

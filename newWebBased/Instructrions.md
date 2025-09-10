@@ -339,6 +339,8 @@ Database Management:
 Geräte mit Icons 
 ---
 lokalisierung 
+---
+
 refactoring (nur noch prisma) 
 Über Turnfix 
 DB cleanup: complete oder nur Personen und Vereine

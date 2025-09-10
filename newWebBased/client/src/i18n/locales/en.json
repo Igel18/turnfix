@@ -153,9 +153,6 @@
         "description": "Configure database, debug mode, language, ports, and other system settings"
       }
     },
-    "recentActivity": {
-      "title": "Recent Activity"
-    },
     "buttons": {
       "expand": "Expand",
       "collapse": "Collapse"
