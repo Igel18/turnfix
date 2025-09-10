@@ -74,7 +74,8 @@ const ClubsUnified: React.FC = () => {
   const fetchClubs = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/clubs');
+      // Load all clubs with high limit
+      const response = await fetch('/api/clubs?limit=5000');
       if (response.ok) {
         const data = await response.json();
         // The clubs API returns { clubs: [...], pagination: {...} }
@@ -450,7 +451,7 @@ const ClubsUnified: React.FC = () => {
         onEdit={handleEdit}
         onDelete={(club) => handleDelete(club.int_vereineid)}
         viewStorageKey="clubs-view"
-        itemsPerPage={20}
+        itemsPerPage={50}
         renderTableHeaders={renderTableHeaders}
         renderTableRow={renderTableRow}
         renderCard={renderCard}

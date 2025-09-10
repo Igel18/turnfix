@@ -61,6 +61,8 @@ Sometimes it is helpful to add a Workflow text to the UI. Use the YelloInfoBox c
 For all tables, use the Table.tsx component. Each page with a list of data should have a table. The Actions column should be the last column. The action buttons should be the same as on other pages. Only the buttons that are needed should be shown (modify, delete).
 Use a consistent view for gender, age, status, and other common fields across all pages. Don't mix age and birthdate. Use age only. 
 
+It's better to load all data but show only a subset per page for better performance and usability. This way you have all the data available for searching/filtering, but the UI remains manageable with pagination. 
+Use a high limit for the API calls if necessary.
 
 Page Style: 
 use the max-w-7xl mx-auto p-6 pattern (with padding) for all pages 

@@ -60,7 +60,8 @@ const ParticipantsUnified: React.FC = () => {
 
   const fetchParticipants = async () => {
     try {
-      const response = await fetch('/api/participants');
+      // Set a very high limit to get all participants
+      const response = await fetch('/api/participants?limit=10000');
       if (!response.ok) throw new Error('Failed to fetch participants');
       const data = await response.json();
       setParticipants(Array.isArray(data.participants) ? data.participants : []);
@@ -72,7 +73,8 @@ const ParticipantsUnified: React.FC = () => {
 
   const fetchClubs = async () => {
     try {
-      const response = await fetch('/api/clubs');
+      // Set a high limit to get all clubs
+      const response = await fetch('/api/clubs?limit=5000');
       if (!response.ok) throw new Error('Failed to fetch clubs');
       const data = await response.json();
       setClubs(Array.isArray(data.clubs) ? data.clubs : []);
@@ -428,7 +430,7 @@ const ParticipantsUnified: React.FC = () => {
         onEdit={handleEdit}
         onDelete={(participant) => handleDelete(participant.int_teilnehmerid)}
         viewStorageKey="participants-view"
-        itemsPerPage={20}
+        itemsPerPage={50}
         renderTableHeaders={renderTableHeaders}
         renderTableRow={renderTableRow}
         renderCard={renderCard}
