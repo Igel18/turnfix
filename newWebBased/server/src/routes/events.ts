@@ -2311,5 +2311,127 @@ router.post('/import-test', upload.single('xmlFile'), async (req: any, res) => {
   }
 });
 
+// Get event statistics
+router.get('/:id/statistics', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    
+    if (!eventId || isNaN(eventId)) {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+
+    console.log(`📊 Getting statistics for event ${eventId}`);
+
+    // Get total participants for this event through tfx_wertungen -> tfx_wettkaempfe -> tfx_veranstaltungen
+    const participantStatsQuery = `
+      SELECT 
+        COUNT(DISTINCT w.int_teilnehmerid) as total_participants,
+        COUNT(DISTINCT CASE WHEN t.int_geschlecht = 1 THEN w.int_teilnehmerid END) as male_participants,
+        COUNT(DISTINCT CASE WHEN t.int_geschlecht = 2 THEN w.int_teilnehmerid END) as female_participants,
+        COUNT(DISTINCT t.int_vereineid) as total_clubs
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE wk.int_veranstaltungenid = $1
+    `;
+
+    const participantStats = await prisma.$queryRawUnsafe(participantStatsQuery, eventId) as any[];
+    const stats = participantStats[0] || {
+      total_participants: 0,
+      male_participants: 0,
+      female_participants: 0,
+      total_clubs: 0
+    };
+
+    // Get total competitions for this event
+    const competitionStatsQuery = `
+      SELECT COUNT(*) as total_competitions
+      FROM tfx_wettkaempfe wk
+      WHERE wk.int_veranstaltungenid = $1
+    `;
+
+    const competitionStats = await prisma.$queryRawUnsafe(competitionStatsQuery, eventId) as any[];
+    const totalCompetitions = parseInt(competitionStats[0]?.total_competitions || '0');
+
+    // Get age group distribution
+    const ageGroupQuery = `
+      SELECT 
+        CASE 
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) BETWEEN 6 AND 8 THEN '6-8 Jahre'
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) BETWEEN 9 AND 10 THEN '9-10 Jahre'
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) BETWEEN 11 AND 12 THEN '11-12 Jahre'
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) BETWEEN 13 AND 14 THEN '13-14 Jahre'
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) BETWEEN 15 AND 16 THEN '15-16 Jahre'
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) BETWEEN 17 AND 18 THEN '17-18 Jahre'
+          WHEN EXTRACT(YEAR FROM AGE(t.dat_geburtstag)) >= 19 THEN '19+ Jahre'
+          ELSE 'Unbekannt'
+        END as age_group,
+        COUNT(DISTINCT w.int_teilnehmerid) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE wk.int_veranstaltungenid = $1 AND t.dat_geburtstag IS NOT NULL
+      GROUP BY age_group
+      ORDER BY age_group
+    `;
+
+    const ageGroupStats = await prisma.$queryRawUnsafe(ageGroupQuery, eventId) as any[];
+    const ageGroups: { [key: string]: number } = {};
+    ageGroupStats.forEach((row: any) => {
+      ageGroups[row.age_group] = parseInt(row.count);
+    });
+
+    // Get club breakdown
+    const clubBreakdownQuery = `
+      SELECT 
+        v.var_name as club_name,
+        COUNT(DISTINCT w.int_teilnehmerid) as count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      INNER JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+      WHERE wk.int_veranstaltungenid = $1
+      GROUP BY v.var_name
+      ORDER BY count DESC, v.var_name
+      LIMIT 10
+    `;
+
+    const clubBreakdownStats = await prisma.$queryRawUnsafe(clubBreakdownQuery, eventId) as any[];
+    const clubBreakdown = clubBreakdownStats.map((row: any) => ({
+      clubName: row.club_name || 'Unbekannter Verein',
+      count: parseInt(row.count)
+    }));
+
+    // Calculate total groups (assuming groups are unique combinations of riege)
+    const groupStatsQuery = `
+      SELECT COUNT(DISTINCT w.var_riege) as total_groups
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege IS NOT NULL AND w.var_riege != ''
+    `;
+
+    const groupStats = await prisma.$queryRawUnsafe(groupStatsQuery, eventId) as any[];
+    const totalGroups = parseInt(groupStats[0]?.total_groups || '0');
+
+    const result = {
+      totalParticipants: parseInt(stats.total_participants) || 0,
+      maleParticipants: parseInt(stats.male_participants) || 0,
+      femaleParticipants: parseInt(stats.female_participants) || 0,
+      totalClubs: parseInt(stats.total_clubs) || 0,
+      totalCompetitions,
+      totalGroups,
+      ageGroups,
+      clubBreakdown
+    };
+
+    console.log(`📊 Event ${eventId} statistics:`, result);
+    res.json(result);
+
+  } catch (error) {
+    console.error('Error fetching event statistics:', error);
+    res.status(500).json({ error: 'Failed to fetch event statistics' });
+  }
+});
+
 export default router;
 
