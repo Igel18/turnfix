@@ -10,6 +10,7 @@ import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
 import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
+import { getDisciplineIcon, getDisciplineShortName } from '@/utils/disciplineIcons'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -26,11 +27,20 @@ interface Participant {
   competitionName?: string
 }
 
+interface DisciplineInfo {
+  name: string
+  icon: string
+  iconPath?: string
+  var_kurz1?: string // Add the short name field
+  fullData?: any // Add the full data field for debugging
+}
+
 interface CompetitionGroup {
   competitionId: number
   competitionName: string
   participants: Participant[]
   disciplines: string[] // Add disciplines specific to this competition
+  disciplineInfo: DisciplineInfo[] // Detailed discipline information with icons
 }
 
 interface LayoutField {
@@ -348,15 +358,28 @@ const Results = () => {
 
           // Fetch disciplines for this specific competition
           let competitionDisciplines: string[] = []
+          let competitionDisciplineInfo: DisciplineInfo[] = []
           try {
             const competitionDisciplinesData = await apiGet(`/competitions/${competitionId}/disciplines`)
             if (competitionDisciplinesData?.disciplines?.length > 0) {
               competitionDisciplines = competitionDisciplinesData.disciplines.map((d: any) => d.var_name || d.name)
+              competitionDisciplineInfo = competitionDisciplinesData.disciplines.map((d: any) => ({
+                name: d.var_name || d.name,
+                icon: getDisciplineIcon(d.var_name || d.name, d.var_icon),
+                iconPath: d.var_icon,
+                var_kurz1: d.var_kurz1, // Add the short name
+                fullData: d // Keep the full data for debugging
+              }))
             }
           } catch (error) {
             console.error(`Error fetching disciplines for competition ${competitionId}:`, error)
             // Fallback: use all disciplines in disciplineSet
             competitionDisciplines = Array.from(disciplineSet)
+            competitionDisciplineInfo = competitionDisciplines.map(name => ({
+              name,
+              icon: getDisciplineIcon(name),
+              iconPath: undefined
+            }))
           }
 
           // Recalculate total scores using only disciplines assigned to this competition
@@ -377,7 +400,8 @@ const Results = () => {
             competitionId,
             competitionName,
             participants,
-            disciplines: competitionDisciplines.sort()
+            disciplines: competitionDisciplines.sort(),
+            disciplineInfo: competitionDisciplineInfo.sort((a, b) => a.name.localeCompare(b.name))
           })
         }
 
@@ -431,7 +455,7 @@ const Results = () => {
   }
 
   // Export results to PDF
-  const exportResultsPDF = () => {
+  const exportResultsPDF = async () => {
     if (selectedCompetition) {
       // Single competition export
       if (ranking.length === 0) return
@@ -468,9 +492,22 @@ const Results = () => {
       // Get competition-specific disciplines
       const selectedCompetitionGroup = competitionGroups.find(g => g.competitionId.toString() === selectedCompetition)
       const competitionDisciplines = selectedCompetitionGroup ? selectedCompetitionGroup.disciplines : disciplines
+      const competitionDisciplineInfo = selectedCompetitionGroup ? selectedCompetitionGroup.disciplineInfo : []
       
-      // Prepare table data
-      const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...competitionDisciplines, 'Total']
+      // Prepare table data with icons in headers
+      const headers = [
+        'Rank', 
+        'Start #', 
+        'Name', 
+        'Club', 
+        'Age', 
+        ...competitionDisciplines.map(discipline => {
+          const disciplineInfo = competitionDisciplineInfo.find(d => d.name === discipline)
+          const shortName = disciplineInfo ? getDisciplineShortName(discipline, disciplineInfo) : discipline
+          return shortName
+        }), 
+        'Total'
+      ]
       const tableData = filteredRanking.map(participant => [
         participant.rank,
         participant.startNumber || '',
@@ -614,8 +651,20 @@ const Results = () => {
         doc.text(`${group.competitionName} (${group.participants.length} participants)`, contentArea.startX, currentY)
         currentY += 12
 
-        // Prepare table data for this competition
-        const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...group.disciplines, 'Total']
+        // Prepare table data for this competition with icons in headers
+        const headers = [
+          'Rank', 
+          'Start #', 
+          'Name', 
+          'Club', 
+          'Age', 
+          ...group.disciplines.map(discipline => {
+            const disciplineInfo = group.disciplineInfo.find(d => d.name === discipline)
+            const shortName = disciplineInfo ? getDisciplineShortName(discipline, disciplineInfo) : discipline
+            return shortName
+          }), 
+          'Total'
+        ]
         const tableData = group.participants.map(participant => [
           participant.rank,
           participant.startNumber || '',
@@ -1361,10 +1410,21 @@ const Results = () => {
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Jg
                           </th>
-                          {group.disciplines.map(discipline => (
-                            <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
-                              <div className="flex flex-col">
-                                <span className="font-semibold">{discipline}</span>
+                          {group.disciplineInfo.map(disciplineInfo => (
+                            <th key={disciplineInfo.name} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <img 
+                                    src={disciplineInfo.icon} 
+                                    alt={disciplineInfo.name}
+                                    className="w-4 h-4"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement
+                                      target.style.display = 'none'
+                                    }}
+                                  />
+                                  <span className="font-semibold">{disciplineInfo.name}</span>
+                                </div>
                                 <span className="text-[10px] text-gray-400 font-normal">Device</span>
                               </div>
                             </th>
