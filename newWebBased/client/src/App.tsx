@@ -8,6 +8,7 @@ import Home from '@/pages/Home'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import Events from '@/pages/Events'
+import EventManagement from '@/pages/EventManagement'
 import ClubsUnified from '@/pages/ClubsUnified'
 import Regions from '@/pages/Regions'
 import Associations from '@/pages/Associations'
@@ -48,6 +49,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/event-management" element={<EventManagement />} />
             <Route path="/clubs" element={<ClubsUnified />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/associations" element={<Associations />} />

@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
-import { render } from '../utils/test-utils';
+import { render, setupCommonMocks } from '../utils/test-utils';
 import Home from '../../pages/Home';
 
 describe('Home Page', () => {
   beforeEach(() => {
-    // Reset any mocks before each test
+    setupCommonMocks();
   });
 
   it('renders the home page component', () => {

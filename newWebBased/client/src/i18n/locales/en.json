@@ -465,6 +465,16 @@
       "filename": "events"
     }
   },
+  "eventManagement": {
+    "title": "Event Management",
+    "subtitle": "Manage current event details and statistics",
+    "noEventSelected": "No event selected",
+    "selectEvent": "Select an Event",
+    "selectEventDescription": "Please select an event from the event context to manage its details.",
+    "eventDetails": "Event Details",
+    "statistics": "Event Statistics", 
+    "noStatistics": "No statistics available"
+  },
   "participants": {
     "title": "Participant Management",
     "subtitle": "Manage participants and their competition data",

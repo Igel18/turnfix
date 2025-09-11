@@ -7,8 +7,8 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
-import { DatabaseManagementTemplate } from '@/components/DatabaseManagementTemplate'
-import { exportToCSV, getEventCSVData } from '@/utils/csvExport'
+import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate'
+import { exportToCSV, getEventCSVData } from '../utils/csvExport'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 
 interface Event {

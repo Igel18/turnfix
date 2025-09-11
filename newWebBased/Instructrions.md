@@ -341,6 +341,31 @@ Geräte mit Icons
 lokalisierung 
 ---
 
+Hard coded in events.ts
+      // For each competition, try to link appropriate disciplines
+      for (const competition of (eventCompetitions as any[])) {
+        const competitionName = competition.var_name.toLowerCase();
+        
+        console.log(`  🔍 Processing competition: "${competition.var_name}"`);
+        
+        // Determine which disciplines to link based on competition name
+        let disciplinesToLink: string[] = [];
+        
+        if (competitionName.includes('vierkampf') && competitionName.includes('w')) {
+          // Women's all-around (4 events)
+          disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'];
+        } else if (competitionName.includes('sechskampf') && competitionName.includes('m')) {
+          // Men's all-around (6 events)
+          disciplinesToLink = ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'];
+        } else if (competitionName.includes('geräte')) {
+          // Generic apparatus competition - link common disciplines
+          disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
+        } else {
+          // For other competitions, link basic disciplines
+          disciplinesToLink = ['Boden', 'Sprung'];
+        }
+        
+
 refactoring (nur noch prisma) 
 Über Turnfix 
 DB cleanup: complete oder nur Personen und Vereine

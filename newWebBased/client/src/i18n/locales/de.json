@@ -465,6 +465,16 @@
       "filename": "veranstaltungen"
     }
   },
+  "eventManagement": {
+    "title": "Veranstaltungsverwaltung",
+    "subtitle": "Details und Statistiken der aktuellen Veranstaltung verwalten",
+    "noEventSelected": "Keine Veranstaltung ausgewählt",
+    "selectEvent": "Veranstaltung auswählen",
+    "selectEventDescription": "Bitte wählen Sie eine Veranstaltung aus dem Veranstaltungskontext aus, um deren Details zu verwalten.",
+    "eventDetails": "Veranstaltungsdetails",
+    "statistics": "Veranstaltungsstatistiken", 
+    "noStatistics": "Keine Statistiken verfügbar"
+  },
   "participants": {
     "title": "Teilnehmerverwaltung",
     "subtitle": "Teilnehmer und ihre Wettkampfdaten verwalten",

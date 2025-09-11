@@ -196,6 +196,58 @@ export const mockFetch = vi.fn((input: RequestInfo | URL) => {
 
 global.fetch = mockFetch as any;
 
+// Setup common mocks function for all tests
+export function setupCommonMocks() {
+  // Mock fetch API
+  global.fetch = mockFetch as any;
+
+  // Mock window.scrollTo
+  Object.defineProperty(window, 'scrollTo', {
+    value: vi.fn(),
+    writable: true,
+  });
+
+  // Mock HTMLElement.scrollIntoView  
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+    value: vi.fn(),
+    writable: true,
+  });
+
+  // Mock localStorage
+  const localStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  };
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+  });
+
+  // Mock sessionStorage
+  Object.defineProperty(window, 'sessionStorage', {
+    value: localStorageMock,
+  });
+
+  // Mock window.location
+  Object.defineProperty(window, 'location', {
+    value: {
+      href: 'http://localhost:5173',
+      pathname: '/',
+      search: '',
+      hash: '',
+      assign: vi.fn(),
+      reload: vi.fn(),
+      replace: vi.fn(),
+    },
+    writable: true,
+  });
+
+  // Mock console methods to reduce noise in tests
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+}
+
 // Test query client with shorter retry settings
 const createTestQueryClient = () => new QueryClient({
   defaultOptions: {
@@ -211,15 +263,6 @@ const createTestQueryClient = () => new QueryClient({
 
 // Mock EventProvider for tests that need it
 const MockEventProvider = ({ children }: { children: React.ReactNode }) => {
-  const mockEventContext = {
-    selectedEvent: null,
-    setSelectedEvent: vi.fn(),
-    events: generateMockEvents(),
-    loading: false,
-    error: null,
-    refreshEvents: vi.fn(),
-  };
-
   // Create a simple provider that doesn't require the actual EventProvider
   return React.createElement('div', { 'data-testid': 'mock-event-provider' }, children);
 };

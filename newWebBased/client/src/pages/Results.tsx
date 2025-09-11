@@ -6,7 +6,7 @@ import {
   ChartBarIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import UnifiedPageHeader from '../components/UnifiedPageHeader'
 import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
 import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'

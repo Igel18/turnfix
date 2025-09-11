@@ -104,6 +104,8 @@ every time I make a "looks good" or "approved" comment, it means the code is rea
 if you add `DEBUG=true` to your environment variables, the server will log additional debugging information to the console.
 Only show additional debugging information when this variable is set. 
 Don't hesitate to add such debug informations to console or UI. 
+In debug mode true show the DB primary keys in the UI for better debugging. if false, hide them.
+
 
 
 # Information 
@@ -131,6 +133,8 @@ Competition
     Participant:
     XML: <perGeschlecht>1</perGeschlecht> -> TurnFix male
     XML: <perGeschlecht>2</perGeschlecht> -> TurnFix female
+
+do not use hardcoded values in the code. Use the database values. If this is not possible, use a section in configuration file this is editable in the UI configuration page.
 
 # Terminal
 

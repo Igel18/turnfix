@@ -150,7 +150,7 @@ app.use('/api/regions', regionRoutes);
 app.use('/api/clubs', clubRoutes);
 app.use('/api/participants', participantRoutes);
 app.use('/api/event-participants', eventParticipantRoutes);
-app.use('/api/events', eventRoutes);
+app.use('/api/events', eventRoutes); // Re-enabled with simple version
 app.use('/api/areas', areaRoutes);
 app.use('/api/sports', sportRoutes);
 app.use('/api/formulas', formulaRoutes);
