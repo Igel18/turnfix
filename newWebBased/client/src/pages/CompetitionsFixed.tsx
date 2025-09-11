@@ -54,7 +54,13 @@ interface Competition {
   gender: 'männlich' | 'weiblich' | 'gemischt';
   ageFrom: number;
   ageTo: number;
-  disciplines: number[] | Discipline[];
+  disciplines: {
+    disciplineId: number;
+    name: string;
+    short_name: string;
+    apparatus: string;
+    maxScore: number;
+  }[];
   registrationDeadline?: string;
   organizer?: string;
   status: 'upcoming' | 'active' | 'completed';
@@ -357,8 +363,8 @@ const Competitions: React.FC = () => {
       ageTo: competition.ageTo,
       disciplines: Array.isArray(competition.disciplines) ? 
         competition.disciplines.map((d: any) => 
-          typeof d === 'object' && d.disciplineId ? 
-            { disciplineId: d.disciplineId, maxScore: d.maxScore || 0 } : 
+          typeof d === 'object' && (d.disciplineId || d.id) ? 
+            { disciplineId: d.disciplineId || d.id, maxScore: d.maxScore || 0 } : 
             { disciplineId: typeof d === 'number' ? d : d.int_disziplinid, maxScore: 0 }
         ) : []
     });
@@ -508,6 +514,28 @@ const Competitions: React.FC = () => {
                           <Users className="w-4 h-4 mr-2" />
                           {competition.participantCount} participants
                         </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Trophy className="w-4 h-4 mr-2" />
+                          {competition.disciplines ? competition.disciplines.length : 0} discipline{competition.disciplines && competition.disciplines.length !== 1 ? 's' : ''}
+                        </div>
+                        {competition.disciplines && competition.disciplines.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {competition.disciplines.slice(0, 4).map((discipline, index) => (
+                              <span 
+                                key={index}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+                                title={`${discipline.name} (${discipline.apparatus})`}
+                              >
+                                {discipline.short_name || discipline.name}
+                              </span>
+                            ))}
+                            {competition.disciplines.length > 4 && (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                                +{competition.disciplines.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex justify-between items-center">
@@ -553,6 +581,9 @@ const Competitions: React.FC = () => {
                           Competition
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Disciplines
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Participants
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -589,6 +620,31 @@ const Competitions: React.FC = () => {
                                   {competition.description}
                                 </div>
                               )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-wrap gap-1">
+                              {competition.disciplines && competition.disciplines.length > 0 ? (
+                                competition.disciplines.slice(0, 3).map((discipline, index) => (
+                                  <span 
+                                    key={index}
+                                    className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+                                    title={`${discipline.name} (${discipline.apparatus})`}
+                                  >
+                                    {discipline.short_name || discipline.name}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-500">No disciplines</span>
+                              )}
+                              {competition.disciplines && competition.disciplines.length > 3 && (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                                  +{competition.disciplines.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {competition.disciplines ? competition.disciplines.length : 0} discipline{competition.disciplines && competition.disciplines.length !== 1 ? 's' : ''}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

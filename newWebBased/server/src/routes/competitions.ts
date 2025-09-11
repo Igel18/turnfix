@@ -99,6 +99,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         ageTo: Math.max(ageFrom, ageTo),   // Ensure ageTo is the larger value
         disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => ({
           disciplineId: wd.tfx_disziplinen.int_disziplinenid,
+          name: wd.tfx_disziplinen.var_name,
+          short_name: wd.tfx_disziplinen.var_kurz1,
+          apparatus: wd.tfx_disziplinen.var_einheit,
           maxScore: wd.rel_max || 0
         })),
         registrationDeadline: comp.tfx_veranstaltungen.dat_meldeschluss?.toISOString().split('T')[0] || null,
