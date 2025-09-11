@@ -648,17 +648,17 @@ const EventManagement: React.FC = () => {
                         <div className="text-2xl font-bold text-blue-600">{statistics.totalParticipants}</div>
                         <div className="text-xs text-blue-600">{t('eventManagement.statistics.totalParticipants')}</div>
                       </div>
-                      <div className="bg-pink-50 p-3 rounded-lg">
-                        <div className="text-lg font-semibold text-pink-600">{statistics.femaleParticipants}</div>
-                        <div className="text-xs text-pink-600">{t('eventManagement.statistics.female')}</div>
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="text-lg font-semibold text-green-600">{statistics.totalClubs}</div>
+                        <div className="text-xs text-green-600">{t('eventManagement.statistics.totalClubs')}</div>
                       </div>
                       <div className="bg-blue-50 p-3 rounded-lg">
                         <div className="text-lg font-semibold text-blue-600">{statistics.maleParticipants}</div>
                         <div className="text-xs text-blue-600">{t('eventManagement.statistics.male')}</div>
                       </div>
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <div className="text-lg font-semibold text-green-600">{statistics.totalClubs}</div>
-                        <div className="text-xs text-green-600">{t('eventManagement.statistics.totalClubs')}</div>
+                      <div className="bg-pink-50 p-3 rounded-lg">
+                        <div className="text-lg font-semibold text-pink-600">{statistics.femaleParticipants}</div>
+                        <div className="text-xs text-pink-600">{t('eventManagement.statistics.female')}</div>
                       </div>
                     </div>
                   </div>
@@ -689,7 +689,7 @@ const EventManagement: React.FC = () => {
                         <span>{t('eventManagement.statistics.clubDistribution')}</span>
                       </h3>
                       <div className="space-y-2">
-                        {statistics.clubBreakdown.slice(0, 5).map((club, index) => (
+                        {statistics.clubBreakdown.map((club, index) => (
                           <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                             <span className="text-sm text-gray-700 truncate">{club.clubName}</span>
                             <span className="text-sm font-medium text-gray-900">{club.count}</span>

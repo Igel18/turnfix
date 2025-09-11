@@ -464,7 +464,9 @@
       "csv": "Als CSV exportieren",
       "filename": "veranstaltungen"
     },
-    "organizerInfo": "Veranstalterinformationen"
+    "organizerInfo": "Veranstalterinformationen",
+    "competitions": "Wettkämpfe",
+    "groups": "Riegen"
   },
   "eventManagement": {
     "title": "Veranstaltungsverwaltung",

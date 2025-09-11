@@ -464,7 +464,9 @@
       "csv": "Export to CSV",
       "filename": "events"
     },
-    "organizerInfo": "Organizer Information"
+    "organizerInfo": "Organizer Information",
+    "competitions": "Competitions",
+    "groups": "Squads"
   },
   "eventManagement": {
     "title": "Event Management",
