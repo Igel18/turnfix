@@ -160,7 +160,7 @@ const eventSetupActions = [
   {
     name: 'Manage Events',
     description: 'Create and configure events',
-    href: '/events',
+    href: '/event-management',
     icon: CalendarDaysIcon,
     color: 'bg-blue-500'
   },
