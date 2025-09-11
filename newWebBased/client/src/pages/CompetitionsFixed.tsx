@@ -70,13 +70,10 @@ interface CompetitionFormData {
   number?: string; // Competition number (waNr)
   name: string;
   description: string;
-  date: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
   ageFrom: number;
   ageTo: number;
   disciplines: { disciplineId: number; maxScore: number }[];
-  registrationDeadline: string;
-  organizer: string;
 }
 
 const Competitions: React.FC = () => {
@@ -122,13 +119,10 @@ const Competitions: React.FC = () => {
     number: '',
     name: '',
     description: '',
-    date: '',
     gender: 'gemischt',
     ageFrom: 6,
     ageTo: 18,
-    disciplines: [],
-    registrationDeadline: '',
-    organizer: ''
+    disciplines: []
   });
 
   // Filter disciplines based on selected gender
@@ -301,13 +295,10 @@ const Competitions: React.FC = () => {
         ...(formData.number && { number: formData.number }),
         name: formData.name,
         description: formData.description,
-        date: formData.date,
         gender: formData.gender,
         ageFrom: formData.ageFrom,
         ageTo: formData.ageTo,
         disciplines: formData.disciplines,
-        ...(formData.registrationDeadline && { registrationDeadline: formData.registrationDeadline }),
-        ...(formData.organizer && { organizer: formData.organizer }),
         ...(eventId && { eventId: parseInt(eventId) })
       };
 
@@ -344,30 +335,16 @@ const Competitions: React.FC = () => {
   };
 
   const resetForm = () => {
-    // Pre-populate date from selected event
-    let eventDate = '';
-    if (selectedEvent?.dat_eventstartdate) {
-      // Extract date part only (YYYY-MM-DD) from datetime string
-      eventDate = selectedEvent.dat_eventstartdate.split('T')[0];
-    }
-    
-    console.log('Presetting competition form with event data:', {
-      eventDate,
-      eventName: selectedEvent?.var_eventname,
-      eventLocation: selectedEvent?.var_location
-    });
+    console.log('Resetting competition form');
     
     setFormData({
       number: '',
       name: '',
       description: '',
-      date: eventDate,
       gender: 'gemischt',
       ageFrom: 6,
       ageTo: 18,
-      disciplines: [],
-      registrationDeadline: '',
-      organizer: ''
+      disciplines: []
     });
     setEditingCompetition(null);
   };
@@ -378,7 +355,6 @@ const Competitions: React.FC = () => {
       number: competition.number || '',
       name: competition.name,
       description: competition.description,
-      date: competition.date,
       gender: competition.gender,
       ageFrom: competition.ageFrom,
       ageTo: competition.ageTo,
@@ -387,9 +363,7 @@ const Competitions: React.FC = () => {
           typeof d === 'object' && d.disciplineId ? 
             { disciplineId: d.disciplineId, maxScore: d.maxScore || 0 } : 
             { disciplineId: typeof d === 'number' ? d : d.int_disziplinid, maxScore: 0 }
-        ) : [],
-      registrationDeadline: competition.registrationDeadline || '',
-      organizer: competition.organizer || ''
+        ) : []
     });
     setIsModalOpen(true);
   };
@@ -772,32 +746,7 @@ const Competitions: React.FC = () => {
                       />
                     </div>
                   </div>
-                  
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Date *
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
                 </div>
-
-                {/* Display venue information (read-only) */}
-                {selectedEvent?.var_location && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Event Venue
-                    </label>
-                    <p className="text-sm text-gray-600">{selectedEvent.var_location}</p>
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1054,32 +1003,7 @@ const Competitions: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Additional Settings */}
-                <div className="grid gap-4 md:grid-cols-1">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Registration Deadline
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={formData.registrationDeadline}
-                      onChange={(e) => setFormData(prev => ({ ...prev, registrationDeadline: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Organizer
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.organizer}
-                    onChange={(e) => setFormData(prev => ({ ...prev, organizer: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
 
                 {/* Form Actions */}
                 <div className="flex gap-3 pt-4">

@@ -11,7 +11,6 @@ const createCompetitionSchema = z.object({
   number: z.string().max(5, 'Competition number cannot exceed 5 characters').optional(), // Competition number (waNr)
   name: z.string().min(1, 'Competition name is required'),
   description: z.string().optional(),
-  date: z.string().min(1, 'Competition date is required'),
   location: z.string().optional(), // Location is optional since it comes from event
   gender: z.enum(['männlich', 'weiblich', 'gemischt']),
   ageFrom: z.number().min(5).max(99),
@@ -426,7 +425,6 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       number: validatedData.number || null,
       name: validatedData.name,
       description: validatedData.description || `${validatedData.gender} - Age ${validatedData.ageFrom}-${validatedData.ageTo}`,
-      date: validatedData.date,
       location: validatedData.location,
       eventId: validatedData.eventId,
       gender: validatedData.gender,
@@ -590,7 +588,6 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       number: validatedData.number !== undefined ? validatedData.number : updatedCompetition.var_nummer || null, // Include the updated number
       name: validatedData.name || updatedCompetition.var_name,
       description: validatedData.description || "Updated competition",
-      date: validatedData.date || new Date().toISOString().split('T')[0],
       location: validatedData.location || "Updated location",
       gender: validatedData.gender || "gemischt",
       ageFrom: validatedData.ageFrom || 6,
