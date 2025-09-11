@@ -14,7 +14,12 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:dummy": "node test-runner.js --mode=dummy",
+    "test:real": "node test-runner.js --mode=real",
+    "test:integration": "vitest run --config vitest.config.ts src/test/integration/",
+    "test:pages": "vitest run --config vitest.config.ts src/test/pages/",
+    "test:components": "vitest run --config vitest.config.ts src/test/components/"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
