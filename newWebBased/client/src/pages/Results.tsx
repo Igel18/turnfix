@@ -191,11 +191,41 @@ const Results = () => {
       console.log('Scores array:', scores)
       console.log('First score:', scores[0])
 
+      // Get disciplines for selected competition if one is selected
+      let allowedDisciplines: Set<string> | null = null
+      if (selectedCompetition) {
+        try {
+          const competitionDisciplinesData = await apiGet(`/competitions/${selectedCompetition}/disciplines`)
+          console.log('Competition disciplines data:', competitionDisciplinesData)
+          
+          if (competitionDisciplinesData?.disciplines?.length > 0) {
+            allowedDisciplines = new Set(
+              competitionDisciplinesData.disciplines.map((d: any) => d.name)
+            )
+            console.log('Allowed disciplines for competition:', Array.from(allowedDisciplines))
+          }
+        } catch (error) {
+          console.error('Error fetching competition disciplines:', error)
+          // Fall back to showing all disciplines if API fails
+        }
+      }
+
       // Create a map of participant scores
       const scoresMap = new Map<number, { [discipline: string]: number }>()
       const disciplineSet = new Set<string>()
 
-      scores.forEach((score: any) => {
+      // Filter scores by selected competition if one is selected
+      const filteredScores = selectedCompetition 
+        ? scores.filter((score: any) => {
+            // Check if this score belongs to a participant in the selected competition
+            const participant = participants.find((p: any) => p.id === score.participantId)
+            return participant?.assignedCompetitions?.includes(Number(selectedCompetition))
+          })
+        : scores
+
+      console.log('Filtered scores for competition:', selectedCompetition, filteredScores.length)
+
+      filteredScores.forEach((score: any) => {
         const participantId = score.participantId
         const discipline = score.discipline?.name || score.disciplineName
         const scoreValue = score.score || 0
@@ -207,6 +237,12 @@ const Results = () => {
           return // Skip invalid scores
         }
         
+        // If we have allowed disciplines (competition selected), only include those
+        if (allowedDisciplines && !allowedDisciplines.has(discipline)) {
+          console.log('Skipping discipline not in competition:', discipline)
+          return // Skip disciplines not assigned to this competition
+        }
+        
         disciplineSet.add(discipline)
 
         if (!scoresMap.has(participantId)) {
@@ -215,7 +251,7 @@ const Results = () => {
         scoresMap.get(participantId)![discipline] = scoreValue
       })
 
-      console.log('Disciplines found:', Array.from(disciplineSet))
+      console.log('Disciplines found (filtered):', Array.from(disciplineSet))
       console.log('Scores map:', scoresMap)
 
       // Build ranking list from participants with their scores
@@ -1097,6 +1133,65 @@ const Results = () => {
         totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
         showEventContext={true}
       />
+
+      {/* Competition Filter Section */}
+      <div className="mx-6 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700">Filter by Competition:</label>
+              <select
+                value={selectedCompetition}
+                onChange={(e) => setSelectedCompetition(e.target.value)}
+                className="min-w-[200px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Competitions</option>
+                {getAvailableCompetitions().map(comp => (
+                  <option key={comp.id} value={comp.id?.toString() || ''}>
+                    {comp.name || 'Unknown Competition'}{comp.number ? ` (Nr. ${comp.number})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="text-sm text-gray-500">
+              {selectedCompetition ? (
+                <span className="text-blue-600 font-medium">
+                  Showing results for selected competition only (devices filtered by competition)
+                </span>
+              ) : (
+                <span>
+                  Showing all competitions - select one to filter devices by competition
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Disciplines Info Section */}
+      {disciplines.length > 0 && (
+        <div className="mx-6 mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-blue-800">
+                  {selectedCompetition ? 'Competition devices:' : 'All event devices:'} 
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {disciplines.map(discipline => (
+                    <span key={discipline} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {discipline}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                {selectedCompetition ? 'Showing only devices assigned to this competition' : 'All devices from event'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rankings Table */}
       <div className="bg-white rounded-lg shadow-sm border mx-6">
