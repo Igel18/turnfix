@@ -88,8 +88,8 @@
         "title": "Veranstaltungsaufbau",
         "subtitle": "Planung & Konfiguration",
         "manageEvents": {
-          "title": "Veranstaltungen verwalten",
-          "description": "Veranstaltungen erstellen und konfigurieren"
+          "title": "Veranstaltung verwalten",
+          "description": "Die ausgewählte Veranstaltung verwalten"
         },
         "viewCompetitions": {
           "title": "Wettkämpfe anzeigen",
@@ -463,7 +463,8 @@
     "export": {
       "csv": "Als CSV exportieren",
       "filename": "veranstaltungen"
-    }
+    },
+    "organizerInfo": "Veranstalterinformationen"
   },
   "eventManagement": {
     "title": "Veranstaltungsverwaltung",
@@ -472,8 +473,46 @@
     "selectEvent": "Veranstaltung auswählen",
     "selectEventDescription": "Bitte wählen Sie eine Veranstaltung aus dem Veranstaltungskontext aus, um deren Details zu verwalten.",
     "eventDetails": "Veranstaltungsdetails",
-    "statistics": "Veranstaltungsstatistiken", 
-    "noStatistics": "Keine Statistiken verfügbar"
+    "noStatistics": "Keine Statistiken verfügbar",
+    "tabs": {
+      "details": "Details",
+      "participants": "Teilnehmer",
+      "competitions": "Wettkämpfe",
+      "settings": "Einstellungen"
+    },
+    "form": {
+      "eventName": "Veranstaltungsname",
+      "eventNamePlaceholder": "Name der Veranstaltung eingeben",
+      "startDate": "Von Datum",
+      "endDate": "Bis Datum",
+      "location": "Austragungsort",
+      "locationPlaceholder": "Austragungsort eingeben",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung der Veranstaltung (optional)",
+      "organizer": "Veranstalter",
+      "organizerPlaceholder": "Name des Veranstalters",
+      "registrationDeadline": "Meldeschluss",
+      "contactPerson": "Kontaktperson",
+      "contactPersonPlaceholder": "Name der Kontaktperson",
+      "contactEmail": "Kontakt E-Mail",
+      "contactEmailPlaceholder": "E-Mail der Kontaktperson",
+      "contactPhone": "Kontakt Telefon",
+      "contactPhonePlaceholder": "Telefonnummer der Kontaktperson",
+      "numberOfJudges": "Anzahl Kampfrichter",
+      "numberOfJudgesPlaceholder": "Benötigte Anzahl Kampfrichter"
+    },
+    "statistics": {
+      "title": "Statistiken",
+      "totalParticipants": "Teilnehmer gesamt",
+      "totalClubs": "Vereine gesamt", 
+      "totalCompetitions": "Wettkämpfe gesamt",
+      "participantsByGender": "Teilnehmer nach Geschlecht",
+      "participantsByAge": "Teilnehmer nach Altersklasse",
+      "clubDistribution": "Vereinsverteilung",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "loading": "Statistiken werden geladen..."
+    }
   },
   "participants": {
     "title": "Teilnehmerverwaltung",

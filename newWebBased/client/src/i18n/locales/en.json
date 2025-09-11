@@ -88,8 +88,8 @@
         "title": "Event Setup",
         "subtitle": "Planning & Configuration",
         "manageEvents": {
-          "title": "Manage Events",
-          "description": "Create and configure events"
+          "title": "Manage Event",
+          "description": "Manage the selected event"
         },
         "viewCompetitions": {
           "title": "View Competitions",
@@ -463,7 +463,8 @@
     "export": {
       "csv": "Export to CSV",
       "filename": "events"
-    }
+    },
+    "organizerInfo": "Organizer Information"
   },
   "eventManagement": {
     "title": "Event Management",
@@ -472,8 +473,46 @@
     "selectEvent": "Select an Event",
     "selectEventDescription": "Please select an event from the event context to manage its details.",
     "eventDetails": "Event Details",
-    "statistics": "Event Statistics", 
-    "noStatistics": "No statistics available"
+    "noStatistics": "No statistics available",
+    "tabs": {
+      "details": "Details",
+      "participants": "Participants",
+      "competitions": "Competitions",
+      "settings": "Settings"
+    },
+    "form": {
+      "eventName": "Event Name",
+      "eventNamePlaceholder": "Enter event name",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "location": "Location",
+      "locationPlaceholder": "Enter location",
+      "description": "Description",
+      "descriptionPlaceholder": "Event description (optional)",
+      "organizer": "Organizer",
+      "organizerPlaceholder": "Organizer name",
+      "registrationDeadline": "Registration Deadline",
+      "contactPerson": "Contact Person",
+      "contactPersonPlaceholder": "Contact person name",
+      "contactEmail": "Contact Email",
+      "contactEmailPlaceholder": "Contact person email",
+      "contactPhone": "Contact Phone",
+      "contactPhonePlaceholder": "Contact person phone",
+      "numberOfJudges": "Number of Judges",
+      "numberOfJudgesPlaceholder": "Required number of judges"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "totalParticipants": "Total Participants",
+      "totalClubs": "Total Clubs", 
+      "totalCompetitions": "Total Competitions",
+      "participantsByGender": "Participants by Gender",
+      "participantsByAge": "Participants by Age Group",
+      "clubDistribution": "Club Distribution",
+      "male": "Male",
+      "female": "Female",
+      "loading": "Loading statistics..."
+    }
   },
   "participants": {
     "title": "Participant Management",

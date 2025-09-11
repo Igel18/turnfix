@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEvent } from '../contexts/EventContext';
 import { useTranslation } from 'react-i18next';
-import { UnifiedPageHeader } from '../components/layout/UnifiedPageHeader';
+import UnifiedPageHeader from '../components/UnifiedPageHeader';
 import {
   CalendarDaysIcon,
   MapPinIcon,
@@ -102,7 +102,9 @@ const EventManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6">
         <UnifiedPageHeader 
           title={t('eventManagement.title')}
-          description={t('eventManagement.noEventSelected')}
+          subtitle={t('eventManagement.noEventSelected')}
+          icon={CalendarDaysIcon}
+          showEventContext={true}
         />
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <CalendarDaysIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -122,7 +124,9 @@ const EventManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6">
         <UnifiedPageHeader 
           title={selectedEvent.var_eventname}
-          description={t('common.loading')}
+          subtitle={t('common.loading')}
+          icon={CalendarDaysIcon}
+          showEventContext={true}
         />
         <div className="bg-white rounded-lg shadow p-8">
           <div className="animate-pulse">
@@ -139,8 +143,10 @@ const EventManagement: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6">
       <UnifiedPageHeader 
         title={selectedEvent.var_eventname}
-        description={t('eventManagement.subtitle')}
-        actions={
+        subtitle={t('eventManagement.subtitle')}
+        icon={CalendarDaysIcon}
+        showEventContext={true}
+        customActions={
           <div className="flex space-x-2">
             {isEditing ? (
               <>
@@ -185,13 +191,14 @@ const EventManagement: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('events.eventName')}
+                    {t('eventManagement.form.eventName')}
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={editForm.var_eventname || ''}
                       onChange={(e) => setEditForm({ ...editForm, var_eventname: e.target.value })}
+                      placeholder={t('eventManagement.form.eventNamePlaceholder')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   ) : (
@@ -202,13 +209,14 @@ const EventManagement: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <MapPinIcon className="w-4 h-4 inline mr-1" />
-                    {t('events.location')}
+                    {t('eventManagement.form.location')}
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={editForm.var_location || ''}
                       onChange={(e) => setEditForm({ ...editForm, var_location: e.target.value })}
+                      placeholder={t('eventManagement.form.locationPlaceholder')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   ) : (
@@ -218,7 +226,7 @@ const EventManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('events.startDate')}
+                    {t('eventManagement.form.startDate')}
                   </label>
                   {isEditing ? (
                     <input
@@ -236,7 +244,7 @@ const EventManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('events.endDate')}
+                    {t('eventManagement.form.endDate')}
                   </label>
                   {isEditing ? (
                     <input
@@ -254,7 +262,7 @@ const EventManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('events.registrationDeadline')}
+                    {t('eventManagement.form.registrationDeadline')}
                   </label>
                   {isEditing ? (
                     <input
@@ -272,13 +280,14 @@ const EventManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('events.judges')}
+                    {t('eventManagement.form.numberOfJudges')}
                   </label>
                   {isEditing ? (
                     <input
                       type="number"
                       value={editForm.int_anzahl_kampfrichter || ''}
                       onChange={(e) => setEditForm({ ...editForm, int_anzahl_kampfrichter: parseInt(e.target.value) || 0 })}
+                      placeholder={t('eventManagement.form.numberOfJudgesPlaceholder')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   ) : (
@@ -296,13 +305,14 @@ const EventManagement: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('events.organizer')}
+                      {t('eventManagement.form.organizer')}
                     </label>
                     {isEditing ? (
                       <input
                         type="text"
                         value={editForm.var_veranstalter || ''}
                         onChange={(e) => setEditForm({ ...editForm, var_veranstalter: e.target.value })}
+                        placeholder={t('eventManagement.form.organizerPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     ) : (
@@ -312,13 +322,14 @@ const EventManagement: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('events.contactPerson')}
+                      {t('eventManagement.form.contactPerson')}
                     </label>
                     {isEditing ? (
                       <input
                         type="text"
                         value={editForm.var_kontaktperson || ''}
                         onChange={(e) => setEditForm({ ...editForm, var_kontaktperson: e.target.value })}
+                        placeholder={t('eventManagement.form.contactPersonPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     ) : (
@@ -328,13 +339,14 @@ const EventManagement: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('events.contactEmail')}
+                      {t('eventManagement.form.contactEmail')}
                     </label>
                     {isEditing ? (
                       <input
                         type="email"
                         value={editForm.var_kontakt_email || ''}
                         onChange={(e) => setEditForm({ ...editForm, var_kontakt_email: e.target.value })}
+                        placeholder={t('eventManagement.form.contactEmailPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     ) : (
@@ -344,13 +356,14 @@ const EventManagement: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('events.contactPhone')}
+                      {t('eventManagement.form.contactPhone')}
                     </label>
                     {isEditing ? (
                       <input
                         type="tel"
                         value={editForm.var_kontakt_telefon || ''}
                         onChange={(e) => setEditForm({ ...editForm, var_kontakt_telefon: e.target.value })}
+                        placeholder={t('eventManagement.form.contactPhonePlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     ) : (
@@ -363,12 +376,13 @@ const EventManagement: React.FC = () => {
               {/* Description */}
               <div className="border-t pt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('events.description')}
+                  {t('eventManagement.form.description')}
                 </label>
                 {isEditing ? (
                   <textarea
                     value={editForm.var_description || ''}
                     onChange={(e) => setEditForm({ ...editForm, var_description: e.target.value })}
+                    placeholder={t('eventManagement.form.descriptionPlaceholder')}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -386,7 +400,7 @@ const EventManagement: React.FC = () => {
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
                 <ChartBarIcon className="w-5 h-5 text-purple-600" />
-                <span>{t('eventManagement.statistics')}</span>
+                <span>{t('eventManagement.statistics.title')}</span>
               </h2>
             </div>
             <div className="p-6">
@@ -396,24 +410,24 @@ const EventManagement: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center space-x-2">
                       <UsersIcon className="w-4 h-4" />
-                      <span>{t('events.participants')}</span>
+                      <span>{t('eventManagement.statistics.participantsByGender')}</span>
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-blue-50 p-3 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">{statistics.totalParticipants}</div>
-                        <div className="text-xs text-blue-600">{t('common.total')}</div>
+                        <div className="text-xs text-blue-600">{t('eventManagement.statistics.totalParticipants')}</div>
                       </div>
                       <div className="bg-pink-50 p-3 rounded-lg">
                         <div className="text-lg font-semibold text-pink-600">{statistics.femaleParticipants}</div>
-                        <div className="text-xs text-pink-600">{t('common.female')}</div>
+                        <div className="text-xs text-pink-600">{t('eventManagement.statistics.female')}</div>
                       </div>
                       <div className="bg-blue-50 p-3 rounded-lg">
                         <div className="text-lg font-semibold text-blue-600">{statistics.maleParticipants}</div>
-                        <div className="text-xs text-blue-600">{t('common.male')}</div>
+                        <div className="text-xs text-blue-600">{t('eventManagement.statistics.male')}</div>
                       </div>
                       <div className="bg-green-50 p-3 rounded-lg">
                         <div className="text-lg font-semibold text-green-600">{statistics.totalClubs}</div>
-                        <div className="text-xs text-green-600">{t('events.clubs')}</div>
+                        <div className="text-xs text-green-600">{t('eventManagement.statistics.totalClubs')}</div>
                       </div>
                     </div>
                   </div>
@@ -422,7 +436,7 @@ const EventManagement: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center space-x-2">
                       <TrophyIcon className="w-4 h-4" />
-                      <span>{t('events.competitions')}</span>
+                      <span>{t('eventManagement.statistics.totalCompetitions')}</span>
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-yellow-50 p-3 rounded-lg">
@@ -441,7 +455,7 @@ const EventManagement: React.FC = () => {
                     <div>
                       <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center space-x-2">
                         <UserGroupIcon className="w-4 h-4" />
-                        <span>{t('events.topClubs')}</span>
+                        <span>{t('eventManagement.statistics.clubDistribution')}</span>
                       </h3>
                       <div className="space-y-2">
                         {statistics.clubBreakdown.slice(0, 5).map((club, index) => (
@@ -457,7 +471,7 @@ const EventManagement: React.FC = () => {
               ) : (
                 <div className="text-center py-8">
                   <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500">{t('eventManagement.noStatistics')}</p>
+                  <p className="text-gray-500">{t('eventManagement.statistics.loading')}</p>
                 </div>
               )}
             </div>
