@@ -30,6 +30,7 @@ interface CompetitionGroup {
   competitionId: number
   competitionName: string
   participants: Participant[]
+  disciplines: string[] // Add disciplines specific to this competition
 }
 
 interface LayoutField {
@@ -193,6 +194,14 @@ const Results = () => {
 
       // Get disciplines for selected competition if one is selected
       let allowedDisciplines: Set<string> | null = null
+      
+      // First, get all disciplines to create an ID-to-name mapping
+      const disciplinesData = await apiGet('/disciplines')
+      const disciplineMap = new Map<number, string>()
+      disciplinesData.forEach((d: any) => {
+        disciplineMap.set(d.id, d.name)
+      })
+      
       if (selectedCompetition) {
         try {
           const competitionDisciplinesData = await apiGet(`/competitions/${selectedCompetition}/disciplines`)
@@ -200,12 +209,41 @@ const Results = () => {
           
           if (competitionDisciplinesData?.disciplines?.length > 0) {
             allowedDisciplines = new Set(
-              competitionDisciplinesData.disciplines.map((d: any) => d.name)
+              competitionDisciplinesData.disciplines.map((d: any) => d.var_name || d.name)
             )
             console.log('Allowed disciplines for competition:', Array.from(allowedDisciplines))
           }
         } catch (error) {
           console.error('Error fetching competition disciplines:', error)
+          // Fall back to showing all disciplines if API fails
+        }
+      } else {
+        // When "All Competitions" is selected, get disciplines used across all competitions for this event
+        try {
+          const eventCompetitionsData = await apiGet(`/competitions?eventId=${eventId}`)
+          console.log('Event competitions data:', eventCompetitionsData)
+          
+          if (eventCompetitionsData?.length > 0) {
+            const eventDisciplineIds = new Set<number>()
+            eventCompetitionsData.forEach((comp: any) => {
+              comp.disciplines?.forEach((d: any) => {
+                eventDisciplineIds.add(d.disciplineId)
+              })
+            })
+            
+            // Convert discipline IDs to names
+            allowedDisciplines = new Set<string>()
+            eventDisciplineIds.forEach(id => {
+              const name = disciplineMap.get(id)
+              if (name) {
+                allowedDisciplines!.add(name)
+              }
+            })
+            
+            console.log('Allowed disciplines for all competitions in event:', Array.from(allowedDisciplines))
+          }
+        } catch (error) {
+          console.error('Error fetching event competitions:', error)
           // Fall back to showing all disciplines if API fails
         }
       }
@@ -214,16 +252,16 @@ const Results = () => {
       const scoresMap = new Map<number, { [discipline: string]: number }>()
       const disciplineSet = new Set<string>()
 
-      // Filter scores by selected competition if one is selected
-      const filteredScores = selectedCompetition 
-        ? scores.filter((score: any) => {
-            // Check if this score belongs to a participant in the selected competition
-            const participant = participants.find((p: any) => p.id === score.participantId)
-            return participant?.assignedCompetitions?.includes(Number(selectedCompetition))
-          })
-        : scores
+      // Get participant IDs for filtering scores
+      const participantIds = new Set(participants.map((p: any) => p.id))
+
+      // Filter scores to only include scores from participants in the selected competition/event
+      const filteredScores = scores.filter((score: any) => {
+        return participantIds.has(score.participantId)
+      })
 
       console.log('Filtered scores for competition:', selectedCompetition, filteredScores.length)
+      console.log('Participant IDs:', Array.from(participantIds))
 
       filteredScores.forEach((score: any) => {
         const participantId = score.participantId
@@ -298,25 +336,50 @@ const Results = () => {
           competitionMap.get(compId)!.push(participant)
         })
 
-        // Create competition groups with individual rankings
+        // Create competition groups with individual rankings and disciplines
         const groups: CompetitionGroup[] = []
-        competitionMap.forEach((participants, competitionId) => {
-          // Sort participants by total score within this competition
+        
+        // Fetch disciplines for each competition
+        for (const [competitionId, participants] of competitionMap) {
+          const competition = competitions.find(c => c.id === competitionId || c.id === Number(competitionId))
+          const competitionName = competition 
+            ? `${competition.name}${competition.number ? ` (Nr. ${competition.number})` : ''}` 
+            : `Competition ${competitionId}`
+
+          // Fetch disciplines for this specific competition
+          let competitionDisciplines: string[] = []
+          try {
+            const competitionDisciplinesData = await apiGet(`/competitions/${competitionId}/disciplines`)
+            if (competitionDisciplinesData?.disciplines?.length > 0) {
+              competitionDisciplines = competitionDisciplinesData.disciplines.map((d: any) => d.var_name || d.name)
+            }
+          } catch (error) {
+            console.error(`Error fetching disciplines for competition ${competitionId}:`, error)
+            // Fallback: use all disciplines in disciplineSet
+            competitionDisciplines = Array.from(disciplineSet)
+          }
+
+          // Recalculate total scores using only disciplines assigned to this competition
+          participants.forEach(participant => {
+            const competitionSpecificTotal = competitionDisciplines.reduce((sum, discipline) => {
+              return sum + (participant.scores[discipline] || 0)
+            }, 0)
+            participant.totalScore = competitionSpecificTotal
+          })
+
+          // Sort participants by their competition-specific total score
           participants.sort((a, b) => b.totalScore - a.totalScore)
           participants.forEach((participant, index) => {
             participant.rank = index + 1
           })
 
-          const competition = competitions.find(c => c.id === competitionId || c.id === Number(competitionId))
-          const competitionName = competition 
-            ? `${competition.name}${competition.number ? ` (Nr. ${competition.number})` : ''}` 
-            : `Competition ${competitionId}`
           groups.push({
             competitionId,
             competitionName,
-            participants
+            participants,
+            disciplines: competitionDisciplines.sort()
           })
-        })
+        }
 
         // Sort groups by competition name
         groups.sort((a, b) => a.competitionName.localeCompare(b.competitionName))
@@ -402,15 +465,19 @@ const Results = () => {
       
       let currentY = contentArea.startY + 35 // Increased spacing to prevent header overlap
       
+      // Get competition-specific disciplines
+      const selectedCompetitionGroup = competitionGroups.find(g => g.competitionId.toString() === selectedCompetition)
+      const competitionDisciplines = selectedCompetitionGroup ? selectedCompetitionGroup.disciplines : disciplines
+      
       // Prepare table data
-      const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+      const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...competitionDisciplines, 'Total']
       const tableData = filteredRanking.map(participant => [
         participant.rank,
         participant.startNumber || '',
         participant.name,
         participant.club,
         participant.age,
-        ...disciplines.map(discipline => 
+        ...competitionDisciplines.map(discipline => 
           participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
         ),
         formatScore(participant.totalScore)
@@ -433,18 +500,26 @@ const Results = () => {
           fontSize: 9,
           fontStyle: 'bold'
         },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 15 }, // Rank
-          1: { halign: 'left', cellWidth: 40 },   // Name
-          2: { halign: 'left', cellWidth: 35 },   // Club
-          3: { halign: 'center', cellWidth: 15 }, // Age
-          [headers.length - 1]: { 
-            halign: 'center', 
-            cellWidth: 20,
-            fillColor: [240, 248, 255],
-            fontStyle: 'bold'
-          } // Total
-        },
+        columnStyles: (() => {
+          const styles: any = {
+            0: { halign: 'center', cellWidth: 15 }, // Rank
+            1: { halign: 'center', cellWidth: 20 }, // Start #
+            2: { halign: 'left', cellWidth: 40 },   // Name
+            3: { halign: 'left', cellWidth: 35 },   // Club
+            4: { halign: 'center', cellWidth: 15 }, // Age
+            [headers.length - 1]: { 
+              halign: 'center', 
+              cellWidth: 20,
+              fillColor: [240, 248, 255],
+              fontStyle: 'bold'
+            } // Total
+          }
+          // Add discipline columns (starting at index 5)
+          competitionDisciplines.forEach((_, index) => {
+            styles[5 + index] = { halign: 'center', cellWidth: 18 }
+          })
+          return styles
+        })(),
         alternateRowStyles: {
           fillColor: [248, 249, 250]
         },
@@ -540,14 +615,14 @@ const Results = () => {
         currentY += 12
 
         // Prepare table data for this competition
-        const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...disciplines, 'Total']
+        const headers = ['Rank', 'Start #', 'Name', 'Club', 'Age', ...group.disciplines, 'Total']
         const tableData = group.participants.map(participant => [
           participant.rank,
           participant.startNumber || '',
           participant.name,
           participant.club,
           participant.age,
-          ...disciplines.map(discipline => 
+          ...group.disciplines.map(discipline => 
             participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
           ),
           formatScore(participant.totalScore)
@@ -570,18 +645,26 @@ const Results = () => {
             fontSize: 8,
             fontStyle: 'bold'
           },
-          columnStyles: {
-            0: { halign: 'center', cellWidth: 12 }, // Rank
-            1: { halign: 'left', cellWidth: 35 },   // Name
-            2: { halign: 'left', cellWidth: 30 },   // Club
-            3: { halign: 'center', cellWidth: 12 }, // Age
-            [headers.length - 1]: { 
-              halign: 'center', 
-              cellWidth: 18,
-              fillColor: [240, 248, 255],
-              fontStyle: 'bold'
-            } // Total
-          },
+          columnStyles: (() => {
+            const styles: any = {
+              0: { halign: 'center', cellWidth: 12 }, // Rank
+              1: { halign: 'center', cellWidth: 15 }, // Start #
+              2: { halign: 'left', cellWidth: 35 },   // Name
+              3: { halign: 'left', cellWidth: 30 },   // Club
+              4: { halign: 'center', cellWidth: 12 }, // Age
+              [headers.length - 1]: { 
+                halign: 'center', 
+                cellWidth: 18,
+                fillColor: [240, 248, 255],
+                fontStyle: 'bold'
+              } // Total
+            }
+            // Add discipline columns (starting at index 5)
+            group.disciplines.forEach((_, index) => {
+              styles[5 + index] = { halign: 'center', cellWidth: 15 }
+            })
+            return styles
+          })(),
           alternateRowStyles: {
             fillColor: [248, 249, 250]
           },
@@ -1134,65 +1217,6 @@ const Results = () => {
         showEventContext={true}
       />
 
-      {/* Competition Filter Section */}
-      <div className="mx-6 mb-4">
-        <div className="bg-white rounded-lg shadow-sm border p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <label className="text-sm font-medium text-gray-700">Filter by Competition:</label>
-              <select
-                value={selectedCompetition}
-                onChange={(e) => setSelectedCompetition(e.target.value)}
-                className="min-w-[200px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Competitions</option>
-                {getAvailableCompetitions().map(comp => (
-                  <option key={comp.id} value={comp.id?.toString() || ''}>
-                    {comp.name || 'Unknown Competition'}{comp.number ? ` (Nr. ${comp.number})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="text-sm text-gray-500">
-              {selectedCompetition ? (
-                <span className="text-blue-600 font-medium">
-                  Showing results for selected competition only (devices filtered by competition)
-                </span>
-              ) : (
-                <span>
-                  Showing all competitions - select one to filter devices by competition
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Disciplines Info Section */}
-      {disciplines.length > 0 && (
-        <div className="mx-6 mb-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedCompetition ? 'Competition devices:' : 'All event devices:'} 
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {disciplines.map(discipline => (
-                    <span key={discipline} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {discipline}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                {selectedCompetition ? 'Showing only devices assigned to this competition' : 'All devices from event'}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Rankings Table */}
       <div className="bg-white rounded-lg shadow-sm border mx-6">
         {isLoading ? (
@@ -1337,7 +1361,7 @@ const Results = () => {
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Jg
                           </th>
-                          {disciplines.map(discipline => (
+                          {group.disciplines.map(discipline => (
                             <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
                               <div className="flex flex-col">
                                 <span className="font-semibold">{discipline}</span>
@@ -1381,7 +1405,7 @@ const Results = () => {
                             <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
                               {participant.age}
                             </td>
-                            {disciplines.map(discipline => (
+                            {group.disciplines.map(discipline => (
                               <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
                                 <div className="flex flex-col items-center">
                                   {participant.scores[discipline] ? (
