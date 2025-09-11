@@ -2,11 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { debugLog, debugInfo } from '../utils/debug';
 import { 
-  Calendar, 
-  MapPin, 
   Users, 
   Trophy,
-  Clock,
   Edit,
   Trash2,
   CheckCircle,
@@ -508,23 +505,9 @@ const Competitions: React.FC = () => {
 
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm text-gray-600">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          {new Date(competition.date).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 mr-2" />
-                          {competition.location}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
                           <Users className="w-4 h-4 mr-2" />
                           {competition.participantCount} participants
                         </div>
-                        {competition.registrationDeadline && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <Clock className="w-4 h-4 mr-2" />
-                            Deadline: {new Date(competition.registrationDeadline).toLocaleDateString()}
-                          </div>
-                        )}
                       </div>
 
                       <div className="flex justify-between items-center">
@@ -570,12 +553,6 @@ const Competitions: React.FC = () => {
                           Competition
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Location
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Participants
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -612,23 +589,6 @@ const Competitions: React.FC = () => {
                                   {competition.description}
                                 </div>
                               )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center text-sm text-gray-900">
-                              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                              {new Date(competition.date).toLocaleDateString()}
-                            </div>
-                            {competition.registrationDeadline && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                Deadline: {new Date(competition.registrationDeadline).toLocaleDateString()}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center text-sm text-gray-900">
-                              <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                              {competition.location}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
