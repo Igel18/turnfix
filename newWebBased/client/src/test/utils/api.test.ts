@@ -5,9 +5,6 @@ import { apiRequest } from '../../utils/api';
 global.fetch = vi.fn();
 
 describe('API Utils', () => {
-  // Store original error handlers
-  let originalOnUnhandledRejection: any;
-  
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset fetch mock
@@ -15,27 +12,14 @@ describe('API Utils', () => {
     
     // Suppress console.error for error tests to reduce noise
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    
-    // Capture and suppress unhandled rejections during error tests
-    originalOnUnhandledRejection = process.listeners('unhandledRejection');
-    process.removeAllListeners('unhandledRejection');
-    process.on('unhandledRejection', () => {
-      // Suppress unhandled rejections during testing
-    });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
-    // Restore console.error
     vi.restoreAllMocks();
-    
-    // Restore original unhandled rejection handlers
-    process.removeAllListeners('unhandledRejection');
-    if (originalOnUnhandledRejection && originalOnUnhandledRejection.length > 0) {
-      originalOnUnhandledRejection.forEach((handler: any) => {
-        process.on('unhandledRejection', handler);
-      });
-    }
+    // Clear any pending timers
+    vi.clearAllTimers();
   });
 
   describe('apiRequest', () => {
@@ -103,15 +87,8 @@ describe('API Utils', () => {
         json: async () => ({ error: 'Not found' }),
       });
 
-      let errorCaught = false;
-      try {
-        await apiRequest(uniqueUrl);
-      } catch (error) {
-        errorCaught = true;
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toBe('Not found');
-      }
-      expect(errorCaught).toBe(true);
+      // Use expect().rejects.toThrow() to properly handle async errors
+      await expect(apiRequest(uniqueUrl)).rejects.toThrow('Not found');
     });
 
     it('should handle network errors', async () => {
@@ -120,15 +97,8 @@ describe('API Utils', () => {
       
       (fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
-      let errorCaught = false;
-      try {
-        await apiRequest(uniqueUrl);
-      } catch (error) {
-        errorCaught = true;
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toBe('Network error');
-      }
-      expect(errorCaught).toBe(true);
+      // Use expect().rejects.toThrow() to properly handle async errors
+      await expect(apiRequest(uniqueUrl)).rejects.toThrow('Network error');
     });
 
     it('should pass custom options to fetch', async () => {

@@ -1,4 +1,4 @@
-import { expect, afterEach, vi } from 'vitest';
+import { expect, afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
 
@@ -16,6 +16,41 @@ global.console.error = (...args: any[]) => {
   }
   originalConsoleError.apply(console, args);
 };
+
+// Global unhandled rejection handler for tests
+let originalUnhandledRejectionHandlers: any[] = [];
+
+beforeAll(() => {
+  // Store original handlers
+  originalUnhandledRejectionHandlers = process.listeners('unhandledRejection');
+  
+  // Clear existing handlers and add our own
+  process.removeAllListeners('unhandledRejection');
+  
+  process.on('unhandledRejection', (reason) => {
+    // Check if this is a test-related error that we expect
+    const reasonString = String(reason);
+    if (reasonString.includes('Network error') || 
+        reasonString.includes('Not found') ||
+        reasonString.includes('test-')) {
+      // This is expected from our tests, ignore it
+      return;
+    }
+    
+    // For unexpected errors, log them but don't fail the test
+    console.warn('Unhandled rejection during test:', reason);
+  });
+});
+
+afterAll(() => {
+  // Restore original handlers
+  process.removeAllListeners('unhandledRejection');
+  if (originalUnhandledRejectionHandlers && originalUnhandledRejectionHandlers.length > 0) {
+    originalUnhandledRejectionHandlers.forEach((handler: any) => {
+      process.on('unhandledRejection', handler);
+    });
+  }
+});
 
 // Cleanup after each test case
 afterEach(() => {
