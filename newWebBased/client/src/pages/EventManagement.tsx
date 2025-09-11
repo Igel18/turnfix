@@ -450,14 +450,7 @@ const EventManagement: React.FC = () => {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventManagement.form.numberOfJudges')}
-                  </label>
-                  <p className="text-gray-900 text-sm text-gray-500">
-                    {t('eventManagement.form.numberOfJudgesNotAvailable')}
-                  </p>
-                </div>
+
               </div>
 
               {/* Organizer Information */}
