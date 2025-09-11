@@ -163,11 +163,13 @@ const Results = () => {
   }
 
   // Fetch ranking data for the specific event
-  const fetchEventRanking = async () => {
+  const fetchEventRanking = async (competitionsData?: any[]) => {
     if (!eventId) return
     
     setIsLoading(true)
     try {
+      // Use provided competitions data or fall back to state
+      const availableCompetitions = competitionsData || competitions
       // First, fetch participants for the event/competition
       const participantsParams = new URLSearchParams({ 
         eventId: eventId
@@ -318,7 +320,7 @@ const Results = () => {
           rank: 0,
           competitionId: participant.assignedCompetitions?.[0], // Use first assigned competition
           competitionName: (() => {
-            const comp = competitions.find(c => c.id === participant.assignedCompetitions?.[0] || c.id === Number(participant.assignedCompetitions?.[0]))
+            const comp = availableCompetitions.find(c => c.id === participant.assignedCompetitions?.[0] || c.id === Number(participant.assignedCompetitions?.[0]))
             return comp 
               ? `${comp.name}${comp.number ? ` (Nr. ${comp.number})` : ''}` 
               : 'Unknown Competition'
@@ -351,7 +353,13 @@ const Results = () => {
         
         // Fetch disciplines for each competition
         for (const [competitionId, participants] of competitionMap) {
-          const competition = competitions.find(c => c.id === competitionId || c.id === Number(competitionId))
+          // More robust competition finding with multiple ID type checks
+          const competition = availableCompetitions.find(c => 
+            c.id === competitionId || 
+            c.id === Number(competitionId) || 
+            String(c.id) === String(competitionId)
+          )
+          
           const competitionName = competition 
             ? `${competition.name}${competition.number ? ` (Nr. ${competition.number})` : ''}` 
             : `Competition ${competitionId}`
@@ -1208,7 +1216,10 @@ const Results = () => {
       const loadData = async () => {
         // First fetch competitions, then ranking data
         await fetchCompetitions()
-        await fetchEventRanking()
+        // Get the fresh competitions data and pass it to fetchEventRanking
+        const freshCompetitions = await apiGet(`/competitions?eventId=${eventId}`)
+        const competitionsArray = Array.isArray(freshCompetitions) ? freshCompetitions : []
+        await fetchEventRanking(competitionsArray)
       }
       loadData()
     }
