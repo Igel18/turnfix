@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { 
@@ -122,6 +122,13 @@ export default function UnifiedPageHeader({
 }: UnifiedPageHeaderProps) {
   const { t } = useTranslation()
   const { selectedEvent } = useEvent()
+
+  // Debug logging to track when the header re-renders with updated event data
+  useEffect(() => {
+    if (selectedEvent) {
+      console.log('🏷️ UnifiedPageHeader: Event context updated:', selectedEvent.var_eventname);
+    }
+  }, [selectedEvent]);
 
   return (
     <div className="mb-6">

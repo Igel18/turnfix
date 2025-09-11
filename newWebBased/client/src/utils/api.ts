@@ -128,3 +128,21 @@ export const apiPut = (endpoint: string, data?: any, options: RequestInit = {}) 
 
 export const apiDelete = (endpoint: string, options: RequestInit = {}) => 
   apiRequest(endpoint, { method: 'DELETE', ...options });
+
+// Cache invalidation utility
+export const invalidateCache = (pattern?: string) => {
+  if (pattern) {
+    // Invalidate specific URLs matching the pattern
+    for (const [key] of requestCache) {
+      if (key.includes(pattern)) {
+        requestCache.delete(key);
+        cacheExpiry.delete(key);
+      }
+    }
+  } else {
+    // Clear entire cache
+    requestCache.clear();
+    cacheExpiry.clear();
+  }
+  console.log('Cache invalidated for:', pattern || 'all requests');
+};

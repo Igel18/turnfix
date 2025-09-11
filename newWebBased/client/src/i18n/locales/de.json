@@ -474,6 +474,7 @@
     "selectEventDescription": "Bitte wählen Sie eine Veranstaltung aus dem Veranstaltungskontext aus, um deren Details zu verwalten.",
     "eventDetails": "Veranstaltungsdetails",
     "noStatistics": "Keine Statistiken verfügbar",
+    "staffRequirements": "Personalbedarf",
     "tabs": {
       "details": "Details",
       "participants": "Teilnehmer",
@@ -494,12 +495,22 @@
       "registrationDeadline": "Meldeschluss",
       "contactPerson": "Kontaktperson",
       "contactPersonPlaceholder": "Name der Kontaktperson",
+      "selectContactPerson": "Kontaktperson auswählen",
+      "registrationContact": "Meldung an",
+      "selectRegistrationContact": "Ansprechpartner für Meldungen auswählen",
       "contactEmail": "Kontakt E-Mail",
       "contactEmailPlaceholder": "E-Mail der Kontaktperson",
       "contactPhone": "Kontakt Telefon",
       "contactPhonePlaceholder": "Telefonnummer der Kontaktperson",
       "numberOfJudges": "Anzahl Kampfrichter",
-      "numberOfJudgesPlaceholder": "Benötigte Anzahl Kampfrichter"
+      "numberOfJudgesPlaceholder": "Benötigte Anzahl Kampfrichter",
+      "numberOfHelpers": "Anzahl Helfer",
+      "numberOfHelpersPlaceholder": "Benötigte Anzahl Helfer",
+      "numberOfCompOffice": "Wettkampfbüro",
+      "numberOfCompOfficePlaceholder": "Anzahl EDV/Wettkampfbüro Personal",
+      "numberOfJudgesNotAvailable": "Anzahl Kampfrichter nicht verfügbar",
+      "additionalInfo": "Zusätzliche Informationen",
+      "additionalInfoPlaceholder": "Zusätzliche Hinweise zur Veranstaltung"
     },
     "statistics": {
       "title": "Statistiken",

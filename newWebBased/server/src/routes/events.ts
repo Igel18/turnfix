@@ -2,11 +2,11 @@ import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { z } from 'zod';
-import multer from 'multer';
+import multer = require('multer');
 // Fixed var_bezeichnung field issue
 import { parseString } from 'xml2js';
 import { promisify } from 'util';
-import fs from 'fs';
+import * as fs from 'fs';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -19,7 +19,14 @@ const createEventSchema = z.object({
   var_location: z.string().min(1, 'Location is required'),
   var_description: z.string().nullable().optional(),
   var_veranstalter: z.string().nullable().optional(),
-  dat_meldeschluss: z.string().nullable().optional()
+  dat_meldeschluss: z.string().nullable().optional(),
+  int_wettkampforteid: z.number().nullable().optional(),
+  int_ansprechpartner: z.number().nullable().optional(),
+  int_meldung_an: z.number().nullable().optional(),
+  int_kampfrichter: z.number().nullable().optional(),
+  int_helfer: z.number().nullable().optional(),
+  int_edv: z.number().nullable().optional(),
+  txt_hinweise: z.string().nullable().optional()
 });
 
 const updateEventSchema = createEventSchema.partial();
@@ -328,8 +335,11 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     if (validatedData.dat_eventenddate !== undefined) {
       updateData.dat_bis = new Date(validatedData.dat_eventenddate);
     }
-    if (validatedData.var_location !== undefined) {
-      // Find the venue by name to get the venue ID
+    if (validatedData.int_wettkampforteid !== undefined) {
+      updateData.int_wettkampforteid = validatedData.int_wettkampforteid;
+    }
+    if (validatedData.var_location !== undefined && !validatedData.int_wettkampforteid) {
+      // Find the venue by name to get the venue ID only if venue ID not provided
       const venue = await prisma.tfx_wettkampforte.findFirst({
         where: { var_name: validatedData.var_location }
       });
@@ -344,11 +354,29 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     if (validatedData.var_description !== undefined) {
       updateData.txt_hinweise = validatedData.var_description || null;
     }
+    if (validatedData.txt_hinweise !== undefined) {
+      updateData.txt_hinweise = validatedData.txt_hinweise || null;
+    }
     if (validatedData.var_veranstalter !== undefined) {
       updateData.var_veranstalter = validatedData.var_veranstalter;
     }
     if (validatedData.dat_meldeschluss !== undefined) {
       updateData.dat_meldeschluss = validatedData.dat_meldeschluss ? new Date(validatedData.dat_meldeschluss) : null;
+    }
+    if (validatedData.int_ansprechpartner !== undefined) {
+      updateData.int_ansprechpartner = validatedData.int_ansprechpartner;
+    }
+    if (validatedData.int_meldung_an !== undefined) {
+      updateData.int_meldung_an = validatedData.int_meldung_an;
+    }
+    if (validatedData.int_kampfrichter !== undefined) {
+      updateData.int_kampfrichter = validatedData.int_kampfrichter;
+    }
+    if (validatedData.int_helfer !== undefined) {
+      updateData.int_helfer = validatedData.int_helfer;
+    }
+    if (validatedData.int_edv !== undefined) {
+      updateData.int_edv = validatedData.int_edv;
     }
 
     // Update the event
@@ -357,12 +385,22 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       data: updateData
     });
 
-    // Get the venue name for the response
-    const venue = await prisma.tfx_wettkampforte.findUnique({
+    // Get the venue for the response
+    const venue = updatedEvent.int_wettkampforteid ? await prisma.tfx_wettkampforte.findUnique({
       where: { int_wettkampforteid: updatedEvent.int_wettkampforteid }
-    });
+    }) : null;
 
-    // Format the response
+    // Get contact person information
+    const contactPerson = updatedEvent.int_ansprechpartner ? await prisma.tfx_personen.findUnique({
+      where: { int_personenid: updatedEvent.int_ansprechpartner }
+    }) : null;
+
+    // Get registration contact person information
+    const registrationContact = updatedEvent.int_meldung_an ? await prisma.tfx_personen.findUnique({
+      where: { int_personenid: updatedEvent.int_meldung_an }
+    }) : null;
+
+    // Format the response using only fields that exist in the database schema
     const response = {
       int_eventid: updatedEvent.int_veranstaltungenid,
       var_eventname: updatedEvent.var_name,
@@ -371,7 +409,20 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       var_location: venue?.var_name || '',
       var_description: updatedEvent.txt_hinweise || '',
       dat_meldeschluss: updatedEvent.dat_meldeschluss?.toISOString() || null,
-      var_veranstalter: updatedEvent.var_veranstalter
+      var_veranstalter: updatedEvent.var_veranstalter,
+      int_wettkampforteid: updatedEvent.int_wettkampforteid,
+      int_ansprechpartner: updatedEvent.int_ansprechpartner,
+      int_meldung_an: updatedEvent.int_meldung_an,
+      int_kampfrichter: updatedEvent.int_kampfrichter,
+      int_helfer: updatedEvent.int_helfer,
+      int_edv: updatedEvent.int_edv,
+      txt_hinweise: updatedEvent.txt_hinweise,
+      venue_name: venue?.var_name,
+      venue_address: venue?.var_adresse,
+      venue_postal_code: venue?.var_plz,
+      venue_city: venue?.var_ort,
+      contact_person_name: contactPerson ? `${contactPerson.var_vorname || ''} ${contactPerson.var_nachname || ''}`.trim() : null,
+      registration_contact_name: registrationContact ? `${registrationContact.var_vorname || ''} ${registrationContact.var_nachname || ''}`.trim() : null
     };
 
     console.log('✅ Event updated successfully:', {
@@ -2024,8 +2075,29 @@ router.get('/:id', async (req: Request, res: Response) => {
         v.var_name as var_eventname,
         v.dat_von as dat_eventstartdate,
         v.dat_bis as dat_eventenddate,
-        v.var_veranstalter as var_location,
+        COALESCE(wf.var_name, v.var_veranstalter, '') as var_location,
         COALESCE(v.txt_hinweise, '') as var_description,
+        v.dat_meldeschluss,
+        v.var_veranstalter,
+        v.int_wettkampforteid,
+        v.int_ansprechpartner,
+        v.int_meldung_an,
+        v.int_kampfrichter,
+        v.int_helfer,
+        v.int_edv,
+        v.txt_hinweise,
+        wf.var_name as venue_name,
+        wf.var_adresse as venue_address,
+        wf.var_plz as venue_postal_code,
+        wf.var_ort as venue_city,
+        cp.var_vorname as contact_person_firstname,
+        cp.var_nachname as contact_person_lastname,
+        cp.var_email as contact_person_email,
+        cp.var_telefon as contact_person_phone,
+        rcp.var_vorname as registration_contact_firstname,
+        rcp.var_nachname as registration_contact_lastname,
+        rcp.var_email as registration_contact_email,
+        rcp.var_telefon as registration_contact_phone,
         (SELECT COUNT(*) FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as participant_count,
@@ -2033,6 +2105,9 @@ router.get('/:id', async (req: Request, res: Response) => {
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count
       FROM tfx_veranstaltungen v
+      LEFT JOIN tfx_wettkampforte wf ON v.int_wettkampforteid = wf.int_wettkampforteid
+      LEFT JOIN tfx_personen cp ON v.int_ansprechpartner = cp.int_personenid
+      LEFT JOIN tfx_personen rcp ON v.int_meldung_an = rcp.int_personenid
       WHERE v.int_veranstaltungenid = $1
     `;
 
@@ -2059,10 +2134,24 @@ router.get('/:id', async (req: Request, res: Response) => {
     const formattedEvent = {
       ...event,
       int_eventid: Number(event.int_eventid),
+      int_wettkampforteid: event.int_wettkampforteid ? Number(event.int_wettkampforteid) : null,
+      int_ansprechpartner: event.int_ansprechpartner ? Number(event.int_ansprechpartner) : null,
+      int_meldung_an: event.int_meldung_an ? Number(event.int_meldung_an) : null,
+      int_kampfrichter: event.int_kampfrichter ? Number(event.int_kampfrichter) : null,
+      int_helfer: event.int_helfer ? Number(event.int_helfer) : null,
+      int_edv: event.int_edv ? Number(event.int_edv) : null,
+      txt_hinweise: event.txt_hinweise,
       participant_count: Number(event.participant_count || 0),
       score_count: Number(event.score_count || 0),
       dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
       dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null,
+      dat_meldeschluss: event.dat_meldeschluss ? event.dat_meldeschluss.toISOString() : null,
+      contact_person_name: event.contact_person_firstname && event.contact_person_lastname 
+        ? `${event.contact_person_lastname}, ${event.contact_person_firstname}` 
+        : null,
+      registration_contact_name: event.registration_contact_firstname && event.registration_contact_lastname 
+        ? `${event.registration_contact_lastname}, ${event.registration_contact_firstname}` 
+        : null,
       status
     };
 

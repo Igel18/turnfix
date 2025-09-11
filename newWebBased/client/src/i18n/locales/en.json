@@ -474,6 +474,7 @@
     "selectEventDescription": "Please select an event from the event context to manage its details.",
     "eventDetails": "Event Details",
     "noStatistics": "No statistics available",
+    "staffRequirements": "Staff Requirements",
     "tabs": {
       "details": "Details",
       "participants": "Participants",
@@ -494,12 +495,22 @@
       "registrationDeadline": "Registration Deadline",
       "contactPerson": "Contact Person",
       "contactPersonPlaceholder": "Contact person name",
+      "selectContactPerson": "Select Contact Person",
+      "registrationContact": "Registration Contact",
+      "selectRegistrationContact": "Select Registration Contact",
       "contactEmail": "Contact Email",
       "contactEmailPlaceholder": "Contact person email",
       "contactPhone": "Contact Phone",
       "contactPhonePlaceholder": "Contact person phone",
       "numberOfJudges": "Number of Judges",
-      "numberOfJudgesPlaceholder": "Required number of judges"
+      "numberOfJudgesPlaceholder": "Required number of judges",
+      "numberOfHelpers": "Number of Helpers",
+      "numberOfHelpersPlaceholder": "Required number of helpers",
+      "numberOfCompOffice": "Competition Office",
+      "numberOfCompOfficePlaceholder": "Number of competition office staff",
+      "numberOfJudgesNotAvailable": "Number of judges not available",
+      "additionalInfo": "Additional Information",
+      "additionalInfoPlaceholder": "Additional notes about the event"
     },
     "statistics": {
       "title": "Statistics",

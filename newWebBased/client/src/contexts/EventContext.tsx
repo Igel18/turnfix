@@ -46,6 +46,8 @@ interface EventContextType {
   setSelectedSquad: (squad: Squad | null) => void
   setSelectedDiscipline: (discipline: Discipline | null) => void
   clearSelection: () => void
+  refreshEvents: () => void
+  eventUpdateTrigger: number
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined)
@@ -59,6 +61,7 @@ export function EventProvider({ children }: EventProviderProps) {
   const [selectedCompetition, setSelectedCompetitionState] = useState<Competition | null>(null)
   const [selectedSquad, setSelectedSquadState] = useState<Squad | null>(null)
   const [selectedDiscipline, setSelectedDisciplineState] = useState<Discipline | null>(null)
+  const [eventUpdateTrigger, setEventUpdateTrigger] = useState<number>(0)
 
   // Load persisted selection from localStorage on mount
   useEffect(() => {
@@ -92,6 +95,7 @@ export function EventProvider({ children }: EventProviderProps) {
 
   // Persist event selection to localStorage
   const setSelectedEvent = (event: Event | null) => {
+    console.log('🔄 EventContext: Setting selected event:', event?.var_eventname);
     setSelectedEventState(event)
     if (event) {
       localStorage.setItem('turnfix-selected-event', JSON.stringify(event))
@@ -152,6 +156,11 @@ export function EventProvider({ children }: EventProviderProps) {
     localStorage.removeItem('turnfix-selected-discipline')
   }
 
+  // Trigger refresh of events (for components listening to event updates)
+  const refreshEvents = () => {
+    setEventUpdateTrigger(prev => prev + 1)
+  }
+
   return (
     <EventContext.Provider
       value={{
@@ -164,6 +173,8 @@ export function EventProvider({ children }: EventProviderProps) {
         setSelectedSquad,
         setSelectedDiscipline,
         clearSelection,
+        refreshEvents,
+        eventUpdateTrigger,
       }}
     >
       {children}

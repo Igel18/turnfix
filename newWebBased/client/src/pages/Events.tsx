@@ -7,6 +7,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
+import { useEvent } from '../contexts/EventContext'
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate'
 import { exportToCSV, getEventCSVData } from '../utils/csvExport'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
@@ -34,6 +35,7 @@ interface Venue {
 
 const Events: React.FC = () => {
   const { t } = useTranslation()
+  const { eventUpdateTrigger } = useEvent()
   
   // State management
   const [events, setEvents] = useState<Event[]>([])
@@ -411,7 +413,7 @@ const Events: React.FC = () => {
 
   useEffect(() => {
     fetchEvents()
-  }, [searchTerm, selectedStatus])
+  }, [searchTerm, selectedStatus, eventUpdateTrigger])
 
   // Card render function
   const renderCard = (event: Event) => {
