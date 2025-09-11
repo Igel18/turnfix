@@ -14,6 +14,8 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { apiGet, apiPut, invalidateCache } from '../utils/api';
+import jsPDF from 'jspdf';
+import { addPDFHeaderFooter, getContentArea } from '../utils/pdfUtils';
 
 interface EventDetails {
   int_eventid: number;
@@ -239,6 +241,175 @@ const EventManagement: React.FC = () => {
     setIsEditing(false);
   };
 
+  const handleExportPDF = () => {
+    if (!selectedEvent || !eventDetails || !statistics) {
+      console.error('Cannot export PDF: Missing required data');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // For portrait A4: width = 210mm, height = 297mm
+      const contentArea = getContentArea(210, 297);
+      
+      // Convert selectedEvent to the format expected by pdfUtils
+      const eventForPDF = {
+        int_eventid: selectedEvent.int_eventid,
+        var_eventname: selectedEvent.var_eventname,
+        dat_eventstartdate: selectedEvent.dat_eventstartdate,
+        dat_eventenddate: selectedEvent.dat_eventenddate,
+        var_location: selectedEvent.var_location,
+        status: selectedEvent.status || 'active'
+      };
+
+      // Add header and footer
+      addPDFHeaderFooter({
+        doc,
+        event: eventForPDF,
+        documentTitle: t('eventManagement.title'),
+        pageWidth: 210,
+        pageHeight: 297
+      });
+
+      // Content starts after header
+      let yPosition = contentArea.startY;
+      
+      // Event Details Section
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(t('eventManagement.eventDetails'), contentArea.startX, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      
+      // Basic event information
+      const eventInfo = [
+        [t('eventManagement.form.eventName'), eventDetails.var_eventname || '-'],
+        [t('eventManagement.form.location'), eventDetails.venue_name || eventDetails.var_location || '-'],
+        [t('eventManagement.form.startDate'), eventDetails.dat_eventstartdate ? new Date(eventDetails.dat_eventstartdate).toLocaleDateString() : '-'],
+        [t('eventManagement.form.endDate'), eventDetails.dat_eventenddate ? new Date(eventDetails.dat_eventenddate).toLocaleDateString() : '-'],
+        [t('eventManagement.form.registrationDeadline'), eventDetails.dat_meldeschluss ? new Date(eventDetails.dat_meldeschluss).toLocaleDateString() : '-'],
+        [t('eventManagement.form.organizer'), eventDetails.var_veranstalter || '-'],
+        [t('eventManagement.form.contactPerson'), eventDetails.contact_person_name || '-'],
+        [t('eventManagement.form.registrationContact'), eventDetails.registration_contact_name || '-']
+      ];
+
+      eventInfo.forEach(([label, value]) => {
+        doc.text(`${label}: ${value}`, contentArea.startX, yPosition);
+        yPosition += 6;
+      });
+
+      yPosition += 10;
+
+      // Statistics Section
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(t('eventManagement.statistics.title'), contentArea.startX, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+
+      // Participant statistics
+      const participantStats = [
+        [t('eventManagement.statistics.totalParticipants'), statistics.totalParticipants.toString()],
+        [t('eventManagement.statistics.male'), statistics.maleParticipants.toString()],
+        [t('eventManagement.statistics.female'), statistics.femaleParticipants.toString()],
+        [t('eventManagement.statistics.totalClubs'), statistics.totalClubs.toString()],
+        [t('eventManagement.statistics.totalCompetitions'), statistics.totalCompetitions.toString()],
+        [t('events.groups'), statistics.totalGroups.toString()]
+      ];
+
+      participantStats.forEach(([label, value]) => {
+        doc.text(`${label}: ${value}`, contentArea.startX, yPosition);
+        yPosition += 6;
+      });
+
+      yPosition += 10;
+
+      // Age Groups
+      if (Object.keys(statistics.ageGroups).length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Altersgruppen:', contentArea.startX, yPosition);
+        yPosition += 6;
+        doc.setFont('helvetica', 'normal');
+
+        Object.entries(statistics.ageGroups).forEach(([ageGroup, count]) => {
+          doc.text(`  ${ageGroup}: ${count}`, contentArea.startX, yPosition);
+          yPosition += 6;
+        });
+
+        yPosition += 10;
+      }
+
+      // Club Breakdown
+      if (statistics.clubBreakdown && statistics.clubBreakdown.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(t('eventManagement.statistics.clubDistribution'), contentArea.startX, yPosition);
+        yPosition += 6;
+        doc.setFont('helvetica', 'normal');
+
+        statistics.clubBreakdown.forEach((club) => {
+          doc.text(`  ${club.clubName}: ${club.count}`, contentArea.startX, yPosition);
+          yPosition += 6;
+        });
+      }
+
+      // Staff Requirements
+      if (eventDetails.int_kampfrichter || eventDetails.int_helfer || eventDetails.int_edv) {
+        yPosition += 10;
+        doc.setFont('helvetica', 'bold');
+        doc.text(t('eventManagement.staffRequirements'), contentArea.startX, yPosition);
+        yPosition += 6;
+        doc.setFont('helvetica', 'normal');
+
+        if (eventDetails.int_kampfrichter) {
+          doc.text(`  ${t('eventManagement.form.numberOfJudges')}: ${eventDetails.int_kampfrichter}`, contentArea.startX, yPosition);
+          yPosition += 6;
+        }
+        if (eventDetails.int_helfer) {
+          doc.text(`  ${t('eventManagement.form.numberOfHelpers')}: ${eventDetails.int_helfer}`, contentArea.startX, yPosition);
+          yPosition += 6;
+        }
+        if (eventDetails.int_edv) {
+          doc.text(`  ${t('eventManagement.form.numberOfCompOffice')}: ${eventDetails.int_edv}`, contentArea.startX, yPosition);
+          yPosition += 6;
+        }
+      }
+
+      // Additional Information
+      if (eventDetails.txt_hinweise) {
+        yPosition += 10;
+        doc.setFont('helvetica', 'bold');
+        doc.text(t('eventManagement.form.additionalInfo'), contentArea.startX, yPosition);
+        yPosition += 6;
+        doc.setFont('helvetica', 'normal');
+        
+        // Split text into multiple lines if needed
+        const textLines = doc.splitTextToSize(eventDetails.txt_hinweise, contentArea.width - 20);
+        textLines.forEach((line: string) => {
+          doc.text(line, contentArea.startX, yPosition);
+          yPosition += 6;
+        });
+      }
+
+      // Save the PDF
+      const fileName = `event-management-${selectedEvent.var_eventname.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+
+      console.log('PDF exported successfully:', fileName);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Fehler beim Exportieren der PDF. Bitte versuchen Sie es erneut.');
+    }
+  };
+
   if (!selectedEvent) {
     return (
       <div className="max-w-7xl mx-auto p-6">
@@ -288,6 +459,8 @@ const EventManagement: React.FC = () => {
         subtitle={t('eventManagement.subtitle')}
         icon={CalendarDaysIcon}
         showEventContext={true}
+        showExportPDF={true}
+        onExportPDF={handleExportPDF}
         customActions={
           <div className="flex space-x-2">
             {isEditing ? (
