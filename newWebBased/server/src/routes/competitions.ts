@@ -82,9 +82,17 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 
     // Transform the data to match the expected format
     const transformedCompetitions = competitions.map(comp => {
-      // yer_von and yer_bis contain direct age values, not birth years
-      const ageFrom = comp.yer_von || 6;
-      const ageTo = comp.yer_bis || (comp.yer_von || 18);
+      // yer_von and yer_bis contain birth years - convert to ages based on event date
+      const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
+      const eventYear = eventDate.getFullYear();
+      const birthYearFrom = comp.yer_von;
+      const birthYearTo = comp.yer_bis;
+      
+      // Convert birth years to ages based on event year, with fallbacks
+      const ageFrom = birthYearFrom ? eventYear - birthYearFrom : 6;
+      const ageTo = birthYearTo ? eventYear - birthYearTo : (birthYearFrom ? eventYear - birthYearFrom + 10 : 18);
+      
+      console.log(`🎂 DEBUG: Competition "${comp.var_name}" - Event year: ${eventYear}, Birth years: ${birthYearFrom}-${birthYearTo} -> Ages: ${ageFrom}-${ageTo}`);
       
       return {
         id: comp.int_wettkaempfeid,
@@ -188,9 +196,14 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Competition not found' });
     }
 
-    // Calculate age range
-    const ageFrom = competition.yer_von;
-    const ageTo = competition.yer_bis || competition.yer_von;
+    // Calculate age range - convert birth years to ages based on event date
+    const eventDate = competition.tfx_veranstaltungen.dat_von || new Date();
+    const eventYear = eventDate.getFullYear();
+    const birthYearFrom = competition.yer_von;
+    const birthYearTo = competition.yer_bis || competition.yer_von;
+    
+    const ageFrom = birthYearFrom ? eventYear - birthYearFrom : 6;
+    const ageTo = birthYearTo ? eventYear - birthYearTo : ageFrom;
 
     // Transform to expected format
     const transformedCompetition = {
@@ -371,6 +384,23 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     // Find or create appropriate bereich (gender category)
     const bereichId = validatedData.gender === 'männlich' ? 1 : 2;
     
+    // Get event information to determine the correct year for age calculation
+    const eventInfo = await prisma.tfx_veranstaltungen.findUnique({
+      where: { int_veranstaltungenid: validatedData.eventId }
+    });
+    
+    if (!eventInfo) {
+      return res.status(400).json({ error: 'Event not found' });
+    }
+    
+    // Convert ages to birth years for database storage using event date
+    const eventDate = eventInfo.dat_von || new Date();
+    const eventYear = eventDate.getFullYear();
+    const birthYearFrom = eventYear - validatedData.ageFrom;
+    const birthYearTo = eventYear - validatedData.ageTo;
+    
+    console.log(`🎂 DEBUG: Creating competition - Event year: ${eventYear}, Ages: ${validatedData.ageFrom}-${validatedData.ageTo} -> Birth years: ${birthYearFrom}-${birthYearTo}`);
+    
     // Insert new competition into database
     const insertedCompetition = await prisma.$queryRawUnsafe(`
       INSERT INTO tfx_wettkaempfe (
@@ -402,8 +432,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       bereichId,
       validatedData.number || null,
       validatedData.name,
-      validatedData.ageFrom,
-      validatedData.ageTo
+      birthYearFrom,
+      birthYearTo
     ) as any[];
     
     const competitionId = insertedCompetition[0].int_wettkaempfeid;
@@ -524,16 +554,44 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     // Actually update the competition in the database
     console.log('Updating competition:', id, 'with data:', validatedData);
     
+    // Get competition and event information for proper age calculation
+    const competitionInfo = await prisma.tfx_wettkaempfe.findUnique({
+      where: { int_wettkaempfeid: id },
+      include: {
+        tfx_veranstaltungen: true
+      }
+    });
+    
+    if (!competitionInfo) {
+      return res.status(404).json({ error: 'Competition not found' });
+    }
+    
     // Update the main competition record
+    const updateData: any = {};
+    
+    if (validatedData.number !== undefined) {
+      updateData.var_nummer = validatedData.number || null;
+    }
+    if (validatedData.name) {
+      updateData.var_name = validatedData.name;
+    }
+    
+    // Convert ages to birth years for database storage using event date
+    const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
+    const eventYear = eventDate.getFullYear();
+    
+    if (validatedData.ageFrom !== undefined) {
+      updateData.yer_von = eventYear - validatedData.ageFrom;
+      console.log(`🎂 DEBUG: Update ageFrom ${validatedData.ageFrom} -> birth year ${updateData.yer_von} (event year: ${eventYear})`);
+    }
+    if (validatedData.ageTo !== undefined) {
+      updateData.yer_bis = eventYear - validatedData.ageTo;
+      console.log(`🎂 DEBUG: Update ageTo ${validatedData.ageTo} -> birth year ${updateData.yer_bis} (event year: ${eventYear})`);
+    }
+    
     const updatedCompetition = await prisma.tfx_wettkaempfe.update({
       where: { int_wettkaempfeid: id },
-      data: {
-        ...(validatedData.number !== undefined && { var_nummer: validatedData.number || null }),
-        ...(validatedData.name && { var_name: validatedData.name }),
-        // Store ages directly as they are (not birth years)
-        ...(validatedData.ageFrom !== undefined && { yer_von: validatedData.ageFrom }),
-        ...(validatedData.ageTo !== undefined && { yer_bis: validatedData.ageTo }),
-      }
+      data: updateData
     });
     
     // Update event-related fields (organizer and registration deadline)

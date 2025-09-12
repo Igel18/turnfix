@@ -1,47 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { debugLog, debugInfo } from '../utils/debug';
+import { debugLog } from '../utils/debug';
 import { 
   Users, 
   Trophy,
   Edit,
-  Trash2,
-  CheckCircle,
-  XCircle
+  Trash2
 } from 'lucide-react';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
+import CompetitionFormModal from '@/components/CompetitionFormModal';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
-
-// Interface for discipline data from API
-interface Discipline {
-  int_disziplinid: number;
-  var_disziplinname: string;
-  var_disziplinkategorie: string;
-  male_allowed: boolean;
-  female_allowed: boolean;
-  altersklasse_von: number;
-  altersklasse_bis: number;
-}
-
-// Interface for disciplines returned by discipline groups API
-interface DisciplineGroupDiscipline {
-  int_disziplinenid: number;
-  var_name: string;
-  var_kurz1: string;
-  var_kurz2: string;
-  position: number;
-}
-
-// Interface for discipline groups
-interface DisciplineGroup {
-  int_disziplinen_gruppenid: number;
-  var_name: string;
-  txt_comment: string;
-  discipline_count: number;
-  disciplines: DisciplineGroupDiscipline[];
-}
 
 // Interface for competition display
 interface Competition {
@@ -92,14 +62,6 @@ const Competitions: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
-  
-  // Helper function to get gender text
-  const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean): string => {
-    if (maleAllowed && femaleAllowed) return 'Mixed';
-    if (maleAllowed && !femaleAllowed) return 'Male';
-    if (!maleAllowed && femaleAllowed) return 'Female';
-    return 'Unknown';
-  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
@@ -107,15 +69,6 @@ const Competitions: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
   
-  // State for disciplines and form data
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
-  const [ageGroups, setAgeGroups] = useState<{ value: number; label: string }[]>([]);
-  const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
-  
-  // State for discipline groups
-  const [disciplineGroups, setDisciplineGroups] = useState<DisciplineGroup[]>([]);
-  const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
-  const [loadingDisciplineGroups, setLoadingDisciplineGroups] = useState(false);
   const [bulkMaxScore, setBulkMaxScore] = useState<string>('');
   
   const [formData, setFormData] = useState<CompetitionFormData>({
@@ -128,80 +81,10 @@ const Competitions: React.FC = () => {
     disciplines: []
   });
 
-  // Filter disciplines based on selected gender
-  useEffect(() => {
-    debugLog('Filtering disciplines. Gender:', formData.gender, 'All disciplines:', disciplines.length);
-    if (formData.gender && disciplines.length > 0) {
-      const filtered = disciplines.filter(discipline => {
-        const allowed = formData.gender === 'männlich' ? discipline.male_allowed :
-                       formData.gender === 'weiblich' ? discipline.female_allowed :
-                       formData.gender === 'gemischt' ? (discipline.male_allowed || discipline.female_allowed) : // Changed from && to ||
-                       false;
-        
-        debugLog(`Discipline ${discipline.var_disziplinname} (ID:${discipline.int_disziplinid}):`, {
-          male_allowed: discipline.male_allowed,
-          female_allowed: discipline.female_allowed,
-          gender: formData.gender,
-          allowed
-        });
-        
-        return allowed;
-      });
-      debugLog('Filtered disciplines for gender:', filtered.length, filtered.map(d => `${d.var_disziplinname}(${d.int_disziplinid})`));
-      setFilteredDisciplines(filtered);
-    } else {
-      debugLog('Using all disciplines');
-      setFilteredDisciplines(disciplines);
-    }
-  }, [formData.gender, disciplines]);
-
   // Load initial data
   useEffect(() => {
-    loadDisciplines();
-    loadAgeGroups();
-    loadDisciplineGroups();
     loadCompetitions();
   }, []);
-
-  const loadDisciplines = async () => {
-    try {
-      const data = await apiGet('/disciplines/filtered');
-      debugLog('Loaded disciplines:', data);
-      debugLog('Disciplines with undefined IDs:', data.filter((d: Discipline) => !d.int_disziplinid));
-      debugLog('Total discipline count:', data.length);
-      debugLog('Valid discipline count:', data.filter((d: Discipline) => d.int_disziplinid != null).length);
-      setDisciplines(data);
-    } catch (error) {
-      console.error('Error loading disciplines:', error);
-    }
-  };
-
-  const loadAgeGroups = async () => {
-    try {
-      const data = await apiGet('/disciplines/age-groups');
-      debugLog('🎂 Loaded age groups:', data);
-      setAgeGroups(data);
-    } catch (error) {
-      console.error('Error loading age groups:', error);
-    }
-  };
-
-  const loadDisciplineGroups = async () => {
-    setLoadingDisciplineGroups(true);
-    try {
-      const data = await apiGet('/discipline-groups');
-      debugLog('📚 Loaded discipline groups:', data);
-      // The API returns an object with disciplineGroups array, not directly an array
-      const groups = data?.disciplineGroups || [];
-      setDisciplineGroups(Array.isArray(groups) ? groups : []);
-    } catch (error) {
-      console.error('Error loading discipline groups:', error);
-      // Set empty array on error
-      setDisciplineGroups([]);
-    } finally {
-      setLoadingDisciplineGroups(false);
-    }
-  };
 
   const loadCompetitions = async () => {
     setLoading(true);
@@ -225,44 +108,9 @@ const Competitions: React.FC = () => {
     }
   };
 
-  // Handler for discipline group selection
-  const handleDisciplineGroupChange = (groupId: number | null) => {
-    setSelectedDisciplineGroup(groupId);
-    
-    if (groupId) {
-      const selectedGroup = disciplineGroups.find(group => group.int_disziplinen_gruppenid === groupId);
-      if (selectedGroup) {
-        debugLog('📚 Selected discipline group:', selectedGroup.var_name, 'with', selectedGroup.disciplines.length, 'disciplines');
-        
-        // Clear all existing discipline selections and add only the ones from the selected group
-        const newDisciplines = selectedGroup.disciplines.map(discipline => ({
-          disciplineId: discipline.int_disziplinenid,
-          maxScore: 10 // Default max score for new selections
-        }));
-        
-        debugLog('🔄 Replacing all disciplines with group selections:', newDisciplines);
-        
-        setFormData({
-          ...formData,
-          disciplines: newDisciplines
-        });
-      }
-    } else {
-      // If no group is selected, clear the disciplines array
-      debugLog('🔄 Clearing all discipline selections');
-      setFormData({
-        ...formData,
-        disciplines: []
-      });
-    }
-  };
-
   // Handler for bulk max score setting
   const handleBulkMaxScoreApply = () => {
-    if (!bulkMaxScore || selectedDisciplineGroup === null) return;
-    
-    const selectedGroup = disciplineGroups.find(group => group.int_disziplinen_gruppenid === selectedDisciplineGroup);
-    if (!selectedGroup) return;
+    if (!bulkMaxScore) return;
     
     const maxScore = parseFloat(bulkMaxScore);
     if (isNaN(maxScore) || maxScore <= 0) {
@@ -270,9 +118,9 @@ const Competitions: React.FC = () => {
       return;
     }
     
-    debugLog('🎯 Applying bulk max score', maxScore, 'to all selected disciplines from group:', selectedGroup.var_name);
+    debugLog('🎯 Applying bulk max score', maxScore, 'to all selected disciplines');
     
-    // Since disciplines are now only from the selected group, update all of them
+    // Update all disciplines with the new max score
     const updatedDisciplines = formData.disciplines.map(discipline => ({
       ...discipline,
       maxScore
@@ -697,362 +545,19 @@ const Competitions: React.FC = () => {
         )}
       </div>
 
-      {/* Modal for Create/Edit Competition */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {editingCompetition ? 'Edit Competition' : 'Create New Competition'}
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XCircle className="w-6 h-6" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Debug Info */}
-                {debugInfo(
-                  <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm">
-                    <strong>🔧 Debug Info:</strong><br/>
-                    • Form Number: "<span className="font-mono text-blue-700">{formData.number || 'EMPTY'}</span>"<br/>
-                    • Form Name: "<span className="font-mono text-blue-700">{formData.name || 'EMPTY'}</span>"<br/>
-                    • Mode: {editingCompetition ? 
-                      <span className="text-green-600">EDITING (ID: {editingCompetition.id}, Number: "{editingCompetition.number || 'NULL'}")</span> : 
-                      <span className="text-orange-600">CREATING NEW</span>
-                    }
-                  </div>
-                )}
-                {/* Basic Information */}
-                <div className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        🔢 Competition Number
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.number || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value.length <= 5) { // Limit to 5 characters
-                            setFormData(prev => ({ ...prev, number: value }));
-                          }
-                        }}
-                        placeholder="e.g. 0113"
-                        maxLength={5}
-                        className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                      <p className="text-xs text-yellow-700 mt-1">Max 5 characters (current: {(formData.number || '').length}/5)</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        📝 Competition Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Competition Settings */}
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Gender *
-                    </label>
-                    <select
-                      value={formData.gender}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        gender: e.target.value as 'männlich' | 'weiblich' | 'gemischt',
-                        disciplines: [] // Reset disciplines when gender changes
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option key="gemischt" value="gemischt">Gemischt</option>
-                      <option key="männlich" value="männlich">Männlich</option>
-                      <option key="weiblich" value="weiblich">Weiblich</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Age From
-                    </label>
-                    <select
-                      value={formData.ageFrom}
-                      onChange={(e) => {
-                        const newAgeFrom = parseInt(e.target.value);
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          ageFrom: newAgeFrom,
-                          // Auto-adjust ageTo if it becomes invalid
-                          ageTo: prev.ageTo < newAgeFrom ? newAgeFrom : prev.ageTo
-                        }));
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {ageGroups.length === 0 ? (
-                        <option value="">Loading ages...</option>
-                      ) : (
-                        ageGroups.map(age => (
-                          <option key={age.value} value={age.value}>{age.label}</option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Age To (minimum: {formData.ageFrom} years)
-                    </label>
-                    <select
-                      value={formData.ageTo}
-                      onChange={(e) => setFormData(prev => ({ ...prev, ageTo: parseInt(e.target.value) }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {ageGroups.filter(age => age.value >= formData.ageFrom).map(age => (
-                        <option key={age.value} value={age.value}>{age.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Disciplines Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Disciplines * ({filteredDisciplines.length} available for {formData.gender}, {formData.disciplines.length} selected)
-                  </label>
-                  
-                  {/* Discipline Groups Quick Selection */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Quick Select from Discipline Group
-                        </label>
-                        <select
-                          value={selectedDisciplineGroup || ''}
-                          onChange={(e) => handleDisciplineGroupChange(e.target.value ? parseInt(e.target.value) : null)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          disabled={loadingDisciplineGroups}
-                        >
-                          <option value="">Select a discipline group...</option>
-                          {Array.isArray(disciplineGroups) && disciplineGroups.map(group => (
-                            <option key={group.int_disziplinen_gruppenid} value={group.int_disziplinen_gruppenid}>
-                              {group.var_name} ({group.discipline_count} disciplines)
-                            </option>
-                          ))}
-                        </select>
-                        {loadingDisciplineGroups && (
-                          <p className="text-sm text-gray-500 mt-1">Loading discipline groups...</p>
-                        )}
-                      </div>
-                      
-                      {selectedDisciplineGroup && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Set Max Score for Selected Group
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type="number"
-                              value={bulkMaxScore}
-                              onChange={(e) => setBulkMaxScore(e.target.value)}
-                              placeholder="Enter max score"
-                              min="0"
-                              step="0.1"
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleBulkMaxScoreApply}
-                              disabled={!bulkMaxScore}
-                              className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            >
-                              Apply
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {formData.disciplines.length > 0 && (
-                    <div className="mb-2 text-sm text-blue-600">
-                      <span>Selected: </span>
-                      {formData.disciplines.map((disciplineObj, index) => {
-                        const discipline = filteredDisciplines.find(d => d.int_disziplinid === disciplineObj.disciplineId);
-                        const allDisciplineMatch = disciplines.find(d => d.int_disziplinid === disciplineObj.disciplineId);
-                        debugLog(`Selected discipline ID:${disciplineObj.disciplineId}:`, {
-                          foundInFiltered: !!discipline,
-                          foundInAll: !!allDisciplineMatch,
-                          disciplineName: discipline?.var_disziplinname || allDisciplineMatch?.var_disziplinname,
-                          maxScore: disciplineObj.maxScore,
-                          filteredCount: filteredDisciplines.length,
-                          totalCount: disciplines.length
-                        });
-                        return (
-                          <span key={`selected-${disciplineObj.disciplineId}`}>
-                            {discipline ? discipline.var_disziplinname : (allDisciplineMatch ? allDisciplineMatch.var_disziplinname : `ID:${disciplineObj.disciplineId}`)} ({disciplineObj.maxScore}pts)
-                            {index < formData.disciplines.length - 1 ? ', ' : ''}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-                    {filteredDisciplines.length === 0 ? (
-                      <p className="text-gray-500 text-sm">No disciplines available for selected gender</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {filteredDisciplines.map((discipline, index) => {
-                          const disciplineId = discipline.int_disziplinid;
-                          const keyValue = disciplineId ? `discipline-${disciplineId}` : `discipline-index-${index}`;
-                          
-                          
-                          // Check if this discipline is selected
-                          const shouldBeChecked = disciplineId != null && formData.disciplines.some(d => d.disciplineId === Number(disciplineId));
-                          
-                          return (
-                            <label key={keyValue} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded">
-                              <div className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  checked={shouldBeChecked}
-                                  onChange={(e) => {
-                                    // Skip processing if disciplineId is null/undefined
-                                    if (disciplineId == null) {
-                                      console.warn('Cannot select discipline with undefined ID:', discipline.var_disziplinname);
-                                      return;
-                                    }
-                                    
-                                    const numericDisciplineId = Number(disciplineId);
-                                    debugLog('Discipline selection changed:', {
-                                      disciplineId: numericDisciplineId,
-                                      checked: e.target.checked,
-                                      currentDisciplines: formData.disciplines,
-                                      disciplineName: discipline.var_disziplinname
-                                    });
-                                    
-                                    if (e.target.checked) {
-                                      // Add discipline if not already present
-                                      if (!formData.disciplines.some(d => d.disciplineId === numericDisciplineId)) {
-                                        const newDisciplines = [...formData.disciplines, { disciplineId: numericDisciplineId, maxScore: 0 }];
-                                        debugLog('Adding discipline, new array:', newDisciplines);
-                                        setFormData(prev => ({
-                                          ...prev,
-                                          disciplines: newDisciplines
-                                        }));
-                                      }
-                                    } else {
-                                      const newDisciplines = formData.disciplines.filter(d => d.disciplineId !== numericDisciplineId);
-                                      debugLog('Removing discipline, new array:', newDisciplines);
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        disciplines: newDisciplines
-                                      }));
-                                    }
-                                  }}
-                                  className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <span className="text-sm select-none">
-                                  {discipline.var_disziplinname} 
-                                  <span className="text-gray-500 ml-1">
-                                    ({getGenderText(discipline.male_allowed, discipline.female_allowed)}, {discipline.altersklasse_von}-{discipline.altersklasse_bis} years)
-                                  </span>
-                                  <span className="text-blue-500 ml-2 text-xs">
-                                    [ID: {disciplineId} | In Array: {formData.disciplines.some(d => d.disciplineId === Number(disciplineId)) ? 'YES' : 'NO'}]
-                                  </span>
-                                </span>
-                              </div>
-                              {shouldBeChecked && (
-                                <div className="flex items-center ml-4">
-                                  <label className="text-xs text-gray-600 mr-2">Max Score:</label>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    value={formData.disciplines.find(d => d.disciplineId === Number(disciplineId))?.maxScore || 0}
-                                    onChange={(e) => {
-                                      const numericDisciplineId = Number(disciplineId);
-                                      const maxScore = parseFloat(e.target.value) || 0;
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        disciplines: prev.disciplines.map(d => 
-                                          d.disciplineId === numericDisciplineId 
-                                            ? { ...d, maxScore: Math.max(0, maxScore) }
-                                            : d
-                                        )
-                                      }));
-                                    }}
-                                    className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="0"
-                                  />
-                                </div>
-                              )}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-
-
-                {/* Form Actions */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={loading || formData.disciplines.length === 0}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        {editingCompetition ? 'Updating...' : 'Creating...'}
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-5 h-5" />
-                        {editingCompetition ? 'Update Competition' : 'Create Competition'}
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Competition Form Modal */}
+      <CompetitionFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editingCompetition={editingCompetition}
+        onSubmit={handleSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        loading={loading}
+        bulkMaxScore={bulkMaxScore}
+        setBulkMaxScore={setBulkMaxScore}
+        handleBulkMaxScore={handleBulkMaxScoreApply}
+      />
     </div>
   );
 };
