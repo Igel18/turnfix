@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { debugInfo, debugLog } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
@@ -78,6 +78,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   const [disciplineGroups, setDisciplineGroups] = useState<any[]>([]);
   const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
   const [loadingDisciplineGroups, setLoadingDisciplineGroups] = useState(false);
+  
+  // Track previous gender to avoid infinite loops when removing incompatible disciplines
+  const previousGenderRef = useRef<string>('');
 
   // Helper function for gender text
   const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean): string => {
@@ -111,7 +114,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
     }
   }, [ageGroups, formData.ageFrom, formData.ageTo]);
 
-  // Filter disciplines based on gender selection
+  // Filter disciplines based on gender selection and remove incompatible selected disciplines
   useEffect(() => {
     if (!formData.gender || disciplines.length === 0) {
       setFilteredDisciplines([]);
@@ -131,7 +134,37 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 
     debugLog('Filtered disciplines for gender', formData.gender, ':', filtered.length);
     setFilteredDisciplines(filtered);
-  }, [formData.gender, disciplines]);
+
+    // Only remove incompatible disciplines if gender has actually changed
+    if (previousGenderRef.current !== formData.gender && previousGenderRef.current !== '') {
+      // Remove incompatible selected disciplines when gender changes
+      const compatibleSelectedDisciplines = formData.disciplines.filter(selectedDiscipline => {
+        const discipline = disciplines.find(d => d.id === selectedDiscipline.disciplineId);
+        if (!discipline) return false;
+
+        if (formData.gender === 'gemischt') {
+          return true; // All disciplines are compatible with mixed gender
+        } else if (formData.gender === 'männlich') {
+          return discipline.male_allowed;
+        } else if (formData.gender === 'weiblich') {
+          return discipline.female_allowed;
+        }
+        return false;
+      });
+
+      // Only update if there are incompatible disciplines to remove
+      if (compatibleSelectedDisciplines.length !== formData.disciplines.length) {
+        debugLog('Gender changed - removing incompatible disciplines. Before:', formData.disciplines.length, 'After:', compatibleSelectedDisciplines.length);
+        setFormData(prev => ({
+          ...prev,
+          disciplines: compatibleSelectedDisciplines
+        }));
+      }
+    }
+
+    // Update the previous gender reference
+    previousGenderRef.current = formData.gender;
+  }, [formData.gender, disciplines, formData.disciplines, setFormData]);
 
   const loadDisciplines = async () => {
     try {
@@ -435,9 +468,16 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               </div>
 
               <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-gray-600">
-                  Individual Discipline Selection
-                </span>
+                <div>
+                  <span className="text-sm text-gray-600">
+                    Individual Discipline Selection
+                  </span>
+                  {formData.gender && formData.gender !== 'gemischt' && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      Filtered for {formData.gender === 'männlich' ? 'male' : 'female'} athletes only
+                    </p>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -458,7 +498,19 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               
               <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
                 {filteredDisciplines.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No disciplines available for selected gender</p>
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm">
+                      {!formData.gender 
+                        ? 'Please select a gender category first'
+                        : `No disciplines available for ${formData.gender === 'männlich' ? 'male' : formData.gender === 'weiblich' ? 'female' : 'mixed'} competitions`
+                      }
+                    </p>
+                    {formData.gender && formData.gender !== 'gemischt' && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        Try selecting "gemischt" (mixed) to see all available disciplines
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {filteredDisciplines.map((discipline) => {
