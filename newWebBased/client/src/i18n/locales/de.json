@@ -751,6 +751,170 @@
     "databaseConfig": "Datenbankeinstellungen",
     "authNote": "Benutzerauthentifizierung vorübergehend deaktiviert - Vollzugriff verfügbar"
   },
+  "competitionForm": {
+    "title": {
+      "create": "Neuen Wettkampf erstellen",
+      "edit": "Wettkampf bearbeiten"
+    },
+    "basicInfo": {
+      "title": "Grundlegende Informationen",
+      "description": "Definieren Sie die grundlegenden Parameter für den Wettkampf"
+    },
+    "fields": {
+      "number": {
+        "label": "Wettkampfnummer",
+        "placeholder": "z.B. WK01",
+        "description": "Eindeutige Nummer für den Wettkampf (max. 5 Zeichen)"
+      },
+      "name": {
+        "label": "Wettkampfname",
+        "placeholder": "z.B. Gerätvierkampf weiblich",
+        "description": "Vollständiger Name des Wettkampfs"
+      },
+      "description": {
+        "label": "Beschreibung",
+        "placeholder": "Zusätzliche Beschreibung...",
+        "description": "Optionale detaillierte Beschreibung des Wettkampfs"
+      },
+      "gender": {
+        "label": "Geschlecht",
+        "description": "Geschlechtskategorie für den Wettkampf",
+        "options": {
+          "male": "Männlich",
+          "female": "Weiblich", 
+          "mixed": "Gemischt"
+        }
+      },
+      "ageFrom": {
+        "label": "Alter von",
+        "description": "Mindestalter für die Teilnahme"
+      },
+      "ageTo": {
+        "label": "Alter bis",
+        "description": "Höchstalter für die Teilnahme"
+      }
+    },
+    "competitionSettings": {
+      "title": "Wettkampfeinstellungen",
+      "description": "Konfigurieren Sie spezifische Wettkampfparameter und Verhaltensweisen"
+    },
+    "scheduling": {
+      "title": "Terminplanung",
+      "round": {
+        "label": "Durchgang",
+        "description": "Wettkampfdurchgang oder Session-Nummer"
+      },
+      "track": {
+        "label": "Bahn",
+        "description": "Bahn- oder Spur-Nummer für den Wettkampf"
+      },
+      "startTime": {
+        "label": "Startzeit",
+        "placeholder": "YYYY-MM-DD HH:MM",
+        "description": "Geplante Startdatum und -zeit des Wettkampfs"
+      },
+      "warmupTime": {
+        "label": "Einturnen",
+        "placeholder": "YYYY-MM-DD HH:MM", 
+        "description": "Datum und Zeit für das Einturnen vor dem Wettkampf"
+      }
+    },
+    "qualification": {
+      "title": "Qualifikation & Bewertung",
+      "qualifiers": {
+        "label": "Qualifizierende",
+        "description": "Anzahl der Teilnehmer, die sich qualifizieren"
+      },
+      "evaluations": {
+        "label": "Wertungen",
+        "description": "Anzahl der Bewertungen pro Teilnehmer"
+      },
+      "dropCount": {
+        "label": "Streichwertungen",
+        "description": "Anzahl der zu streichenden schlechtesten Wertungen"
+      }
+    },
+    "behavior": {
+      "title": "Verhalten & Anzeige",
+      "dropWorstScore": {
+        "label": "Streichwertung",
+        "description": "Schlechteste Wertung automatisch streichen"
+      },
+      "showAgeGroup": {
+        "label": "Altersklasse anzeigen",
+        "description": "Altersklasse in den Ergebnissen anzeigen"
+      },
+      "isOptionalCompetition": {
+        "label": "Wahlwettkampf",
+        "description": "Als optionalen Wettkampf markieren"
+      },
+      "showInfo": {
+        "label": "Info anzeigen",
+        "description": "Zusätzliche Informationen anzeigen"
+      },
+      "useCompulsoryProgram": {
+        "label": "Kürprogramm verwenden",
+        "description": "Kürprogramm für diesen Wettkampf aktivieren"
+      },
+      "sortAscending": {
+        "label": "Aufsteigend sortieren",
+        "description": "Ergebnisse in aufsteigender Reihenfolge sortieren"
+      },
+      "manualSort": {
+        "label": "Manuelle Sortierung",
+        "description": "Manuelle Sortierung der Ergebnisse ermöglichen"
+      },
+      "useApparatusPoints": {
+        "label": "Gerätepunkte verwenden",
+        "description": "Gerätespezifische Punktwertung aktivieren"
+      }
+    },
+    "disciplines": {
+      "title": "Disziplinauswahl",
+      "description": "Wählen Sie die Disziplinen für diesen Wettkampf aus",
+      "filterByGroup": "Nach Gruppe filtern",
+      "selectGroup": "Gruppe auswählen...",
+      "bulkMaxScore": "Maximalpunktzahl für alle",
+      "applyToAll": "Auf alle anwenden",
+      "maxScore": "Max. Punkte",
+      "genderCompatibility": {
+        "male": "Männlich",
+        "female": "Weiblich",
+        "both": "Beide"
+      },
+      "filterStatus": {
+        "showing": "Anzeige:",
+        "of": "von",
+        "disciplines": "Disziplinen",
+        "filteredByGender": "gefiltert nach Geschlecht",
+        "filteredByGroup": "gefiltert nach Gruppe"
+      },
+      "validation": {
+        "incompatibleRemoved": "Inkompatible Disziplinen wurden automatisch entfernt",
+        "noneSelected": "Mindestens eine Disziplin muss ausgewählt werden"
+      }
+    },
+    "actions": {
+      "save": "Wettkampf speichern",
+      "cancel": "Abbrechen",
+      "close": "Schließen"
+    },
+    "validation": {
+      "nameRequired": "Wettkampfname ist erforderlich",
+      "ageFromRequired": "Mindestalter ist erforderlich",
+      "ageToRequired": "Höchstalter ist erforderlich",
+      "ageToGreaterThanFrom": "Höchstalter muss größer als Mindestalter sein",
+      "disciplinesRequired": "Mindestens eine Disziplin muss ausgewählt werden",
+      "numberTooLong": "Wettkampfnummer darf maximal 5 Zeichen haben"
+    },
+    "messages": {
+      "creating": "Wettkampf wird erstellt...",
+      "updating": "Wettkampf wird aktualisiert...",
+      "created": "Wettkampf erfolgreich erstellt",
+      "updated": "Wettkampf erfolgreich aktualisiert",
+      "error": "Fehler beim Speichern des Wettkampfs"
+    }
+  },
   "login": {
     "title": "TurnFix Anmeldung",
     "subtitle": "Moderne Turnwettkampf-Verwaltung",

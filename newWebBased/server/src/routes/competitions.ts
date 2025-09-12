@@ -21,7 +21,24 @@ const createCompetitionSchema = z.object({
   })).min(1, 'At least one discipline is required'),
   registrationDeadline: z.string().nullable().optional(),
   organizer: z.string().optional(),
-  eventId: z.number().optional()
+  eventId: z.number().optional(),
+  
+  // Additional competition settings
+  round: z.number().min(1).max(10).optional(),
+  track: z.number().min(1).max(20).optional(),
+  startTime: z.string().optional(), // Full datetime in ISO format
+  warmupTime: z.string().optional(), // Full datetime in ISO format
+  qualifiers: z.number().min(0).max(999).optional(),
+  evaluations: z.number().min(1).max(10).optional(),
+  dropWorstScore: z.boolean().optional(),
+  showAgeGroup: z.boolean().optional(),
+  isOptionalCompetition: z.boolean().optional(),
+  showInfo: z.boolean().optional(),
+  useCompulsoryProgram: z.boolean().optional(),
+  sortAscending: z.boolean().optional(),
+  manualSort: z.boolean().optional(),
+  useApparatusPoints: z.boolean().optional(),
+  dropCount: z.number().min(0).max(5).optional()
 });
 
 const updateCompetitionSchema = createCompetitionSchema.partial();
@@ -114,6 +131,34 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         })),
         registrationDeadline: comp.tfx_veranstaltungen.dat_meldeschluss?.toISOString().split('T')[0] || null,
         organizer: comp.tfx_veranstaltungen.var_veranstalter || 'TBD',
+        
+        // Additional competition settings
+        round: comp.int_durchgang || 1,
+        track: comp.int_bahn || 1,
+        startTime: comp.tim_startzeit ? (() => {
+          const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
+          const timeStr = comp.tim_startzeit.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+          const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+          return new Date(`${eventDateStr}T${timeStr}`).toISOString();
+        })() : null,
+        warmupTime: comp.tim_einturnen ? (() => {
+          const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
+          const timeStr = comp.tim_einturnen.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+          const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+          return new Date(`${eventDateStr}T${timeStr}`).toISOString();
+        })() : null,
+        qualifiers: comp.int_qualifikation || 0,
+        evaluations: comp.int_wertungen || 1,
+        dropWorstScore: comp.bol_streichwertung || false,
+        showAgeGroup: comp.bol_ak_anzeigen || false,
+        isOptionalCompetition: comp.bol_wahlwettkampf || false,
+        showInfo: comp.bol_info_anzeigen || false,
+        useCompulsoryProgram: comp.bol_kp || false,
+        sortAscending: comp.bol_sortasc || false,
+        manualSort: comp.bol_mansort || false,
+        useApparatusPoints: comp.bol_gerpkt || false,
+        dropCount: comp.int_anz_streich || 0,
+        
         status: (() => {
           if (!comp.tfx_veranstaltungen.dat_von) return 'completed';
           const compDate = new Date(comp.tfx_veranstaltungen.dat_von);
@@ -423,9 +468,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         bol_sortasc,
         bol_mansort,
         bol_gerpkt,
-        int_anz_streich
+        int_anz_streich,
+        tim_startzeit,
+        tim_einturnen
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, 0, 0, 1, false, false, false, 1, 1, false, false, false, false, false, 0
+        $1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
       ) RETURNING int_wettkaempfeid
     `, 
       validatedData.eventId,
@@ -433,7 +480,28 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       validatedData.number || null,
       validatedData.name,
       birthYearFrom,
-      birthYearTo
+      birthYearTo,
+      validatedData.qualifiers || 0,
+      validatedData.evaluations || 1,
+      validatedData.dropWorstScore || false,
+      validatedData.showAgeGroup || false,
+      validatedData.isOptionalCompetition || false,
+      validatedData.round || 1,
+      validatedData.track || 1,
+      validatedData.showInfo || false,
+      validatedData.useCompulsoryProgram || false,
+      validatedData.sortAscending || false,
+      validatedData.manualSort || false,
+      validatedData.useApparatusPoints || false,
+      validatedData.dropCount || 0,
+      validatedData.startTime ? (() => {
+        const datetime = new Date(validatedData.startTime);
+        return datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+      })() : null,
+      validatedData.warmupTime ? (() => {
+        const datetime = new Date(validatedData.warmupTime);
+        return datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+      })() : null
     ) as any[];
     
     const competitionId = insertedCompetition[0].int_wettkaempfeid;
@@ -470,6 +538,24 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       })),
       registrationDeadline: validatedData.registrationDeadline,
       organizer: validatedData.organizer || 'TBD',
+      
+      // Additional competition settings
+      round: validatedData.round || 1,
+      track: validatedData.track || 1,
+      startTime: validatedData.startTime || null,
+      warmupTime: validatedData.warmupTime || null,
+      qualifiers: validatedData.qualifiers || 0,
+      evaluations: validatedData.evaluations || 1,
+      dropWorstScore: validatedData.dropWorstScore || false,
+      showAgeGroup: validatedData.showAgeGroup || false,
+      isOptionalCompetition: validatedData.isOptionalCompetition || false,
+      showInfo: validatedData.showInfo || false,
+      useCompulsoryProgram: validatedData.useCompulsoryProgram || false,
+      sortAscending: validatedData.sortAscending || false,
+      manualSort: validatedData.manualSort || false,
+      useApparatusPoints: validatedData.useApparatusPoints || false,
+      dropCount: validatedData.dropCount || 0,
+      
       status: 'active',
       participantCount: 0,
       createdAt: new Date().toISOString()
@@ -585,6 +671,67 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       updateData.var_name = validatedData.name;
     }
     
+    // Add all the new competition settings fields
+    if (validatedData.round !== undefined) {
+      updateData.int_durchgang = validatedData.round;
+    }
+    if (validatedData.track !== undefined) {
+      updateData.int_bahn = validatedData.track;
+    }
+    if (validatedData.startTime !== undefined) {
+      if (validatedData.startTime) {
+        // Parse full ISO datetime string and extract just the time portion for database
+        const datetime = new Date(validatedData.startTime);
+        const timeString = datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+        updateData.tim_startzeit = new Date(`1970-01-01T${timeString}Z`);
+      } else {
+        updateData.tim_startzeit = null;
+      }
+    }
+    if (validatedData.warmupTime !== undefined) {
+      if (validatedData.warmupTime) {
+        // Parse full ISO datetime string and extract just the time portion for database
+        const datetime = new Date(validatedData.warmupTime);
+        const timeString = datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+        updateData.tim_einturnen = new Date(`1970-01-01T${timeString}Z`);
+      } else {
+        updateData.tim_einturnen = null;
+      }
+    }
+    if (validatedData.qualifiers !== undefined) {
+      updateData.int_qualifikation = validatedData.qualifiers;
+    }
+    if (validatedData.evaluations !== undefined) {
+      updateData.int_wertungen = validatedData.evaluations;
+    }
+    if (validatedData.dropWorstScore !== undefined) {
+      updateData.bol_streichwertung = validatedData.dropWorstScore;
+    }
+    if (validatedData.showAgeGroup !== undefined) {
+      updateData.bol_ak_anzeigen = validatedData.showAgeGroup;
+    }
+    if (validatedData.isOptionalCompetition !== undefined) {
+      updateData.bol_wahlwettkampf = validatedData.isOptionalCompetition;
+    }
+    if (validatedData.showInfo !== undefined) {
+      updateData.bol_info_anzeigen = validatedData.showInfo;
+    }
+    if (validatedData.useCompulsoryProgram !== undefined) {
+      updateData.bol_kp = validatedData.useCompulsoryProgram;
+    }
+    if (validatedData.sortAscending !== undefined) {
+      updateData.bol_sortasc = validatedData.sortAscending;
+    }
+    if (validatedData.manualSort !== undefined) {
+      updateData.bol_mansort = validatedData.manualSort;
+    }
+    if (validatedData.useApparatusPoints !== undefined) {
+      updateData.bol_gerpkt = validatedData.useApparatusPoints;
+    }
+    if (validatedData.dropCount !== undefined) {
+      updateData.int_anz_streich = validatedData.dropCount;
+    }
+    
     // Convert ages to birth years for database storage using event date
     const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
     const eventYear = eventDate.getFullYear();
@@ -665,6 +812,36 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       disciplines: validatedData.disciplines || [],
       registrationDeadline: validatedData.registrationDeadline || null,
       organizer: validatedData.organizer || "Updated organizer",
+      
+      // Additional competition settings
+      round: validatedData.round !== undefined ? validatedData.round : updatedCompetition.int_durchgang || 1,
+      track: validatedData.track !== undefined ? validatedData.track : updatedCompetition.int_bahn || 1,
+      startTime: validatedData.startTime !== undefined ? validatedData.startTime : 
+                 (updatedCompetition.tim_startzeit ? (() => {
+                   const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
+                   const timeStr = updatedCompetition.tim_startzeit.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+                   const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+                   return new Date(`${eventDateStr}T${timeStr}`).toISOString();
+                 })() : null),
+      warmupTime: validatedData.warmupTime !== undefined ? validatedData.warmupTime : 
+                  (updatedCompetition.tim_einturnen ? (() => {
+                    const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
+                    const timeStr = updatedCompetition.tim_einturnen.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+                    const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+                    return new Date(`${eventDateStr}T${timeStr}`).toISOString();
+                  })() : null),
+      qualifiers: validatedData.qualifiers !== undefined ? validatedData.qualifiers : updatedCompetition.int_qualifikation || 0,
+      evaluations: validatedData.evaluations !== undefined ? validatedData.evaluations : updatedCompetition.int_wertungen || 1,
+      dropWorstScore: validatedData.dropWorstScore !== undefined ? validatedData.dropWorstScore : updatedCompetition.bol_streichwertung || false,
+      showAgeGroup: validatedData.showAgeGroup !== undefined ? validatedData.showAgeGroup : updatedCompetition.bol_ak_anzeigen || false,
+      isOptionalCompetition: validatedData.isOptionalCompetition !== undefined ? validatedData.isOptionalCompetition : updatedCompetition.bol_wahlwettkampf || false,
+      showInfo: validatedData.showInfo !== undefined ? validatedData.showInfo : updatedCompetition.bol_info_anzeigen || false,
+      useCompulsoryProgram: validatedData.useCompulsoryProgram !== undefined ? validatedData.useCompulsoryProgram : updatedCompetition.bol_kp || false,
+      sortAscending: validatedData.sortAscending !== undefined ? validatedData.sortAscending : updatedCompetition.bol_sortasc || false,
+      manualSort: validatedData.manualSort !== undefined ? validatedData.manualSort : updatedCompetition.bol_mansort || false,
+      useApparatusPoints: validatedData.useApparatusPoints !== undefined ? validatedData.useApparatusPoints : updatedCompetition.bol_gerpkt || false,
+      dropCount: validatedData.dropCount !== undefined ? validatedData.dropCount : updatedCompetition.int_anz_streich || 0,
+      
       status: "upcoming",
       participantCount: participantCount, // Use actual participant count
       updatedAt: new Date().toISOString()

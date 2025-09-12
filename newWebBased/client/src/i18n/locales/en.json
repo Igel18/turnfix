@@ -751,6 +751,170 @@
     "databaseConfig": "Database Config",
     "authNote": "User authentication temporarily disabled - Full access available"
   },
+  "competitionForm": {
+    "title": {
+      "create": "Create New Competition",
+      "edit": "Edit Competition"
+    },
+    "basicInfo": {
+      "title": "Basic Information",
+      "description": "Define the basic parameters for the competition"
+    },
+    "fields": {
+      "number": {
+        "label": "Competition Number",
+        "placeholder": "e.g. WK01",
+        "description": "Unique number for the competition (max. 5 characters)"
+      },
+      "name": {
+        "label": "Competition Name",
+        "placeholder": "e.g. Apparatus Competition Female",
+        "description": "Full name of the competition"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Additional description...",
+        "description": "Optional detailed description of the competition"
+      },
+      "gender": {
+        "label": "Gender",
+        "description": "Gender category for the competition",
+        "options": {
+          "male": "Male",
+          "female": "Female", 
+          "mixed": "Mixed"
+        }
+      },
+      "ageFrom": {
+        "label": "Age From",
+        "description": "Minimum age for participation"
+      },
+      "ageTo": {
+        "label": "Age To",
+        "description": "Maximum age for participation"
+      }
+    },
+    "competitionSettings": {
+      "title": "Competition Settings",
+      "description": "Configure specific competition parameters and behaviors"
+    },
+    "scheduling": {
+      "title": "Scheduling",
+      "round": {
+        "label": "Round",
+        "description": "Competition round or session number"
+      },
+      "track": {
+        "label": "Track",
+        "description": "Track or lane number for the competition"
+      },
+      "startTime": {
+        "label": "Start Time",
+        "placeholder": "YYYY-MM-DD HH:MM",
+        "description": "Scheduled start date and time of the competition"
+      },
+      "warmupTime": {
+        "label": "Warm-up Time",
+        "placeholder": "YYYY-MM-DD HH:MM", 
+        "description": "Date and time for warm-up before the competition"
+      }
+    },
+    "qualification": {
+      "title": "Qualification & Scoring",
+      "qualifiers": {
+        "label": "Qualifiers",
+        "description": "Number of participants who qualify"
+      },
+      "evaluations": {
+        "label": "Evaluations",
+        "description": "Number of evaluations per participant"
+      },
+      "dropCount": {
+        "label": "Drop Count",
+        "description": "Number of worst scores to drop"
+      }
+    },
+    "behavior": {
+      "title": "Behavior & Display",
+      "dropWorstScore": {
+        "label": "Drop Worst Score",
+        "description": "Automatically drop the worst score"
+      },
+      "showAgeGroup": {
+        "label": "Show Age Group",
+        "description": "Display age group in results"
+      },
+      "isOptionalCompetition": {
+        "label": "Optional Competition",
+        "description": "Mark as optional competition"
+      },
+      "showInfo": {
+        "label": "Show Info",
+        "description": "Display additional information"
+      },
+      "useCompulsoryProgram": {
+        "label": "Use Compulsory Program",
+        "description": "Enable compulsory program for this competition"
+      },
+      "sortAscending": {
+        "label": "Sort Ascending",
+        "description": "Sort results in ascending order"
+      },
+      "manualSort": {
+        "label": "Manual Sort",
+        "description": "Allow manual sorting of results"
+      },
+      "useApparatusPoints": {
+        "label": "Use Apparatus Points",
+        "description": "Enable apparatus-specific point scoring"
+      }
+    },
+    "disciplines": {
+      "title": "Discipline Selection",
+      "description": "Select the disciplines for this competition",
+      "filterByGroup": "Filter by Group",
+      "selectGroup": "Select group...",
+      "bulkMaxScore": "Max Score for All",
+      "applyToAll": "Apply to All",
+      "maxScore": "Max Score",
+      "genderCompatibility": {
+        "male": "Male",
+        "female": "Female",
+        "both": "Both"
+      },
+      "filterStatus": {
+        "showing": "Showing:",
+        "of": "of",
+        "disciplines": "disciplines",
+        "filteredByGender": "filtered by gender",
+        "filteredByGroup": "filtered by group"
+      },
+      "validation": {
+        "incompatibleRemoved": "Incompatible disciplines were automatically removed",
+        "noneSelected": "At least one discipline must be selected"
+      }
+    },
+    "actions": {
+      "save": "Save Competition",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "validation": {
+      "nameRequired": "Competition name is required",
+      "ageFromRequired": "Minimum age is required",
+      "ageToRequired": "Maximum age is required",
+      "ageToGreaterThanFrom": "Maximum age must be greater than minimum age",
+      "disciplinesRequired": "At least one discipline must be selected",
+      "numberTooLong": "Competition number cannot exceed 5 characters"
+    },
+    "messages": {
+      "creating": "Creating competition...",
+      "updating": "Updating competition...",
+      "created": "Competition created successfully",
+      "updated": "Competition updated successfully",
+      "error": "Error saving competition"
+    }
+  },
   "login": {
     "title": "TurnFix Login",
     "subtitle": "Modern Gymnastics Competition Management",

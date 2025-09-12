@@ -1,6 +1,9 @@
+// Fixed JSX syntax errors and implemented full localization
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
-import { debugInfo, debugLog } from '../utils/debug';
+import { useTranslation } from 'react-i18next';
+import { useEvent } from '../contexts/EventContext';
+import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 
 // Interface for discipline data from API
@@ -23,6 +26,23 @@ interface CompetitionFormData {
   ageFrom: number;
   ageTo: number;
   disciplines: { disciplineId: number; maxScore: number }[];
+  
+  // Additional competition settings
+  round: number;                    // int_durchgang - Competition round/session
+  track: number;                    // int_bahn - Track/lane number
+  startTime?: string;               // tim_startzeit - Start datetime (ISO format)
+  warmupTime?: string;              // tim_einturnen - Warm-up datetime (ISO format)
+  qualifiers: number;               // int_qualifikation - Number of qualifiers
+  evaluations?: number;             // int_wertungen - Number of evaluations
+  dropWorstScore: boolean;          // bol_streichwertung - Drop worst score
+  showAgeGroup: boolean;            // bol_ak_anzeigen - Show age group
+  isOptionalCompetition: boolean;   // bol_wahlwettkampf - Optional competition
+  showInfo: boolean;                // bol_info_anzeigen - Show info
+  useCompulsoryProgram: boolean;    // bol_kp - Use compulsory program
+  sortAscending: boolean;           // bol_sortasc - Sort ascending
+  manualSort: boolean;              // bol_mansort - Manual sort
+  useApparatusPoints: boolean;      // bol_gerpkt - Use apparatus points
+  dropCount: number;                // int_anz_streich - Number of scores to drop
 }
 
 // Interface for competition (for editing)
@@ -34,16 +54,24 @@ interface Competition {
   gender: 'männlich' | 'weiblich' | 'gemischt';
   ageFrom: number;
   ageTo: number;
-  disciplines: {
-    disciplineId: number;
-    name: string;
-    short_name: string;
-    apparatus: string;
-    maxScore: number;
-  }[];
-  status: string;
-  participantCount: number;
-  createdAt: string;
+  disciplines: { disciplineId: number; name: string; maxScore: number }[];
+  
+  // Additional competition settings
+  round: number;
+  track: number;
+  startTime?: string;
+  warmupTime?: string;
+  qualifiers: number;
+  evaluations?: number;
+  dropWorstScore: boolean;
+  showAgeGroup: boolean;
+  isOptionalCompetition: boolean;
+  showInfo: boolean;
+  useCompulsoryProgram: boolean;
+  sortAscending: boolean;
+  manualSort: boolean;
+  useApparatusPoints: boolean;
+  dropCount: number;
 }
 
 interface CompetitionFormModalProps {
@@ -71,178 +99,143 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   setBulkMaxScore,
   handleBulkMaxScore
 }) => {
-  // State for modal-specific data
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
-  const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
-  const [ageGroups, setAgeGroups] = useState<{ value: number; label: string }[]>([]);
-  const [disciplineGroups, setDisciplineGroups] = useState<any[]>([]);
-  const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
-  const [loadingDisciplineGroups, setLoadingDisciplineGroups] = useState(false);
+  // Translation hook
+  const { t } = useTranslation();
   
-  // Track previous gender to avoid infinite loops when removing incompatible disciplines
-  const previousGenderRef = useRef<string>('');
-
-  // Helper function for gender text
-  const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean): string => {
-    if (maleAllowed && femaleAllowed) return 'Mixed';
-    if (maleAllowed) return 'Male';
-    if (femaleAllowed) return 'Female';
-    return 'Unknown';
+  // Event context for getting event date
+  const { selectedEvent } = useEvent();
+  
+  // Helper function to get the event date formatted for datetime-local input
+  const getEventDate = () => {
+    if (selectedEvent?.dat_eventstartdate) {
+      return selectedEvent.dat_eventstartdate;
+    }
+    // Fallback to today if no event selected
+    return new Date().toISOString().split('T')[0];
   };
 
-  // Load data when modal opens
+  // Helper function to format datetime for input (YYYY-MM-DDTHH:MM)
+  const formatDateTimeForInput = (dateStr: string, timeStr: string) => {
+    return `${dateStr}T${timeStr}`;
+  };
+
+  // Helper function to convert datetime-local input to full ISO string
+  const formatDateTimeForServer = (dateTimeStr: string) => {
+    if (!dateTimeStr) return undefined;
+    return new Date(dateTimeStr).toISOString();
+  };
+  
+  // State for modal-specific data
+  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [disciplineGroups, setDisciplineGroups] = useState<{ id: number; name: string }[]>([]);
+  const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
+  const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
+  const [showIncompatibleMessage, setShowIncompatibleMessage] = useState(false);
+  
+  // Track previous gender to detect changes
+  const previousGenderRef = useRef<string>(formData.gender);
+
+  // Age groups for dropdowns
+  const ageGroups = Array.from({ length: 50 }, (_, i) => ({
+    value: i + 1,
+    label: `${i + 1} years`
+  }));
+
+  // Load disciplines and discipline groups
   useEffect(() => {
+    const fetchDisciplines = async () => {
+      try {
+        const response = await fetch('/api/disciplines');
+        const data = await response.json();
+        setDisciplines(data);
+      } catch (error) {
+        console.error('Error fetching disciplines:', error);
+      }
+    };
+
+    const fetchDisciplineGroups = async () => {
+      try {
+        const response = await fetch('/api/discipline-groups');
+        const data = await response.json();
+        // Ensure data is an array before setting state
+        setDisciplineGroups(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error fetching discipline groups:', error);
+        setDisciplineGroups([]); // Set empty array on error
+      }
+    };
+
     if (isOpen) {
-      loadDisciplines();
-      loadAgeGroups();
-      loadDisciplineGroups();
+      fetchDisciplines();
+      fetchDisciplineGroups();
     }
   }, [isOpen]);
 
-  // Ensure ageTo has a valid value when ageGroups are loaded
+  // Filter disciplines by gender compatibility and selected group
   useEffect(() => {
-    if (ageGroups.length > 0 && (!formData.ageTo || formData.ageTo < formData.ageFrom)) {
-      const minAge = formData.ageFrom || 5;
-      const validAges = ageGroups.filter(age => age.value >= minAge);
-      if (validAges.length > 0 && !formData.ageTo) {
-        // Set ageTo to ageFrom + 10 or the closest available age
-        const targetAge = Math.min(minAge + 10, 70);
-        const closestAge = validAges.find(age => age.value >= targetAge) || validAges[0];
-        debugLog('Auto-setting ageTo to:', closestAge.value);
-        setFormData(prev => ({ ...prev, ageTo: closestAge.value }));
-      }
-    }
-  }, [ageGroups, formData.ageFrom, formData.ageTo]);
-
-  // Filter disciplines based on gender selection and remove incompatible selected disciplines
-  useEffect(() => {
-    if (!formData.gender || disciplines.length === 0) {
-      setFilteredDisciplines([]);
-      return;
-    }
-
-    const filtered = disciplines.filter((discipline) => {
-      if (formData.gender === 'gemischt') {
-        return true; // Show all disciplines for mixed gender
-      } else if (formData.gender === 'männlich') {
-        return discipline.male_allowed;
-      } else if (formData.gender === 'weiblich') {
-        return discipline.female_allowed;
-      }
-      return false;
+    let filtered = disciplines.filter(discipline => {
+      const genderMatch = formData.gender === 'gemischt' || 
+        (formData.gender === 'männlich' && discipline.male_allowed) ||
+        (formData.gender === 'weiblich' && discipline.female_allowed);
+      
+      const groupMatch = selectedDisciplineGroup === null || discipline.id === selectedDisciplineGroup;
+      
+      return genderMatch && groupMatch;
     });
 
-    debugLog('Filtered disciplines for gender', formData.gender, ':', filtered.length);
     setFilteredDisciplines(filtered);
+  }, [disciplines, formData.gender, selectedDisciplineGroup]);
 
-    // Only remove incompatible disciplines if gender has actually changed
-    if (previousGenderRef.current !== formData.gender && previousGenderRef.current !== '') {
-      // Remove incompatible selected disciplines when gender changes
-      const compatibleSelectedDisciplines = formData.disciplines.filter(selectedDiscipline => {
-        const discipline = disciplines.find(d => d.id === selectedDiscipline.disciplineId);
-        if (!discipline) return false;
-
-        if (formData.gender === 'gemischt') {
-          return true; // All disciplines are compatible with mixed gender
-        } else if (formData.gender === 'männlich') {
-          return discipline.male_allowed;
-        } else if (formData.gender === 'weiblich') {
-          return discipline.female_allowed;
-        }
-        return false;
-      });
-
-      // Only update if there are incompatible disciplines to remove
-      if (compatibleSelectedDisciplines.length !== formData.disciplines.length) {
-        debugLog('Gender changed - removing incompatible disciplines. Before:', formData.disciplines.length, 'After:', compatibleSelectedDisciplines.length);
-        setFormData(prev => ({
-          ...prev,
-          disciplines: compatibleSelectedDisciplines
-        }));
+  // Remove incompatible disciplines when gender changes
+  useEffect(() => {
+    if (previousGenderRef.current !== formData.gender) {
+      const currentDisciplineIds = formData.disciplines.map(d => d.disciplineId);
+      const compatibleDisciplineIds = filteredDisciplines.map(d => d.id);
+      
+      const incompatibleDisciplines = currentDisciplineIds.filter(id => !compatibleDisciplineIds.includes(id));
+      
+      if (incompatibleDisciplines.length > 0) {
+        const updatedDisciplines = formData.disciplines.filter(d => compatibleDisciplineIds.includes(d.disciplineId));
+        setFormData(prev => ({ ...prev, disciplines: updatedDisciplines }));
+        setShowIncompatibleMessage(true);
+        
+        setTimeout(() => setShowIncompatibleMessage(false), 5000);
       }
+      
+      previousGenderRef.current = formData.gender;
     }
-
-    // Update the previous gender reference
-    previousGenderRef.current = formData.gender;
-  }, [formData.gender, disciplines, formData.disciplines, setFormData]);
-
-  const loadDisciplines = async () => {
-    try {
-      const response = await fetch('/api/disciplines');
-      if (response.ok) {
-        const data = await response.json();
-        debugLog('Loaded disciplines:', data.length);
-        setDisciplines(data);
-      }
-    } catch (error) {
-      console.error('Error loading disciplines:', error);
-    }
-  };
-
-  const loadAgeGroups = () => {
-    const ages = [];
-    for (let i = 5; i <= 70; i++) {
-      ages.push({ value: i, label: `${i} years` });
-    }
-    debugLog('Generated age groups:', ages.length, 'ages from 5 to 70');
-    setAgeGroups(ages);
-  };
-
-  const loadDisciplineGroups = async () => {
-    setLoadingDisciplineGroups(true);
-    try {
-      const response = await fetch('/api/discipline-groups');
-      if (response.ok) {
-        const data = await response.json();
-        // Handle both array and paginated response formats
-        const groups = Array.isArray(data) ? data : data.disciplineGroups || [];
-        setDisciplineGroups(groups);
-      }
-    } catch (error) {
-      console.error('Error loading discipline groups:', error);
-    } finally {
-      setLoadingDisciplineGroups(false);
-    }
-  };
+  }, [formData.gender, filteredDisciplines, formData.disciplines, setFormData]);
 
   const handleDisciplineGroupChange = (groupId: number | null) => {
-    console.log('🔧 DEBUG: handleDisciplineGroupChange called with groupId:', groupId);
     setSelectedDisciplineGroup(groupId);
-    if (groupId) {
-      // Replace all disciplines with the ones from this group
-      const group = disciplineGroups.find(g => g.int_disziplinen_gruppenid === groupId);
-      console.log('🔧 DEBUG: Found group:', group);
-      if (group && group.disciplines) {
-        console.log('🔧 DEBUG: Group disciplines:', group.disciplines);
-        
-        // Determine the max score to use (from bulk input or default to 0)
-        const defaultMaxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
-        console.log('🔧 DEBUG: Using default max score:', defaultMaxScore);
-        
-        // Replace the entire disciplines array with only the disciplines from this group
-        const newDisciplines = group.disciplines.map((discipline: any) => ({
-          disciplineId: discipline.int_disziplinenid,
-          maxScore: defaultMaxScore
-        }));
-        
-        console.log('🔧 DEBUG: New disciplines array (replacing all):', newDisciplines);
-        setFormData(prev => ({
-          ...prev,
-          disciplines: newDisciplines
-        }));
-        console.log('🔧 DEBUG: Form data updated - replaced all disciplines');
-      } else {
-        console.log('🔧 DEBUG: No group found or no disciplines in group');
-      }
-    } else {
-      // If no group selected, clear all disciplines
-      console.log('🔧 DEBUG: No group selected, clearing all disciplines');
-      setFormData(prev => ({
-        ...prev,
-        disciplines: []
-      }));
-    }
   };
+
+  const handleDisciplineToggle = (disciplineId: number) => {
+    setFormData(prev => {
+      const isSelected = prev.disciplines.some(d => d.disciplineId === disciplineId);
+      
+      if (isSelected) {
+        return {
+          ...prev,
+          disciplines: prev.disciplines.filter(d => d.disciplineId !== disciplineId)
+        };
+      } else {
+        const defaultMaxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
+        return {
+          ...prev,
+          disciplines: [...prev.disciplines, { disciplineId, maxScore: defaultMaxScore }]
+        };
+      }
+    });
+  };
+
+  const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean) => {
+    if (maleAllowed && femaleAllowed) return t('competitionForm.disciplines.genderCompatibility.both');
+    if (maleAllowed) return t('competitionForm.disciplines.genderCompatibility.male');
+    if (femaleAllowed) return t('competitionForm.disciplines.genderCompatibility.female');
+    return '';
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -251,7 +244,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              {editingCompetition ? 'Edit Competition' : 'Create New Competition'}
+              {editingCompetition ? t('competitionForm.title.edit') : t('competitionForm.title.create')}
             </h2>
             <button
               onClick={onClose}
@@ -269,7 +262,6 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                 • Form Number: "<span className="font-mono text-blue-700">{formData.number || 'EMPTY'}</span>"<br/>
                 • Form Name: "<span className="font-mono text-blue-700">{formData.name || 'EMPTY'}</span>"<br/>
                 • Age From: <span className="font-mono text-blue-700">{formData.ageFrom}</span> | Age To: <span className="font-mono text-blue-700">{formData.ageTo}</span><br/>
-                • Age Groups: {ageGroups.length} total, {ageGroups.filter(age => age.value >= (formData.ageFrom || 5)).length} available for "Age To"<br/>
                 • Mode: {editingCompetition ? 
                   <span className="text-green-600">EDITING (ID: {editingCompetition.id}, Number: "{editingCompetition.number || 'NULL'}")</span> : 
                   <span className="text-orange-600">CREATING NEW</span>
@@ -277,12 +269,17 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               </div>
             )}
 
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+            {/* Basic Information Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">📋 {t('competitionForm.basicInfo.title')}</h3>
+              </div>
+              <BlueInfoBox>{t('competitionForm.basicInfo.description')}</BlueInfoBox>
+              
+              <div className="grid gap-4 md:grid-cols-2 mt-4">
                 <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    🔢 Competition Number
+                    🔢 {t('competitionForm.fields.number.label')}
                   </label>
                   <input
                     type="text"
@@ -293,315 +290,499 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                         setFormData(prev => ({ ...prev, number: value }));
                       }
                     }}
-                    placeholder="e.g. 0113"
+                    placeholder={t('competitionForm.fields.number.placeholder')}
                     maxLength={5}
                     className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   />
-                  <p className="text-xs text-yellow-700 mt-1">Max 5 characters (current: {(formData.number || '').length}/5)</p>
+                  <p className="text-xs text-yellow-700 mt-1">{t('competitionForm.fields.number.description')} ({(formData.number || '').length}/5)</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    📝 Competition Name *
+                    📝 {t('competitionForm.fields.name.label')} *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder={t('competitionForm.fields.name.placeholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.name.description')}</p>
                 </div>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Competition Settings */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gender *
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  📄 {t('competitionForm.fields.description.label')}
                 </label>
-                <select
-                  value={formData.gender}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value as 'männlich' | 'weiblich' | 'gemischt' }))}
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder={t('competitionForm.fields.description.placeholder')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="männlich">Male</option>
-                  <option value="weiblich">Female</option>
-                  <option value="gemischt">Mixed</option>
-                </select>
+                  rows={2}
+                />
+                <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.description.description')}</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Age From *
-                </label>
-                <select
-                  value={formData.ageFrom}
-                  onChange={(e) => {
-                    const newAgeFrom = parseInt(e.target.value);
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      ageFrom: newAgeFrom,
-                      // Auto-adjust ageTo if it becomes invalid
-                      ageTo: prev.ageTo < newAgeFrom ? newAgeFrom : prev.ageTo
-                    }));
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  {ageGroups.length === 0 ? (
-                    <option value="">Loading ages...</option>
-                  ) : (
-                    ageGroups.map(age => (
+            </div>
+
+            {/* Gender and Age Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('competitionForm.fields.gender.label')} & Alter</h3>
+              
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    👥 {t('competitionForm.fields.gender.label')} *
+                  </label>
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value as 'männlich' | 'weiblich' | 'gemischt' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="männlich">{t('competitionForm.fields.gender.options.male')}</option>
+                    <option value="weiblich">{t('competitionForm.fields.gender.options.female')}</option>
+                    <option value="gemischt">{t('competitionForm.fields.gender.options.mixed')}</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.gender.description')}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    📅 {t('competitionForm.fields.ageFrom.label')} *
+                  </label>
+                  <select
+                    value={formData.ageFrom}
+                    onChange={(e) => {
+                      const newAgeFrom = parseInt(e.target.value);
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        ageFrom: newAgeFrom,
+                        // Auto-adjust ageTo if it becomes invalid
+                        ageTo: prev.ageTo < newAgeFrom ? newAgeFrom : prev.ageTo
+                      }));
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    {ageGroups.map(age => (
                       <option key={age.value} value={age.value}>{age.label}</option>
-                    ))
-                  )}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Age To (minimum: {formData.ageFrom} years) *
-                </label>
-                <select
-                  value={formData.ageTo || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ageTo: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  {ageGroups.length === 0 ? (
-                    <option value="">Loading ages...</option>
-                  ) : (
-                    <>
-                      {!formData.ageTo && <option value="">Select age...</option>}
-                      {ageGroups.filter(age => age.value >= (formData.ageFrom || 5)).map(age => (
-                        <option key={age.value} value={age.value}>{age.label}</option>
-                      ))}
-                    </>
-                  )}
-                </select>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.ageFrom.description')}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    📅 {t('competitionForm.fields.ageTo.label')} (min: {formData.ageFrom} Jahre) *
+                  </label>
+                  <select
+                    value={formData.ageTo || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, ageTo: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    {!formData.ageTo && <option value="">Select age...</option>}
+                    {ageGroups.filter(age => age.value >= (formData.ageFrom || 5)).map(age => (
+                      <option key={age.value} value={age.value}>{age.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.ageTo.description')}</p>
+                </div>
               </div>
             </div>
 
             {/* Age Calculation Info */}
-            <BlueInfoBox title="Age Calculation" className="text-sm">
+            <BlueInfoBox title="Altersberechnung" className="text-sm">
               <p className="text-blue-800">
-                📅 <strong>Important:</strong> Ages are calculated based on the event date, not today's date.
+                📅 <strong>Wichtig:</strong> Das Alter wird basierend auf dem Veranstaltungsdatum berechnet, nicht auf dem heutigen Datum.
                 <br />
-                🎂 A participant born in 2005 will be considered 17 years old for a 2022 event, regardless of their current age.
+                🎂 Ein Teilnehmer, der 2005 geboren wurde, wird für eine Veranstaltung 2022 als 17 Jahre alt betrachtet, unabhängig vom aktuellen Alter.
                 <br />
-                🏆 This ensures fair competition groupings based on the participant's age during the actual event.
+                🏆 Dies gewährleistet faire Wettkampfgruppen basierend auf dem Alter des Teilnehmers während der tatsächlichen Veranstaltung.
               </p>
             </BlueInfoBox>
 
-            {/* Disciplines */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Disciplines * ({filteredDisciplines.length} available for {formData.gender}, {formData.disciplines.length} selected)
-              </label>
+            {/* Competition Settings Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                ⚙️ {t('competitionForm.competitionSettings.title')}
+              </h3>
+              <BlueInfoBox>{t('competitionForm.competitionSettings.description')}</BlueInfoBox>
               
-              {/* Discipline Groups Quick Selection */}
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Scheduling Subsection */}
+              <div className="mt-4">
+                <h4 className="text-md font-medium text-gray-800 mb-3">📅 {t('competitionForm.scheduling.title')}</h4>
+                <div className="grid gap-4 md:grid-cols-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quick Select from Discipline Group
+                      🔄 {t('competitionForm.scheduling.round.label')} *
                     </label>
-                    <select
-                      value={selectedDisciplineGroup || ''}
-                      onChange={(e) => handleDisciplineGroupChange(e.target.value ? parseInt(e.target.value) : null)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      disabled={loadingDisciplineGroups}
-                    >
-                      <option value="">Select a discipline group...</option>
-                      {Array.isArray(disciplineGroups) && disciplineGroups.map(group => (
-                        <option key={group.int_disziplinen_gruppenid} value={group.int_disziplinen_gruppenid}>
-                          {group.var_name} ({group.discipline_count} disciplines)
-                        </option>
-                      ))}
-                    </select>
-                    {loadingDisciplineGroups && (
-                      <p className="text-sm text-gray-500 mt-1">Loading discipline groups...</p>
-                    )}
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={formData.round}
+                      onChange={(e) => setFormData(prev => ({ ...prev, round: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.round.description')}</p>
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Set Max Score for Selected Group (Optional)
+                      🏃 {t('competitionForm.scheduling.track.label')} *
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        value={bulkMaxScore}
-                        onChange={(e) => setBulkMaxScore(e.target.value)}
-                        placeholder="Enter max score (optional)"
-                        min="0"
-                        step="0.1"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleBulkMaxScore}
-                        disabled={!selectedDisciplineGroup}
-                        className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        title={!selectedDisciplineGroup ? "Please select a discipline group first" : "Apply max score to all selected disciplines"}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Leave empty to set max score to 0, or enter a value to apply to all disciplines in the group
-                    </p>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={formData.track}
+                      onChange={(e) => setFormData(prev => ({ ...prev, track: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.track.description')}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      🕐 {t('competitionForm.scheduling.startTime.label')}
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.startTime ? 
+                        formData.startTime.includes('T') ? 
+                          formData.startTime.substring(0, 16) : // Already datetime, just truncate
+                          formatDateTimeForInput(getEventDate(), formData.startTime) : // Just time, combine with date
+                        formatDateTimeForInput(getEventDate(), '08:30') // Default
+                      }
+                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: formatDateTimeForServer(e.target.value) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.startTime.description')}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      🏃‍♂️ {t('competitionForm.scheduling.warmupTime.label')}
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.warmupTime ? 
+                        formData.warmupTime.includes('T') ? 
+                          formData.warmupTime.substring(0, 16) : // Already datetime, just truncate
+                          formatDateTimeForInput(getEventDate(), formData.warmupTime) : // Just time, combine with date
+                        formatDateTimeForInput(getEventDate(), '08:00') // Default
+                      }
+                      onChange={(e) => setFormData(prev => ({ ...prev, warmupTime: formatDateTimeForServer(e.target.value) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.warmupTime.description')}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <span className="text-sm text-gray-600">
-                    Individual Discipline Selection
-                  </span>
-                  {formData.gender && formData.gender !== 'gemischt' && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      Filtered for {formData.gender === 'männlich' ? 'male' : 'female'} athletes only
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={bulkMaxScore}
-                    onChange={(e) => setBulkMaxScore(e.target.value)}
-                    placeholder="Max score"
-                    className="w-24 px-2 py-1 text-sm border border-gray-300 rounded"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleBulkMaxScore}
-                    className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
-                  >
-                    Set All
-                  </button>
+              {/* Qualification & Scoring Subsection */}
+              <div className="mt-6">
+                <h4 className="text-md font-medium text-gray-800 mb-3">🏆 {t('competitionForm.qualification.title')}</h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      🎯 {t('competitionForm.qualification.qualifiers.label')}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="999"
+                      value={formData.qualifiers}
+                      onChange={(e) => setFormData(prev => ({ ...prev, qualifiers: parseInt(e.target.value) || 0 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.qualifiers.description')}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      📊 {t('competitionForm.qualification.evaluations.label')}
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={formData.evaluations || 3}
+                      onChange={(e) => setFormData(prev => ({ ...prev, evaluations: parseInt(e.target.value) || 3 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.evaluations.description')}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      🗑️ {t('competitionForm.qualification.dropCount.label')}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="5"
+                      value={formData.dropCount}
+                      onChange={(e) => setFormData(prev => ({ ...prev, dropCount: parseInt(e.target.value) || 0 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.dropCount.description')}</p>
+                  </div>
                 </div>
               </div>
-              
-              <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-                {filteredDisciplines.length === 0 ? (
-                  <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm">
-                      {!formData.gender 
-                        ? 'Please select a gender category first'
-                        : `No disciplines available for ${formData.gender === 'männlich' ? 'male' : formData.gender === 'weiblich' ? 'female' : 'mixed'} competitions`
-                      }
-                    </p>
-                    {formData.gender && formData.gender !== 'gemischt' && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        Try selecting "gemischt" (mixed) to see all available disciplines
-                      </p>
-                    )}
+
+              {/* Behavior & Display Subsection */}
+              <div className="mt-6">
+                <h4 className="text-md font-medium text-gray-800 mb-3">🎛️ {t('competitionForm.behavior.title')}</h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.dropWorstScore}
+                        onChange={(e) => setFormData(prev => ({ ...prev, dropWorstScore: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.dropWorstScore.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.dropWorstScore.description')}</p>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.showAgeGroup}
+                        onChange={(e) => setFormData(prev => ({ ...prev, showAgeGroup: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.showAgeGroup.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.showAgeGroup.description')}</p>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.isOptionalCompetition}
+                        onChange={(e) => setFormData(prev => ({ ...prev, isOptionalCompetition: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.isOptionalCompetition.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.isOptionalCompetition.description')}</p>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.showInfo}
+                        onChange={(e) => setFormData(prev => ({ ...prev, showInfo: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.showInfo.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.showInfo.description')}</p>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    {filteredDisciplines.map((discipline) => {
-                      const isSelected = formData.disciplines.some(d => d.disciplineId === discipline.id);
-                      const currentDiscipline = formData.disciplines.find(d => d.disciplineId === discipline.id);
-                      
-                      return (
-                        <div key={discipline.id} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    disciplines: [...prev.disciplines, { disciplineId: discipline.id, maxScore: 0 }]
-                                  }));
-                                } else {
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    disciplines: prev.disciplines.filter(d => d.disciplineId !== discipline.id)
-                                  }));
-                                }
-                              }}
-                              className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <span className="text-sm select-none">
-                              {discipline.name} 
-                              <span className="text-gray-500 ml-1">
-                                ({getGenderText(discipline.male_allowed, discipline.female_allowed)})
-                              </span>
-                            </span>
-                          </div>
-                          {isSelected && (
-                            <div className="flex items-center ml-4">
-                              <label className="text-xs text-gray-600 mr-2">Max Score:</label>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                value={currentDiscipline?.maxScore || 0}
-                                onChange={(e) => {
-                                  const maxScore = parseFloat(e.target.value) || 0;
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    disciplines: prev.disciplines.map(d => 
-                                      d.disciplineId === discipline.id 
-                                        ? { ...d, maxScore: Math.max(0, maxScore) }
-                                        : d
-                                    )
-                                  }));
-                                }}
-                                className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="0"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.useCompulsoryProgram}
+                        onChange={(e) => setFormData(prev => ({ ...prev, useCompulsoryProgram: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.useCompulsoryProgram.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.useCompulsoryProgram.description')}</p>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.sortAscending}
+                        onChange={(e) => setFormData(prev => ({ ...prev, sortAscending: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.sortAscending.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.sortAscending.description')}</p>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.manualSort}
+                        onChange={(e) => setFormData(prev => ({ ...prev, manualSort: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.manualSort.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.manualSort.description')}</p>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.useApparatusPoints}
+                        onChange={(e) => setFormData(prev => ({ ...prev, useApparatusPoints: e.target.checked }))}
+                        className="mr-2 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.useApparatusPoints.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.useApparatusPoints.description')}</p>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
-                disabled={loading || formData.disciplines.length === 0}
-                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    {editingCompetition ? 'Updating...' : 'Creating...'}
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5" />
-                    {editingCompetition ? 'Update Competition' : 'Create Competition'}
-                  </>
-                )}
-              </button>
+            {/* Discipline Selection Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">🏅 {t('competitionForm.disciplines.title')}</h3>
+              <BlueInfoBox>{t('competitionForm.disciplines.description')}</BlueInfoBox>
+
+              {/* Filter and bulk operations */}
+              <div className="grid gap-4 md:grid-cols-3 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    🔍 {t('competitionForm.disciplines.filterByGroup')}
+                  </label>
+                  <select
+                    value={selectedDisciplineGroup || ''}
+                    onChange={(e) => handleDisciplineGroupChange(e.target.value ? parseInt(e.target.value) : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{t('competitionForm.disciplines.selectGroup')}</option>
+                    {disciplineGroups && disciplineGroups.length > 0 && disciplineGroups.map(group => (
+                      <option key={group.id} value={group.id}>{group.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    🎯 {t('competitionForm.disciplines.bulkMaxScore')}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={bulkMaxScore}
+                    onChange={(e) => setBulkMaxScore(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="10.0"
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={handleBulkMaxScore}
+                    className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    {t('competitionForm.disciplines.applyToAll')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Incompatible disciplines message */}
+              {showIncompatibleMessage && (
+                <div className="mt-4 p-3 bg-orange-100 border border-orange-300 rounded-lg">
+                  <p className="text-orange-700 text-sm">
+                    ⚠️ {t('competitionForm.disciplines.validation.incompatibleRemoved')}
+                  </p>
+                </div>
+              )}
+
+              {/* Filter status */}
+              <div className="mt-4 text-sm text-gray-600">
+                {t('competitionForm.disciplines.filterStatus.showing')} {filteredDisciplines.length} {t('competitionForm.disciplines.filterStatus.of')} {disciplines.length} {t('competitionForm.disciplines.filterStatus.disciplines')}
+                {formData.gender !== 'gemischt' && ` (${t('competitionForm.disciplines.filterStatus.filteredByGender')})`}
+                {selectedDisciplineGroup && ` (${t('competitionForm.disciplines.filterStatus.filteredByGroup')})`}
+              </div>
+
+              {/* Discipline selection grid */}
+              <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {filteredDisciplines.map(discipline => {
+                  const isSelected = formData.disciplines.some(d => d.disciplineId === discipline.id);
+                  const selectedDiscipline = formData.disciplines.find(d => d.disciplineId === discipline.id);
+                  
+                  return (
+                    <div
+                      key={discipline.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        isSelected 
+                          ? 'bg-blue-50 border-blue-300' 
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleDisciplineToggle(discipline.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {isSelected ? (
+                            <CheckCircle className="w-5 h-5 text-blue-500 mr-2" />
+                          ) : (
+                            <div className="w-5 h-5 border border-gray-300 rounded mr-2"></div>
+                          )}
+                          <div>
+                            <p className="font-medium text-gray-900">{discipline.display_name}</p>
+                            <p className="text-xs text-gray-500">
+                              ({getGenderText(discipline.male_allowed, discipline.female_allowed)})
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {isSelected && (
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={selectedDiscipline?.maxScore || 0}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              const maxScore = parseFloat(e.target.value) || 0;
+                              setFormData(prev => ({
+                                ...prev,
+                                disciplines: prev.disciplines.map(d =>
+                                  d.disciplineId === discipline.id ? { ...d, maxScore } : d
+                                )
+                              }));
+                            }}
+                            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            placeholder="10.0"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {formData.disciplines.length === 0 && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                  <p className="text-red-700 text-sm">
+                    ⚠️ {t('competitionForm.disciplines.validation.noneSelected')}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
-                Cancel
+                {t('competitionForm.actions.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={loading || formData.disciplines.length === 0}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {editingCompetition ? t('competitionForm.messages.updating') : t('competitionForm.messages.creating')}
+                  </>
+                ) : (
+                  t('competitionForm.actions.save')
+                )}
               </button>
             </div>
           </form>

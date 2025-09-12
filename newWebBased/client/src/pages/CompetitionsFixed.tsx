@@ -5,7 +5,6 @@ import {
   Users, 
   Trophy
 } from 'lucide-react';
-import { TrophyIcon } from '@heroicons/react/24/outline';
 import { EventManagementTemplate, UnifiedActionButtons } from '../components/templates/EventManagementTemplate';
 import CompetitionFormModal from '../components/CompetitionFormModal';
 import { useEvent } from '../contexts/EventContext';
@@ -34,6 +33,23 @@ interface Competition {
   status: 'upcoming' | 'active' | 'completed';
   participantCount: number;
   createdAt: string;
+  
+  // Additional competition settings
+  round: number;
+  track: number;
+  startTime?: string;
+  warmupTime?: string;
+  qualifiers: number;
+  evaluations?: number;
+  dropWorstScore: boolean;
+  showAgeGroup: boolean;
+  isOptionalCompetition: boolean;
+  showInfo: boolean;
+  useCompulsoryProgram: boolean;
+  sortAscending: boolean;
+  manualSort: boolean;
+  useApparatusPoints: boolean;
+  dropCount: number;
 }
 
 // Interface for form data
@@ -45,6 +61,23 @@ interface CompetitionFormData {
   ageFrom: number;
   ageTo: number;
   disciplines: { disciplineId: number; maxScore: number }[];
+  
+  // Additional competition settings
+  round: number;                    // int_durchgang - Competition round/session
+  track: number;                    // int_bahn - Track/lane number
+  startTime?: string;               // tim_startzeit - Start time (HH:MM format)
+  warmupTime?: string;              // tim_einturnen - Warm-up time (HH:MM format)
+  qualifiers: number;               // int_qualifikation - Number of qualifiers
+  evaluations?: number;             // int_wertungen - Number of evaluations
+  dropWorstScore: boolean;          // bol_streichwertung - Drop worst score
+  showAgeGroup: boolean;            // bol_ak_anzeigen - Show age group
+  isOptionalCompetition: boolean;   // bol_wahlwettkampf - Optional competition
+  showInfo: boolean;                // bol_info_anzeigen - Show info
+  useCompulsoryProgram: boolean;    // bol_kp - Use compulsory program
+  sortAscending: boolean;           // bol_sortasc - Sort ascending
+  manualSort: boolean;              // bol_mansort - Manual sort
+  useApparatusPoints: boolean;      // bol_gerpkt - Use apparatus points
+  dropCount: number;                // int_anz_streich - Number of scores to drop
 }
 
 const Competitions: React.FC = () => {
@@ -76,7 +109,24 @@ const Competitions: React.FC = () => {
     gender: 'gemischt',
     ageFrom: 6,
     ageTo: 18,
-    disciplines: []
+    disciplines: [],
+    
+    // Additional competition settings with defaults
+    round: 1,
+    track: 1,
+    startTime: '08:30',
+    warmupTime: '08:00',
+    qualifiers: 0,
+    evaluations: 3,
+    dropWorstScore: false,
+    showAgeGroup: false,
+    isOptionalCompetition: false,
+    showInfo: false,
+    useCompulsoryProgram: false,
+    sortAscending: false,
+    manualSort: false,
+    useApparatusPoints: false,
+    dropCount: 0
   });
 
   // Load initial data
@@ -173,7 +223,24 @@ const Competitions: React.FC = () => {
           disciplineId: Number(d.disciplineId),
           maxScore: Number(d.maxScore)
         })),
-        ...(eventId && { eventId: parseInt(eventId) })
+        ...(eventId && { eventId: parseInt(eventId) }),
+        
+        // Additional competition settings
+        round: Number(formData.round),
+        track: Number(formData.track),
+        ...(formData.startTime && { startTime: formData.startTime }),
+        ...(formData.warmupTime && { warmupTime: formData.warmupTime }),
+        qualifiers: Number(formData.qualifiers),
+        ...(formData.evaluations && { evaluations: Number(formData.evaluations) }),
+        dropWorstScore: Boolean(formData.dropWorstScore),
+        showAgeGroup: Boolean(formData.showAgeGroup),
+        isOptionalCompetition: Boolean(formData.isOptionalCompetition),
+        showInfo: Boolean(formData.showInfo),
+        useCompulsoryProgram: Boolean(formData.useCompulsoryProgram),
+        sortAscending: Boolean(formData.sortAscending),
+        manualSort: Boolean(formData.manualSort),
+        useApparatusPoints: Boolean(formData.useApparatusPoints),
+        dropCount: Number(formData.dropCount)
       };
 
       debugLog('Competition submission payload:', payload);
@@ -226,7 +293,24 @@ const Competitions: React.FC = () => {
       gender: 'gemischt',
       ageFrom: 6,
       ageTo: 18,
-      disciplines: []
+      disciplines: [],
+      
+      // Additional competition settings with defaults
+      round: 1,
+      track: 1,
+      startTime: '08:30',
+      warmupTime: '08:00',
+      qualifiers: 0,
+      evaluations: 3,
+      dropWorstScore: false,
+      showAgeGroup: false,
+      isOptionalCompetition: false,
+      showInfo: false,
+      useCompulsoryProgram: false,
+      sortAscending: false,
+      manualSort: false,
+      useApparatusPoints: false,
+      dropCount: 0
     });
     setEditingCompetition(null);
   };
@@ -264,7 +348,24 @@ const Competitions: React.FC = () => {
           typeof d === 'object' && (d.disciplineId || d.id) ? 
             { disciplineId: Number(d.disciplineId || d.id), maxScore: Number(d.maxScore || 0) } : 
             { disciplineId: Number(typeof d === 'number' ? d : d.int_disziplinid), maxScore: 0 }
-        ) : []
+        ) : [],
+      
+      // Additional competition settings with defaults from competition or fallback
+      round: competition.round || 1,
+      track: competition.track || 1,
+      startTime: competition.startTime || '08:30',
+      warmupTime: competition.warmupTime || '08:00',
+      qualifiers: competition.qualifiers || 0,
+      evaluations: competition.evaluations || 3,
+      dropWorstScore: competition.dropWorstScore || false,
+      showAgeGroup: competition.showAgeGroup || false,
+      isOptionalCompetition: competition.isOptionalCompetition || false,
+      showInfo: competition.showInfo || false,
+      useCompulsoryProgram: competition.useCompulsoryProgram || false,
+      sortAscending: competition.sortAscending || false,
+      manualSort: competition.manualSort || false,
+      useApparatusPoints: competition.useApparatusPoints || false,
+      dropCount: competition.dropCount || 0
     });
     setIsModalOpen(true);
   };
