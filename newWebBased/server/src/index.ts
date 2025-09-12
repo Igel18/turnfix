@@ -61,6 +61,7 @@ import medalRoutes from './routes/medals';
 import juryResultRoutes from './routes/juryResults';
 import wertungenDetailsRoutes from './routes/wertungenDetails';
 import configurationRoutes from './routes/configuration';
+import timePlanningRoutes from './routes/timePlanning';
 
 const app = express();
 const server = createServer(app);
@@ -174,6 +175,7 @@ app.use('/api/medals', medalRoutes);
 app.use('/api/jury-results', juryResultRoutes);
 app.use('/api/wertungen-details', wertungenDetailsRoutes);
 app.use('/api/configuration', configurationRoutes);
+app.use('/api/time-planning', timePlanningRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {

@@ -103,6 +103,10 @@
           "title": "Riegen verwalten",
           "description": "Riegen erstellen und Teilnehmer organisieren"
         },
+        "timePlanning": {
+          "title": "Zeitplanung",
+          "description": "Wettkampfzeiten und Gerätedurchgänge planen"
+        },
         "meldematrix": {
           "title": "Meldematrix",
           "description": "Meldematrix: Übersicht Vereine vs. Wettkämpfe"
@@ -393,7 +397,9 @@
     "error": "Fehler",
     "success": "Erfolg",
     "warning": "Warnung",
-    "info": "Information"
+    "info": "Information",
+    "expand": "Aufklappen",
+    "collapse": "Zuklappen"
   },
   "events": {
     "title": "Veranstaltungsverwaltung",
@@ -922,5 +928,60 @@
     "directAccess": "Sie können direkt auf die Anwendung zugreifen, ohne sich anzumelden.",
     "goToDashboard": "Zum Dashboard",
     "backToHome": "Zurück zur Startseite"
+  },
+  "timePlanning": {
+    "title": "Zeitplanung",
+    "subtitle": "Verwalten Sie Wettkampfzeiten, Riegen und Gerätedurchgänge",
+    "noEventSelected": "Keine Veranstaltung ausgewählt",
+    "selectEventToManageTime": "Bitte wählen Sie eine Veranstaltung aus, um die Zeitplanung zu verwalten.",
+    "session": "Durchgang",
+    "competitions": "Wettkämpfe",
+    "squads": "Riegen",
+    "devices": "Geräte",
+    "participants": "Teilnehmer",
+    "deviceSchedule": "Geräteplan",
+    "startsAt": "Beginnt um {{time}} Uhr",
+    "calculatedDuration": "Geschätzte Dauer: {{duration}} Minuten",
+    "basedOnSettings": "Basierend auf {{exercise}} Min/Übung, {{rotation}} Min/Rotation",
+    "viewTimeline": "Zeitplan anzeigen",
+    "ganttChart": "Gantt-Diagramm",
+    "timeline": "Zeitstrahl",
+    "timelineComingSoon": "Zeitstrahl-Ansicht wird bald verfügbar sein.",
+    "squadDevice": "Riege / Gerät",
+    "minutes": "Minuten",
+    "settings": "Einstellungen",
+    "generateSchedule": "Plan generieren",
+    "export": "Exportieren",
+    "noData": "Keine Daten verfügbar",
+    "noDataDescription": "Keine Wettkämpfe oder Riegen für diese Veranstaltung gefunden.",
+    "viewMode": {
+      "sessions": "Durchgänge",
+      "timeline": "Zeitstrahl",
+      "gantt": "Gantt"
+    },
+    "timeRange": {
+      "from": "Von",
+      "to": "Bis"
+    },
+    "timeSettings": {
+      "title": "Zeiteinstellungen",
+      "exerciseDuration": "Übungsdauer pro Gerät",
+      "rotationInterval": "Rotationsintervall",
+      "breakBetweenDevices": "Pause zwischen Geräten",
+      "warmupDuration": "Einturnen-Dauer"
+    },
+    "loading": "Laden...",
+    "loadingData": "Daten werden geladen...",
+    "warmupTime": "Einturnen",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "duration": "Dauer",
+    "rotationMatrix": "Rotationsmatrix",
+    "competitionSchedule": "Wettkampfplan",
+    "squadRotations": "Riegen-Rotationen",
+    "apparatus": "Gerät",
+    "apparatusSchedule": "Geräteplan",
+    "rotationNumber": "Rotation Nr.",
+    "number": "Nummer"
   }
 }

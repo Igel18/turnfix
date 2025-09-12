@@ -340,6 +340,13 @@ Geräte mit Icons
 ---
 lokalisierung 
 ---
+looks ok. now we need a new UI for the time planning. The UI must use the templates. The UI must have a menu entry in the event planing region. 
+We have competitions where the time for preparing for the competition and for competition start and is stored. Then we have the squads which are a group of people that are together at each device. 
+The competitions have a field for "durchgang" or "session". all sessions start at the nearly same time. 
+Then we need a input field for the time how long a exercise takes at a device. So you can calculate automaticaly the time the squad needs for each device. It would be nice to have a graphical interface like a gannt...
+Do you have further ideas for the time planning. 
+at the db table tfx_riegen_x_disziplinen there are columns that have effect to the timetable eg int_runde bol_erstes_geraet which difines the first device. perhaps the table tfx_startreihenfolge helps to define the devices and the times for it. 
+---
 
 Hard coded in events.ts
       // For each competition, try to link appropriate disciplines

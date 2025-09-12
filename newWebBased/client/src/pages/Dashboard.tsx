@@ -21,7 +21,8 @@ import {
   TagIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  ArrowTopRightOnSquareIcon
+  ArrowTopRightOnSquareIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -184,6 +185,13 @@ const eventSetupActions = [
     href: '/squads',
     icon: UserGroupIcon,
     color: 'bg-blue-500'
+  },
+  {
+    name: 'Time Planning',
+    description: 'Plan competition times and apparatus rotations',
+    href: '/time-planning',
+    icon: ClockIcon,
+    color: 'bg-purple-500'
   },
   {
     name: 'Meldematrix',

@@ -36,6 +36,7 @@ import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
 import JuryPortal from '@/pages/JuryPortal'
+import TimePlanning from '@/pages/TimePlanning'
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
             <Route path="/competitions" element={<CompetitionsFixed />} />
             <Route path="/competitions-debug" element={<CompetitionsDebug />} />
             <Route path="/squads" element={<SquadManagement />} />
+            <Route path="/time-planning" element={<TimePlanning />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/event-participants" element={<EventParticipants />} />

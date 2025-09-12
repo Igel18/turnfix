@@ -103,6 +103,10 @@
           "title": "Manage Squads",
           "description": "Create squads and organize participants"
         },
+        "timePlanning": {
+          "title": "Time Planning",
+          "description": "Plan competition times and apparatus rotations"
+        },
         "meldematrix": {
           "title": "Meldematrix",
           "description": "Registration matrix: Clubs vs Competitions overview"
@@ -393,7 +397,9 @@
     "error": "Error",
     "success": "Success",
     "warning": "Warning",
-    "info": "Information"
+    "info": "Information",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "events": {
     "title": "Event Management",
@@ -922,5 +928,60 @@
     "directAccess": "You can access the application directly without logging in.",
     "goToDashboard": "Go to Dashboard",
     "backToHome": "Back to Home"
+  },
+  "timePlanning": {
+    "title": "Time Planning",
+    "subtitle": "Manage competition times, squads, and apparatus rotations",
+    "noEventSelected": "No Event Selected",
+    "selectEventToManageTime": "Please select an event to manage time planning.",
+    "session": "Session",
+    "competitions": "Competitions",
+    "squads": "Squads",
+    "devices": "Apparatus",
+    "participants": "Participants",
+    "deviceSchedule": "Apparatus Schedule",
+    "startsAt": "Starts at {{time}}",
+    "calculatedDuration": "Estimated duration: {{duration}} minutes",
+    "basedOnSettings": "Based on {{exercise}} min/exercise, {{rotation}} min/rotation",
+    "viewTimeline": "View Timeline",
+    "ganttChart": "Gantt Chart",
+    "timeline": "Timeline",
+    "timelineComingSoon": "Timeline view will be available soon.",
+    "squadDevice": "Squad / Apparatus",
+    "minutes": "minutes",
+    "settings": "Settings",
+    "generateSchedule": "Generate Schedule",
+    "export": "Export",
+    "noData": "No Data Available",
+    "noDataDescription": "No competitions or squads found for this event.",
+    "viewMode": {
+      "sessions": "Sessions",
+      "timeline": "Timeline",
+      "gantt": "Gantt"
+    },
+    "timeRange": {
+      "from": "From",
+      "to": "To"
+    },
+    "timeSettings": {
+      "title": "Time Settings",
+      "exerciseDuration": "Exercise duration per apparatus",
+      "rotationInterval": "Rotation interval",
+      "breakBetweenDevices": "Break between apparatus",
+      "warmupDuration": "Warm-up duration"
+    },
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "warmupTime": "Warm-up",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "duration": "Duration",
+    "rotationMatrix": "Rotation Matrix",
+    "competitionSchedule": "Competition Schedule",
+    "squadRotations": "Squad Rotations",
+    "apparatus": "Apparatus",
+    "apparatusSchedule": "Apparatus Schedule",
+    "rotationNumber": "Rotation No.",
+    "number": "Number"
   }
 }
