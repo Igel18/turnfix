@@ -3,14 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { debugLog } from '../utils/debug';
 import { 
   Users, 
-  Trophy,
-  Edit,
-  Trash2
+  Trophy
 } from 'lucide-react';
 import { TrophyIcon } from '@heroicons/react/24/outline';
-import UnifiedPageHeader from '@/components/UnifiedPageHeader';
-import CompetitionFormModal from '@/components/CompetitionFormModal';
-import { useEvent } from '@/contexts/EventContext';
+import { EventManagementTemplate, UnifiedActionButtons } from '../components/templates/EventManagementTemplate';
+import CompetitionFormModal from '../components/CompetitionFormModal';
+import { useEvent } from '../contexts/EventContext';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 
 // Interface for competition display
@@ -248,34 +246,6 @@ const Competitions: React.FC = () => {
     return matchesSearch && matchesGender && matchesStatus;
   });
 
-  // Helper functions for UnifiedPageHeader
-  const getFilterOptions = () => [
-    {
-      label: 'Status',
-      value: 'status',
-      options: [
-        { value: '', label: 'All Competitions' },
-        { value: 'upcoming', label: 'Upcoming' },
-        { value: 'active', label: 'Active' },
-        { value: 'completed', label: 'Completed' }
-      ],
-      selectedValue: statusFilter,
-      onChange: setStatusFilter
-    },
-    {
-      label: 'Gender',
-      value: 'gender',
-      options: [
-        { value: '', label: 'All Genders' },
-        { value: 'männlich', label: 'Male' },
-        { value: 'weiblich', label: 'Female' },
-        { value: 'gemischt', label: 'Mixed' }
-      ],
-      selectedValue: genderFilter,
-      onChange: setGenderFilter
-    }
-  ];
-
   const handleClearAllFilters = () => {
     setSearchTerm('');
     setGenderFilter('');
@@ -283,8 +253,32 @@ const Competitions: React.FC = () => {
   };
 
   const handleExportCSV = () => {
-    // TODO: Implement CSV export for competitions
-    console.log('Export CSV clicked');
+    // CSV export functionality for competitions
+    const csvData = filteredCompetitions.map(competition => ({
+      'Competition Number': competition.number || '',
+      'Name': competition.name,
+      'Description': competition.description,
+      'Gender': competition.gender,
+      'Age Range': `${competition.ageFrom}-${competition.ageTo}`,
+      'Status': competition.status,
+      'Participants': competition.participantCount,
+      'Disciplines': competition.disciplines.map(d => d.name).join(', '),
+      'Created': new Date(competition.createdAt).toLocaleDateString()
+    }));
+
+    const csvContent = [
+      Object.keys(csvData[0] || {}).join(','),
+      ...csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `competitions-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const openCreateModal = () => {
@@ -293,31 +287,64 @@ const Competitions: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <UnifiedPageHeader
-        title="Competition Management"
-        subtitle="Manage gymnastics competitions with disciplines and categories"
-        icon={TrophyIcon}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search competitions..."
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={handleClearAllFilters}
-        showExportCSV={true}
-        onExportCSV={handleExportCSV}
-        showAdd={true}
-        addLabel="New Competition"
-        onAdd={openCreateModal}
-        totalCount={filteredCompetitions.length}
-        showEventContext={true}
-        hasFilters={true}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        showViewToggle={true}
-      />
-
+    <EventManagementTemplate
+      title="Competition Management"
+      description="Manage gymnastics competitions with disciplines and categories"
+      onAdd={openCreateModal}
+      onRefresh={loadCompetitions}
+      onExportCSV={handleExportCSV}
+      addButtonText="Create Competition"
+      loading={loading}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      itemCount={filteredCompetitions.length}
+      filterSection={
+        <div className="grid gap-4 md:grid-cols-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Gender
+            </label>
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">All Genders</option>
+              <option value="männlich">Male</option>
+              <option value="weiblich">Female</option>
+              <option value="gemischt">Mixed</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">All Status</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={handleClearAllFilters}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      }
+    >
       {/* Competitions Content */}
       <div className="p-6">
         {loading ? (
@@ -395,22 +422,12 @@ const Competitions: React.FC = () => {
                             {competition.ageFrom}-{competition.ageTo} years
                           </span>
                         </div>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => handleEdit(competition)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Edit competition"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(competition.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Delete competition"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <UnifiedActionButtons
+                          onEdit={() => handleEdit(competition)}
+                          onDelete={() => handleDelete(competition.id)}
+                          editTitle="Edit competition"
+                          deleteTitle="Delete competition"
+                        />
                       </div>
                     </div>
                   </div>
@@ -517,22 +534,12 @@ const Competitions: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleEdit(competition)}
-                                className="text-blue-600 hover:text-blue-900"
-                                title="Edit competition"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(competition.id)}
-                                className="text-red-600 hover:text-red-900"
-                                title="Delete competition"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                            <UnifiedActionButtons
+                              onEdit={() => handleEdit(competition)}
+                              onDelete={() => handleDelete(competition.id)}
+                              editTitle="Edit competition"
+                              deleteTitle="Delete competition"
+                            />
                           </td>
                         </tr>
                       ))}
@@ -558,7 +565,7 @@ const Competitions: React.FC = () => {
         setBulkMaxScore={setBulkMaxScore}
         handleBulkMaxScore={handleBulkMaxScoreApply}
       />
-    </div>
+    </EventManagementTemplate>
   );
 };
 
