@@ -139,19 +139,52 @@ const Competitions: React.FC = () => {
     
     debugLog('🚀 Competition submission started');
     
+    // Client-side validation for age values
+    if (formData.ageFrom < 5 || formData.ageFrom > 99) {
+      console.error('❌ Invalid ageFrom value:', formData.ageFrom);
+      alert(`Invalid "Age From" value: ${formData.ageFrom}. Please enter an age between 5 and 99.`);
+      setLoading(false);
+      return;
+    }
+    
+    if (formData.ageTo < 5 || formData.ageTo > 99) {
+      console.error('❌ Invalid ageTo value:', formData.ageTo);
+      alert(`Invalid "Age To" value: ${formData.ageTo}. Please enter an age between 5 and 99.`);
+      setLoading(false);
+      return;
+    }
+    
+    if (formData.ageFrom > formData.ageTo) {
+      console.error('❌ Invalid age range:', { ageFrom: formData.ageFrom, ageTo: formData.ageTo });
+      alert(`Invalid age range: "Age From" (${formData.ageFrom}) cannot be greater than "Age To" (${formData.ageTo}).`);
+      setLoading(false);
+      return;
+    }
+    
     try {
       const payload = {
         ...(formData.number && { number: formData.number }),
         name: formData.name,
         description: formData.description,
         gender: formData.gender,
-        ageFrom: formData.ageFrom,
-        ageTo: formData.ageTo,
-        disciplines: formData.disciplines,
+        ageFrom: Number(formData.ageFrom),
+        ageTo: Number(formData.ageTo),
+        disciplines: formData.disciplines.map(d => ({
+          disciplineId: Number(d.disciplineId),
+          maxScore: Number(d.maxScore)
+        })),
         ...(eventId && { eventId: parseInt(eventId) })
       };
 
       debugLog('Competition submission payload:', payload);
+      debugLog('Payload types:', {
+        ageFrom: typeof payload.ageFrom,
+        ageTo: typeof payload.ageTo,
+        disciplines: payload.disciplines.map(d => ({ 
+          disciplineId: typeof d.disciplineId, 
+          maxScore: typeof d.maxScore 
+        }))
+      });
       debugLog('Disciplines array:', payload.disciplines, 'Length:', payload.disciplines.length);
 
       let result;
@@ -200,18 +233,37 @@ const Competitions: React.FC = () => {
 
   const handleEdit = (competition: Competition) => {
     setEditingCompetition(competition);
+    
+    // Validate and correct age values - if they look like birth years, fix them
+    let ageFromValue = Number(competition.ageFrom);
+    let ageToValue = Number(competition.ageTo);
+    
+    // If age values are unreasonably high (likely birth years), set reasonable defaults
+    if (ageFromValue > 100 || ageToValue > 100) {
+      console.warn('⚠️ Invalid age values detected, setting defaults:', { ageFrom: ageFromValue, ageTo: ageToValue });
+      ageFromValue = 6;
+      ageToValue = 18;
+    }
+    
+    // Ensure ageFrom is not greater than ageTo
+    if (ageFromValue > ageToValue) {
+      const temp = ageFromValue;
+      ageFromValue = ageToValue;
+      ageToValue = temp;
+    }
+    
     setFormData({
       number: competition.number || '',
       name: competition.name,
       description: competition.description,
       gender: competition.gender,
-      ageFrom: competition.ageFrom,
-      ageTo: competition.ageTo,
+      ageFrom: ageFromValue,
+      ageTo: ageToValue,
       disciplines: Array.isArray(competition.disciplines) ? 
         competition.disciplines.map((d: any) => 
           typeof d === 'object' && (d.disciplineId || d.id) ? 
-            { disciplineId: d.disciplineId || d.id, maxScore: d.maxScore || 0 } : 
-            { disciplineId: typeof d === 'number' ? d : d.int_disziplinid, maxScore: 0 }
+            { disciplineId: Number(d.disciplineId || d.id), maxScore: Number(d.maxScore || 0) } : 
+            { disciplineId: Number(typeof d === 'number' ? d : d.int_disziplinid), maxScore: 0 }
         ) : []
     });
     setIsModalOpen(true);

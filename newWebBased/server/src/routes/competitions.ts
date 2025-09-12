@@ -502,8 +502,17 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Invalid competition ID' });
     }
     
-    const validatedData = updateCompetitionSchema.parse(req.body);
-    console.log(`✅ PUT competition ${id} - Validated data:`, JSON.stringify(validatedData, null, 2));
+    let validatedData;
+    try {
+      validatedData = updateCompetitionSchema.parse(req.body);
+      console.log(`✅ PUT competition ${id} - Validated data:`, JSON.stringify(validatedData, null, 2));
+    } catch (validationError: any) {
+      console.error(`❌ Validation error for competition ${id}:`, validationError.issues || validationError.message);
+      return res.status(400).json({ 
+        error: 'Validation error', 
+        details: validationError.issues || validationError.message 
+      });
+    }
     
     // Validate age range if both provided
     if (validatedData.ageFrom && validatedData.ageTo && 
