@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useEvent } from '../contexts/EventContext';
 import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 
@@ -30,8 +29,8 @@ interface CompetitionFormData {
   // Additional competition settings
   round: number;                    // int_durchgang - Competition round/session
   track: number;                    // int_bahn - Track/lane number
-  startTime?: string;               // tim_startzeit - Start datetime (ISO format)
-  warmupTime?: string;              // tim_einturnen - Warm-up datetime (ISO format)
+  startTime?: string;               // tim_startzeit - Start time (HH:MM format)
+  warmupTime?: string;              // tim_einturnen - Warm-up time (HH:MM format)
   qualifiers: number;               // int_qualifikation - Number of qualifiers
   evaluations?: number;             // int_wertungen - Number of evaluations
   dropWorstScore: boolean;          // bol_streichwertung - Drop worst score
@@ -101,29 +100,6 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 }) => {
   // Translation hook
   const { t } = useTranslation();
-  
-  // Event context for getting event date
-  const { selectedEvent } = useEvent();
-  
-  // Helper function to get the event date formatted for datetime-local input
-  const getEventDate = () => {
-    if (selectedEvent?.dat_eventstartdate) {
-      return selectedEvent.dat_eventstartdate;
-    }
-    // Fallback to today if no event selected
-    return new Date().toISOString().split('T')[0];
-  };
-
-  // Helper function to format datetime for input (YYYY-MM-DDTHH:MM)
-  const formatDateTimeForInput = (dateStr: string, timeStr: string) => {
-    return `${dateStr}T${timeStr}`;
-  };
-
-  // Helper function to convert datetime-local input to full ISO string
-  const formatDateTimeForServer = (dateTimeStr: string) => {
-    if (!dateTimeStr) return undefined;
-    return new Date(dateTimeStr).toISOString();
-  };
   
   // State for modal-specific data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -449,14 +425,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       🕐 {t('competitionForm.scheduling.startTime.label')}
                     </label>
                     <input
-                      type="datetime-local"
-                      value={formData.startTime ? 
-                        formData.startTime.includes('T') ? 
-                          formData.startTime.substring(0, 16) : // Already datetime, just truncate
-                          formatDateTimeForInput(getEventDate(), formData.startTime) : // Just time, combine with date
-                        formatDateTimeForInput(getEventDate(), '08:30') // Default
-                      }
-                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: formatDateTimeForServer(e.target.value) }))}
+                      type="time"
+                      value={formData.startTime || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.startTime.description')}</p>
@@ -466,14 +437,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       🏃‍♂️ {t('competitionForm.scheduling.warmupTime.label')}
                     </label>
                     <input
-                      type="datetime-local"
-                      value={formData.warmupTime ? 
-                        formData.warmupTime.includes('T') ? 
-                          formData.warmupTime.substring(0, 16) : // Already datetime, just truncate
-                          formatDateTimeForInput(getEventDate(), formData.warmupTime) : // Just time, combine with date
-                        formatDateTimeForInput(getEventDate(), '08:00') // Default
-                      }
-                      onChange={(e) => setFormData(prev => ({ ...prev, warmupTime: formatDateTimeForServer(e.target.value) }))}
+                      type="time"
+                      value={formData.warmupTime || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, warmupTime: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.warmupTime.description')}</p>

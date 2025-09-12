@@ -26,8 +26,8 @@ const createCompetitionSchema = z.object({
   // Additional competition settings
   round: z.number().min(1).max(10).optional(),
   track: z.number().min(1).max(20).optional(),
-  startTime: z.string().optional(), // Full datetime in ISO format
-  warmupTime: z.string().optional(), // Full datetime in ISO format
+  startTime: z.string().optional(), // Time in HH:MM format
+  warmupTime: z.string().optional(), // Time in HH:MM format
   qualifiers: z.number().min(0).max(999).optional(),
   evaluations: z.number().min(1).max(10).optional(),
   dropWorstScore: z.boolean().optional(),
@@ -135,18 +135,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         // Additional competition settings
         round: comp.int_durchgang || 1,
         track: comp.int_bahn || 1,
-        startTime: comp.tim_startzeit ? (() => {
-          const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
-          const timeStr = comp.tim_startzeit.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
-          const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
-          return new Date(`${eventDateStr}T${timeStr}`).toISOString();
-        })() : null,
-        warmupTime: comp.tim_einturnen ? (() => {
-          const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
-          const timeStr = comp.tim_einturnen.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
-          const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
-          return new Date(`${eventDateStr}T${timeStr}`).toISOString();
-        })() : null,
+        startTime: comp.tim_startzeit ? comp.tim_startzeit.toISOString().split('T')[1].substring(0, 5) : null,
+        warmupTime: comp.tim_einturnen ? comp.tim_einturnen.toISOString().split('T')[1].substring(0, 5) : null,
         qualifiers: comp.int_qualifikation || 0,
         evaluations: comp.int_wertungen || 1,
         dropWorstScore: comp.bol_streichwertung || false,
@@ -495,12 +485,18 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       validatedData.useApparatusPoints || false,
       validatedData.dropCount || 0,
       validatedData.startTime ? (() => {
-        const datetime = new Date(validatedData.startTime);
-        return datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+        // Append seconds if not provided (HH:MM -> HH:MM:00)
+        const timeStr = validatedData.startTime.includes(':') && validatedData.startTime.split(':').length === 2 
+          ? `${validatedData.startTime}:00` 
+          : validatedData.startTime;
+        return timeStr;
       })() : null,
       validatedData.warmupTime ? (() => {
-        const datetime = new Date(validatedData.warmupTime);
-        return datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
+        // Append seconds if not provided (HH:MM -> HH:MM:00)
+        const timeStr = validatedData.warmupTime.includes(':') && validatedData.warmupTime.split(':').length === 2 
+          ? `${validatedData.warmupTime}:00` 
+          : validatedData.warmupTime;
+        return timeStr;
       })() : null
     ) as any[];
     
@@ -680,20 +676,22 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     }
     if (validatedData.startTime !== undefined) {
       if (validatedData.startTime) {
-        // Parse full ISO datetime string and extract just the time portion for database
-        const datetime = new Date(validatedData.startTime);
-        const timeString = datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
-        updateData.tim_startzeit = new Date(`1970-01-01T${timeString}Z`);
+        // Append seconds if not provided (HH:MM -> HH:MM:00)
+        const timeStr = validatedData.startTime.includes(':') && validatedData.startTime.split(':').length === 2 
+          ? `${validatedData.startTime}:00` 
+          : validatedData.startTime;
+        updateData.tim_startzeit = new Date(`1970-01-01T${timeStr}Z`);
       } else {
         updateData.tim_startzeit = null;
       }
     }
     if (validatedData.warmupTime !== undefined) {
       if (validatedData.warmupTime) {
-        // Parse full ISO datetime string and extract just the time portion for database
-        const datetime = new Date(validatedData.warmupTime);
-        const timeString = datetime.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
-        updateData.tim_einturnen = new Date(`1970-01-01T${timeString}Z`);
+        // Append seconds if not provided (HH:MM -> HH:MM:00)
+        const timeStr = validatedData.warmupTime.includes(':') && validatedData.warmupTime.split(':').length === 2 
+          ? `${validatedData.warmupTime}:00` 
+          : validatedData.warmupTime;
+        updateData.tim_einturnen = new Date(`1970-01-01T${timeStr}Z`);
       } else {
         updateData.tim_einturnen = null;
       }
@@ -817,19 +815,9 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       round: validatedData.round !== undefined ? validatedData.round : updatedCompetition.int_durchgang || 1,
       track: validatedData.track !== undefined ? validatedData.track : updatedCompetition.int_bahn || 1,
       startTime: validatedData.startTime !== undefined ? validatedData.startTime : 
-                 (updatedCompetition.tim_startzeit ? (() => {
-                   const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
-                   const timeStr = updatedCompetition.tim_startzeit.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
-                   const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
-                   return new Date(`${eventDateStr}T${timeStr}`).toISOString();
-                 })() : null),
+                 (updatedCompetition.tim_startzeit ? updatedCompetition.tim_startzeit.toISOString().split('T')[1].substring(0, 5) : null),
       warmupTime: validatedData.warmupTime !== undefined ? validatedData.warmupTime : 
-                  (updatedCompetition.tim_einturnen ? (() => {
-                    const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
-                    const timeStr = updatedCompetition.tim_einturnen.toISOString().split('T')[1].substring(0, 8); // HH:MM:SS
-                    const eventDateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
-                    return new Date(`${eventDateStr}T${timeStr}`).toISOString();
-                  })() : null),
+                  (updatedCompetition.tim_einturnen ? updatedCompetition.tim_einturnen.toISOString().split('T')[1].substring(0, 5) : null),
       qualifiers: validatedData.qualifiers !== undefined ? validatedData.qualifiers : updatedCompetition.int_qualifikation || 0,
       evaluations: validatedData.evaluations !== undefined ? validatedData.evaluations : updatedCompetition.int_wertungen || 1,
       dropWorstScore: validatedData.dropWorstScore !== undefined ? validatedData.dropWorstScore : updatedCompetition.bol_streichwertung || false,

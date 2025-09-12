@@ -810,13 +810,13 @@
       },
       "startTime": {
         "label": "Startzeit",
-        "placeholder": "YYYY-MM-DD HH:MM",
-        "description": "Geplante Startdatum und -zeit des Wettkampfs"
+        "placeholder": "HH:MM",
+        "description": "Geplante Startzeit des Wettkampfs"
       },
       "warmupTime": {
         "label": "Einturnen",
-        "placeholder": "YYYY-MM-DD HH:MM", 
-        "description": "Datum und Zeit für das Einturnen vor dem Wettkampf"
+        "placeholder": "HH:MM", 
+        "description": "Zeit für das Einturnen vor dem Wettkampf"
       }
     },
     "qualification": {

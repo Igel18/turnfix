@@ -810,13 +810,13 @@
       },
       "startTime": {
         "label": "Start Time",
-        "placeholder": "YYYY-MM-DD HH:MM",
-        "description": "Scheduled start date and time of the competition"
+        "placeholder": "HH:MM",
+        "description": "Scheduled start time of the competition"
       },
       "warmupTime": {
         "label": "Warm-up Time",
-        "placeholder": "YYYY-MM-DD HH:MM", 
-        "description": "Date and time for warm-up before the competition"
+        "placeholder": "HH:MM", 
+        "description": "Time for warm-up before the competition"
       }
     },
     "qualification": {
