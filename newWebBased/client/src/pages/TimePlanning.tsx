@@ -443,24 +443,28 @@ export default function TimePlanning() {
                 </div>
               </div>
 
-              {/* Squads participating */}
+              {/* Squads participating (always visible, even if empty) */}
               <div>
                 <h4 className="text-md font-medium text-gray-900 mb-3">
                   {t('timePlanning.squads')} ({group.squads.length})
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {group.squads.map(squad => (
-                    <div key={squad.name} className="bg-green-50 p-4 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <UserGroupIcon className="h-5 w-5 text-green-600" />
-                        <h5 className="font-medium text-gray-900">{squad.name}</h5>
+                {group.squads.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {group.squads.map(squad => (
+                      <div key={squad.name} className="bg-green-50 p-4 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <UserGroupIcon className="h-5 w-5 text-green-600" />
+                          <h5 className="font-medium text-gray-900">{squad.name}</h5>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {squad.participantCount} {t('timePlanning.participants')}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {squad.participantCount} {t('timePlanning.participants')}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm">{t('timePlanning.noSquads', 'Keine Riegen in diesem Durchgang')}</div>
+                )}
               </div>
 
               {/* Device schedule calculation */}
@@ -471,9 +475,25 @@ export default function TimePlanning() {
                     <div>
                       <p className="text-sm text-gray-700">
                         {t('timePlanning.calculatedDuration', { 
-                          duration: group.competitions.reduce((acc, comp) => 
-                            acc + (comp.disciplineCount * timeSettings.rotationIntervalMinutes), 0
-                          )
+                          duration: (() => {
+                            // Calculate duration: devices * squad-participants * exercise-duration
+                            let total = 0;
+                            for (const comp of group.competitions) {
+                              const devices = comp.disciplineCount;
+                              // For each squad, count participants in this competition
+                              let squadParticipants = 0;
+                              for (const squad of group.squads) {
+                                // If squad is assigned to this competition
+                                if (squad.competitions && Array.isArray(squad.competitions)) {
+                                  if (squad.competitions.includes(comp.name)) {
+                                    squadParticipants += squad.participantCount;
+                                  }
+                                }
+                              }
+                              total += devices * squadParticipants * timeSettings.exerciseDurationMinutes;
+                            }
+                            return total;
+                          })()
                         })}
                       </p>
                       <p className="text-xs text-gray-600 mt-1">

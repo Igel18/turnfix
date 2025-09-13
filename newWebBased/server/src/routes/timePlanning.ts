@@ -299,11 +299,11 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       const squadCompetitions = competitions.filter(comp => 
         squad.competitions.has(comp.id)
       );
-
+      // Send only competition names (strings) for frontend compatibility
       return {
         name: squad.name,
         participantCount: squad.participantCount,
-        competitions: squadCompetitions
+        competitions: squadCompetitions.map(c => c.name)
       };
     });
 
