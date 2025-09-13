@@ -94,6 +94,7 @@ export default function TimePlanning() {
   const [loading, setLoading] = useState(true)
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [squads, setSquads] = useState<Squad[]>([])
+  const [squadDisciplines, setSquadDisciplines] = useState<any[]>([])
   const [timeSettings, setTimeSettings] = useState<TimeSettings>(DEFAULT_TIME_SETTINGS)
   const [sessionGroups, setSessionGroups] = useState<SessionGroup[]>([])
   // Track extra empty rounds added by the user
@@ -127,11 +128,13 @@ export default function TimePlanning() {
       // Load competitions for the event
       const competitionsData = await apiGet(`/time-planning?eventId=${eventId}`)
       const loadedCompetitions = competitionsData.competitions || []
-      // Load squads for the event  
-      const loadedSquads = competitionsData.squads || []
+  // Load squads for the event  
+  const loadedSquads = competitionsData.squads || []
+  const loadedSquadDisciplines = competitionsData.squadDisciplines || []
 
-      setCompetitions(loadedCompetitions)
-      setSquads(loadedSquads)
+  setCompetitions(loadedCompetitions)
+  setSquads(loadedSquads)
+  setSquadDisciplines(loadedSquadDisciplines)
 
       // Remove extraRounds that now exist in backend data
       const backendRounds = new Set(loadedCompetitions.map((c: Competition) => c.round))
@@ -243,22 +246,27 @@ export default function TimePlanning() {
 
   const calculateDeviceSchedule = (sessionGroup: SessionGroup): DeviceSchedule[] => {
     const schedule: DeviceSchedule[] = []
-    
     if (!sessionGroup.startTime) return schedule
 
     sessionGroup.competitions.forEach(competition => {
       const compStartTime = competition.startTime || sessionGroup.startTime!
       const compWarmupTime = competition.warmupTime
-      
-      // Get disciplines for this competition (approximation based on disciplineCount)
-      const deviceNames = Array.from({length: competition.disciplineCount}, (_, i) => `Device ${i + 1}`)
-      
+
+      // Get real discipline names for this competition from squadDisciplines
+      const disciplines = squadDisciplines
+        .filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === competition.id)
+        .map(sd => sd.tfx_disziplinen.var_name)
+      // Fallback to generic if none found
+      const deviceNames = disciplines.length > 0
+        ? disciplines
+        : Array.from({length: competition.disciplineCount}, (_, i) => `Device ${i + 1}`)
+
       sessionGroup.squads.forEach(squad => {
         // Skip squads not participating in this competition
         if (!squad.competitions.includes(competition.name)) return
 
         let currentTime = compStartTime
-        
+
         // Add warm-up phase if specified
         if (compWarmupTime) {
           schedule.push({
@@ -275,7 +283,7 @@ export default function TimePlanning() {
         deviceNames.forEach((deviceName) => {
           const startTime = currentTime
           const endTime = addMinutesToTime(startTime, timeSettings.exerciseDurationMinutes)
-          
+
           schedule.push({
             squadName: squad.name,
             deviceName,

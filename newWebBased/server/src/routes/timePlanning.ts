@@ -191,9 +191,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     // Get squad-discipline assignments with rotation information (int_runde, bol_erstes_geraet)
-    const squadDisciplines = await prisma.tfx_riegen_x_disziplinen.findMany({
+    const squadDisciplinesRaw = await prisma.tfx_riegen_x_disziplinen.findMany({
       where: { int_veranstaltungenid: eventIdNum },
-      include: {
+      select: {
         tfx_disziplinen: {
           select: {
             int_disziplinenid: true,
@@ -208,13 +208,39 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             var_name: true,
             ary_colorcode: true
           }
-        }
+        },
+        var_riege: true,
+        int_runde: true,
+        bol_erstes_geraet: true
       },
       orderBy: [
         { var_riege: 'asc' },
         { int_runde: 'asc' }
       ]
     });
+    // Lookup table: (var_riege, int_runde) -> competition ID (from tfx_wertungen)
+    const squadToCompId = new Map();
+    const wettungen = await prisma.tfx_wertungen.findMany({
+      where: {
+        tfx_wettkaempfe: { int_veranstaltungenid: eventIdNum },
+        var_riege: { not: null }
+      },
+      select: {
+        var_riege: true,
+        int_wettkaempfeid: true,
+        int_runde: true
+      }
+    });
+    for (const w of wettungen) {
+      if (w.var_riege) {
+        squadToCompId.set(`${w.var_riege}__${w.int_runde ?? ''}`, w.int_wettkaempfeid);
+      }
+    }
+    // Add tfx_wettkaempfeid property for frontend mapping (only once, using lookup)
+    const squadDisciplines = squadDisciplinesRaw.map(sd => ({
+      ...sd,
+      tfx_wettkaempfeid: squadToCompId.get(`${sd.var_riege}__${sd.int_runde ?? ''}`) || null
+    }));
 
     // Get starting order information
     const startingOrder = await prisma.tfx_startreihenfolge.findMany({
