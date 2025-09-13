@@ -1,4 +1,17 @@
 import { useState, useEffect } from 'react'
+// Drag & drop helpers
+function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) => void }) {
+  const [draggedComp, setDraggedComp] = useState<number | null>(null);
+  const handleDragStart = (compId: number) => setDraggedComp(compId);
+  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleDrop = (newRound: number) => {
+    if (draggedComp !== null) {
+      onDrop(draggedComp, newRound);
+      setDraggedComp(null);
+    }
+  };
+  return { handleDragStart, handleDragOver, handleDrop };
+}
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { 
@@ -16,7 +29,7 @@ import {
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '../components/UnifiedPageHeader'
 import { useEvent } from '../contexts/EventContext'
-import { apiGet, apiPost, apiPut } from '../utils/api'
+import { apiGet, apiPost, apiPut, invalidateCache } from '../utils/api'
 
 interface TimeSettings {
   exerciseDurationMinutes: number // How long an exercise takes at a device
@@ -83,6 +96,8 @@ export default function TimePlanning() {
   const [squads, setSquads] = useState<Squad[]>([])
   const [timeSettings, setTimeSettings] = useState<TimeSettings>(DEFAULT_TIME_SETTINGS)
   const [sessionGroups, setSessionGroups] = useState<SessionGroup[]>([])
+  // Track extra empty rounds added by the user
+  const [extraRounds, setExtraRounds] = useState<number[]>([])
   const [deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([])
   const [selectedSession, setSelectedSession] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline'>('sessions')
@@ -92,30 +107,45 @@ export default function TimePlanning() {
   const [ganttStartTime, setGanttStartTime] = useState('07:00')
   const [ganttEndTime, setGanttEndTime] = useState('18:00')
 
+
+  // Refetch helper
+  const refetch = () => {
+    loadData();
+  };
+
   useEffect(() => {
     if (eventId) {
-      loadData()
+      loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
   const loadData = async () => {
     if (!eventId) return
-    
     setLoading(true)
     try {
       // Load competitions for the event
       const competitionsData = await apiGet(`/time-planning?eventId=${eventId}`)
       const loadedCompetitions = competitionsData.competitions || []
-
       // Load squads for the event  
       const loadedSquads = competitionsData.squads || []
 
       setCompetitions(loadedCompetitions)
       setSquads(loadedSquads)
 
-      // Group competitions by session/round
-      groupCompetitionsBySessions(loadedCompetitions, loadedSquads)
-
+      // Remove extraRounds that now exist in backend data
+      const backendRounds = new Set(loadedCompetitions.map((c: Competition) => c.round))
+      setExtraRounds(prev => {
+        const filtered = prev.filter(r => !backendRounds.has(r));
+        // Only update if changed
+        if (filtered.length !== prev.length) {
+          groupCompetitionsBySessions(loadedCompetitions, loadedSquads, filtered);
+          return filtered;
+        } else {
+          groupCompetitionsBySessions(loadedCompetitions, loadedSquads, prev);
+          return prev;
+        }
+      });
     } catch (error) {
       console.error('Error loading time planning data:', error)
       // Fallback: try old API endpoints
@@ -137,9 +167,9 @@ export default function TimePlanning() {
     }
   }
 
-  const groupCompetitionsBySessions = (comps: Competition[], squads: Squad[]) => {
+  // Accept extraRounds as optional third argument
+  const groupCompetitionsBySessions = (comps: Competition[], squads: Squad[], extraRoundsArg?: number[]) => {
     const sessionMap = new Map<number, Competition[]>()
-    
     comps.forEach(comp => {
       const session = comp.round || 1
       if (!sessionMap.has(session)) {
@@ -148,13 +178,21 @@ export default function TimePlanning() {
       sessionMap.get(session)!.push(comp)
     })
 
+    // Add extra empty rounds
+    if (extraRoundsArg && extraRoundsArg.length > 0) {
+      for (const round of extraRoundsArg) {
+        if (!sessionMap.has(round)) {
+          sessionMap.set(round, [])
+        }
+      }
+    }
+
     const groups: SessionGroup[] = Array.from(sessionMap.entries()).map(([session, competitions]) => {
       // Find earliest start time for this session
       const startTimes = competitions
         .map(c => c.startTime)
         .filter(t => t !== null)
         .sort()
-      
       return {
         session,
         competitions,
@@ -288,10 +326,44 @@ export default function TimePlanning() {
     }
   }
 
+  // Add round handler
+  const handleAddRound = async () => {
+    if (!eventId) return;
+    const resp = await apiPost('/time-planning/round', { eventId });
+    if (resp && resp.round) {
+      invalidateCache('/api/time-planning');
+      setExtraRounds(prev => prev.includes(resp.round) ? prev : [...prev, resp.round]);
+      // Update session groups immediately to show the new round
+      groupCompetitionsBySessions(competitions, squads, [...extraRounds, resp.round]);
+    }
+  };
+
+  // Drag & drop logic
+  const { handleDragStart, handleDragOver, handleDrop } = useDragDrop({
+    onDrop: async (compId, newRound) => {
+      await apiPut(`/time-planning/competition/${compId}/round`, { round: newRound });
+      invalidateCache('/api/time-planning');
+      refetch();
+    }
+  });
+
   const renderSessionOverview = () => (
     <div className="space-y-6">
+      <div className="flex justify-end mb-2">
+        <button
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+          onClick={handleAddRound}
+        >
+          {t('timePlanning.addRound', 'Add Round')}
+        </button>
+      </div>
       {sessionGroups.map(group => (
-        <div key={group.session} className="bg-white border rounded-lg overflow-hidden">
+        <div
+          key={group.session}
+          className="bg-white border rounded-lg overflow-hidden"
+          onDragOver={handleDragOver}
+          onDrop={() => handleDrop(group.session)}
+        >
           <button 
             className="w-full bg-blue-50 px-6 py-4 border-b text-left hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
             onClick={() => setSelectedSession(selectedSession === group.session ? null : group.session)}
@@ -336,7 +408,12 @@ export default function TimePlanning() {
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {group.competitions.map(comp => (
-                    <div key={comp.id} className="bg-gray-50 p-4 rounded-lg">
+                    <div
+                      key={comp.id}
+                      className="bg-gray-50 p-4 rounded-lg"
+                      draggable
+                      onDragStart={() => handleDragStart(comp.id)}
+                    >
                       <div className="flex items-start justify-between">
                         <div>
                           <h5 className="font-medium text-gray-900">{comp.name}</h5>

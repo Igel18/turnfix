@@ -2,8 +2,49 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 
+
 const router = Router();
 const prisma = new PrismaClient();
+
+// Create a new round (Durchgang) for the event
+router.post('/round', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { eventId } = req.body;
+    if (!eventId) {
+      return res.status(400).json({ error: 'Event ID is required' });
+    }
+    // Find the current max round for this event
+    const maxRound = await prisma.tfx_wettkaempfe.aggregate({
+      where: { int_veranstaltungenid: Number(eventId) },
+      _max: { int_durchgang: true }
+    });
+    const newRound = (maxRound._max.int_durchgang || 0) + 1;
+    // No DB insert needed, just return the new round number (rounds are implicit)
+    res.json({ round: newRound });
+  } catch (error) {
+    console.error('Error creating new round:', error);
+    res.status(500).json({ error: 'Failed to create new round' });
+  }
+});
+
+// Update a competition's round (for drag & drop)
+router.put('/competition/:id/round', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const compId = Number(req.params.id);
+    const { round } = req.body;
+    if (!compId || !round) {
+      return res.status(400).json({ error: 'Competition ID and round are required' });
+    }
+    const updated = await prisma.tfx_wettkaempfe.update({
+      where: { int_wettkaempfeid: compId },
+      data: { int_durchgang: round }
+    });
+    res.json({ success: true, competition: updated });
+  } catch (error) {
+    console.error('Error updating competition round:', error);
+    res.status(500).json({ error: 'Failed to update competition round' });
+  }
+});
 
 // Get time planning data for event - including squad-discipline assignments and starting order
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {

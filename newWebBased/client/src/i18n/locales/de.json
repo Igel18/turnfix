@@ -959,6 +959,7 @@
       "timeline": "Zeitstrahl",
       "gantt": "Gantt"
     },
+    "addRound": "Durchgang hinzufügen",
     "timeRange": {
       "from": "Von",
       "to": "Bis"
