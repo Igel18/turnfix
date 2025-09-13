@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 // Get time planning data for event - including squad-discipline assignments and starting order
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    console.log('[TIME_PLANNING] API endpoint called');
     const { eventId } = req.query;
     
     if (!eventId) {
@@ -15,8 +16,10 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     const eventIdNum = parseInt(eventId as string);
+    console.log('[TIME_PLANNING] Event ID:', eventIdNum);
 
     // Get competitions for the event with time information
+    console.log('[TIME_PLANNING] Fetching competitions...');
     const competitionsData = await prisma.tfx_wettkaempfe.findMany({
       where: { int_veranstaltungenid: eventIdNum },
       select: {
@@ -38,89 +41,113 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         { var_name: 'asc' }
       ]
     });
+    console.log('[TIME_PLANNING] Found competitions:', competitionsData.length);
 
-    // Format competitions for frontend
-    const competitions = competitionsData.map(comp => {
+    // Get discipline counts for all competitions in one query
+    const disciplineCountsRaw = await prisma.tfx_wettkaempfe_x_disziplinen.groupBy({
+      by: ['int_wettkaempfeid'],
+      _count: { int_disziplinenid: true }
+    });
+    const disciplineCountMap = new Map<number, number>();
+    for (const row of disciplineCountsRaw) {
+      disciplineCountMap.set(row.int_wettkaempfeid, row._count.int_disziplinenid);
+    }
+
+    const competitions: Array<{
+      id: number;
+      name: string;
+      number: string;
+      round: number;
+      startTime: string | null;
+      warmupTime: string | null;
+      disciplineCount: number;
+      participantCount: number;
+    }> = [];
+    for (const comp of competitionsData) {
       let startTime = null;
       let warmupTime = null;
 
-      // Parse the times properly
+      // Parse start time
       if (comp.tim_startzeit) {
-        const timeStr = comp.tim_startzeit.toString();
-        console.log(`[TIME_PLANNING] Raw startzeit for ${comp.var_name}: "${timeStr}"`);
-        
-        // Handle PostgreSQL TIME field that comes as Date object
-        if (timeStr.includes('1970')) {
-          // Extract time from full date string like "Thu Jan 01 1970 01:00:00 GMT+0100"
-          const timeMatch = timeStr.match(/(\d{2}):(\d{2}):\d{2}/);
-          if (timeMatch) {
-            startTime = `${timeMatch[1]}:${timeMatch[2]}`;
+        try {
+          const timeValue = comp.tim_startzeit as any;
+          if (timeValue instanceof Date) {
+            const hours = timeValue.getHours().toString().padStart(2, '0');
+            const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+            startTime = `${hours}:${minutes}`;
           } else {
-            startTime = null;
+            const timeStr = String(timeValue);
+            // Try to extract HH:MM from string
+            const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (timeMatch) {
+              const hours = timeMatch[1].padStart(2, '0');
+              const minutes = timeMatch[2];
+              startTime = `${hours}:${minutes}`;
+            }
           }
-        } else if (timeStr.includes(':') && !timeStr.includes('Invalid')) {
-          // Already in HH:MM format
-          startTime = timeStr.slice(0, 5);
-        } else {
-          console.log(`[TIME_PLANNING] Unexpected startzeit format: ${timeStr}`);
-          startTime = null;
+        } catch (error) {
+          console.log(`[TIME_PLANNING] Error parsing start time for ${comp.var_name}:`, error);
         }
       }
       
+      // Parse warmup time  
       if (comp.tim_einturnen) {
-        const timeStr = comp.tim_einturnen.toString();
-        console.log(`[TIME_PLANNING] Raw einturnen for ${comp.var_name}: "${timeStr}"`);
-        
-        // Handle PostgreSQL TIME field that comes as Date object
-        if (timeStr.includes('1970')) {
-          // Extract time from full date string like "Thu Jan 01 1970 01:00:00 GMT+0100"
-          const timeMatch = timeStr.match(/(\d{2}):(\d{2}):\d{2}/);
-          if (timeMatch) {
-            warmupTime = `${timeMatch[1]}:${timeMatch[2]}`;
+        try {
+          const timeValue = comp.tim_einturnen as any;
+          if (timeValue instanceof Date) {
+            const hours = timeValue.getHours().toString().padStart(2, '0');
+            const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+            warmupTime = `${hours}:${minutes}`;
           } else {
-            warmupTime = null;
+            const timeStr = String(timeValue);
+            // Try to extract HH:MM from string
+            const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (timeMatch) {
+              const hours = timeMatch[1].padStart(2, '0');
+              const minutes = timeMatch[2];
+              warmupTime = `${hours}:${minutes}`;
+            }
           }
-        } else if (timeStr.includes(':') && !timeStr.includes('Invalid')) {
-          // Already in HH:MM format
-          warmupTime = timeStr.slice(0, 5);
-        } else {
-          console.log(`[TIME_PLANNING] Unexpected einturnen format: ${timeStr}`);
-          warmupTime = null;
+        } catch (error) {
+          console.log(`[TIME_PLANNING] Error parsing warmup time for ${comp.var_name}:`, error);
         }
       }
 
       // If both times exist, ensure warmup is before start time
       if (startTime && warmupTime) {
-        const [startHour, startMin] = startTime.split(':').map(Number);
-        const [warmupHour, warmupMin] = warmupTime.split(':').map(Number);
-        
-        const startMinutes = startHour * 60 + startMin;
-        const warmupMinutes = warmupHour * 60 + warmupMin;
-        
-        console.log(`[TIME_PLANNING] Competition ${comp.var_name}: Start ${startTime}, Warmup ${warmupTime}`);
-        
-        // If warmup time is not before start time, calculate it to be 30 minutes before
-        if (warmupMinutes >= startMinutes) {
-          const adjustedWarmupMinutes = Math.max(0, startMinutes - 30);
-          const adjustedHour = Math.floor(adjustedWarmupMinutes / 60);
-          const adjustedMin = adjustedWarmupMinutes % 60;
-          const originalWarmup = warmupTime;
-          warmupTime = `${adjustedHour.toString().padStart(2, '0')}:${adjustedMin.toString().padStart(2, '0')}`;
-          console.log(`[TIME_PLANNING] Adjusted warmup from ${originalWarmup} to ${warmupTime} for competition ${comp.var_name}`);
+        try {
+          const [startHour, startMin] = startTime.split(':').map(Number);
+          const [warmupHour, warmupMin] = warmupTime.split(':').map(Number);
+          
+          const startMinutes = startHour * 60 + startMin;
+          const warmupMinutes = warmupHour * 60 + warmupMin;
+          
+          // If warmup time is not before start time, calculate it to be 30 minutes before
+          if (warmupMinutes >= startMinutes) {
+            const adjustedWarmupMinutes = Math.max(0, startMinutes - 30);
+            const adjustedHour = Math.floor(adjustedWarmupMinutes / 60);
+            const adjustedMin = adjustedWarmupMinutes % 60;
+            warmupTime = `${adjustedHour.toString().padStart(2, '0')}:${adjustedMin.toString().padStart(2, '0')}`;
+          }
+        } catch (error) {
+          console.log(`[TIME_PLANNING] Error validating times for ${comp.var_name}:`, error);
         }
       }
 
-      return {
+      // Get discipline count for this competition from the map
+      let disciplineCount = disciplineCountMap.get(comp.int_wettkaempfeid) || 0;
+
+      competitions.push({
         id: comp.int_wettkaempfeid,
-        name: comp.var_name,
+        name: comp.var_name || '',
         number: comp.var_nummer || '',
         round: comp.int_durchgang || 1,
         startTime,
         warmupTime,
-        disciplineCount: 0, // TODO: Calculate if needed
+        disciplineCount,
         participantCount: comp._count.tfx_wertungen
-      };
-    });
+      });
+    }
 
     // Get squad-discipline assignments with rotation information (int_runde, bol_erstes_geraet)
     const squadDisciplines = await prisma.tfx_riegen_x_disziplinen.findMany({
