@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
-interface Squad {
+
+export interface Squad {
   name: string;
   participantCount: number;
 }
 
-interface Device {
+
+export interface Device {
   name: string;
 }
 
@@ -36,21 +38,14 @@ function generateRoundRobinSchedule(squads: Squad[], devices: Device[]): Rotatio
   return schedule;
 }
 
-// Example data (replace with real data from props or API)
-const exampleSquads: Squad[] = [
-  { name: 'RiegeRot', participantCount: 6 },
-  { name: 'RiegeGelb', participantCount: 6 },
-  { name: 'RiegeBlau', participantCount: 6 },
-];
-const exampleDevices: Device[] = [
-  { name: 'Boden' },
-  { name: 'Sprung' },
-  { name: 'Barren' },
-];
 
-const rotationSchedule = generateRoundRobinSchedule(exampleSquads, exampleDevices);
+interface TimePlanningRotationProps {
+  squads: Squad[];
+  devices: Device[];
+}
 
-const TimePlanningRotation: React.FC = () => {
+const TimePlanningRotation: React.FC<TimePlanningRotationProps> = ({ squads, devices }) => {
+  const rotationSchedule = useMemo(() => generateRoundRobinSchedule(squads, devices), [squads, devices]);
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-xl font-bold mb-4">Rotation Übersicht (Round Robin)</h2>
@@ -59,7 +54,7 @@ const TimePlanningRotation: React.FC = () => {
           <thead>
             <tr>
               <th className="border px-4 py-2">Rotation</th>
-              {exampleSquads.map((squad) => (
+              {squads.map((squad) => (
                 <th key={squad.name} className="border px-4 py-2">{squad.name}</th>
               ))}
             </tr>
@@ -67,7 +62,7 @@ const TimePlanningRotation: React.FC = () => {
           <tbody>
             {rotationSchedule.map((round, idx) => (
               <tr key={idx}>
-                <td className="border px-4 py-2 font-semibold">{round[0].rotation}</td>
+                <td className="border px-4 py-2 font-semibold">{round[0]?.rotation}</td>
                 {round.map((entry) => (
                   <td key={entry.squad} className="border px-4 py-2">{entry.device}</td>
                 ))}

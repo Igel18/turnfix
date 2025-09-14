@@ -362,6 +362,7 @@ Each squad should start at a different device (e.g., Squad 1 at Device 1, Squad 
 After each interval, all squads rotate to the next device (e.g., Squad 1 moves to Device 2, Squad 2 to Device 3, Squad 3 to Device 1).
 This continues until all squads have visited all devices.
 
+In competition management in edit competition a field "🏃 Bahn *" is available. Now it must be possible to add a new Bahn and move the squads from one to another bahn by dragNdrop. Compare the Durchgänge UI for that. 
 
 --
 Hard coded in events.ts

@@ -13,7 +13,7 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
   return { handleDragStart, handleDragOver, handleDrop };
 }
 import { useTranslation } from 'react-i18next'
-import TimePlanningRotation from './TimePlanningRotation'
+import TimePlanningRotation, { Squad as RotationSquad, Device as RotationDevice } from './TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
   ClockIcon,
@@ -959,7 +959,28 @@ export default function TimePlanning() {
             )}
             {viewMode === 'rotation' && (
               <div className="bg-white border rounded-lg p-6">
-                <TimePlanningRotation />
+                {/* Use first session group for devices, all squads for squads */}
+                <TimePlanningRotation
+                  squads={squads.map(s => ({ name: s.name, participantCount: s.participantCount }))}
+                  devices={(() => {
+                    // Try to get devices from the first session's competitions/discipline logic
+                    if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
+                      const comp = sessionGroups[0].competitions[0];
+                      // Try squadDisciplines first, then disciplineCache, then fallback
+                      let disciplineObjs: { name: string }[] = [];
+                      const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === comp.id);
+                      if (filtered.length > 0) {
+                        disciplineObjs = filtered.map(sd => ({ name: sd.tfx_disziplinen.var_name }));
+                      } else if (disciplineCache.current[comp.id] && disciplineCache.current[comp.id].length > 0) {
+                        disciplineObjs = disciplineCache.current[comp.id].map((d: any, idx: number) => ({ name: d.var_name || d.var_disziplinname || d.name || `Device ${idx + 1}` }));
+                      } else if (comp.disciplineCount && comp.disciplineCount > 0) {
+                        disciplineObjs = Array.from({ length: comp.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}` }));
+                      }
+                      return disciplineObjs;
+                    }
+                    return [];
+                  })()}
+                />
               </div>
             )}
           </>
