@@ -80,6 +80,15 @@ The backend routes should return a JSON object
 
 Do not change the database schema or any existing data. We must be compatible with a old software. 
 
+## Server
+The server is responsible for handling API requests, processing data, and interacting with the database. It should be implemented using Node.js and Express.
+The server should follow best practices for security, error handling, and performance optimization.
+The server should be modular and organized, with separate files for routes, controllers, and models.
+The server should use Prisma as the ORM for database interactions.
+The server should include comprehensive logging and monitoring to track performance and identify issues.
+The server should be tested thoroughly, with unit tests and integration tests to ensure reliability and stability.
+The server should be documented, with clear and concise comments and documentation for each module and function. 
+
 ## API 
 Do not change the Port of the API. 
 

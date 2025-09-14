@@ -478,17 +478,28 @@ export default function TimePlanning() {
                 </h4>
                 {group.squads.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {group.squads.map(squad => (
-                      <div key={squad.name} className="bg-green-50 p-4 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <UserGroupIcon className="h-5 w-5 text-green-600" />
-                          <h5 className="font-medium text-gray-900">{squad.name}</h5>
+                    {group.squads.map(squad => {
+                      const duration = squad.participantCount * timeSettings.exerciseDurationMinutes;
+                      return (
+                        <div key={squad.name} className="bg-green-50 p-4 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <UserGroupIcon className="h-5 w-5 text-green-600" />
+                            <h5 className="font-medium text-gray-900">{squad.name}</h5>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {squad.participantCount} {t('timePlanning.participants')}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {(() => {
+                              const label = t('timePlanning.squadDuration', { duration });
+                              return label === 'timePlanning.squadDuration'
+                                ? `${duration} min total`
+                                : label;
+                            })()}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {squad.participantCount} {t('timePlanning.participants')}
-                        </p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-gray-500 text-sm">{t('timePlanning.noSquads', 'Keine Riegen in diesem Durchgang')}</div>
