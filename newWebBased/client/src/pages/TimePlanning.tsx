@@ -62,6 +62,7 @@ interface DeviceSchedule {
   endTime: string
   competition: string
   isWarmup: boolean
+  isFirstDevice?: boolean // true if this is the first device for the squad
 }
 
 interface SessionGroup {
@@ -245,62 +246,81 @@ export default function TimePlanning() {
   }
 
   const calculateDeviceSchedule = (sessionGroup: SessionGroup): DeviceSchedule[] => {
-    const schedule: DeviceSchedule[] = []
-    if (!sessionGroup.startTime) return schedule
+    const schedule: DeviceSchedule[] = [];
+    if (!sessionGroup.startTime) return schedule;
+
+    // Track device occupancy by time slot
+    const deviceTimeMap = new Map<string, string>(); // key: deviceName+startTime, value: squadName
+    const squadTimeMap = new Map<string, string>(); // key: squadName+startTime, value: deviceName
 
     sessionGroup.competitions.forEach(competition => {
-      const compStartTime = competition.startTime || sessionGroup.startTime!
-      const compWarmupTime = competition.warmupTime
+      const compStartTime = competition.startTime || sessionGroup.startTime!;
+      const compWarmupTime = competition.warmupTime;
 
-      // Get real discipline names for this competition from squadDisciplines
-      const disciplines = squadDisciplines
+      // Get discipline objects for this competition from squadDisciplines
+      const disciplineObjs = squadDisciplines
         .filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === competition.id)
-        .map(sd => sd.tfx_disziplinen.var_name)
+        .map(sd => ({
+          name: sd.tfx_disziplinen.var_name,
+          isFirst: !!sd.bol_erstes_geraet
+        }));
       // Fallback to generic if none found
-      const deviceNames = disciplines.length > 0
-        ? disciplines
-        : Array.from({length: competition.disciplineCount}, (_, i) => `Device ${i + 1}`)
+      const deviceObjs = disciplineObjs.length > 0
+        ? disciplineObjs
+        : Array.from({ length: competition.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}`, isFirst: false }));
 
       sessionGroup.squads.forEach(squad => {
-        // Skip squads not participating in this competition
-        if (!squad.competitions.includes(competition.name)) return
+        if (!squad.competitions.includes(competition.name)) return;
 
-        let currentTime = compStartTime
+        let currentTime = compStartTime;
 
         // Add warm-up phase if specified
         if (compWarmupTime) {
-          schedule.push({
-            squadName: squad.name,
-            deviceName: 'Warm-up Area',
-            startTime: compWarmupTime,
-            endTime: addMinutesToTime(compWarmupTime, timeSettings.warmupDurationMinutes),
-            competition: competition.name,
-            isWarmup: true
-          })
+          const warmupKey = `${squad.name}__Warm-up Area__${compWarmupTime}`;
+          if (!squadTimeMap.has(warmupKey)) {
+            schedule.push({
+              squadName: squad.name,
+              deviceName: 'Warm-up Area',
+              startTime: compWarmupTime,
+              endTime: addMinutesToTime(compWarmupTime, timeSettings.warmupDurationMinutes),
+              competition: competition.name,
+              isWarmup: true
+            });
+            squadTimeMap.set(warmupKey, 'Warm-up Area');
+          }
         }
 
-        // Schedule each device rotation
-        deviceNames.forEach((deviceName) => {
-          const startTime = currentTime
-          const endTime = addMinutesToTime(startTime, timeSettings.exerciseDurationMinutes)
+        // Schedule each device rotation, enforcing exclusivity
+        for (let i = 0; i < deviceObjs.length; i++) {
+          const device = deviceObjs[i];
+          const startTime = currentTime;
+          // Calculate duration: participantCount * exerciseDurationMinutes
+          const squadDuration = (squad.participantCount || 1) * timeSettings.exerciseDurationMinutes;
+          const endTime = addMinutesToTime(startTime, squadDuration);
+          const deviceKey = `${device.name}__${startTime}`;
+          const squadKey = `${squad.name}__${startTime}`;
+          // Only schedule if device and squad are both free at this time
+          if (!deviceTimeMap.has(deviceKey) && !squadTimeMap.has(squadKey)) {
+            schedule.push({
+              squadName: squad.name,
+              deviceName: device.name,
+              startTime,
+              endTime,
+              competition: competition.name,
+              isWarmup: false,
+              isFirstDevice: device.isFirst
+            });
+            deviceTimeMap.set(deviceKey, squad.name);
+            squadTimeMap.set(squadKey, device.name);
+          }
+          // Move to next rotation time (squadDuration + break)
+          currentTime = addMinutesToTime(currentTime, squadDuration + timeSettings.breakBetweenDevicesMinutes);
+        }
+      });
+    });
 
-          schedule.push({
-            squadName: squad.name,
-            deviceName,
-            startTime,
-            endTime,
-            competition: competition.name,
-            isWarmup: false
-          })
-
-          // Move to next rotation time (exercise + break)
-          currentTime = addMinutesToTime(currentTime, timeSettings.rotationIntervalMinutes)
-        })
-      })
-    })
-
-    return schedule.sort((a, b) => a.startTime.localeCompare(b.startTime))
-  }
+    return schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }  
 
   const saveTimeSettings = async () => {
     try {
@@ -642,16 +662,24 @@ export default function TimePlanning() {
     </div>
   )
 
+  // Device-centric, session-grouped Gantt chart
   const renderGanttChart = () => {
-    const timeSlots = generateTimeSlots()
-    const allSquads = [...new Set(deviceSchedule.map(item => item.squadName))]
-    const allDevices = [...new Set(deviceSchedule.map(item => item.deviceName))]
+    const timeSlots = generateTimeSlots();
+    // Group deviceSchedule by session (competition round)
+    const scheduleBySession = new Map<number, DeviceSchedule[]>();
+    deviceSchedule.forEach((item: DeviceSchedule) => {
+      // Find competition to get round/session
+      const comp = competitions.find((c) => c.name === item.competition);
+      const session = comp ? comp.round : 1;
+      if (!scheduleBySession.has(session)) scheduleBySession.set(session, []);
+      scheduleBySession.get(session)!.push(item);
+    });
 
+    // For each session, render a device-centric Gantt
     return (
       <div className="bg-white border rounded-lg overflow-hidden">
         <div className="p-6 border-b">
           <h3 className="text-lg font-semibold text-gray-900">{t('timePlanning.ganttChart')}</h3>
-          
           {/* Time range controls */}
           <div className="flex items-center space-x-4 mt-4">
             <div className="flex items-center space-x-2">
@@ -674,75 +702,74 @@ export default function TimePlanning() {
             </div>
           </div>
         </div>
-        
-        {/* Gantt Chart */}
         <div className="overflow-x-auto">
           <div className="min-w-[800px]">
-            {/* Time header */}
-            <div className="bg-gray-50 border-b flex">
-              <div className="w-48 p-3 font-medium text-gray-900 border-r">
-                {t('timePlanning.squadDevice')}
-              </div>
-              {timeSlots.map(slot => (
-                <div key={slot.time} className="w-16 p-2 text-xs text-center text-gray-600 border-r">
-                  {slot.time}
-                </div>
-              ))}
-            </div>
-            
-            {/* Squad rows */}
-            {allSquads.map(squadName => (
-              <div key={squadName} className="border-b">
-                <div className="bg-blue-50 flex">
-                  <div className="w-48 p-3 font-medium text-gray-900 border-r">
-                    {squadName}
+            {[...scheduleBySession.entries()].sort((a, b) => a[0] - b[0]).map(([session, activities]) => {
+              // Find all devices in this session
+              const devices = [...new Set((activities as DeviceSchedule[]).map((a: DeviceSchedule) => a.deviceName))];
+              return (
+                <div key={String(session)} className="mb-8">
+                  <div className="bg-blue-100 px-4 py-2 font-semibold text-blue-900 border-b flex items-center">
+                    {t('timePlanning.session')} {session}
                   </div>
-                  <div className="flex-1"></div>
-                </div>
-                
-                {/* Device rows for this squad */}
-                {allDevices.map(deviceName => {
-                  const squadDeviceActivities = deviceSchedule.filter(
-                    item => item.squadName === squadName && item.deviceName === deviceName
-                  )
-                  
-                  return (
-                    <div key={`${squadName}-${deviceName}`} className="flex border-t border-gray-100">
-                      <div className="w-48 p-2 text-sm text-gray-600 border-r pl-8">
-                        {deviceName}
+                  {/* Time header */}
+                  <div className="bg-gray-50 border-b flex">
+                    <div className="w-48 p-3 font-medium text-gray-900 border-r">
+                      {t('timePlanning.device')}
+                    </div>
+                    {timeSlots.map(slot => (
+                      <div key={slot.time} className="w-16 p-2 text-xs text-center text-gray-600 border-r">
+                        {slot.time}
                       </div>
-                      
-                      {/* Time slots */}
-                      <div className="flex-1 relative">
-                        {squadDeviceActivities.map((activity, index) => {
-                          const startPos = timeSlots.findIndex(slot => slot.time >= activity.startTime)
-                          const endPos = timeSlots.findIndex(slot => slot.time >= activity.endTime)
-                          const width = Math.max(1, endPos - startPos) * 64 // 64px per slot
-                          const left = startPos * 64
-                          
-                          return (
-                            <div
-                              key={index}
-                              className={`absolute top-1 h-6 rounded text-xs text-white flex items-center justify-center ${
-                                activity.isWarmup ? 'bg-yellow-500' : 'bg-blue-500'
-                              }`}
-                              style={{ left: `${left}px`, width: `${width}px` }}
-                              title={`${activity.competition} - ${activity.startTime} to ${activity.endTime}`}
-                            >
-                              {activity.isWarmup ? 'W' : 'E'}
-                            </div>
-                          )
+                    ))}
+                  </div>
+                  {/* Device rows */}
+                  {devices.map((deviceName) => {
+                    // All activities for this device in this session
+                    const deviceActivities = (activities as DeviceSchedule[]).filter((a: DeviceSchedule) => a.deviceName === deviceName);
+                    // For each time slot, find which squad (if any) is at this device
+                    return (
+                      <div key={String(deviceName)} className="flex border-b border-gray-100">
+                        <div className="w-48 p-2 text-sm border-r flex items-center">
+                          <span className={deviceActivities.some((a: DeviceSchedule) => a.isFirstDevice) ? 'font-bold text-green-700' : 'text-gray-700'}>
+                            {String(deviceName)}
+                          </span>
+                          {deviceActivities.some((a: DeviceSchedule) => a.isFirstDevice) && (
+                            <span title="First Device for a squad" className="ml-2 text-yellow-500">★</span>
+                          )}
+                        </div>
+                        {/* Time slots */}
+                        {timeSlots.map((slot, idx) => {
+                          // Find activity that covers this slot
+                          const activity = deviceActivities.find((a: DeviceSchedule) => a.startTime <= slot.time && a.endTime > slot.time);
+                          if (activity) {
+                            return (
+                              <div key={idx} className={`w-16 h-8 flex items-center justify-center border-r ${activity.isWarmup ? 'bg-yellow-200' : 'bg-blue-200'} text-xs font-medium`} title={`${activity.squadName} (${activity.competition})`}>
+                                {activity.squadName}
+                                {activity.isFirstDevice && <span className="ml-1 text-yellow-500">★</span>}
+                              </div>
+                            );
+                          }
+                          // If previous slot had an activity, show Wechsel
+                          const prevActivity = deviceActivities.find((a: DeviceSchedule) => a.endTime === slot.time);
+                          if (prevActivity) {
+                            return (
+                              <div key={idx} className="w-16 h-8 flex items-center justify-center border-r bg-rose-100 text-rose-700 text-xs italic" title="Wechsel">Wechsel</div>
+                            );
+                          }
+                          // Empty slot
+                          return <div key={idx} className="w-16 h-8 border-r" />;
                         })}
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!eventId) {

@@ -302,7 +302,20 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       distinct: ['var_riege', 'int_wettkaempfeid']
     });
 
-    // Group squads and calculate participant counts
+    // Get correct participant count per squad for the event (like Squad Management)
+    const squadCountsRaw = await prisma.$queryRawUnsafe(`
+      SELECT w.var_riege as squad_name, COUNT(DISTINCT w.int_teilnehmerid) as participant_count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege IS NOT NULL AND w.var_riege != ''
+      GROUP BY w.var_riege
+    `, eventIdNum);
+    const squadCountMap = new Map();
+    for (const row of squadCountsRaw as any[]) {
+      squadCountMap.set(row.squad_name, Number(row.participant_count));
+    }
+
+    // Build squads array for frontend (per squad, not per session)
     const squadMap = new Map();
     for (const squadData of squadsData) {
       const squadName = squadData.var_riege;
@@ -310,22 +323,14 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         squadMap.set(squadName, {
           name: squadName,
           competitions: new Set(),
-          participantCount: 0
+          participantCount: squadCountMap.get(squadName) || 0
         });
       }
-      
       const squad = squadMap.get(squadName);
-      squad.competitions.add(squadData.int_wettkaempfeid); // Store competition ID instead of name
-      squad.participantCount += 1;
+      squad.competitions.add(squadData.int_wettkaempfeid);
     }
-
-    // Convert to array format expected by frontend
     const squads = Array.from(squadMap.values()).map(squad => {
-      // Get competition objects for this squad
-      const squadCompetitions = competitions.filter(comp => 
-        squad.competitions.has(comp.id)
-      );
-      // Send only competition names (strings) for frontend compatibility
+      const squadCompetitions = competitions.filter(comp => squad.competitions.has(comp.id));
       return {
         name: squad.name,
         participantCount: squad.participantCount,
