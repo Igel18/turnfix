@@ -13,6 +13,7 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
   return { handleDragStart, handleDragOver, handleDrop };
 }
 import { useTranslation } from 'react-i18next'
+import TimePlanningRotation from './TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
   ClockIcon,
@@ -104,7 +105,7 @@ export default function TimePlanning() {
   const [extraRounds, setExtraRounds] = useState<number[]>([])
   const [deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([])
   const [selectedSession, setSelectedSession] = useState<number | null>(null)
-  const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline'>('sessions')
+  const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline' | 'rotation'>('sessions')
   const [showTimeSettings, setShowTimeSettings] = useState(false)
 
   // Gantt chart time range
@@ -881,6 +882,16 @@ export default function TimePlanning() {
               >
                 {t('timePlanning.viewMode.gantt')}
               </button>
+              <button
+                onClick={() => setViewMode('rotation')}
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  viewMode === 'rotation'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {t('timePlanning.viewMode.rotation') || 'Rotation'}
+              </button>
             </div>
 
             {/* Action Buttons */}
@@ -944,6 +955,11 @@ export default function TimePlanning() {
                 <div className="mt-4 text-sm text-gray-500">
                   <p>Loaded: {competitions.length} competitions, {squads.length} squads</p>
                 </div>
+              </div>
+            )}
+            {viewMode === 'rotation' && (
+              <div className="bg-white border rounded-lg p-6">
+                <TimePlanningRotation />
               </div>
             )}
           </>

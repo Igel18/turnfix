@@ -348,6 +348,22 @@ Do you have further ideas for the time planning.
 at the db table tfx_riegen_x_disziplinen there are columns that have effect to the timetable eg int_runde bol_erstes_geraet which difines the first device. perhaps the table tfx_startreihenfolge helps to define the devices and the times for it. 
 ---
 
+The current implementation schedules each squad to visit all devices for each competition, but it does not rotate squads across devices in parallel as in your example. Instead, it schedules the same squad repeatedly on the same device for consecutive time slots, which is not correct for a typical gymnastics rotation.
+
+In your example, each squad (e.g., RiegeRot, RiegeGelb, RiegeBlau) starts at a different device and then rotates to the next device after each interval, so that all squads visit all devices, but never at the same device at the same time.
+
+What's wrong in the code:
+
+The code currently loops over all devices for each squad, scheduling them sequentially on each device, but does not coordinate the rotation so that squads move in parallel and do not overlap on the same device.
+There is no logic to assign starting devices for each squad and then rotate them through the device list in a round-robin fashion.
+What should happen:
+
+Each squad should start at a different device (e.g., Squad 1 at Device 1, Squad 2 at Device 2, Squad 3 at Device 3).
+After each interval, all squads rotate to the next device (e.g., Squad 1 moves to Device 2, Squad 2 to Device 3, Squad 3 to Device 1).
+This continues until all squads have visited all devices.
+
+
+--
 Hard coded in events.ts
       // For each competition, try to link appropriate disciplines
       for (const competition of (eventCompetitions as any[])) {
