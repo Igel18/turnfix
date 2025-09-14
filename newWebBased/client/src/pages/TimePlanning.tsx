@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 // Drag & drop helpers
 function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) => void }) {
   const [draggedComp, setDraggedComp] = useState<number | null>(null);
@@ -97,6 +97,8 @@ export default function TimePlanning() {
   const [squads, setSquads] = useState<Squad[]>([])
   const [squadDisciplines, setSquadDisciplines] = useState<any[]>([])
   const [timeSettings, setTimeSettings] = useState<TimeSettings>(DEFAULT_TIME_SETTINGS)
+  // Cache for competitionId -> disciplines
+  const disciplineCache = useRef<{ [competitionId: number]: any[] }>({});
   const [sessionGroups, setSessionGroups] = useState<SessionGroup[]>([])
   // Track extra empty rounds added by the user
   const [extraRounds, setExtraRounds] = useState<number[]>([])
@@ -136,6 +138,18 @@ export default function TimePlanning() {
   setCompetitions(loadedCompetitions)
   setSquads(loadedSquads)
   setSquadDisciplines(loadedSquadDisciplines)
+
+  // Preload discipline lists for all competitions (for fallback)
+  for (const comp of loadedCompetitions) {
+    if (!disciplineCache.current[comp.id]) {
+      try {
+        const disciplines = await apiGet(`/competitions/${comp.id}/disciplines`);
+        disciplineCache.current[comp.id] = Array.isArray(disciplines) ? disciplines : (disciplines.disciplines || []);
+      } catch (e) {
+        // ignore error, fallback will be generic
+      }
+    }
+  }
 
       // Remove extraRounds that now exist in backend data
       const backendRounds = new Set(loadedCompetitions.map((c: Competition) => c.round))
@@ -245,6 +259,7 @@ export default function TimePlanning() {
     return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
   }
 
+
   const calculateDeviceSchedule = (sessionGroup: SessionGroup): DeviceSchedule[] => {
     const schedule: DeviceSchedule[] = [];
     if (!sessionGroup.startTime) return schedule;
@@ -257,17 +272,45 @@ export default function TimePlanning() {
       const compStartTime = competition.startTime || sessionGroup.startTime!;
       const compWarmupTime = competition.warmupTime;
 
-      // Get discipline objects for this competition from squadDisciplines
-      const disciplineObjs = squadDisciplines
-        .filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === competition.id)
-        .map(sd => ({
+      // Try squadDisciplines first, then fallback to disciplineCache, then generic
+      let disciplineObjs: { name: string, isFirst: boolean, order: number }[] = [];
+      let debugSource = '';
+      const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === competition.id);
+      if (filtered.length > 0) {
+        disciplineObjs = filtered.map(sd => ({
           name: sd.tfx_disziplinen.var_name,
-          isFirst: !!sd.bol_erstes_geraet
-        }));
-      // Fallback to generic if none found
-      const deviceObjs = disciplineObjs.length > 0
-        ? disciplineObjs
-        : Array.from({ length: competition.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}`, isFirst: false }));
+          isFirst: !!sd.bol_erstes_geraet,
+          order: typeof sd.tfx_disziplinen.var_reihenfolge === 'number' ? sd.tfx_disziplinen.var_reihenfolge : 9999
+        }))
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        debugSource = 'squadDisciplines';
+      } else if (disciplineCache.current[competition.id] && disciplineCache.current[competition.id].length > 0) {
+        // Use disciplineCache fallback (from /competitions/:id/disciplines)
+        if (typeof window !== 'undefined' && (window as any).DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log(`[TimePlanning][DEBUG] Full disciplineCache for competition ${competition.id} (${competition.name}):`, disciplineCache.current[competition.id]);
+          // Print the first discipline object in detail for inspection
+          if (disciplineCache.current[competition.id][0]) {
+            // eslint-disable-next-line no-console
+            console.log(`[TimePlanning][DEBUG] First discipline object for competition ${competition.id}:`, disciplineCache.current[competition.id][0]);
+          }
+        }
+        disciplineObjs = disciplineCache.current[competition.id].map((d: any, idx: number) => ({
+          name: d.var_name || d.var_disziplinname || d.name || `Device ${idx + 1}`,
+          isFirst: idx === 0, // Mark first as first device (if info missing)
+          order: typeof d.var_reihenfolge === 'number' ? d.var_reihenfolge : idx + 1
+        }))
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        debugSource = 'disciplineCache';
+      } else {
+        // Fallback to generic if none found
+        disciplineObjs = Array.from({ length: competition.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}`, isFirst: false, order: i + 1 }));
+        debugSource = 'generic';
+      }
+      if (typeof window !== 'undefined' && (window as any).DEBUG) {
+        // eslint-disable-next-line no-console
+        console.log(`[TimePlanning] Competition ${competition.id} (${competition.name}) devices from ${debugSource}:`, disciplineObjs.map(d => d.name));
+      }
 
       sessionGroup.squads.forEach(squad => {
         if (!squad.competitions.includes(competition.name)) return;
@@ -291,8 +334,8 @@ export default function TimePlanning() {
         }
 
         // Schedule each device rotation, enforcing exclusivity
-        for (let i = 0; i < deviceObjs.length; i++) {
-          const device = deviceObjs[i];
+        for (let i = 0; i < disciplineObjs.length; i++) {
+          const device = disciplineObjs[i];
           const startTime = currentTime;
           // Calculate duration: participantCount * exerciseDurationMinutes
           const squadDuration = (squad.participantCount || 1) * timeSettings.exerciseDurationMinutes;
@@ -726,7 +769,7 @@ export default function TimePlanning() {
                   {/* Time header */}
                   <div className="bg-gray-50 border-b flex">
                     <div className="w-48 p-3 font-medium text-gray-900 border-r">
-                      {t('timePlanning.device')}
+                      {t('timePlanning.device', 'Gerät')}
                     </div>
                     {timeSlots.map(slot => (
                       <div key={slot.time} className="w-16 p-2 text-xs text-center text-gray-600 border-r">
