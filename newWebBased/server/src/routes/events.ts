@@ -1,3 +1,30 @@
+import type { PrismaClient as PrismaClientType } from '@prisma/client';
+/**
+ * Generalized discipline selection for a competition name using DB values.
+ * @param {string} competitionName
+ * @param {PrismaClient} prisma
+ * @returns {Promise<string[]>}
+ */
+export async function getDisciplinesForCompetition(competitionName: string, prisma: PrismaClientType): Promise<string[]> {
+  const name = competitionName.toLowerCase();
+  // Query all discipline names from DB
+  const allDisciplines = await prisma.tfx_disziplinen.findMany({ select: { var_name: true } });
+  const disciplineNames = allDisciplines.map(d => d.var_name);
+
+  if (name.includes('vierkampf') && name.includes('w')) {
+    // Women's all-around: Boden, Sprung, Stufenbarren, Schwebebalken
+    return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'].filter(d => disciplineNames.includes(d));
+  } else if (name.includes('sechskampf') && name.includes('m')) {
+    // Men's all-around: Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck
+    return ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'].filter(d => disciplineNames.includes(d));
+  } else if (name.includes('geräte')) {
+    // Generic apparatus: all common disciplines
+    return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'].filter(d => disciplineNames.includes(d));
+  } else {
+    // Default: Boden, Sprung
+    return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
+  }
+}
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
@@ -1169,20 +1196,124 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
               // Extract clubs and continue processing for participants
               extractClubs(value, currentPath);
               value.forEach((team: any, index: number) => {
+                // Extract club name from team/Mannschaft and pass it to participants
+                let teamClubName = null;
+                if (team.verKurzname) teamClubName = team.verKurzname;
+                else if (team.verName) teamClubName = team.verName;
+                else if (team.var_name) teamClubName = team.var_name;
+                
+                // Process Teilnehmer within this Mannschaft and assign club
+                if (team.Teilnehmer) {
+                  const teilnehmerData = team.Teilnehmer;
+                  if (teilnehmerData.TN) {
+                    const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                    participants.forEach((participant: any) => {
+                      // Assign club from Mannschaft level
+                      if (teamClubName && !participant.club) {
+                        participant.club = teamClubName;
+                      }
+                      if (currentCompetitionContext) {
+                        participant.competitionNumber = currentCompetitionContext.waNr;
+                        participant.competitionID = currentCompetitionContext.waID;
+                        participant._competitionContext = currentCompetitionContext;
+                        console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                      }
+                      extractParticipants([participant], currentPath);
+                    });
+                  }
+                }
                 processNode(team, `${currentPath}[${index}]`, currentCompetitionContext);
               });
             } else if (value && typeof value === 'object' && value.Mannschaft) {
               if (Array.isArray(value.Mannschaft)) {
                 extractClubs(value.Mannschaft, `${currentPath}.Mannschaft`);
                 value.Mannschaft.forEach((team: any, index: number) => {
+                  // Extract club name from team/Mannschaft and pass it to participants
+                  let teamClubName = null;
+                  if (team.verKurzname) teamClubName = team.verKurzname;
+                  else if (team.verName) teamClubName = team.verName;
+                  else if (team.var_name) teamClubName = team.var_name;
+                  
+                  // Process Teilnehmer within this Mannschaft and assign club
+                  if (team.Teilnehmer) {
+                    const teilnehmerData = team.Teilnehmer;
+                    if (teilnehmerData.TN) {
+                      const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                      participants.forEach((participant: any) => {
+                        // Assign club from Mannschaft level
+                        if (teamClubName && !participant.club) {
+                          participant.club = teamClubName;
+                        }
+                        if (currentCompetitionContext) {
+                          participant.competitionNumber = currentCompetitionContext.waNr;
+                          participant.competitionID = currentCompetitionContext.waID;
+                          participant._competitionContext = currentCompetitionContext;
+                          console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                        }
+                        extractParticipants([participant], currentPath);
+                      });
+                    }
+                  }
                   processNode(team, `${currentPath}.Mannschaft[${index}]`, currentCompetitionContext);
                 });
               } else {
                 extractClubs([value.Mannschaft], `${currentPath}.Mannschaft`);
+                // Extract club name from team/Mannschaft and pass it to participants
+                let teamClubName = null;
+                if (value.Mannschaft.verKurzname) teamClubName = value.Mannschaft.verKurzname;
+                else if (value.Mannschaft.verName) teamClubName = value.Mannschaft.verName;
+                else if (value.Mannschaft.var_name) teamClubName = value.Mannschaft.var_name;
+                
+                // Process Teilnehmer within this Mannschaft and assign club
+                if (value.Mannschaft.Teilnehmer) {
+                  const teilnehmerData = value.Mannschaft.Teilnehmer;
+                  if (teilnehmerData.TN) {
+                    const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                    participants.forEach((participant: any) => {
+                      // Assign club from Mannschaft level
+                      if (teamClubName && !participant.club) {
+                        participant.club = teamClubName;
+                      }
+                      if (currentCompetitionContext) {
+                        participant.competitionNumber = currentCompetitionContext.waNr;
+                        participant.competitionID = currentCompetitionContext.waID;
+                        participant._competitionContext = currentCompetitionContext;
+                        console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                      }
+                      extractParticipants([participant], currentPath);
+                    });
+                  }
+                }
                 processNode(value.Mannschaft, `${currentPath}.Mannschaft`, currentCompetitionContext);
               }
             } else {
               extractClubs([value], currentPath);
+              // Extract club name from team/Mannschaft and pass it to participants
+              let teamClubName = null;
+              if (value.verKurzname) teamClubName = value.verKurzname;
+              else if (value.verName) teamClubName = value.verName;
+              else if (value.var_name) teamClubName = value.var_name;
+              
+              // Process Teilnehmer within this Mannschaft and assign club
+              if (value.Teilnehmer) {
+                const teilnehmerData = value.Teilnehmer;
+                if (teilnehmerData.TN) {
+                  const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                  participants.forEach((participant: any) => {
+                    // Assign club from Mannschaft level
+                    if (teamClubName && !participant.club) {
+                      participant.club = teamClubName;
+                    }
+                    if (currentCompetitionContext) {
+                      participant.competitionNumber = currentCompetitionContext.waNr;
+                      participant.competitionID = currentCompetitionContext.waID;
+                      participant._competitionContext = currentCompetitionContext;
+                      console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                    }
+                    extractParticipants([participant], currentPath);
+                  });
+                }
+              }
               processNode(value, currentPath, currentCompetitionContext);
             }
           }
@@ -1650,6 +1781,13 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           insertionResults.participants.updated++;
           console.log(`  ✅ Updated participant: ${firstName} ${lastName} ${clubInfo}${birthDateInfo}`);
         } else {
+          // Insert new participant - clubId is required (NOT NULL constraint)
+          if (!clubId) {
+            console.log(`  ⚠️ Skipping participant ${firstName} ${lastName}: No valid club ID (club: ${participant.club})`);
+            insertionResults.participants.errors++;
+            continue;
+          }
+          
           // Insert new participant (int_geschlecht is required)
           if (birthDate) {
             await prisma.$queryRawUnsafe(`
@@ -1891,72 +2029,33 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
 
       console.log(`  📊 Found ${(eventCompetitions as any[]).length} competitions for this event`);
 
-      // Define common gymnastics disciplines that should be linked to competitions
-      const commonDisciplines = [
-        { name: 'Boden', searchTerms: ['boden', 'floor', 'fx'] },
-        { name: 'Sprung', searchTerms: ['sprung', 'vault', 'vt'] },
-        { name: 'Stufenbarren', searchTerms: ['stufenbarren', 'barren', 'uneven', 'ub'] },
-        { name: 'Schwebebalken', searchTerms: ['schwebebalken', 'balken', 'beam', 'bb'] },
-        { name: 'Reck', searchTerms: ['reck', 'high bar', 'hb'] },
-        { name: 'Pauschenpferd', searchTerms: ['pauschenpferd', 'pommel', 'ph'] },
-        { name: 'Ringe', searchTerms: ['ringe', 'rings', 'sr'] },
-        { name: 'Barren', searchTerms: ['barren', 'parallel', 'pb'] }
-      ];
-
       let linkedCount = 0;
       
-      // For each competition, try to link appropriate disciplines
+
+      // For each competition, link disciplines using the generalized function
       for (const competition of (eventCompetitions as any[])) {
-        const competitionName = competition.var_name.toLowerCase();
-        
+        const disciplinesToLink = await getDisciplinesForCompetition(competition.var_name, prisma);
         console.log(`  🔍 Processing competition: "${competition.var_name}"`);
-        
-        // Determine which disciplines to link based on competition name
-        let disciplinesToLink: string[] = [];
-        
-        if (competitionName.includes('vierkampf') && competitionName.includes('w')) {
-          // Women's all-around (4 events)
-          disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'];
-        } else if (competitionName.includes('sechskampf') && competitionName.includes('m')) {
-          // Men's all-around (6 events)
-          disciplinesToLink = ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'];
-        } else if (competitionName.includes('geräte')) {
-          // Generic apparatus competition - link common disciplines
-          disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
-        } else {
-          // For other competitions, link basic disciplines
-          disciplinesToLink = ['Boden', 'Sprung'];
-        }
-        
         console.log(`    📝 Will attempt to link disciplines: ${disciplinesToLink.join(', ')}`);
-        
-        // Link each discipline to this competition
         for (const disciplineName of disciplinesToLink) {
           try {
-            // Find the discipline in the database
             const existingDiscipline = await prisma.$queryRawUnsafe(`
               SELECT int_disziplinenid FROM tfx_disziplinen 
               WHERE LOWER(var_name) = LOWER($1)
               LIMIT 1
             `, disciplineName);
-
             if ((existingDiscipline as any[]).length > 0) {
               const disciplineId = (existingDiscipline as any[])[0].int_disziplinenid;
-              
-              // Check if this competition-discipline link already exists
               const existingLink = await prisma.$queryRawUnsafe(`
                 SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
                 WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
                 LIMIT 1
               `, competition.int_wettkaempfeid, disciplineId);
-
               if ((existingLink as any[]).length === 0) {
-                // Create the competition-discipline link
                 await prisma.$queryRawUnsafe(`
                   INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
                   VALUES ($1, $2, $3)
                 `, competition.int_wettkaempfeid, disciplineId, linkedCount + 1);
-                
                 console.log(`    🔗 Linked discipline "${disciplineName}" to competition "${competition.var_name}"`);
                 linkedCount++;
                 insertionResults.devices.updated++;
@@ -1973,6 +2072,7 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           }
         }
       }
+
       
       console.log(`  🎯 Discipline linking complete: ${linkedCount} new links created`);
     } else {

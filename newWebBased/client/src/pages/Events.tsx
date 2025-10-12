@@ -289,6 +289,7 @@ const Events: React.FC = () => {
     setImportFile(null)
     setImportProgress(null)
     setIsImportModalOpen(true)
+    fetchVenues() // Load venues for location dropdown
   }
 
   const handleImportFile = async () => {
@@ -777,13 +778,19 @@ const Events: React.FC = () => {
                       <label className="block text-xs font-medium text-blue-800 mb-1">
                         Location
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={importEventData.location}
                         onChange={(e) => setImportEventData({...importEventData, location: e.target.value})}
-                        placeholder="e.g., Sports Hall Munich"
                         className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
+                      >
+                        <option value="">Select a location...</option>
+                        {venues.map((venue) => (
+                          <option key={venue.int_wettkampforteid} value={venue.var_name}>
+                            {venue.var_name}
+                            {venue.var_ort && ` (${venue.var_ort})`}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-blue-800 mb-1">

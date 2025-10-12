@@ -364,6 +364,10 @@ This continues until all squads have visited all devices.
 
 In competition management in edit competition a field "🏃 Bahn *" is available. Now it must be possible to add a new Bahn and move the squads from one to another bahn by dragNdrop. Compare the Durchgänge UI for that. 
 
+in the whole code of newWebBased look for hard coded implementations. These must be generalized in best case with database values. be sure there is a unit test for the method. If not implement a UnitTest first and then change the code. 
+
+console.log -> only if logging is enabled
+
 --
 Hard coded in events.ts
       // For each competition, try to link appropriate disciplines

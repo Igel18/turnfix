@@ -961,7 +961,20 @@ export default function TimePlanning() {
               <div className="bg-white border rounded-lg p-6">
                 {/* Use first session group for devices, all squads for squads */}
                 <TimePlanningRotation
-                  squads={squads.map(s => ({ name: s.name, participantCount: s.participantCount }))}
+                  eventId={eventId}
+                  squads={squads.map(s => {
+                    let competitionId = -1;
+                    if (Array.isArray(s.competitions) && s.competitions.length > 0) {
+                      // Try to find the competition by name in the competitions array
+                      const compObj = competitions.find(c => c.name === s.competitions[0]);
+                      if (compObj) competitionId = compObj.id;
+                    }
+                    return {
+                      name: s.name,
+                      participantCount: s.participantCount,
+                      competitionId
+                    };
+                  })}
                   devices={(() => {
                     // Try to get devices from the first session's competitions/discipline logic
                     if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
@@ -980,6 +993,7 @@ export default function TimePlanning() {
                     }
                     return [];
                   })()}
+                  competitions={competitions}
                 />
               </div>
             )}

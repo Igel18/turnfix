@@ -2,6 +2,7 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+import { getMedalTypeValues } from '../utils/configurationHelpers';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -14,7 +15,7 @@ const createMedalSchema = z.object({
   participantId: z.number().optional(),
   teamId: z.number().optional(),
   eventId: z.number().optional(),
-  medalType: z.enum(['gold', 'silver', 'bronze']).optional()
+  medalType: z.enum(getMedalTypeValues() as [string, ...string[]]).optional()
 });
 
 // Get all medals - ultra simplified

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { getCompetitionStatusValues } from '../utils/configurationHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -10,7 +11,7 @@ const prisma = new PrismaClient();
 const createCompetitionEntrySchema = z.object({
   competitionId: z.number().int().positive(),
   participantId: z.number().int().positive(),
-  status: z.enum(['REGISTERED', 'CONFIRMED', 'CANCELLED', 'NO_SHOW']).default('REGISTERED')
+  status: z.enum(getCompetitionStatusValues() as [string, ...string[]]).default('REGISTERED')
 });
 
 const updateCompetitionEntrySchema = createCompetitionEntrySchema.partial();

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+import { getCompetitionGenderValues } from '../utils/configurationHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -12,7 +13,7 @@ const createCompetitionSchema = z.object({
   name: z.string().min(1, 'Competition name is required'),
   description: z.string().optional(),
   location: z.string().optional(), // Location is optional since it comes from event
-  gender: z.enum(['männlich', 'weiblich', 'gemischt']),
+  gender: z.enum(getCompetitionGenderValues() as [string, ...string[]]),
   ageFrom: z.number().min(5).max(99),
   ageTo: z.number().min(5).max(99),
   disciplines: z.array(z.object({

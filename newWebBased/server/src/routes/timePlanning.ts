@@ -2,9 +2,60 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 
+import { z } from 'zod';
+
 
 const router = Router();
 const prisma = new PrismaClient();
+
+
+// --- Bahn (Lane) Management via Competitions ---
+
+// Get all Bahnen (lanes) for an event (distinct int_bahn values in tfx_wettkaempfe)
+router.get('/bahnen', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { eventId } = req.query;
+    if (!eventId) {
+      return res.status(400).json({ error: 'Event ID is required' });
+    }
+    // Get all competitions for the event and group by int_bahn
+    const competitions = await prisma.tfx_wettkaempfe.findMany({
+      where: { int_veranstaltungenid: Number(eventId) },
+      select: { int_bahn: true },
+      orderBy: { int_bahn: 'asc' }
+    });
+    // Get unique, sorted Bahn numbers
+    const bahnen = Array.from(new Set(competitions.map(c => c.int_bahn).filter(b => b != null))).sort((a, b) => (a ?? 0) - (b ?? 0));
+    res.json({ bahnen });
+  } catch (error) {
+    console.error('Error fetching Bahnen:', error);
+    res.status(500).json({ error: 'Failed to fetch Bahnen' });
+  }
+});
+
+// Update a competition's Bahn (lane)
+router.put('/competition/:competitionId/bahn', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const competitionId = Number(req.params.competitionId);
+    const schema = z.object({
+      bahn: z.number().min(1)
+    });
+    const { bahn } = schema.parse(req.body);
+    const updated = await prisma.tfx_wettkaempfe.update({
+      where: { int_wettkaempfeid: competitionId },
+      data: { int_bahn: bahn }
+    });
+    res.json({ competition: updated });
+  } catch (error) {
+    console.error('Error updating competition Bahn:', error);
+    res.status(500).json({ error: 'Failed to update competition Bahn' });
+  }
+});
+
+
+// --- Squad-to-Bahn Assignment (by updating competition's int_bahn) ---
+// To assign a squad to a Bahn, update the int_bahn field of the relevant competition (tfx_wettkaempfe)
+// Use the /competition/:competitionId/bahn endpoint above for this purpose.
 
 // Create a new round (Durchgang) for the event
 router.post('/round', authenticateToken, async (req: AuthRequest, res) => {

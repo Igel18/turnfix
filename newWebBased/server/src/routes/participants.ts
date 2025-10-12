@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { PrismaClient } from '@prisma/client';
+import { getParticipantGenderValues } from '../utils/configurationHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -22,7 +23,7 @@ const participantUpdateSchema = participantCreateSchema.partial();
 const participantQuerySchema = z.object({
   search: z.string().optional(),
   clubId: z.string().transform(Number).optional(),
-  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+  gender: z.enum(getParticipantGenderValues() as [string, ...string[]]).optional(),
   limit: z.string().transform(Number).default(50),
   offset: z.string().transform(Number).default(0)
 });

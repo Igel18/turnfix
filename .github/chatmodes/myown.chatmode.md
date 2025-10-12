@@ -143,6 +143,8 @@ Competition
     XML: <perGeschlecht>1</perGeschlecht> -> TurnFix male
     XML: <perGeschlecht>2</perGeschlecht> -> TurnFix female
 
+    some devices can have both male and female participants. This is a configurable in the UI. 
+
 do not use hardcoded values in the code. Use the database values. If this is not possible, use a section in configuration file this is editable in the UI configuration page.
 
 # Terminal
