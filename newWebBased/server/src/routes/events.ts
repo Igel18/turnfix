@@ -499,14 +499,14 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
     const eventName = req.body.eventName;
     const startDate = req.body.startDate;
     const endDate = req.body.endDate;
-    const location = req.body.location;
+    const locationId = req.body.locationId; // Now expecting the venue ID instead of name
     const description = req.body.description;
 
     console.log('📅 Event Information:');
     console.log('  - Name:', eventName);
     console.log('  - Start Date:', startDate);
     console.log('  - End Date:', endDate);
-    console.log('  - Location:', location);
+    console.log('  - Location ID:', locationId);
     console.log('  - Description:', description);
 
     // Validate required event name
@@ -1489,13 +1489,36 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
     let createdEvent = null;
     let eventCreationError = null;
     
+    // Fetch venue details if locationId is provided
+    let venue = null;
+    let venueIdToUse = 1; // Default venue ID
+    let venueNameToUse = ''; // Default empty venue name
+    
+    if (locationId) {
+      try {
+        venue = await prisma.tfx_wettkampforte.findUnique({
+          where: { int_wettkampforteid: parseInt(locationId) }
+        });
+        if (venue) {
+          venueIdToUse = venue.int_wettkampforteid;
+          venueNameToUse = venue.var_name || '';
+          console.log(`🏢 Found venue: ${venue.var_name} (ID: ${venue.int_wettkampforteid})`);
+        } else {
+          console.log(`⚠️ Venue with ID ${locationId} not found, using default`);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching venue:', error);
+      }
+    }
+    
     try {
       console.log('🎪 Creating Event in Database...');
       console.log('Event details to insert:');
       console.log(`  - Name: "${eventName.trim()}"`);
       console.log(`  - Start Date: ${parsedStartDate}`);
       console.log(`  - End Date: ${parsedEndDate}`);
-      console.log(`  - Location: "${location?.trim() || ''}"`);
+      console.log(`  - Location ID: ${venueIdToUse}`);
+      console.log(`  - Location Name: "${venueNameToUse}"`);
       
       // Use raw SQL to insert into tfx_veranstaltungen with ALL required fields including missing ones
       const insertQuery = `
@@ -1537,8 +1560,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         eventName.trim(),                // $1: var_name
         parsedStartDate,                 // $2: dat_von  
         parsedEndDate,                   // $3: dat_bis
-        location?.trim() || '',          // $4: var_veranstalter
-        1,                               // $5: int_wettkampforteid - Default wettkampforteid
+        venueNameToUse,                  // $4: var_veranstalter - venue name
+        venueIdToUse,                    // $5: int_wettkampforteid - venue ID
         1,                               // $6: int_meldung_an - Default to 1 (assuming contact person ID)
         1,                               // $7: int_ansprechpartner - Default to 1 (assuming contact person ID)
         1,                               // $8: int_kontenid - Default to 1 (assuming account ID)
@@ -1578,8 +1601,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       console.error(`    * Name: "${eventName.trim()}"`);
       console.error(`    * Start Date: ${parsedStartDate}`);
       console.error(`    * End Date: ${parsedEndDate}`);
-      console.error(`    * Location: "${location?.trim() || ''}"`);
-      console.error(`    * Wettkampforteid: 1`);
+      console.error(`    * Location ID: ${venueIdToUse}`);
+      console.error(`    * Location Name: "${venueNameToUse}"`);
       console.error(`    * All other fields: defaults (int_runde=1, booleans=false, numbers=0, strings='')`);
       
       eventCreationError = eventError;
@@ -2098,7 +2121,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         name: createdEvent.var_name,
         startDate: parsedStartDate,
         endDate: parsedEndDate,
-        location: location?.trim() || null,
+        locationId: venueIdToUse,
+        locationName: venueNameToUse,
         description: description?.trim() || null
       } : null,
       eventCreationError: eventCreationError ? {

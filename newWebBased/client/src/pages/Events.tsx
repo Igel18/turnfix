@@ -55,7 +55,7 @@ const Events: React.FC = () => {
     eventName: '',
     startDate: '',
     endDate: '',
-    location: '',
+    locationId: '',  // Changed from 'location' to 'locationId' to store the venue ID
     description: ''
   })
   
@@ -311,7 +311,7 @@ const Events: React.FC = () => {
       formData.append('eventName', importEventData.eventName.trim())
       if (importEventData.startDate) formData.append('startDate', importEventData.startDate)
       if (importEventData.endDate) formData.append('endDate', importEventData.endDate)
-      if (importEventData.location) formData.append('location', importEventData.location.trim())
+      if (importEventData.locationId) formData.append('locationId', importEventData.locationId)
       if (importEventData.description) formData.append('description', importEventData.description.trim())
       
       setImportProgress({ step: 'Uploading and processing...', progress: 30 })
@@ -397,7 +397,7 @@ const Events: React.FC = () => {
             eventName: '',
             startDate: '',
             endDate: '',
-            location: '',
+            locationId: '',
             description: ''
           })
           fetchEvents() // Reload events
@@ -712,13 +712,13 @@ const Events: React.FC = () => {
           <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Import Event from DTB Gymnet
+                {t('events.import.title')}
               </h2>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Gymnet XML File
+                    {t('events.import.selectFile')}
                   </label>
                   <input
                     type="file"
@@ -727,25 +727,22 @@ const Events: React.FC = () => {
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Select a DTB Gymnet XML export file to import event data, competitions, disciplines, and participants.
+                    {t('events.import.fileHint')}
                   </p>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-blue-800 mb-3">Event Information</h4>
-                  <p className="text-xs text-blue-700 mb-3">
-                    Since GymNet XML files don't contain overall event information, please provide the event details:
-                  </p>
+                  <h4 className="text-sm font-medium text-blue-800 mb-3">{t('events.import.eventInfo')}</h4>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-blue-800 mb-1">
-                        Event Name *
+                        {t('events.import.eventName')} *
                       </label>
                       <input
                         type="text"
                         value={importEventData.eventName}
                         onChange={(e) => setImportEventData({...importEventData, eventName: e.target.value})}
-                        placeholder="e.g., District Championships 2024"
+                        placeholder={t('events.import.eventNamePlaceholder')}
                         className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
                       />
@@ -753,7 +750,7 @@ const Events: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-blue-800 mb-1">
-                          Start Date
+                          {t('events.import.startDate')}
                         </label>
                         <input
                           type="date"
@@ -764,7 +761,7 @@ const Events: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-blue-800 mb-1">
-                          End Date
+                          {t('events.import.endDate')}
                         </label>
                         <input
                           type="date"
@@ -776,16 +773,16 @@ const Events: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-blue-800 mb-1">
-                        Location
+                        {t('events.import.location')}
                       </label>
                       <select
-                        value={importEventData.location}
-                        onChange={(e) => setImportEventData({...importEventData, location: e.target.value})}
+                        value={importEventData.locationId}
+                        onChange={(e) => setImportEventData({...importEventData, locationId: e.target.value})}
                         className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select a location...</option>
+                        <option value="">{t('events.import.locationPlaceholder')}</option>
                         {venues.map((venue) => (
-                          <option key={venue.int_wettkampforteid} value={venue.var_name}>
+                          <option key={venue.int_wettkampforteid} value={venue.int_wettkampforteid}>
                             {venue.var_name}
                             {venue.var_ort && ` (${venue.var_ort})`}
                           </option>
@@ -794,12 +791,12 @@ const Events: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-blue-800 mb-1">
-                        Description
+                        {t('events.import.description')}
                       </label>
                       <textarea
                         value={importEventData.description}
                         onChange={(e) => setImportEventData({...importEventData, description: e.target.value})}
-                        placeholder="Optional additional information about the event"
+                        placeholder={t('events.import.descriptionPlaceholder')}
                         rows={2}
                         className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
@@ -845,14 +842,14 @@ const Events: React.FC = () => {
                         eventName: '',
                         startDate: '',
                         endDate: '',
-                        location: '',
+                        locationId: '',
                         description: ''
                       })
                     }}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                     disabled={importProgress !== null}
                   >
-                    Cancel
+                    {t('events.import.cancel')}
                   </button>
                   <button
                     type="button"
@@ -860,7 +857,7 @@ const Events: React.FC = () => {
                     disabled={!importFile || !importEventData.eventName.trim() || importProgress !== null}
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    {importProgress ? 'Importing...' : 'Import Event'}
+                    {importProgress ? t('events.import.importing') : t('events.import.import')}
                   </button>
                 </div>
               </div>

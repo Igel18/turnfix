@@ -470,6 +470,25 @@
       "csv": "Als CSV exportieren",
       "filename": "veranstaltungen"
     },
+    "import": {
+      "title": "Veranstaltung aus DTB Gymnet importieren",
+      "selectFile": "Gymnet XML-Datei auswählen",
+      "fileHint": "Wählen Sie eine DTB Gymnet XML-Exportdatei aus, um Veranstaltungsdaten, Wettkämpfe, Disziplinen und Teilnehmer zu importieren.",
+      "eventInfo": "Veranstaltungsinformationen",
+      "eventName": "Veranstaltungsname",
+      "eventNamePlaceholder": "Name der Veranstaltung eingeben",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "location": "Austragungsort",
+      "locationPlaceholder": "Einen Austragungsort auswählen...",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung",
+      "cancel": "Abbrechen",
+      "import": "Importieren",
+      "importing": "Importiere...",
+      "selectXmlFirst": "Bitte wählen Sie zuerst eine XML-Datei aus",
+      "eventNameRequired": "Veranstaltungsname ist erforderlich"
+    },
     "organizerInfo": "Veranstalterinformationen",
     "competitions": "Wettkämpfe",
     "groups": "Riegen"
