@@ -1247,6 +1247,7 @@
     "filters": {
       "gender": "Geschlecht",
       "competition": "Wettkampf",
+      "club": "Verein",
       "male": "Männlich",
       "female": "Weiblich"
     },

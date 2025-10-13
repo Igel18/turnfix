@@ -3,8 +3,8 @@
 2. ~~in der Ansicht "Event Participants" ist nich lokalisiert~~ ✅
 3. ~~in der Ansicht "Event Participants" funktioniert der Filter mit den AgeGroups nicht. ich denke es ist ausreichend nach Age zu filtern.~~ ✅
 4. ~~die Ansicht "Manage Squads" ist nicht lokalisiert~~ ✅
-5. in der Ansicht "Manage Squads" benötige ich eine neue FUnktion: Bei Auswahl eines Wettkampfes in den Riegen Details (rechte Spalte) "assigned Competitions" sollen alle Teilnehmer von diesem Wettkampf gehighlightet werden.  
-6. in der Ansicht "Manage Squads" kann man aktuell nicht nach Vereinen Filtern. 
+5. ~~in der Ansicht "Manage Squads" benötige ich eine neue FUnktion: Bei Auswahl eines Wettkampfes in den Riegen Details (rechte Spalte) "assigned Competitions" sollen alle Teilnehmer von diesem Wettkampf gehighlightet werden.~~ ✅
+6. ~~in der Ansicht "Manage Squads" kann man aktuell nicht nach Vereinen Filtern.~~ ✅
 7. Lokalisierung der aller UIs im Veranstaltungsaufbau die noch nicht lokalisiert sind. 
 8. In der View http://localhost:5173/certificate-layouts beim Editieren eines Layouts sind die DB Felder durch nummeriert. Es ist nicht klar was dahinter steckt... lässt sich irgendwie raus finden was die Felder bedeuten? Im Alten c++ code waren die felder genau benannt. 
 9. In den Label Export sortiert nach Gender nach Riege dann Verein. 

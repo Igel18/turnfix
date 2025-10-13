@@ -71,6 +71,7 @@ const SquadManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [competitionFilter, setCompetitionFilter] = useState('');
+  const [clubFilter, setClubFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -522,7 +523,10 @@ const forceLoadAvailableParticipants = async () => {
         comp.name.toLowerCase().includes(competitionFilter.toLowerCase())
       ));
     
-    return matchesSearch && matchesGender && matchesCompetition;
+    const matchesClub = !clubFilter || 
+      participant.club.toLowerCase().includes(clubFilter.toLowerCase());
+    
+    return matchesSearch && matchesGender && matchesCompetition && matchesClub;
   });
 
   // Handler for squad selection - reset competition selection when squad changes
@@ -556,6 +560,11 @@ const forceLoadAvailableParticipants = async () => {
       .filter((comp, index, arr) => arr.findIndex(c => c.id === comp.id) === index)
       .sort((a, b) => a.name.localeCompare(b.name));
 
+    // Get unique clubs from available participants
+    const allClubs = [...new Set(availableParticipants.map(p => p.club))]
+      .filter(club => club && club !== 'Unknown Club')
+      .sort((a, b) => a.localeCompare(b));
+
     return [
       {
         value: 'gender',
@@ -576,6 +585,16 @@ const forceLoadAvailableParticipants = async () => {
           label: `${comp.name} (Nr. ${comp.number})`
         })),
         onChange: setCompetitionFilter
+      },
+      {
+        value: 'club',
+        label: t('squadManagement.filters.club'),
+        selectedValue: clubFilter,
+        options: allClubs.map(club => ({
+          value: club,
+          label: club
+        })),
+        onChange: setClubFilter
       }
     ];
   };
@@ -622,6 +641,7 @@ const forceLoadAvailableParticipants = async () => {
           setSearchTerm('');
           setGenderFilter('');
           setCompetitionFilter('');
+          setClubFilter('');
         }}
         showAdd={true}
         addLabel={t('squadManagement.actions.newSquad')}

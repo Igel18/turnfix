@@ -1246,6 +1246,7 @@
     "filters": {
       "gender": "Gender",
       "competition": "Competition",
+      "club": "Club",
       "male": "Male",
       "female": "Female"
     },
