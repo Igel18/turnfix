@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { debugLog, debugInfo } from '../utils/debug';
 import { 
-  ArrowLeft
+  ArrowLeft,
+  CheckCircle
 } from 'lucide-react';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
@@ -81,22 +82,27 @@ const EditCompetition: React.FC = () => {
   // Filter disciplines based on selected gender
   useEffect(() => {
     debugLog('Filtering disciplines. Gender:', formData.gender, 'All disciplines:', disciplines.length);
-    if (formData.gender && disciplines.length > 0) {
-      const filtered = disciplines.filter(discipline => {
-        const allowed = formData.gender === 'männlich' ? discipline.male_allowed :
-                       formData.gender === 'weiblich' ? discipline.female_allowed :
-                       formData.gender === 'gemischt' ? (discipline.male_allowed || discipline.female_allowed) :
-                       false;
+    if (disciplines.length > 0) {
+      if (formData.gender) {
+        const filtered = disciplines.filter(discipline => {
+          const allowed = formData.gender === 'männlich' ? discipline.male_allowed :
+                         formData.gender === 'weiblich' ? discipline.female_allowed :
+                         formData.gender === 'gemischt' ? (discipline.male_allowed || discipline.female_allowed) :
+                         false;
+          
+          debugLog(`Discipline ${discipline.var_disziplinname}: male=${discipline.male_allowed}, female=${discipline.female_allowed}, allowed=${allowed}`);
+          return allowed;
+        });
         
-        debugLog(`Discipline ${discipline.var_disziplinname}: male=${discipline.male_allowed}, female=${discipline.female_allowed}, allowed=${allowed}`);
-        return allowed;
-      });
-      
-      debugLog('Filtered disciplines for gender:', filtered.length, filtered.map(d => `${d.var_disziplinname}(${d.int_disziplinid})`));
-      setFilteredDisciplines(filtered);
+        debugLog('Filtered disciplines for gender:', filtered.length, filtered.map(d => `${d.var_disziplinname}(${d.int_disziplinid})`));
+        setFilteredDisciplines(filtered);
+      } else {
+        debugLog('Using all disciplines (no gender filter)');
+        setFilteredDisciplines(disciplines);
+      }
     } else {
-      debugLog('Using all disciplines');
-      setFilteredDisciplines(disciplines);
+      debugLog('No disciplines loaded yet, keeping filtered list empty');
+      setFilteredDisciplines([]);
     }
   }, [formData.gender, disciplines]);
 
@@ -453,12 +459,20 @@ const EditCompetition: React.FC = () => {
             </div>
 
             {/* Form Actions */}
-            <div className="flex gap-3 pt-4 border-t">
-              <button
-                type="submit"
-                disabled={saving || formData.disciplines.length === 0}
-                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
+            <div className="space-y-4 pt-4 border-t">
+              {/* Show warning message if no disciplines selected */}
+              {disciplines.length > 0 && formData.disciplines.length === 0 && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  ⚠️ Mindestens eine Disziplin muss ausgewählt werden
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={saving || (disciplines.length > 0 && formData.disciplines.length === 0)}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
                 {saving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -478,6 +492,7 @@ const EditCompetition: React.FC = () => {
               >
                 Cancel
               </button>
+              </div>
             </div>
           </form>
         </div>
