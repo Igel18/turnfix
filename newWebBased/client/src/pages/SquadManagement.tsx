@@ -64,6 +64,9 @@ const SquadManagement: React.FC = () => {
   
   // UI state
   const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
+  // State for competition highlighting (now using both ID and name for robust matching)
+  const [selectedCompetitionId, setSelectedCompetitionId] = useState<number | null>(null);
+  const [selectedCompetitionName, setSelectedCompetitionName] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
@@ -103,7 +106,7 @@ const forceLoadSquads = async () => {
             number: number === 'No Number' ? '' : number
           };
         }
-        // Fallback for old format or string competition names
+        // Fallback for unexpected format
         return typeof comp === 'string' 
           ? { id: 0, name: comp, number: '' }
           : comp;
@@ -168,14 +171,13 @@ const forceLoadAvailableParticipants = async () => {
               number: number === 'No Number' ? '' : number
             };
           }
-          // Fallback for old format or string competition names
+          // Fallback for unexpected format
           return typeof comp === 'string' 
             ? { id: 0, name: comp, number: '' }
             : comp;
         }) || []
       }));
       
-      console.log('🔄 Loading squads:', newSquads.length, 'squads loaded');
       setSquads(newSquads);
       
       // Update selected squad with fresh data if one is currently selected
@@ -523,6 +525,30 @@ const forceLoadAvailableParticipants = async () => {
     return matchesSearch && matchesGender && matchesCompetition;
   });
 
+  // Handler for squad selection - reset competition selection when squad changes
+  const handleSquadSelection = (squad: Squad) => {
+    setSelectedSquad(squad);
+    setSelectedCompetitionId(null); // Reset competition selection when squad changes
+    setSelectedCompetitionName(null);
+  };
+
+  // Helper function to check if a participant has the selected competition
+  const participantHasSelectedCompetition = (participant: Participant): boolean => {
+    if (selectedCompetitionId === null || !selectedCompetitionName) return false;
+    return participant.competitions?.some(comp => {
+      // Match by both ID and name for robust matching
+      return comp.id === selectedCompetitionId && comp.name === selectedCompetitionName;
+    }) || false;
+  };
+
+  // Handler for competition selection
+  const handleCompetitionClick = (competitionId: number, competitionName: string) => {
+    // Toggle selection: if same competition is clicked again, deselect it
+    const isSameCompetition = selectedCompetitionId === competitionId && selectedCompetitionName === competitionName;
+    setSelectedCompetitionId(isSameCompetition ? null : competitionId);
+    setSelectedCompetitionName(isSameCompetition ? null : competitionName);
+  };
+
   const getFilterOptions = () => {
     // Get unique competitions from available participants
     const allCompetitions = availableParticipants
@@ -641,7 +667,7 @@ const forceLoadAvailableParticipants = async () => {
                   className={`bg-white rounded-lg border p-4 cursor-pointer transition-colors ${
                     selectedSquad?.id === squad.id ? 'border-blue-500 bg-blue-50' : 'hover:border-gray-300'
                   } ${squad.isVirtual ? 'border-l-4 border-l-orange-400' : ''}`}
-                  onClick={() => setSelectedSquad(squad)}
+                  onClick={() => handleSquadSelection(squad)}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -713,6 +739,32 @@ const forceLoadAvailableParticipants = async () => {
                 </div>
               )}
             </div>
+            
+            {/* Competition Filter Info */}
+            {selectedCompetitionId && selectedCompetitionName && selectedSquad && (
+              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start">
+                    <Trophy className="h-4 w-4 text-blue-700 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-blue-900">
+                      <p className="font-medium mb-1">Wettkampf-Filter aktiv</p>
+                      <p>Zeigt Teilnehmer für: <strong>{selectedCompetitionName}</strong> <span className="opacity-60">(ID: {selectedCompetitionId})</span></p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedCompetitionId(null);
+                      setSelectedCompetitionName(null);
+                    }}
+                    className="text-blue-700 hover:text-blue-900"
+                    title="Filter entfernen"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+            
             {/* Information about virtual squads */}
             {filteredParticipants.length > 0 && squads.some(s => s.isVirtual) && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
@@ -726,15 +778,21 @@ const forceLoadAvailableParticipants = async () => {
               </div>
             )}
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {filteredParticipants.map(participant => (
+              {filteredParticipants.map(participant => {
+                const isHighlighted = participantHasSelectedCompetition(participant);
+                return (
                 <div
                   key={participant.id}
-                  className="bg-white rounded-lg border p-3 hover:border-gray-300 transition-colors"
+                  className={`bg-white rounded-lg border p-3 transition-all ${
+                    isHighlighted 
+                      ? 'border-blue-500 border-2 bg-blue-50 shadow-md ring-2 ring-blue-200' 
+                      : 'hover:border-gray-300'
+                  }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium text-gray-900 truncate">
+                        <p className={`font-medium truncate ${isHighlighted ? 'text-blue-900' : 'text-gray-900'}`}>
                           {participant.firstname} {participant.lastname}
                         </p>
                         {selectedSquad && (
@@ -756,15 +814,22 @@ const forceLoadAvailableParticipants = async () => {
                             {t('squadManagement.availableParticipants.competitionsLabel', { count: participant.competitionCount })}
                           </p>
                           <div className="flex flex-wrap gap-1">
-                            {participant.competitions.slice(0, 3).map((comp, idx) => (
+                            {participant.competitions.slice(0, 3).map((comp, idx) => {
+                              const isCompSelected = comp.id === selectedCompetitionId && comp.name === selectedCompetitionName;
+                              return (
                               <span 
                                 key={idx} 
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                  isCompSelected
+                                    ? 'bg-blue-600 text-white ring-2 ring-blue-400'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}
                                 title={`Competition ID: ${comp.id}, Number: ${comp.number}`}
                               >
                                 {comp.name} (Nr. {comp.number})
                               </span>
-                            ))}
+                              );
+                            })}
                             {participant.competitions.length > 3 && (
                               <span 
                                 className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"
@@ -779,7 +844,8 @@ const forceLoadAvailableParticipants = async () => {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -796,13 +862,19 @@ const forceLoadAvailableParticipants = async () => {
                       {t('squadManagement.squadDetails.participants', { count: selectedSquad.participants.length })}
                     </h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {selectedSquad.participants.map(participant => (
+                      {selectedSquad.participants.map(participant => {
+                        const isHighlighted = participantHasSelectedCompetition(participant);
+                        return (
                         <div
                           key={participant.id}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                          className={`flex items-center justify-between p-2 rounded transition-all ${
+                            isHighlighted 
+                              ? 'bg-blue-100 border border-blue-300 shadow-sm' 
+                              : 'bg-gray-50'
+                          }`}
                         >
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className={`text-sm font-medium ${isHighlighted ? 'text-blue-900' : 'text-gray-900'}`}>
                               {participant.firstname} {participant.lastname}
                             </p>
                             <p className="text-xs text-gray-500">
@@ -817,7 +889,8 @@ const forceLoadAvailableParticipants = async () => {
                             <ArrowLeft className="w-4 h-4" />
                           </button>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -826,14 +899,25 @@ const forceLoadAvailableParticipants = async () => {
                       {t('squadManagement.squadDetails.assignedCompetitions')}
                     </h4>
                     <div className="space-y-1">
-                      {selectedSquad.competitions.map((comp, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                          <span className="text-sm text-gray-900">
+                      {selectedSquad.competitions.map((comp, idx) => {
+                        const isSelected = comp.id === selectedCompetitionId && comp.name === selectedCompetitionName;
+                        return (
+                        <div 
+                          key={`${comp.id}-${comp.name}-${idx}`}
+                          onClick={() => handleCompetitionClick(comp.id, comp.name)}
+                          className={`flex items-center justify-between p-2 rounded cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-500 text-white ring-2 ring-blue-600' 
+                              : 'bg-blue-50 hover:bg-blue-100'
+                          }`}
+                        >
+                          <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-gray-900'}`}>
                             {comp.name}{comp.number ? ` (Nr. ${comp.number})` : ''}
                           </span>
-                          <Trophy className="w-4 h-4 text-blue-600" />
+                          <Trophy className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-blue-600'}`} />
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

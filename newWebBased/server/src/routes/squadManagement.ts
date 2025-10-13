@@ -80,7 +80,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       SELECT 
         COALESCE(w.var_riege, 'Unassigned') as squad_name,
         COUNT(DISTINCT t.int_teilnehmerid) as participant_count,
-        STRING_AGG(DISTINCT CONCAT(wk.var_name, ' (Nr. ', COALESCE(wk.var_nummer, 'No Number'), ')'), ', ') as competition_names
+        STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name, '|', COALESCE(wk.var_nummer, 'No Number')), ', ') as competition_names
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
@@ -116,7 +116,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
                 EXTRACT(YEAR FROM t.dat_geburtstag)
               ELSE NULL
             END as birth_year,
-            STRING_AGG(DISTINCT CONCAT(wk.var_name, ' (Nr. ', COALESCE(wk.var_nummer, 'No Number'), ')'), ', ') as assigned_competitions
+            STRING_AGG(DISTINCT CONCAT(wk.int_wettkaempfeid, ':', wk.var_name, '|', COALESCE(wk.var_nummer, 'No Number')), ', ') as assigned_competitions
           FROM tfx_wertungen w
           INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
           INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
@@ -151,7 +151,21 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             startNumber: p.int_startnummer ? Number(p.int_startnummer) : null,
             squadId: squad.squad_name,
             squadName: squad.squad_name,
-            assignedCompetitions: p.assigned_competitions ? p.assigned_competitions.split(', ') : []
+            // Transform competition strings to objects with id, name, number
+            competitions: p.assigned_competitions 
+              ? p.assigned_competitions.split(', ').map((comp: string) => {
+                  if (comp.includes(':') && comp.includes('|')) {
+                    const [idPart, nameAndNumber] = comp.split(':');
+                    const [name, number] = nameAndNumber.split('|');
+                    return {
+                      id: parseInt(idPart),
+                      name: name,
+                      number: number === 'No Number' ? '' : number
+                    };
+                  }
+                  return { id: 0, name: comp, number: '' };
+                })
+              : []
           }))
         };
       })
