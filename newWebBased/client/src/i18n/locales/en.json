@@ -185,6 +185,10 @@
         "available": "✓ Administrator mode active",
         "description": "You can manage firewall rules because the application is running with administrator privileges."
       },
+      "platformInfo": {
+        "title": "Windows-specific Feature",
+        "description": "This feature uses Windows Firewall (netsh & PowerShell) and only works on Windows systems. Firewall rules are created for all network profiles (Public, Private, Domain)."
+      },
       "backend": {
         "title": "Backend Server",
         "port": "Port {{port}}",
@@ -232,7 +236,8 @@
       "help": {
         "title": "Help",
         "text": "Firewall rules allow access to TurnFix services from other devices on the network (e.g., tablets, smartphones). Only enable the services you need. Rules are restricted to private and domain networks.",
-        "security": "Security Note: Only enable firewall rules on trusted networks."
+        "security": "Security Note: Only enable firewall rules on trusted networks.",
+        "platform": "Platform: This feature uses Windows Firewall (netsh/PowerShell) and is only available on Windows systems."
       }
     },
     "sections": {

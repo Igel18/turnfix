@@ -166,6 +166,19 @@ export const FirewallManagement: React.FC = () => {
         </p>
       </div>
 
+      {/* Platform Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-start gap-2">
+          <InformationCircleIcon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs text-blue-800">
+              <strong>{t('configuration.firewall.platformInfo.title')}:</strong>{' '}
+              {t('configuration.firewall.platformInfo.description')}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Admin Rights Status */}
       {hasAdminRights !== null && (
         <div className={`border rounded-lg p-4 ${
@@ -379,10 +392,16 @@ export const FirewallManagement: React.FC = () => {
         <p className="text-sm text-gray-600 mb-3">
           {t('configuration.firewall.help.text')}
         </p>
-        <p className="text-xs text-amber-700 flex items-start gap-2">
-          <ExclamationTriangleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <span>{t('configuration.firewall.help.security')}</span>
-        </p>
+        <div className="space-y-2">
+          <p className="text-xs text-amber-700 flex items-start gap-2">
+            <ExclamationTriangleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <span>{t('configuration.firewall.help.security')}</span>
+          </p>
+          <p className="text-xs text-blue-700 flex items-start gap-2">
+            <InformationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <span>{t('configuration.firewall.help.platform')}</span>
+          </p>
+        </div>
       </div>
     </div>
   )

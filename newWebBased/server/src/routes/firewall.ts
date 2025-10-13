@@ -41,6 +41,14 @@ async function checkAdminRights(): Promise<boolean> {
  * Check if a firewall rule exists
  */
 async function checkFirewallRule(ruleName: string): Promise<boolean> {
+  /**
+   * Hinweis:
+   * - Die Statusabfrage nutzt PowerShell, um alle Firewall-Regeln zu finden, deren DisplayName mit dem Basisnamen beginnt und die aktiviert sind.
+   * - Das ist zuverlässiger als die netsh-Ausgabe, da Windows mehrere Regeln pro Profil und Name verwalten kann.
+   * - Die Löschlogik entfernt alle passenden Regeln (mit und ohne Suffix), um alle Profile zu erfassen.
+   * - Für manuelle Kontrolle: Get-NetFirewallRule | Where-Object { $_.DisplayName -like '*TurnFix*' } | Format-Table -AutoSize
+   * - Die Lösung ist Windows-spezifisch und setzt PowerShell voraus.
+   */
   // Nutze PowerShell, um alle passenden Firewall-Regeln zu finden
   try {
     const { stdout } = await execAsync(

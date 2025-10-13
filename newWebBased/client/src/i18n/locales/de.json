@@ -185,6 +185,10 @@
         "available": "✓ Administrator-Modus aktiv",
         "description": "Sie können Firewall-Regeln verwalten, da die Anwendung mit Administratorrechten läuft."
       },
+      "platformInfo": {
+        "title": "Windows-spezifische Funktion",
+        "description": "Diese Funktion nutzt Windows Firewall (netsh & PowerShell) und funktioniert nur auf Windows-Systemen. Firewall-Regeln werden für alle Netzwerkprofile (Public, Private, Domain) erstellt."
+      },
       "backend": {
         "title": "Backend Server",
         "port": "Port {{port}}",
@@ -232,7 +236,8 @@
       "help": {
         "title": "Hilfe",
         "text": "Firewall-Regeln ermöglichen den Zugriff auf die TurnFix-Services von anderen Geräten im Netzwerk (z.B. Tablets, Smartphones). Aktivieren Sie nur die Services, die Sie benötigen. Die Regeln sind auf private und Domain-Netzwerke beschränkt.",
-        "security": "Sicherheitshinweis: Aktivieren Sie Firewall-Regeln nur in vertrauenswürdigen Netzwerken."
+        "security": "Sicherheitshinweis: Aktivieren Sie Firewall-Regeln nur in vertrauenswürdigen Netzwerken.",
+        "platform": "Plattform: Diese Funktion verwendet Windows Firewall (netsh/PowerShell) und ist nur auf Windows-Systemen verfügbar."
       }
     },
     "sections": {
