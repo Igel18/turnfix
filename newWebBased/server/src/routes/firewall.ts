@@ -41,34 +41,24 @@ async function checkAdminRights(): Promise<boolean> {
  * Check if a firewall rule exists
  */
 async function checkFirewallRule(ruleName: string): Promise<boolean> {
+  // Nutze PowerShell, um alle passenden Firewall-Regeln zu finden
   try {
-    const { stdout, stderr } = await execAsync(
-      `netsh advfirewall firewall show rule name="${ruleName}"`,
+    const { stdout } = await execAsync(
+      `powershell -Command "Get-NetFirewallRule | Where-Object { $_.DisplayName -like '*${ruleName}*' -and $_.Enabled -eq 'True' } | Select-Object -ExpandProperty DisplayName"`,
       { encoding: 'utf8' }
     );
-    
-    // Debug logging
-    if (process.env.DEBUG === 'true') {
-      console.log(`[DEBUG] Checking firewall rule: ${ruleName}`);
-      console.log(`[DEBUG] stdout:`, stdout);
-      console.log(`[DEBUG] stderr:`, stderr);
+    if (stdout && stdout.trim().length > 0) {
+      if (process.env.DEBUG === 'true') {
+        console.log(`[DEBUG] PowerShell found enabled rule(s) for ${ruleName}:`, stdout);
+      }
+      return true;
     }
-    
-    // Check if the rule exists by looking for the rule name in output
-    const exists = stdout.includes('Rule Name:') && stdout.includes(ruleName);
-    
-    if (process.env.DEBUG === 'true') {
-      console.log(`[DEBUG] Rule exists: ${exists}`);
-    }
-    
-    return exists;
   } catch (error: any) {
-    // If the command fails, the rule doesn't exist
     if (process.env.DEBUG === 'true') {
-      console.log(`[DEBUG] Error checking rule ${ruleName}:`, error.message);
+      console.log(`[DEBUG] PowerShell error for ${ruleName}:`, error.message);
     }
-    return false;
   }
+  return false;
 }
 
 /**
@@ -78,12 +68,30 @@ router.get('/status', async (req: Request, res: Response) => {
   try {
     const hasAdminRights = await checkAdminRights();
     
+    // Im Debug-Modus: Regel-Details mitliefern
+    let debugDetails: { [key: string]: any } | undefined = undefined;
+    if (process.env.DEBUG === 'true') {
+      debugDetails = {};
+      for (const [service, ruleName] of Object.entries(FIREWALL_RULES)) {
+        try {
+          const { stdout } = await execAsync(
+            `netsh advfirewall firewall show rule name="${ruleName}"`,
+            { encoding: 'utf8' }
+          );
+          debugDetails[service] = stdout;
+        } catch (error: any) {
+          debugDetails[service] = error.message;
+        }
+      }
+    }
+
     const status = {
       backend: await checkFirewallRule(FIREWALL_RULES.backend),
       frontend: await checkFirewallRule(FIREWALL_RULES.frontend),
       juryPortal: await checkFirewallRule(FIREWALL_RULES.juryPortal),
       ports: PORTS,
-      hasAdminRights
+      hasAdminRights,
+      debugDetails
     };
 
     res.json(status);
@@ -124,10 +132,10 @@ router.post('/enable/:service', async (req: Request, res: Response) => {
       });
     }
 
-    // Create the firewall rule
-    const command = `netsh advfirewall firewall add rule name="${ruleName}" dir=in action=allow protocol=TCP localport=${port} profile=private,domain description="Allows access to ${ruleName} (Port ${port})"`;
-    
-    await execAsync(command);
+  // Setze die Regel explizit für alle Profile (public, private, domain) mit eindeutigen Namen
+  await execAsync(`netsh advfirewall firewall add rule name="${ruleName} Public" dir=in action=allow protocol=TCP localport=${port} profile=public description="Allows access to ${ruleName} (Port ${port}) [Public]"`);
+  await execAsync(`netsh advfirewall firewall add rule name="${ruleName} Private" dir=in action=allow protocol=TCP localport=${port} profile=private description="Allows access to ${ruleName} (Port ${port}) [Private]"`);
+  await execAsync(`netsh advfirewall firewall add rule name="${ruleName} Domain" dir=in action=allow protocol=TCP localport=${port} profile=domain description="Allows access to ${ruleName} (Port ${port}) [Domain]"`);
 
     res.json({ 
       success: true, 
@@ -179,16 +187,32 @@ router.post('/disable/:service', async (req: Request, res: Response) => {
       });
     }
 
-    // Delete the firewall rule
-    const command = `netsh advfirewall firewall delete rule name="${ruleName}"`;
-    
-    await execAsync(command);
-
-    res.json({ 
-      success: true, 
-      message: 'Firewall rule deleted successfully',
-      ruleName
-    });
+    // Lösche alle passenden Firewall-Regeln (mit und ohne Suffix)
+    const ruleNames = [ruleName, `${ruleName} Public`, `${ruleName} Private`, `${ruleName} Domain`];
+    let deletedAny = false;
+    for (const name of ruleNames) {
+      try {
+        await execAsync(`netsh advfirewall firewall delete rule name="${name}"`);
+        deletedAny = true;
+      } catch (error: any) {
+        if (process.env.DEBUG === 'true') {
+          console.log(`[DEBUG] Error deleting rule ${name}:`, error.message);
+        }
+      }
+    }
+    if (deletedAny) {
+      res.json({ 
+        success: true, 
+        message: 'Firewall rule(s) deleted successfully',
+        ruleName
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        message: 'No matching firewall rule(s) found to delete',
+        ruleName
+      });
+    }
   } catch (error: any) {
     console.error('Error deleting firewall rule:', error);
     
