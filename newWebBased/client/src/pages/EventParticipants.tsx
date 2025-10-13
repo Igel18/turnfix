@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Users, 
   Trophy,
@@ -85,6 +86,7 @@ interface EditParticipantFormProps {
 }
 
 const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, clubs, competitions, onSave, onCancel }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<EditParticipantData>({
     firstname: participant.firstname,
     lastname: participant.lastname,
@@ -115,13 +117,13 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
     
     // Basic validation
     if (!formData.firstname.trim() || !formData.lastname.trim()) {
-      alert('First name and last name are required');
+      alert(t('eventParticipants.editParticipant.validationError'));
       return;
     }
     
     const age = calculateAge(formData.birthday);
     if (age < 1 || age > 100) {
-      alert('Please enter a valid birthday (age must be between 1 and 100)');
+      alert(t('eventParticipants.editParticipant.ageValidationError'));
       return;
     }
     
@@ -137,10 +139,10 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg border">
-      <h4 className="text-lg font-medium text-gray-900 mb-4">Edit Participant</h4>
+      <h4 className="text-lg font-medium text-gray-900 mb-4">{t('eventParticipants.editParticipant.title')}</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('eventParticipants.editParticipant.firstName')} *</label>
           <input
             type="text"
             required
@@ -150,7 +152,7 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('eventParticipants.editParticipant.lastName')} *</label>
           <input
             type="text"
             required
@@ -160,13 +162,13 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Club</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('eventParticipants.editParticipant.club')}</label>
           <select
             value={formData.clubId}
             onChange={(e) => setFormData({ ...formData, clubId: parseInt(e.target.value) || 0 })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option key="select-club-0" value={0}>Select Club</option>
+            <option key="select-club-0" value={0}>{t('eventParticipants.editParticipant.selectClub')}</option>
             {clubs
               .filter(club => club && typeof club.id !== 'undefined' && club.id !== null)
               .map(club => (
@@ -176,7 +178,7 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Birthday * <span className="text-sm text-gray-500">(Age: {calculateAge(formData.birthday)})</span>
+            {t('eventParticipants.editParticipant.birthday')} * <span className="text-sm text-gray-500">({t('eventParticipants.editParticipant.age')}: {calculateAge(formData.birthday)})</span>
           </label>
           <input
             type="date"
@@ -187,24 +189,24 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('eventParticipants.editParticipant.gender')}</label>
           <select
             value={formData.gender}
             onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="male">{t('eventParticipants.editParticipant.male')}</option>
+            <option value="female">{t('eventParticipants.editParticipant.female')}</option>
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Squad</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('eventParticipants.editParticipant.squad')}</label>
           <input
             type="text"
             value={formData.squad_name}
             onChange={(e) => setFormData({ ...formData, squad_name: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter squad name"
+            placeholder={t('eventParticipants.editParticipant.squadPlaceholder')}
           />
         </div>
         <div className="flex items-center">
@@ -215,17 +217,17 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
               onChange={(e) => setFormData({ ...formData, startet_nicht: e.target.checked })}
               className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <span className="text-sm font-medium text-gray-700">Not Starting</span>
+            <span className="text-sm font-medium text-gray-700">{t('eventParticipants.editParticipant.notStarting')}</span>
           </label>
         </div>
       </div>
 
       {/* Competition Assignments */}
       <div className="mt-6">
-        <h5 className="text-sm font-medium text-gray-700 mb-3">Competition Assignments</h5>
+        <h5 className="text-sm font-medium text-gray-700 mb-3">{t('eventParticipants.editParticipant.competitionAssignments')}</h5>
         <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
           {competitions.length === 0 ? (
-            <p className="text-sm text-gray-500">Loading competitions...</p>
+            <p className="text-sm text-gray-500">{t('eventParticipants.editParticipant.loadingCompetitions')}</p>
           ) : (
             competitions.map((competition: Competition) => (
               <label key={`competition-${competition.id}`} className="flex items-center">
@@ -263,14 +265,14 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
           disabled={saving}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          Cancel
+          {t('eventParticipants.editParticipant.cancel')}
         </button>
         <button
           type="submit"
           disabled={saving}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? t('eventParticipants.editParticipant.saving') : t('eventParticipants.editParticipant.save')}
         </button>
       </div>
     </form>
@@ -278,6 +280,7 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
 };
 
 const EventParticipants: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
   
@@ -583,7 +586,7 @@ const EventParticipants: React.FC = () => {
   };
 
   const removeParticipantFromEvent = async (participantId: number) => {
-    if (!confirm('Remove this participant from the event? They will be unassigned from all competitions.')) {
+    if (!confirm(t('eventParticipants.messages.confirmRemove'))) {
       return;
     }
     
@@ -833,7 +836,25 @@ const EventParticipants: React.FC = () => {
     
     const matchesGender = !genderFilter || participant.gender === genderFilter;
     const matchesClub = !clubFilter || participant.club.toLowerCase().includes(clubFilter.toLowerCase());
-    const matchesAge = !ageFilter || participant.age.toString() === ageFilter;
+    
+    // Age filter logic - handle age ranges
+    let matchesAge = true;
+    if (ageFilter) {
+      const age = participant.age;
+      if (ageFilter === '6-8') {
+        matchesAge = age >= 6 && age <= 8;
+      } else if (ageFilter === '9-10') {
+        matchesAge = age >= 9 && age <= 10;
+      } else if (ageFilter === '11-12') {
+        matchesAge = age >= 11 && age <= 12;
+      } else if (ageFilter === '13-14') {
+        matchesAge = age >= 13 && age <= 14;
+      } else if (ageFilter === '15-16') {
+        matchesAge = age >= 15 && age <= 16;
+      } else if (ageFilter === '17+') {
+        matchesAge = age >= 17;
+      }
+    }
     
     return matchesSearch && matchesGender && matchesClub && matchesAge;
   });
@@ -866,17 +887,17 @@ const EventParticipants: React.FC = () => {
   const getFilterOptions = () => [
     {
       value: 'gender',
-      label: 'Gender',
+      label: t('eventParticipants.filters.gender'),
       selectedValue: genderFilter,
       options: [
-        { value: 'male', label: 'Male' },
-        { value: 'female', label: 'Female' }
+        { value: 'male', label: t('eventParticipants.editParticipant.male') },
+        { value: 'female', label: t('eventParticipants.editParticipant.female') }
       ],
       onChange: setGenderFilter
     },
     {
       value: 'club',
-      label: 'Club',
+      label: t('eventParticipants.filters.club'),
       selectedValue: clubFilter,
       options: [...new Set(allParticipants.map((p: Participant) => p.club))].map(club => ({
         value: club,
@@ -886,15 +907,15 @@ const EventParticipants: React.FC = () => {
     },
     {
       value: 'age',
-      label: 'Age Group', 
+      label: t('eventParticipants.filters.ageGroup'), 
       selectedValue: ageFilter,
       options: [
-        { value: '6-8', label: '6-8 years' },
-        { value: '9-10', label: '9-10 years' },
-        { value: '11-12', label: '11-12 years' },
-        { value: '13-14', label: '13-14 years' },
-        { value: '15-16', label: '15-16 years' },
-        { value: '17+', label: '17+ years' }
+        { value: '6-8', label: t('eventParticipants.filters.ageGroups.6-8') },
+        { value: '9-10', label: t('eventParticipants.filters.ageGroups.9-10') },
+        { value: '11-12', label: t('eventParticipants.filters.ageGroups.11-12') },
+        { value: '13-14', label: t('eventParticipants.filters.ageGroups.13-14') },
+        { value: '15-16', label: t('eventParticipants.filters.ageGroups.15-16') },
+        { value: '17+', label: t('eventParticipants.filters.ageGroups.17+') }
       ],
       onChange: setAgeFilter
     }
@@ -905,9 +926,9 @@ const EventParticipants: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6">
         <div className="text-center py-8">
           <Users className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No Event Selected</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('eventParticipants.noEventSelected')}</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Please select an event to manage participants.
+            {t('eventParticipants.selectEventPrompt')}
           </p>
         </div>
       </div>
@@ -917,13 +938,13 @@ const EventParticipants: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedPageHeader
-        title="Event Participants"
-        subtitle="Add, remove and assign participants to competitions within the selected event"
+        title={t('eventParticipants.title')}
+        subtitle={t('eventParticipants.subtitle')}
         icon={UsersIcon}
         showEventContext={true}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants..."
+        searchPlaceholder={t('eventParticipants.searchPlaceholder')}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
         hasFilters={true}
@@ -935,7 +956,7 @@ const EventParticipants: React.FC = () => {
           setAgeFilter('');
         }}
         showAdd={true}
-        addLabel="Add Participant"
+        addLabel={t('eventParticipants.addParticipant')}
         onAdd={() => setShowAddModal(true)}
         showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
@@ -950,14 +971,14 @@ const EventParticipants: React.FC = () => {
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-                Export List PDF
+                {t('eventParticipants.actions.exportParticipantsList')}
               </button>
               <button
                 onClick={() => setShowLabelModal(true)}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <TagIcon className="h-4 w-4 mr-2" />
-                Export Labels PDF
+                {t('eventParticipants.actions.exportParticipantsLabels')}
               </button>
             </div>
           ) : null
@@ -985,8 +1006,8 @@ const EventParticipants: React.FC = () => {
                   {filteredParticipants.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <Users className="mx-auto h-12 w-12 mb-4" />
-                      <p className="text-lg font-medium mb-2">No participants in this event</p>
-                      <p className="text-sm">Click "Add Participant" to start adding participants to this event.</p>
+                      <p className="text-lg font-medium mb-2">{t('eventParticipants.empty.title')}</p>
+                      <p className="text-sm">{t('eventParticipants.empty.subtitle')}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
@@ -1066,14 +1087,14 @@ const EventParticipants: React.FC = () => {
                                     <button
                                       onClick={() => setEditingParticipant(editingParticipant === participant.id ? null : participant.id)}
                                       className={`p-1 ${editingParticipant === participant.id ? 'text-green-600 hover:text-green-900' : 'text-blue-600 hover:text-blue-900'}`}
-                                      title={editingParticipant === participant.id ? 'Save changes' : 'Edit participant'}
+                                      title={editingParticipant === participant.id ? t('eventParticipants.editParticipant.save') : t('eventParticipants.actions.editParticipant')}
                                     >
                                       <Edit className="w-4 h-4" />
                                     </button>
                                     <button
                                       onClick={() => removeParticipantFromEvent(participant.id)}
                                       className="text-red-600 hover:text-red-900 p-1"
-                                      title="Remove from event"
+                                      title={t('eventParticipants.actions.removeFromEvent')}
                                     >
                                       <UserMinus className="w-4 h-4" />
                                     </button>
@@ -1162,14 +1183,14 @@ const EventParticipants: React.FC = () => {
                                   <button
                                     onClick={() => setEditingParticipant(participant.id)}
                                     className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
-                                    title="Edit participant"
+                                    title={t('eventParticipants.actions.editParticipant')}
                                   >
                                     <Edit className="h-4 w-4" />
                                   </button>
                                   <button
                                     onClick={() => removeParticipantFromEvent(participant.id)}
                                     className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
-                                    title="Remove from event"
+                                    title={t('eventParticipants.actions.removeFromEvent')}
                                   >
                                     <UserMinus className="h-4 w-4" />
                                   </button>

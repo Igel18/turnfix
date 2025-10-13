@@ -1122,5 +1122,118 @@
     "apparatusSchedule": "Apparatus Schedule",
     "rotationNumber": "Rotation No.",
     "number": "Number"
+  },
+  "eventParticipants": {
+    "title": "Event Participants",
+    "subtitle": "Add, remove and assign participants to competitions within the selected event",
+    "searchPlaceholder": "Search participants...",
+    "addParticipant": "Add Participant",
+    "noEventSelected": "No Event Selected",
+    "selectEventPrompt": "Please select an event to manage participants.",
+    "editParticipant": {
+      "title": "Edit Participant",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "club": "Club",
+      "selectClub": "Select Club",
+      "birthday": "Birthday",
+      "age": "Age",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "squad": "Squad",
+      "squadPlaceholder": "Enter squad name",
+      "notStarting": "Not Starting",
+      "competitionAssignments": "Competition Assignments",
+      "loadingCompetitions": "Loading competitions...",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "validationError": "First name and last name are required",
+      "ageValidationError": "Please enter a valid birthday (age must be between 1 and 100)"
+    },
+    "filters": {
+      "gender": "Gender",
+      "club": "Club",
+      "ageGroup": "Age Group",
+      "ageGroups": {
+        "6-8": "6-8 years",
+        "9-10": "9-10 years",
+        "11-12": "11-12 years",
+        "13-14": "13-14 years",
+        "15-16": "15-16 years",
+        "17+": "17+ years"
+      }
+    },
+    "actions": {
+      "exportParticipantsList": "Participants List (PDF)",
+      "exportParticipantsLabels": "Participant Labels (PDF)",
+      "addToEvent": "Add to Event",
+      "removeFromEvent": "Remove from Event",
+      "editParticipant": "Edit"
+    },
+    "messages": {
+      "confirmRemove": "Remove this participant from the event? They will be unassigned from all competitions.",
+      "addSuccess": "Successfully added participant to event",
+      "removeSuccess": "Successfully removed participant from event",
+      "updateSuccess": "Successfully updated participant details",
+      "addError": "Failed to add participant to event",
+      "removeError": "Failed to remove participant from event",
+      "updateError": "Failed to update participant details",
+      "noParticipantsToExport": "No participants to export"
+    },
+    "table": {
+      "name": "Name",
+      "age": "Age",
+      "gender": "Gender",
+      "club": "Club",
+      "squad": "Squad",
+      "startNumber": "Start Number",
+      "competitions": "Competitions",
+      "actions": "Actions",
+      "registrationDate": "Registration Date",
+      "status": "Status"
+    },
+    "card": {
+      "years": "years",
+      "competitions": "Competitions",
+      "squad": "Squad",
+      "noSquad": "No Squad",
+      "noCompetitions": "No Competitions",
+      "startNumber": "Start Number",
+      "noStartNumber": "No Start Number"
+    },
+    "empty": {
+      "title": "No participants found",
+      "subtitle": "Click \"Add Participant\" to start adding participants to this event."
+    },
+    "addModal": {
+      "title": "Add Participants to Event",
+      "searchPlaceholder": "Search participants...",
+      "noParticipants": "No available participants found",
+      "alreadyInEvent": "Already in event",
+      "add": "Add",
+      "close": "Close"
+    },
+    "pdf": {
+      "participantsList": "Participants List",
+      "eventName": "Event",
+      "generatedOn": "Generated on",
+      "totalParticipants": "Total Participants"
+    },
+    "labelConfig": {
+      "title": "Label Configuration",
+      "rows": "Rows",
+      "columns": "Columns",
+      "showBorders": "Show Borders",
+      "fontSize": "Font Size",
+      "includeLogo": "Include Logo",
+      "showSquad": "Show Squad",
+      "showCompetitions": "Show Competitions",
+      "preview": "Preview",
+      "export": "Export",
+      "pagesNeeded": "Pages needed"
+    }
   }
 }
+

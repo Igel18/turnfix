@@ -1123,5 +1123,118 @@
     "apparatusSchedule": "Geräteplan",
     "rotationNumber": "Rotation Nr.",
     "number": "Nummer"
+  },
+  "eventParticipants": {
+    "title": "Veranstaltungsteilnehmer",
+    "subtitle": "Teilnehmer zur Veranstaltung hinzufügen, entfernen und Wettkämpfen zuordnen",
+    "searchPlaceholder": "Teilnehmer suchen...",
+    "addParticipant": "Teilnehmer hinzufügen",
+    "noEventSelected": "Keine Veranstaltung ausgewählt",
+    "selectEventPrompt": "Bitte wählen Sie eine Veranstaltung aus, um Teilnehmer zu verwalten.",
+    "editParticipant": {
+      "title": "Teilnehmer bearbeiten",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "club": "Verein",
+      "selectClub": "Verein auswählen",
+      "birthday": "Geburtsdatum",
+      "age": "Alter",
+      "gender": "Geschlecht",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "squad": "Riege",
+      "squadPlaceholder": "Riegennamen eingeben",
+      "notStarting": "Startet nicht",
+      "competitionAssignments": "Wettkampfzuordnungen",
+      "loadingCompetitions": "Lade Wettkämpfe...",
+      "save": "Änderungen speichern",
+      "saving": "Speichern...",
+      "cancel": "Abbrechen",
+      "validationError": "Vor- und Nachname sind erforderlich",
+      "ageValidationError": "Bitte geben Sie ein gültiges Geburtsdatum ein (Alter muss zwischen 1 und 100 liegen)"
+    },
+    "filters": {
+      "gender": "Geschlecht",
+      "club": "Verein",
+      "ageGroup": "Altersgruppe",
+      "ageGroups": {
+        "6-8": "6-8 Jahre",
+        "9-10": "9-10 Jahre",
+        "11-12": "11-12 Jahre",
+        "13-14": "13-14 Jahre",
+        "15-16": "15-16 Jahre",
+        "17+": "17+ Jahre"
+      }
+    },
+    "actions": {
+      "exportParticipantsList": "Teilnehmerliste (PDF)",
+      "exportParticipantsLabels": "Teilnehmer-Etiketten (PDF)",
+      "addToEvent": "Zur Veranstaltung hinzufügen",
+      "removeFromEvent": "Aus Veranstaltung entfernen",
+      "editParticipant": "Bearbeiten"
+    },
+    "messages": {
+      "confirmRemove": "Diesen Teilnehmer aus der Veranstaltung entfernen? Er wird aus allen Wettkämpfen abgemeldet.",
+      "addSuccess": "Teilnehmer erfolgreich zur Veranstaltung hinzugefügt",
+      "removeSuccess": "Teilnehmer erfolgreich aus der Veranstaltung entfernt",
+      "updateSuccess": "Teilnehmerdaten erfolgreich aktualisiert",
+      "addError": "Fehler beim Hinzufügen des Teilnehmers zur Veranstaltung",
+      "removeError": "Fehler beim Entfernen des Teilnehmers aus der Veranstaltung",
+      "updateError": "Fehler beim Aktualisieren der Teilnehmerdaten",
+      "noParticipantsToExport": "Keine Teilnehmer zum Exportieren"
+    },
+    "table": {
+      "name": "Name",
+      "age": "Alter",
+      "gender": "Geschlecht",
+      "club": "Verein",
+      "squad": "Riege",
+      "startNumber": "Startnummer",
+      "competitions": "Wettkämpfe",
+      "actions": "Aktionen",
+      "registrationDate": "Anmeldedatum",
+      "status": "Status"
+    },
+    "card": {
+      "years": "Jahre",
+      "competitions": "Wettkämpfe",
+      "squad": "Riege",
+      "noSquad": "Keine Riege",
+      "noCompetitions": "Keine Wettkämpfe",
+      "startNumber": "Startnummer",
+      "noStartNumber": "Keine Startnummer"
+    },
+    "empty": {
+      "title": "Keine Teilnehmer gefunden",
+      "subtitle": "Klicken Sie auf \"Teilnehmer hinzufügen\", um Teilnehmer zu dieser Veranstaltung hinzuzufügen."
+    },
+    "addModal": {
+      "title": "Teilnehmer zur Veranstaltung hinzufügen",
+      "searchPlaceholder": "Teilnehmer suchen...",
+      "noParticipants": "Keine verfügbaren Teilnehmer gefunden",
+      "alreadyInEvent": "Bereits in Veranstaltung",
+      "add": "Hinzufügen",
+      "close": "Schließen"
+    },
+    "pdf": {
+      "participantsList": "Teilnehmerliste",
+      "eventName": "Veranstaltung",
+      "generatedOn": "Erstellt am",
+      "totalParticipants": "Teilnehmer gesamt"
+    },
+    "labelConfig": {
+      "title": "Etiketten-Konfiguration",
+      "rows": "Zeilen",
+      "columns": "Spalten",
+      "showBorders": "Rahmen anzeigen",
+      "fontSize": "Schriftgröße",
+      "includeLogo": "Logo einbeziehen",
+      "showSquad": "Riege anzeigen",
+      "showCompetitions": "Wettkämpfe anzeigen",
+      "preview": "Vorschau",
+      "export": "Exportieren",
+      "pagesNeeded": "Benötigte Seiten"
+    }
   }
 }
+
