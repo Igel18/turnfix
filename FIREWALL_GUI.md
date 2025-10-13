@@ -46,6 +46,9 @@ Three services can be controlled independently:
 │ 🛡️ Firewall & Network                                       │
 │ Manage Windows Firewall rules for network access           │
 ├─────────────────────────────────────────────────────────────┤
+│ ℹ️ Windows-specific Feature: This feature uses Windows     │
+│ Firewall (netsh & PowerShell) and works on Windows only.   │
+├─────────────────────────────────────────────────────────────┤
 │ ✓ Administrator mode active                          [🔄]   │
 │ You can manage firewall rules because the application      │
 │ is running with administrator privileges.                   │
@@ -57,6 +60,9 @@ Three services can be controlled independently:
 │ │ ✅ Enabled   │ │ ❌ Disabled  │ │ ❌ Disabled  │        │
 │ │ [Disable]    │ │ [Enable]     │ │ [Enable]     │        │
 │ └──────────────┘ └──────────────┘ └──────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│ ℹ️ Platform: This uses Windows Firewall (netsh/PowerShell) │
+│ ⚠️ Security: Only enable rules on trusted networks         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -65,6 +71,9 @@ Three services can be controlled independently:
 ┌─────────────────────────────────────────────────────────────┐
 │ 🛡️ Firewall & Network                                       │
 │ Manage Windows Firewall rules for network access           │
+├─────────────────────────────────────────────────────────────┤
+│ ℹ️ Windows-specific Feature: This feature uses Windows     │
+│ Firewall (netsh & PowerShell) and works on Windows only.   │
 ├─────────────────────────────────────────────────────────────┤
 │ ⚠️ Administrator privileges required                 [🔄]   │
 │ This feature requires administrator privileges. Run the    │
@@ -77,6 +86,9 @@ Three services can be controlled independently:
 │ │ ❌ Disabled  │ │ ❌ Disabled  │ │ ❌ Disabled  │        │
 │ │ [Disabled]   │ │ [Disabled]   │ │ [Disabled]   │        │
 │ └──────────────┘ └──────────────┘ └──────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│ ℹ️ Platform: This uses Windows Firewall (netsh/PowerShell) │
+│ ⚠️ Security: Only enable rules on trusted networks         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
