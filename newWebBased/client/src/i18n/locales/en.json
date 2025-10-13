@@ -779,10 +779,53 @@
   "home": {
     "welcome": "Welcome to TurnFix",
     "description": "Modern gymnastics competition management system with real-time scoring, participant tracking, and comprehensive analytics.",
+    "subtitle": "The professional solution for gymnastics clubs, competition organizers, and judges",
     "enterDashboard": "Enter Dashboard",
     "viewEvents": "View Events",
     "configuration": "Settings",
-    "authNote": "User authentication temporarily disabled - Full access available"
+    "juryPortal": "Jury Portal",
+    "authNote": "User authentication temporarily disabled - Full access available",
+    "features": {
+      "competition": {
+        "title": "Competition Management",
+        "description": "Organize and manage gymnastics competitions with ease. All features in one place."
+      },
+      "scoring": {
+        "title": "Real-time Scoring",
+        "description": "Live scoring and results with instant updates. No more waiting times."
+      },
+      "participants": {
+        "title": "Participant Management",
+        "description": "Manage clubs, athletes, and participant registrations efficiently and clearly."
+      },
+      "results": {
+        "title": "Results & Certificates",
+        "description": "Automatic evaluations, rankings, and professional certificate generation."
+      }
+    },
+    "about": {
+      "title": "About TurnFix",
+      "description": "TurnFix is a comprehensive competition management software specifically developed for gymnastics competitions. From planning to award ceremonies - everything in one application.",
+      "feature1": "Complete competition management from planning to evaluation",
+      "feature2": "Multilingual interface (German, English) with intuitive operation",
+      "feature3": "Import DTB Gymnet XML files for quick data transfer"
+    },
+    "jury": {
+      "title": "Jury Portal",
+      "description": "The Jury Portal provides a simplified interface specifically for judges on competition day. Optimized for tablets and smartphones.",
+      "info": "Access to score sheets, participant lists, and live score entry. Perfect for use directly at the apparatus.",
+      "openPortal": "Open Jury Portal"
+    },
+    "help": {
+      "title": "Need Help?",
+      "description": "Visit our GitHub repository for documentation, tutorials, and support.",
+      "github": "GitHub Repository",
+      "version": "Version {{version}}"
+    },
+    "footer": {
+      "license": "GNU GPL v3.1",
+      "created": "Created with TurnFix • github.com/Igel18/turnfix"
+    }
   },
   "competitionForm": {
     "title": {

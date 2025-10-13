@@ -779,10 +779,53 @@
   "home": {
     "welcome": "Willkommen bei TurnFix",
     "description": "Modernes Turnwettkampf-Verwaltungssystem mit Echtzeit-Bewertung, Teilnehmerverfolgung und umfassender Analyse.",
+    "subtitle": "Die professionelle Lösung für Turnvereine, Wettkampforganisatoren und Kampfrichter",
     "enterDashboard": "Zum Dashboard",
     "viewEvents": "Veranstaltungen anzeigen",
     "configuration": "Einstellungen",
-    "authNote": "Benutzerauthentifizierung vorübergehend deaktiviert - Vollzugriff verfügbar"
+    "juryPortal": "Jury-Portal",
+    "authNote": "Benutzerauthentifizierung vorübergehend deaktiviert - Vollzugriff verfügbar",
+    "features": {
+      "competition": {
+        "title": "Wettkampfverwaltung",
+        "description": "Organisieren und verwalten Sie Turnwettkämpfe mit Leichtigkeit. Alle Funktionen an einem Ort."
+      },
+      "scoring": {
+        "title": "Echtzeit-Bewertung",
+        "description": "Live-Bewertung und Ergebnisse mit sofortigen Aktualisierungen. Keine Wartezeiten mehr."
+      },
+      "participants": {
+        "title": "Teilnehmerverwaltung",
+        "description": "Verwalten Sie Vereine, Athleten und Teilnehmerregistrierungen effizient und übersichtlich."
+      },
+      "results": {
+        "title": "Ergebnisse & Urkunden",
+        "description": "Automatische Auswertungen, Ranglisten und professionelle Urkundenerstellung."
+      }
+    },
+    "about": {
+      "title": "Über TurnFix",
+      "description": "TurnFix ist eine umfassende Wettkampfverwaltungssoftware, die speziell für Turn-Wettkämpfe entwickelt wurde. Von der Planung bis zur Siegerehrung - alles in einer Anwendung.",
+      "feature1": "Vollständige Wettkampfverwaltung von der Planung bis zur Auswertung",
+      "feature2": "Mehrsprachige Oberfläche (Deutsch, Englisch) mit intuitiver Bedienung",
+      "feature3": "Import von DTB Gymnet XML-Dateien für schnelle Datenübernahme"
+    },
+    "jury": {
+      "title": "Jury-Portal",
+      "description": "Das Jury-Portal bietet eine vereinfachte Oberfläche speziell für Kampfrichter am Wettkampftag. Optimiert für Tablets und Smartphones.",
+      "info": "Zugriff auf Wertungsbögen, Teilnehmerlisten und Live-Eingabe von Punkten. Perfekt für den Einsatz direkt am Gerät.",
+      "openPortal": "Jury-Portal öffnen"
+    },
+    "help": {
+      "title": "Benötigen Sie Hilfe?",
+      "description": "Besuchen Sie unser GitHub-Repository für Dokumentation, Anleitungen und Support.",
+      "github": "GitHub Repository",
+      "version": "Version {{version}}"
+    },
+    "footer": {
+      "license": "GNU GPL v3.1",
+      "created": "Erstellt mit TurnFix • github.com/Igel18/turnfix"
+    }
   },
   "competitionForm": {
     "title": {
