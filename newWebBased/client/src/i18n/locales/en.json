@@ -781,7 +781,7 @@
     "description": "Modern gymnastics competition management system with real-time scoring, participant tracking, and comprehensive analytics.",
     "enterDashboard": "Enter Dashboard",
     "viewEvents": "View Events",
-    "databaseConfig": "Database Config",
+    "configuration": "Settings",
     "authNote": "User authentication temporarily disabled - Full access available"
   },
   "competitionForm": {

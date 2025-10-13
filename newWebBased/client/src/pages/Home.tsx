@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { CircleStackIcon } from '@heroicons/react/24/outline'
+import { CogIcon } from '@heroicons/react/24/outline'
 
 export function Home() {
   const { t } = useTranslation()
@@ -29,11 +29,11 @@ export function Home() {
               {t('home.viewEvents')}
             </Link>
             <Link 
-              to="/database-config" 
+              to="/configuration" 
               className="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition flex items-center gap-2"
             >
-              <CircleStackIcon className="h-5 w-5" />
-              {t('home.databaseConfig')}
+              <CogIcon className="h-5 w-5" />
+              {t('home.configuration')}
             </Link>
           </div>
           <div className="mt-4">

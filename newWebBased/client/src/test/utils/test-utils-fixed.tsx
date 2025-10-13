@@ -15,7 +15,7 @@ const translations: Record<string, string> = {
   'home.description': 'Comprehensive gymnastics competition management system',
   'home.enterDashboard': 'Enter Dashboard',
   'home.viewEvents': 'View Events',
-  'home.databaseConfig': 'Database Config',
+  'home.configuration': 'Settings',
   'home.authNote': 'Login required for full access',
   'home.recentActivities.title': 'Recent Activities',
   'participants.title': 'Participants',

@@ -23,7 +23,6 @@ import SquadManagement from '@/pages/SquadManagement'
 import { SquadStatusManagement } from '@/pages/SquadStatusManagement'
 import CompetitionStatusManagement from '@/pages/CompetitionStatusManagement'
 import EventParticipants from '@/pages/EventParticipants'
-import DatabaseConfig from '@/pages/DatabaseConfig'
 import CertificateLayouts from '@/pages/CertificateLayouts'
 import StatusUnified from '@/pages/StatusUnified'
 import LocationsUnified from '@/pages/LocationsUnified'
@@ -71,7 +70,6 @@ function App() {
             <Route path="/sports" element={<SportsUnified />} />
             <Route path="/formulas" element={<FormulasUnified />} />
             <Route path="/discipline-groups" element={<DisciplineGroupsUnified />} />
-            <Route path="/database-config" element={<DatabaseConfig />} />
             <Route path="/locations" element={<LocationsUnified />} />
             <Route path="/locations-debug" element={<LocationsDebug />} />
             <Route path="/persons" element={<PersonsUnified />} />
