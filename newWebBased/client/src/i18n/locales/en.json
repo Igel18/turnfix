@@ -1233,6 +1233,10 @@
       "preview": "Preview",
       "export": "Export",
       "pagesNeeded": "Pages needed"
+    },
+    "status": {
+      "active": "Active",
+      "notStarting": "Not Starting"
     }
   }
 }

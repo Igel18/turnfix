@@ -524,7 +524,7 @@ const EventParticipants: React.FC = () => {
       console.log(`Successfully updated participant ${participantId} status to startet_nicht: ${startetNicht}`);
     } catch (error) {
       console.error('Error updating participant status:', error);
-      alert('Failed to update participant status');
+      alert(t('eventParticipants.messages.updateError'));
     }
   };
 
@@ -564,7 +564,7 @@ const EventParticipants: React.FC = () => {
       console.log(`Successfully updated participant ${participantId} details`);
     } catch (error) {
       console.error('Error updating participant details:', error);
-      alert('Failed to update participant details');
+      alert(t('eventParticipants.messages.updateError'));
     }
   };
 
@@ -581,7 +581,7 @@ const EventParticipants: React.FC = () => {
       setShowAddModal(false);
     } catch (error) {
       console.error('Error adding participant to event:', error);
-      alert('Failed to add participant to event');
+      alert(t('eventParticipants.messages.addError'));
     }
   };
 
@@ -604,7 +604,7 @@ const EventParticipants: React.FC = () => {
         console.log(`Successfully removed participant ${participantId} from event`);
     } catch (error) {
       console.error('Error removing participant from event:', error);
-      alert('Failed to remove participant from event');
+      alert(t('eventParticipants.messages.removeError'));
     }
   };
 
@@ -626,7 +626,7 @@ const EventParticipants: React.FC = () => {
       console.log(`Successfully assigned participant ${participantId} to competition ${competitionId}`);
     } catch (error) {
       console.error('Error assigning participant to competition:', error);
-      alert('Failed to assign participant to competition');
+      alert(t('eventParticipants.messages.updateError'));
     }
   };
 
@@ -645,7 +645,7 @@ const EventParticipants: React.FC = () => {
         console.log(`Successfully unassigned participant ${participantId} from competition ${competitionId}`);
     } catch (error) {
       console.error('Error unassigning participant from competition:', error);
-      alert('Failed to unassign participant from competition');
+      alert(t('eventParticipants.messages.updateError'));
     }
   };
 
@@ -671,7 +671,7 @@ const EventParticipants: React.FC = () => {
     const eventParticipants = filteredParticipants.filter(p => p.isInEvent)
     
     if (!selectedEvent || eventParticipants.length === 0) {
-      alert('No participants to export')
+      alert(t('eventParticipants.messages.noParticipantsToExport'))
       return
     }
 
@@ -683,10 +683,10 @@ const EventParticipants: React.FC = () => {
       (index + 1).toString(),
       `${participant.firstname} ${participant.lastname}`,
       participant.club,
-      participant.gender === 'male' ? 'Male' : 'Female',
+      participant.gender === 'male' ? t('eventParticipants.editParticipant.male') : t('eventParticipants.editParticipant.female'),
       participant.age.toString(),
       participant.birthYear.toString(),
-      participant.startet_nicht ? 'Not Starting' : 'Active'
+      participant.startet_nicht ? t('eventParticipants.status.notStarting') : t('eventParticipants.status.active')
     ])
 
     autoTable(doc, {
@@ -721,7 +721,7 @@ const EventParticipants: React.FC = () => {
     const eventParticipants = filteredParticipants.filter(p => p.isInEvent)
     
     if (!selectedEvent || eventParticipants.length === 0) {
-      alert('No participants to export')
+      alert(t('eventParticipants.messages.noParticipantsToExport'))
       return
     }
 
@@ -774,7 +774,7 @@ const EventParticipants: React.FC = () => {
         .join(', ')
       
       // Get squad information
-      const squadInfo = participant.squad_name || 'No Squad'
+      const squadInfo = participant.squad_name || t('eventParticipants.card.noSquad')
       
       // Set font for label content
       doc.setFont('helvetica', 'bold')
@@ -992,7 +992,7 @@ const EventParticipants: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Event Participants ({totalParticipants})
+                  {t('eventParticipants.title')} ({totalParticipants})
                   {totalPages > 1 && (
                     <span className="text-sm font-normal text-gray-600 ml-2">
                       Showing {startIndex + 1}-{Math.min(endIndex, totalParticipants)} of {totalParticipants} (Page {pagination.currentPage} of {totalPages})
@@ -1016,28 +1016,28 @@ const EventParticipants: React.FC = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Participant
+                              {t('eventParticipants.table.name')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Start #
+                              {t('eventParticipants.table.startNumber')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Club
+                              {t('eventParticipants.table.club')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Age/Gender
+                              {t('eventParticipants.table.age')}/{t('eventParticipants.table.gender')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Squad
+                              {t('eventParticipants.table.squad')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Status
+                              {t('eventParticipants.table.status')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Competitions
+                              {t('eventParticipants.table.competitions')}
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
+                              {t('eventParticipants.table.actions')}
                             </th>
                           </tr>
                         </thead>
@@ -1169,7 +1169,7 @@ const EventParticipants: React.FC = () => {
                                         ? 'bg-red-100 text-red-800' 
                                         : 'bg-green-100 text-green-800'
                                     }`}>
-                                      {participant.startet_nicht ? 'Not Starting' : 'Active'}
+                                      {participant.startet_nicht ? t('eventParticipants.status.notStarting') : t('eventParticipants.status.active')}
                                     </span>
                                     {participant.assignedCompetitions && participant.assignedCompetitions.length > 0 && (
                                       <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded">

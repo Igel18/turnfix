@@ -1234,6 +1234,10 @@
       "preview": "Vorschau",
       "export": "Exportieren",
       "pagesNeeded": "Benötigte Seiten"
+    },
+    "status": {
+      "active": "Aktiv",
+      "notStarting": "Startet nicht"
     }
   }
 }
