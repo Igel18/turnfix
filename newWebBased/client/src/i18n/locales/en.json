@@ -1238,6 +1238,99 @@
       "active": "Active",
       "notStarting": "Not Starting"
     }
+  },
+  "squadManagement": {
+    "title": "Squad Management",
+    "subtitle": "Create squads and assign participants to competitions",
+    "searchPlaceholder": "Search participants, clubs, competitions...",
+    "filters": {
+      "gender": "Gender",
+      "competition": "Competition",
+      "male": "Male",
+      "female": "Female"
+    },
+    "actions": {
+      "newSquad": "New Squad",
+      "exportCSV": "Export CSV",
+      "exportPDF": "Export PDF",
+      "deleteSquad": "Delete squad",
+      "assignToSquad": "Assign to selected squad",
+      "removeFromSquad": "Remove from squad"
+    },
+    "messages": {
+      "squadCreated": "Squad \"{{name}}\" created successfully!",
+      "squadDeleted": "Squad deleted successfully",
+      "participantAssigned": "Participant assigned successfully",
+      "participantRemoved": "Participant removed successfully",
+      "confirmDelete": "Are you sure you want to delete this squad? All participants will be unassigned.",
+      "nameTooLong": "❌ Squad name too long!\n\n{{message}}\n\n💡 {{hint}}\n\nProvided: \"{{providedName}}\" ({{nameLength}} characters)\nMaximum: 5 characters",
+      "validationFailed": "❌ Validation failed!\n\n{{errors}}",
+      "creationFailed": "❌ Squad creation failed!\n\n{{message}}",
+      "assignmentFailed": "❌ Assignment failed!\n\n{{message}}",
+      "deletionFailed": "Failed to delete squad",
+      "removalFailed": "Failed to remove participant from squad",
+      "processing": "Processing..."
+    },
+    "squads": {
+      "listTitle": "Squads ({{count}})",
+      "participants": "{{count}} participants",
+      "virtual": "Virtual",
+      "moreCompetitions": "+{{count}} more"
+    },
+    "availableParticipants": {
+      "title": "Available Participants ({{count}})",
+      "selectSquadHint": "Select a squad to assign",
+      "virtualAssignmentInfo": "Participants assigned to virtual squads will automatically save the squad to database.",
+      "virtualAssignmentTitle": "Virtual Squad Assignment",
+      "age": "{{age}} years",
+      "competitionsLabel": "Competitions ({{count}}):",
+      "moreCompetitions": "+{{count}} more"
+    },
+    "squadDetails": {
+      "title": "{{name}} Details",
+      "participants": "Squad Participants ({{count}})",
+      "assignedCompetitions": "Assigned Competitions"
+    },
+    "noSquadSelected": {
+      "title": "No Squad Selected",
+      "message": "Select a squad to view and manage its participants."
+    },
+    "noEventSelected": {
+      "title": "No Event Selected",
+      "message": "Please select an event to manage squads."
+    },
+    "createModal": {
+      "title": "Create New Squad",
+      "squadName": "Squad Name",
+      "maxCharacters": "(max 5 characters)",
+      "placeholder": "Enter squad name...",
+      "nameTooLong": "Squad name is too long! Maximum 5 characters allowed.",
+      "hint": "The squad will appear in the list immediately and be ready for participant assignment.",
+      "characterCount": "{{count}}/5",
+      "createButton": "Create Squad",
+      "cancelButton": "Cancel"
+    },
+    "virtualInfo": {
+      "title": "Virtual Squad Information",
+      "point1": "are temporarily stored in memory",
+      "point2": "become permanent when first participant is assigned",
+      "point3": "will be lost on server restart if empty",
+      "point4": "Look for the orange \"Virtual\" badge to identify them"
+    },
+    "pdf": {
+      "title": "Squad Management Overview",
+      "totalSquads": "Total Squads: {{count}}",
+      "totalParticipants": "Total Participants: {{count}}",
+      "squadHeader": "{{name}} ({{count}} participants)",
+      "competitions": "Competitions:",
+      "participants": "Participants:",
+      "name": "Name",
+      "birthYear": "Birth Year",
+      "club": "Club",
+      "noClub": "No Club",
+      "noParticipants": "No participants assigned",
+      "notAvailable": "N/A"
+    }
   }
 }
 

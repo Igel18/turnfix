@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Users, 
   Trash2,
@@ -49,6 +50,7 @@ interface Squad {
 }
 
 const SquadManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
   
@@ -222,7 +224,7 @@ const forceLoadAvailableParticipants = async () => {
       });
       
       // Show enhanced success message with hints
-      let message = `Squad "${newSquadName}" created successfully!`;
+      let message = t('squadManagement.messages.squadCreated', { name: newSquadName });
       if (response.notice) {
         message += `\n\n📝 ${response.notice}`;
       }
@@ -252,18 +254,23 @@ const forceLoadAvailableParticipants = async () => {
         
         // Handle character limit error specifically  
         if (errorData.constraint === 'varchar(5)') {
-          alert(`❌ Squad name too long!\n\n${errorData.message}\n\n💡 ${errorData.hint}\n\nProvided: "${errorData.providedName}" (${errorData.nameLength} characters)\nMaximum: 5 characters`);
+          alert(t('squadManagement.messages.nameTooLong', {
+            message: errorData.message,
+            hint: errorData.hint,
+            providedName: errorData.providedName,
+            nameLength: errorData.nameLength
+          }));
         } else if (errorData.errors) {
           // Handle validation errors
           const errorMessages = errorData.errors.map((err: any) => err.message).join('\n');
-          alert(`❌ Validation failed!\n\n${errorMessages}`);
+          alert(t('squadManagement.messages.validationFailed', { errors: errorMessages }));
         } else {
           // Handle other API errors
-          alert(`❌ Squad creation failed!\n\n${errorData.message || 'Unknown error occurred'}`);
+          alert(t('squadManagement.messages.creationFailed', { message: errorData.message || 'Unknown error occurred' }));
         }
       } else {
         // Handle network or other errors
-        alert(`❌ Squad creation failed!\n\n${error instanceof Error ? error.message : 'Failed to create squad. Please try again.'}`);
+        alert(t('squadManagement.messages.creationFailed', { message: error instanceof Error ? error.message : 'Failed to create squad. Please try again.' }));
       }
     } finally {
       setIsLoading(false);
@@ -278,7 +285,7 @@ const forceLoadAvailableParticipants = async () => {
       return;
     }
     
-    if (!confirm('Are you sure you want to delete this squad? All participants will be unassigned.')) return;
+    if (!confirm(t('squadManagement.messages.confirmDelete'))) return;
     
     try {
       await apiDelete(`/squad-management/delete?squadName=${encodeURIComponent(squadName)}&eventId=${eventId}`);
@@ -294,7 +301,7 @@ const forceLoadAvailableParticipants = async () => {
       }
     } catch (error) {
       console.error('Error deleting squad:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete squad');
+      alert(error instanceof Error ? error.message : t('squadManagement.messages.deletionFailed'));
     }
   };
 
@@ -344,14 +351,19 @@ const forceLoadAvailableParticipants = async () => {
         
         // Handle character limit error specifically
         if (errorData.constraint === 'varchar(5)') {
-          alert(`❌ Squad name too long!\n\n${errorData.message}\n\n💡 ${errorData.hint}\n\nProvided: "${errorData.providedName}" (${errorData.nameLength} characters)\nMaximum: 5 characters`);
+          alert(t('squadManagement.messages.nameTooLong', {
+            message: errorData.message,
+            hint: errorData.hint,
+            providedName: errorData.providedName,
+            nameLength: errorData.nameLength
+          }));
         } else {
           // Handle other API errors
-          alert(`❌ Assignment failed!\n\n${errorData.message || 'Unknown error occurred'}`);
+          alert(t('squadManagement.messages.assignmentFailed', { message: errorData.message || 'Unknown error occurred' }));
         }
       } else {
         // Handle network or other errors
-        alert(`❌ Assignment failed!\n\n${error instanceof Error ? error.message : 'Failed to assign participant to squad'}`);
+        alert(t('squadManagement.messages.assignmentFailed', { message: error instanceof Error ? error.message : 'Failed to assign participant to squad' }));
       }
     } finally {
       setIsLoading(false);
@@ -376,7 +388,7 @@ const forceLoadAvailableParticipants = async () => {
       console.log('✅ Force data reload completed after participant removal');
     } catch (error) {
       console.error('Error removing participant from squad:', error);
-      alert(error instanceof Error ? error.message : 'Failed to remove participant from squad');
+      alert(error instanceof Error ? error.message : t('squadManagement.messages.removalFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -387,7 +399,7 @@ const forceLoadAvailableParticipants = async () => {
     if (!selectedEvent) return;
 
     const doc = new jsPDF('p', 'mm', 'a4');
-    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, 'Squad Management');
+    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
     
     let yPosition = contentArea.startY + 10;
     const leftMargin = contentArea.startX;
@@ -396,15 +408,15 @@ const forceLoadAvailableParticipants = async () => {
     // Title
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Squad Management Overview', leftMargin, yPosition);
+    doc.text(t('squadManagement.pdf.title'), leftMargin, yPosition);
     yPosition += 15;
 
     // Summary
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Total Squads: ${squads.length}`, leftMargin, yPosition);
+    doc.text(t('squadManagement.pdf.totalSquads', { count: squads.length }), leftMargin, yPosition);
     const totalParticipants = squads.reduce((sum, squad) => sum + squad.participantCount, 0);
-    doc.text(`Total Participants: ${totalParticipants}`, leftMargin + 60, yPosition);
+    doc.text(t('squadManagement.pdf.totalParticipants', { count: totalParticipants }), leftMargin + 60, yPosition);
     yPosition += 15;
 
     // Iterate through squads
@@ -419,14 +431,14 @@ const forceLoadAvailableParticipants = async () => {
       // Squad Header
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${squad.name} (${squad.participantCount} participants)`, leftMargin, yPosition);
+      doc.text(t('squadManagement.pdf.squadHeader', { name: squad.name, count: squad.participantCount }), leftMargin, yPosition);
       yPosition += 8;
 
       // Squad Competitions
       if (squad.competitions && squad.competitions.length > 0) {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('Competitions:', leftMargin + 5, yPosition);
+        doc.text(t('squadManagement.pdf.competitions'), leftMargin + 5, yPosition);
         yPosition += 5;
         
         squad.competitions.forEach((competition) => {
@@ -444,14 +456,14 @@ const forceLoadAvailableParticipants = async () => {
       if (squad.participants && squad.participants.length > 0) {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('Participants:', leftMargin + 5, yPosition);
+        doc.text(t('squadManagement.pdf.participants'), leftMargin + 5, yPosition);
         yPosition += 5;
 
         // Participants table header
         doc.setFont('helvetica', 'bold');
-        doc.text('Name', leftMargin + 10, yPosition);
-        doc.text('Birth Year', leftMargin + 80, yPosition);
-        doc.text('Club', leftMargin + 120, yPosition);
+        doc.text(t('squadManagement.pdf.name'), leftMargin + 10, yPosition);
+        doc.text(t('squadManagement.pdf.birthYear'), leftMargin + 80, yPosition);
+        doc.text(t('squadManagement.pdf.club'), leftMargin + 120, yPosition);
         yPosition += 2;
         
         // Draw header underline
@@ -464,13 +476,13 @@ const forceLoadAvailableParticipants = async () => {
           // Check if we need a new page
           if (yPosition > contentArea.endY - 10) {
             doc.addPage();
-            setupPDFWithHeaderFooter(doc, selectedEvent, 'Squad Management');
+            setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
             yPosition = contentArea.startY + 10;
           }
 
           const name = `${participant.firstname} ${participant.lastname}`;
-          const birthYear = participant.birthYear ? participant.birthYear.toString() : 'N/A';
-          const club = participant.club || 'No Club';
+          const birthYear = participant.birthYear ? participant.birthYear.toString() : t('squadManagement.pdf.notAvailable');
+          const club = participant.club || t('squadManagement.pdf.noClub');
 
           doc.text(name, leftMargin + 10, yPosition);
           doc.text(birthYear, leftMargin + 80, yPosition);
@@ -480,7 +492,7 @@ const forceLoadAvailableParticipants = async () => {
       } else {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
-        doc.text('No participants assigned', leftMargin + 10, yPosition);
+        doc.text(t('squadManagement.pdf.noParticipants'), leftMargin + 10, yPosition);
         yPosition += 5;
       }
 
@@ -521,17 +533,17 @@ const forceLoadAvailableParticipants = async () => {
     return [
       {
         value: 'gender',
-        label: 'Gender',
+        label: t('squadManagement.filters.gender'),
         selectedValue: genderFilter,
         options: [
-          { value: 'male', label: 'Male' },
-          { value: 'female', label: 'Female' }
+          { value: 'male', label: t('squadManagement.filters.male') },
+          { value: 'female', label: t('squadManagement.filters.female') }
         ],
         onChange: setGenderFilter
       },
       {
         value: 'competition',
-        label: 'Competition',
+        label: t('squadManagement.filters.competition'),
         selectedValue: competitionFilter,
         options: allCompetitions.map(comp => ({
           value: comp.name,
@@ -547,9 +559,9 @@ const forceLoadAvailableParticipants = async () => {
       <div className="max-w-7xl mx-auto p-6">
         <div className="text-center py-8">
           <Users className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No Event Selected</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('squadManagement.noEventSelected.title')}</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Please select an event to manage squads.
+            {t('squadManagement.noEventSelected.message')}
           </p>
         </div>
       </div>
@@ -563,19 +575,19 @@ const forceLoadAvailableParticipants = async () => {
         <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="text-sm text-gray-600">Processing...</span>
+            <span className="text-sm text-gray-600">{t('squadManagement.messages.processing')}</span>
           </div>
         </div>
       )}
 
       <UnifiedPageHeader
-        title="Squad Management"
-        subtitle="Create squads and assign participants to competitions"
+        title={t('squadManagement.title')}
+        subtitle={t('squadManagement.subtitle')}
         icon={UserGroupIcon}
         showEventContext={true}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants, clubs, competitions..."
+        searchPlaceholder={t('squadManagement.searchPlaceholder')}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
         hasFilters={true}
@@ -586,7 +598,7 @@ const forceLoadAvailableParticipants = async () => {
           setCompetitionFilter('');
         }}
         showAdd={true}
-        addLabel="New Squad"
+        addLabel={t('squadManagement.actions.newSquad')}
         onAdd={() => setIsCreateModalOpen(true)}
         showExportCSV={true}
         onExportCSV={() => console.log('Export CSV clicked')}
@@ -601,12 +613,12 @@ const forceLoadAvailableParticipants = async () => {
           <div className="flex items-start">
             <InformationCircleIcon className="h-5 w-5 text-orange-600 mr-2 mt-0.5" />
             <div className="text-sm">
-              <div className="text-orange-800 font-medium mb-1">Virtual Squad Information</div>
+              <div className="text-orange-800 font-medium mb-1">{t('squadManagement.virtualInfo.title')}</div>
               <div className="text-orange-700 space-y-1">
-                <p>• <strong>Virtual squads</strong> are temporarily stored in memory</p>
-                <p>• They become <strong>permanent</strong> when first participant is assigned</p>
-                <p>• Virtual squads will be <strong>lost on server restart</strong> if empty</p>
-                <p>• Look for the orange "Virtual" badge to identify them</p>
+                <p>• <strong>Virtual squads</strong> {t('squadManagement.virtualInfo.point1')}</p>
+                <p>• {t('squadManagement.virtualInfo.point2')}</p>
+                <p>• {t('squadManagement.virtualInfo.point3')}</p>
+                <p>• {t('squadManagement.virtualInfo.point4')}</p>
               </div>
             </div>
           </div>
@@ -620,7 +632,7 @@ const forceLoadAvailableParticipants = async () => {
           {/* Squads List */}
           <div className="lg:col-span-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Squads ({squads.length})
+              {t('squadManagement.squads.listTitle', { count: squads.length })}
             </h3>
             <div className="space-y-3">
               {squads.map(squad => (
@@ -637,12 +649,12 @@ const forceLoadAvailableParticipants = async () => {
                         <h4 className="font-medium text-gray-900">{squad.name}</h4>
                         {squad.isVirtual && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                            Virtual
+                            {t('squadManagement.squads.virtual')}
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-gray-500">
-                        {squad.participantCount} participants
+                        {t('squadManagement.squads.participants', { count: squad.participantCount })}
                       </p>
                       {squad.isVirtual && squad.hints && (
                         <p className="text-xs text-orange-600 mt-1">
@@ -656,7 +668,7 @@ const forceLoadAvailableParticipants = async () => {
                         deleteSquad(squad.id);
                       }}
                       className="p-1 text-red-600 hover:bg-red-50 rounded"
-                      title="Delete squad"
+                      title={t('squadManagement.actions.deleteSquad')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -679,7 +691,7 @@ const forceLoadAvailableParticipants = async () => {
                       })}
                       {squad.competitions.length > 2 && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                          +{squad.competitions.length - 2} more
+                          {t('squadManagement.squads.moreCompetitions', { count: squad.competitions.length - 2 })}
                         </span>
                       )}
                     </div>
@@ -693,11 +705,11 @@ const forceLoadAvailableParticipants = async () => {
           <div className="lg:col-span-1">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                Available Participants ({filteredParticipants.length})
+                {t('squadManagement.availableParticipants.title', { count: filteredParticipants.length })}
               </h3>
               {!selectedSquad && filteredParticipants.length > 0 && (
                 <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                  Select a squad to assign
+                  {t('squadManagement.availableParticipants.selectSquadHint')}
                 </div>
               )}
             </div>
@@ -707,8 +719,8 @@ const forceLoadAvailableParticipants = async () => {
                 <div className="flex items-start">
                   <InformationCircleIcon className="h-4 w-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-blue-800">
-                    <p className="font-medium mb-1">Virtual Squad Assignment</p>
-                    <p>Participants assigned to virtual squads will automatically save the squad to database.</p>
+                    <p className="font-medium mb-1">{t('squadManagement.availableParticipants.virtualAssignmentTitle')}</p>
+                    <p>{t('squadManagement.availableParticipants.virtualAssignmentInfo')}</p>
                   </div>
                 </div>
               </div>
@@ -729,19 +741,19 @@ const forceLoadAvailableParticipants = async () => {
                           <button
                             onClick={() => assignParticipantToSquad(participant, selectedSquad.id)}
                             className="ml-2 p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Assign to selected squad"
+                            title={t('squadManagement.actions.assignToSquad')}
                           >
                             <ArrowRight className="w-4 h-4" />
                           </button>
                         )}
                       </div>
                       <p className="text-sm text-gray-500 mb-1">
-                        {participant.club} • {participant.gender} • {new Date().getFullYear() - participant.birthYear} years
+                        {participant.club} • {participant.gender} • {t('squadManagement.availableParticipants.age', { age: new Date().getFullYear() - participant.birthYear })}
                       </p>
                       {participant.competitions && participant.competitions.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-gray-400 mb-1">
-                            Competitions ({participant.competitionCount}):
+                            {t('squadManagement.availableParticipants.competitionsLabel', { count: participant.competitionCount })}
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {participant.competitions.slice(0, 3).map((comp, idx) => (
@@ -758,7 +770,7 @@ const forceLoadAvailableParticipants = async () => {
                                 className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"
                                 title={participant.competitionNames}
                               >
-                                +{participant.competitions.length - 3} more
+                                {t('squadManagement.availableParticipants.moreCompetitions', { count: participant.competitions.length - 3 })}
                               </span>
                             )}
                           </div>
@@ -776,12 +788,12 @@ const forceLoadAvailableParticipants = async () => {
             {selectedSquad ? (
               <>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {selectedSquad.name} Details
+                  {t('squadManagement.squadDetails.title', { name: selectedSquad.name })}
                 </h3>
                 <div className="bg-white rounded-lg border p-4">
                   <div className="mb-4">
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Squad Participants ({selectedSquad.participants.length})
+                      {t('squadManagement.squadDetails.participants', { count: selectedSquad.participants.length })}
                     </h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {selectedSquad.participants.map(participant => (
@@ -800,7 +812,7 @@ const forceLoadAvailableParticipants = async () => {
                           <button
                             onClick={() => removeParticipantFromSquad(participant.id)}
                             className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Remove from squad"
+                            title={t('squadManagement.actions.removeFromSquad')}
                           >
                             <ArrowLeft className="w-4 h-4" />
                           </button>
@@ -811,7 +823,7 @@ const forceLoadAvailableParticipants = async () => {
 
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Assigned Competitions
+                      {t('squadManagement.squadDetails.assignedCompetitions')}
                     </h4>
                     <div className="space-y-1">
                       {selectedSquad.competitions.map((comp, idx) => (
@@ -829,9 +841,9 @@ const forceLoadAvailableParticipants = async () => {
             ) : (
               <div className="text-center py-8">
                 <Users className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No Squad Selected</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">{t('squadManagement.noSquadSelected.title')}</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Select a squad to view and manage its participants.
+                  {t('squadManagement.noSquadSelected.message')}
                 </p>
               </div>
             )}
@@ -844,7 +856,7 @@ const forceLoadAvailableParticipants = async () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Create New Squad</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('squadManagement.createModal.title')}</h2>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -855,7 +867,7 @@ const forceLoadAvailableParticipants = async () => {
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Squad Name * <span className="text-sm text-gray-500">(max 5 characters)</span>
+                {t('squadManagement.createModal.squadName')} * <span className="text-sm text-gray-500">{t('squadManagement.createModal.maxCharacters')}</span>
               </label>
               <input
                 type="text"
@@ -865,18 +877,18 @@ const forceLoadAvailableParticipants = async () => {
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   newSquadName.length > 5 ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter squad name..."
+                placeholder={t('squadManagement.createModal.placeholder')}
                 autoFocus
               />
               <div className="flex justify-between items-center mt-1">
                 <p className={`text-sm ${newSquadName.length > 5 ? 'text-red-500' : 'text-gray-500'}`}>
                   {newSquadName.length > 5 
-                    ? 'Squad name is too long! Maximum 5 characters allowed.' 
-                    : 'The squad will appear in the list immediately and be ready for participant assignment.'
+                    ? t('squadManagement.createModal.nameTooLong')
+                    : t('squadManagement.createModal.hint')
                   }
                 </p>
                 <span className={`text-xs ${newSquadName.length > 5 ? 'text-red-500' : 'text-gray-400'}`}>
-                  {newSquadName.length}/5
+                  {t('squadManagement.createModal.characterCount', { count: newSquadName.length })}
                 </span>
               </div>
             </div>
@@ -888,13 +900,13 @@ const forceLoadAvailableParticipants = async () => {
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <CheckCircle className="w-5 h-5" />
-                Create Squad
+                {t('squadManagement.createModal.createButton')}
               </button>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                Cancel
+                {t('squadManagement.createModal.cancelButton')}
               </button>
             </div>
           </div>

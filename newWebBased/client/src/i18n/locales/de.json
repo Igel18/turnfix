@@ -1239,6 +1239,99 @@
       "active": "Aktiv",
       "notStarting": "Startet nicht"
     }
+  },
+  "squadManagement": {
+    "title": "Riegenverwaltung",
+    "subtitle": "Erstelle Riegen und weise Teilnehmer Wettkämpfen zu",
+    "searchPlaceholder": "Teilnehmer, Vereine, Wettkämpfe suchen...",
+    "filters": {
+      "gender": "Geschlecht",
+      "competition": "Wettkampf",
+      "male": "Männlich",
+      "female": "Weiblich"
+    },
+    "actions": {
+      "newSquad": "Neue Riege",
+      "exportCSV": "CSV Export",
+      "exportPDF": "PDF Export",
+      "deleteSquad": "Riege löschen",
+      "assignToSquad": "Zur ausgewählten Riege zuweisen",
+      "removeFromSquad": "Aus Riege entfernen"
+    },
+    "messages": {
+      "squadCreated": "Riege \"{{name}}\" erfolgreich erstellt!",
+      "squadDeleted": "Riege erfolgreich gelöscht",
+      "participantAssigned": "Teilnehmer erfolgreich zugewiesen",
+      "participantRemoved": "Teilnehmer erfolgreich entfernt",
+      "confirmDelete": "Möchten Sie diese Riege wirklich löschen? Alle Teilnehmer werden nicht zugewiesen.",
+      "nameTooLong": "❌ Riegenname zu lang!\n\n{{message}}\n\n💡 {{hint}}\n\nAngegeben: \"{{providedName}}\" ({{nameLength}} Zeichen)\nMaximum: 5 Zeichen",
+      "validationFailed": "❌ Validierung fehlgeschlagen!\n\n{{errors}}",
+      "creationFailed": "❌ Riegen-Erstellung fehlgeschlagen!\n\n{{message}}",
+      "assignmentFailed": "❌ Zuweisung fehlgeschlagen!\n\n{{message}}",
+      "deletionFailed": "Riege konnte nicht gelöscht werden",
+      "removalFailed": "Teilnehmer konnte nicht aus Riege entfernt werden",
+      "processing": "Verarbeiten..."
+    },
+    "squads": {
+      "listTitle": "Riegen ({{count}})",
+      "participants": "{{count}} Teilnehmer",
+      "virtual": "Virtuell",
+      "moreCompetitions": "+{{count}} mehr"
+    },
+    "availableParticipants": {
+      "title": "Verfügbare Teilnehmer ({{count}})",
+      "selectSquadHint": "Wählen Sie eine Riege aus",
+      "virtualAssignmentInfo": "Teilnehmer, die virtuellen Riegen zugewiesen werden, speichern die Riege automatisch in der Datenbank.",
+      "virtualAssignmentTitle": "Virtuelle Riegen-Zuweisung",
+      "age": "{{age}} Jahre",
+      "competitionsLabel": "Wettkämpfe ({{count}}):",
+      "moreCompetitions": "+{{count}} mehr"
+    },
+    "squadDetails": {
+      "title": "{{name}} Details",
+      "participants": "Riegen-Teilnehmer ({{count}})",
+      "assignedCompetitions": "Zugewiesene Wettkämpfe"
+    },
+    "noSquadSelected": {
+      "title": "Keine Riege ausgewählt",
+      "message": "Wählen Sie eine Riege aus, um deren Teilnehmer anzuzeigen und zu verwalten."
+    },
+    "noEventSelected": {
+      "title": "Keine Veranstaltung ausgewählt",
+      "message": "Bitte wählen Sie eine Veranstaltung aus, um Riegen zu verwalten."
+    },
+    "createModal": {
+      "title": "Neue Riege erstellen",
+      "squadName": "Riegenname",
+      "maxCharacters": "(max. 5 Zeichen)",
+      "placeholder": "Riegennamen eingeben...",
+      "nameTooLong": "Riegenname ist zu lang! Maximal 5 Zeichen erlaubt.",
+      "hint": "Die Riege wird sofort in der Liste angezeigt und ist bereit für die Teilnehmerzuweisung.",
+      "characterCount": "{{count}}/5",
+      "createButton": "Riege erstellen",
+      "cancelButton": "Abbrechen"
+    },
+    "virtualInfo": {
+      "title": "Informationen zu virtuellen Riegen",
+      "point1": "werden temporär im Speicher gespeichert",
+      "point2": "werden permanent, wenn der erste Teilnehmer zugewiesen wird",
+      "point3": "gehen bei Server-Neustart verloren, wenn sie leer sind",
+      "point4": "Suchen Sie nach dem orangefarbenen \"Virtuell\"-Badge, um sie zu identifizieren"
+    },
+    "pdf": {
+      "title": "Riegenverwaltung Übersicht",
+      "totalSquads": "Riegen insgesamt: {{count}}",
+      "totalParticipants": "Teilnehmer insgesamt: {{count}}",
+      "squadHeader": "{{name}} ({{count}} Teilnehmer)",
+      "competitions": "Wettkämpfe:",
+      "participants": "Teilnehmer:",
+      "name": "Name",
+      "birthYear": "Geburtsjahr",
+      "club": "Verein",
+      "noClub": "Kein Verein",
+      "noParticipants": "Keine Teilnehmer zugewiesen",
+      "notAvailable": "N/A"
+    }
   }
 }
 
