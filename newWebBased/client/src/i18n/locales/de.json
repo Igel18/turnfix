@@ -176,6 +176,65 @@
     "databaseCreated": "Datenbank erfolgreich erstellt",
     "databaseCreationFailed": "Datenbank-Erstellung fehlgeschlagen",
     "databaseAlreadyExists": "Datenbank existiert bereits",
+    "firewall": {
+      "title": "Firewall & Netzwerk",
+      "description": "Verwalten Sie Windows Firewall-Regeln für Netzwerkzugriff",
+      "requiresAdmin": "⚠️ Administratorrechte erforderlich",
+      "adminNote": "Diese Funktion erfordert Administratorrechte. Starten Sie die Anwendung als Administrator, um Firewall-Regeln zu verwalten.",
+      "adminRights": {
+        "available": "✓ Administrator-Modus aktiv",
+        "description": "Sie können Firewall-Regeln verwalten, da die Anwendung mit Administratorrechten läuft."
+      },
+      "backend": {
+        "title": "Backend Server",
+        "port": "Port {{port}}",
+        "description": "API-Server für Datenbankzugriff und Geschäftslogik"
+      },
+      "frontend": {
+        "title": "Frontend Client",
+        "port": "Port {{port}}",
+        "description": "Haupt-Webanwendung für Wettkampfverwaltung"
+      },
+      "juryPortal": {
+        "title": "Jury Portal",
+        "port": "Port {{port}}",
+        "description": "Vereinfachtes Portal für Kampfrichter (Tablets/Smartphones)"
+      },
+      "status": {
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert",
+        "checking": "Prüfe...",
+        "enabling": "Aktiviere...",
+        "disabling": "Deaktiviere..."
+      },
+      "buttons": {
+        "enable": "Aktivieren",
+        "disable": "Deaktivieren",
+        "refresh": "Status aktualisieren"
+      },
+      "messages": {
+        "enabled": "Firewall-Regel erfolgreich aktiviert",
+        "disabled": "Firewall-Regel erfolgreich deaktiviert",
+        "alreadyEnabled": "Firewall-Regel ist bereits aktiviert",
+        "alreadyDisabled": "Firewall-Regel ist bereits deaktiviert",
+        "error": "Fehler beim Verwalten der Firewall-Regel",
+        "permissionDenied": "Zugriff verweigert - Administratorrechte erforderlich"
+      },
+      "networkInfo": {
+        "title": "Netzwerkzugriff",
+        "description": "Zugriffs-URLs für andere Geräte im Netzwerk",
+        "localIp": "Ihre IP-Adresse",
+        "accessUrls": "Zugriffs-URLs",
+        "noIpFound": "Keine Netzwerk-IP-Adresse gefunden",
+        "copyUrl": "URL kopieren",
+        "urlCopied": "URL in Zwischenablage kopiert"
+      },
+      "help": {
+        "title": "Hilfe",
+        "text": "Firewall-Regeln ermöglichen den Zugriff auf die TurnFix-Services von anderen Geräten im Netzwerk (z.B. Tablets, Smartphones). Aktivieren Sie nur die Services, die Sie benötigen. Die Regeln sind auf private und Domain-Netzwerke beschränkt.",
+        "security": "Sicherheitshinweis: Aktivieren Sie Firewall-Regeln nur in vertrauenswürdigen Netzwerken."
+      }
+    },
     "sections": {
       "database": {
         "title": "Datenbankkonfiguration",

@@ -9,10 +9,12 @@ import {
   PrinterIcon,
   ClockIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
+import FirewallManagement from '@/components/FirewallManagement'
 
 interface ConfigSection {
   id: string
@@ -365,6 +367,13 @@ const Configuration: React.FC = () => {
               description: 'Log all database queries (debug mode only)'
             }
           ]
+        },
+        {
+          id: 'firewall',
+          name: t('configuration.firewall.title'),
+          icon: GlobeAltIcon,
+          description: t('configuration.firewall.description'),
+          settings: [] // Firewall uses custom component, no standard settings
         }
       ]
 
@@ -626,112 +635,119 @@ const Configuration: React.FC = () => {
                 </div>
 
                 <div className="p-6">
-                  {/* Database Section Info Box */}
-                  {activeConfigSection.id === 'database' && (
-                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex">
-                        <div className="flex-shrink-0">
-                          <ExclamationTriangleIcon className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-medium text-blue-800">
-                            {t('configuration.sections.database.infoTitle') || 'Database Configuration'}
-                          </h3>
-                          <div className="mt-2 text-sm text-blue-700">
-                            <p>{t('configuration.sections.database.infoText') || 'Configure your PostgreSQL database connection. Use the "Create Database" button if you need to create a new database. Make sure the database user has CREATE DATABASE privileges.'}</p>
-                            <ul className="list-disc list-inside mt-2 space-y-1">
-                              <li>Test Connection: Verify that the database is accessible</li>
-                              <li>Create Database: Create a new database if it doesn\'t exist yet</li>
-                              <li>After creating the database, run migrations to set up the schema</li>
-                            </ul>
+                  {/* Firewall Section - Custom Component */}
+                  {activeConfigSection.id === 'firewall' ? (
+                    <FirewallManagement />
+                  ) : (
+                    <>
+                      {/* Database Section Info Box */}
+                      {activeConfigSection.id === 'database' && (
+                        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <ExclamationTriangleIcon className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div className="ml-3">
+                              <h3 className="text-sm font-medium text-blue-800">
+                                {t('configuration.sections.database.infoTitle') || 'Database Configuration'}
+                              </h3>
+                              <div className="mt-2 text-sm text-blue-700">
+                                <p>{t('configuration.sections.database.infoText') || 'Configure your PostgreSQL database connection. Use the "Create Database" button if you need to create a new database. Make sure the database user has CREATE DATABASE privileges.'}</p>
+                                <ul className="list-disc list-inside mt-2 space-y-1">
+                                  <li>Test Connection: Verify that the database is accessible</li>
+                                  <li>Create Database: Create a new database if it doesn\'t exist yet</li>
+                                  <li>After creating the database, run migrations to set up the schema</li>
+                                </ul>
+                              </div>
+                            </div>
                           </div>
                         </div>
+                      )}
+
+                      <div className="space-y-6">
+                        {activeConfigSection.settings.map((setting) => (
+                          <div key={setting.key}>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              {setting.label}
+                              {setting.required && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            
+                            {setting.type === 'text' && (
+                              <input
+                                type="text"
+                                value={setting.value}
+                                onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required={setting.required}
+                              />
+                            )}
+
+                            {setting.type === 'password' && (
+                              <input
+                                type="password"
+                                value={setting.value}
+                                onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required={setting.required}
+                                placeholder={setting.sensitive ? '••••••••' : ''}
+                              />
+                            )}
+
+                            {setting.type === 'number' && (
+                              <input
+                                type="number"
+                                value={setting.value}
+                                onChange={(e) => updateSetting(activeConfigSection.id, setting.key, parseInt(e.target.value))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required={setting.required}
+                              />
+                            )}
+
+                            {setting.type === 'boolean' && (
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  checked={setting.value}
+                                  onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.checked)}
+                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <span className="ml-2 text-sm text-gray-600">Enable this setting</span>
+                              </div>
+                            )}
+
+                            {setting.type === 'select' && setting.options && (
+                              <select
+                                value={setting.value}
+                                onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required={setting.required}
+                              >
+                                {setting.options.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
+                            {setting.type === 'textarea' && (
+                              <textarea
+                                value={setting.value}
+                                onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required={setting.required}
+                              />
+                            )}
+
+                            {setting.description && (
+                              <p className="text-sm text-gray-500 mt-1">{setting.description}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    </>
                   )}
-
-                  <div className="space-y-6">
-                    {activeConfigSection.settings.map((setting) => (
-                      <div key={setting.key}>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {setting.label}
-                          {setting.required && <span className="text-red-500 ml-1">*</span>}
-                        </label>
-                        
-                        {setting.type === 'text' && (
-                          <input
-                            type="text"
-                            value={setting.value}
-                            onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required={setting.required}
-                          />
-                        )}
-
-                        {setting.type === 'password' && (
-                          <input
-                            type="password"
-                            value={setting.value}
-                            onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required={setting.required}
-                            placeholder={setting.sensitive ? '••••••••' : ''}
-                          />
-                        )}
-
-                        {setting.type === 'number' && (
-                          <input
-                            type="number"
-                            value={setting.value}
-                            onChange={(e) => updateSetting(activeConfigSection.id, setting.key, parseInt(e.target.value))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required={setting.required}
-                          />
-                        )}
-
-                        {setting.type === 'boolean' && (
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={setting.value}
-                              onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.checked)}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <span className="ml-2 text-sm text-gray-600">Enable this setting</span>
-                          </div>
-                        )}
-
-                        {setting.type === 'select' && setting.options && (
-                          <select
-                            value={setting.value}
-                            onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required={setting.required}
-                          >
-                            {setting.options.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-
-                        {setting.type === 'textarea' && (
-                          <textarea
-                            value={setting.value}
-                            onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required={setting.required}
-                          />
-                        )}
-
-                        {setting.description && (
-                          <p className="text-sm text-gray-500 mt-1">{setting.description}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             )}

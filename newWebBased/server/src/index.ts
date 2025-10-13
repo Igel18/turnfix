@@ -62,6 +62,7 @@ import juryResultRoutes from './routes/juryResults';
 import wertungenDetailsRoutes from './routes/wertungenDetails';
 import configurationRoutes from './routes/configuration';
 import timePlanningRoutes from './routes/timePlanning';
+import firewallRoutes from './routes/firewall';
 
 const app = express();
 const server = createServer(app);
@@ -176,6 +177,7 @@ app.use('/api/jury-results', juryResultRoutes);
 app.use('/api/wertungen-details', wertungenDetailsRoutes);
 app.use('/api/configuration', configurationRoutes);
 app.use('/api/time-planning', timePlanningRoutes);
+app.use('/api/firewall', firewallRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {

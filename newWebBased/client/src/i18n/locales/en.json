@@ -176,6 +176,65 @@
     "databaseCreated": "Database created successfully",
     "databaseCreationFailed": "Database creation failed",
     "databaseAlreadyExists": "Database already exists",
+    "firewall": {
+      "title": "Firewall & Network",
+      "description": "Manage Windows Firewall rules for network access",
+      "requiresAdmin": "⚠️ Administrator privileges required",
+      "adminNote": "This feature requires administrator privileges. Run the application as administrator to manage firewall rules.",
+      "adminRights": {
+        "available": "✓ Administrator mode active",
+        "description": "You can manage firewall rules because the application is running with administrator privileges."
+      },
+      "backend": {
+        "title": "Backend Server",
+        "port": "Port {{port}}",
+        "description": "API server for database access and business logic"
+      },
+      "frontend": {
+        "title": "Frontend Client",
+        "port": "Port {{port}}",
+        "description": "Main web application for competition management"
+      },
+      "juryPortal": {
+        "title": "Jury Portal",
+        "port": "Port {{port}}",
+        "description": "Simplified portal for judges (tablets/smartphones)"
+      },
+      "status": {
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "checking": "Checking...",
+        "enabling": "Enabling...",
+        "disabling": "Disabling..."
+      },
+      "buttons": {
+        "enable": "Enable",
+        "disable": "Disable",
+        "refresh": "Refresh Status"
+      },
+      "messages": {
+        "enabled": "Firewall rule enabled successfully",
+        "disabled": "Firewall rule disabled successfully",
+        "alreadyEnabled": "Firewall rule is already enabled",
+        "alreadyDisabled": "Firewall rule is already disabled",
+        "error": "Error managing firewall rule",
+        "permissionDenied": "Access denied - Administrator privileges required"
+      },
+      "networkInfo": {
+        "title": "Network Access",
+        "description": "Access URLs for other devices on the network",
+        "localIp": "Your IP Address",
+        "accessUrls": "Access URLs",
+        "noIpFound": "No network IP address found",
+        "copyUrl": "Copy URL",
+        "urlCopied": "URL copied to clipboard"
+      },
+      "help": {
+        "title": "Help",
+        "text": "Firewall rules allow access to TurnFix services from other devices on the network (e.g., tablets, smartphones). Only enable the services you need. Rules are restricted to private and domain networks.",
+        "security": "Security Note: Only enable firewall rules on trusted networks."
+      }
+    },
     "sections": {
       "database": {
         "title": "Database Configuration",
