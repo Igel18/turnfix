@@ -170,10 +170,18 @@
     "saveConfiguration": "Save Settings",
     "saving": "Saving...",
     "testConnection": "Test Connection",
+    "createDatabase": "Create Database",
+    "creatingDatabase": "Creating Database...",
+    "confirmCreateDatabase": "Are you sure you want to create a new database? This action will create a new database with the configured settings.",
+    "databaseCreated": "Database created successfully",
+    "databaseCreationFailed": "Database creation failed",
+    "databaseAlreadyExists": "Database already exists",
     "sections": {
       "database": {
         "title": "Database Configuration",
         "description": "Database connection settings and credentials",
+        "infoTitle": "Database Configuration",
+        "infoText": "Configure your PostgreSQL database connection. Use the 'Create Database' button if you need to create a new database. Make sure the database user has CREATE DATABASE privileges.",
         "host": {
           "label": "Database Host",
           "description": "Database server hostname or IP address"

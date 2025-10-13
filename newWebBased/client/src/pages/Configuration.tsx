@@ -447,6 +447,63 @@ const Configuration: React.FC = () => {
     }
   }
 
+  const createDatabase = async () => {
+    // Confirm action
+    if (!confirm(t('configuration.confirmCreateDatabase') || 'Are you sure you want to create a new database? This action will create a new database with the configured settings.')) {
+      return
+    }
+
+    setLoading(true)
+    try {
+      const dbSection = configSections.find(s => s.id === 'database')
+      if (!dbSection) return
+
+      const dbConfig = dbSection.settings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value
+        return acc
+      }, {} as any)
+
+      const response = await apiPost('/configuration/create-database', dbConfig)
+      
+      let successMessage = t('configuration.databaseCreated')
+      if (response.nextSteps) {
+        successMessage += '\n\n' + response.nextSteps.join('\n')
+      }
+      
+      setMessage({ 
+        type: 'success', 
+        text: successMessage
+      })
+    } catch (error: any) {
+      console.error('Database creation failed:', error)
+      
+      // Extract more specific error message from the API response
+      let errorMessage = t('configuration.databaseCreationFailed')
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error
+        
+        // Check for specific error codes
+        if (error.response.data.errorCode === 'DB_ALREADY_EXISTS') {
+          errorMessage = t('configuration.databaseAlreadyExists')
+        } else if (error.response.data.errorCode === 'PERMISSION_DENIED') {
+          errorMessage += ' - Permission denied. The database user must have CREATE DATABASE privileges.'
+        }
+      } else if (error.response?.data?.details && process.env.NODE_ENV === 'development') {
+        errorMessage += '\n\nDetails: ' + error.response.data.details
+      } else if (error.message) {
+        errorMessage += ': ' + error.message
+      }
+      
+      setMessage({ 
+        type: 'error', 
+        text: errorMessage
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const filteredSections = configSections.filter(section =>
     section.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     section.settings.some(setting => 
@@ -469,14 +526,25 @@ const Configuration: React.FC = () => {
         customActions={
           <div className="flex space-x-3">
             {activeSection === 'database' && (
-              <button
-                onClick={testDatabaseConnection}
-                disabled={loading}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                <CircleStackIcon className="h-4 w-4 mr-2" />
-                {t('configuration.testConnection')}
-              </button>
+              <>
+                <button
+                  onClick={createDatabase}
+                  disabled={loading}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  title="Create a new database with the configured settings"
+                >
+                  <CircleStackIcon className="h-4 w-4 mr-2" />
+                  {loading ? t('configuration.creatingDatabase') : t('configuration.createDatabase')}
+                </button>
+                <button
+                  onClick={testDatabaseConnection}
+                  disabled={loading}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  <CircleStackIcon className="h-4 w-4 mr-2" />
+                  {t('configuration.testConnection')}
+                </button>
+              </>
             )}
             <button
               onClick={saveConfiguration}
@@ -558,6 +626,30 @@ const Configuration: React.FC = () => {
                 </div>
 
                 <div className="p-6">
+                  {/* Database Section Info Box */}
+                  {activeConfigSection.id === 'database' && (
+                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <ExclamationTriangleIcon className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-blue-800">
+                            {t('configuration.sections.database.infoTitle') || 'Database Configuration'}
+                          </h3>
+                          <div className="mt-2 text-sm text-blue-700">
+                            <p>{t('configuration.sections.database.infoText') || 'Configure your PostgreSQL database connection. Use the "Create Database" button if you need to create a new database. Make sure the database user has CREATE DATABASE privileges.'}</p>
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li>Test Connection: Verify that the database is accessible</li>
+                              <li>Create Database: Create a new database if it doesn\'t exist yet</li>
+                              <li>After creating the database, run migrations to set up the schema</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-6">
                     {activeConfigSection.settings.map((setting) => (
                       <div key={setting.key}>

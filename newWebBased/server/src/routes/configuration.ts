@@ -417,6 +417,129 @@ router.post('/test-database', async (req, res) => {
   }
 });
 
+// POST /api/configuration/create-database - Create database if it doesn't exist
+router.post('/create-database', async (req, res) => {
+  try {
+    const dbConfig = req.body;
+    
+    if (process.env.DEBUG === 'true') {
+      console.log('Creating database:', {
+        host: dbConfig.db_host,
+        port: dbConfig.db_port,
+        database: dbConfig.db_name,
+        user: dbConfig.db_user
+      });
+    }
+    
+    // First, connect to the 'postgres' system database to create the new database
+    const systemDatabaseUrl = `postgresql://${dbConfig.db_user}:${dbConfig.db_password}@${dbConfig.db_host}:${dbConfig.db_port}/postgres${dbConfig.db_ssl ? '?sslmode=require' : ''}`;
+    
+    const systemPrisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: systemDatabaseUrl
+        }
+      }
+    });
+    
+    try {
+      // Check if database already exists
+      const existingDbs = await systemPrisma.$queryRaw<Array<{ datname: string }>>`
+        SELECT datname FROM pg_database WHERE datname = ${dbConfig.db_name}
+      `;
+      
+      if (existingDbs && existingDbs.length > 0) {
+        await systemPrisma.$disconnect();
+        
+        if (process.env.DEBUG === 'true') {
+          console.log(`Database '${dbConfig.db_name}' already exists`);
+        }
+        
+        return res.status(400).json({ 
+          error: `Database '${dbConfig.db_name}' already exists`,
+          errorCode: 'DB_ALREADY_EXISTS',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Create the database
+      await systemPrisma.$executeRawUnsafe(`CREATE DATABASE "${dbConfig.db_name}"`);
+      await systemPrisma.$disconnect();
+      
+      if (process.env.DEBUG === 'true') {
+        console.log(`Database '${dbConfig.db_name}' created successfully`);
+      }
+      
+      // Now connect to the newly created database to run migrations
+      const newDatabaseUrl = `postgresql://${dbConfig.db_user}:${dbConfig.db_password}@${dbConfig.db_host}:${dbConfig.db_port}/${dbConfig.db_name}${dbConfig.db_ssl ? '?sslmode=require' : ''}`;
+      
+      const newDbPrisma = new PrismaClient({
+        datasources: {
+          db: {
+            url: newDatabaseUrl
+          }
+        }
+      });
+      
+      try {
+        // Test connection to new database
+        await newDbPrisma.$queryRaw`SELECT 1 as test`;
+        await newDbPrisma.$disconnect();
+        
+        if (process.env.DEBUG === 'true') {
+          console.log('Successfully connected to new database');
+        }
+        
+        res.json({ 
+          success: true, 
+          message: `Database '${dbConfig.db_name}' created successfully. Please run Prisma migrations to set up the schema.`,
+          nextSteps: [
+            'The database has been created',
+            'Run "npm run prisma:migrate" in the server directory to create the database schema',
+            'Restart the server to use the new database'
+          ],
+          timestamp: new Date().toISOString()
+        });
+      } catch (newDbError) {
+        await newDbPrisma.$disconnect();
+        throw newDbError;
+      }
+    } catch (dbError) {
+      await systemPrisma.$disconnect();
+      throw dbError;
+    }
+  } catch (error: any) {
+    console.error('Database creation failed:', error);
+    
+    // Provide more specific error messages based on the error type
+    let userMessage = 'Database creation failed';
+    let errorCode = 'CREATION_FAILED';
+    
+    if (error.message) {
+      if (error.message.includes('permission denied') || error.message.includes('must be owner')) {
+        userMessage = 'Permission denied - User does not have permission to create databases';
+        errorCode = 'PERMISSION_DENIED';
+      } else if (error.message.includes('Authentication failed') || error.message.includes('credentials')) {
+        userMessage = 'Authentication failed - Invalid username or password';
+        errorCode = 'AUTH_FAILED';
+      } else if (error.message.includes('Connection refused') || error.message.includes('ECONNREFUSED')) {
+        userMessage = 'Cannot connect to database server - Server may be down or wrong host/port';
+        errorCode = 'CONNECTION_REFUSED';
+      } else if (error.message.includes('already exists')) {
+        userMessage = `Database already exists`;
+        errorCode = 'DB_ALREADY_EXISTS';
+      }
+    }
+    
+    res.status(500).json({ 
+      error: userMessage,
+      errorCode,
+      details: process.env.DEBUG === 'true' ? error.message : undefined,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // GET /api/configuration/reset - Reset configuration to defaults
 router.get('/reset', async (req, res) => {
   try {

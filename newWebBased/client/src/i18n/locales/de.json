@@ -170,10 +170,18 @@
     "saveConfiguration": "Einstellungen speichern",
     "saving": "Speichern...",
     "testConnection": "Verbindung testen",
+    "createDatabase": "Datenbank erstellen",
+    "creatingDatabase": "Erstelle Datenbank...",
+    "confirmCreateDatabase": "Sind Sie sicher, dass Sie eine neue Datenbank erstellen möchten? Diese Aktion erstellt eine neue Datenbank mit den konfigurierten Einstellungen.",
+    "databaseCreated": "Datenbank erfolgreich erstellt",
+    "databaseCreationFailed": "Datenbank-Erstellung fehlgeschlagen",
+    "databaseAlreadyExists": "Datenbank existiert bereits",
     "sections": {
       "database": {
         "title": "Datenbankkonfiguration",
         "description": "Datenbankverbindungseinstellungen und Anmeldedaten",
+        "infoTitle": "Datenbankkonfiguration",
+        "infoText": "Konfigurieren Sie Ihre PostgreSQL-Datenbankverbindung. Verwenden Sie den Button 'Datenbank erstellen', wenn Sie eine neue Datenbank anlegen müssen. Stellen Sie sicher, dass der Datenbankbenutzer die Berechtigung 'CREATE DATABASE' besitzt.",
         "host": {
           "label": "Datenbank-Host",
           "description": "Hostname oder IP-Adresse des Datenbankservers"
