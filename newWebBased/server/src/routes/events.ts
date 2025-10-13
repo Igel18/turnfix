@@ -38,6 +38,43 @@ import * as fs from 'fs';
 const router = Router();
 const prisma = new PrismaClient();
 
+// Generate start numbers for all participants in an event
+router.put('/:id/generate-start-numbers', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+
+    // Get all participants for the event (from tfx_wertungen, joined with tfx_teilnehmer)
+    const participants = await prisma.$queryRawUnsafe(
+      `SELECT wr.int_wertungenid, wr.int_teilnehmerid
+         FROM tfx_wertungen wr
+         JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
+        WHERE w.int_veranstaltungenid = $1
+        ORDER BY wr.int_teilnehmerid ASC`,
+      eventId
+    ) as Array<{ int_wertungenid: number, int_teilnehmerid: number }>;
+
+    // Assign start numbers sequentially (starting from 1)
+    let startNumber = 1;
+    for (const p of participants) {
+      await prisma.$queryRawUnsafe(
+        `UPDATE tfx_wertungen SET int_startnummer = $1 WHERE int_wertungenid = $2`,
+        startNumber,
+        p.int_wertungenid
+      );
+      startNumber++;
+    }
+
+    return res.json({ success: true, count: participants.length });
+  } catch (error) {
+    console.error('Error generating start numbers:', error);
+    return res.status(500).json({ error: 'Failed to generate start numbers' });
+  }
+});
+
+
 // Validation schemas for event creation
 const createEventSchema = z.object({
   var_eventname: z.string().min(1, 'Event name is required'),

@@ -566,6 +566,10 @@
     "groups": "Riegen"
   },
   "eventManagement": {
+    "generateStartNumbers": "Startnummern generieren",
+    "generatingStartNumbers": "Startnummern werden generiert...",
+    "startNumbersGenerated": "Startnummern wurden erfolgreich generiert.",
+    "startNumbersGenerationError": "Fehler beim Generieren der Startnummern.",
     "title": "Veranstaltungsverwaltung",
     "subtitle": "Details und Statistiken der aktuellen Veranstaltung verwalten",
     "noEventSelected": "Keine Veranstaltung ausgewählt",

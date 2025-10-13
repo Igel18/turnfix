@@ -566,6 +566,10 @@
     "groups": "Squads"
   },
   "eventManagement": {
+    "generateStartNumbers": "Generate Start Numbers",
+    "generatingStartNumbers": "Generating start numbers...",
+    "startNumbersGenerated": "Start numbers generated successfully.",
+    "startNumbersGenerationError": "Error generating start numbers.",
     "title": "Event Management",
     "subtitle": "Manage current event details and statistics",
     "noEventSelected": "No event selected",

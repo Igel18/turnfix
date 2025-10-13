@@ -79,7 +79,6 @@ interface EventStatistics {
 const EventManagement: React.FC = () => {
   const { t } = useTranslation();
   const { selectedEvent, setSelectedEvent, refreshEvents } = useEvent();
-  
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [statistics, setStatistics] = useState<EventStatistics | null>(null);
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -88,6 +87,25 @@ const EventManagement: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState<Partial<EventDetails>>({});
+  const [isGeneratingNumbers, setIsGeneratingNumbers] = useState(false);
+
+  // Handler for generating start numbers
+  const handleGenerateStartNumbers = async () => {
+    if (!selectedEvent) return;
+    setIsGeneratingNumbers(true);
+    try {
+      // Call backend API to generate start numbers for the selected event
+      await apiPut(`/events/${selectedEvent.int_eventid}/generate-start-numbers`, {});
+      // Optionally reload event data/statistics
+      await loadEventData();
+      alert(t('eventManagement.startNumbersGenerated'));
+    } catch (error) {
+      console.error('Error generating start numbers:', error);
+      alert(t('eventManagement.startNumbersGenerationError'));
+    } finally {
+      setIsGeneratingNumbers(false);
+    }
+  };
 
   // Load event details and statistics
   useEffect(() => {
@@ -463,12 +481,26 @@ const EventManagement: React.FC = () => {
         onExportPDF={handleExportPDF}
         customActions={
           <div className="flex space-x-2">
+            <button
+              onClick={handleGenerateStartNumbers}
+              disabled={isGeneratingNumbers}
+              className={`bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${isGeneratingNumbers ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isGeneratingNumbers ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>{t('eventManagement.generatingStartNumbers')}</span>
+                </>
+              ) : (
+                <span>{t('eventManagement.generateStartNumbers')}</span>
+              )}
+            </button>
             {isEditing ? (
               <>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className={`${
+                  className={`$
                     isSaving 
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-green-600 hover:bg-green-700'
