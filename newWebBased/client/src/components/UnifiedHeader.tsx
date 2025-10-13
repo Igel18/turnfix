@@ -92,7 +92,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
   primaryAction,
   secondaryAction,
   showHomeButton = false,
-  homeUrl = '/dashboard',
+  homeUrl = '/management',
   showViewToggle = false,
   viewType = 'table',
   onViewTypeChange,

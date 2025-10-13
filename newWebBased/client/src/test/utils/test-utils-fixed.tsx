@@ -14,7 +14,7 @@ const translations: Record<string, string> = {
   'home.welcome': 'Welcome to TurnFix',
   'home.description': 'Comprehensive gymnastics competition management system',
   'home.subtitle': 'The professional solution for gymnastics clubs',
-  'home.enterDashboard': 'Enter Dashboard',
+  'home.enterManagementCenter': 'Enter Management Center',
   'home.viewEvents': 'View Events',
   'home.configuration': 'Settings',
   'home.juryPortal': 'Jury Portal',

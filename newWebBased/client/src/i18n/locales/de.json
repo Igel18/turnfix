@@ -4,7 +4,7 @@
     "title": "Turnwettkampf-Verwaltung"
   },
   "navigation": {
-    "dashboard": "Home",
+    "managementCenter": "Verwaltungszentrale",
     "events": "Veranstaltungen",
     "scoreCapture": "Wertungserfassung",
     "competitions": "Wettkämpfe",
@@ -18,7 +18,7 @@
     "configuration": "Einstellungen",
     "logout": "Abmelden"
   },
-  "dashboard": {
+  "managementCenter": {
     "welcome": "Willkommen zurück, {{username}}!",
     "subtitle": "Verwalten Sie Ihre Turnwettkämpfe und Veranstaltungen von diesem Startbildschirm aus.",
     "databaseManagement": {
@@ -780,7 +780,7 @@
     "welcome": "Willkommen bei TurnFix",
     "description": "Modernes Turnwettkampf-Verwaltungssystem mit Echtzeit-Bewertung, Teilnehmerverfolgung und umfassender Analyse.",
     "subtitle": "Die professionelle Lösung für Turnvereine, Wettkampforganisatoren und Kampfrichter",
-    "enterDashboard": "Zum Dashboard",
+    "enterManagementCenter": "Zur Verwaltungszentrale",
     "viewEvents": "Veranstaltungen anzeigen",
     "configuration": "Einstellungen",
     "juryPortal": "Jury-Portal",
@@ -814,7 +814,8 @@
       "title": "Jury-Portal",
       "description": "Das Jury-Portal bietet eine vereinfachte Oberfläche speziell für Kampfrichter am Wettkampftag. Optimiert für Tablets und Smartphones.",
       "info": "Zugriff auf Wertungsbögen, Teilnehmerlisten und Live-Eingabe von Punkten. Perfekt für den Einsatz direkt am Gerät.",
-      "openPortal": "Jury-Portal öffnen"
+      "openPortal": "Jury-Portal öffnen",
+      "networkNote": "Das Jury-Portal läuft auf Port 5174 und kann über Firewall-Regeln für andere Geräte im Netzwerk zugänglich gemacht werden."
     },
     "help": {
       "title": "Benötigen Sie Hilfe?",
@@ -996,7 +997,7 @@
     "subtitle": "Moderne Turnwettkampf-Verwaltung",
     "authDisabled": "Benutzerauthentifizierung ist vorübergehend deaktiviert",
     "directAccess": "Sie können direkt auf die Anwendung zugreifen, ohne sich anzumelden.",
-    "goToDashboard": "Zum Dashboard",
+    "goToManagementCenter": "Zur Verwaltungszentrale",
     "backToHome": "Zurück zur Startseite"
   },
   "timePlanning": {

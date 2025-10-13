@@ -4,7 +4,7 @@
     "title": "Gymnastics Competition Management"
   },
   "navigation": {
-    "dashboard": "Home",
+    "managementCenter": "Management Center",
     "events": "Events",
     "scoreCapture": "Score Capture",
     "competitions": "Competitions",
@@ -18,7 +18,7 @@
     "configuration": "Settings",
     "logout": "Logout"
   },
-  "dashboard": {
+  "managementCenter": {
     "welcome": "Welcome back, {{username}}!",
     "subtitle": "Manage your gymnastics competitions and events from this home screen.",
     "databaseManagement": {
@@ -780,7 +780,7 @@
     "welcome": "Welcome to TurnFix",
     "description": "Modern gymnastics competition management system with real-time scoring, participant tracking, and comprehensive analytics.",
     "subtitle": "The professional solution for gymnastics clubs, competition organizers, and judges",
-    "enterDashboard": "Enter Dashboard",
+    "enterManagementCenter": "Enter Management Center",
     "viewEvents": "View Events",
     "configuration": "Settings",
     "juryPortal": "Jury Portal",
@@ -814,7 +814,8 @@
       "title": "Jury Portal",
       "description": "The Jury Portal provides a simplified interface specifically for judges on competition day. Optimized for tablets and smartphones.",
       "info": "Access to score sheets, participant lists, and live score entry. Perfect for use directly at the apparatus.",
-      "openPortal": "Open Jury Portal"
+      "openPortal": "Open Jury Portal",
+      "networkNote": "The Jury Portal runs on port 5174 and can be made accessible to other devices on the network via firewall rules."
     },
     "help": {
       "title": "Need Help?",
@@ -996,7 +997,7 @@
     "subtitle": "Modern Gymnastics Competition Management",
     "authDisabled": "User authentication is temporarily disabled",
     "directAccess": "You can access the application directly without logging in.",
-    "goToDashboard": "Go to Dashboard",
+    "goToManagementCenter": "Go to Management Center",
     "backToHome": "Back to Home"
   },
   "timePlanning": {

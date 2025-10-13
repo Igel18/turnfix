@@ -43,11 +43,11 @@ export function Home() {
           {/* Main Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Link 
-              to="/dashboard" 
+              to="/management" 
               className="group bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
               <ChartBarIcon className="h-5 w-5" />
-              {t('home.enterDashboard')}
+              {t('home.enterManagementCenter')}
               <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             
@@ -62,13 +62,16 @@ export function Home() {
 
           {/* Secondary Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link 
-              to="/jury" 
+            <a 
+              href="http://localhost:5174" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="group bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
               <ScaleIcon className="h-5 w-5" />
               {t('home.juryPortal')}
-            </Link>
+              <ArrowRightIcon className="h-4 w-4" />
+            </a>
             
             <Link 
               to="/configuration" 
@@ -189,13 +192,18 @@ export function Home() {
                 <p className="text-sm text-purple-900 mb-3">
                   {t('home.jury.info')}
                 </p>
-                <Link 
-                  to="/jury"
+                <p className="text-xs text-purple-700 mb-3 italic">
+                  💡 {t('home.jury.networkNote')}
+                </p>
+                <a 
+                  href="http://localhost:5174"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium"
                 >
                   {t('home.jury.openPortal')}
                   <ArrowRightIcon className="h-4 w-4" />
-                </Link>
+                </a>
               </div>
             </div>
           </div>

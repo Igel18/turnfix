@@ -6,7 +6,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext'
 import './i18n'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
-import Dashboard from '@/pages/Dashboard'
+import ManagementCenter from '@/pages/ManagementCenter'
 import Events from '@/pages/Events'
 import EventManagement from '@/pages/EventManagement'
 import ClubsUnified from '@/pages/ClubsUnified'
@@ -47,7 +47,7 @@ function App() {
               <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/management" element={<ManagementCenter />} />
             <Route path="/events" element={<Events />} />
             <Route path="/event-management" element={<EventManagement />} />
             <Route path="/clubs" element={<ClubsUnified />} />

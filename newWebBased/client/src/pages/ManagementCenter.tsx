@@ -226,7 +226,7 @@ const competitionDayActions = [
   },
   {
     name: 'Jury Portal',
-    description: 'Simplified jury interface for competition day (opens in new window)',
+    description: 'Simplified jury interface for competition day (opens in new window on port 5174)',
     href: 'http://localhost:5174',
     icon: TrophyIcon,
     color: 'bg-blue-600',
@@ -251,7 +251,7 @@ const resultsAwardsActions = [
   }
 ]
 
-export function Dashboard() {
+export function ManagementCenter() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { 
@@ -303,57 +303,57 @@ export function Dashboard() {
   const translateAction = (action: any) => {
     // Map action names to translation keys
     const nameKeyMap: { [key: string]: string } = {
-      'Manage Events': 'dashboard.eventManagement.eventSetup.manageEvents.title',
-      'View Competitions': 'dashboard.eventManagement.eventSetup.viewCompetitions.title',
-      'Event Participants': 'dashboard.eventManagement.eventSetup.eventParticipants.title',
-      'Starting Order': 'dashboard.eventManagement.competitionDay.startingOrder.title',
-      'Score Capture': 'dashboard.eventManagement.competitionDay.scoreCapture.title',
-      'Jury Portal': 'dashboard.eventManagement.competitionDay.juryPortal.title',
-      'Live Results': 'dashboard.eventManagement.competitionDay.liveResults.title',
-      'Final Results': 'dashboard.eventManagement.resultsAwards.finalResults.title',
-      'Export Results': 'dashboard.eventManagement.resultsAwards.exportResults.title',
-      'Certificates': 'dashboard.eventManagement.resultsAwards.certificates.title',
-      'Manage Regions': 'dashboard.databaseManagement.regions.title',
-      'Manage Associations': 'dashboard.databaseManagement.associations.title',
-      'Manage Clubs': 'dashboard.databaseManagement.clubs.title',
-      'Manage Athletes': 'dashboard.databaseManagement.athletes.title',
-      'Manage Disciplines': 'dashboard.databaseManagement.disciplines.title',
-      'Manage Locations': 'dashboard.databaseManagement.locations.title',
-      'Manage Persons': 'dashboard.databaseManagement.persons.title',
-      'Manage Sports': 'dashboard.databaseManagement.sports.title',
-      'Manage Formulas': 'dashboard.databaseManagement.formulas.title',
-      'Manage Discipline Groups': 'dashboard.databaseManagement.disciplineGroups.title',
-      'Discipline Fields': 'dashboard.databaseManagement.disciplineFields.title',
-      'Certificate Layouts': 'dashboard.databaseManagement.certificateLayouts.title',
-      'Status Management': 'dashboard.databaseManagement.statusManagement.title',
-      'Create Event': 'dashboard.databaseManagement.createEvent.title'
+      'Manage Events': 'managementCenter.eventManagement.eventSetup.manageEvents.title',
+      'View Competitions': 'managementCenter.eventManagement.eventSetup.viewCompetitions.title',
+      'Event Participants': 'managementCenter.eventManagement.eventSetup.eventParticipants.title',
+      'Starting Order': 'managementCenter.eventManagement.competitionDay.startingOrder.title',
+      'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.title',
+      'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.title',
+      'Live Results': 'managementCenter.eventManagement.competitionDay.liveResults.title',
+      'Final Results': 'managementCenter.eventManagement.resultsAwards.finalResults.title',
+      'Export Results': 'managementCenter.eventManagement.resultsAwards.exportResults.title',
+      'Certificates': 'managementCenter.eventManagement.resultsAwards.certificates.title',
+      'Manage Regions': 'managementCenter.databaseManagement.regions.title',
+      'Manage Associations': 'managementCenter.databaseManagement.associations.title',
+      'Manage Clubs': 'managementCenter.databaseManagement.clubs.title',
+      'Manage Athletes': 'managementCenter.databaseManagement.athletes.title',
+      'Manage Disciplines': 'managementCenter.databaseManagement.disciplines.title',
+      'Manage Locations': 'managementCenter.databaseManagement.locations.title',
+      'Manage Persons': 'managementCenter.databaseManagement.persons.title',
+      'Manage Sports': 'managementCenter.databaseManagement.sports.title',
+      'Manage Formulas': 'managementCenter.databaseManagement.formulas.title',
+      'Manage Discipline Groups': 'managementCenter.databaseManagement.disciplineGroups.title',
+      'Discipline Fields': 'managementCenter.databaseManagement.disciplineFields.title',
+      'Certificate Layouts': 'managementCenter.databaseManagement.certificateLayouts.title',
+      'Status Management': 'managementCenter.databaseManagement.statusManagement.title',
+      'Create Event': 'managementCenter.databaseManagement.createEvent.title'
     }
 
     const descriptionKeyMap: { [key: string]: string } = {
-      'Manage Events': 'dashboard.eventManagement.eventSetup.manageEvents.description',
-      'View Competitions': 'dashboard.eventManagement.eventSetup.viewCompetitions.description',
-      'Event Participants': 'dashboard.eventManagement.eventSetup.eventParticipants.description',
-      'Starting Order': 'dashboard.eventManagement.competitionDay.startingOrder.description',
-      'Score Capture': 'dashboard.eventManagement.competitionDay.scoreCapture.description',
-      'Jury Portal': 'dashboard.eventManagement.competitionDay.juryPortal.description',
-      'Live Results': 'dashboard.eventManagement.competitionDay.liveResults.description',
-      'Final Results': 'dashboard.eventManagement.resultsAwards.finalResults.description',
-      'Export Results': 'dashboard.eventManagement.resultsAwards.exportResults.description',
-      'Certificates': 'dashboard.eventManagement.resultsAwards.certificates.description',
-      'Manage Regions': 'dashboard.databaseManagement.regions.description',
-      'Manage Associations': 'dashboard.databaseManagement.associations.description',
-      'Manage Clubs': 'dashboard.databaseManagement.clubs.description',
-      'Manage Athletes': 'dashboard.databaseManagement.athletes.description',
-      'Manage Disciplines': 'dashboard.databaseManagement.disciplines.description',
-      'Manage Locations': 'dashboard.databaseManagement.locations.description',
-      'Manage Persons': 'dashboard.databaseManagement.persons.description',
-      'Manage Sports': 'dashboard.databaseManagement.sports.description',
-      'Manage Formulas': 'dashboard.databaseManagement.formulas.description',
-      'Manage Discipline Groups': 'dashboard.databaseManagement.disciplineGroups.description',
-      'Discipline Fields': 'dashboard.databaseManagement.disciplineFields.description',
-      'Certificate Layouts': 'dashboard.databaseManagement.certificateLayouts.description',
-      'Status Management': 'dashboard.databaseManagement.statusManagement.description',
-      'Create Event': 'dashboard.databaseManagement.createEvent.description'
+      'Manage Events': 'managementCenter.eventManagement.eventSetup.manageEvents.description',
+      'View Competitions': 'managementCenter.eventManagement.eventSetup.viewCompetitions.description',
+      'Event Participants': 'managementCenter.eventManagement.eventSetup.eventParticipants.description',
+      'Starting Order': 'managementCenter.eventManagement.competitionDay.startingOrder.description',
+      'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.description',
+      'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.description',
+      'Live Results': 'managementCenter.eventManagement.competitionDay.liveResults.description',
+      'Final Results': 'managementCenter.eventManagement.resultsAwards.finalResults.description',
+      'Export Results': 'managementCenter.eventManagement.resultsAwards.exportResults.description',
+      'Certificates': 'managementCenter.eventManagement.resultsAwards.certificates.description',
+      'Manage Regions': 'managementCenter.databaseManagement.regions.description',
+      'Manage Associations': 'managementCenter.databaseManagement.associations.description',
+      'Manage Clubs': 'managementCenter.databaseManagement.clubs.description',
+      'Manage Athletes': 'managementCenter.databaseManagement.athletes.description',
+      'Manage Disciplines': 'managementCenter.databaseManagement.disciplines.description',
+      'Manage Locations': 'managementCenter.databaseManagement.locations.description',
+      'Manage Persons': 'managementCenter.databaseManagement.persons.description',
+      'Manage Sports': 'managementCenter.databaseManagement.sports.description',
+      'Manage Formulas': 'managementCenter.databaseManagement.formulas.description',
+      'Manage Discipline Groups': 'managementCenter.databaseManagement.disciplineGroups.description',
+      'Discipline Fields': 'managementCenter.databaseManagement.disciplineFields.description',
+      'Certificate Layouts': 'managementCenter.databaseManagement.certificateLayouts.description',
+      'Status Management': 'managementCenter.databaseManagement.statusManagement.description',
+      'Create Event': 'managementCenter.databaseManagement.createEvent.description'
     }
 
     return {
@@ -491,10 +491,10 @@ export function Dashboard() {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          {t('dashboard.welcome', { username: user?.username || 'User' })}
+          {t('managementCenter.welcome', { username: user?.username || 'User' })}
         </h1>
         <p className="text-gray-600 mt-2">
-          {t('dashboard.subtitle')}
+          {t('managementCenter.subtitle')}
         </p>
       </div>
 
@@ -511,12 +511,12 @@ export function Dashboard() {
                 <BuildingOfficeIcon className="h-6 w-6 text-gray-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.databaseManagement.title')}</h2>
-                <p className="text-sm text-gray-600">{t('dashboard.databaseManagement.subtitle')}</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('managementCenter.databaseManagement.title')}</h2>
+                <p className="text-sm text-gray-600">{t('managementCenter.databaseManagement.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
-              <span>{isDatabaseManagementCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
+              <span>{isDatabaseManagementCollapsed ? t('managementCenter.buttons.expand') : t('managementCenter.buttons.collapse')}</span>
               {isDatabaseManagementCollapsed ? (
                 <ChevronDownIcon className="h-4 w-4" />
               ) : (
@@ -572,8 +572,8 @@ export function Dashboard() {
               <CalendarDaysIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.eventManagement.title')}</h2>
-              <p className="text-sm text-gray-600">{t('dashboard.eventManagement.subtitle')}</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('managementCenter.eventManagement.title')}</h2>
+              <p className="text-sm text-gray-600">{t('managementCenter.eventManagement.subtitle')}</p>
             </div>
           </div>
           
@@ -596,12 +596,12 @@ export function Dashboard() {
                       <span className="text-sm font-bold text-blue-600">1</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.eventManagement.eventSetup.title')}</h3>
-                      <p className="text-sm text-gray-600">{t('dashboard.eventManagement.eventSetup.subtitle')}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('managementCenter.eventManagement.eventSetup.title')}</h3>
+                      <p className="text-sm text-gray-600">{t('managementCenter.eventManagement.eventSetup.subtitle')}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
-                    <span>{isEventSetupCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
+                    <span>{isEventSetupCollapsed ? t('managementCenter.buttons.expand') : t('managementCenter.buttons.collapse')}</span>
                     {isEventSetupCollapsed ? (
                       <ChevronDownIcon className="h-4 w-4" />
                     ) : (
@@ -653,12 +653,12 @@ export function Dashboard() {
                       <span className="text-sm font-bold text-orange-600">2</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.eventManagement.competitionDay.title')}</h3>
-                      <p className="text-sm text-gray-600">{t('dashboard.eventManagement.competitionDay.subtitle')}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('managementCenter.eventManagement.competitionDay.title')}</h3>
+                      <p className="text-sm text-gray-600">{t('managementCenter.eventManagement.competitionDay.subtitle')}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
-                    <span>{isCompetitionDayCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
+                    <span>{isCompetitionDayCollapsed ? t('managementCenter.buttons.expand') : t('managementCenter.buttons.collapse')}</span>
                     {isCompetitionDayCollapsed ? (
                       <ChevronDownIcon className="h-4 w-4" />
                     ) : (
@@ -746,12 +746,12 @@ export function Dashboard() {
                       <span className="text-sm font-bold text-green-600">3</span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.eventManagement.resultsAwards.title')}</h3>
-                      <p className="text-sm text-gray-600">{t('dashboard.eventManagement.resultsAwards.subtitle')}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('managementCenter.eventManagement.resultsAwards.title')}</h3>
+                      <p className="text-sm text-gray-600">{t('managementCenter.eventManagement.resultsAwards.subtitle')}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 rounded-lg">
-                    <span>{isResultsAwardsCollapsed ? t('dashboard.buttons.expand') : t('dashboard.buttons.collapse')}</span>
+                    <span>{isResultsAwardsCollapsed ? t('managementCenter.buttons.expand') : t('managementCenter.buttons.collapse')}</span>
                     {isResultsAwardsCollapsed ? (
                       <ChevronDownIcon className="h-4 w-4" />
                     ) : (
@@ -841,4 +841,4 @@ export function Dashboard() {
   )
 }
 
-export default Dashboard
+export default ManagementCenter

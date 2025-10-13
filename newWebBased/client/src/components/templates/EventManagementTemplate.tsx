@@ -70,11 +70,11 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center space-x-4">
                 <Link 
-                  to="/dashboard"
+                  to="/management"
                   className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <HomeIcon className="h-4 w-4 mr-2" />
-                  {t('navigation.dashboard')}
+                  {t('navigation.managementCenter')}
                 </Link>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">{title}</h1>

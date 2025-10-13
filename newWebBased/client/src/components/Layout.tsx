@@ -18,7 +18,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 const menuItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Management Center', href: '/management', icon: HomeIcon },
   { name: 'Events', href: '/events', icon: CalendarDaysIcon },
   { name: 'Score Capture', href: '/score-capture', icon: ClipboardDocumentListIcon },
   { name: 'Competitions', href: '/competitions', icon: TrophyIcon },
@@ -101,7 +101,7 @@ export function Layout() {
                   <Bars3Icon className="h-6 w-6" />
                 )}
               </button>
-              <Link to="/dashboard" className="text-xl font-bold text-blue-600 ml-2">
+              <Link to="/management" className="text-xl font-bold text-blue-600 ml-2">
                 TurnFix
               </Link>
             </div>

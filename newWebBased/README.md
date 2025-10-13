@@ -58,13 +58,46 @@ npm run db:seed
 ```
 
 5. Start development servers:
+
+**Windows (Recommended):**
+```bash
+# Start all services (Backend, Frontend, Jury Portal)
+start-dev.bat
+
+# Check service status
+status-check.bat
+
+# Stop all services
+stop-dev.bat
+```
+
+**Alternative (npm scripts):**
 ```bash
 npm run dev
 ```
 
 The application will be available at:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3001
+- **Frontend (Main App)**: http://localhost:5173
+- **Backend API**: http://localhost:3001
+- **Jury Portal**: http://localhost:5174
+
+### Development Scripts
+
+| Script | Description |
+|--------|-------------|
+| `start-dev.bat` | Start all services (Backend, Frontend, Jury Portal) with auto-cleanup |
+| `stop-dev.bat` | Stop all running services |
+| `status-check.bat` | Check which services are running |
+
+### Network Access
+
+To access the application from other devices (tablets, smartphones):
+1. Run `start-dev.bat` (automatically configures network access)
+2. Find your IP address: `ipconfig`
+3. Access from other devices: `http://YOUR-IP:5173`
+4. For Jury Portal: `http://YOUR-IP:5174`
+
+See [FIREWALL_SETUP.md](FIREWALL_SETUP.md) for Windows Firewall configuration.
 
 ## Project Structure
 
