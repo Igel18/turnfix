@@ -487,9 +487,26 @@ const JuryPortal: React.FC = () => {
             >
               ← Zurück
             </button>
-            <div>
-              <h1 className="text-xl font-bold">{selectedDevice?.name}</h1>
-              <p className="text-blue-100">{selectedSquad?.name}</p>
+            <div className="flex items-center space-x-3">
+              {selectedDevice?.icon ? (
+                <img 
+                  src={getIconUrl(selectedDevice.icon) || ''}
+                  alt={`${selectedDevice.name} icon`}
+                  className="w-10 h-10 object-contain bg-white bg-opacity-20 rounded-lg p-1"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+              )}
+              <div>
+                <h1 className="text-xl font-bold">{selectedDevice?.name}</h1>
+                <p className="text-blue-100">{selectedSquad?.name}</p>
+              </div>
             </div>
           </div>
           <button

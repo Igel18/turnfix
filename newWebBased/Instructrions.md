@@ -20,7 +20,9 @@
 15. ~~Athletes Management lokalisieren~~ ✅
 16. ~~Athletes Management Filter "Gender" hat kein "unknown" aber "allgender" und "allgenders"~~ ✅
 17. ~~Athletenverwaltung Dialog zum editieren ist nicht lokalisiert~~ ✅
-18. Jury Portal: Icons von den disziplinen verwenden, die auch bei diesen hinterlegt sind. vielleicht gibt es dafür schon generalized funktionen? 
+18. ~~Jury Portal: Icons von den disziplinen verwenden, die auch bei diesen hinterlegt sind. vielleicht gibt es dafür schon generalized funktionen?~~ ✅
+19. ~~im Jury Portal beim Eingeben der Wertungen steht im header das Gerät. Hier wäre die Anzeige des Icons auch noch hilfreich.~~ ✅
+20. was ist der unterschied zwischen den jury portalen? kann man hier den selben code verwenden? oder vielleicht sogar das Client Jury Portal eleminieren? 
 
 xxx. ganz zum schluss: Schauen welche seiten & dialoge noch nicht lokalisiert sind
 

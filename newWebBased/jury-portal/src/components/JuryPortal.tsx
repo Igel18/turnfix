@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Trophy } from 'lucide-react';
+import { getIconUrl, getFallbackDeviceEmoji } from '../utils/iconUtils';
 
 interface Participant {
   id: number;
@@ -27,7 +28,8 @@ interface Squad {
 interface Device {
   id: number;
   name: string;
-  icon: string;
+  icon: string; // Can be emoji or icon path
+  iconPath?: string; // Optional: database icon path
   disciplineId: number;
 }
 
@@ -267,12 +269,13 @@ const JuryPortal: React.FC = () => {
         
         console.log('🔍 JURY: Filtered disciplines using Score Capture logic:', filteredDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
         
-        // Transform to Device format (same structure as before)
+        // Transform to Device format - use database icon if available, fallback to emoji
         const devicesList = filteredDisciplines.map((discipline: any) => ({
           id: discipline.int_disziplinid,
           name: discipline.var_name,
           disciplineId: discipline.int_disziplinid,
-          icon: getDeviceIcon(discipline.var_name)
+          icon: discipline.var_icon || getFallbackDeviceEmoji(discipline.var_name), // Use DB icon or emoji fallback
+          iconPath: discipline.var_icon // Store original icon path for display
         }));
         
         console.log('🔍 JURY: Final devices list:', devicesList);
@@ -284,7 +287,8 @@ const JuryPortal: React.FC = () => {
             id: discipline.int_disziplinid,
             name: discipline.var_name,
             disciplineId: discipline.int_disziplinid,
-            icon: getDeviceIcon(discipline.var_name)
+            icon: discipline.var_icon || getFallbackDeviceEmoji(discipline.var_name), // Use DB icon or emoji fallback
+            iconPath: discipline.var_icon // Store original icon path for display
           }));
           setDevices(fallbackDevices);
         } else {
@@ -386,22 +390,6 @@ const JuryPortal: React.FC = () => {
 
     fetchParticipants();
   }, [selectedEvent, selectedSquad, selectedDevice]);
-
-  const getDeviceIcon = (deviceName: string): string => {
-    const iconMap: { [key: string]: string } = {
-      'Boden': '🤸',
-      'Reck': '🏃',
-      'Barren': '💪', 
-      'Pferd': '🏇',
-      'Pauschenpferd': '🏇',
-      'Stufenbarren': '🤸‍♀️',
-      'Schwebebalken': '⚖️',
-      'Balken': '⚖️',
-      'Sprung': '🤾',
-      'Ringe': '💍'
-    };
-    return iconMap[deviceName] || '🏆';
-  };
 
   const currentParticipant = participants[currentParticipantIndex];
   const previousParticipant = participants[currentParticipantIndex - 1];
@@ -668,7 +656,25 @@ const JuryPortal: React.FC = () => {
                       setStep('scoring');
                     }}
                   >
-                    <div className="text-4xl mb-4">{device.icon}</div>
+                    <div className="flex justify-center mb-4">
+                      {device.iconPath ? (
+                        <img 
+                          src={getIconUrl(device.iconPath) || ''}
+                          alt={`${device.name} icon`}
+                          className="w-16 h-16 object-contain"
+                          onError={(e) => {
+                            // Fallback to emoji if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<div class="text-4xl">${device.icon}</div>`;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="text-4xl">{device.icon}</div>
+                      )}
+                    </div>
                     <h3 className="text-xl font-semibold">{device.name}</h3>
                   </div>
                 ))
@@ -693,9 +699,24 @@ const JuryPortal: React.FC = () => {
             >
               ← Zurück
             </button>
-            <div>
-              <h1 className="text-xl font-bold">{selectedDevice?.name}</h1>
-              <p className="text-blue-100">{selectedSquad?.name}</p>
+            <div className="flex items-center space-x-3">
+              {selectedDevice?.iconPath ? (
+                <img 
+                  src={getIconUrl(selectedDevice.iconPath) || ''}
+                  alt={`${selectedDevice.name} icon`}
+                  className="w-10 h-10 object-contain bg-white bg-opacity-20 rounded-lg p-1"
+                  onError={(e) => {
+                    // Fallback to emoji if image fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : selectedDevice?.icon && (
+                <div className="text-3xl">{selectedDevice.icon}</div>
+              )}
+              <div>
+                <h1 className="text-xl font-bold">{selectedDevice?.name}</h1>
+                <p className="text-blue-100">{selectedSquad?.name}</p>
+              </div>
             </div>
           </div>
           <button
