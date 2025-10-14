@@ -9,6 +9,12 @@
 8. In der View http://localhost:5173/certificate-layouts beim Editieren eines Layouts sind die DB Felder durch nummeriert. Es ist nicht klar was dahinter steckt... lässt sich irgendwie raus finden was die Felder bedeuten? Im Alten c++ code waren die felder genau benannt. 
 9. Auf der Seite Veranstaltungsteilnehmer gibt es einen Export "Teilnehmer Etiketten" diese Etiketten müssen sortiert werden nach Gender dann Riege dann Verein. 
 10. Gender in den Participant listen ist oft unknown 
+11. Setup so gestalten, dass mit einem klick alles installiert wird, so wie ich das sehe ist das u.a. 
+    - postgres (runterladen und installieren)
+    - node
+    - npm 
+    - turnfix  
+    - alle dependencies 
 
 
 refactoring (nur noch prisma) 

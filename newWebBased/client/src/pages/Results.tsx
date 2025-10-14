@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { useCertificateLayout } from '../contexts/CertificateLayoutContext'
 import { 
@@ -75,6 +76,7 @@ const PAPER_FORMATS = {
 }
 
 const Results = () => {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const { selectedEvent } = useEvent()
   
@@ -1244,9 +1246,9 @@ const Results = () => {
       <div className="max-w-7xl mx-auto p-6">
         <div className="text-center py-8">
           <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No Event Selected</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('results.noEventTitle')}</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Please select an event to view competition results.
+            {t('results.noEventMessage')}
           </p>
         </div>
       </div>
@@ -1256,12 +1258,12 @@ const Results = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedPageHeader
-        title="Competition Results"
-        subtitle={`Rankings for ${eventName}`}
+        title={t('results.title')}
+        subtitle={t('results.subtitle', { eventName })}
         icon={ChartBarIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants, clubs, start numbers..."
+        searchPlaceholder={t('results.searchPlaceholder')}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
         hasFilters={true}
@@ -1282,14 +1284,14 @@ const Results = () => {
         {isLoading ? (
           <div className="p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading results...</p>
+            <p className="mt-2 text-gray-600">{t('results.loading')}</p>
           </div>
         ) : selectedCompetition ? (
           // Single Competition View
           filteredRanking.length === 0 ? (
             <div className="p-6 text-center">
               <TrophyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No results found for this competition</p>
+              <p className="text-gray-600">{t('results.noResultsForCompetition')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -1297,32 +1299,32 @@ const Results = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Platz
+                      {t('results.table.rank')}
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Start #
+                      {t('results.table.startNumber')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                      {t('results.table.name')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Verein
+                      {t('results.table.club')}
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Jg
+                      {t('results.table.yearOfBirth')}
                     </th>
                     {disciplines.map(discipline => (
                       <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
                         <div className="flex flex-col">
                           <span className="font-semibold">{discipline}</span>
-                          <span className="text-[10px] text-gray-400 font-normal">Device</span>
+                          <span className="text-[10px] text-gray-400 font-normal">{t('results.table.device')}</span>
                         </div>
                       </th>
                     ))}
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
                       <div className="flex flex-col">
-                        <span className="font-bold text-blue-700">Gesamt</span>
-                        <span className="text-[10px] text-blue-500 font-normal">Total Score</span>
+                        <span className="font-bold text-blue-700">{t('results.table.total')}</span>
+                        <span className="text-[10px] text-blue-500 font-normal">{t('results.table.totalScore')}</span>
                       </div>
                     </th>
                   </tr>
@@ -1392,7 +1394,7 @@ const Results = () => {
           filteredCompetitionGroups.length === 0 ? (
             <div className="p-6 text-center">
               <TrophyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No results found for this event</p>
+              <p className="text-gray-600">{t('results.noResultsForEvent')}</p>
             </div>
           ) : (
             <div className="space-y-8 p-6">
@@ -1400,26 +1402,26 @@ const Results = () => {
                 <div key={group.competitionId} className="border rounded-lg overflow-hidden">
                   <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <h3 className="text-xl font-bold text-white">{group.competitionName}</h3>
-                    <p className="text-blue-100 text-sm">{group.participants.length} participants</p>
+                    <p className="text-blue-100 text-sm">{t('results.participantsCount', { count: group.participants.length })}</p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Platz
+                            {t('results.table.rank')}
                           </th>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Start #
+                            {t('results.table.startNumber')}
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
+                            {t('results.table.name')}
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Verein
+                            {t('results.table.club')}
                           </th>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Jg
+                            {t('results.table.yearOfBirth')}
                           </th>
                           {group.disciplineInfo.map(disciplineInfo => (
                             <th key={disciplineInfo.name} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
@@ -1436,14 +1438,14 @@ const Results = () => {
                                   />
                                   <span className="font-semibold">{disciplineInfo.name}</span>
                                 </div>
-                                <span className="text-[10px] text-gray-400 font-normal">Device</span>
+                                <span className="text-[10px] text-gray-400 font-normal">{t('results.table.device')}</span>
                               </div>
                             </th>
                           ))}
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
                             <div className="flex flex-col">
-                              <span className="font-bold text-blue-700">Gesamt</span>
-                              <span className="text-[10px] text-blue-500 font-normal">Total Score</span>
+                              <span className="font-bold text-blue-700">{t('results.table.total')}</span>
+                              <span className="text-[10px] text-blue-500 font-normal">{t('results.table.totalScore')}</span>
                             </div>
                           </th>
                         </tr>

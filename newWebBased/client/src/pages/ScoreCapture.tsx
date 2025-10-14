@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom'
 import { 
   PlusIcon,
@@ -87,6 +87,7 @@ interface Competition {
 }
 
 export function ScoreCapture() {
+  const { t } = useTranslation();
   // Track pending Endwert edits to avoid UI flicker
   const [pendingEndwerts, setPendingEndwerts] = useState<{[key: string]: string}>({});
   const [searchParams] = useSearchParams()
@@ -1245,8 +1246,8 @@ export function ScoreCapture() {
       <div className="max-w-7xl mx-auto">
         <div className="p-6 text-center">
           <ExclamationTriangleIcon className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Event Selected</h3>
-          <p className="text-gray-500">Please select an event from the dashboard to capture scores.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('scoreCapture.noEventTitle')}</h3>
+          <p className="text-gray-500">{t('scoreCapture.noEventMessage')}</p>
         </div>
       </div>
     )
@@ -1255,16 +1256,19 @@ export function ScoreCapture() {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedPageHeader
-        title="Score Capture"
+        title={t('scoreCapture.title')}
         subtitle={
           selectedCompetition 
-            ? `Enter and manage scores for ${selectedCompetition.name}${selectedCompetition.number ? ` (Nr. ${selectedCompetition.number})` : ''}` 
-            : "Enter and manage competition scores and results"
+            ? t('scoreCapture.subtitleWithCompetition', { 
+                name: selectedCompetition.name, 
+                number: selectedCompetition.number ? ` (${t('scoreCapture.numberAbbrev')} ${selectedCompetition.number})` : '' 
+              })
+            : t('scoreCapture.subtitle')
         }
         icon={ClipboardDocumentListIcon}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search participants by name, club, or start number..."
+        searchPlaceholder={t('scoreCapture.searchPlaceholder')}
         hasFilters={true}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
@@ -1278,7 +1282,7 @@ export function ScoreCapture() {
             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
-            Refresh Data
+            {t('scoreCapture.refreshData')}
           </button>
         }
       />
@@ -1291,7 +1295,7 @@ export function ScoreCapture() {
             <label className="block text-sm font-medium text-gray-700 mb-3">
               <span className="inline-flex items-center">
                 <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">1</span>
-                Select Squad
+                {t('scoreCapture.selectSquad')}
               </span>
             </label>
             <select
@@ -1324,21 +1328,21 @@ export function ScoreCapture() {
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Choose a squad...</option>
+              <option value="">{t('scoreCapture.chooseSquad')}</option>
               {getFilteredSquads().map((squad) => (
                 <option key={squad.name} value={squad.name}>
-                  {squad.name} ({squad.participant_count} participants)
+                  {squad.name} ({squad.participant_count} {t('scoreCapture.participants')})
                 </option>
               ))}
             </select>
             {activeSquad && (
               <div className="mt-2">
                 <p className="text-sm text-green-600">
-                  ✓ Squad "{activeSquad}" selected
+                  ✓ {t('scoreCapture.squadSelected', { squad: activeSquad })}
                 </p>
                 {activeDiscipline && (
                   <p className="text-xs text-blue-600">
-                    Ready to capture scores for this squad-discipline combination
+                    {t('scoreCapture.readyToCapture')}
                   </p>
                 )}
               </div>
@@ -1348,17 +1352,18 @@ export function ScoreCapture() {
             {activeSquad && activeDiscipline && (
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Squad Status for {typeof activeDiscipline === 'number' ? 
-                    disciplines.find(d => d.int_disziplinid === activeDiscipline)?.var_shortname || 'Selected Discipline' :
-                    activeDiscipline
-                  }
+                  {t('scoreCapture.squadStatusFor', { 
+                    discipline: typeof activeDiscipline === 'number' ? 
+                      disciplines.find(d => d.int_disziplinid === activeDiscipline)?.var_shortname || t('scoreCapture.selectedDiscipline') :
+                      activeDiscipline
+                  })}
                 </label>
                 <select
                   value={squadStatus || ''}
                   onChange={(e) => handleSquadStatusChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">No Status</option>
+                  <option value="">{t('scoreCapture.noStatus')}</option>
                   {statuses.map(status => (
                     <option key={status.int_statusid} value={status.int_statusid}>
                       {status.var_name}
@@ -1367,13 +1372,13 @@ export function ScoreCapture() {
                 </select>
                 
                 <p className="mt-1 text-xs text-gray-500">
-                  Status applies to the selected squad and discipline combination
+                  {t('scoreCapture.statusAppliesTo')}
                 </p>
                 
                 {/* Status Color Indicator */}
                 {squadStatus && (
                   <div className={`inline-block px-3 py-1 mt-2 text-sm rounded-full ${getStatusColor(squadStatus)}`}>
-                    {statuses.find(s => s.int_statusid === squadStatus)?.var_name || 'Unknown Status'}
+                    {statuses.find(s => s.int_statusid === squadStatus)?.var_name || t('scoreCapture.unknownStatus')}
                   </div>
                 )}
               </div>
@@ -1387,18 +1392,18 @@ export function ScoreCapture() {
                 <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2 ${
                   activeSquad ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'
                 }`}>2</span>
-                Select Device/Apparatus
-                {!activeSquad && <span className="text-gray-400 ml-2">(requires squad selection)</span>}
+                {t('scoreCapture.selectDevice')}
+                {!activeSquad && <span className="text-gray-400 ml-2">({t('scoreCapture.requiresSquad')})</span>}
               </span>
             </label>
             
             {!activeSquad ? (
               <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">First select a squad to see available devices...</p>
+                <p className="text-gray-500">{t('scoreCapture.selectSquadFirst')}</p>
               </div>
             ) : getFilteredDisciplines().length === 0 ? (
               <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">No devices available for this squad</p>
+                <p className="text-gray-500">{t('scoreCapture.noDevicesAvailable')}</p>
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -1454,10 +1459,10 @@ export function ScoreCapture() {
             {activeSquad && !activeDiscipline && getFilteredDisciplines().length > 0 && (
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-700">
-                  {getFilteredDisciplines().length} device(s) available for scoring
+                  {t('scoreCapture.devicesAvailable', { count: getFilteredDisciplines().length })}
                 </p>
                 <p className="text-xs text-blue-600">
-                  Click on the device you want to capture scores for
+                  {t('scoreCapture.clickDevice')}
                 </p>
               </div>
             )}
@@ -1468,27 +1473,27 @@ export function ScoreCapture() {
       {loading ? (
         <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-500">Loading participants and disciplines...</p>
+          <p className="mt-2 text-gray-500">{t('scoreCapture.loadingParticipants')}</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border">
           {!activeSquad || !activeDiscipline ? (
             <div className="p-8 text-center">
               <ClipboardDocumentListIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Ready for Score Capture</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('scoreCapture.readyForCapture')}</h3>
               <div className="text-gray-500 space-y-1">
-                {!activeSquad && <p>• Please select a squad to score</p>}
-                {!activeDiscipline && <p>• Please select a device/apparatus to score</p>}
+                {!activeSquad && <p>• {t('scoreCapture.pleaseSelectSquad')}</p>}
+                {!activeDiscipline && <p>• {t('scoreCapture.pleaseSelectDevice')}</p>}
               </div>
               <p className="text-sm text-gray-400 mt-4">
-                Once both selections are made, the scoring interface will appear with participants from the selected squad.
+                {t('scoreCapture.scoringInterfaceInfo')}
               </p>
             </div>
           ) : (participants || []).length === 0 ? (
             <div className="p-6 text-center">
               <ClipboardDocumentListIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Participants Found</h3>
-              <p className="text-gray-500 mb-4">No participants are registered for this competition in the selected squad.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('scoreCapture.noParticipantsTitle')}</h3>
+              <p className="text-gray-500 mb-4">{t('scoreCapture.noParticipantsMessage')}</p>
             </div>
           ) : (
             <>
@@ -1498,13 +1503,13 @@ export function ScoreCapture() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
-                        Participant
+                        {t('scoreCapture.table.participant')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Club
+                        {t('scoreCapture.table.club')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Age/Gender
+                        {t('scoreCapture.table.ageGender')}
                       </th>
                       {displayDisciplines.map((discipline, index) => {
                         const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
@@ -1804,7 +1809,7 @@ export function ScoreCapture() {
                                               className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
                                               onClick={handleCalculate}
                                             >
-                                              Calculate & Save Both
+                                              {t('scoreCapture.calculateAndSave')}
                                             </button>
                                           </div>
                                         </div>
