@@ -10,6 +10,20 @@ const createSportSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
 });
 const updateSportSchema = createSportSchema.partial();
+// Get sports count
+router.get('/count', async (req, res) => {
+    try {
+        const count = await prisma.tfx_sport.count();
+        res.json({ count });
+    }
+    catch (error) {
+        console.error('Error counting sports:', error);
+        res.status(500).json({
+            error: 'Failed to count sports',
+            details: process.env.DEBUG === 'true' ? error : undefined
+        });
+    }
+});
 // Get all sports
 router.get('/', async (req, res) => {
     try {

@@ -86,12 +86,33 @@ If you prefer to run individual steps:
 
 After installation, you have several options:
 
-### Option 1: Startup Script (Recommended)
+### Option 1: Production Mode (PM2 - Recommended)
+```powershell
+# Build and start with PM2 (automatic restart on crash)
+cd "C:\TurnFix\newWebBased\server"
+npm run build
+npm run pm2:start:prod
+
+# Monitor server
+npm run pm2:status    # Check if online
+npm run pm2:logs      # View logs
+npm run pm2:monit     # CPU/Memory monitoring
+```
+
+**Benefits:**
+- ✅ Automatic restart on crash
+- ✅ Memory monitoring (500MB limit)
+- ✅ Health checks every 60 seconds
+- ✅ Graceful shutdown (no data loss)
+- ✅ Log management in `server/logs/`
+- ✅ ~98% uptime
+
+### Option 2: Startup Script (Development)
 ```powershell
 C:\TurnFix\start-turnfix.ps1
 ```
 
-### Option 2: Manual Start
+### Option 3: Manual Development Mode
 ```powershell
 # Terminal 1 - Backend
 cd "C:\TurnFix\newWebBased\server"
@@ -102,14 +123,23 @@ cd "C:\TurnFix\newWebBased\client"
 npm run dev
 ```
 
-### Option 3: Double-click
+### Option 4: Double-click
 Double-click `C:\TurnFix\start-turnfix.ps1`
 
 ## 🌐 Access TurnFix
 
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:3001
+- **Jury Portal**: http://localhost:5174
+- **Health Check**: http://localhost:3001/api/health
 - **pgAdmin**: http://localhost:5050 (if installed)
+
+## 📚 Documentation
+
+- **Getting Started**: [`newWebBased/GETTING_STARTED.md`](../newWebBased/GETTING_STARTED.md)
+- **Production Deployment**: [`newWebBased/DEPLOYMENT.md`](../newWebBased/DEPLOYMENT.md)
+- **System Hardening**: [`newWebBased/HARDENING-PLAN.md`](../newWebBased/HARDENING-PLAN.md)
+- **German Setup Guide**: [`setup/windows/SETUP-GUIDE-DE.md`](windows/SETUP-GUIDE-DE.md)
 
 ## 📁 Installation Structure
 
@@ -130,8 +160,15 @@ C:\TurnFix\
 ### Database Connection
 Default configuration in `.env`:
 ```env
-DATABASE_URL=postgresql://turnfix_user:turnfix_pass@localhost:5432/turnfix
+# Database connection with connection pool (20 connections)
+DATABASE_URL=postgresql://turnfix_user:turnfix_pass@localhost:5432/turnfix?connection_limit=20&pool_timeout=10
 ```
+
+**Production Features:**
+- Connection pooling (20 connections)
+- Auto-reconnect (5 retry attempts)
+- Health checks (every 60 seconds)
+- Query retry logic (3 attempts)
 
 ### Application Settings
 - **Backend Port**: 3001

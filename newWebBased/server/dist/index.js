@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = require("dotenv");
 // Load environment variables first
 (0, dotenv_1.config)();
+console.log('🚀 Starting TurnFix server...');
+console.log('🔧 Importing express...');
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -16,8 +18,12 @@ const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const errorHandler_1 = require("./middleware/errorHandler");
 const notFoundHandler_1 = require("./middleware/notFoundHandler");
+const shutdown_1 = require("./utils/shutdown");
+const connection_1 = require("./db/connection");
+// import { notFoundHandler } from './middleware/notFoundHandler';
 // Prisma-based routes using SQL queries
 const disciplines_1 = __importDefault(require("./routes/disciplines"));
+const disciplineFields_1 = __importDefault(require("./routes/disciplineFields"));
 const associations_1 = __importDefault(require("./routes/associations"));
 const regions_1 = __importDefault(require("./routes/regions"));
 const clubs_1 = __importDefault(require("./routes/clubs"));
@@ -42,6 +48,13 @@ const scores_1 = __importDefault(require("./routes/scores"));
 const admin_1 = __importDefault(require("./routes/admin"));
 const layouts_1 = __importDefault(require("./routes/layouts"));
 const images_1 = __importDefault(require("./routes/images"));
+const meldematrix_1 = __importDefault(require("./routes/meldematrix"));
+const medals_1 = __importDefault(require("./routes/medals"));
+const juryResults_1 = __importDefault(require("./routes/juryResults"));
+const wertungenDetails_1 = __importDefault(require("./routes/wertungenDetails"));
+const configuration_1 = __importDefault(require("./routes/configuration"));
+const timePlanning_1 = __importDefault(require("./routes/timePlanning"));
+const firewall_1 = __importDefault(require("./routes/firewall"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
@@ -51,15 +64,21 @@ const io = new socket_io_1.Server(server, {
     }
 });
 const PORT = process.env.PORT || 3001;
-// Rate limiting
+// Rate limiting - very permissive for development, adjust for production
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000'), // limit each IP to 10000 requests per minute (very high for development)
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000'), // 10000 requests per minute (very permissive)
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    // Skip rate limiting for development environment
-    skip: (req) => process.env.NODE_ENV === 'development' && req.ip === '::1' || req.ip === '127.0.0.1'
+    // Skip rate limiting for localhost (including proxy from jury-server)
+    skip: (req) => {
+        const isLocalhost = req.ip === '::1' ||
+            req.ip === '127.0.0.1' ||
+            req.ip === '::ffff:127.0.0.1' ||
+            req.hostname === 'localhost';
+        return isLocalhost; // Always skip localhost, regardless of NODE_ENV
+    }
 });
 // Middleware
 app.use((0, helmet_1.default)());
@@ -89,7 +108,19 @@ app.use((0, cors_1.default)({
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from uploads directory
-app.use('/uploads', express_1.default.static('uploads'));
+app.use('/uploads', express_1.default.static('uploads', {
+    setHeaders: (res, path, stat) => {
+        res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.set('Access-Control-Allow-Origin', '*');
+    }
+}));
+// Serve static files from public directory (including icons)
+app.use('/public', express_1.default.static('public', {
+    setHeaders: (res, path, stat) => {
+        res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.set('Access-Control-Allow-Origin', '*');
+    }
+}));
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
@@ -104,12 +135,13 @@ app.get('/api/test', (req, res) => {
 });
 // API Routes - Only Prisma-based routes using direct SQL queries
 app.use('/api/disciplines', disciplines_1.default);
+app.use('/api/discipline-fields', disciplineFields_1.default);
 app.use('/api/associations', associations_1.default);
 app.use('/api/regions', regions_1.default);
 app.use('/api/clubs', clubs_1.default);
 app.use('/api/participants', participants_1.default);
 app.use('/api/event-participants', eventParticipants_1.default);
-app.use('/api/events', events_1.default);
+app.use('/api/events', events_1.default); // Re-enabled with simple version
 app.use('/api/areas', areas_1.default);
 app.use('/api/sports', sports_1.default);
 app.use('/api/formulas', formulas_1.default);
@@ -128,6 +160,13 @@ app.use('/api/scores', scores_1.default);
 app.use('/api/admin', admin_1.default);
 app.use('/api/layouts', layouts_1.default);
 app.use('/api/images', images_1.default);
+app.use('/api/meldematrix', meldematrix_1.default);
+app.use('/api/medals', medals_1.default);
+app.use('/api/jury-results', juryResults_1.default);
+app.use('/api/wertungen-details', wertungenDetails_1.default);
+app.use('/api/configuration', configuration_1.default);
+app.use('/api/time-planning', timePlanning_1.default);
+app.use('/api/firewall', firewall_1.default);
 // Socket.IO for real-time features
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
@@ -148,10 +187,32 @@ app.set('io', io);
 // Error handling
 app.use(notFoundHandler_1.notFoundHandler);
 app.use(errorHandler_1.errorHandler);
+console.log('🔧 About to start server on port', PORT);
+// Setup graceful shutdown and error handlers
+(0, shutdown_1.setupUncaughtExceptionHandler)();
+(0, shutdown_1.setupUnhandledRejectionHandler)();
+(0, shutdown_1.setupProcessWarnings)();
+(0, shutdown_1.setupGracefulShutdown)(server, io);
+// Check database connection before starting
+(0, connection_1.checkDatabaseConnection)().then((isConnected) => {
+    if (isConnected) {
+        console.log('✅ Database connection verified');
+        // Start periodic health check
+        (0, connection_1.startDatabaseHealthCheck)(60000); // Check every 60 seconds
+    }
+    else {
+        console.error('❌ Database connection failed. Server may not work correctly.');
+    }
+});
 server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 API: http://localhost:${PORT}/api`);
+    console.log(`🔗 Local API: http://localhost:${PORT}/api`);
+    console.log(`🌐 Network API: http://192.168.1.108:${PORT}/api`);
+});
+server.on('error', (error) => {
+    console.error('❌ Server error:', error);
 });
 exports.default = app;
+// Force restart
 //# sourceMappingURL=index.js.map

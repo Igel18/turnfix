@@ -4,6 +4,8 @@ const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const client_1 = require("@prisma/client");
+const configurationHelpers_1 = require("../utils/configurationHelpers");
+const genderHelpers_1 = require("../utils/genderHelpers");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Validation schemas
@@ -14,13 +16,13 @@ const participantCreateSchema = zod_1.z.object({
     int_geschlecht: zod_1.z.number().int().min(0).max(2),
     int_vereineid: zod_1.z.number().int(),
     bool_nur_jahr: zod_1.z.boolean().optional(),
-    int_startpassnummer: zod_1.z.number().int().optional(),
+    int_startpassnummer: zod_1.z.number().int().optional().nullable().transform(val => val === null ? undefined : val),
 });
 const participantUpdateSchema = participantCreateSchema.partial();
 const participantQuerySchema = zod_1.z.object({
     search: zod_1.z.string().optional(),
     clubId: zod_1.z.string().transform(Number).optional(),
-    gender: zod_1.z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+    gender: zod_1.z.enum((0, configurationHelpers_1.getParticipantGenderValues)()).optional(),
     limit: zod_1.z.string().transform(Number).default(50),
     offset: zod_1.z.string().transform(Number).default(0)
 });
@@ -43,10 +45,12 @@ router.get('/', async (req, res) => {
             paramIndex++;
         }
         if (query.gender) {
-            const genderValue = query.gender === 'MALE' ? 1 : query.gender === 'FEMALE' ? 2 : 0;
-            whereConditions.push(`t.int_geschlecht = $${paramIndex}`);
-            params.push(genderValue);
-            paramIndex++;
+            const genderValue = (0, genderHelpers_1.parseGenderFilter)(query.gender);
+            if (genderValue !== null) {
+                whereConditions.push(`t.int_geschlecht = $${paramIndex}`);
+                params.push(genderValue);
+                paramIndex++;
+            }
         }
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
         // Count query
@@ -68,9 +72,9 @@ router.get('/', async (req, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -128,7 +132,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid participant ID' });
+            return res.status(400).json({ error: 'Invalid participant ID' });
         }
         const query = `
       SELECT 
@@ -142,9 +146,9 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -158,7 +162,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
         const result = await prisma.$queryRawUnsafe(query, id);
         const participant = result[0];
         if (!participant) {
-            return res.status(404).json({ message: 'Participant not found' });
+            return res.status(404).json({ error: 'Participant not found' });
         }
         // Convert BigInt values to numbers for JSON serialization
         const participantData = {
@@ -203,9 +207,9 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name
       FROM tfx_teilnehmer t
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
@@ -226,9 +230,9 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error creating participant:', error);
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({ message: 'Invalid participant data', errors: error.issues });
+            return res.status(400).json({ error: 'Invalid participant data', details: error.issues });
         }
-        return res.status(500).json({ message: 'Failed to create participant' });
+        return res.status(500).json({ error: 'Failed to create participant' });
     }
 });
 // Update participant
@@ -236,7 +240,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid participant ID' });
+            return res.status(400).json({ error: 'Invalid participant ID' });
         }
         const data = participantUpdateSchema.parse(req.body);
         // Build dynamic update query
@@ -273,9 +277,9 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name
       FROM tfx_teilnehmer t
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
@@ -284,7 +288,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         const updatedParticipant = await prisma.$queryRawUnsafe(fetchQuery, id);
         const participant = updatedParticipant[0];
         if (!participant) {
-            return res.status(404).json({ message: 'Participant not found' });
+            return res.status(404).json({ error: 'Participant not found' });
         }
         // Convert BigInt values to numbers for JSON serialization
         const participantData = {
@@ -299,9 +303,9 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error updating participant:', error);
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({ message: 'Invalid participant data', errors: error.issues });
+            return res.status(400).json({ error: 'Invalid participant data', details: error.issues });
         }
-        return res.status(500).json({ message: 'Failed to update participant' });
+        return res.status(500).json({ error: 'Failed to update participant' });
     }
 });
 // Delete participant
@@ -309,21 +313,28 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid participant ID' });
+            return res.status(400).json({ error: 'Invalid participant ID' });
+        }
+        // Check if participant exists first
+        const existsQuery = 'SELECT COUNT(*) as count FROM tfx_teilnehmer WHERE int_teilnehmerid = $1';
+        const existsResult = await prisma.$queryRawUnsafe(existsQuery, id);
+        const exists = Number(existsResult[0]?.count) > 0;
+        if (!exists) {
+            return res.status(404).json({ error: 'Participant not found' });
         }
         // Check if participant has scores/competitions
         const competitionCount = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM tfx_wertungen WHERE int_teilnehmerid = $1', id);
         if (Number(competitionCount[0]?.count) > 0) {
             return res.status(409).json({
-                message: 'Cannot delete participant with existing competition entries. Please remove competition entries first.'
+                error: 'Cannot delete participant with existing competition entries. Please remove competition entries first.'
             });
         }
-        const result = await prisma.$queryRawUnsafe('DELETE FROM tfx_teilnehmer WHERE int_teilnehmerid = $1', id);
+        await prisma.$queryRawUnsafe('DELETE FROM tfx_teilnehmer WHERE int_teilnehmerid = $1', id);
         res.json({ message: 'Participant deleted successfully' });
     }
     catch (error) {
         console.error('Error deleting participant:', error);
-        return res.status(500).json({ message: 'Failed to delete participant' });
+        return res.status(500).json({ error: 'Failed to delete participant' });
     }
 });
 // Update participant status - DISABLED: int_statusid column doesn't exist in database yet

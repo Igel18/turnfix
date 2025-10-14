@@ -6,7 +6,7 @@ const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-// Validation schemas
+// Validation schemas - using client-friendly field names
 const createDisciplineSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "Name is required"),
     shortName: zod_1.z.string().min(1, "Short name is required").max(6).optional(),
@@ -26,9 +26,34 @@ const createDisciplineSchema = zod_1.z.object({
     shouldCalculate: zod_1.z.boolean().default(true)
 });
 const updateDisciplineSchema = createDisciplineSchema.partial();
+// Get disciplines count
+router.get('/count', async (req, res) => {
+    try {
+        const count = await prisma.tfx_disziplinen.count();
+        res.json({ count });
+    }
+    catch (error) {
+        console.error('Error counting disciplines:', error);
+        res.status(500).json({
+            error: 'Failed to count disciplines',
+            details: process.env.DEBUG === 'true' ? error : undefined
+        });
+    }
+});
 // Get all disciplines
 router.get('/', async (req, res) => {
     try {
+        const { gender } = req.query;
+        let whereClause = '';
+        const params = [];
+        if (gender) {
+            if (gender === 'male') {
+                whereClause = 'WHERE bol_m = true';
+            }
+            else if (gender === 'female') {
+                whereClause = 'WHERE bol_w = true';
+            }
+        }
         const query = `
       SELECT 
         int_disziplinenid as id, 
@@ -47,18 +72,13 @@ router.get('/', async (req, res) => {
         bol_w as female_allowed,
         int_sportid as sport_id,
         int_formelid as formula_id,
-        bol_berechnen as should_calculate,
-        CASE 
-          WHEN bol_m = true AND bol_w = true THEN 'gemischt'
-          WHEN bol_m = true AND bol_w = false THEN 'männlich'
-          WHEN bol_m = false AND bol_w = true THEN 'weiblich'
-          ELSE 'unbekannt'
-        END as gender_text
+        bol_berechnen as should_calculate
       FROM tfx_disziplinen
+      ${whereClause}
       ORDER BY var_name
     `;
-        const disciplines = await prisma.$queryRawUnsafe(query);
-        res.json(disciplines);
+        const rawDisciplines = await prisma.$queryRawUnsafe(query, ...params);
+        res.json(rawDisciplines);
     }
     catch (error) {
         console.error('Error fetching disciplines:', error);
@@ -229,11 +249,8 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         bol_berechnen as should_calculate
     `;
         const result = await prisma.$queryRawUnsafe(query, validatedData.name, validatedData.shortName || validatedData.name.substring(0, 6), validatedData.displayName || validatedData.shortName || validatedData.name.substring(0, 20), validatedData.formula || null, validatedData.inputMask || null, validatedData.attempts, validatedData.icon || null, validatedData.shortcut || null, validatedData.calculationType, validatedData.unit || null, validatedData.lanesDivision, validatedData.maleAllowed, validatedData.femaleAllowed, validatedData.sportId, validatedData.formulaId || null, validatedData.shouldCalculate);
-        res.status(201).json({
-            success: true,
-            message: 'Discipline created successfully',
-            data: Array.isArray(result) ? result[0] : result
-        });
+        const createdDiscipline = Array.isArray(result) ? result[0] : result;
+        res.status(201).json(createdDiscipline);
     }
     catch (error) {
         console.error('Error creating discipline:', error);
@@ -249,26 +266,28 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
 router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const disciplineId = parseInt(req.params.id);
+        if (isNaN(disciplineId)) {
+            return res.status(400).json({ error: 'Invalid discipline ID' });
+        }
         const query = `
       SELECT 
         int_disziplinenid as id, 
         var_name as name, 
         var_kurz1 as short_name,
         var_kurz2 as display_name,
-        var_einheit as apparatus,
+        var_formel as formula,
+        var_maske as input_mask,
+        int_versuche as attempts,
+        var_icon as icon,
+        var_kuerzel as shortcut,
+        int_berechnung as calculation_type,
+        var_einheit as unit,
+        bol_bahnen as lanes_division,
         bol_m as male_allowed,
         bol_w as female_allowed,
-        CASE 
-          WHEN bol_m = true AND bol_w = true THEN 'gemischt'
-          WHEN bol_m = true AND bol_w = false THEN 'männlich'
-          WHEN bol_m = false AND bol_w = true THEN 'weiblich'
-          ELSE 'unbekannt'
-        END as gender_text,
-        var_icon as icon,
-        var_formel as formula,
         int_sportid as sport_id,
-        var_maske as input_mask,
-        int_versuche as attempts
+        int_formelid as formula_id,
+        bol_berechnen as should_calculate
       FROM tfx_disziplinen
       WHERE int_disziplinenid = $1
     `;
@@ -405,11 +424,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (!updatedDiscipline) {
             return res.status(404).json({ error: 'Discipline not found' });
         }
-        res.json({
-            success: true,
-            message: 'Discipline updated successfully',
-            data: updatedDiscipline
-        });
+        res.json(updatedDiscipline);
     }
     catch (error) {
         console.error('Error updating discipline:', error);

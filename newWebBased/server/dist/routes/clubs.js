@@ -105,7 +105,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid club ID' });
+            return res.status(400).json({ error: 'Invalid club ID' });
         }
         const query = `
       SELECT 
@@ -129,7 +129,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
         const result = await prisma.$queryRawUnsafe(query, id);
         const club = result[0];
         if (!club) {
-            return res.status(404).json({ message: 'Club not found' });
+            return res.status(404).json({ error: 'Club not found' });
         }
         // Convert BigInt values to numbers for JSON serialization
         const clubData = {
@@ -202,9 +202,9 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error creating club:', error);
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({ message: 'Invalid club data', errors: error.issues });
+            return res.status(400).json({ error: 'Invalid club data', details: error.issues });
         }
-        return res.status(500).json({ message: 'Failed to create club' });
+        return res.status(500).json({ error: 'Failed to create club' });
     }
 });
 // Update club
@@ -212,7 +212,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid club ID' });
+            return res.status(400).json({ error: 'Invalid club ID' });
         }
         const data = clubUpdateSchema.parse(req.body);
         // Build dynamic update query
@@ -225,7 +225,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             paramIndex++;
         });
         if (updates.length === 0) {
-            return res.status(400).json({ message: 'No data to update' });
+            return res.status(400).json({ error: 'No data to update' });
         }
         params.push(id);
         const query = `
@@ -254,7 +254,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         const updatedClub = await prisma.$queryRawUnsafe(fetchQuery, id);
         const club = updatedClub[0];
         if (!club) {
-            return res.status(404).json({ message: 'Club not found' });
+            return res.status(404).json({ error: 'Club not found' });
         }
         // Convert BigInt values to numbers for JSON serialization
         const clubData = {
@@ -269,9 +269,9 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error updating club:', error);
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({ message: 'Invalid club data', errors: error.issues });
+            return res.status(400).json({ error: 'Invalid club data', details: error.issues });
         }
-        return res.status(500).json({ message: 'Failed to update club' });
+        return res.status(500).json({ error: 'Failed to update club' });
     }
 });
 // Delete club
@@ -279,13 +279,20 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid club ID' });
+            return res.status(400).json({ error: 'Invalid club ID' });
+        }
+        // Check if club exists first
+        const existsQuery = 'SELECT COUNT(*) as count FROM tfx_vereine WHERE int_vereineid = $1';
+        const existsResult = await prisma.$queryRawUnsafe(existsQuery, id);
+        const exists = Number(existsResult[0]?.count) > 0;
+        if (!exists) {
+            return res.status(404).json({ error: 'Club not found' });
         }
         // Check if club has athletes
         const athleteCount = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM tfx_teilnehmer WHERE int_vereineid = $1', id);
         if (Number(athleteCount[0]?.count) > 0) {
             return res.status(409).json({
-                message: 'Cannot delete club with existing athletes. Please reassign or remove athletes first.'
+                error: 'Cannot delete club with existing athletes. Please reassign or remove athletes first.'
             });
         }
         await prisma.$queryRawUnsafe('DELETE FROM tfx_vereine WHERE int_vereineid = $1', id);
@@ -293,7 +300,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
     }
     catch (error) {
         console.error('Error deleting club:', error);
-        return res.status(500).json({ message: 'Failed to delete club' });
+        return res.status(500).json({ error: 'Failed to delete club' });
     }
 });
 // Get gaue (regions) for dropdown

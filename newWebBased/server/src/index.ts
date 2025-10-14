@@ -4,17 +4,6 @@ config();
 
 console.log('🚀 Starting TurnFix server...');
 
-// Add global error handlers
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
-
 console.log('🔧 Importing express...');
 import express from 'express';
 import cors from 'cors';
@@ -27,6 +16,16 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
+import { 
+  setupGracefulShutdown, 
+  setupProcessWarnings,
+  setupUnhandledRejectionHandler,
+  setupUncaughtExceptionHandler 
+} from './utils/shutdown';
+import { 
+  checkDatabaseConnection, 
+  startDatabaseHealthCheck 
+} from './db/connection';
 // import { notFoundHandler } from './middleware/notFoundHandler';
 
 // Prisma-based routes using SQL queries
@@ -75,15 +74,21 @@ const io = new SocketIOServer(server, {
 
 const PORT = process.env.PORT || 3001;
 
-// Rate limiting
+// Rate limiting - very permissive for development, adjust for production
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000'), // limit each IP to 10000 requests per minute (very high for development)
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000'), // 10000 requests per minute (very permissive)
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip rate limiting for development environment
-  skip: (req) => process.env.NODE_ENV === 'development' && req.ip === '::1' || req.ip === '127.0.0.1'
+  // Skip rate limiting for localhost (including proxy from jury-server)
+  skip: (req) => {
+    const isLocalhost = req.ip === '::1' || 
+                       req.ip === '127.0.0.1' || 
+                       req.ip === '::ffff:127.0.0.1' ||
+                       req.hostname === 'localhost';
+    return isLocalhost; // Always skip localhost, regardless of NODE_ENV
+  }
 });
 
 // Middleware
@@ -206,6 +211,23 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 console.log('🔧 About to start server on port', PORT);
+
+// Setup graceful shutdown and error handlers
+setupUncaughtExceptionHandler();
+setupUnhandledRejectionHandler();
+setupProcessWarnings();
+setupGracefulShutdown(server, io);
+
+// Check database connection before starting
+checkDatabaseConnection().then((isConnected) => {
+  if (isConnected) {
+    console.log('✅ Database connection verified');
+    // Start periodic health check
+    startDatabaseHealthCheck(60000); // Check every 60 seconds
+  } else {
+    console.error('❌ Database connection failed. Server may not work correctly.');
+  }
+});
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

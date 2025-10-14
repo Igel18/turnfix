@@ -4,6 +4,7 @@ const express_1 = require("express");
 const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
+const configurationHelpers_1 = require("../utils/configurationHelpers");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Validation schemas
@@ -11,9 +12,8 @@ const createCompetitionSchema = zod_1.z.object({
     number: zod_1.z.string().max(5, 'Competition number cannot exceed 5 characters').optional(), // Competition number (waNr)
     name: zod_1.z.string().min(1, 'Competition name is required'),
     description: zod_1.z.string().optional(),
-    date: zod_1.z.string().min(1, 'Competition date is required'),
     location: zod_1.z.string().optional(), // Location is optional since it comes from event
-    gender: zod_1.z.enum(['männlich', 'weiblich', 'gemischt']),
+    gender: zod_1.z.enum((0, configurationHelpers_1.getCompetitionGenderValues)()),
     ageFrom: zod_1.z.number().min(5).max(99),
     ageTo: zod_1.z.number().min(5).max(99),
     disciplines: zod_1.z.array(zod_1.z.object({
@@ -22,7 +22,23 @@ const createCompetitionSchema = zod_1.z.object({
     })).min(1, 'At least one discipline is required'),
     registrationDeadline: zod_1.z.string().nullable().optional(),
     organizer: zod_1.z.string().optional(),
-    eventId: zod_1.z.number().optional()
+    eventId: zod_1.z.number().optional(),
+    // Additional competition settings
+    round: zod_1.z.number().min(1).max(10).optional(),
+    track: zod_1.z.number().min(1).max(20).optional(),
+    startTime: zod_1.z.string().optional(), // Time in HH:MM format
+    warmupTime: zod_1.z.string().optional(), // Time in HH:MM format
+    qualifiers: zod_1.z.number().min(0).max(999).optional(),
+    evaluations: zod_1.z.number().min(1).max(10).optional(),
+    dropWorstScore: zod_1.z.boolean().optional(),
+    showAgeGroup: zod_1.z.boolean().optional(),
+    isOptionalCompetition: zod_1.z.boolean().optional(),
+    showInfo: zod_1.z.boolean().optional(),
+    useCompulsoryProgram: zod_1.z.boolean().optional(),
+    sortAscending: zod_1.z.boolean().optional(),
+    manualSort: zod_1.z.boolean().optional(),
+    useApparatusPoints: zod_1.z.boolean().optional(),
+    dropCount: zod_1.z.number().min(0).max(5).optional()
 });
 const updateCompetitionSchema = createCompetitionSchema.partial();
 // Get all competitions
@@ -78,9 +94,15 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         });
         // Transform the data to match the expected format
         const transformedCompetitions = competitions.map(comp => {
-            // yer_von and yer_bis contain direct age values, not birth years
-            const ageFrom = comp.yer_von || 6;
-            const ageTo = comp.yer_bis || (comp.yer_von || 18);
+            // yer_von and yer_bis contain birth years - convert to ages based on event date
+            const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
+            const eventYear = eventDate.getFullYear();
+            const birthYearFrom = comp.yer_von;
+            const birthYearTo = comp.yer_bis;
+            // Convert birth years to ages based on event year, with fallbacks
+            const ageFrom = birthYearFrom ? eventYear - birthYearFrom : 6;
+            const ageTo = birthYearTo ? eventYear - birthYearTo : (birthYearFrom ? eventYear - birthYearFrom + 10 : 18);
+            console.log(`🎂 DEBUG: Competition "${comp.var_name}" - Event year: ${eventYear}, Birth years: ${birthYearFrom}-${birthYearTo} -> Ages: ${ageFrom}-${ageTo}`);
             return {
                 id: comp.int_wettkaempfeid,
                 number: comp.var_nummer || null, // Competition number (waNr)
@@ -94,10 +116,29 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 ageTo: Math.max(ageFrom, ageTo), // Ensure ageTo is the larger value
                 disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => ({
                     disciplineId: wd.tfx_disziplinen.int_disziplinenid,
+                    name: wd.tfx_disziplinen.var_name,
+                    short_name: wd.tfx_disziplinen.var_kurz1,
+                    apparatus: wd.tfx_disziplinen.var_einheit,
                     maxScore: wd.rel_max || 0
                 })),
                 registrationDeadline: comp.tfx_veranstaltungen.dat_meldeschluss?.toISOString().split('T')[0] || null,
                 organizer: comp.tfx_veranstaltungen.var_veranstalter || 'TBD',
+                // Additional competition settings
+                round: comp.int_durchgang || 1,
+                track: comp.int_bahn || 1,
+                startTime: comp.tim_startzeit ? comp.tim_startzeit.toISOString().split('T')[1].substring(0, 5) : null,
+                warmupTime: comp.tim_einturnen ? comp.tim_einturnen.toISOString().split('T')[1].substring(0, 5) : null,
+                qualifiers: comp.int_qualifikation || 0,
+                evaluations: comp.int_wertungen || 1,
+                dropWorstScore: comp.bol_streichwertung || false,
+                showAgeGroup: comp.bol_ak_anzeigen || false,
+                isOptionalCompetition: comp.bol_wahlwettkampf || false,
+                showInfo: comp.bol_info_anzeigen || false,
+                useCompulsoryProgram: comp.bol_kp || false,
+                sortAscending: comp.bol_sortasc || false,
+                manualSort: comp.bol_mansort || false,
+                useApparatusPoints: comp.bol_gerpkt || false,
+                dropCount: comp.int_anz_streich || 0,
                 status: (() => {
                     if (!comp.tfx_veranstaltungen.dat_von)
                         return 'completed';
@@ -142,6 +183,10 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
 router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
+        // Validate ID parameter
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid competition ID' });
+        }
         // Fetch actual competition data from database
         const competition = await prisma.tfx_wettkaempfe.findUnique({
             where: {
@@ -171,9 +216,13 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (!competition) {
             return res.status(404).json({ error: 'Competition not found' });
         }
-        // Calculate age range
-        const ageFrom = competition.yer_von;
-        const ageTo = competition.yer_bis || competition.yer_von;
+        // Calculate age range - convert birth years to ages based on event date
+        const eventDate = competition.tfx_veranstaltungen.dat_von || new Date();
+        const eventYear = eventDate.getFullYear();
+        const birthYearFrom = competition.yer_von;
+        const birthYearTo = competition.yer_bis || competition.yer_von;
+        const ageFrom = birthYearFrom ? eventYear - birthYearFrom : 6;
+        const ageTo = birthYearTo ? eventYear - birthYearTo : ageFrom;
         // Transform to expected format
         const transformedCompetition = {
             id: competition.int_wettkaempfeid,
@@ -336,6 +385,19 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Find or create appropriate bereich (gender category)
         const bereichId = validatedData.gender === 'männlich' ? 1 : 2;
+        // Get event information to determine the correct year for age calculation
+        const eventInfo = await prisma.tfx_veranstaltungen.findUnique({
+            where: { int_veranstaltungenid: validatedData.eventId }
+        });
+        if (!eventInfo) {
+            return res.status(400).json({ error: 'Event not found' });
+        }
+        // Convert ages to birth years for database storage using event date
+        const eventDate = eventInfo.dat_von || new Date();
+        const eventYear = eventDate.getFullYear();
+        const birthYearFrom = eventYear - validatedData.ageFrom;
+        const birthYearTo = eventYear - validatedData.ageTo;
+        console.log(`🎂 DEBUG: Creating competition - Event year: ${eventYear}, Ages: ${validatedData.ageFrom}-${validatedData.ageTo} -> Birth years: ${birthYearFrom}-${birthYearTo}`);
         // Insert new competition into database
         const insertedCompetition = await prisma.$queryRawUnsafe(`
       INSERT INTO tfx_wettkaempfe (
@@ -358,11 +420,25 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         bol_sortasc,
         bol_mansort,
         bol_gerpkt,
-        int_anz_streich
+        int_anz_streich,
+        tim_startzeit,
+        tim_einturnen
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, 0, 0, 1, false, false, false, 1, 1, false, false, false, false, false, 0
+        $1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
       ) RETURNING int_wettkaempfeid
-    `, validatedData.eventId, bereichId, validatedData.number || null, validatedData.name, validatedData.ageFrom, validatedData.ageTo);
+    `, validatedData.eventId, bereichId, validatedData.number || null, validatedData.name, birthYearFrom, birthYearTo, validatedData.qualifiers || 0, validatedData.evaluations || 1, validatedData.dropWorstScore || false, validatedData.showAgeGroup || false, validatedData.isOptionalCompetition || false, validatedData.round || 1, validatedData.track || 1, validatedData.showInfo || false, validatedData.useCompulsoryProgram || false, validatedData.sortAscending || false, validatedData.manualSort || false, validatedData.useApparatusPoints || false, validatedData.dropCount || 0, validatedData.startTime ? (() => {
+            // Append seconds if not provided (HH:MM -> HH:MM:00)
+            const timeStr = validatedData.startTime.includes(':') && validatedData.startTime.split(':').length === 2
+                ? `${validatedData.startTime}:00`
+                : validatedData.startTime;
+            return timeStr;
+        })() : null, validatedData.warmupTime ? (() => {
+            // Append seconds if not provided (HH:MM -> HH:MM:00)
+            const timeStr = validatedData.warmupTime.includes(':') && validatedData.warmupTime.split(':').length === 2
+                ? `${validatedData.warmupTime}:00`
+                : validatedData.warmupTime;
+            return timeStr;
+        })() : null);
         const competitionId = insertedCompetition[0].int_wettkaempfeid;
         // Link disciplines to the competition
         for (let i = 0; i < validatedData.disciplines.length; i++) {
@@ -383,7 +459,6 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             number: validatedData.number || null,
             name: validatedData.name,
             description: validatedData.description || `${validatedData.gender} - Age ${validatedData.ageFrom}-${validatedData.ageTo}`,
-            date: validatedData.date,
             location: validatedData.location,
             eventId: validatedData.eventId,
             gender: validatedData.gender,
@@ -396,6 +471,22 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             })),
             registrationDeadline: validatedData.registrationDeadline,
             organizer: validatedData.organizer || 'TBD',
+            // Additional competition settings
+            round: validatedData.round || 1,
+            track: validatedData.track || 1,
+            startTime: validatedData.startTime || null,
+            warmupTime: validatedData.warmupTime || null,
+            qualifiers: validatedData.qualifiers || 0,
+            evaluations: validatedData.evaluations || 1,
+            dropWorstScore: validatedData.dropWorstScore || false,
+            showAgeGroup: validatedData.showAgeGroup || false,
+            isOptionalCompetition: validatedData.isOptionalCompetition || false,
+            showInfo: validatedData.showInfo || false,
+            useCompulsoryProgram: validatedData.useCompulsoryProgram || false,
+            sortAscending: validatedData.sortAscending || false,
+            manualSort: validatedData.manualSort || false,
+            useApparatusPoints: validatedData.useApparatusPoints || false,
+            dropCount: validatedData.dropCount || 0,
             status: 'active',
             participantCount: 0,
             createdAt: new Date().toISOString()
@@ -420,8 +511,22 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         console.log(`🔧 PUT competition ${id} - Request body:`, JSON.stringify(req.body, null, 2));
-        const validatedData = updateCompetitionSchema.parse(req.body);
-        console.log(`✅ PUT competition ${id} - Validated data:`, JSON.stringify(validatedData, null, 2));
+        // Validate ID parameter
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid competition ID' });
+        }
+        let validatedData;
+        try {
+            validatedData = updateCompetitionSchema.parse(req.body);
+            console.log(`✅ PUT competition ${id} - Validated data:`, JSON.stringify(validatedData, null, 2));
+        }
+        catch (validationError) {
+            console.error(`❌ Validation error for competition ${id}:`, validationError.issues || validationError.message);
+            return res.status(400).json({
+                error: 'Validation error',
+                details: validationError.issues || validationError.message
+            });
+        }
         // Validate age range if both provided
         if (validatedData.ageFrom && validatedData.ageTo &&
             validatedData.ageFrom > validatedData.ageTo) {
@@ -465,16 +570,102 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Actually update the competition in the database
         console.log('Updating competition:', id, 'with data:', validatedData);
+        // Get competition and event information for proper age calculation
+        const competitionInfo = await prisma.tfx_wettkaempfe.findUnique({
+            where: { int_wettkaempfeid: id },
+            include: {
+                tfx_veranstaltungen: true
+            }
+        });
+        if (!competitionInfo) {
+            return res.status(404).json({ error: 'Competition not found' });
+        }
         // Update the main competition record
+        const updateData = {};
+        if (validatedData.number !== undefined) {
+            updateData.var_nummer = validatedData.number || null;
+        }
+        if (validatedData.name) {
+            updateData.var_name = validatedData.name;
+        }
+        // Add all the new competition settings fields
+        if (validatedData.round !== undefined) {
+            updateData.int_durchgang = validatedData.round;
+        }
+        if (validatedData.track !== undefined) {
+            updateData.int_bahn = validatedData.track;
+        }
+        if (validatedData.startTime !== undefined) {
+            if (validatedData.startTime) {
+                // Append seconds if not provided (HH:MM -> HH:MM:00)
+                const timeStr = validatedData.startTime.includes(':') && validatedData.startTime.split(':').length === 2
+                    ? `${validatedData.startTime}:00`
+                    : validatedData.startTime;
+                updateData.tim_startzeit = new Date(`1970-01-01T${timeStr}Z`);
+            }
+            else {
+                updateData.tim_startzeit = null;
+            }
+        }
+        if (validatedData.warmupTime !== undefined) {
+            if (validatedData.warmupTime) {
+                // Append seconds if not provided (HH:MM -> HH:MM:00)
+                const timeStr = validatedData.warmupTime.includes(':') && validatedData.warmupTime.split(':').length === 2
+                    ? `${validatedData.warmupTime}:00`
+                    : validatedData.warmupTime;
+                updateData.tim_einturnen = new Date(`1970-01-01T${timeStr}Z`);
+            }
+            else {
+                updateData.tim_einturnen = null;
+            }
+        }
+        if (validatedData.qualifiers !== undefined) {
+            updateData.int_qualifikation = validatedData.qualifiers;
+        }
+        if (validatedData.evaluations !== undefined) {
+            updateData.int_wertungen = validatedData.evaluations;
+        }
+        if (validatedData.dropWorstScore !== undefined) {
+            updateData.bol_streichwertung = validatedData.dropWorstScore;
+        }
+        if (validatedData.showAgeGroup !== undefined) {
+            updateData.bol_ak_anzeigen = validatedData.showAgeGroup;
+        }
+        if (validatedData.isOptionalCompetition !== undefined) {
+            updateData.bol_wahlwettkampf = validatedData.isOptionalCompetition;
+        }
+        if (validatedData.showInfo !== undefined) {
+            updateData.bol_info_anzeigen = validatedData.showInfo;
+        }
+        if (validatedData.useCompulsoryProgram !== undefined) {
+            updateData.bol_kp = validatedData.useCompulsoryProgram;
+        }
+        if (validatedData.sortAscending !== undefined) {
+            updateData.bol_sortasc = validatedData.sortAscending;
+        }
+        if (validatedData.manualSort !== undefined) {
+            updateData.bol_mansort = validatedData.manualSort;
+        }
+        if (validatedData.useApparatusPoints !== undefined) {
+            updateData.bol_gerpkt = validatedData.useApparatusPoints;
+        }
+        if (validatedData.dropCount !== undefined) {
+            updateData.int_anz_streich = validatedData.dropCount;
+        }
+        // Convert ages to birth years for database storage using event date
+        const eventDate = competitionInfo.tfx_veranstaltungen.dat_von || new Date();
+        const eventYear = eventDate.getFullYear();
+        if (validatedData.ageFrom !== undefined) {
+            updateData.yer_von = eventYear - validatedData.ageFrom;
+            console.log(`🎂 DEBUG: Update ageFrom ${validatedData.ageFrom} -> birth year ${updateData.yer_von} (event year: ${eventYear})`);
+        }
+        if (validatedData.ageTo !== undefined) {
+            updateData.yer_bis = eventYear - validatedData.ageTo;
+            console.log(`🎂 DEBUG: Update ageTo ${validatedData.ageTo} -> birth year ${updateData.yer_bis} (event year: ${eventYear})`);
+        }
         const updatedCompetition = await prisma.tfx_wettkaempfe.update({
             where: { int_wettkaempfeid: id },
-            data: {
-                ...(validatedData.number !== undefined && { var_nummer: validatedData.number || null }),
-                ...(validatedData.name && { var_name: validatedData.name }),
-                // Store ages directly as they are (not birth years)
-                ...(validatedData.ageFrom !== undefined && { yer_von: validatedData.ageFrom }),
-                ...(validatedData.ageTo !== undefined && { yer_bis: validatedData.ageTo }),
-            }
+            data: updateData
         });
         // Update event-related fields (organizer and registration deadline)
         if (validatedData.organizer !== undefined || validatedData.registrationDeadline !== undefined) {
@@ -523,7 +714,6 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             number: validatedData.number !== undefined ? validatedData.number : updatedCompetition.var_nummer || null, // Include the updated number
             name: validatedData.name || updatedCompetition.var_name,
             description: validatedData.description || "Updated competition",
-            date: validatedData.date || new Date().toISOString().split('T')[0],
             location: validatedData.location || "Updated location",
             gender: validatedData.gender || "gemischt",
             ageFrom: validatedData.ageFrom || 6,
@@ -531,6 +721,24 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             disciplines: validatedData.disciplines || [],
             registrationDeadline: validatedData.registrationDeadline || null,
             organizer: validatedData.organizer || "Updated organizer",
+            // Additional competition settings
+            round: validatedData.round !== undefined ? validatedData.round : updatedCompetition.int_durchgang || 1,
+            track: validatedData.track !== undefined ? validatedData.track : updatedCompetition.int_bahn || 1,
+            startTime: validatedData.startTime !== undefined ? validatedData.startTime :
+                (updatedCompetition.tim_startzeit ? updatedCompetition.tim_startzeit.toISOString().split('T')[1].substring(0, 5) : null),
+            warmupTime: validatedData.warmupTime !== undefined ? validatedData.warmupTime :
+                (updatedCompetition.tim_einturnen ? updatedCompetition.tim_einturnen.toISOString().split('T')[1].substring(0, 5) : null),
+            qualifiers: validatedData.qualifiers !== undefined ? validatedData.qualifiers : updatedCompetition.int_qualifikation || 0,
+            evaluations: validatedData.evaluations !== undefined ? validatedData.evaluations : updatedCompetition.int_wertungen || 1,
+            dropWorstScore: validatedData.dropWorstScore !== undefined ? validatedData.dropWorstScore : updatedCompetition.bol_streichwertung || false,
+            showAgeGroup: validatedData.showAgeGroup !== undefined ? validatedData.showAgeGroup : updatedCompetition.bol_ak_anzeigen || false,
+            isOptionalCompetition: validatedData.isOptionalCompetition !== undefined ? validatedData.isOptionalCompetition : updatedCompetition.bol_wahlwettkampf || false,
+            showInfo: validatedData.showInfo !== undefined ? validatedData.showInfo : updatedCompetition.bol_info_anzeigen || false,
+            useCompulsoryProgram: validatedData.useCompulsoryProgram !== undefined ? validatedData.useCompulsoryProgram : updatedCompetition.bol_kp || false,
+            sortAscending: validatedData.sortAscending !== undefined ? validatedData.sortAscending : updatedCompetition.bol_sortasc || false,
+            manualSort: validatedData.manualSort !== undefined ? validatedData.manualSort : updatedCompetition.bol_mansort || false,
+            useApparatusPoints: validatedData.useApparatusPoints !== undefined ? validatedData.useApparatusPoints : updatedCompetition.bol_gerpkt || false,
+            dropCount: validatedData.dropCount !== undefined ? validatedData.dropCount : updatedCompetition.int_anz_streich || 0,
             status: "upcoming",
             participantCount: participantCount, // Use actual participant count
             updatedAt: new Date().toISOString()
@@ -544,6 +752,13 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
                 error: 'Validation error',
                 details: error.issues
             });
+        }
+        // Handle Prisma errors
+        if (error && typeof error === 'object' && 'code' in error) {
+            if (error.code === 'P2025') {
+                // Record to update not found
+                return res.status(404).json({ error: 'Competition not found' });
+            }
         }
         console.error('Error updating competition:', error);
         res.status(500).json({ error: 'Internal server error' });

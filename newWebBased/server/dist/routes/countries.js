@@ -56,7 +56,7 @@ router.get('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid country ID' });
         }
         const country = await prisma.tfx_laender.findUnique({
-            where: { int_landid: id }
+            where: { int_laenderid: id }
         });
         if (!country) {
             return res.status(404).json({ error: 'Country not found' });
@@ -94,7 +94,7 @@ router.put('/:id', async (req, res) => {
         }
         const validatedData = updateCountrySchema.parse(req.body);
         const country = await prisma.tfx_laender.update({
-            where: { int_landid: id },
+            where: { int_laenderid: id },
             data: validatedData
         });
         res.json(country);
@@ -118,7 +118,7 @@ router.delete('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid country ID' });
         }
         await prisma.tfx_laender.delete({
-            where: { int_landid: id }
+            where: { int_laenderid: id }
         });
         res.status(204).send();
     }

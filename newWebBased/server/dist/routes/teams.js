@@ -7,11 +7,11 @@ const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createTeamSchema = zod_1.z.object({
-    int_vereinid: zod_1.z.number().int().positive(),
-    int_wettkampfid: zod_1.z.number().int().positive(),
-    var_name: zod_1.z.string().min(1).max(255),
-    var_lang: zod_1.z.string().optional(),
-    bol_wirwertung: zod_1.z.boolean().optional().default(true),
+    int_vereineid: zod_1.z.number().int().positive(),
+    int_wettkaempfeid: zod_1.z.number().int().positive(),
+    int_nummer: zod_1.z.number().int().positive().optional().default(1),
+    var_riege: zod_1.z.string().optional(),
+    int_startnummer: zod_1.z.number().int().positive().optional(),
 });
 const updateTeamSchema = createTeamSchema.partial();
 // Get all teams
@@ -20,20 +20,20 @@ router.get('/', async (req, res) => {
         const limit = parseInt(req.query.limit) || 50;
         const offset = parseInt(req.query.offset) || 0;
         const search = req.query.search;
-        const vereinId = req.query.vereinId;
-        const wettkampfId = req.query.wettkampfId;
+        const clubId = req.query.clubId;
+        const eventId = req.query.eventId;
         const whereConditions = {};
         if (search) {
             whereConditions.OR = [
-                { var_name: { contains: search, mode: 'insensitive' } },
-                { var_lang: { contains: search, mode: 'insensitive' } }
+                { tfx_vereine: { var_name: { contains: search, mode: 'insensitive' } } },
+                { var_riege: { contains: search, mode: 'insensitive' } }
             ];
         }
-        if (vereinId) {
-            whereConditions.int_vereinid = parseInt(vereinId);
+        if (clubId) {
+            whereConditions.int_vereineid = parseInt(clubId);
         }
-        if (wettkampfId) {
-            whereConditions.int_wettkampfid = parseInt(wettkampfId);
+        if (eventId) {
+            whereConditions.int_wettkaempfeid = parseInt(eventId);
         }
         const [teams, totalCount] = await Promise.all([
             prisma.tfx_mannschaften.findMany({
@@ -44,19 +44,19 @@ router.get('/', async (req, res) => {
                     tfx_vereine: {
                         select: {
                             var_name: true,
-                            var_lang: true
+                            var_website: true
                         }
                     },
-                    tfx_wettkampf: {
+                    tfx_wettkaempfe: {
                         select: {
                             var_name: true,
-                            var_ort: true,
-                            dat_von: true,
-                            dat_bis: true
+                            var_nummer: true,
+                            yer_von: true,
+                            yer_bis: true
                         }
                     }
                 },
-                orderBy: { var_name: 'asc' }
+                orderBy: { int_mannschaftenid: 'asc' }
             }),
             prisma.tfx_mannschaften.count({ where: whereConditions })
         ]);
@@ -83,23 +83,21 @@ router.get('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid team ID' });
         }
         const team = await prisma.tfx_mannschaften.findUnique({
-            where: { int_mannschaftsid: id },
+            where: { int_mannschaftenid: id },
             include: {
                 tfx_vereine: {
                     select: {
                         var_name: true,
-                        var_lang: true,
-                        var_strasse: true,
-                        var_plz: true,
-                        var_ort: true
+                        var_website: true,
+                        int_start_ort: true
                     }
                 },
-                tfx_wettkampf: {
+                tfx_wettkaempfe: {
                     select: {
                         var_name: true,
-                        var_ort: true,
-                        dat_von: true,
-                        dat_bis: true
+                        var_nummer: true,
+                        yer_von: true,
+                        yer_bis: true
                     }
                 }
             }
@@ -124,13 +122,13 @@ router.post('/', async (req, res) => {
                 tfx_vereine: {
                     select: {
                         var_name: true,
-                        var_lang: true
+                        var_website: true
                     }
                 },
-                tfx_wettkampf: {
+                tfx_wettkaempfe: {
                     select: {
                         var_name: true,
-                        var_ort: true
+                        var_nummer: true
                     }
                 }
             }
@@ -157,19 +155,19 @@ router.put('/:id', async (req, res) => {
         }
         const validatedData = updateTeamSchema.parse(req.body);
         const team = await prisma.tfx_mannschaften.update({
-            where: { int_mannschaftsid: id },
+            where: { int_mannschaftenid: id },
             data: validatedData,
             include: {
                 tfx_vereine: {
                     select: {
                         var_name: true,
-                        var_lang: true
+                        var_website: true
                     }
                 },
-                tfx_wettkampf: {
+                tfx_wettkaempfe: {
                     select: {
                         var_name: true,
-                        var_ort: true
+                        var_nummer: true
                     }
                 }
             }
@@ -198,7 +196,7 @@ router.delete('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid team ID' });
         }
         await prisma.tfx_mannschaften.delete({
-            where: { int_mannschaftsid: id }
+            where: { int_mannschaftenid: id }
         });
         res.status(204).send();
     }

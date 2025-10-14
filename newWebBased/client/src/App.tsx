@@ -3,6 +3,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { EventProvider } from '@/contexts/EventContext'
 import { CertificateLayoutProvider } from '@/contexts/CertificateLayoutContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import './i18n'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
@@ -38,12 +39,13 @@ import TimePlanning from '@/pages/TimePlanning'
 
 function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <EventProvider>
-          <CertificateLayoutProvider>
-            <div className="min-h-screen bg-background">
-              <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <LanguageProvider>
+          <EventProvider>
+            <CertificateLayoutProvider>
+              <div className="min-h-screen bg-background">
+                <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/management" element={<ManagementCenter />} />
@@ -81,6 +83,7 @@ function App() {
       </EventProvider>
       </LanguageProvider>
     </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

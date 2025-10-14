@@ -341,17 +341,39 @@ code .
 
 Nach der Installation sollte folgendes funktionieren:
 
+### Basis-Installation:
 - [ ] `node --version` zeigt v18 oder höher
 - [ ] `npm --version` zeigt eine Version
 - [ ] `git --version` zeigt eine Version
 - [ ] PostgreSQL Service läuft (services.msc)
 - [ ] pgAdmin 4 ist installiert
 - [ ] TurnFix Verzeichnis existiert (C:\TurnFix)
-- [ ] Backend startet ohne Fehler (npm run dev)
-- [ ] Frontend startet ohne Fehler (npm run dev)
+
+### Development Mode:
+- [ ] Backend startet ohne Fehler (`npm run dev`)
+- [ ] Frontend startet ohne Fehler (`npm run dev`)
 - [ ] http://localhost:5173 öffnet die Anwendung
 - [ ] http://localhost:3001/api/health zeigt "OK"
 - [ ] Datenbankverbindung funktioniert
+
+### Production Mode (PM2):
+- [ ] PM2 ist installiert (`npm list -g pm2` oder in server/node_modules)
+- [ ] Server baut erfolgreich (`npm run build`)
+- [ ] PM2 startet Server (`npm run pm2:start:prod`)
+- [ ] PM2 Status zeigt "online" (`npm run pm2:status`)
+- [ ] Logs zeigen keine Fehler (`npm run pm2:logs`)
+- [ ] Server startet nach Crash automatisch neu (Test mit `npm run pm2:restart`)
+- [ ] Error Boundary fängt Frontend-Fehler ab
+- [ ] Database Health Check läuft (Logs prüfen)
+
+**PM2 Test:**
+```powershell
+cd C:\TurnFix\newWebBased\server
+npm run build
+npm run pm2:start:prod
+npm run pm2:status
+# Sollte "online" zeigen ✅
+```
 
 ## 🔐 Sicherheits-Hinweise
 

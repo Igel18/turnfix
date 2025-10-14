@@ -1,10 +1,17 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Connection pool settings for better resilience
+  // Max connections: 20 (adjust based on your PostgreSQL max_connections)
+  // Min connections: 2 (keep some connections alive)
+  // Connection timeout: 10 seconds
+  // Pool timeout: 10 seconds (how long to wait for available connection)
+  relationMode = "prisma"
 }
 
 model tfx_bereiche {

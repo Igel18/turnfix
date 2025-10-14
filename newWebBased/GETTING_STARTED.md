@@ -1,9 +1,20 @@
 # Getting Started with TurnFix
 
 ## Prerequisites
-- PostgreSQL database running
+- PostgreSQL database running (v15+)
 - Node.js v18+ installed
 - npm or yarn package manager
+- **(Production)** PM2 for process management (installed automatically)
+
+## 🛡️ System Stability Features
+
+TurnFix includes enterprise-grade hardening for production deployments:
+- ✅ **PM2 Process Management** - Automatic crash recovery
+- ✅ **Error Boundaries** - Frontend errors handled gracefully
+- ✅ **Database Resilience** - Auto-reconnect with health checks
+- ✅ **Graceful Shutdown** - No data loss on server stop
+
+See [`HARDENING-PLAN.md`](HARDENING-PLAN.md) for details.
 
 ## Database Setup
 
@@ -57,6 +68,125 @@ npm run dev
 This will start:
 - Backend API server on `http://localhost:3001`
 - Frontend development server on `http://localhost:5173`
+
+## 🚀 Production Deployment
+
+For production, use PM2 for automatic restart and monitoring:
+
+### 1. Build the Server
+```bash
+cd server
+npm run build
+```
+
+### 2. Start with PM2
+```bash
+# Production mode
+npm run pm2:start:prod
+
+# Or development mode (with NODE_ENV=development)
+npm run pm2:start
+```
+
+### 3. Monitor Server
+```bash
+# Check status
+npm run pm2:status
+
+# View logs (real-time)
+npm run pm2:logs
+
+# Live monitoring dashboard
+npm run pm2:monit
+
+# Server details
+npx pm2 describe turnfix-server
+```
+
+### 4. Manage Server
+```bash
+# Restart
+npm run pm2:restart
+
+# Stop
+npm run pm2:stop
+
+# Zero-downtime reload
+npm run pm2:reload
+
+# Remove from PM2
+npm run pm2:delete
+```
+
+### PM2 Features
+
+The server is configured with:
+- ✅ **Auto-Restart**: Restarts automatically on crash
+- ✅ **Memory Limit**: 500MB max (auto-restart if exceeded)
+- ✅ **Max Restarts**: 10 attempts with exponential backoff
+- ✅ **Logs**: Separate error/output logs in `server/logs/`
+- ✅ **Health Checks**: Database connection monitoring every 60s
+- ✅ **Graceful Shutdown**: Clean exit on SIGTERM/SIGINT
+
+**Configuration File**: [`server/ecosystem.config.js`](server/ecosystem.config.js)
+
+### Environment Variables
+
+For production, set these in `server/.env`:
+```env
+NODE_ENV=production
+PORT=3001
+DATABASE_URL="postgresql://user:pass@host:5432/db?connection_limit=20&pool_timeout=10"
+SHUTDOWN_TIMEOUT=30000
+```
+
+## Troubleshooting
+
+### PM2 Issues
+
+**Port already in use:**
+```powershell
+# Find and kill process on port 3001
+Stop-Process -Id (Get-NetTCPConnection -LocalPort 3001).OwningProcess -Force
+
+# Then restart PM2
+npm run pm2:restart
+```
+
+**Server won't start:**
+```bash
+# Check PM2 logs
+npm run pm2:logs
+
+# Full restart
+npm run pm2:delete
+npm run build
+npm run pm2:start
+```
+
+**Memory issues:**
+```bash
+# Check current memory usage
+npx pm2 describe turnfix-server
+
+# Memory limit is 500MB - adjust in ecosystem.config.js if needed
+```
+
+### Database Connection Issues
+
+The server includes automatic reconnection:
+- Up to 5 retry attempts on connection loss
+- 5-second delay between retries
+- Health check every 60 seconds
+
+**Manual check:**
+```bash
+# Check PostgreSQL service
+Get-Service postgresql-x64-15
+
+# Restart if needed
+Restart-Service postgresql-x64-15
+```
 
 ## Default Login Credentials
 

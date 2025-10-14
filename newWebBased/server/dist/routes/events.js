@@ -1,17 +1,103 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getDisciplinesForCompetition = getDisciplinesForCompetition;
+/**
+ * Generalized discipline selection for a competition name using DB values.
+ * @param {string} competitionName
+ * @param {PrismaClient} prisma
+ * @returns {Promise<string[]>}
+ */
+async function getDisciplinesForCompetition(competitionName, prisma) {
+    const name = competitionName.toLowerCase();
+    // Query all discipline names from DB
+    const allDisciplines = await prisma.tfx_disziplinen.findMany({ select: { var_name: true } });
+    const disciplineNames = allDisciplines.map(d => d.var_name);
+    if (name.includes('vierkampf') && name.includes('w')) {
+        // Women's all-around: Boden, Sprung, Stufenbarren, Schwebebalken
+        return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'].filter(d => disciplineNames.includes(d));
+    }
+    else if (name.includes('sechskampf') && name.includes('m')) {
+        // Men's all-around: Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck
+        return ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'].filter(d => disciplineNames.includes(d));
+    }
+    else if (name.includes('geräte')) {
+        // Generic apparatus: all common disciplines
+        return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'].filter(d => disciplineNames.includes(d));
+    }
+    else {
+        // Default: Boden, Sprung
+        return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
+    }
+}
 const express_1 = require("express");
 const client_1 = require("@prisma/client");
 const authBypass_1 = require("../middleware/authBypass");
 const zod_1 = require("zod");
-const multer_1 = __importDefault(require("multer"));
+const multer = require("multer");
+// Fixed var_bezeichnung field issue
 const xml2js_1 = require("xml2js");
-const fs_1 = __importDefault(require("fs"));
+const fs = __importStar(require("fs"));
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
+// Generate start numbers for all participants in an event
+router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async (req, res) => {
+    try {
+        const eventId = parseInt(req.params.id);
+        if (isNaN(eventId)) {
+            return res.status(400).json({ error: 'Invalid event ID' });
+        }
+        // Get all participants for the event (from tfx_wertungen, joined with tfx_teilnehmer)
+        const participants = await prisma.$queryRawUnsafe(`SELECT wr.int_wertungenid, wr.int_teilnehmerid
+         FROM tfx_wertungen wr
+         JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
+        WHERE w.int_veranstaltungenid = $1
+        ORDER BY wr.int_teilnehmerid ASC`, eventId);
+        // Assign start numbers sequentially (starting from 1)
+        let startNumber = 1;
+        for (const p of participants) {
+            await prisma.$queryRawUnsafe(`UPDATE tfx_wertungen SET int_startnummer = $1 WHERE int_wertungenid = $2`, startNumber, p.int_wertungenid);
+            startNumber++;
+        }
+        return res.json({ success: true, count: participants.length });
+    }
+    catch (error) {
+        console.error('Error generating start numbers:', error);
+        return res.status(500).json({ error: 'Failed to generate start numbers' });
+    }
+});
 // Validation schemas for event creation
 const createEventSchema = zod_1.z.object({
     var_eventname: zod_1.z.string().min(1, 'Event name is required'),
@@ -20,15 +106,22 @@ const createEventSchema = zod_1.z.object({
     var_location: zod_1.z.string().min(1, 'Location is required'),
     var_description: zod_1.z.string().nullable().optional(),
     var_veranstalter: zod_1.z.string().nullable().optional(),
-    dat_meldeschluss: zod_1.z.string().nullable().optional()
+    dat_meldeschluss: zod_1.z.string().nullable().optional(),
+    int_wettkampforteid: zod_1.z.number().nullable().optional(),
+    int_ansprechpartner: zod_1.z.number().nullable().optional(),
+    int_meldung_an: zod_1.z.number().nullable().optional(),
+    int_kampfrichter: zod_1.z.number().nullable().optional(),
+    int_helfer: zod_1.z.number().nullable().optional(),
+    int_edv: zod_1.z.number().nullable().optional(),
+    txt_hinweise: zod_1.z.string().nullable().optional()
 });
 const updateEventSchema = createEventSchema.partial();
 // Configure multer for XML file uploads
-const storage = multer_1.default.diskStorage({
+const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadsDir = 'uploads/xml';
-        if (!fs_1.default.existsSync(uploadsDir)) {
-            fs_1.default.mkdirSync(uploadsDir, { recursive: true });
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
         }
         cb(null, uploadsDir);
     },
@@ -37,7 +130,7 @@ const storage = multer_1.default.diskStorage({
         cb(null, `gymnet-${timestamp}-${file.originalname}`);
     }
 });
-const upload = (0, multer_1.default)({
+const upload = multer({
     storage,
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'text/xml' || file.mimetype === 'application/xml' || file.originalname.toLowerCase().endsWith('.xml')) {
@@ -99,7 +192,11 @@ router.get('/', async (req, res) => {
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as participant_count,
         (SELECT COUNT(*) FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
-         WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count
+         WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count,
+        (SELECT COUNT(DISTINCT t.int_vereineid) FROM tfx_wertungen wr
+         JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
+         JOIN tfx_teilnehmer t ON wr.int_teilnehmerid = t.int_teilnehmerid
+         WHERE w.int_veranstaltungenid = v.int_veranstaltungenid AND t.int_vereineid IS NOT NULL) as club_count
       FROM tfx_veranstaltungen v
       LEFT JOIN tfx_wettkampforte wf ON v.int_wettkampforteid = wf.int_wettkampforteid
       ${whereClause}
@@ -126,13 +223,14 @@ router.get('/', async (req, res) => {
                 int_eventid: Number(event.int_eventid),
                 participant_count: Number(event.participant_count || 0),
                 score_count: Number(event.score_count || 0),
+                club_count: Number(event.club_count || 0),
                 dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
                 dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null,
                 status
             };
         });
         console.log(`=== EVENTS: Sending ${formattedEvents.length} events to client ===`);
-        console.log('First event sample:', JSON.stringify(formattedEvents[0], null, 2));
+        console.log('First event sample:', formattedEvents[0]?.var_eventname || 'No events available');
         const response = {
             events: formattedEvents,
             pagination: {
@@ -215,19 +313,36 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         const startDate = new Date(validatedData.dat_eventstartdate);
         const endDate = new Date(validatedData.dat_eventenddate);
         const registrationDeadline = validatedData.dat_meldeschluss ? new Date(validatedData.dat_meldeschluss) : null;
+        // Find the venue by name to get the venue ID
+        let venueId = 1; // Default venue ID
+        if (validatedData.var_location) {
+            const venue = await prisma.tfx_wettkampforte.findFirst({
+                where: { var_name: validatedData.var_location }
+            });
+            if (venue) {
+                venueId = venue.int_wettkampforteid;
+                console.log(`🏢 Found venue for new event: ${venue.var_name} (ID: ${venue.int_wettkampforteid})`);
+            }
+            else {
+                console.log(`⚠️ Venue not found: ${validatedData.var_location}, using default venue ID 1`);
+            }
+        }
         // Create the event using Prisma
         const newEvent = await prisma.tfx_veranstaltungen.create({
             data: {
                 var_name: validatedData.var_eventname,
                 dat_von: startDate,
                 dat_bis: endDate,
-                var_veranstalter: validatedData.var_location,
                 txt_hinweise: validatedData.var_description || null,
                 dat_meldeschluss: registrationDeadline,
-                // Set default values for required fields
-                int_wettkampforteid: 1, // Default venue ID - you may need to adjust this
+                // Set venue ID and default values for required fields
+                int_wettkampforteid: venueId,
                 int_runde: 1
             }
+        });
+        // Get the venue name for the response
+        const venue = await prisma.tfx_wettkampforte.findUnique({
+            where: { int_wettkampforteid: newEvent.int_wettkampforteid }
         });
         // Format the response to match the expected structure
         const response = {
@@ -235,7 +350,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             var_eventname: newEvent.var_name,
             dat_eventstartdate: newEvent.dat_von?.toISOString(),
             dat_eventenddate: newEvent.dat_bis?.toISOString(),
-            var_location: newEvent.var_veranstalter,
+            var_location: venue?.var_name || '',
             var_description: newEvent.txt_hinweise || '',
             dat_meldeschluss: newEvent.dat_meldeschluss?.toISOString() || null,
             var_veranstalter: newEvent.var_veranstalter,
@@ -275,7 +390,6 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         const updateData = {};
         if (validatedData.var_eventname !== undefined) {
             updateData.var_name = validatedData.var_eventname;
-            updateData.var_bezeichnung = validatedData.var_eventname;
         }
         if (validatedData.dat_eventstartdate !== undefined) {
             updateData.dat_von = new Date(validatedData.dat_eventstartdate);
@@ -283,11 +397,27 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (validatedData.dat_eventenddate !== undefined) {
             updateData.dat_bis = new Date(validatedData.dat_eventenddate);
         }
-        if (validatedData.var_location !== undefined) {
-            updateData.var_veranstalter = validatedData.var_location;
+        if (validatedData.int_wettkampforteid !== undefined) {
+            updateData.int_wettkampforteid = validatedData.int_wettkampforteid;
+        }
+        if (validatedData.var_location !== undefined && !validatedData.int_wettkampforteid) {
+            // Find the venue by name to get the venue ID only if venue ID not provided
+            const venue = await prisma.tfx_wettkampforte.findFirst({
+                where: { var_name: validatedData.var_location }
+            });
+            if (venue) {
+                updateData.int_wettkampforteid = venue.int_wettkampforteid;
+                console.log(`🏢 Found venue: ${venue.var_name} (ID: ${venue.int_wettkampforteid})`);
+            }
+            else {
+                console.log(`⚠️ Venue not found: ${validatedData.var_location}, keeping existing venue`);
+            }
         }
         if (validatedData.var_description !== undefined) {
             updateData.txt_hinweise = validatedData.var_description || null;
+        }
+        if (validatedData.txt_hinweise !== undefined) {
+            updateData.txt_hinweise = validatedData.txt_hinweise || null;
         }
         if (validatedData.var_veranstalter !== undefined) {
             updateData.var_veranstalter = validatedData.var_veranstalter;
@@ -295,21 +425,61 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (validatedData.dat_meldeschluss !== undefined) {
             updateData.dat_meldeschluss = validatedData.dat_meldeschluss ? new Date(validatedData.dat_meldeschluss) : null;
         }
+        if (validatedData.int_ansprechpartner !== undefined) {
+            updateData.int_ansprechpartner = validatedData.int_ansprechpartner;
+        }
+        if (validatedData.int_meldung_an !== undefined) {
+            updateData.int_meldung_an = validatedData.int_meldung_an;
+        }
+        if (validatedData.int_kampfrichter !== undefined) {
+            updateData.int_kampfrichter = validatedData.int_kampfrichter;
+        }
+        if (validatedData.int_helfer !== undefined) {
+            updateData.int_helfer = validatedData.int_helfer;
+        }
+        if (validatedData.int_edv !== undefined) {
+            updateData.int_edv = validatedData.int_edv;
+        }
         // Update the event
         const updatedEvent = await prisma.tfx_veranstaltungen.update({
             where: { int_veranstaltungenid: id },
             data: updateData
         });
-        // Format the response
+        // Get the venue for the response
+        const venue = updatedEvent.int_wettkampforteid ? await prisma.tfx_wettkampforte.findUnique({
+            where: { int_wettkampforteid: updatedEvent.int_wettkampforteid }
+        }) : null;
+        // Get contact person information
+        const contactPerson = updatedEvent.int_ansprechpartner ? await prisma.tfx_personen.findUnique({
+            where: { int_personenid: updatedEvent.int_ansprechpartner }
+        }) : null;
+        // Get registration contact person information
+        const registrationContact = updatedEvent.int_meldung_an ? await prisma.tfx_personen.findUnique({
+            where: { int_personenid: updatedEvent.int_meldung_an }
+        }) : null;
+        // Format the response using only fields that exist in the database schema
         const response = {
             int_eventid: updatedEvent.int_veranstaltungenid,
             var_eventname: updatedEvent.var_name,
             dat_eventstartdate: updatedEvent.dat_von?.toISOString(),
             dat_eventenddate: updatedEvent.dat_bis?.toISOString(),
-            var_location: updatedEvent.var_veranstalter,
+            var_location: venue?.var_name || '',
             var_description: updatedEvent.txt_hinweise || '',
             dat_meldeschluss: updatedEvent.dat_meldeschluss?.toISOString() || null,
-            var_veranstalter: updatedEvent.var_veranstalter
+            var_veranstalter: updatedEvent.var_veranstalter,
+            int_wettkampforteid: updatedEvent.int_wettkampforteid,
+            int_ansprechpartner: updatedEvent.int_ansprechpartner,
+            int_meldung_an: updatedEvent.int_meldung_an,
+            int_kampfrichter: updatedEvent.int_kampfrichter,
+            int_helfer: updatedEvent.int_helfer,
+            int_edv: updatedEvent.int_edv,
+            txt_hinweise: updatedEvent.txt_hinweise,
+            venue_name: venue?.var_name,
+            venue_address: venue?.var_adresse,
+            venue_postal_code: venue?.var_plz,
+            venue_city: venue?.var_ort,
+            contact_person_name: contactPerson ? `${contactPerson.var_vorname || ''} ${contactPerson.var_nachname || ''}`.trim() : null,
+            registration_contact_name: registrationContact ? `${registrationContact.var_vorname || ''} ${registrationContact.var_nachname || ''}`.trim() : null
         };
         console.log('✅ Event updated successfully:', {
             id: updatedEvent.int_veranstaltungenid,
@@ -354,13 +524,13 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         const eventName = req.body.eventName;
         const startDate = req.body.startDate;
         const endDate = req.body.endDate;
-        const location = req.body.location;
+        const locationId = req.body.locationId; // Now expecting the venue ID instead of name
         const description = req.body.description;
         console.log('📅 Event Information:');
         console.log('  - Name:', eventName);
         console.log('  - Start Date:', startDate);
         console.log('  - End Date:', endDate);
-        console.log('  - Location:', location);
+        console.log('  - Location ID:', locationId);
         console.log('  - Description:', description);
         // Validate required event name
         if (!eventName || !eventName.trim()) {
@@ -377,7 +547,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 message: 'XML file path is undefined'
             });
         }
-        const xmlContent = fs_1.default.readFileSync(filePath, 'utf-8');
+        const xmlContent = fs.readFileSync(filePath, 'utf-8');
         console.log('📄 XML Content Preview (first 500 chars):');
         console.log(xmlContent.substring(0, 500) + '...');
         // Parse XML to JavaScript object
@@ -1031,6 +1201,34 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                             // Extract clubs and continue processing for participants
                             extractClubs(value, currentPath);
                             value.forEach((team, index) => {
+                                // Extract club name from team/Mannschaft and pass it to participants
+                                let teamClubName = null;
+                                if (team.verKurzname)
+                                    teamClubName = team.verKurzname;
+                                else if (team.verName)
+                                    teamClubName = team.verName;
+                                else if (team.var_name)
+                                    teamClubName = team.var_name;
+                                // Process Teilnehmer within this Mannschaft and assign club
+                                if (team.Teilnehmer) {
+                                    const teilnehmerData = team.Teilnehmer;
+                                    if (teilnehmerData.TN) {
+                                        const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                                        participants.forEach((participant) => {
+                                            // Assign club from Mannschaft level
+                                            if (teamClubName && !participant.club) {
+                                                participant.club = teamClubName;
+                                            }
+                                            if (currentCompetitionContext) {
+                                                participant.competitionNumber = currentCompetitionContext.waNr;
+                                                participant.competitionID = currentCompetitionContext.waID;
+                                                participant._competitionContext = currentCompetitionContext;
+                                                console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                                            }
+                                            extractParticipants([participant], currentPath);
+                                        });
+                                    }
+                                }
                                 processNode(team, `${currentPath}[${index}]`, currentCompetitionContext);
                             });
                         }
@@ -1038,16 +1236,100 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                             if (Array.isArray(value.Mannschaft)) {
                                 extractClubs(value.Mannschaft, `${currentPath}.Mannschaft`);
                                 value.Mannschaft.forEach((team, index) => {
+                                    // Extract club name from team/Mannschaft and pass it to participants
+                                    let teamClubName = null;
+                                    if (team.verKurzname)
+                                        teamClubName = team.verKurzname;
+                                    else if (team.verName)
+                                        teamClubName = team.verName;
+                                    else if (team.var_name)
+                                        teamClubName = team.var_name;
+                                    // Process Teilnehmer within this Mannschaft and assign club
+                                    if (team.Teilnehmer) {
+                                        const teilnehmerData = team.Teilnehmer;
+                                        if (teilnehmerData.TN) {
+                                            const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                                            participants.forEach((participant) => {
+                                                // Assign club from Mannschaft level
+                                                if (teamClubName && !participant.club) {
+                                                    participant.club = teamClubName;
+                                                }
+                                                if (currentCompetitionContext) {
+                                                    participant.competitionNumber = currentCompetitionContext.waNr;
+                                                    participant.competitionID = currentCompetitionContext.waID;
+                                                    participant._competitionContext = currentCompetitionContext;
+                                                    console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                                                }
+                                                extractParticipants([participant], currentPath);
+                                            });
+                                        }
+                                    }
                                     processNode(team, `${currentPath}.Mannschaft[${index}]`, currentCompetitionContext);
                                 });
                             }
                             else {
                                 extractClubs([value.Mannschaft], `${currentPath}.Mannschaft`);
+                                // Extract club name from team/Mannschaft and pass it to participants
+                                let teamClubName = null;
+                                if (value.Mannschaft.verKurzname)
+                                    teamClubName = value.Mannschaft.verKurzname;
+                                else if (value.Mannschaft.verName)
+                                    teamClubName = value.Mannschaft.verName;
+                                else if (value.Mannschaft.var_name)
+                                    teamClubName = value.Mannschaft.var_name;
+                                // Process Teilnehmer within this Mannschaft and assign club
+                                if (value.Mannschaft.Teilnehmer) {
+                                    const teilnehmerData = value.Mannschaft.Teilnehmer;
+                                    if (teilnehmerData.TN) {
+                                        const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                                        participants.forEach((participant) => {
+                                            // Assign club from Mannschaft level
+                                            if (teamClubName && !participant.club) {
+                                                participant.club = teamClubName;
+                                            }
+                                            if (currentCompetitionContext) {
+                                                participant.competitionNumber = currentCompetitionContext.waNr;
+                                                participant.competitionID = currentCompetitionContext.waID;
+                                                participant._competitionContext = currentCompetitionContext;
+                                                console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                                            }
+                                            extractParticipants([participant], currentPath);
+                                        });
+                                    }
+                                }
                                 processNode(value.Mannschaft, `${currentPath}.Mannschaft`, currentCompetitionContext);
                             }
                         }
                         else {
                             extractClubs([value], currentPath);
+                            // Extract club name from team/Mannschaft and pass it to participants
+                            let teamClubName = null;
+                            if (value.verKurzname)
+                                teamClubName = value.verKurzname;
+                            else if (value.verName)
+                                teamClubName = value.verName;
+                            else if (value.var_name)
+                                teamClubName = value.var_name;
+                            // Process Teilnehmer within this Mannschaft and assign club
+                            if (value.Teilnehmer) {
+                                const teilnehmerData = value.Teilnehmer;
+                                if (teilnehmerData.TN) {
+                                    const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+                                    participants.forEach((participant) => {
+                                        // Assign club from Mannschaft level
+                                        if (teamClubName && !participant.club) {
+                                            participant.club = teamClubName;
+                                        }
+                                        if (currentCompetitionContext) {
+                                            participant.competitionNumber = currentCompetitionContext.waNr;
+                                            participant.competitionID = currentCompetitionContext.waID;
+                                            participant._competitionContext = currentCompetitionContext;
+                                            console.log(`  👤 Found participant ${participant.perVorname} ${participant.perName} in competition ${currentCompetitionContext.waNr}, club: ${teamClubName || 'unknown'}`);
+                                        }
+                                        extractParticipants([participant], currentPath);
+                                    });
+                                }
+                            }
                             processNode(value, currentPath, currentCompetitionContext);
                         }
                     }
@@ -1209,13 +1491,36 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         // Create the event in the database with extracted data
         let createdEvent = null;
         let eventCreationError = null;
+        // Fetch venue details if locationId is provided
+        let venue = null;
+        let venueIdToUse = 1; // Default venue ID
+        let venueNameToUse = ''; // Default empty venue name
+        if (locationId) {
+            try {
+                venue = await prisma.tfx_wettkampforte.findUnique({
+                    where: { int_wettkampforteid: parseInt(locationId) }
+                });
+                if (venue) {
+                    venueIdToUse = venue.int_wettkampforteid;
+                    venueNameToUse = venue.var_name || '';
+                    console.log(`🏢 Found venue: ${venue.var_name} (ID: ${venue.int_wettkampforteid})`);
+                }
+                else {
+                    console.log(`⚠️ Venue with ID ${locationId} not found, using default`);
+                }
+            }
+            catch (error) {
+                console.error('❌ Error fetching venue:', error);
+            }
+        }
         try {
             console.log('🎪 Creating Event in Database...');
             console.log('Event details to insert:');
             console.log(`  - Name: "${eventName.trim()}"`);
             console.log(`  - Start Date: ${parsedStartDate}`);
             console.log(`  - End Date: ${parsedEndDate}`);
-            console.log(`  - Location: "${location?.trim() || ''}"`);
+            console.log(`  - Location ID: ${venueIdToUse}`);
+            console.log(`  - Location Name: "${venueNameToUse}"`);
             // Use raw SQL to insert into tfx_veranstaltungen with ALL required fields including missing ones
             const insertQuery = `
         INSERT INTO tfx_veranstaltungen (
@@ -1253,8 +1558,8 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             const result = await prisma.$queryRawUnsafe(insertQuery, eventName.trim(), // $1: var_name
             parsedStartDate, // $2: dat_von  
             parsedEndDate, // $3: dat_bis
-            location?.trim() || '', // $4: var_veranstalter
-            1, // $5: int_wettkampforteid - Default wettkampforteid
+            venueNameToUse, // $4: var_veranstalter - venue name
+            venueIdToUse, // $5: int_wettkampforteid - venue ID
             1, // $6: int_meldung_an - Default to 1 (assuming contact person ID)
             1, // $7: int_ansprechpartner - Default to 1 (assuming contact person ID)
             1, // $8: int_kontenid - Default to 1 (assuming account ID)
@@ -1292,8 +1597,8 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             console.error(`    * Name: "${eventName.trim()}"`);
             console.error(`    * Start Date: ${parsedStartDate}`);
             console.error(`    * End Date: ${parsedEndDate}`);
-            console.error(`    * Location: "${location?.trim() || ''}"`);
-            console.error(`    * Wettkampforteid: 1`);
+            console.error(`    * Location ID: ${venueIdToUse}`);
+            console.error(`    * Location Name: "${venueNameToUse}"`);
             console.error(`    * All other fields: defaults (int_runde=1, booleans=false, numbers=0, strings='')`);
             eventCreationError = eventError;
             // Don't continue with the import if event creation fails - this is critical
@@ -1484,6 +1789,12 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         console.log(`  ✅ Updated participant: ${firstName} ${lastName} ${clubInfo}${birthDateInfo}`);
                     }
                     else {
+                        // Insert new participant - clubId is required (NOT NULL constraint)
+                        if (!clubId) {
+                            console.log(`  ⚠️ Skipping participant ${firstName} ${lastName}: No valid club ID (club: ${participant.club})`);
+                            insertionResults.participants.errors++;
+                            continue;
+                        }
                         // Insert new participant (int_geschlecht is required)
                         if (birthDate) {
                             await prisma.$queryRawUnsafe(`
@@ -1701,45 +2012,14 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         WHERE int_veranstaltungenid = $1
       `, createdEvent.int_veranstaltungenid);
             console.log(`  📊 Found ${eventCompetitions.length} competitions for this event`);
-            // Define common gymnastics disciplines that should be linked to competitions
-            const commonDisciplines = [
-                { name: 'Boden', searchTerms: ['boden', 'floor', 'fx'] },
-                { name: 'Sprung', searchTerms: ['sprung', 'vault', 'vt'] },
-                { name: 'Stufenbarren', searchTerms: ['stufenbarren', 'barren', 'uneven', 'ub'] },
-                { name: 'Schwebebalken', searchTerms: ['schwebebalken', 'balken', 'beam', 'bb'] },
-                { name: 'Reck', searchTerms: ['reck', 'high bar', 'hb'] },
-                { name: 'Pauschenpferd', searchTerms: ['pauschenpferd', 'pommel', 'ph'] },
-                { name: 'Ringe', searchTerms: ['ringe', 'rings', 'sr'] },
-                { name: 'Barren', searchTerms: ['barren', 'parallel', 'pb'] }
-            ];
             let linkedCount = 0;
-            // For each competition, try to link appropriate disciplines
+            // For each competition, link disciplines using the generalized function
             for (const competition of eventCompetitions) {
-                const competitionName = competition.var_name.toLowerCase();
+                const disciplinesToLink = await getDisciplinesForCompetition(competition.var_name, prisma);
                 console.log(`  🔍 Processing competition: "${competition.var_name}"`);
-                // Determine which disciplines to link based on competition name
-                let disciplinesToLink = [];
-                if (competitionName.includes('vierkampf') && competitionName.includes('w')) {
-                    // Women's all-around (4 events)
-                    disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'];
-                }
-                else if (competitionName.includes('sechskampf') && competitionName.includes('m')) {
-                    // Men's all-around (6 events)
-                    disciplinesToLink = ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'];
-                }
-                else if (competitionName.includes('geräte')) {
-                    // Generic apparatus competition - link common disciplines
-                    disciplinesToLink = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
-                }
-                else {
-                    // For other competitions, link basic disciplines
-                    disciplinesToLink = ['Boden', 'Sprung'];
-                }
                 console.log(`    📝 Will attempt to link disciplines: ${disciplinesToLink.join(', ')}`);
-                // Link each discipline to this competition
                 for (const disciplineName of disciplinesToLink) {
                     try {
-                        // Find the discipline in the database
                         const existingDiscipline = await prisma.$queryRawUnsafe(`
               SELECT int_disziplinenid FROM tfx_disziplinen 
               WHERE LOWER(var_name) = LOWER($1)
@@ -1747,14 +2027,12 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             `, disciplineName);
                         if (existingDiscipline.length > 0) {
                             const disciplineId = existingDiscipline[0].int_disziplinenid;
-                            // Check if this competition-discipline link already exists
                             const existingLink = await prisma.$queryRawUnsafe(`
                 SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
                 WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
                 LIMIT 1
               `, competition.int_wettkaempfeid, disciplineId);
                             if (existingLink.length === 0) {
-                                // Create the competition-discipline link
                                 await prisma.$queryRawUnsafe(`
                   INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
                   VALUES ($1, $2, $3)
@@ -1801,7 +2079,8 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 name: createdEvent.var_name,
                 startDate: parsedStartDate,
                 endDate: parsedEndDate,
-                location: location?.trim() || null,
+                locationId: venueIdToUse,
+                locationName: venueNameToUse,
                 description: description?.trim() || null
             } : null,
             eventCreationError: eventCreationError ? {
@@ -1844,9 +2123,9 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
     catch (error) {
         console.error('❌ XML Import Error:', error);
         // Clean up uploaded file on error
-        if (filePath && fs_1.default.existsSync(filePath)) {
+        if (filePath && fs.existsSync(filePath)) {
             try {
-                fs_1.default.unlinkSync(filePath);
+                fs.unlinkSync(filePath);
                 console.log('🗑️ Cleaned up uploaded file after error');
             }
             catch (cleanupError) {
@@ -1861,6 +2140,166 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         });
     }
 });
+//
+// ===== SPECIFIC ROUTES (must be before /:id) =====
+//
+// Get event statistics (MUST be before /:id route)
+router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) => {
+    try {
+        const eventId = parseInt(req.params.id);
+        if (!eventId || isNaN(eventId)) {
+            return res.status(400).json({ error: 'Invalid event ID' });
+        }
+        console.log(`📊 Getting statistics for event ${eventId}`);
+        // Get total participants for this event through tfx_wertungen -> tfx_wettkaempfe -> tfx_veranstaltungen
+        const participantStatsQuery = `
+      SELECT 
+        COUNT(DISTINCT w.int_teilnehmerid) as total_participants,
+        COUNT(DISTINCT CASE WHEN t.int_geschlecht = 1 THEN w.int_teilnehmerid END) as male_participants,
+        COUNT(DISTINCT CASE WHEN t.int_geschlecht = 2 THEN w.int_teilnehmerid END) as female_participants,
+        COUNT(DISTINCT t.int_vereineid) as total_clubs
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE wk.int_veranstaltungenid = $1
+    `;
+        const participantStats = await prisma.$queryRawUnsafe(participantStatsQuery, eventId);
+        const stats = participantStats[0] || {
+            total_participants: 0,
+            male_participants: 0,
+            female_participants: 0,
+            total_clubs: 0
+        };
+        // Get competitions count
+        const competitionsQuery = `
+      SELECT COUNT(*) as total_competitions
+      FROM tfx_wettkaempfe
+      WHERE int_veranstaltungenid = $1
+    `;
+        const competitionsCount = await prisma.$queryRawUnsafe(competitionsQuery, eventId);
+        const competitions = competitionsCount[0] || { total_competitions: 0 };
+        // Get discipline stats
+        const disciplineStatsQuery = `
+      SELECT 
+        d.var_name as discipline_name,
+        COUNT(DISTINCT w.int_teilnehmerid) as participant_count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_wettkaempfe_x_disziplinen wxd ON wk.int_wettkaempfeid = wxd.int_wettkaempfeid
+      INNER JOIN tfx_disziplinen d ON wxd.int_disziplinenid = d.int_disziplinenid
+      WHERE wk.int_veranstaltungenid = $1
+      GROUP BY d.int_disziplinenid, d.var_name
+      ORDER BY participant_count DESC
+    `;
+        const disciplineStats = await prisma.$queryRawUnsafe(disciplineStatsQuery, eventId);
+        // Get age group stats - calculate from birthdate
+        const ageGroupStatsQuery = `
+      SELECT 
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 1 AND 6 
+          THEN w.int_teilnehmerid 
+        END) as "1_6",
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 7 AND 8 
+          THEN w.int_teilnehmerid 
+        END) as "7_8",
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 9 AND 10 
+          THEN w.int_teilnehmerid 
+        END) as "9_10",
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 11 AND 12 
+          THEN w.int_teilnehmerid 
+        END) as "11_12",
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 13 AND 14 
+          THEN w.int_teilnehmerid 
+        END) as "13_14",
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 15 AND 16 
+          THEN w.int_teilnehmerid 
+        END) as "15_16",
+        COUNT(DISTINCT CASE 
+          WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, t.dat_geburtstag)) BETWEEN 17 AND 18 
+          THEN w.int_teilnehmerid 
+        END) as "17_18"
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE wk.int_veranstaltungenid = $1 AND t.dat_geburtstag IS NOT NULL
+    `;
+        const ageGroupStats = await prisma.$queryRawUnsafe(ageGroupStatsQuery, eventId);
+        const ageGroups = ageGroupStats[0] || {
+            "1_6": 0,
+            "7_8": 0,
+            "9_10": 0,
+            "11_12": 0,
+            "13_14": 0,
+            "15_16": 0,
+            "17_18": 0
+        };
+        // Get club breakdown
+        const clubBreakdownQuery = `
+      SELECT 
+        v.var_name as club_name,
+        COUNT(DISTINCT w.int_teilnehmerid) as participant_count
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      INNER JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+      WHERE wk.int_veranstaltungenid = $1
+      GROUP BY v.int_vereineid, v.var_name
+      ORDER BY participant_count DESC
+    `;
+        const clubBreakdown = await prisma.$queryRawUnsafe(clubBreakdownQuery, eventId);
+        // Get Riegen (squads/starting groups) count - stored in tfx_wertungen.var_riege
+        // Examples: mBlau, mGrün, wRot, etc.
+        const riegenCountQuery = `
+      SELECT COUNT(DISTINCT w.var_riege) as total_groups
+      FROM tfx_wertungen w
+      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1 
+        AND w.var_riege IS NOT NULL 
+        AND w.var_riege != ''
+    `;
+        const riegenCount = await prisma.$queryRawUnsafe(riegenCountQuery, eventId);
+        const groups = riegenCount[0] || { total_groups: 0 };
+        const result = {
+            totalParticipants: Number(stats.total_participants),
+            maleParticipants: Number(stats.male_participants),
+            femaleParticipants: Number(stats.female_participants),
+            totalClubs: Number(stats.total_clubs),
+            totalCompetitions: Number(competitions.total_competitions),
+            totalGroups: Number(groups.total_groups),
+            disciplines: disciplineStats.map((d) => ({
+                name: d.discipline_name,
+                count: Number(d.participant_count)
+            })),
+            ageGroups: {
+                "1-6": Number(ageGroups["1_6"]),
+                "7-8": Number(ageGroups["7_8"]),
+                "9-10": Number(ageGroups["9_10"]),
+                "11-12": Number(ageGroups["11_12"]),
+                "13-14": Number(ageGroups["13_14"]),
+                "15-16": Number(ageGroups["15_16"]),
+                "17-18": Number(ageGroups["17_18"])
+            },
+            clubBreakdown: clubBreakdown.map((c) => ({
+                clubName: c.club_name,
+                count: Number(c.participant_count)
+            }))
+        };
+        console.log(`📊 Event ${eventId} statistics:`, result);
+        res.json(result);
+    }
+    catch (error) {
+        console.error('Error fetching event statistics:', error);
+        res.status(500).json({ error: 'Failed to fetch event statistics' });
+    }
+});
+//
+// ===== GENERIC ROUTE (must be last) =====
+//
 // Get event by ID (moved to end to avoid catching other routes)
 router.get('/:id', async (req, res) => {
     try {
@@ -1874,8 +2313,29 @@ router.get('/:id', async (req, res) => {
         v.var_name as var_eventname,
         v.dat_von as dat_eventstartdate,
         v.dat_bis as dat_eventenddate,
-        v.var_veranstalter as var_location,
+        COALESCE(wf.var_name, v.var_veranstalter, '') as var_location,
         COALESCE(v.txt_hinweise, '') as var_description,
+        v.dat_meldeschluss,
+        v.var_veranstalter,
+        v.int_wettkampforteid,
+        v.int_ansprechpartner,
+        v.int_meldung_an,
+        v.int_kampfrichter,
+        v.int_helfer,
+        v.int_edv,
+        v.txt_hinweise,
+        wf.var_name as venue_name,
+        wf.var_adresse as venue_address,
+        wf.var_plz as venue_postal_code,
+        wf.var_ort as venue_city,
+        cp.var_vorname as contact_person_firstname,
+        cp.var_nachname as contact_person_lastname,
+        cp.var_email as contact_person_email,
+        cp.var_telefon as contact_person_phone,
+        rcp.var_vorname as registration_contact_firstname,
+        rcp.var_nachname as registration_contact_lastname,
+        rcp.var_email as registration_contact_email,
+        rcp.var_telefon as registration_contact_phone,
         (SELECT COUNT(*) FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as participant_count,
@@ -1883,6 +2343,9 @@ router.get('/:id', async (req, res) => {
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
          WHERE w.int_veranstaltungenid = v.int_veranstaltungenid) as score_count
       FROM tfx_veranstaltungen v
+      LEFT JOIN tfx_wettkampforte wf ON v.int_wettkampforteid = wf.int_wettkampforteid
+      LEFT JOIN tfx_personen cp ON v.int_ansprechpartner = cp.int_personenid
+      LEFT JOIN tfx_personen rcp ON v.int_meldung_an = rcp.int_personenid
       WHERE v.int_veranstaltungenid = $1
     `;
         const events = await prisma.$queryRawUnsafe(query, id);
@@ -1904,10 +2367,24 @@ router.get('/:id', async (req, res) => {
         const formattedEvent = {
             ...event,
             int_eventid: Number(event.int_eventid),
+            int_wettkampforteid: event.int_wettkampforteid ? Number(event.int_wettkampforteid) : null,
+            int_ansprechpartner: event.int_ansprechpartner ? Number(event.int_ansprechpartner) : null,
+            int_meldung_an: event.int_meldung_an ? Number(event.int_meldung_an) : null,
+            int_kampfrichter: event.int_kampfrichter ? Number(event.int_kampfrichter) : null,
+            int_helfer: event.int_helfer ? Number(event.int_helfer) : null,
+            int_edv: event.int_edv ? Number(event.int_edv) : null,
+            txt_hinweise: event.txt_hinweise,
             participant_count: Number(event.participant_count || 0),
             score_count: Number(event.score_count || 0),
             dat_eventstartdate: event.dat_eventstartdate ? event.dat_eventstartdate.toISOString() : null,
             dat_eventenddate: event.dat_eventenddate ? event.dat_eventenddate.toISOString() : null,
+            dat_meldeschluss: event.dat_meldeschluss ? event.dat_meldeschluss.toISOString() : null,
+            contact_person_name: event.contact_person_firstname && event.contact_person_lastname
+                ? `${event.contact_person_lastname}, ${event.contact_person_firstname}`
+                : null,
+            registration_contact_name: event.registration_contact_firstname && event.registration_contact_lastname
+                ? `${event.registration_contact_lastname}, ${event.registration_contact_firstname}`
+                : null,
             status
         };
         res.json(formattedEvent);
@@ -2021,7 +2498,7 @@ router.post('/import-test', upload.single('xmlFile'), async (req, res) => {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
         const filePath = req.file.path;
-        const xmlContent = fs_1.default.readFileSync(filePath, 'utf-8');
+        const xmlContent = fs.readFileSync(filePath, 'utf-8');
         console.log('📄 XML file received, length:', xmlContent.length);
         res.json({
             success: true,
@@ -2030,8 +2507,8 @@ router.post('/import-test', upload.single('xmlFile'), async (req, res) => {
             preview: xmlContent.substring(0, 200)
         });
         // Clean up
-        if (fs_1.default.existsSync(filePath)) {
-            fs_1.default.unlinkSync(filePath);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
         }
     }
     catch (error) {
