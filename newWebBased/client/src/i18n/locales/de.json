@@ -169,6 +169,7 @@
     "sectionsTitle": "Einstellungsbereiche",
     "saveConfiguration": "Einstellungen speichern",
     "saving": "Speichern...",
+    "enableSetting": "Diese Einstellung aktivieren",
     "testConnection": "Verbindung testen",
     "createDatabase": "Datenbank erstellen",
     "creatingDatabase": "Erstelle Datenbank...",
@@ -402,6 +403,82 @@
         "watermark": {
           "label": "Wasserzeichen einschließen",
           "description": "TurnFix-Wasserzeichen zu generierten PDFs hinzufügen"
+        }
+      },
+      "participantLabels": {
+        "title": "Teilnehmer-Etiketten",
+        "description": "Einstellungen für Teilnehmer-Etiketten (z.B. Avery 3474 oder ähnliche Formate)",
+        "rows": {
+          "label": "Zeilen",
+          "description": "Standard-Anzahl der Zeilen für Teilnehmer-Etiketten (z.B. Avery 3474: 8 Zeilen)"
+        },
+        "columns": {
+          "label": "Spalten",
+          "description": "Standard-Anzahl der Spalten für Teilnehmer-Etiketten (z.B. Avery 3474: 4 Spalten)"
+        },
+        "width": {
+          "label": "Breite (mm)",
+          "description": "Etikettenbreite in Millimetern (z.B. Avery 3474: 48,5mm)"
+        },
+        "height": {
+          "label": "Höhe (mm)",
+          "description": "Etikettenhöhe in Millimetern (z.B. Avery 3474: 16,9mm)"
+        },
+        "marginTop": {
+          "label": "Oberer Rand (mm)",
+          "description": "Oberer Rand in Millimetern"
+        },
+        "marginBottom": {
+          "label": "Unterer Rand (mm)",
+          "description": "Unterer Rand in Millimetern"
+        },
+        "marginLeft": {
+          "label": "Linker Rand (mm)",
+          "description": "Linker Rand in Millimetern"
+        },
+        "marginRight": {
+          "label": "Rechter Rand (mm)",
+          "description": "Rechter Rand in Millimetern"
+        },
+        "showBorders": {
+          "label": "Rahmen anzeigen",
+          "description": "Etikettenrahmen zur Ausrichtung anzeigen (nützlich bei der Druckereinrichtung)"
+        },
+        "labelRows": {
+          "label": "Zeilen",
+          "description": "Standard-Anzahl der Zeilen für Teilnehmer-Etiketten (z.B. Avery 3474: 8 Zeilen)"
+        },
+        "labelColumns": {
+          "label": "Spalten",
+          "description": "Standard-Anzahl der Spalten für Teilnehmer-Etiketten (z.B. Avery 3474: 4 Spalten)"
+        },
+        "labelWidth": {
+          "label": "Breite (mm)",
+          "description": "Etikettenbreite in Millimetern (z.B. Avery 3474: 48,5mm)"
+        },
+        "labelHeight": {
+          "label": "Höhe (mm)",
+          "description": "Etikettenhöhe in Millimetern (z.B. Avery 3474: 16,9mm)"
+        },
+        "labelMarginTop": {
+          "label": "Oberer Rand (mm)",
+          "description": "Oberer Rand in Millimetern"
+        },
+        "labelMarginBottom": {
+          "label": "Unterer Rand (mm)",
+          "description": "Unterer Rand in Millimetern"
+        },
+        "labelMarginLeft": {
+          "label": "Linker Rand (mm)",
+          "description": "Linker Rand in Millimetern"
+        },
+        "labelMarginRight": {
+          "label": "Rechter Rand (mm)",
+          "description": "Rechter Rand in Millimetern"
+        },
+        "labelShowBorders": {
+          "label": "Rahmen anzeigen",
+          "description": "Etikettenrahmen zur Ausrichtung anzeigen (nützlich bei der Druckereinrichtung)"
         }
       },
       "logging": {
@@ -1534,14 +1611,21 @@
       "title": "Etiketten-Konfiguration",
       "rows": "Zeilen",
       "columns": "Spalten",
-      "showBorders": "Rahmen anzeigen",
-      "fontSize": "Schriftgröße",
-      "includeLogo": "Logo einbeziehen",
-      "showSquad": "Riege anzeigen",
-      "showCompetitions": "Wettkämpfe anzeigen",
-      "preview": "Vorschau",
-      "export": "Exportieren",
-      "pagesNeeded": "Benötigte Seiten"
+      "labelWidth": "Etikettenbreite (mm)",
+      "labelHeight": "Etikettenhöhe (mm)",
+      "marginTop": "Oberer Rand (mm)",
+      "marginBottom": "Unterer Rand (mm)",
+      "marginLeft": "Linker Rand (mm)",
+      "marginRight": "Rechter Rand (mm)",
+      "showBorders": "Etikettenrahmen anzeigen (zur Ausrichtung)",
+      "previewInfo": "Vorschau-Info",
+      "layout": "Layout",
+      "labelsPerPage": "Etiketten pro Seite",
+      "labelSize": "Etikettengröße",
+      "totalLabelsPerPage": "Etiketten gesamt pro Seite",
+      "pagesNeeded": "Benötigte Seiten",
+      "cancel": "Abbrechen",
+      "exportLabels": "Etiketten-PDF exportieren"
     },
     "status": {
       "active": "Aktiv",

@@ -131,7 +131,17 @@ const getDefaultConfig = () => {
       default_page_size: 'A4',
       default_orientation: 'portrait',
       pdf_quality: 'high',
-      include_watermark: false
+      include_watermark: false,
+      // Participant Label Defaults (e.g., Avery 3474 or similar)
+      labelRows: 8,
+      labelColumns: 4,
+      labelWidth: 48.5,
+      labelHeight: 16.9,
+      labelMarginTop: 15,
+      labelMarginBottom: 15,
+      labelMarginLeft: 10,
+      labelMarginRight: 10,
+      labelShowBorders: true
     },
     logging: {
       log_level: 'info',

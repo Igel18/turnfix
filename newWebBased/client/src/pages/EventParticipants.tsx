@@ -337,6 +337,32 @@ const EventParticipants: React.FC = () => {
     showBorders: true
   });
 
+  // Load label configuration from server on mount
+  useEffect(() => {
+    const loadLabelConfig = async () => {
+      try {
+        const config = await apiGet('/configuration');
+        if (config?.printing) {
+          setLabelConfig({
+            rows: config.printing.labelRows || 8,
+            columns: config.printing.labelColumns || 4,
+            width: config.printing.labelWidth || 48.5,
+            height: config.printing.labelHeight || 16.9,
+            marginTop: config.printing.labelMarginTop || 15,
+            marginLeft: config.printing.labelMarginLeft || 10,
+            marginRight: config.printing.labelMarginRight || 10,
+            marginBottom: config.printing.labelMarginBottom || 15,
+            showBorders: config.printing.labelShowBorders !== undefined ? config.printing.labelShowBorders : true
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load label configuration, using defaults:', error);
+        // Keep default values if loading fails
+      }
+    };
+    loadLabelConfig();
+  }, []);
+
   useEffect(() => {
     if (eventId) {
       // Add a small delay to prevent simultaneous API calls from multiple components
@@ -725,6 +751,32 @@ const EventParticipants: React.FC = () => {
       return
     }
 
+    // Sort participants by: 1. Gender, 2. Squad, 3. Club
+    const sortedParticipants = [...eventParticipants].sort((a, b) => {
+      // Primary sort: Gender (male first, then female)
+      const genderOrder = { 'male': 0, 'female': 1, 'unknown': 2 };
+      const genderA = genderOrder[a.gender as keyof typeof genderOrder] ?? 2;
+      const genderB = genderOrder[b.gender as keyof typeof genderOrder] ?? 2;
+      
+      if (genderA !== genderB) {
+        return genderA - genderB;
+      }
+      
+      // Secondary sort: Squad (alphabetical)
+      const squadA = (a.squad_name || '').toLowerCase();
+      const squadB = (b.squad_name || '').toLowerCase();
+      
+      if (squadA !== squadB) {
+        return squadA.localeCompare(squadB, 'de');
+      }
+      
+      // Tertiary sort: Club (alphabetical)
+      const clubA = (a.club || '').toLowerCase();
+      const clubB = (b.club || '').toLowerCase();
+      
+      return clubA.localeCompare(clubB, 'de');
+    });
+
     const config = labelConfig
     const doc = new jsPDF('p', 'mm', 'a4')
     
@@ -744,7 +796,7 @@ const EventParticipants: React.FC = () => {
     let currentRow = 0
     let currentCol = 0
     
-    eventParticipants.forEach((participant, index) => {
+    sortedParticipants.forEach((participant, index) => {
       // Check if we need a new page
       if (index > 0 && currentRow === 0 && currentCol === 0) {
         doc.addPage()
@@ -1449,13 +1501,13 @@ const EventParticipants: React.FC = () => {
       {showLabelModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-90vh overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Label Configuration</h2>
+            <h2 className="text-xl font-bold mb-4">{t('eventParticipants.labelConfig.title')}</h2>
             
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rows
+                    {t('eventParticipants.labelConfig.rows')}
                   </label>
                   <input
                     type="number"
@@ -1469,7 +1521,7 @@ const EventParticipants: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Columns
+                    {t('eventParticipants.labelConfig.columns')}
                   </label>
                   <input
                     type="number"
@@ -1485,7 +1537,7 @@ const EventParticipants: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Label Width (mm)
+                    {t('eventParticipants.labelConfig.labelWidth')}
                   </label>
                   <input
                     type="number"
@@ -1500,7 +1552,7 @@ const EventParticipants: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Label Height (mm)
+                    {t('eventParticipants.labelConfig.labelHeight')}
                   </label>
                   <input
                     type="number"
@@ -1517,7 +1569,7 @@ const EventParticipants: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Top Margin (mm)
+                    {t('eventParticipants.labelConfig.marginTop')}
                   </label>
                   <input
                     type="number"
@@ -1532,7 +1584,7 @@ const EventParticipants: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bottom Margin (mm)
+                    {t('eventParticipants.labelConfig.marginBottom')}
                   </label>
                   <input
                     type="number"
@@ -1549,7 +1601,7 @@ const EventParticipants: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Left Margin (mm)
+                    {t('eventParticipants.labelConfig.marginLeft')}
                   </label>
                   <input
                     type="number"
@@ -1564,7 +1616,7 @@ const EventParticipants: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Right Margin (mm)
+                    {t('eventParticipants.labelConfig.marginRight')}
                   </label>
                   <input
                     type="number"
@@ -1587,17 +1639,17 @@ const EventParticipants: React.FC = () => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="showBorders" className="ml-2 block text-sm text-gray-900">
-                  Show label borders (for alignment)
+                  {t('eventParticipants.labelConfig.showBorders')}
                 </label>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Preview Info</h4>
+                <h4 className="font-medium text-gray-900 mb-2">{t('eventParticipants.labelConfig.previewInfo')}</h4>
                 <p className="text-sm text-gray-600">
-                  Layout: {labelConfig.rows} × {labelConfig.columns} labels per page<br/>
-                  Label size: {labelConfig.width} × {labelConfig.height} mm<br/>
-                  Total labels per page: {labelConfig.rows * labelConfig.columns}<br/>
-                  Pages needed: {Math.ceil(filteredParticipants.filter(p => p.isInEvent).length / (labelConfig.rows * labelConfig.columns))}
+                  {t('eventParticipants.labelConfig.layout')}: {labelConfig.rows} × {labelConfig.columns} {t('eventParticipants.labelConfig.labelsPerPage')}<br/>
+                  {t('eventParticipants.labelConfig.labelSize')}: {labelConfig.width} × {labelConfig.height} mm<br/>
+                  {t('eventParticipants.labelConfig.totalLabelsPerPage')}: {labelConfig.rows * labelConfig.columns}<br/>
+                  {t('eventParticipants.labelConfig.pagesNeeded')}: {Math.ceil(filteredParticipants.filter(p => p.isInEvent).length / (labelConfig.rows * labelConfig.columns))}
                 </p>
               </div>
             </div>
@@ -1607,7 +1659,7 @@ const EventParticipants: React.FC = () => {
                 onClick={() => setShowLabelModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
               >
-                Cancel
+                {t('eventParticipants.labelConfig.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1616,7 +1668,7 @@ const EventParticipants: React.FC = () => {
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Export Labels PDF
+                {t('eventParticipants.labelConfig.exportLabels')}
               </button>
             </div>
           </div>

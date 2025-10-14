@@ -169,6 +169,7 @@
     "sectionsTitle": "Settings Sections",
     "saveConfiguration": "Save Settings",
     "saving": "Saving...",
+    "enableSetting": "Enable this setting",
     "testConnection": "Test Connection",
     "createDatabase": "Create Database",
     "creatingDatabase": "Creating Database...",
@@ -402,6 +403,82 @@
         "watermark": {
           "label": "Include Watermark",
           "description": "Add TurnFix watermark to generated PDFs"
+        }
+      },
+      "participantLabels": {
+        "title": "Participant Labels",
+        "description": "Settings for participant labels (e.g., Avery 3474 or similar formats)",
+        "rows": {
+          "label": "Rows",
+          "description": "Default number of rows for participant labels (e.g., Avery 3474: 8 rows)"
+        },
+        "columns": {
+          "label": "Columns",
+          "description": "Default number of columns for participant labels (e.g., Avery 3474: 4 columns)"
+        },
+        "width": {
+          "label": "Width (mm)",
+          "description": "Label width in millimeters (e.g., Avery 3474: 48.5mm)"
+        },
+        "height": {
+          "label": "Height (mm)",
+          "description": "Label height in millimeters (e.g., Avery 3474: 16.9mm)"
+        },
+        "marginTop": {
+          "label": "Top Margin (mm)",
+          "description": "Top margin in millimeters"
+        },
+        "marginBottom": {
+          "label": "Bottom Margin (mm)",
+          "description": "Bottom margin in millimeters"
+        },
+        "marginLeft": {
+          "label": "Left Margin (mm)",
+          "description": "Left margin in millimeters"
+        },
+        "marginRight": {
+          "label": "Right Margin (mm)",
+          "description": "Right margin in millimeters"
+        },
+        "showBorders": {
+          "label": "Show Borders",
+          "description": "Show label borders for alignment (useful when setting up the printer)"
+        },
+        "labelRows": {
+          "label": "Rows",
+          "description": "Default number of rows for participant labels (e.g., Avery 3474: 8 rows)"
+        },
+        "labelColumns": {
+          "label": "Columns",
+          "description": "Default number of columns for participant labels (e.g., Avery 3474: 4 columns)"
+        },
+        "labelWidth": {
+          "label": "Width (mm)",
+          "description": "Label width in millimeters (e.g., Avery 3474: 48.5mm)"
+        },
+        "labelHeight": {
+          "label": "Height (mm)",
+          "description": "Label height in millimeters (e.g., Avery 3474: 16.9mm)"
+        },
+        "labelMarginTop": {
+          "label": "Top Margin (mm)",
+          "description": "Top margin in millimeters"
+        },
+        "labelMarginBottom": {
+          "label": "Bottom Margin (mm)",
+          "description": "Bottom margin in millimeters"
+        },
+        "labelMarginLeft": {
+          "label": "Left Margin (mm)",
+          "description": "Left margin in millimeters"
+        },
+        "labelMarginRight": {
+          "label": "Right Margin (mm)",
+          "description": "Right margin in millimeters"
+        },
+        "labelShowBorders": {
+          "label": "Show Borders",
+          "description": "Show label borders for alignment (useful when setting up the printer)"
         }
       },
       "logging": {
@@ -1533,14 +1610,21 @@
       "title": "Label Configuration",
       "rows": "Rows",
       "columns": "Columns",
-      "showBorders": "Show Borders",
-      "fontSize": "Font Size",
-      "includeLogo": "Include Logo",
-      "showSquad": "Show Squad",
-      "showCompetitions": "Show Competitions",
-      "preview": "Preview",
-      "export": "Export",
-      "pagesNeeded": "Pages needed"
+      "labelWidth": "Label Width (mm)",
+      "labelHeight": "Label Height (mm)",
+      "marginTop": "Top Margin (mm)",
+      "marginBottom": "Bottom Margin (mm)",
+      "marginLeft": "Left Margin (mm)",
+      "marginRight": "Right Margin (mm)",
+      "showBorders": "Show label borders (for alignment)",
+      "previewInfo": "Preview Info",
+      "layout": "Layout",
+      "labelsPerPage": "labels per page",
+      "labelSize": "Label size",
+      "totalLabelsPerPage": "Total labels per page",
+      "pagesNeeded": "Pages needed",
+      "cancel": "Cancel",
+      "exportLabels": "Export Labels PDF"
     },
     "status": {
       "active": "Active",

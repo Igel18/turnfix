@@ -277,52 +277,123 @@ const Configuration: React.FC = () => {
         },
         {
           id: 'printing',
-          name: 'Print & PDF Settings',
+          name: t('configuration.sections.printing.title'),
           icon: PrinterIcon,
-          description: 'Printing and PDF generation configuration',
+          description: t('configuration.sections.printing.description'),
           settings: [
             {
               key: 'default_page_size',
-              label: 'Default Page Size',
+              label: t('configuration.sections.printing.pageSize.label'),
               type: 'select',
               value: response?.printing?.pageSize || 'A4',
-              description: 'Default page size for PDF exports',
+              description: t('configuration.sections.printing.pageSize.description'),
               options: [
-                { value: 'A4', label: 'A4 (210 × 297 mm)' },
-                { value: 'A3', label: 'A3 (297 × 420 mm)' },
-                { value: 'Letter', label: 'Letter (8.5 × 11 in)' },
-                { value: 'Legal', label: 'Legal (8.5 × 14 in)' }
+                { value: 'A4', label: t('configuration.sections.printing.pageSize.options.A4') },
+                { value: 'A3', label: t('configuration.sections.printing.pageSize.options.A3') },
+                { value: 'Letter', label: t('configuration.sections.printing.pageSize.options.Letter') },
+                { value: 'Legal', label: t('configuration.sections.printing.pageSize.options.Legal') }
               ]
             },
             {
               key: 'default_orientation',
-              label: 'Default Orientation',
+              label: t('configuration.sections.printing.orientation.label'),
               type: 'select',
               value: response?.printing?.orientation || 'portrait',
-              description: 'Default page orientation',
+              description: t('configuration.sections.printing.orientation.description'),
               options: [
-                { value: 'portrait', label: 'Portrait' },
-                { value: 'landscape', label: 'Landscape' }
+                { value: 'portrait', label: t('configuration.sections.printing.orientation.options.portrait') },
+                { value: 'landscape', label: t('configuration.sections.printing.orientation.options.landscape') }
               ]
             },
             {
               key: 'pdf_quality',
-              label: 'PDF Quality',
+              label: t('configuration.sections.printing.quality.label'),
               type: 'select',
               value: response?.printing?.quality || 'high',
-              description: 'PDF generation quality setting',
+              description: t('configuration.sections.printing.quality.description'),
               options: [
-                { value: 'low', label: 'Low (smaller file size)' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'high', label: 'High (better quality)' }
+                { value: 'low', label: t('configuration.sections.printing.quality.options.low') },
+                { value: 'medium', label: t('configuration.sections.printing.quality.options.medium') },
+                { value: 'high', label: t('configuration.sections.printing.quality.options.high') }
               ]
             },
             {
               key: 'include_watermark',
-              label: 'Include Watermark',
+              label: t('configuration.sections.printing.watermark.label'),
               type: 'boolean',
               value: response?.printing?.watermark || false,
-              description: 'Add TurnFix watermark to generated PDFs'
+              description: t('configuration.sections.printing.watermark.description')
+            }
+          ]
+        },
+        {
+          id: 'participant-labels',
+          name: t('configuration.sections.participantLabels.title'),
+          icon: PrinterIcon,
+          description: t('configuration.sections.participantLabels.description'),
+          settings: [
+            {
+              key: 'label_rows',
+              label: t('configuration.sections.participantLabels.rows.label'),
+              type: 'number',
+              value: response?.printing?.labelRows || 8,
+              description: t('configuration.sections.participantLabels.rows.description')
+            },
+            {
+              key: 'label_columns',
+              label: t('configuration.sections.participantLabels.columns.label'),
+              type: 'number',
+              value: response?.printing?.labelColumns || 4,
+              description: t('configuration.sections.participantLabels.columns.description')
+            },
+            {
+              key: 'label_width',
+              label: t('configuration.sections.participantLabels.width.label'),
+              type: 'number',
+              value: response?.printing?.labelWidth || 48.5,
+              description: t('configuration.sections.participantLabels.width.description')
+            },
+            {
+              key: 'label_height',
+              label: t('configuration.sections.participantLabels.height.label'),
+              type: 'number',
+              value: response?.printing?.labelHeight || 16.9,
+              description: t('configuration.sections.participantLabels.height.description')
+            },
+            {
+              key: 'label_margin_top',
+              label: t('configuration.sections.participantLabels.marginTop.label'),
+              type: 'number',
+              value: response?.printing?.labelMarginTop || 15,
+              description: t('configuration.sections.participantLabels.marginTop.description')
+            },
+            {
+              key: 'label_margin_bottom',
+              label: t('configuration.sections.participantLabels.marginBottom.label'),
+              type: 'number',
+              value: response?.printing?.labelMarginBottom || 15,
+              description: t('configuration.sections.participantLabels.marginBottom.description')
+            },
+            {
+              key: 'label_margin_left',
+              label: t('configuration.sections.participantLabels.marginLeft.label'),
+              type: 'number',
+              value: response?.printing?.labelMarginLeft || 10,
+              description: t('configuration.sections.participantLabels.marginLeft.description')
+            },
+            {
+              key: 'label_margin_right',
+              label: t('configuration.sections.participantLabels.marginRight.label'),
+              type: 'number',
+              value: response?.printing?.labelMarginRight || 10,
+              description: t('configuration.sections.participantLabels.marginRight.description')
+            },
+            {
+              key: 'label_show_borders',
+              label: t('configuration.sections.participantLabels.showBorders.label'),
+              type: 'boolean',
+              value: response?.printing?.labelShowBorders !== undefined ? response.printing.labelShowBorders : true,
+              description: t('configuration.sections.participantLabels.showBorders.description')
             }
           ]
         },
@@ -390,10 +461,20 @@ const Configuration: React.FC = () => {
     setSaving(true)
     try {
       const configData = configSections.reduce((acc, section) => {
-        acc[section.id] = section.settings.reduce((sectionAcc, setting) => {
-          sectionAcc[setting.key] = setting.value
-          return sectionAcc
-        }, {} as any)
+        // Map participant-labels section settings to printing section for backend compatibility
+        if (section.id === 'participant-labels') {
+          if (!acc['printing']) {
+            acc['printing'] = {}
+          }
+          section.settings.forEach(setting => {
+            acc['printing'][setting.key] = setting.value
+          })
+        } else {
+          acc[section.id] = section.settings.reduce((sectionAcc, setting) => {
+            sectionAcc[setting.key] = setting.value
+            return sectionAcc
+          }, {} as any)
+        }
         return acc
       }, {} as any)
 
@@ -711,7 +792,7 @@ const Configuration: React.FC = () => {
                                   onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.checked)}
                                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
-                                <span className="ml-2 text-sm text-gray-600">Enable this setting</span>
+                                <span className="ml-2 text-sm text-gray-600">{t('configuration.enableSetting')}</span>
                               </div>
                             )}
 
