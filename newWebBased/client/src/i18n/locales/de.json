@@ -1512,7 +1512,7 @@
   "eventParticipants": {
     "title": "Veranstaltungsteilnehmer",
     "subtitle": "Teilnehmer zur Veranstaltung hinzufügen, entfernen und Wettkämpfen zuordnen",
-    "searchPlaceholder": "Teilnehmer suchen...",
+    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startnummer suchen...",
     "addParticipant": "Teilnehmer hinzufügen",
     "noEventSelected": "Keine Veranstaltung ausgewählt",
     "selectEventPrompt": "Bitte wählen Sie eine Veranstaltung aus, um Teilnehmer zu verwalten.",

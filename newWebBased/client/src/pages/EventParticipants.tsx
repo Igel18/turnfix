@@ -884,7 +884,8 @@ const EventParticipants: React.FC = () => {
     const matchesSearch = 
       participant.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       participant.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.club.toLowerCase().includes(searchTerm.toLowerCase());
+      participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (participant.startNumber && participant.startNumber.toString().includes(searchTerm));
     
     const matchesGender = !genderFilter || participant.gender === genderFilter;
     const matchesClub = !clubFilter || participant.club.toLowerCase().includes(clubFilter.toLowerCase());

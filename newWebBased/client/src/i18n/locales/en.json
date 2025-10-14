@@ -1511,7 +1511,7 @@
   "eventParticipants": {
     "title": "Event Participants",
     "subtitle": "Add, remove and assign participants to competitions within the selected event",
-    "searchPlaceholder": "Search participants...",
+    "searchPlaceholder": "Search participants by name, club or start number...",
     "addParticipant": "Add Participant",
     "noEventSelected": "No Event Selected",
     "selectEventPrompt": "Please select an event to manage participants.",
