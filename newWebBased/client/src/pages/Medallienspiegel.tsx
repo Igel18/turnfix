@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { TrophyIcon } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
@@ -8,6 +9,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 export default function Medallienspiegel() {
+  const { t } = useTranslation()
   const { selectedEvent } = useEvent()
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   
@@ -23,7 +25,7 @@ export default function Medallienspiegel() {
 
     if (!medalData.standings || medalData.standings.length === 0) {
       console.error('Cannot export PDF: No medal standings data')
-      alert('Keine Medaillendaten zum Exportieren verfügbar.')
+      alert(t('medallienspiegel.noDataToExport'))
       return
     }
 
@@ -56,7 +58,7 @@ export default function Medallienspiegel() {
       addPDFHeaderFooter({
         doc,
         event: eventForPDF,
-        documentTitle: 'Medallienspiegel',
+        documentTitle: t('medallienspiegel.title'),
         pageWidth: 297,
         pageHeight: 210
       })
@@ -64,21 +66,21 @@ export default function Medallienspiegel() {
       // Title
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text('Medallienspiegel', contentArea.startX, contentArea.startY + 10)
+      doc.text(t('medallienspiegel.title'), contentArea.startX, contentArea.startY + 10)
       
       doc.setFontSize(12)
       doc.setFont('helvetica', 'normal')
-      doc.text(`Veranstaltung: ${medalData.eventName}`, contentArea.startX, contentArea.startY + 25)
+      doc.text(`${t('medallienspiegel.event')}: ${medalData.eventName}`, contentArea.startX, contentArea.startY + 25)
 
       // Medal standings table
       const tableColumns = [
-        { header: 'Rang', dataKey: 'rank' },
-        { header: 'Verein', dataKey: 'clubName' },
-        { header: 'Gold', dataKey: 'gold' },
-        { header: 'Silber', dataKey: 'silver' },
-        { header: 'Bronze', dataKey: 'bronze' },
-        { header: 'Summe', dataKey: 'total' },
-        { header: 'Starter', dataKey: 'starters' }
+        { header: t('medallienspiegel.table.rank'), dataKey: 'rank' },
+        { header: t('medallienspiegel.table.club'), dataKey: 'clubName' },
+        { header: t('medallienspiegel.table.gold'), dataKey: 'gold' },
+        { header: t('medallienspiegel.table.silver'), dataKey: 'silver' },
+        { header: t('medallienspiegel.table.bronze'), dataKey: 'bronze' },
+        { header: t('medallienspiegel.table.total'), dataKey: 'total' },
+        { header: t('medallienspiegel.table.starters'), dataKey: 'starters' }
       ]
 
       const tableData = medalData.standings
@@ -104,9 +106,9 @@ export default function Medallienspiegel() {
       const totalStarters = tableData.reduce((sum, row) => sum + row.starters, 0)
       
       doc.setFontSize(10)
-      doc.text(`Teilnehmende Vereine: ${tableData.length}`, contentArea.startX, contentArea.startY + 35)
-      doc.text(`Gesamt Medaillen: ${totalMedals}`, contentArea.startX + 80, contentArea.startY + 35)
-      doc.text(`Gesamt Starter: ${totalStarters}`, contentArea.startX + 150, contentArea.startY + 35)
+      doc.text(`${t('medallienspiegel.participatingClubs')}: ${tableData.length}`, contentArea.startX, contentArea.startY + 35)
+      doc.text(`${t('medallienspiegel.totalMedals')}: ${totalMedals}`, contentArea.startX + 80, contentArea.startY + 35)
+      doc.text(`${t('medallienspiegel.totalStarters')}: ${totalStarters}`, contentArea.startX + 150, contentArea.startY + 35)
 
       console.log('PDF table data prepared:', tableData)
 
@@ -145,7 +147,7 @@ export default function Medallienspiegel() {
           addPDFHeaderFooter({
             doc,
             event: eventForPDF,
-            documentTitle: 'Medallienspiegel',
+            documentTitle: t('medallienspiegel.title'),
             pageWidth: 297,
             pageHeight: 210
           })
@@ -188,7 +190,7 @@ export default function Medallienspiegel() {
       console.log('PDF export completed successfully')
     } catch (error) {
       console.error('Error during PDF export:', error)
-      alert('Fehler beim Erstellen der PDF-Datei. Bitte versuchen Sie es erneut.')
+      alert(t('medallienspiegel.exportError'))
     }
   }
 
@@ -197,16 +199,16 @@ export default function Medallienspiegel() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto p-6">
           <UnifiedPageHeader
-            title="Medallienspiegel"
-            subtitle="Medaillenstand nach Vereinen"
+            title={t('medallienspiegel.title')}
+            subtitle={t('medallienspiegel.subtitle')}
             icon={TrophyIcon}
             showEventContext={true}
           />
           <div className="text-center">
             <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Keine Veranstaltung ausgewählt</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noEventTitle')}</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Wählen Sie eine Veranstaltung aus, um den Medallienspiegel anzuzeigen.
+              {t('medallienspiegel.noEventMessage')}
             </p>
           </div>
         </div>
@@ -219,8 +221,8 @@ export default function Medallienspiegel() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto p-6">
           <UnifiedPageHeader
-            title="Medallienspiegel"
-            subtitle="Medaillenstand nach Vereinen"
+            title={t('medallienspiegel.title')}
+            subtitle={t('medallienspiegel.subtitle')}
             icon={TrophyIcon}
             showEventContext={true}
           />
@@ -228,7 +230,7 @@ export default function Medallienspiegel() {
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <div className="flex">
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Fehler beim Laden</h3>
+                  <h3 className="text-sm font-medium text-red-800">{t('medallienspiegel.loadError')}</h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>{error}</p>
                   </div>
@@ -237,7 +239,7 @@ export default function Medallienspiegel() {
                       onClick={refetch}
                       className="bg-red-100 px-2 py-1 text-sm font-medium text-red-800 rounded-md hover:bg-red-200"
                     >
-                      Erneut versuchen
+                      {t('medallienspiegel.retry')}
                     </button>
                   </div>
                 </div>
@@ -253,8 +255,8 @@ export default function Medallienspiegel() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
         <UnifiedPageHeader
-          title="Medallienspiegel"
-          subtitle={`Medaillenstand - ${selectedEvent.var_eventname}`}
+          title={t('medallienspiegel.title')}
+          subtitle={t('medallienspiegel.subtitleWithEvent', { eventName: selectedEvent.var_eventname })}
           icon={TrophyIcon}
           showEventContext={true}
           viewMode={viewMode}
@@ -272,7 +274,7 @@ export default function Medallienspiegel() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Lade Medallienspiegel...
+              {t('medallienspiegel.loading')}
             </div>
           </div>
         ) : medalData && medalData.standings.length > 0 ? (
@@ -284,9 +286,9 @@ export default function Medallienspiegel() {
         ) : (
           <div className="text-center">
             <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Keine Medaillen verfügbar</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noMedalsTitle')}</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Für diese Veranstaltung sind noch keine Medaillen vergeben worden.
+              {t('medallienspiegel.noMedalsMessage')}
             </p>
           </div>
         )}
@@ -296,6 +298,7 @@ export default function Medallienspiegel() {
 }
 
 function MedalTable({ standings }: { standings: MedalStanding[] }) {
+  const { t } = useTranslation()
   // Sort standings by total medals desc, then by gold desc, then by silver desc
   const sortedStandings = [...standings].sort((a, b) => {
     if (a.totalMedals !== b.totalMedals) return b.totalMedals - a.totalMedals
@@ -310,25 +313,25 @@ function MedalTable({ standings }: { standings: MedalStanding[] }) {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Rang
+              {t('medallienspiegel.table.rank')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Verein
+              {t('medallienspiegel.table.club')}
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              🥇 Gold
+              🥇 {t('medallienspiegel.table.gold')}
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              🥈 Silber
+              🥈 {t('medallienspiegel.table.silver')}
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              🥉 Bronze
+              🥉 {t('medallienspiegel.table.bronze')}
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Summe
+              {t('medallienspiegel.table.total')}
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Starter
+              {t('medallienspiegel.table.starters')}
             </th>
           </tr>
         </thead>
@@ -371,6 +374,7 @@ function MedalTable({ standings }: { standings: MedalStanding[] }) {
 }
 
 function MedalGrid({ standings }: { standings: MedalStanding[] }) {
+  const { t } = useTranslation()
   // Sort standings by total medals desc, then by gold desc, then by silver desc
   const sortedStandings = [...standings].sort((a, b) => {
     if (a.totalMedals !== b.totalMedals) return b.totalMedals - a.totalMedals
@@ -395,7 +399,7 @@ function MedalGrid({ standings }: { standings: MedalStanding[] }) {
                   {standing.clubName}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {standing.totalStarters} Starter
+                  {t('medallienspiegel.grid.startersCount', { count: standing.totalStarters })}
                 </p>
               </div>
             </div>
@@ -404,26 +408,26 @@ function MedalGrid({ standings }: { standings: MedalStanding[] }) {
               <div className="grid grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-600">{standing.totalGold}</div>
-                  <div className="text-xs text-gray-500">🥇 Gold</div>
+                  <div className="text-xs text-gray-500">🥇 {t('medallienspiegel.grid.gold')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-600">{standing.totalSilver}</div>
-                  <div className="text-xs text-gray-500">🥈 Silber</div>
+                  <div className="text-xs text-gray-500">🥈 {t('medallienspiegel.grid.silver')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-orange-600">{standing.totalBronze}</div>
-                  <div className="text-xs text-gray-500">🥉 Bronze</div>
+                  <div className="text-xs text-gray-500">🥉 {t('medallienspiegel.grid.bronze')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-indigo-600">{standing.totalMedals}</div>
-                  <div className="text-xs text-gray-500">Summe</div>
+                  <div className="text-xs text-gray-500">{t('medallienspiegel.grid.total')}</div>
                 </div>
               </div>
             </div>
 
             {standing.competitions.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Nach Wettkampf:</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">{t('medallienspiegel.grid.byCompetition')}:</h4>
                 <div className="space-y-1">
                   {standing.competitions.map((comp) => (
                     <div key={comp.competitionId} className="text-xs text-gray-600">

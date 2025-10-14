@@ -1292,6 +1292,41 @@
       "totalScore": "Gesamtwertung"
     }
   },
+  "medallienspiegel": {
+    "title": "Medallienspiegel",
+    "subtitle": "Medaillenstand nach Vereinen",
+    "subtitleWithEvent": "Medaillenstand - {{eventName}}",
+    "event": "Veranstaltung",
+    "noEventTitle": "Keine Veranstaltung ausgewählt",
+    "noEventMessage": "Wählen Sie eine Veranstaltung aus, um den Medallienspiegel anzuzeigen.",
+    "loadError": "Fehler beim Laden",
+    "retry": "Erneut versuchen",
+    "loading": "Lade Medallienspiegel...",
+    "noMedalsTitle": "Keine Medaillen verfügbar",
+    "noMedalsMessage": "Für diese Veranstaltung sind noch keine Medaillen vergeben worden.",
+    "noDataToExport": "Keine Medaillendaten zum Exportieren verfügbar.",
+    "exportError": "Fehler beim Erstellen der PDF-Datei. Bitte versuchen Sie es erneut.",
+    "participatingClubs": "Teilnehmende Vereine",
+    "totalMedals": "Gesamt Medaillen",
+    "totalStarters": "Gesamt Starter",
+    "table": {
+      "rank": "Rang",
+      "club": "Verein",
+      "gold": "Gold",
+      "silver": "Silber",
+      "bronze": "Bronze",
+      "total": "Summe",
+      "starters": "Starter"
+    },
+    "grid": {
+      "startersCount": "{{count}} Starter",
+      "gold": "Gold",
+      "silver": "Silber",
+      "bronze": "Bronze",
+      "total": "Summe",
+      "byCompetition": "Nach Wettkampf"
+    }
+  },
   "eventParticipants": {
     "title": "Veranstaltungsteilnehmer",
     "subtitle": "Teilnehmer zur Veranstaltung hinzufügen, entfernen und Wettkämpfen zuordnen",

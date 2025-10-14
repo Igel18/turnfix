@@ -1291,6 +1291,41 @@
       "totalScore": "Total Score"
     }
   },
+  "medallienspiegel": {
+    "title": "Medal Standings",
+    "subtitle": "Medal standings by club",
+    "subtitleWithEvent": "Medal Standings - {{eventName}}",
+    "event": "Event",
+    "noEventTitle": "No Event Selected",
+    "noEventMessage": "Select an event to view the medal standings.",
+    "loadError": "Error Loading",
+    "retry": "Try Again",
+    "loading": "Loading medal standings...",
+    "noMedalsTitle": "No Medals Available",
+    "noMedalsMessage": "No medals have been awarded for this event yet.",
+    "noDataToExport": "No medal data available for export.",
+    "exportError": "Error creating PDF file. Please try again.",
+    "participatingClubs": "Participating Clubs",
+    "totalMedals": "Total Medals",
+    "totalStarters": "Total Starters",
+    "table": {
+      "rank": "Rank",
+      "club": "Club",
+      "gold": "Gold",
+      "silver": "Silver",
+      "bronze": "Bronze",
+      "total": "Total",
+      "starters": "Starters"
+    },
+    "grid": {
+      "startersCount": "{{count}} starters",
+      "gold": "Gold",
+      "silver": "Silver",
+      "bronze": "Bronze",
+      "total": "Total",
+      "byCompetition": "By Competition"
+    }
+  },
   "eventParticipants": {
     "title": "Event Participants",
     "subtitle": "Add, remove and assign participants to competitions within the selected event",
