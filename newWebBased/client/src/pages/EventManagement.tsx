@@ -500,7 +500,7 @@ const EventManagement: React.FC = () => {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className={`$
+                  className={`${
                     isSaving 
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-green-600 hover:bg-green-700'

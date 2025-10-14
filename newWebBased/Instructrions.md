@@ -1,4 +1,4 @@
-1. in veranstaltungsverwaltung muss es einen button geben um die Startnummern zu generieren
+1. ~~in veranstaltungsverwaltung muss es einen button geben um die Startnummern zu generieren~~ ✅
 2. ~~in der Ansicht "Event Participants" ist nich lokalisiert~~ ✅
 3. ~~in der Ansicht "Event Participants" funktioniert der Filter mit den AgeGroups nicht. ich denke es ist ausreichend nach Age zu filtern.~~ ✅
 4. ~~die Ansicht "Manage Squads" ist nicht lokalisiert~~ ✅
@@ -14,7 +14,7 @@
     - npm 
     - turnfix  
     - alle dependencies 
-12. Wird die Seite "event-management" bearbeitet und soll dann gespeichert werden, kann man den speicher button nicht finden, da dieser ganz weiß ist. 
+12. ~~Wird die Seite "event-management" bearbeitet und soll dann gespeichert werden, kann man den speicher button nicht finden, da dieser ganz weiß ist.~~ ✅
 
 
 refactoring (nur noch prisma) 
