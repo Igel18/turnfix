@@ -78,7 +78,8 @@
       },
       "createEvent": {
         "title": "Create Event",
-        "description": "Set up a new gymnastics competition"
+        "description": "Set up a new gymnastics competition",
+        "countLabel": "Events"
       }
     },
     "eventManagement": {
@@ -142,6 +143,10 @@
         "medals": {
           "title": "Medals",
           "description": "Medal standings and award ceremonies"
+        },
+        "medallienspiegel": {
+          "title": "Medal Standings",
+          "description": "Medal standings by club"
         }
       },
       "selectEvent": {

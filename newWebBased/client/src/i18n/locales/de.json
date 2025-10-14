@@ -78,7 +78,8 @@
       },
       "createEvent": {
         "title": "Veranstaltung erstellen",
-        "description": "Neuen Turnwettkampf einrichten"
+        "description": "Neuen Turnwettkampf einrichten",
+        "countLabel": "Veranstaltungen"
       }
     },
     "eventManagement": {
@@ -142,6 +143,10 @@
         "medals": {
           "title": "Medaillen",
           "description": "Medaillenspiegel und Siegerehrungen"
+        },
+        "medallienspiegel": {
+          "title": "Medallienspiegel",
+          "description": "Medaillenspiegel nach Verein"
         }
       },
       "selectEvent": {

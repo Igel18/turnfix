@@ -20,7 +20,9 @@
 15. ~~Athletes Management lokalisieren~~ ✅
 16. ~~Athletes Management Filter "Gender" hat kein "unknown" aber "allgender" und "allgenders"~~ ✅
 17. ~~Athletenverwaltung Dialog zum editieren ist nicht lokalisiert~~ ✅
-18. Schauen welche seiten & dialoge noch nicht lokalisiert sind
+18. Jury Portal: Icons von den disziplinen verwenden, die auch bei diesen hinterlegt sind. vielleicht gibt es dafür schon generalized funktionen? 
+
+xxx. ganz zum schluss: Schauen welche seiten & dialoge noch nicht lokalisiert sind
 
 
 refactoring (nur noch prisma) 

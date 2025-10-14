@@ -306,13 +306,16 @@ export function ManagementCenter() {
       'Manage Events': 'managementCenter.eventManagement.eventSetup.manageEvents.title',
       'View Competitions': 'managementCenter.eventManagement.eventSetup.viewCompetitions.title',
       'Event Participants': 'managementCenter.eventManagement.eventSetup.eventParticipants.title',
-      'Starting Order': 'managementCenter.eventManagement.competitionDay.startingOrder.title',
+      'Manage Squads': 'managementCenter.eventManagement.eventSetup.manageSquads.title',
+      'Time Planning': 'managementCenter.eventManagement.eventSetup.timePlanning.title',
+      'Meldematrix': 'managementCenter.eventManagement.eventSetup.meldematrix.title',
+      'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.title',
+      'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.title',
       'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.title',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.title',
-      'Live Results': 'managementCenter.eventManagement.competitionDay.liveResults.title',
-      'Final Results': 'managementCenter.eventManagement.resultsAwards.finalResults.title',
-      'Export Results': 'managementCenter.eventManagement.resultsAwards.exportResults.title',
-      'Certificates': 'managementCenter.eventManagement.resultsAwards.certificates.title',
+      'View Results': 'managementCenter.eventManagement.resultsAwards.results.title',
+      'Medals': 'managementCenter.eventManagement.resultsAwards.medals.title',
+      'Medallienspiegel': 'managementCenter.eventManagement.resultsAwards.medallienspiegel.title',
       'Manage Regions': 'managementCenter.databaseManagement.regions.title',
       'Manage Associations': 'managementCenter.databaseManagement.associations.title',
       'Manage Clubs': 'managementCenter.databaseManagement.clubs.title',
@@ -333,13 +336,16 @@ export function ManagementCenter() {
       'Manage Events': 'managementCenter.eventManagement.eventSetup.manageEvents.description',
       'View Competitions': 'managementCenter.eventManagement.eventSetup.viewCompetitions.description',
       'Event Participants': 'managementCenter.eventManagement.eventSetup.eventParticipants.description',
-      'Starting Order': 'managementCenter.eventManagement.competitionDay.startingOrder.description',
+      'Manage Squads': 'managementCenter.eventManagement.eventSetup.manageSquads.description',
+      'Time Planning': 'managementCenter.eventManagement.eventSetup.timePlanning.description',
+      'Meldematrix': 'managementCenter.eventManagement.eventSetup.meldematrix.description',
+      'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.description',
+      'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.description',
       'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.description',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.description',
-      'Live Results': 'managementCenter.eventManagement.competitionDay.liveResults.description',
-      'Final Results': 'managementCenter.eventManagement.resultsAwards.finalResults.description',
-      'Export Results': 'managementCenter.eventManagement.resultsAwards.exportResults.description',
-      'Certificates': 'managementCenter.eventManagement.resultsAwards.certificates.description',
+      'View Results': 'managementCenter.eventManagement.resultsAwards.results.description',
+      'Medals': 'managementCenter.eventManagement.resultsAwards.medals.description',
+      'Medallienspiegel': 'managementCenter.eventManagement.resultsAwards.medallienspiegel.description',
       'Manage Regions': 'managementCenter.databaseManagement.regions.description',
       'Manage Associations': 'managementCenter.databaseManagement.associations.description',
       'Manage Clubs': 'managementCenter.databaseManagement.clubs.description',
@@ -358,7 +364,8 @@ export function ManagementCenter() {
 
     return {
       name: nameKeyMap[action.name] ? t(nameKeyMap[action.name]) : action.name,
-      description: descriptionKeyMap[action.name] ? t(descriptionKeyMap[action.name]) : action.description
+      description: descriptionKeyMap[action.name] ? t(descriptionKeyMap[action.name]) : action.description,
+      countLabel: action.name === 'Create Event' ? t('managementCenter.databaseManagement.createEvent.countLabel') : action.countLabel
     }
   }
 
@@ -550,7 +557,7 @@ export function ManagementCenter() {
                         </h3>
                         {!statistics.loading && action.count !== undefined && (
                           <p className="text-xs font-semibold text-blue-600 mt-1">
-                            {action.countLabel}: {action.count}
+                            {translateAction(action).countLabel}: {action.count}
                           </p>
                         )}
                         <p className="text-xs text-gray-600 mt-1">
@@ -797,8 +804,8 @@ export function ManagementCenter() {
           {!selectedEvent && (
             <div className="text-center py-8 text-gray-500">
               <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select an Event</h3>
-              <p className="text-sm">Choose an event above to access the 3-step workflow: Setup → Competition → Results</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('managementCenter.eventManagement.selectEvent.title')}</h3>
+              <p className="text-sm">{t('managementCenter.eventManagement.selectEvent.description')}</p>
             </div>
           )}
         </div>
