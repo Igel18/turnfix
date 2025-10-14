@@ -706,10 +706,12 @@
     }
   },
   "participants": {
-    "title": "Participant Management",
-    "subtitle": "Manage participants and their competition data",
-    "searchPlaceholder": "Search participants...",
+    "title": "Athletes Management",
+    "subtitle": "Manage competition participants and athlete information",
+    "subtitleWithCount": "Manage competition participants and athlete information ({{count}} athletes loaded)",
+    "searchPlaceholder": "Search athletes...",
     "addParticipant": "Add Participant",
+    "addAthlete": "Add Athlete",
     "editParticipant": "Edit Participant",
     "deleteParticipant": "Delete Participant",
     "noParticipants": "No participants found",
@@ -722,7 +724,13 @@
       "startNumber": "Start Number",
       "actions": "Actions"
     },
+    "card": {
+      "years": "years",
+      "notAssigned": "Not assigned"
+    },
     "form": {
+      "addTitle": "Add New Athlete",
+      "editTitle": "Edit Athlete",
       "firstName": "First Name",
       "firstNamePlaceholder": "Enter first name",
       "lastName": "Last Name",
@@ -741,27 +749,33 @@
     },
     "gender": {
       "male": "Male",
-      "female": "Female"
+      "female": "Female",
+      "unknown": "Unknown",
+      "all": "All Genders"
     },
     "filters": {
       "club": "Club",
+      "allClubs": "All Clubs",
       "gender": "Gender",
-      "age": "Age",
-      "ageAll": "All Age Groups",
-      "ageChild": "Children (6-11)",
-      "ageYouth": "Youth (12-17)",
-      "ageAdult": "Adults (18+)",
+      "ageGroup": "Age Group",
+      "allAges": "All Ages",
+      "children": "Children (< 12)",
+      "youth": "Youth (12-17)",
+      "adults": "Adults (18+)",
       "clearAll": "Clear All Filters"
     },
     "messages": {
+      "waitForLoad": "Please wait for data to load before creating a participant.",
+      "waitForLoadEdit": "Please wait for data to load before editing a participant.",
+      "confirmDelete": "Are you sure you want to delete this participant?",
       "createSuccess": "Participant created successfully",
       "updateSuccess": "Participant updated successfully",
       "deleteSuccess": "Participant deleted successfully",
+      "deleteError": "Failed to delete participant",
       "createError": "Error creating participant",
       "updateError": "Error updating participant",
-      "deleteError": "Error deleting participant",
+      "saveError": "Failed to save participant",
       "loadError": "Error loading participants",
-      "confirmDelete": "Are you sure you want to delete this participant?",
       "deleteWarning": "This action cannot be undone."
     },
     "export": {

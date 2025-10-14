@@ -706,10 +706,12 @@
     }
   },
   "participants": {
-    "title": "Teilnehmerverwaltung",
-    "subtitle": "Teilnehmer und ihre Wettkampfdaten verwalten",
-    "searchPlaceholder": "Teilnehmer suchen...",
+    "title": "Athletenverwaltung",
+    "subtitle": "Wettkampfteilnehmer und Athleteninformationen verwalten",
+    "subtitleWithCount": "Wettkampfteilnehmer und Athleteninformationen verwalten ({{count}} Athleten geladen)",
+    "searchPlaceholder": "Athleten suchen...",
     "addParticipant": "Teilnehmer hinzufügen",
+    "addAthlete": "Athlet hinzufügen",
     "editParticipant": "Teilnehmer bearbeiten",
     "deleteParticipant": "Teilnehmer löschen",
     "noParticipants": "Keine Teilnehmer gefunden",
@@ -722,7 +724,13 @@
       "startNumber": "Startnummer",
       "actions": "Aktionen"
     },
+    "card": {
+      "years": "Jahre",
+      "notAssigned": "Nicht zugewiesen"
+    },
     "form": {
+      "addTitle": "Neuer Athlet",
+      "editTitle": "Athlet bearbeiten",
       "firstName": "Vorname",
       "firstNamePlaceholder": "Vorname eingeben",
       "lastName": "Nachname",
@@ -741,27 +749,33 @@
     },
     "gender": {
       "male": "Männlich",
-      "female": "Weiblich"
+      "female": "Weiblich",
+      "unknown": "Unbekannt",
+      "all": "Alle Geschlechter"
     },
     "filters": {
       "club": "Verein",
+      "allClubs": "Alle Vereine",
       "gender": "Geschlecht",
-      "age": "Alter",
-      "ageAll": "Alle Altersgruppen",
-      "ageChild": "Kinder (6-11)",
-      "ageYouth": "Jugend (12-17)",
-      "ageAdult": "Erwachsene (18+)",
+      "ageGroup": "Altersgruppe",
+      "allAges": "Alle Altersgruppen",
+      "children": "Kinder (< 12)",
+      "youth": "Jugend (12-17)",
+      "adults": "Erwachsene (18+)",
       "clearAll": "Alle Filter zurücksetzen"
     },
     "messages": {
+      "waitForLoad": "Bitte warten Sie, bis die Daten geladen sind, bevor Sie einen Teilnehmer erstellen.",
+      "waitForLoadEdit": "Bitte warten Sie, bis die Daten geladen sind, bevor Sie einen Teilnehmer bearbeiten.",
+      "confirmDelete": "Möchten Sie diesen Teilnehmer wirklich löschen?",
       "createSuccess": "Teilnehmer erfolgreich erstellt",
       "updateSuccess": "Teilnehmer erfolgreich aktualisiert",
       "deleteSuccess": "Teilnehmer erfolgreich gelöscht",
+      "deleteError": "Fehler beim Löschen des Teilnehmers",
       "createError": "Fehler beim Erstellen des Teilnehmers",
       "updateError": "Fehler beim Aktualisieren des Teilnehmers",
-      "deleteError": "Fehler beim Löschen des Teilnehmers",
+      "saveError": "Fehler beim Speichern des Teilnehmers",
       "loadError": "Fehler beim Laden der Teilnehmer",
-      "confirmDelete": "Sind Sie sicher, dass Sie diesen Teilnehmer löschen möchten?",
       "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
     },
     "export": {

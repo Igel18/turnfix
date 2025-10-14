@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Participant {
   int_teilnehmerid: number;
@@ -46,6 +47,8 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
   onSubmit,
   clubs
 }) => {
+  const { t } = useTranslation();
+  
   if (!isOpen) return null;
 
   return (
@@ -53,14 +56,14 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
       <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {editingParticipant ? 'Edit Athlete' : 'Add New Athlete'}
+            {editingParticipant ? t('participants.form.editTitle') : t('participants.form.addTitle')}
           </h2>
           
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name *
+                  {t('participants.form.firstName')} *
                 </label>
                 <input
                   type="text"
@@ -68,13 +71,13 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
                   value={formData.var_vorname}
                   onChange={(e) => setFormData({ ...formData, var_vorname: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="First name"
+                  placeholder={t('participants.form.firstNamePlaceholder')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name *
+                  {t('participants.form.lastName')} *
                 </label>
                 <input
                   type="text"
@@ -82,14 +85,14 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
                   value={formData.var_nachname}
                   onChange={(e) => setFormData({ ...formData, var_nachname: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Last name"
+                  placeholder={t('participants.form.lastNamePlaceholder')}
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Birth Date *
+                {t('participants.form.birthDate')} *
               </label>
               <input
                 type="date"
@@ -102,7 +105,7 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gender *
+                {t('participants.form.gender')} *
               </label>
               <select
                 required
@@ -110,15 +113,15 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
                 onChange={(e) => setFormData({ ...formData, var_geschlecht: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Select gender</option>
-                <option value="1">Male</option>
-                <option value="2">Female</option>
+                <option value="">{t('participants.form.genderPlaceholder')}</option>
+                <option value="1">{t('participants.gender.male')}</option>
+                <option value="2">{t('participants.gender.female')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Club *
+                {t('participants.form.club')} *
               </label>
               <select
                 required
@@ -126,7 +129,7 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
                 onChange={(e) => setFormData({ ...formData, int_vereineid: parseInt(e.target.value) })}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value={0}>Select club</option>
+                <option value={0}>{t('participants.form.clubPlaceholder')}</option>
                 {Array.isArray(clubs) && clubs.map(club => (
                   <option key={club.int_vereineid} value={club.int_vereineid}>
                     {club.var_name}
@@ -137,14 +140,14 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Number
+                {t('participants.form.startNumber')}
               </label>
               <input
                 type="number"
                 value={formData.int_startpassnummer}
                 onChange={(e) => setFormData({ ...formData, int_startpassnummer: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Optional start number"
+                placeholder={t('participants.form.startNumberPlaceholder')}
               />
             </div>
 
@@ -154,13 +157,13 @@ const ParticipantFormModal: React.FC<ParticipantFormModalProps> = ({
                 onClick={onClose}
                 className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
-                Cancel
+                {t('participants.form.cancel')}
               </button>
               <button
                 type="submit"
                 className="flex-1 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
               >
-                {editingParticipant ? 'Update' : 'Create'}
+                {t('participants.form.save')}
               </button>
             </div>
           </form>

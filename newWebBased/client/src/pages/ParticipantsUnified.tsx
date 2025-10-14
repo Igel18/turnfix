@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import ParticipantFormModal from '../components/ParticipantFormModal';
 import { 
@@ -37,6 +38,7 @@ interface FormData {
 }
 
 const ParticipantsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +109,7 @@ const ParticipantsUnified: React.FC = () => {
 
   const handleCreate = () => {
     if (loading) {
-      alert('Please wait for data to load before creating a participant.');
+      alert(t('participants.messages.waitForLoad'));
       return;
     }
     resetForm();
@@ -116,7 +118,7 @@ const ParticipantsUnified: React.FC = () => {
 
   const handleEdit = (participant: Participant) => {
     if (loading) {
-      alert('Please wait for data to load before editing a participant.');
+      alert(t('participants.messages.waitForLoadEdit'));
       return;
     }
     
@@ -139,7 +141,7 @@ const ParticipantsUnified: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this participant?')) return;
+    if (!confirm(t('participants.messages.confirmDelete'))) return;
     
     try {
       const response = await fetch(`/api/participants/${id}`, {
@@ -150,7 +152,7 @@ const ParticipantsUnified: React.FC = () => {
       setParticipants(participants.filter(p => p.int_teilnehmerid !== id));
     } catch (error) {
       console.error('Error deleting participant:', error);
-      alert('Failed to delete participant');
+      alert(t('participants.messages.deleteError'));
     }
   };
 
@@ -189,7 +191,7 @@ const ParticipantsUnified: React.FC = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving participant:', error);
-      alert('Failed to save participant');
+      alert(t('participants.messages.saveError'));
     }
   };
 
@@ -223,11 +225,11 @@ const ParticipantsUnified: React.FC = () => {
   const getFilterOptions = () => [
     {
       value: '',
-      label: 'Club',
+      label: t('participants.filters.club'),
       selectedValue: clubFilter,
       onChange: setClubFilter,
       options: [
-        { value: '', label: 'All Clubs' },
+        { value: '', label: t('participants.filters.allClubs') },
         ...(Array.isArray(clubs) ? clubs.map(club => ({ 
           value: club.int_vereineid.toString(), 
           label: club.var_name 
@@ -236,25 +238,26 @@ const ParticipantsUnified: React.FC = () => {
     },
     {
       value: '',
-      label: 'Gender',
+      label: t('participants.filters.gender'),
       selectedValue: genderFilter,
       onChange: setGenderFilter,
       options: [
-        { value: '', label: 'All Genders' },
-        { value: '1', label: 'Male' },
-        { value: '2', label: 'Female' }
+        { value: '', label: t('participants.gender.all') },
+        { value: '1', label: t('participants.gender.male') },
+        { value: '2', label: t('participants.gender.female') },
+        { value: '0', label: t('participants.gender.unknown') }
       ]
     },
     {
       value: '',
-      label: 'Age Group',
+      label: t('participants.filters.ageGroup'),
       selectedValue: ageFilter,
       onChange: setAgeFilter,
       options: [
-        { value: '', label: 'All Ages' },
-        { value: 'child', label: 'Children (< 12)' },
-        { value: 'youth', label: 'Youth (12-17)' },
-        { value: 'adult', label: 'Adults (18+)' }
+        { value: '', label: t('participants.filters.allAges') },
+        { value: 'child', label: t('participants.filters.children') },
+        { value: 'youth', label: t('participants.filters.youth') },
+        { value: 'adult', label: t('participants.filters.adults') }
       ]
     }
   ];
@@ -263,22 +266,22 @@ const ParticipantsUnified: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Name
+        {t('participants.table.name')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Age
+        {t('participants.table.age')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Gender
+        {t('participants.table.gender')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Club
+        {t('participants.table.club')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Start Number
+        {t('participants.table.startNumber')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Actions
+        {t('participants.table.actions')}
       </th>
     </tr>
   );
@@ -300,7 +303,7 @@ const ParticipantsUnified: React.FC = () => {
           </div>
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-          {participant.age || 'N/A'}
+          {participant.age || t('participants.card.notAssigned')}
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -324,14 +327,14 @@ const ParticipantsUnified: React.FC = () => {
             <button
               onClick={() => handleEdit(participant)}
               className="text-blue-600 hover:text-blue-900 p-1 rounded-md hover:bg-blue-50"
-              title="Edit participant"
+              title={t('participants.editParticipant')}
             >
               <PencilIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => handleDelete(participant.int_teilnehmerid)}
               className="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50"
-              title="Delete participant"
+              title={t('participants.deleteParticipant')}
             >
               <TrashIcon className="h-4 w-4" />
             </button>
@@ -355,7 +358,7 @@ const ParticipantsUnified: React.FC = () => {
               <p className="text-sm text-gray-500 flex items-center">
                 <CalendarIcon className="w-4 h-4 mr-1" />
                 {new Date(participant.dat_geburtstag).toLocaleDateString()}
-                {participant.age && ` (${participant.age} years)`}
+                {participant.age && ` (${participant.age} ${t('participants.card.years')})`}
               </p>
             </div>
           </div>
@@ -363,14 +366,14 @@ const ParticipantsUnified: React.FC = () => {
             <button
               onClick={() => handleEdit(participant)}
               className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-50"
-              title="Edit participant"
+              title={t('participants.editParticipant')}
             >
               <PencilIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => handleDelete(participant.int_teilnehmerid)}
               className="text-red-600 hover:text-red-800 p-1 rounded-md hover:bg-red-50"
-              title="Delete participant"
+              title={t('participants.deleteParticipant')}
             >
               <TrashIcon className="h-4 w-4" />
             </button>
@@ -379,7 +382,7 @@ const ParticipantsUnified: React.FC = () => {
 
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm font-medium text-gray-500">Gender</dt>
+            <dt className="text-sm font-medium text-gray-500">{t('participants.table.gender')}</dt>
             <dd className="mt-1">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 participant.int_geschlecht === 1 
@@ -393,11 +396,11 @@ const ParticipantsUnified: React.FC = () => {
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">Start Number</dt>
-            <dd className="mt-1 text-sm text-gray-900">{participant.int_startpassnummer || 'Not assigned'}</dd>
+            <dt className="text-sm font-medium text-gray-500">{t('participants.table.startNumber')}</dt>
+            <dd className="mt-1 text-sm text-gray-900">{participant.int_startpassnummer || t('participants.card.notAssigned')}</dd>
           </div>
           <div className="col-span-2">
-            <dt className="text-sm font-medium text-gray-500">Club</dt>
+            <dt className="text-sm font-medium text-gray-500">{t('participants.table.club')}</dt>
             <dd className="mt-1 text-sm text-gray-900 flex items-center">
               <BuildingOfficeIcon className="w-4 h-4 mr-1 text-gray-400" />
               {participant.verein_name}
@@ -419,18 +422,18 @@ const ParticipantsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Athletes Management"
-        subtitle={`Manage competition participants and athlete information (${participants.length} athletes loaded)`}
+        title={t('participants.title')}
+        subtitle={t('participants.subtitleWithCount', { count: participants.length })}
         icon={UserGroupIcon}
         data={filteredParticipants}
         isLoading={loading}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search athletes..."
+        searchPlaceholder={t('participants.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Add Athlete"
+        addLabel={t('participants.addAthlete')}
         onEdit={handleEdit}
         onDelete={(participant) => handleDelete(participant.int_teilnehmerid)}
         viewStorageKey="participants-view"
