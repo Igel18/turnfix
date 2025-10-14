@@ -1122,7 +1122,115 @@
     "apparatus": "Gerät",
     "apparatusSchedule": "Geräteplan",
     "rotationNumber": "Rotation Nr.",
-    "number": "Nummer"
+    "number": "Nummer",
+    "sessions": "Durchgänge",
+    "squad": "Riege",
+    "rotations": "Rotationen",
+    "round": "Runde",
+    "firstDevice": "Erstes Gerät",
+    "exerciseDuration": "Übungsdauer",
+    "selectEventFirst": "Bitte wählen Sie zuerst eine Veranstaltung aus",
+    "overview": "Übersicht"
+  },
+  "meldematrix": {
+    "title": "Meldematrix",
+    "subtitle": "Registrierungsübersicht: Vereine vs Wettkämpfe",
+    "searchPlaceholder": "Vereine suchen...",
+    "errorTitle": "Fehler beim Laden der Meldematrix",
+    "pdfError": "Fehler beim Erstellen der PDF-Datei. Bitte versuchen Sie es erneut.",
+    "filters": {
+      "gender": "Geschlecht",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "mixed": "Gemischt"
+    },
+    "table": {
+      "club": "Verein",
+      "number": "Nr.",
+      "years": "Jahre",
+      "total": "Ges."
+    },
+    "statistics": {
+      "clubs": "Teilnehmende Vereine",
+      "competitions": "Verfügbare Wettkämpfe",
+      "totalRegistrations": "Gesamte Anmeldungen"
+    }
+  },
+  "squadStatus": {
+    "title": "Riegenstatus-Verwaltung",
+    "subtitle": "Status für {{count}} Riege-Disziplin-Kombinationen verwalten",
+    "selectEvent": "Veranstaltung auswählen",
+    "chooseEvent": "Eine Veranstaltung auswählen...",
+    "filters": {
+      "squad": "Riege",
+      "discipline": "Disziplin",
+      "status": "Status"
+    },
+    "table": {
+      "squad": "Riege",
+      "discipline": "Disziplin",
+      "status": "Status",
+      "round": "Runde",
+      "firstApparatus": "Erstes Gerät",
+      "actions": "Aktionen"
+    },
+    "firstApparatus": "Erstes Gerät",
+    "noDataTitle": "Keine Riege-Disziplin-Kombinationen gefunden",
+    "noDataForEvent": "Keine Daten für die ausgewählte Veranstaltung verfügbar.",
+    "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen, um Ergebnisse zu sehen."
+  },
+  "competitionStatus": {
+    "title": "Wettkampfstatus-Verwaltung",
+    "subtitle": "Wettkampfstatus-Übersicht für {{eventName}}",
+    "selectedEvent": "Ausgewählte Veranstaltung",
+    "searchPlaceholder": "Wettkämpfe suchen...",
+    "selectEvent": "Veranstaltung auswählen",
+    "loading": "Wettkampfstatusdaten werden geladen...",
+    "numberAbbrev": "Nr.",
+    "round": "Runde",
+    "years": "Jahre",
+    "filters": {
+      "status": "Status",
+      "completed": "Abgeschlossen",
+      "inProgress": "In Bearbeitung",
+      "notStarted": "Nicht gestartet",
+      "gender": "Geschlecht",
+      "male": "Männlich",
+      "female": "Weiblich"
+    },
+    "table": {
+      "competition": "Wettkampf",
+      "ageGroup": "Altersgruppe",
+      "gender": "Geschlecht",
+      "overallStatus": "Gesamtstatus",
+      "squadStates": "Riegenstatus",
+      "progress": "Fortschritt",
+      "squads": "Riegen",
+      "details": "Details"
+    },
+    "statusLabels": {
+      "completed": "Abgeschlossen",
+      "inProgress": "In Bearbeitung",
+      "notStarted": "Nicht gestartet"
+    },
+    "details": {
+      "participants": "Teilnehmer",
+      "totalParticipantsDiscipline": "Gesamt Teilnehmer × Disziplin",
+      "completed": "Abgeschlossen",
+      "inProgress": "In Bearbeitung",
+      "notStarted": "Nicht gestartet"
+    },
+    "grid": {
+      "status": "Status",
+      "progress": "Fortschritt",
+      "details": "Details",
+      "disciplines": "Disziplinen",
+      "participants": "Teilnehmer",
+      "statusBreakdown": "Status-Aufschlüsselung"
+    },
+    "noCompetitionsTitle": "Keine Wettkämpfe gefunden",
+    "noCompetitionsForEvent": "Keine Wettkampfdaten für diese Veranstaltung verfügbar",
+    "noCompetitionsMatchFilters": "Keine Wettkämpfe entsprechen Ihren aktuellen Filtern"
   },
   "eventParticipants": {
     "title": "Veranstaltungsteilnehmer",
@@ -1332,6 +1440,81 @@
       "noClub": "Kein Verein",
       "noParticipants": "Keine Teilnehmer zugewiesen",
       "notAvailable": "N/A"
+    }
+  },
+  "competitions": {
+    "title": "Wettkampfverwaltung",
+    "description": "Verwaltung von Turn-Wettkämpfen mit Disziplinen und Kategorien",
+    "createButton": "Wettkampf erstellen",
+    "searchPlaceholder": "Wettkämpfe suchen...",
+    "noCompetitions": "Keine Wettkämpfe gefunden",
+    "noCompetitionsHint": "Beginnen Sie mit der Erstellung eines neuen Wettkampfes.",
+    "adjustFilters": "Versuchen Sie, Ihre Suche oder Filter anzupassen.",
+    "loading": "Wettkämpfe werden geladen...",
+    "filters": {
+      "gender": "Geschlecht",
+      "allGenders": "Alle Geschlechter",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "mixed": "Gemischt",
+      "status": "Status",
+      "allStatus": "Alle Status",
+      "upcoming": "Bevorstehend",
+      "active": "Aktiv",
+      "completed": "Abgeschlossen",
+      "clear": "Filter zurücksetzen"
+    },
+    "fields": {
+      "number": "Wettkampfnummer",
+      "name": "Name",
+      "description": "Beschreibung",
+      "competition": "Wettkampf",
+      "disciplines": "Disziplinen",
+      "participants": "Teilnehmer",
+      "gender": "Geschlecht",
+      "ageGroup": "Altersgruppe",
+      "ageFrom": "Alter von",
+      "ageTo": "Alter bis",
+      "years": "Jahre",
+      "actions": "Aktionen"
+    },
+    "card": {
+      "participants": "Teilnehmer",
+      "discipline": "Disziplin",
+      "disciplines": "Disziplinen",
+      "noDisciplines": "Keine Disziplinen",
+      "more": "mehr"
+    },
+    "actions": {
+      "edit": "Wettkampf bearbeiten",
+      "delete": "Wettkampf löschen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Wettkampf löschen möchten?"
+    },
+    "validation": {
+      "invalidMaxScore": "Bitte geben Sie eine gültige positive Zahl für die maximale Punktzahl ein",
+      "invalidAgeFrom": "Ungültiger \"Alter von\" Wert: {{value}}. Bitte geben Sie ein Alter zwischen 5 und 99 ein.",
+      "invalidAgeTo": "Ungültiger \"Alter bis\" Wert: {{value}}. Bitte geben Sie ein Alter zwischen 5 und 99 ein.",
+      "invalidAgeRange": "Ungültiger Altersbereich: \"Alter von\" ({{ageFrom}}) kann nicht größer sein als \"Alter bis\" ({{ageTo}})."
+    },
+    "messages": {
+      "saveSuccess": "Wettkampf erfolgreich gespeichert",
+      "saveFailed": "Fehler beim Speichern des Wettkampfes. Bitte überprüfen Sie die Konsole für Details.",
+      "deleteSuccess": "Wettkampf erfolgreich gelöscht",
+      "deleteFailed": "Fehler beim Löschen des Wettkampfes"
+    },
+    "export": {
+      "filename": "wettkampfe-{{date}}.csv",
+      "headers": {
+        "number": "Wettkampfnummer",
+        "name": "Name",
+        "description": "Beschreibung",
+        "gender": "Geschlecht",
+        "ageRange": "Altersbereich",
+        "status": "Status",
+        "participants": "Teilnehmer",
+        "disciplines": "Disziplinen",
+        "created": "Erstellt"
+      }
     }
   }
 }

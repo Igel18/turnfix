@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { debugLog } from '../utils/debug';
 import { 
   Users, 
@@ -81,6 +82,7 @@ interface CompetitionFormData {
 }
 
 const Competitions: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
   
@@ -162,7 +164,7 @@ const Competitions: React.FC = () => {
     
     const maxScore = parseFloat(bulkMaxScore);
     if (isNaN(maxScore) || maxScore <= 0) {
-      alert('Please enter a valid positive number for the max score');
+      alert(t('competitions.validation.invalidMaxScore'));
       return;
     }
     
@@ -192,21 +194,21 @@ const Competitions: React.FC = () => {
     // Client-side validation for age values
     if (formData.ageFrom < 5 || formData.ageFrom > 99) {
       console.error('❌ Invalid ageFrom value:', formData.ageFrom);
-      alert(`Invalid "Age From" value: ${formData.ageFrom}. Please enter an age between 5 and 99.`);
+      alert(t('competitions.validation.invalidAgeFrom', { value: formData.ageFrom }));
       setLoading(false);
       return;
     }
     
     if (formData.ageTo < 5 || formData.ageTo > 99) {
       console.error('❌ Invalid ageTo value:', formData.ageTo);
-      alert(`Invalid "Age To" value: ${formData.ageTo}. Please enter an age between 5 and 99.`);
+      alert(t('competitions.validation.invalidAgeTo', { value: formData.ageTo }));
       setLoading(false);
       return;
     }
     
     if (formData.ageFrom > formData.ageTo) {
       console.error('❌ Invalid age range:', { ageFrom: formData.ageFrom, ageTo: formData.ageTo });
-      alert(`Invalid age range: "Age From" (${formData.ageFrom}) cannot be greater than "Age To" (${formData.ageTo}).`);
+      alert(t('competitions.validation.invalidAgeRange', { ageFrom: formData.ageFrom, ageTo: formData.ageTo }));
       setLoading(false);
       return;
     }
@@ -276,7 +278,7 @@ const Competitions: React.FC = () => {
     } catch (error) {
       console.error('❌ Error submitting competition:', error);
       console.error('Error details:', (error as any)?.response || (error as Error)?.message);
-      alert('Failed to save competition. Please check the console for details.');
+      alert(t('competitions.messages.saveFailed'));
     } finally {
       console.log('🏁 Setting loading to false');
       setLoading(false);
@@ -371,7 +373,7 @@ const Competitions: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this competition?')) return;
+    if (!confirm(t('competitions.actions.confirmDelete'))) return;
     
     try {
       await apiDelete(`/competitions/${id}`);
@@ -408,15 +410,15 @@ const Competitions: React.FC = () => {
   const handleExportCSV = () => {
     // CSV export functionality for competitions
     const csvData = filteredCompetitions.map(competition => ({
-      'Competition Number': competition.number || '',
-      'Name': competition.name,
-      'Description': competition.description,
-      'Gender': competition.gender,
-      'Age Range': `${competition.ageFrom}-${competition.ageTo}`,
-      'Status': competition.status,
-      'Participants': competition.participantCount,
-      'Disciplines': competition.disciplines.map(d => d.name).join(', '),
-      'Created': new Date(competition.createdAt).toLocaleDateString()
+      [t('competitions.export.headers.number')]: competition.number || '',
+      [t('competitions.export.headers.name')]: competition.name,
+      [t('competitions.export.headers.description')]: competition.description,
+      [t('competitions.export.headers.gender')]: competition.gender,
+      [t('competitions.export.headers.ageRange')]: `${competition.ageFrom}-${competition.ageTo}`,
+      [t('competitions.export.headers.status')]: competition.status,
+      [t('competitions.export.headers.participants')]: competition.participantCount,
+      [t('competitions.export.headers.disciplines')]: competition.disciplines.map(d => d.name).join(', '),
+      [t('competitions.export.headers.created')]: new Date(competition.createdAt).toLocaleDateString()
     }));
 
     const csvContent = [
@@ -428,7 +430,7 @@ const Competitions: React.FC = () => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `competitions-${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', t('competitions.export.filename', { date: new Date().toISOString().slice(0, 10) }));
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -441,12 +443,12 @@ const Competitions: React.FC = () => {
 
   return (
     <EventManagementTemplate
-      title="Competition Management"
-      description="Manage gymnastics competitions with disciplines and categories"
+      title={t('competitions.title')}
+      description={t('competitions.description')}
       onAdd={openCreateModal}
       onRefresh={loadCompetitions}
       onExportCSV={handleExportCSV}
-      addButtonText="Create Competition"
+      addButtonText={t('competitions.createButton')}
       loading={loading}
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
@@ -459,32 +461,32 @@ const Competitions: React.FC = () => {
         <div className="grid gap-4 md:grid-cols-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Gender
+              {t('competitions.filters.gender')}
             </label>
             <select
               value={genderFilter}
               onChange={(e) => setGenderFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">All Genders</option>
-              <option value="männlich">Male</option>
-              <option value="weiblich">Female</option>
-              <option value="gemischt">Mixed</option>
+              <option value="">{t('competitions.filters.allGenders')}</option>
+              <option value="männlich">{t('competitions.filters.male')}</option>
+              <option value="weiblich">{t('competitions.filters.female')}</option>
+              <option value="gemischt">{t('competitions.filters.mixed')}</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
+              {t('competitions.filters.status')}
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">All Status</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
+              <option value="">{t('competitions.filters.allStatus')}</option>
+              <option value="upcoming">{t('competitions.filters.upcoming')}</option>
+              <option value="active">{t('competitions.filters.active')}</option>
+              <option value="completed">{t('competitions.filters.completed')}</option>
             </select>
           </div>
           <div className="flex items-end">
@@ -492,7 +494,7 @@ const Competitions: React.FC = () => {
               onClick={handleClearAllFilters}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Clear Filters
+              {t('competitions.filters.clear')}
             </button>
           </div>
         </div>
@@ -503,14 +505,14 @@ const Competitions: React.FC = () => {
         {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading competitions...</p>
+            <p className="mt-4 text-gray-600">{t('competitions.loading')}</p>
           </div>
         ) : filteredCompetitions.length === 0 ? (
           <div className="text-center py-8">
             <Trophy className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No competitions found</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('competitions.noCompetitions')}</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {competitions.length === 0 ? 'Get started by creating a new competition.' : 'Try adjusting your search or filters.'}
+              {competitions.length === 0 ? t('competitions.noCompetitionsHint') : t('competitions.adjustFilters')}
             </p>
           </div>
         ) : (
@@ -540,11 +542,11 @@ const Competitions: React.FC = () => {
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm text-gray-600">
                           <Users className="w-4 h-4 mr-2" />
-                          {competition.participantCount} participants
+                          {competition.participantCount} {t('competitions.card.participants')}
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                           <Trophy className="w-4 h-4 mr-2" />
-                          {competition.disciplines ? competition.disciplines.length : 0} discipline{competition.disciplines && competition.disciplines.length !== 1 ? 's' : ''}
+                          {competition.disciplines ? competition.disciplines.length : 0} {competition.disciplines && competition.disciplines.length === 1 ? t('competitions.card.discipline') : t('competitions.card.disciplines')}
                         </div>
                         {competition.disciplines && competition.disciplines.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
@@ -559,7 +561,7 @@ const Competitions: React.FC = () => {
                             ))}
                             {competition.disciplines.length > 4 && (
                               <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                                +{competition.disciplines.length - 4}
+                                +{competition.disciplines.length - 4} {t('competitions.card.more')}
                               </span>
                             )}
                           </div>
@@ -572,14 +574,14 @@ const Competitions: React.FC = () => {
                             {competition.gender}
                           </span>
                           <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                            {competition.ageFrom}-{competition.ageTo} years
+                            {competition.ageFrom}-{competition.ageTo} {t('competitions.fields.years')}
                           </span>
                         </div>
                         <UnifiedActionButtons
                           onEdit={() => handleEdit(competition)}
                           onDelete={() => handleDelete(competition.id)}
-                          editTitle="Edit competition"
-                          deleteTitle="Delete competition"
+                          editTitle={t('competitions.actions.edit')}
+                          deleteTitle={t('competitions.actions.delete')}
                         />
                       </div>
                     </div>
@@ -596,25 +598,25 @@ const Competitions: React.FC = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Competition
+                          {t('competitions.fields.competition')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Disciplines
+                          {t('competitions.fields.disciplines')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Participants
+                          {t('competitions.fields.participants')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Gender
+                          {t('competitions.fields.gender')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Age Group
+                          {t('competitions.fields.ageGroup')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
+                          {t('competitions.filters.status')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
+                          {t('competitions.fields.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -653,16 +655,16 @@ const Competitions: React.FC = () => {
                                   </span>
                                 ))
                               ) : (
-                                <span className="text-xs text-gray-500">No disciplines</span>
+                                <span className="text-xs text-gray-500">{t('competitions.card.noDisciplines')}</span>
                               )}
                               {competition.disciplines && competition.disciplines.length > 3 && (
                                 <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                                  +{competition.disciplines.length - 3} more
+                                  +{competition.disciplines.length - 3} {t('competitions.card.more')}
                                 </span>
                               )}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
-                              {competition.disciplines ? competition.disciplines.length : 0} discipline{competition.disciplines && competition.disciplines.length !== 1 ? 's' : ''}
+                              {competition.disciplines ? competition.disciplines.length : 0} {competition.disciplines && competition.disciplines.length === 1 ? t('competitions.card.discipline') : t('competitions.card.disciplines')}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -678,7 +680,7 @@ const Competitions: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              {competition.ageFrom}-{competition.ageTo} years
+                              {competition.ageFrom}-{competition.ageTo} {t('competitions.fields.years')}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -690,8 +692,8 @@ const Competitions: React.FC = () => {
                             <UnifiedActionButtons
                               onEdit={() => handleEdit(competition)}
                               onDelete={() => handleDelete(competition.id)}
-                              editTitle="Edit competition"
-                              deleteTitle="Delete competition"
+                              editTitle={t('competitions.actions.edit')}
+                              deleteTitle={t('competitions.actions.delete')}
                             />
                           </td>
                         </tr>

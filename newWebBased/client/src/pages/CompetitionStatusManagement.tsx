@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { 
   TrophyIcon,
   ExclamationTriangleIcon,
@@ -48,6 +49,7 @@ interface CompetitionStatus {
 }
 
 const CompetitionStatusManagement = () => {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const eventIdParam = searchParams.get('eventId')
   const { selectedEvent, setSelectedEvent } = useEvent()
@@ -266,22 +268,22 @@ const CompetitionStatusManagement = () => {
   const getFilterOptions = () => [
     {
       value: 'status',
-      label: 'Status',
+      label: t('competitionStatus.filters.status'),
       selectedValue: filterStatus,
       options: [
-        { value: 'completed', label: 'Completed' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'not_started', label: 'Not Started' }
+        { value: 'completed', label: t('competitionStatus.filters.completed') },
+        { value: 'in_progress', label: t('competitionStatus.filters.inProgress') },
+        { value: 'not_started', label: t('competitionStatus.filters.notStarted') }
       ],
       onChange: setFilterStatus
     },
     {
       value: 'gender',
-      label: 'Gender',
+      label: t('competitionStatus.filters.gender'),
       selectedValue: filterGender,
       options: [
-        { value: 'männlich', label: 'Männlich' },
-        { value: 'weiblich', label: 'Weiblich' }
+        { value: 'männlich', label: t('competitionStatus.filters.male') },
+        { value: 'weiblich', label: t('competitionStatus.filters.female') }
       ],
       onChange: setFilterGender
     }
@@ -292,7 +294,7 @@ const CompetitionStatusManagement = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <ClockIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Loading competition status data...</p>
+          <p className="text-gray-600">{t('competitionStatus.loading')}</p>
         </div>
       </div>
     )
@@ -301,13 +303,13 @@ const CompetitionStatusManagement = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <UnifiedPageHeader
-        title="Competition Status Management"
-        subtitle={`Competition status overview for ${selectedEvent?.var_eventname || 'Selected Event'}`}
+        title={t('competitionStatus.title')}
+        subtitle={t('competitionStatus.subtitle', { eventName: selectedEvent?.var_eventname || t('competitionStatus.selectedEvent') })}
         icon={TrophyIcon}
         showEventContext={true}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search competitions..."
+        searchPlaceholder={t('competitionStatus.searchPlaceholder')}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
         hasFilters={true}
@@ -328,7 +330,7 @@ const CompetitionStatusManagement = () => {
       {/* Event Selection */}
       {!selectedEvent && (
         <div className="bg-white rounded-lg border p-6 mx-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Select Event</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('competitionStatus.selectEvent')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map(event => (
               <button
@@ -354,28 +356,28 @@ const CompetitionStatusManagement = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Competition
+                      {t('competitionStatus.table.competition')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Age Group
+                      {t('competitionStatus.table.ageGroup')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gender
+                      {t('competitionStatus.table.gender')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Overall Status
+                      {t('competitionStatus.table.overallStatus')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Squad States
+                      {t('competitionStatus.table.squadStates')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Progress
+                      {t('competitionStatus.table.progress')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Squads
+                      {t('competitionStatus.table.squads')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Details
+                      {t('competitionStatus.table.details')}
                     </th>
                   </tr>
                 </thead>
@@ -385,15 +387,15 @@ const CompetitionStatusManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {item.name}{item.number ? ` (Nr. ${item.number})` : ''}
+                            {item.name}{item.number ? ` (${t('competitionStatus.numberAbbrev')} ${item.number})` : ''}
                           </div>
                           <div className="text-sm text-gray-500">
-                            Round {item.round}
+                            {t('competitionStatus.round')} {item.round}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.ageFrom}-{item.ageTo} Jahre
+                        {item.ageFrom}-{item.ageTo} {t('competitionStatus.years')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {item.gender}
@@ -404,7 +406,7 @@ const CompetitionStatusManagement = () => {
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(getOverallStatusColor(s)).className}`}
                           style={getStatusColor(getOverallStatusColor(s)).style}
                         >
-                          {s === 'completed' ? 'Abgeschlossen' : s === 'in_progress' ? 'In Bearbeitung' : 'Nicht gestartet'}
+                          {s === 'completed' ? t('competitionStatus.statusLabels.completed') : s === 'in_progress' ? t('competitionStatus.statusLabels.inProgress') : t('competitionStatus.statusLabels.notStarted')}
                         </span>
                         )})()}
                       </td>
@@ -450,11 +452,11 @@ const CompetitionStatusManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="text-xs">
-                          <div>Teilnehmer: {item.participantCount}</div>
-                          <div>Total Participants × Disziplin: {item.totalSquadDisciplines}</div>
-                          <div>Completed: {item.completedSquadDisciplines}</div>
-                          <div>In Progress: {item.inProgressSquadDisciplines}</div>
-                          <div>Not Started: {item.notStartedSquadDisciplines}</div>
+                          <div>{t('competitionStatus.details.participants')}: {item.participantCount}</div>
+                          <div>{t('competitionStatus.details.totalParticipantsDiscipline')}: {item.totalSquadDisciplines}</div>
+                          <div>{t('competitionStatus.details.completed')}: {item.completedSquadDisciplines}</div>
+                          <div>{t('competitionStatus.details.inProgress')}: {item.inProgressSquadDisciplines}</div>
+                          <div>{t('competitionStatus.details.notStarted')}: {item.notStartedSquadDisciplines}</div>
                         </div>
                       </td>
                     </tr>
@@ -471,29 +473,29 @@ const CompetitionStatusManagement = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900 mb-1">
-                          {item.name}{item.number ? ` (Nr. ${item.number})` : ''}
+                          {item.name}{item.number ? ` (${t('competitionStatus.numberAbbrev')} ${item.number})` : ''}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Round {item.round}
+                          {t('competitionStatus.round')} {item.round}
                         </p>
                       </div>
                     </div>
                     
                     <div className="space-y-3">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.status')}</label>
                         {(() => { const s = getAggregatedOverallStatus(item); return (
                           <div 
                             className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(getOverallStatusColor(s)).className}`}
                             style={getStatusColor(getOverallStatusColor(s)).style}
                           >
-                            {s === 'completed' ? 'Abgeschlossen' : s === 'in_progress' ? 'In Bearbeitung' : 'Nicht gestartet'}
+                            {s === 'completed' ? t('competitionStatus.statusLabels.completed') : s === 'in_progress' ? t('competitionStatus.statusLabels.inProgress') : t('competitionStatus.statusLabels.notStarted')}
                           </div>
                         )})()}
                       </div>
                       
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Progress</label>
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.progress')}</label>
                         <div className="mt-1">
                           <div className="flex items-center">
                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -510,16 +512,16 @@ const CompetitionStatusManagement = () => {
                       </div>
                       
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Details</label>
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.details')}</label>
                         <div className="mt-1 text-sm text-gray-900">
-                          <div>{item.gender} • {item.ageFrom}-{item.ageTo} Jahre</div>
-                          <div>{item.disciplines_detail.length} Disciplines • {item.participantCount} Participants</div>
-                          <div>Total Participants × Disziplin: {item.totalSquadDisciplines}</div>
+                          <div>{item.gender} • {item.ageFrom}-{item.ageTo} {t('competitionStatus.years')}</div>
+                          <div>{item.disciplines_detail.length} {t('competitionStatus.grid.disciplines')} • {item.participantCount} {t('competitionStatus.grid.participants')}</div>
+                          <div>{t('competitionStatus.details.totalParticipantsDiscipline')}: {item.totalSquadDisciplines}</div>
                         </div>
                       </div>
                       
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status Breakdown</label>
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.statusBreakdown')}</label>
                         <div className="mt-1 text-sm text-gray-900">
                           {item.statusDistribution.map((status) => (
                             <div key={status.statusId} className="flex justify-between">
@@ -539,11 +541,11 @@ const CompetitionStatusManagement = () => {
           {filteredCompetitions.length === 0 && (
             <div className="text-center py-12">
               <ExclamationTriangleIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No competitions found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('competitionStatus.noCompetitionsTitle')}</h3>
               <p className="text-gray-600">
                 {competitionStatuses.length === 0 
-                  ? 'No competition data available for this event'
-                  : 'No competitions match your current filters'
+                  ? t('competitionStatus.noCompetitionsForEvent')
+                  : t('competitionStatus.noCompetitionsMatchFilters')
                 }
               </p>
             </div>

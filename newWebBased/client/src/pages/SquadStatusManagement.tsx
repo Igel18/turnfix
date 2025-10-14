@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { 
   PencilIcon,
   CheckCircleIcon,
@@ -40,6 +41,7 @@ interface Event {
 }
 
 export function SquadStatusManagement() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const { selectedEvent } = useEvent()
   
@@ -236,7 +238,7 @@ export function SquadStatusManagement() {
   const getFilterOptions = () => [
     {
       value: 'squad',
-      label: 'Squad',
+      label: t('squadStatus.filters.squad'),
       selectedValue: filterSquad,
       options: uniqueSquads.map(squad => ({
         value: squad,
@@ -246,7 +248,7 @@ export function SquadStatusManagement() {
     },
     {
       value: 'discipline',
-      label: 'Discipline',
+      label: t('squadStatus.filters.discipline'),
       selectedValue: filterDiscipline,
       options: uniqueDisciplines.map(discipline => ({
         value: discipline,
@@ -256,7 +258,7 @@ export function SquadStatusManagement() {
     },
     {
       value: 'status',
-      label: 'Status',
+      label: t('squadStatus.filters.status'),
       selectedValue: filterStatus,
       options: uniqueStatuses.map(status => ({
         value: status,
@@ -277,8 +279,8 @@ export function SquadStatusManagement() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <UnifiedPageHeader
-        title="Squad Status Management"
-        subtitle={`Manage status for squad-discipline combinations (${squadDisciplines.length} combinations loaded)`}
+        title={t('squadStatus.title')}
+        subtitle={t('squadStatus.subtitle', { count: squadDisciplines.length })}
         icon={UserGroupIcon}
         showEventContext={true}
         searchTerm=""
@@ -308,14 +310,14 @@ export function SquadStatusManagement() {
       {!selectedEvent && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Event
+            {t('squadStatus.selectEvent')}
           </label>
           <select
             value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
             className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">Choose an event...</option>
+            <option value="">{t('squadStatus.chooseEvent')}</option>
             {events.map((event) => (
               <option key={event.int_eventid} value={event.int_eventid}>
                 {event.var_eventname}
@@ -332,12 +334,12 @@ export function SquadStatusManagement() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Squad</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discipline</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Round</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Apparatus</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.squad')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.discipline')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.status')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.round')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.firstApparatus')}</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -370,7 +372,7 @@ export function SquadStatusManagement() {
                             onClick={() => setEditingItem(null)}
                             className="text-gray-400 hover:text-gray-600"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </div>
                       ) : (
@@ -461,7 +463,7 @@ export function SquadStatusManagement() {
                 {item.isFirstApparatus && (
                   <div className="flex items-center text-green-600">
                     <CheckCircleIcon className="h-4 w-4 mr-1" />
-                    <span className="text-xs">First Apparatus</span>
+                    <span className="text-xs">{t('squadStatus.firstApparatus')}</span>
                   </div>
                 )}
               </div>
@@ -473,11 +475,11 @@ export function SquadStatusManagement() {
       {filteredData.length === 0 && (
         <div className="text-center py-12">
           <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No squad-discipline combinations found</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('squadStatus.noDataTitle')}</h3>
           <p className="mt-1 text-sm text-gray-500">
             {squadDisciplines.length === 0 ? 
-              'No data available for the selected event.' : 
-              'Try adjusting your filters to see results.'
+              t('squadStatus.noDataForEvent') : 
+              t('squadStatus.adjustFilters')
             }
           </p>
         </div>

@@ -1121,7 +1121,115 @@
     "apparatus": "Apparatus",
     "apparatusSchedule": "Apparatus Schedule",
     "rotationNumber": "Rotation No.",
-    "number": "Number"
+    "number": "Number",
+    "sessions": "Sessions",
+    "squad": "Squad",
+    "rotations": "Rotations",
+    "round": "Round",
+    "firstDevice": "First Apparatus",
+    "exerciseDuration": "Exercise Duration",
+    "selectEventFirst": "Please select an event first",
+    "overview": "Overview"
+  },
+  "meldematrix": {
+    "title": "Registration Matrix",
+    "subtitle": "Registration overview: Clubs vs Competitions",
+    "searchPlaceholder": "Search clubs...",
+    "errorTitle": "Error loading Registration Matrix",
+    "pdfError": "Error creating PDF file. Please try again.",
+    "filters": {
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "mixed": "Mixed"
+    },
+    "table": {
+      "club": "Club",
+      "number": "No.",
+      "years": "years",
+      "total": "Total"
+    },
+    "statistics": {
+      "clubs": "Participating Clubs",
+      "competitions": "Available Competitions",
+      "totalRegistrations": "Total Registrations"
+    }
+  },
+  "squadStatus": {
+    "title": "Squad Status Management",
+    "subtitle": "Manage status for {{count}} squad-discipline combinations",
+    "selectEvent": "Select Event",
+    "chooseEvent": "Choose an event...",
+    "filters": {
+      "squad": "Squad",
+      "discipline": "Discipline",
+      "status": "Status"
+    },
+    "table": {
+      "squad": "Squad",
+      "discipline": "Discipline",
+      "status": "Status",
+      "round": "Round",
+      "firstApparatus": "First Apparatus",
+      "actions": "Actions"
+    },
+    "firstApparatus": "First Apparatus",
+    "noDataTitle": "No squad-discipline combinations found",
+    "noDataForEvent": "No data available for the selected event.",
+    "adjustFilters": "Try adjusting your filters to see results."
+  },
+  "competitionStatus": {
+    "title": "Competition Status Management",
+    "subtitle": "Competition status overview for {{eventName}}",
+    "selectedEvent": "Selected Event",
+    "searchPlaceholder": "Search competitions...",
+    "selectEvent": "Select Event",
+    "loading": "Loading competition status data...",
+    "numberAbbrev": "No.",
+    "round": "Round",
+    "years": "years",
+    "filters": {
+      "status": "Status",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "notStarted": "Not Started",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female"
+    },
+    "table": {
+      "competition": "Competition",
+      "ageGroup": "Age Group",
+      "gender": "Gender",
+      "overallStatus": "Overall Status",
+      "squadStates": "Squad States",
+      "progress": "Progress",
+      "squads": "Squads",
+      "details": "Details"
+    },
+    "statusLabels": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "notStarted": "Not Started"
+    },
+    "details": {
+      "participants": "Participants",
+      "totalParticipantsDiscipline": "Total Participants × Discipline",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "notStarted": "Not Started"
+    },
+    "grid": {
+      "status": "Status",
+      "progress": "Progress",
+      "details": "Details",
+      "disciplines": "Disciplines",
+      "participants": "Participants",
+      "statusBreakdown": "Status Breakdown"
+    },
+    "noCompetitionsTitle": "No competitions found",
+    "noCompetitionsForEvent": "No competition data available for this event",
+    "noCompetitionsMatchFilters": "No competitions match your current filters"
   },
   "eventParticipants": {
     "title": "Event Participants",
@@ -1331,6 +1439,81 @@
       "noClub": "No Club",
       "noParticipants": "No participants assigned",
       "notAvailable": "N/A"
+    }
+  },
+  "competitions": {
+    "title": "Competition Management",
+    "description": "Manage gymnastics competitions with disciplines and categories",
+    "createButton": "Create Competition",
+    "searchPlaceholder": "Search competitions...",
+    "noCompetitions": "No competitions found",
+    "noCompetitionsHint": "Get started by creating a new competition.",
+    "adjustFilters": "Try adjusting your search or filters.",
+    "loading": "Loading competitions...",
+    "filters": {
+      "gender": "Gender",
+      "allGenders": "All Genders",
+      "male": "Male",
+      "female": "Female",
+      "mixed": "Mixed",
+      "status": "Status",
+      "allStatus": "All Status",
+      "upcoming": "Upcoming",
+      "active": "Active",
+      "completed": "Completed",
+      "clear": "Clear Filters"
+    },
+    "fields": {
+      "number": "Competition Number",
+      "name": "Name",
+      "description": "Description",
+      "competition": "Competition",
+      "disciplines": "Disciplines",
+      "participants": "Participants",
+      "gender": "Gender",
+      "ageGroup": "Age Group",
+      "ageFrom": "Age From",
+      "ageTo": "Age To",
+      "years": "years",
+      "actions": "Actions"
+    },
+    "card": {
+      "participants": "participants",
+      "discipline": "discipline",
+      "disciplines": "disciplines",
+      "noDisciplines": "No disciplines",
+      "more": "more"
+    },
+    "actions": {
+      "edit": "Edit competition",
+      "delete": "Delete competition",
+      "confirmDelete": "Are you sure you want to delete this competition?"
+    },
+    "validation": {
+      "invalidMaxScore": "Please enter a valid positive number for the max score",
+      "invalidAgeFrom": "Invalid \"Age From\" value: {{value}}. Please enter an age between 5 and 99.",
+      "invalidAgeTo": "Invalid \"Age To\" value: {{value}}. Please enter an age between 5 and 99.",
+      "invalidAgeRange": "Invalid age range: \"Age From\" ({{ageFrom}}) cannot be greater than \"Age To\" ({{ageTo}})."
+    },
+    "messages": {
+      "saveSuccess": "Competition saved successfully",
+      "saveFailed": "Failed to save competition. Please check the console for details.",
+      "deleteSuccess": "Competition deleted successfully",
+      "deleteFailed": "Error deleting competition"
+    },
+    "export": {
+      "filename": "competitions-{{date}}.csv",
+      "headers": {
+        "number": "Competition Number",
+        "name": "Name",
+        "description": "Description",
+        "gender": "Gender",
+        "ageRange": "Age Range",
+        "status": "Status",
+        "participants": "Participants",
+        "disciplines": "Disciplines",
+        "created": "Created"
+      }
     }
   }
 }

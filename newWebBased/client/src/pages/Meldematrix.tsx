@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { 
   TableCellsIcon
@@ -37,6 +38,7 @@ interface RegistrationData {
 }
 
 export default function Meldematrix() {
+  const { t } = useTranslation()
   const { selectedEvent } = useEvent()
   const [searchParams] = useSearchParams()
   const eventId = searchParams.get('eventId') || selectedEvent?.int_eventid
@@ -267,7 +269,7 @@ export default function Meldematrix() {
 
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('Fehler beim Erstellen der PDF-Datei. Bitte versuchen Sie es erneut.')
+      alert(t('meldematrix.pdfError'))
     }
   }
 
@@ -284,13 +286,13 @@ export default function Meldematrix() {
   const filterOptions = [
     {
       value: 'gender',
-      label: 'Gender',
+      label: t('meldematrix.filters.gender'),
       selectedValue: genderFilter,
       onChange: (value: string) => setGenderFilter(value || 'all'),
       options: [
-        { value: 'männlich', label: 'Männlich' },
-        { value: 'weiblich', label: 'Weiblich' },
-        { value: 'gemischt', label: 'Gemischt' }
+        { value: 'männlich', label: t('meldematrix.filters.male') },
+        { value: 'weiblich', label: t('meldematrix.filters.female') },
+        { value: 'gemischt', label: t('meldematrix.filters.mixed') }
       ]
     }
   ]
@@ -311,7 +313,7 @@ export default function Meldematrix() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
           <div className="text-red-800">
-            <h3 className="text-lg font-medium">Error loading Meldematrix</h3>
+            <h3 className="text-lg font-medium">{t('meldematrix.errorTitle')}</h3>
             <p className="mt-2">{error}</p>
           </div>
         </div>
@@ -323,15 +325,15 @@ export default function Meldematrix() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <UnifiedPageHeader
-        title="Meldematrix"
-        subtitle="Registration overview: Clubs vs Competitions"
+        title={t('meldematrix.title')}
+        subtitle={t('meldematrix.subtitle')}
         icon={TableCellsIcon}
         hasFilters={true}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
         searchTerm={clubFilter}
         onSearchChange={setClubFilter}
-        searchPlaceholder="Search clubs..."
+        searchPlaceholder={t('meldematrix.searchPlaceholder')}
         filterOptions={filterOptions}
         onClearAllFilters={clearFilters}
         showPrint={true}
@@ -350,13 +352,13 @@ export default function Meldematrix() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 border-r border-gray-300">
-                  Verein
+                  {t('meldematrix.table.club')}
                 </th>
                 {filteredCompetitions.map((competition) => (
                   <th
                     key={competition.id}
                     className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] border-r border-gray-300 hover:bg-gray-100 transition-colors cursor-help"
-                    title={`${competition.name}${competition.number ? ` (Nr. ${competition.number})` : ''} - ${competition.gender || ''} ${competition.ageFrom || ''}${competition.ageTo ? `-${competition.ageTo}` : ''} Jahre`}
+                    title={`${competition.name}${competition.number ? ` (${t('meldematrix.table.number')} ${competition.number})` : ''} - ${competition.gender || ''} ${competition.ageFrom || ''}${competition.ageTo ? `-${competition.ageTo}` : ''} ${t('meldematrix.table.years')}`}
                   >
                     <div className="flex flex-col items-center justify-center h-16">
                       <div className="font-bold text-gray-900 text-sm">
@@ -372,7 +374,7 @@ export default function Meldematrix() {
                   </th>
                 ))}
                 <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-r border-gray-300">
-                  Ges.
+                  {t('meldematrix.table.total')}
                 </th>
               </tr>
             </thead>
@@ -401,7 +403,7 @@ export default function Meldematrix() {
               {/* Totals Row */}
               <tr className="bg-gray-100 font-semibold">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 sticky left-0 bg-gray-100 z-10 border-r border-gray-300">
-                  Gesamt
+                  {t('meldematrix.table.total')}
                 </td>
                 {filteredCompetitions.map((competition) => (
                   <td
@@ -424,15 +426,15 @@ export default function Meldematrix() {
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="text-2xl font-bold text-blue-600">{filteredClubs.length}</div>
-          <div className="text-sm text-gray-600">Participating Clubs</div>
+          <div className="text-sm text-gray-600">{t('meldematrix.statistics.clubs')}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="text-2xl font-bold text-green-600">{filteredCompetitions.length}</div>
-          <div className="text-sm text-gray-600">Available Competitions</div>
+          <div className="text-sm text-gray-600">{t('meldematrix.statistics.competitions')}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="text-2xl font-bold text-purple-600">{getGrandTotal()}</div>
-          <div className="text-sm text-gray-600">Total Registrations</div>
+          <div className="text-sm text-gray-600">{t('meldematrix.statistics.totalRegistrations')}</div>
         </div>
       </div>
 
