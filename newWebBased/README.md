@@ -2,6 +2,41 @@
 
 A modern web-based application for managing gymnastics competitions, participants, and clubs with state-of-the-art authentication and user interface.
 
+## 🚀 Quick Installation
+
+**New to TurnFix? Start here:**
+
+### Windows One-Click Installation
+
+**Option 1: Download Entire Repository (Recommended)**
+1. **Download**: [**📥 Download ZIP**](https://github.com/Igel18/turnfix/archive/refs/heads/WebInterface.zip)
+2. Extract the ZIP file
+3. Navigate to `turnfix-WebInterface\setup\windows\`
+4. Right-click on **`INSTALL.bat`** → **"Run as administrator"**
+5. Wait for the automated installation to complete
+6. Access TurnFix at http://localhost:5173
+
+**Option 2: Using Git (For Developers)**
+```bash
+git clone https://github.com/Igel18/turnfix.git
+cd turnfix\setup\windows
+# Right-click INSTALL.bat → Run as administrator
+```
+
+**That's it! Everything (Node.js, PostgreSQL, database, app) will be installed automatically.** ✨
+
+**Need Help?**
+- 📂 [Browse setup files](https://github.com/Igel18/turnfix/tree/WebInterface/setup/windows)
+- 🇩🇪 [German Setup Guide](../setup/windows/SETUP-GUIDE-DE.md)
+- 🇬🇧 [English Setup Guide](../setup/README.md)
+
+📖 **For detailed instructions, troubleshooting, and manual installation options**, see:
+- 🇩🇪 German: [`setup/windows/SETUP-GUIDE-DE.md`](../setup/windows/SETUP-GUIDE-DE.md) *(Comprehensive)*
+- 🇬🇧 English: [`setup/README.md`](../setup/README.md)
+- 📚 Getting Started: [`GETTING_STARTED.md`](GETTING_STARTED.md)
+
+---
+
 ## Features
 
 - **Modern UI**: React with TypeScript and Tailwind CSS
@@ -32,12 +67,48 @@ A modern web-based application for managing gymnastics competitions, participant
 
 ## Quick Start
 
-### Prerequisites
+### 🚀 Automated Installation (Recommended for New Users)
+
+**One-Click Windows Installation:**
+
+For a complete automated setup that installs everything you need:
+
+1. Navigate to the `setup/windows` folder
+2. Right-click on **`INSTALL.bat`** → **"Run as administrator"**
+3. Follow the prompts
+4. Done! ✅
+
+This will automatically install:
+- ✅ Node.js (v18+)
+- ✅ PostgreSQL 15
+- ✅ All dependencies
+- ✅ Database setup
+- ✅ TurnFix application
+
+**📚 Detailed Setup Documentation:**
+- **German Guide**: See [`setup/windows/SETUP-GUIDE-DE.md`](../setup/windows/SETUP-GUIDE-DE.md) for comprehensive installation instructions
+- **English Guide**: See [`setup/README.md`](../setup/README.md) for setup overview
+- **Getting Started**: See [`GETTING_STARTED.md`](GETTING_STARTED.md) for first steps
+
+**Alternative PowerShell Installation:**
+```powershell
+# Run as Administrator
+cd setup\windows
+.\complete-setup.ps1
+```
+
+---
+
+### 👨‍💻 Manual Installation (For Developers)
+
+If you already have the prerequisites installed or prefer manual setup:
+
+#### Prerequisites
 - Node.js (v18 or higher)
-- PostgreSQL
+- PostgreSQL (15 or higher)
 - npm or yarn
 
-### Installation
+#### Installation Steps
 
 1. Install all dependencies:
 ```bash
@@ -98,6 +169,15 @@ To access the application from other devices (tablets, smartphones):
 4. For Jury Portal: `http://YOUR-IP:5174`
 
 See [FIREWALL_SETUP.md](FIREWALL_SETUP.md) for Windows Firewall configuration.
+
+## 📦 Complete Installation vs Development Setup
+
+| Installation Type | Use Case | What's Included |
+|------------------|----------|-----------------|
+| **🚀 Automated Setup** <br/> `setup/windows/INSTALL.bat` | New users, production deployment | Everything: Node.js, PostgreSQL, TurnFix, DB setup |
+| **👨‍💻 Manual Setup** <br/> (Steps above) | Developers with existing tools | Only TurnFix app (requires Node.js, PostgreSQL pre-installed) |
+
+**Need help?** Check the troubleshooting guide in [`setup/windows/SETUP-GUIDE-DE.md`](../setup/windows/SETUP-GUIDE-DE.md)
 
 ## Project Structure
 

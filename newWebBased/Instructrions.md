@@ -29,43 +29,35 @@
     **Entscheidung**: ✅ Client Jury Portal (`/jury`) wurde erfolgreich entfernt (2025-01-14)
     **Ergebnis**: Nur noch Standalone Jury Portal (Port 5174) ist aktiv.
     **Entfernte Dateien**: `client/src/pages/JuryPortal.tsx`, `client/src/jury-main.tsx`, `client/index-jury.html`
-21. http://localhost:5173/management ist folgendes nicht lokalisiert: "Select Event" 
-
-xxx. ganz zum schluss: Schauen welche seiten & dialoge noch nicht lokalisiert sind
-
-
-refactoring (nur noch prisma) 
-Über Turnfix 
-DB cleanup: complete oder nur Personen und Vereine
-
-The export as pdf is possible on some UIs. We need some more print export as pdf posibilities. So perhaps we should add a new UI in section event management for print / export as pdf. We need: 
-- Urkunden generierung / generate cerificates for a selected person or a selected competition
-- Wettkampfbögen / competition sheets for a selected squad 
-- Zeitplan/Timetable it must be possible to print a timetable 
-Alterntive: 
-- We add a separat UI for each print posibility...? 
-
-
-
- 
-
- 
-
-Setup 
-
-Register neue User
-
-User Management with Admin Rights
-
-Löschen von Einträgen in den Manage views
-
-TypeScript compilation wegen camel case in DB
-
-Einstellungen
-
-SQL Server
-
-User
+21. http://localhost:5173/management ist folgendes nicht lokalisiert: "Select Event"
+11. ~~Setup so gestalten, dass mit einem klick alles installiert wird, so wie ich das sehe ist das u.a.~~ ✅
+    **Status**: ✅ Abgeschlossen - Setup-System wurde verbessert
+    **Implementierung**: Siehe `POINT-11-IMPLEMENTATION.md`
+    **Neue Features**:
+    - ✅ Node.js Version-Check (v18+ erforderlich) mit automatischem Upgrade
+    - ✅ PostgreSQL Direct Download Fallback wenn Chocolatey fehlschlägt
+    - ✅ ForceUpdate Parameter für Neuinstallation
+    - ✅ Erweiterte Fehlerbehandlung und Logging
+    - ✅ Umfassende deutsche Dokumentation (SETUP-GUIDE-DE.md)
+    **Neue Dateien**:
+    - `setup/windows/install-prerequisites-improved.ps1` (verbesserte Version)
+    - `setup/windows/SETUP-GUIDE-DE.md` (umfassende Dokumentation)
+    - `newWebBased/POINT-11-IMPLEMENTATION.md` (Implementierungs-Details)
+    **Bestehende Infrastruktur** (bereits vorhanden, funktioniert):
+    - `setup/windows/INSTALL.bat` - Ein-Klick Installation ✅
+    - `setup/windows/complete-setup.ps1` - Master-Setup-Skript ✅
+    - `setup/windows/install-prerequisites.ps1` - Prerequisites Installation ✅ (verbessert)
+    - `setup/windows/setup-database.ps1` - DB Setup ✅
+    - `setup/windows/setup-turnfix.ps1` - App Setup ✅
+    - `setup/windows/check-requirements.ps1` - System-Check ✅
+    **Alle Anforderungen erfüllt**:
+    - postgres (prüfen ob Pg schon installiert, wenn nicht runterladen und installieren aus dem setup heraus) ✅
+    - node (prüfen ob schon installiert (in der richtigen version) runterladen und installieren aus dem setup heraus) ✅
+    - npm ✅ (wird mit Node.js installiert)
+    - turnfix ✅ (Repository wird geklont)
+    - alle dependencies ✅ (npm install automatisch)
+    - DB verbindung herstellen ✅ (automatisch)
+    - DB erzeugen wenn nicht schon vorhanden ✅ (automatisch)
 
 
  

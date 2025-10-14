@@ -46,6 +46,16 @@ function Install-Chocolatey {
     Write-Host "Chocolatey installed successfully!" -ForegroundColor Green
 }
 
+# Function to check minimum version
+function Test-MinimumNodeVersion {
+    param([string]$currentVersion, [int]$requiredMajor)
+    if ($currentVersion -match 'v?(\d+)\.') {
+        $majorVersion = [int]$Matches[1]
+        return $majorVersion -ge $requiredMajor
+    }
+    return $false
+}
+
 # Function to install Node.js
 function Install-NodeJS {
     if ($SkipNodeJS) {
@@ -53,17 +63,27 @@ function Install-NodeJS {
         return
     }
     
+    $REQUIRED_NODE_MAJOR = 18  # Minimum Node.js major version
+    
     if (Test-CommandExists "node") {
         $nodeVersion = node --version
-        Write-Host "Node.js is already installed: $nodeVersion" -ForegroundColor Green
+        Write-Host "Node.js is already installed: $nodeVersion" -ForegroundColor White
         
-        $npmVersion = npm --version
-        Write-Host "npm version: $npmVersion" -ForegroundColor Green
-        return
+        # Check if version is sufficient
+        if (Test-MinimumNodeVersion $nodeVersion $REQUIRED_NODE_MAJOR) {
+            Write-Host "✓ Node.js version is compatible (v$REQUIRED_NODE_MAJOR+ required)" -ForegroundColor Green
+            $npmVersion = npm --version
+            Write-Host "✓ npm version: $npmVersion" -ForegroundColor Green
+            return
+        } else {
+            Write-Host "⚠ Node.js version is outdated (v$REQUIRED_NODE_MAJOR+ required)" -ForegroundColor Yellow
+            Write-Host "Upgrading Node.js to latest LTS..." -ForegroundColor Yellow
+            choco upgrade nodejs-lts -y
+        }
+    } else {
+        Write-Host "Installing Node.js LTS (v$REQUIRED_NODE_MAJOR+)..." -ForegroundColor Yellow
+        choco install nodejs-lts -y
     }
-    
-    Write-Host "Installing Node.js LTS..." -ForegroundColor Yellow
-    choco install nodejs-lts -y
     
     # Refresh environment variables
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
@@ -71,10 +91,10 @@ function Install-NodeJS {
     if (Test-CommandExists "node") {
         $nodeVersion = node --version
         $npmVersion = npm --version
-        Write-Host "Node.js installed successfully: $nodeVersion" -ForegroundColor Green
-        Write-Host "npm version: $npmVersion" -ForegroundColor Green
+        Write-Host "✓ Node.js installed successfully: $nodeVersion" -ForegroundColor Green
+        Write-Host "✓ npm version: $npmVersion" -ForegroundColor Green
     } else {
-        Write-Host "ERROR: Node.js installation failed!" -ForegroundColor Red
+        Write-Host "✗ Node.js installation failed!" -ForegroundColor Red
     }
 }
 
