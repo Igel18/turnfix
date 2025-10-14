@@ -15,7 +15,7 @@
     - turnfix  
     - alle dependencies 
 12. ~~Wird die Seite "event-management" bearbeitet und soll dann gespeichert werden, kann man den speicher button nicht finden, da dieser ganz weiß ist.~~ ✅
-13. Lokalisierung der kompletten Einstellungen http://localhost:5173/configuration
+13. ~~Lokalisierung der kompletten Einstellungen http://localhost:5173/configuration~~ ✅
 14. ~~Veranstaltungsteilnehmer: Die Suche muss auch für die Startnummern funktionieren.~~ ✅
 15. ~~Athletes Management lokalisieren~~ ✅
 16. ~~Athletes Management Filter "Gender" hat kein "unknown" aber "allgender" und "allgenders"~~ ✅

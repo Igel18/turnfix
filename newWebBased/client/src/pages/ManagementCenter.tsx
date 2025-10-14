@@ -810,8 +810,8 @@ export function ManagementCenter() {
               <CogIcon className="h-6 w-6 text-gray-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Configuration</h2>
-              <p className="text-sm text-gray-600">Application settings, database configuration, and system preferences</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('managementCenter.configuration.title')}</h2>
+              <p className="text-sm text-gray-600">{t('managementCenter.configuration.subtitle')}</p>
             </div>
           </div>
           
@@ -826,10 +826,10 @@ export function ManagementCenter() {
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                    Application Settings
+                    {t('managementCenter.configuration.applicationSettings.title')}
                   </h3>
                   <p className="text-xs text-gray-600 mt-1">
-                    Configure database, debug mode, language, ports, and other system settings
+                    {t('managementCenter.configuration.applicationSettings.description')}
                   </p>
                 </div>
               </div>

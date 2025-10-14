@@ -205,73 +205,73 @@ const Configuration: React.FC = () => {
         },
         {
           id: 'security',
-          name: 'Security Settings',
+          name: t('configuration.sections.security.title'),
           icon: ShieldCheckIcon,
-          description: 'Security and authentication configuration',
+          description: t('configuration.sections.security.description'),
           settings: [
             {
               key: 'session_timeout',
-              label: 'Session Timeout (minutes)',
+              label: t('configuration.sections.security.sessionTimeout.label'),
               type: 'number',
               value: response?.security?.sessionTimeout || 480,
-              description: 'Automatic logout after inactivity (in minutes)'
+              description: t('configuration.sections.security.sessionTimeout.description')
             },
             {
               key: 'password_min_length',
-              label: 'Minimum Password Length',
+              label: t('configuration.sections.security.passwordMinLength.label'),
               type: 'number',
               value: response?.security?.passwordMinLength || 8,
-              description: 'Minimum required password length'
+              description: t('configuration.sections.security.passwordMinLength.description')
             },
             {
               key: 'max_login_attempts',
-              label: 'Max Login Attempts',
+              label: t('configuration.sections.security.maxLoginAttempts.label'),
               type: 'number',
               value: response?.security?.maxLoginAttempts || 5,
-              description: 'Maximum failed login attempts before account lockout'
+              description: t('configuration.sections.security.maxLoginAttempts.description')
             },
             {
               key: 'require_https',
-              label: 'Require HTTPS',
+              label: t('configuration.sections.security.requireHttps.label'),
               type: 'boolean',
               value: response?.security?.requireHttps || false,
-              description: 'Force HTTPS connections in production'
+              description: t('configuration.sections.security.requireHttps.description')
             }
           ]
         },
         {
           id: 'imports',
-          name: 'Import & Export Settings',
+          name: t('configuration.sections.imports.title'),
           icon: DocumentArrowDownIcon,
-          description: 'File import and export configuration',
+          description: t('configuration.sections.imports.description'),
           settings: [
             {
               key: 'max_file_size',
-              label: 'Max File Size (MB)',
+              label: t('configuration.sections.imports.maxFileSize.label'),
               type: 'number',
               value: response?.imports?.maxFileSize || 50,
-              description: 'Maximum file size for imports (in megabytes)'
+              description: t('configuration.sections.imports.maxFileSize.description')
             },
             {
               key: 'allowed_file_types',
-              label: 'Allowed File Types',
+              label: t('configuration.sections.imports.allowedTypes.label'),
               type: 'textarea',
               value: response?.imports?.allowedTypes || 'xml,csv,xlsx,pdf',
-              description: 'Comma-separated list of allowed file extensions'
+              description: t('configuration.sections.imports.allowedTypes.description')
             },
             {
               key: 'auto_backup',
-              label: 'Automatic Backup',
+              label: t('configuration.sections.imports.autoBackup.label'),
               type: 'boolean',
               value: response?.imports?.autoBackup || true,
-              description: 'Create automatic backups before imports'
+              description: t('configuration.sections.imports.autoBackup.description')
             },
             {
               key: 'validate_imports',
-              label: 'Validate Imports',
+              label: t('configuration.sections.imports.validateImports.label'),
               type: 'boolean',
               value: response?.imports?.validateImports || true,
-              description: 'Perform validation checks on imported data'
+              description: t('configuration.sections.imports.validateImports.description')
             }
           ]
         },
@@ -399,43 +399,43 @@ const Configuration: React.FC = () => {
         },
         {
           id: 'logging',
-          name: 'Logging Configuration',
+          name: t('configuration.sections.logging.title'),
           icon: ClockIcon,
-          description: 'Application logging and monitoring settings',
+          description: t('configuration.sections.logging.description'),
           settings: [
             {
               key: 'log_level',
-              label: 'Log Level',
+              label: t('configuration.sections.logging.level.label'),
               type: 'select',
               value: response?.logging?.level || 'info',
-              description: 'Minimum log level to record',
+              description: t('configuration.sections.logging.level.description'),
               options: [
-                { value: 'error', label: 'Error (errors only)' },
-                { value: 'warn', label: 'Warning (warnings and errors)' },
-                { value: 'info', label: 'Info (general information)' },
-                { value: 'debug', label: 'Debug (detailed debugging)' }
+                { value: 'error', label: t('configuration.sections.logging.level.options.error') },
+                { value: 'warn', label: t('configuration.sections.logging.level.options.warn') },
+                { value: 'info', label: t('configuration.sections.logging.level.options.info') },
+                { value: 'debug', label: t('configuration.sections.logging.level.options.debug') }
               ]
             },
             {
               key: 'log_retention',
-              label: 'Log Retention (days)',
+              label: t('configuration.sections.logging.retention.label'),
               type: 'number',
               value: response?.logging?.retention || 30,
-              description: 'Number of days to keep log files'
+              description: t('configuration.sections.logging.retention.description')
             },
             {
               key: 'enable_audit_log',
-              label: 'Enable Audit Logging',
+              label: t('configuration.sections.logging.auditLog.label'),
               type: 'boolean',
               value: response?.logging?.auditLog || true,
-              description: 'Track user actions and data changes'
+              description: t('configuration.sections.logging.auditLog.description')
             },
             {
               key: 'log_database_queries',
-              label: 'Log Database Queries',
+              label: t('configuration.sections.logging.dbQueries.label'),
               type: 'boolean',
               value: response?.logging?.dbQueries || false,
-              description: 'Log all database queries (debug mode only)'
+              description: t('configuration.sections.logging.dbQueries.description')
             }
           ]
         },
@@ -451,7 +451,7 @@ const Configuration: React.FC = () => {
       setConfigSections(defaultSections)
     } catch (error) {
       console.error('Error loading configuration:', error)
-      setMessage({ type: 'error', text: 'Failed to load configuration settings' })
+      setMessage({ type: 'error', text: t('configuration.messages.loadFailed') })
     } finally {
       setLoading(false)
     }
@@ -479,10 +479,10 @@ const Configuration: React.FC = () => {
       }, {} as any)
 
       await apiPost('/configuration/save', configData)
-      setMessage({ type: 'success', text: 'Configuration saved successfully' })
+      setMessage({ type: 'success', text: t('configuration.messages.saveSuccess') })
     } catch (error) {
       console.error('Error saving configuration:', error)
-      setMessage({ type: 'error', text: 'Failed to save configuration' })
+      setMessage({ type: 'error', text: t('configuration.messages.saveFailed') })
     } finally {
       setSaving(false)
     }
@@ -513,12 +513,12 @@ const Configuration: React.FC = () => {
       }, {} as any)
 
       await apiPost('/configuration/test-database', dbConfig)
-      setMessage({ type: 'success', text: 'Database connection successful' })
+      setMessage({ type: 'success', text: t('configuration.messages.dbTestSuccess') })
     } catch (error: any) {
       console.error('Database connection test failed:', error)
       
       // Extract more specific error message from the API response
-      let errorMessage = 'Database connection failed'
+      let errorMessage = t('configuration.messages.dbTestFailed')
       
       if (error.response?.data?.error) {
         errorMessage = error.response.data.error
