@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { PrismaClient } from '@prisma/client';
 import { getParticipantGenderValues } from '../utils/configurationHelpers';
+import { getGenderNameCaseStatement, parseGenderFilter } from '../utils/genderHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -51,10 +52,12 @@ router.get('/', async (req: Request, res: Response) => {
     }
     
     if (query.gender) {
-      const genderValue = query.gender === 'MALE' ? 1 : query.gender === 'FEMALE' ? 2 : 0;
-      whereConditions.push(`t.int_geschlecht = $${paramIndex}`);
-      params.push(genderValue);
-      paramIndex++;
+      const genderValue = parseGenderFilter(query.gender);
+      if (genderValue !== null) {
+        whereConditions.push(`t.int_geschlecht = $${paramIndex}`);
+        params.push(genderValue);
+        paramIndex++;
+      }
     }
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
@@ -79,9 +82,9 @@ router.get('/', async (req: Request, res: Response) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -158,9 +161,9 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -237,9 +240,9 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name
       FROM tfx_teilnehmer t
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
@@ -318,9 +321,9 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Unknown'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name
       FROM tfx_teilnehmer t
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid

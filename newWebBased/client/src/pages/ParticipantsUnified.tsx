@@ -306,7 +306,9 @@ const ParticipantsUnified: React.FC = () => {
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             participant.int_geschlecht === 1 
               ? 'bg-blue-100 text-blue-800' 
-              : 'bg-pink-100 text-pink-800'
+              : participant.int_geschlecht === 2
+              ? 'bg-pink-100 text-pink-800'
+              : 'bg-gray-100 text-gray-800'
           }`}>
             {participant.geschlecht_name}
           </span>
@@ -382,7 +384,9 @@ const ParticipantsUnified: React.FC = () => {
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 participant.int_geschlecht === 1 
                   ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-pink-100 text-pink-800'
+                  : participant.int_geschlecht === 2
+                  ? 'bg-pink-100 text-pink-800'
+                  : 'bg-gray-100 text-gray-800'
               }`}>
                 {participant.geschlecht_name}
               </span>

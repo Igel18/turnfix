@@ -40,9 +40,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Other'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -104,9 +104,9 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
         t.int_startpassnummer,
         v.var_name as verein_name,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'Male'
-          WHEN t.int_geschlecht = 2 THEN 'Female'
-          ELSE 'Other'
+          WHEN t.int_geschlecht = 1 THEN 'male'
+          WHEN t.int_geschlecht = 2 THEN 'female'
+          ELSE 'unknown'
         END as geschlecht_name,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
