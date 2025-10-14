@@ -9,11 +9,13 @@
 9. ~~Auf der Seite Veranstaltungsteilnehmer gibt es einen Export "Teilnehmer Etiketten" diese Etiketten müssen sortiert werden nach Gender dann Riege dann Verein.~~ ✅
 10. ~~Gender in den Participant listen ist oft unknown. Bei den Veranstaltungsteilnehmern passt es aber. Gibt es da keine helper oder util oder andere generelle klasse die das handelt? ggf. könnte man die von den Veranstaltungsteilnehmern auch bei den participants verwenden.~~ ✅
 11. Setup so gestalten, dass mit einem klick alles installiert wird, so wie ich das sehe ist das u.a. 
-    - postgres (runterladen und installieren)
-    - node
+    - postgres (prüfen ob Pg schon installiert, wenn nicht runterladen und installieren aus dem setup heraus)
+    - node (prüfen ob schon installiert (in der richtigen version) runterladen und installieren aus dem setup heraus)
     - npm 
     - turnfix  
     - alle dependencies 
+    - DB verbindung herstellen 
+    - DB erzeugen wenn nicht schon vorhanden 
 12. ~~Wird die Seite "event-management" bearbeitet und soll dann gespeichert werden, kann man den speicher button nicht finden, da dieser ganz weiß ist.~~ ✅
 13. ~~Lokalisierung der kompletten Einstellungen http://localhost:5173/configuration~~ ✅
 14. ~~Veranstaltungsteilnehmer: Die Suche muss auch für die Startnummern funktionieren.~~ ✅
@@ -24,8 +26,10 @@
 19. ~~im Jury Portal beim Eingeben der Wertungen steht im header das Gerät. Hier wäre die Anzeige des Icons auch noch hilfreich.~~ ✅
 20. ~~was ist der unterschied zwischen den jury portalen? kann man hier den selben code verwenden? oder vielleicht sogar das Client Jury Portal eleminieren?~~ ✅
     **Analyse abgeschlossen**: Siehe `JURY_PORTAL_COMPARISON.md`
-    **Empfehlung**: ✅ Client Jury Portal (`/jury`) kann eliminiert werden. Standalone Jury Portal (Port 5174) ist besser geeignet.
-    **Nächster Schritt**: Redirect einbauen oder Client-Portal komplett entfernen.
+    **Entscheidung**: ✅ Client Jury Portal (`/jury`) wurde erfolgreich entfernt (2025-01-14)
+    **Ergebnis**: Nur noch Standalone Jury Portal (Port 5174) ist aktiv.
+    **Entfernte Dateien**: `client/src/pages/JuryPortal.tsx`, `client/src/jury-main.tsx`, `client/index-jury.html`
+21. http://localhost:5173/management ist folgendes nicht lokalisiert: "Select Event" 
 
 xxx. ganz zum schluss: Schauen welche seiten & dialoge noch nicht lokalisiert sind
 

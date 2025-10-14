@@ -34,7 +34,6 @@ import DisciplineGroupsUnified from '@/pages/DisciplineGroupsUnified'
 import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
-import JuryPortal from '@/pages/JuryPortal'
 import TimePlanning from '@/pages/TimePlanning'
 
 function App() {
@@ -76,7 +75,6 @@ function App() {
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
             <Route path="/status-management" element={<StatusUnified />} />
             <Route path="/configuration" element={<Configuration />} />
-            <Route path="/jury" element={<JuryPortal />} />
           </Routes>
         </div>
         </CertificateLayoutProvider>

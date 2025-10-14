@@ -2,12 +2,16 @@
 
 ## Executive Summary
 
-Es gibt **ZWEI separate Jury Portal Implementierungen** im TurnFix-System:
+⚠️ **ABGESCHLOSSEN**: Das TurnFix-System verwendet jetzt **NUR NOCH** das Standalone Jury Portal.
 
-1. **Standalone Jury Portal** (`jury-portal/`) - Port 5174
-2. **Client-integriertes Jury Portal** (`client/src/pages/JuryPortal.tsx`) - Route `/jury` auf Port 5173
+**Status**: ✅ **Client Jury Portal wurde entfernt** (2025-01-14)
 
-**Empfehlung**: ✅ **Das Client Jury Portal kann eliminiert werden**. Der Standalone-Portal bietet alle notwendigen Funktionen und ist besser für den Competition-Day-Einsatz geeignet.
+Es gab **ZWEI separate Jury Portal Implementierungen** im TurnFix-System:
+
+1. **Standalone Jury Portal** (`jury-portal/`) - Port 5174 ✅ **AKTIV**
+2. ~~**Client-integriertes Jury Portal**~~ (`client/src/pages/JuryPortal.tsx`) - Route `/jury` ❌ **ENTFERNT**
+
+**Entscheidung**: Das Client Jury Portal wurde eliminiert. Der Standalone-Portal bietet alle notwendigen Funktionen und ist besser für den Competition-Day-Einsatz geeignet.
 
 ---
 
@@ -303,32 +307,49 @@ newWebBased/
    }
    ```
 
-2. **Dokumentation aktualisieren**:
-   - README.md: Nur Standalone-Portal erwähnen
-   - GETTING_STARTED.md: Jury-Portal-Zugriff über Port 5174
+---
 
-3. **Home-Page anpassen**:
-   - Link zu `http://localhost:5174` statt `/jury`
+## Implementierungs-Status
 
-4. **Nach Bestätigung - Code entfernen**:
-   - `client/src/pages/JuryPortal.tsx` löschen
-   - Route aus `App.tsx` entfernen
-   - Imports aufräumen
+### ✅ Abgeschlossen (2025-01-14)
+
+Das Client Jury Portal wurde erfolgreich entfernt. Folgende Schritte wurden durchgeführt:
+
+1. **✅ Route aus App.tsx entfernen**: Import und Route für JuryPortal entfernt
+2. **✅ JuryPortal.tsx Datei löschen**: Haupt-Komponente gelöscht (~652 Zeilen)
+3. **✅ Home-Page Link anpassen**: Link zeigt bereits korrekt auf `http://localhost:5174`
+4. **✅ jury-main.tsx prüfen**: Entry-Point-Datei gelöscht (war nur für Client Portal)
+5. **✅ index-jury.html prüfen**: HTML-Entry gelöscht (war nur für Client Portal)
+6. **✅ Test-Dateien aufräumen**: Keine Änderungen nötig (Translation-Keys sind für Home-Page)
+7. **✅ Fehler-Check**: App.tsx und Home.tsx kompilieren ohne Fehler
+8. **✅ Dokumentation aktualisieren**: Dieser Abschnitt
+
+### Entfernte Dateien:
+- ❌ `client/src/pages/JuryPortal.tsx`
+- ❌ `client/src/jury-main.tsx`
+- ❌ `client/index-jury.html`
+
+### Geänderte Dateien:
+- ✏️ `client/src/App.tsx` (Import + Route entfernt)
+
+### Verbleibende Implementierung:
+- ✅ `jury-portal/` (Standalone auf Port 5174)
 
 ---
 
 ## Fazit
 
-**Die beiden Jury Portale sind funktional identisch.**
+**Die beiden Jury Portale waren funktional identisch.**
 
-Der einzige signifikante Unterschied ist die **Deployment-Architektur**:
-- Standalone = dedizierter Port, separate App
-- Client = integrierte Route, Teil der Haupt-App
+Der einzige signifikante Unterschied war die **Deployment-Architektur**:
+- Standalone = dedizierter Port, separate App ✅ **AKTIV**
+- Client = integrierte Route, Teil der Haupt-App ❌ **ENTFERNT**
 
 **Für Competition-Day-Einsatz ist das Standalone-Portal eindeutig besser geeignet.**
 
-**Empfehlung**: ✅ Client Jury Portal eliminieren und nur Standalone behalten.
+**Ergebnis**: ✅ Client Jury Portal erfolgreich eliminiert, nur Standalone bleibt.
 
-**Aufwand**: < 2 Stunden für saubere Migration inkl. Dokumentation.
+**Aufwand**: ~30 Minuten für saubere Entfernung inkl. Dokumentation.
 
-**Risiko**: Minimal (beide nutzen gleiche API, gleicher Code-Flow).
+**Risiko**: Minimal (Home-Page verlinkt korrekt auf Standalone, API unverändert).
+
