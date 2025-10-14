@@ -6,6 +6,16 @@
 
 TurnFix is a comprehensive gymnastics competition management system designed for organizing, managing, and conducting gymnastics competitions. Originally developed for German gymnastics competitions, it now offers both a traditional Qt desktop application and a modern web-based interface.
 
+## 🎯 **Quick Start for New Users**
+
+**Want to install TurnFix quickly?**
+
+➡️ **[Download ZIP](https://github.com/Igel18/turnfix/archive/refs/heads/WebInterface.zip)** → Extract → Run `setup\windows\INSTALL.bat` as Administrator → Done! ✨
+
+*Everything (Node.js, PostgreSQL, database) is installed automatically. See [detailed setup instructions](#-quick-start) below.*
+
+---
+
 ## 🚀 **Two Versions Available**
 
 ### 🌐 **NEW: Modern Web Application** (Recommended)
@@ -25,45 +35,93 @@ TurnFix is a comprehensive gymnastics competition management system designed for
 
 ## 📋 **Features Overview**
 
-### **Competition Management**
-- ✅ Event creation and configuration
-- ✅ Multiple competition categories
-- ✅ Age group and division management
-- ✅ Discipline configuration (Floor, Vault, Bars, Beam, etc.)
-- ✅ Timeline and scheduling system
-- ✅ Judge assignment and management
+### **Core Competition Management**
+- ✅ **Event Management**: Create and configure gymnastics events with multiple competitions
+- ✅ **Competition Categories**: Support for all gymnastics disciplines (Men's & Women's artistic gymnastics)
+- ✅ **Age Groups**: Flexible age group configuration (1-6, 7-8, 9-10, 11-12, 13-14, 15-16, 17-18 years)
+- ✅ **Disciplines**: Floor, Vault, Uneven Bars, Balance Beam, Pommel Horse, Rings, Parallel Bars, High Bar
+- ✅ **Competition Formats**: Individual All-Around, Team competitions, Apparatus finals
+- ✅ **Timeline Management**: Automatic schedule generation and manual adjustments
+- ✅ **Starting Order**: Automated starting number assignment with customizable rules
 
-### **Participant Management**
-- ✅ Athlete registration and profiles
-- ✅ Club and association management
-- ✅ Team formations and squad assignments
-- ✅ Import/Export functionality (GymNet XML)
-- ✅ Barcode generation for identification
+### **Participant & Club Management**
+- ✅ **Athlete Registration**: Complete athlete profiles with personal data, club affiliation, age groups
+- ✅ **Club Administration**: Manage gymnastics clubs, associations, and regional organizations
+- ✅ **Squad Management**: Assign athletes to squads (Riegen) with visual squad overview
+- ✅ **Filter & Search**: Advanced filtering by gender, age, club, region, competition
+- ✅ **Barcode Generation**: Print participant labels with barcodes for quick identification
+- ✅ **GymNet XML Import/Export**: Import competition data from external systems
+- ✅ **Bulk Operations**: Mass updates, assignments, and data management
 
-### **Competition Execution**
-- ✅ Score capture and validation
-- ✅ Real-time result calculations
-- ✅ Live leaderboards and standings
-- ✅ Judge portal for score entry
-- ✅ Competition status tracking
+### **Competition Execution & Scoring**
+- ✅ **Jury Portal**: Dedicated interface for judges to enter scores (Standalone on Port 5174)
+- ✅ **Score Entry**: Real-time score capture with validation and error checking
+- ✅ **Device Icons**: Visual discipline indicators with custom icons from database
+- ✅ **Squad-based Scoring**: Score entry organized by squads and rotation schedules
+- ✅ **Live Results**: Real-time result calculations and leaderboard updates
+- ✅ **Score Validation**: Automatic checks for score ranges and completeness
+- ✅ **Multi-attempt Support**: Track multiple attempts per athlete per discipline
 
 ### **Results & Reporting**
-- ✅ Comprehensive result generation
-- ✅ PDF export for certificates and reports
-- ✅ Medal standings and rankings
-- ✅ Statistical analysis and reporting
-- ✅ Print-ready competition documents
+- ✅ **Results Display**: Comprehensive result views by competition, discipline, squad
+- ✅ **Medal Standings**: Club-based medal count (Gold, Silver, Bronze)
+- ✅ **PDF Export**: Generate certificates, result sheets, participation labels
+- ✅ **Print Templates**: Customizable PDF templates for certificates and reports
+- ✅ **Participant Labels**: Print labels with barcode, sorted by gender, squad, club
+- ✅ **Rankings**: Individual and team rankings with tie-breaking rules
+- ✅ **Statistics**: Competition statistics, participation rates, performance analysis
+
+### **System Administration**
+- ✅ **Master Data Management**: Regions, Associations, Clubs, Venues, Disciplines
+- ✅ **Configuration**: System settings, competition formulas, scoring rules
+- ✅ **Database Management**: PostgreSQL database with Prisma ORM
+- ✅ **User Management**: Role-based access control (Admin, Organizer, Judge)
+- ✅ **Audit Logging**: Track all changes and user actions
+- ✅ **Backup & Restore**: Database backup and migration tools
+
+### **Modern Web Features (New)**
+- ✅ **Responsive UI**: Works on desktop, tablet, and mobile devices
+- ✅ **Localization**: Full German and English translations (i18next)
+- ✅ **Network Access**: Configure for LAN access from multiple devices
+- ✅ **Jury Portal**: Standalone scoring interface accessible via separate port
+- ✅ **Real-time Updates**: Live data synchronization across clients
+- ✅ **Dark/Light Theme**: User preference support
+- ✅ **Unified Components**: Consistent UI patterns across all pages
 
 ## 🔧 **Quick Start**
 
 ### **Web Application (Recommended)**
+
+#### **🚀 Automated One-Click Installation (Windows)**
+
+**Easiest way for new users:**
+
+1. **Download**: [**📥 Download TurnFix ZIP**](https://github.com/Igel18/turnfix/archive/refs/heads/WebInterface.zip)
+2. **Extract** the ZIP file
+3. **Navigate** to `turnfix-WebInterface\setup\windows\`
+4. **Right-click** on `INSTALL.bat` → **"Run as administrator"**
+5. **Wait** for automatic installation (Node.js, PostgreSQL, database, app)
+6. **Done!** Access at http://localhost:5173
+
+**Everything is installed automatically:** Node.js, PostgreSQL, all dependencies, database setup, and TurnFix! ✨
+
+**For detailed setup instructions:**
+- 🇩🇪 **German**: See [`setup/windows/SETUP-GUIDE-DE.md`](setup/windows/SETUP-GUIDE-DE.md) *(Comprehensive guide)*
+- 🇬🇧 **English**: See [`setup/README.md`](setup/README.md)
+- 📚 **Getting Started**: See [`newWebBased/GETTING_STARTED.md`](newWebBased/GETTING_STARTED.md)
+
+---
+
+#### **👨‍💻 Manual Installation (For Developers)**
+
+**If you already have Node.js and PostgreSQL installed:**
 
 #### **Prerequisites**
 - Node.js 18.x or higher
 - PostgreSQL 12.x or higher
 - 2GB RAM minimum
 
-#### **Installation**
+#### **Installation Steps**
 ```bash
 # Clone the repository
 git clone https://github.com/Igel18/turnfix.git
@@ -136,26 +194,202 @@ Both applications share the same PostgreSQL database schema, ensuring:
 
 ## 🏗️ **System Architecture**
 
-### **Web Application Stack**
+### **Overall System Architecture**
+
+TurnFix consists of two parallel implementations sharing the same PostgreSQL database:
+
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React Client  │    │  Jury Portal    │    │  Express API    │
-│   (Port 5173)   │◄──►│  (Port 5174)    │◄──►│  (Port 3001)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-                                               ┌─────────────────┐
-                                               │  PostgreSQL DB  │
-                                               │  (Port 5432)    │
-                                               └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                         TurnFix System                               │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌──────────────────────────┐      ┌──────────────────────────┐    │
+│  │   Modern Web Stack       │      │   Legacy Qt Desktop App  │    │
+│  │   (Recommended)          │      │   (Windows Native)       │    │
+│  └──────────────────────────┘      └──────────────────────────┘    │
+│              │                                    │                  │
+│              └────────────────┬───────────────────┘                  │
+│                               │                                      │
+│                    ┌──────────▼──────────┐                          │
+│                    │   PostgreSQL DB     │                          │
+│                    │   (Port 5432)       │                          │
+│                    │  - Shared Schema    │                          │
+│                    │  - Full Compat.     │                          │
+│                    └─────────────────────┘                          │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### **Modern Web Application Stack**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Client Side (Browser)                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌────────────────────────┐         ┌──────────────────────┐        │
+│  │  Main Application      │         │   Jury Portal        │        │
+│  │  (React + TypeScript)  │         │   (React Standalone) │        │
+│  │  - Management Center   │         │   - Score Entry      │        │
+│  │  - Participants        │         │   - Squad Selection  │        │
+│  │  - Competitions        │         │   - Device Icons     │        │
+│  │  - Results             │         │   - Touch Optimized  │        │
+│  │  - Configuration       │         └──────────────────────┘        │
+│  │  Port: 5173            │                Port: 5174               │
+│  └────────────────────────┘                                         │
+│              │                                   │                   │
+└──────────────┼───────────────────────────────────┼───────────────────┘
+               │                                   │
+               │         HTTP/REST API             │
+               └───────────────┬───────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────────────┐
+│                     Server Side (Node.js)                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌──────────────────────────────────────────────────────────┐      │
+│  │              Express.js Backend API                       │      │
+│  │              (TypeScript + Prisma ORM)                    │      │
+│  │                                                            │      │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │      │
+│  │  │   Routes     │  │ Controllers  │  │  Services    │   │      │
+│  │  │  /api/*      │─►│  Business    │─►│  Logic       │   │      │
+│  │  └──────────────┘  │  Logic       │  └──────────────┘   │      │
+│  │                    └──────────────┘                       │      │
+│  │                           │                               │      │
+│  │                    ┌──────▼──────┐                        │      │
+│  │                    │   Prisma    │                        │      │
+│  │                    │   ORM       │                        │      │
+│  │                    └──────────────┘                       │      │
+│  │                                                            │      │
+│  │  Features:                                                │      │
+│  │  - JWT Authentication                                     │      │
+│  │  - Role-based Access Control                             │      │
+│  │  - RESTful API Endpoints                                 │      │
+│  │  - Request Validation                                     │      │
+│  │  - Error Handling                                         │      │
+│  │  - CORS Configuration                                     │      │
+│  │                                                            │      │
+│  │  Port: 3001                                               │      │
+│  └──────────────────────────────────────────────────────────┘      │
+│                               │                                      │
+└───────────────────────────────┼──────────────────────────────────────┘
+                                │
+                                │ SQL Queries
+                                │
+┌───────────────────────────────▼──────────────────────────────────────┐
+│                    Database Layer                                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌──────────────────────────────────────────────────────────┐      │
+│  │              PostgreSQL Database                          │      │
+│  │                                                            │      │
+│  │  Tables:                                                  │      │
+│  │  - tfx_veranstaltungen (Events)                          │      │
+│  │  - tfx_wettkampf (Competitions)                           │      │
+│  │  - tfx_teilnehmer (Participants)                          │      │
+│  │  - tfx_vereine (Clubs)                                    │      │
+│  │  - tfx_geraete (Disciplines)                              │      │
+│  │  - tfx_wertung (Scores)                                   │      │
+│  │  - tfx_ergebnis (Results)                                 │      │
+│  │  + 40+ more tables                                        │      │
+│  │                                                            │      │
+│  │  Port: 5432                                               │      │
+│  └──────────────────────────────────────────────────────────┘      │
+│                                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### **Legacy Qt Desktop Application**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                Qt/C++ Desktop Application (Windows)                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌──────────────────────────────────────────────────────────┐      │
+│  │                    Qt Widgets UI                          │      │
+│  │                                                            │      │
+│  │  - Main Window with Navigation                            │      │
+│  │  - Competition Management Dialogs                         │      │
+│  │  - Participant Management Views                           │      │
+│  │  - Squad Management Interface                             │      │
+│  │  - Score Input Forms                                      │      │
+│  │  - Result Display Windows                                 │      │
+│  │  - Print Preview & Export                                 │      │
+│  │  - Database Administration Tools                          │      │
+│  │                                                            │      │
+│  └──────────────────────────────────────────────────────────┘      │
+│                               │                                      │
+│                               │ Qt SQL Module                        │
+│                               │                                      │
+│  ┌────────────────────────────▼─────────────────────────────┐      │
+│  │            Direct PostgreSQL Connection                   │      │
+│  │            (QSqlDatabase, QSqlQuery)                      │      │
+│  └──────────────────────────────────────────────────────────┘      │
+│                               │                                      │
+└───────────────────────────────┼──────────────────────────────────────┘
+                                │
+                                │ Native libpq
+                                │
+                    ┌───────────▼──────────┐
+                    │   PostgreSQL DB      │
+                    │   (Same as Web)      │
+                    └──────────────────────┘
 ```
 
 ### **Technology Stack**
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
-- **Backend**: Node.js, Express, Prisma ORM
-- **Database**: PostgreSQL
-- **Authentication**: JWT with refresh tokens
-- **Real-time**: Socket.io for live updates
-- **Build**: GitHub Actions CI/CD
+
+#### **Web Application**
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend - Main App** | React 18, TypeScript, Tailwind CSS, Vite | Management interface |
+| **Frontend - Jury Portal** | React 18, TypeScript, Lucide Icons, Vite | Standalone scoring interface |
+| **Backend API** | Node.js 18+, Express.js, TypeScript | RESTful API server |
+| **ORM** | Prisma | Database abstraction |
+| **Database** | PostgreSQL 15+ | Data persistence |
+| **Authentication** | JWT, bcrypt | Secure auth with refresh tokens |
+| **UI Components** | Custom components, Tailwind | Responsive UI |
+| **Internationalization** | i18next | German/English support |
+| **Build** | Vite, TypeScript Compiler | Fast dev & production builds |
+| **Deployment** | GitHub Actions | CI/CD pipeline |
+
+#### **Legacy Qt Application**
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Framework** | Qt 5.13+ | Cross-platform UI framework |
+| **Language** | C++ | Native performance |
+| **Compiler** | MinGW (Windows) | Build toolchain |
+| **Database** | Qt SQL Module + libpq | PostgreSQL connectivity |
+| **UI** | Qt Widgets | Desktop interface |
+| **Reports** | Qt Print Support | PDF generation |
+
+### **Network & Deployment**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Network Architecture                       │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Local Network (192.168.x.x)                                │
+│                                                               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  Organizer  │  │   Judges    │  │   Judges    │         │
+│  │  Laptop     │  │   Tablet 1  │  │   Tablet 2  │         │
+│  │             │  │             │  │             │         │
+│  │  Main App   │  │ Jury Portal │  │ Jury Portal │         │
+│  │  :5173      │  │  :5174      │  │  :5174      │         │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
+│         │                 │                 │                │
+│         └─────────────────┼─────────────────┘                │
+│                           │                                  │
+│                  ┌────────▼────────┐                         │
+│                  │  Server PC      │                         │
+│                  │  - Backend      │                         │
+│                  │  - PostgreSQL   │                         │
+│                  └─────────────────┘                         │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## 📱 **User Interfaces**
 
@@ -195,35 +429,75 @@ Both applications share the same PostgreSQL database schema, ensuring:
 5. **Full Transition**: Complete move to web-based system
 
 ### **Compatibility Matrix**
-| Feature | Legacy Qt | Web UI | Notes |
-|---------|-----------|---------|-------|
-| Competition Management | ✅ | ✅ | Full compatibility |
-| Participant Registration | ✅ | ✅ | Enhanced web workflows |
-| Score Capture | ✅ | ✅ | Additional real-time features |
-| Result Generation | ✅ | ✅ | PDF export in both |
-| GymNet XML Import/Export | ❌ | ✅ | Shared database format |
-| Judge Portal | ❌ | ✅ | New web-only feature |
-| Mobile Access | ❌ | ✅ | Web-only capability |
-| Real-time Updates | ❌ | ✅ | Live synchronization |
-| Multi-user Access | Limited | Limited | Role-based permissions |
+| Feature | Legacy Qt | Modern Web UI | Notes |
+|---------|-----------|---------------|-------|
+| **Core Features** |
+| Event Management | ✅ Full | ✅ Full | Complete feature parity |
+| Competition Configuration | ✅ Full | ✅ Full | All disciplines supported |
+| Participant Registration | ✅ Full | ✅ Enhanced | Web has improved UX |
+| Club Management | ✅ Full | ✅ Full | Identical functionality |
+| Squad Assignment | ✅ Full | ✅ Enhanced | Visual squad management |
+| Score Entry | ✅ Desktop | ✅ Jury Portal | Dedicated judge interface |
+| Result Calculation | ✅ Full | ✅ Real-time | Live updates in web |
+| **Data Management** |
+| GymNet XML Import | ✅ Full | ✅ Full | Competition data import |
+| PDF Export | ✅ Full | ✅ Enhanced | More templates |
+| Barcode Generation | ✅ Basic | ✅ Advanced | Better label printing |
+| Database Access | ✅ Direct SQL | ✅ Prisma ORM | Both use PostgreSQL |
+| Backup/Restore | ✅ Manual | ✅ Automated | Web has better tools |
+| **User Experience** |
+| Offline Operation | ✅ Yes | ❌ No | Qt works offline |
+| Multi-Device Access | ❌ No | ✅ Yes | Web is responsive |
+| Network Sharing | ❌ Limited | ✅ Full | LAN/WAN support |
+| Judge Portal | ❌ No | ✅ Yes | Standalone scoring |
+| Real-time Updates | ❌ No | ✅ Yes | Live synchronization |
+| Mobile Support | ❌ No | ✅ Yes | Tablets & phones |
+| Localization | 🇩🇪 German | 🇩🇪🇬🇧 DE/EN | i18next framework |
+| **Technical** |
+| Platform | Windows only | Cross-platform | Any browser |
+| Installation | Complex | Automated | One-click setup |
+| Updates | Manual rebuild | Git pull | Easy updates |
+| User Management | Basic | ✅ Role-based | JWT authentication |
+| API Access | ❌ No | ✅ REST API | Integration ready |
 
 ## 📊 **Screenshots**
 
-### **Web Application**
+### **Modern Web Application**
+
 <details>
-<summary>Click to view Web UI screenshots</summary>
+<summary>🖱️ Click to view Web UI screenshots</summary>
 
-#### Dashboard
-![Web Dashboard](newWebBased/docs/screenshots/dashboard.png)
+![Screenshot 1](documentation/pictures/2025-10-14%2014_07_42-TurnFix%20–%20Mozilla%20Firefox.png)
 
-#### Competition Management
-![Web Competitions](newWebBased/docs/screenshots/competitions.png)
+![Screenshot 2](documentation/pictures/2025-10-14%2014_08_15-.png)
 
-#### Participant Management
-![Web Participants](newWebBased/docs/screenshots/participants.png)
+![Screenshot 3](documentation/pictures/2025-10-14%2014_08_29-TurnFix%20–%20Mozilla%20Firefox.png)
 
-#### Judge Portal
-![Jury Portal](newWebBased/docs/screenshots/jury-portal.png)
+![Screenshot 4](documentation/pictures/2025-10-14%2014_08_44-.png)
+
+![Screenshot 5](documentation/pictures/2025-10-14%2014_09_22-.png)
+
+![Screenshot 6](documentation/pictures/2025-10-14%2014_09_39-.png)
+
+![Screenshot 7](documentation/pictures/2025-10-14%2014_09_53-TurnFix%20–%20Mozilla%20Firefox.png)
+
+![Screenshot 8](documentation/pictures/2025-10-14%2014_10_11-.png)
+
+![Screenshot 9](documentation/pictures/2025-10-14%2014_12_47-.png)
+
+![Screenshot 10](documentation/pictures/2025-10-14%2014_13_51-.png)
+
+![Screenshot 11](documentation/pictures/2025-10-14%2014_14_06-.png)
+
+![Screenshot 12](documentation/pictures/2025-10-14%2014_15_12-.png)
+
+![Screenshot 13](documentation/pictures/2025-10-14%2014_15_29-.png)
+
+![Screenshot 14](documentation/pictures/2025-10-14%2014_15_50-2025-10-14%2014_15_29-.png)
+
+![Screenshot 15](documentation/pictures/2025-10-14%2014_16_26-TurnFix%20–%20Mozilla%20Firefox.png)
+
+*Modern web interface showcasing various features: dashboard, participant management, competition setup, results, and configuration.*
 
 </details>
 
