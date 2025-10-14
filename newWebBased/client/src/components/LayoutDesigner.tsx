@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { DATABASE_FIELD_DESCRIPTIONS, getDatabaseFieldDescription } from '@/pages/CertificateLayouts'
+import { useTranslation } from 'react-i18next'
 import { 
   TrashIcon, 
   DocumentTextIcon,
@@ -40,20 +41,22 @@ interface LayoutDesignerProps {
   onFieldsChange: (fields: LayoutField[]) => Promise<void>;
 }
 
-const FIELD_TYPES = [
-  { value: 0, label: 'Database Field', icon: DocumentTextIcon, color: 'bg-blue-100 border-blue-300 text-blue-800' },
-  { value: 1, label: 'Text Field', icon: DocumentTextIcon, color: 'bg-green-100 border-green-300 text-green-800' },
-  { value: 2, label: 'Image', icon: PhotoIcon, color: 'bg-purple-100 border-purple-300 text-purple-800' },
-  { value: 3, label: 'Line', icon: MinusIcon, color: 'bg-gray-100 border-gray-300 text-gray-800' }
-];
-
-const ALIGN_OPTIONS = [
-  { value: 0, label: 'Left' },
-  { value: 1, label: 'Center' },
-  { value: 2, label: 'Right' }
-];
-
 export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: LayoutDesignerProps) {
+  const { t } = useTranslation()
+  
+  const FIELD_TYPES = [
+    { value: 0, label: t('layoutDesigner.fieldTypes.databaseField'), icon: DocumentTextIcon, color: 'bg-blue-100 border-blue-300 text-blue-800' },
+    { value: 1, label: t('layoutDesigner.fieldTypes.textField'), icon: DocumentTextIcon, color: 'bg-green-100 border-green-300 text-green-800' },
+    { value: 2, label: t('layoutDesigner.fieldTypes.image'), icon: PhotoIcon, color: 'bg-purple-100 border-purple-300 text-purple-800' },
+    { value: 3, label: t('layoutDesigner.fieldTypes.line'), icon: MinusIcon, color: 'bg-gray-100 border-gray-300 text-gray-800' }
+  ];
+
+  const ALIGN_OPTIONS = [
+    { value: 0, label: t('layoutDesigner.alignment.left') },
+    { value: 1, label: t('layoutDesigner.alignment.center') },
+    { value: 2, label: t('layoutDesigner.alignment.right') }
+  ];
+  
   // Paper format definitions (all in pixels at 300 DPI)
   const PAPER_FORMATS = {
     'A4': { width: 2480, height: 3508, label: 'DIN A4 (210 × 297 mm)' },
@@ -627,7 +630,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Layout Name
+                    {t('layoutDesigner.layoutName')}
                   </label>
                   <input
                     type="text"
@@ -640,12 +643,12 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       Object.assign(layout, updatedLayout);
                     }}
                     className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter layout name"
+                    placeholder={t('layoutDesigner.enterLayoutName')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
+                    {t('layoutDesigner.description')}
                   </label>
                   <input
                     type="text"
@@ -658,14 +661,14 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       Object.assign(layout, updatedLayout);
                     }}
                     className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter layout description"
+                    placeholder={t('layoutDesigner.enterDescription')}
                   />
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">Paper Format:</label>
+                <label className="text-sm text-gray-600">{t('layoutDesigner.paperFormat')}:</label>
                 <select
                   value={paperFormat}
                   onChange={(e) => handlePaperFormatChange(e.target.value as keyof typeof PAPER_FORMATS)}
@@ -679,7 +682,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                 </select>
               </div>
               <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">Zoom:</label>
+                <label className="text-sm text-gray-600">{t('layoutDesigner.zoom')}:</label>
                 <select
                   value={zoom}
                   onChange={(e) => {
@@ -698,7 +701,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                   }}
                   className="text-sm border border-gray-300 rounded px-2 py-1"
                 >
-                  <option value="fit">Fit to View</option>
+                  <option value="fit">{t('layoutDesigner.fitToView')}</option>
                   <option value={0.1}>10%</option>
                   <option value={0.2}>20%</option>
                   <option value={0.3}>30%</option>
@@ -719,19 +722,19 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                 }`}
               >
                 <Cog6ToothIcon className="h-4 w-4 mr-1 inline" />
-                Properties
+                {t('layoutDesigner.properties')}
               </button>
               <button
                 onClick={async () => await onSave({ ...layout, fields })}
                 className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
               >
-                Save Layout
+                {t('layoutDesigner.saveLayout')}
               </button>
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700"
               >
-                Close
+                {t('layoutDesigner.close')}
               </button>
             </div>
           </div>
@@ -739,7 +742,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
           <div className="flex">
             {/* Toolbar */}
             <div className="w-64 border-r border-gray-200 p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Add Elements</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">{t('layoutDesigner.addElements')}</h3>
               <div className="space-y-2">
                 {FIELD_TYPES.map((fieldType) => {
                   const IconComponent = fieldType.icon;
@@ -774,7 +777,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
               </div>
 
               {/* Fields List */}
-              <h3 className="text-sm font-medium text-gray-900 mt-6 mb-4">Fields ({fields.length})</h3>
+              <h3 className="text-sm font-medium text-gray-900 mt-6 mb-4">{t('layoutDesigner.fields')} ({fields.length})</h3>
               <div className="space-y-1 max-h-96 overflow-y-auto">
                 {fields
                   .sort((a, b) => a.int_layer - b.int_layer)
@@ -783,7 +786,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     const IconComponent = fieldType?.icon || DocumentTextIcon;
                     
                     // Get descriptive label for the field
-                    let fieldLabel = fieldType?.label || 'Unknown';
+                    let fieldLabel = fieldType?.label || t('layoutDesigner.unknown');
                     if (field.int_typ === 0 && field.var_value) {
                       // Database field - show description
                       const fieldNum = parseInt(field.var_value);
@@ -947,13 +950,13 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
               
               {/* Canvas Info */}
               <div className="mt-2 text-xs text-gray-500 space-y-1">
-                <div>Canvas: {PAPER_FORMATS[paperFormat].label} ({canvasSize.width} x {canvasSize.height}px) | Zoom: {Math.round(zoom * 100)}% | Fields: {fields.length}</div>
+                <div>{t('layoutDesigner.canvas')}: {PAPER_FORMATS[paperFormat].label} ({canvasSize.width} × {canvasSize.height}px) | {t('layoutDesigner.zoom')}: {Math.round(zoom * 100)}% | {t('layoutDesigner.fields')}: {fields.length}</div>
                 {selectedField && (
                   <div className="text-blue-600">
-                    Selected: {getFieldTypeLabel(selectedField.int_typ)} | 
-                    Position: ({Math.round(selectedField.rel_x * canvasSize.width)}, {Math.round(selectedField.rel_y * canvasSize.height)})px | 
-                    Size: {Math.round(selectedField.rel_w * canvasSize.width)} x {Math.round(selectedField.rel_h * canvasSize.height)}px | 
-                    Layer: {selectedField.int_layer}
+                    {t('layoutDesigner.selected')}: {getFieldTypeLabel(selectedField.int_typ)} | 
+                    {t('layoutDesigner.position')}: ({Math.round(selectedField.rel_x * canvasSize.width)}, {Math.round(selectedField.rel_y * canvasSize.height)})px | 
+                    {t('layoutDesigner.size')}: {Math.round(selectedField.rel_w * canvasSize.width)} × {Math.round(selectedField.rel_h * canvasSize.height)}px | 
+                    {t('layoutDesigner.layer')}: {selectedField.int_layer}
                   </div>
                 )}
               </div>
@@ -962,12 +965,12 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             {/* Properties Panel */}
             {isPropertiesOpen && selectedField && (
               <div className="w-80 border-l border-gray-200 p-4">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Field Properties</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">{t('layoutDesigner.fieldProperties')}</h3>
                 
                 <div className="space-y-4">
                   {/* Field Type */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('layoutDesigner.type')}</label>
                     <select
                       value={selectedField.int_typ}
                       onChange={(e) => updateField(selectedField.int_layout_felderid, { int_typ: Number(e.target.value) })}
@@ -982,9 +985,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                   {/* Value */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {selectedField.int_typ === 0 ? 'Database Field' : 
-                       selectedField.int_typ === 1 ? 'Text Content' :
-                       selectedField.int_typ === 2 ? 'Image Path' : 'Line Style'}
+                      {selectedField.int_typ === 0 ? t('layoutDesigner.databaseField') : 
+                       selectedField.int_typ === 1 ? t('layoutDesigner.textContent') :
+                       selectedField.int_typ === 2 ? t('layoutDesigner.imagePath') : t('layoutDesigner.lineStyle')}
                     </label>
                     
                     {selectedField.int_typ === 2 ? (
@@ -992,7 +995,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                         <div className="flex items-center space-x-2">
                           <input
                             type="text"
-                            placeholder="Image path or URL"
+                            placeholder={t('layoutDesigner.imagePathPlaceholder')}
                             value={selectedField.var_value || ''}
                             onChange={(e) => {
                               updateField(selectedField.int_layout_felderid, { var_value: e.target.value });
@@ -1008,7 +1011,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                               if (file) {
                                 try {
                                   // Show uploading state immediately
-                                  const tempPath = '🔄 Uploading...';
+                                  const tempPath = t('layoutDesigner.uploading');
                                   await updateField(selectedField.int_layout_felderid, { var_value: tempPath });
                                   
                                   // Upload image to server
@@ -1038,13 +1041,13 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                                     }, 100);
                                   } else {
                                     console.error('Failed to upload image');
-                                    alert('Failed to upload image. Please try again.');
+                                    alert(t('layoutDesigner.uploadFailed'));
                                     // Revert to empty
                                     await updateField(selectedField.int_layout_felderid, { var_value: '' });
                                   }
                                 } catch (error) {
                                   console.error('Error uploading image:', error);
-                                  alert('Error uploading image. Please try again.');
+                                  alert(t('layoutDesigner.uploadError'));
                                   // Revert to empty
                                   await updateField(selectedField.int_layout_felderid, { var_value: '' });
                                 }
@@ -1054,13 +1057,13 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                             }}
                             className="hidden"
                             id="image-upload"
-                            title="Upload image file"
+                            title={t('layoutDesigner.uploadImageFile')}
                           />
                           <label 
                             htmlFor="image-upload" 
                             className="px-2 py-1 bg-green-500 text-white text-xs rounded cursor-pointer hover:bg-green-600"
                           >
-                            Upload
+                            {t('layoutDesigner.upload')}
                           </label>
                         </div>
                         
@@ -1101,7 +1104,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                         onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
                         className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                       >
-                        <option value="">Select database field...</option>
+                        <option value="">{t('layoutDesigner.selectDatabaseField')}</option>
                         {Object.entries(DATABASE_FIELD_DESCRIPTIONS).map(([key, description]) => (
                           <option key={key} value={key}>
                             {key}: {description}
@@ -1114,7 +1117,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                         value={selectedField.var_value || ''}
                         onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
                         className="w-full text-xs border border-gray-300 rounded px-2 py-1"
-                        placeholder={selectedField.int_typ === 1 ? 'Enter text' : 'solid'}
+                        placeholder={selectedField.int_typ === 1 ? t('layoutDesigner.enterText') : 'solid'}
                       />
                     )}
                     
@@ -1123,7 +1126,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                         <div className="text-xs text-blue-700 font-medium mb-1">
                           {getDatabaseFieldDescription(parseInt(selectedField.var_value))}
                         </div>
-                        <div className="text-xs text-gray-600">Preview:</div>
+                        <div className="text-xs text-gray-600">{t('layoutDesigner.preview')}:</div>
                         <div className="text-xs text-blue-600 italic">
                           "{getDatabaseFieldSample(selectedField.var_value)}"
                         </div>
@@ -1133,11 +1136,11 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
                   {/* Position */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-2">Position</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-2">{t('layoutDesigner.position')}</label>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs text-gray-500 mb-1">
-                          X Position (0.0-1.0)
+                          {t('layoutDesigner.xPosition')}
                         </label>
                         <input
                           type="number"
@@ -1151,7 +1154,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       </div>
                       <div>
                         <label className="block text-xs text-gray-500 mb-1">
-                          Y Position (0.0-1.0)
+                          {t('layoutDesigner.yPosition')}
                         </label>
                         <input
                           type="number"
@@ -1165,22 +1168,22 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       </div>
                     </div>
                     <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
-                      <div className="font-medium mb-1">Coordinate System:</div>
-                      <div>• X=0, Y=0 = Top-Left corner</div>
-                      <div>• X=1, Y=0 = Top-Right corner</div>
-                      <div>• X=0, Y=1 = Bottom-Left corner</div>
-                      <div>• X=1, Y=1 = Bottom-Right corner</div>
-                      <div className="mt-1 text-blue-600">Values range from 0.0 to 1.0 (relative to paper size)</div>
+                      <div className="font-medium mb-1">{t('layoutDesigner.coordinateSystem')}:</div>
+                      <div>• X=0, Y=0 = {t('layoutDesigner.topLeft')}</div>
+                      <div>• X=1, Y=0 = {t('layoutDesigner.topRight')}</div>
+                      <div>• X=0, Y=1 = {t('layoutDesigner.bottomLeft')}</div>
+                      <div>• X=1, Y=1 = {t('layoutDesigner.bottomRight')}</div>
+                      <div className="mt-1 text-blue-600">{t('layoutDesigner.valuesRange')}</div>
                     </div>
                   </div>
 
                   {/* Size */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-2">Size</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-2">{t('layoutDesigner.size')}</label>
                     <div className="flex items-center gap-2">
                       <div className="flex-1">
                         <label className="block text-xs text-gray-500 mb-1">
-                          Width (0.0-1.0)
+                          {t('layoutDesigner.width')}
                         </label>
                         <input
                           type="number"
@@ -1202,7 +1205,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                               ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                               : 'bg-gray-100 text-gray-600 border border-gray-300'
                           } hover:opacity-80 transition-opacity`}
-                          title={aspectRatioLocked[selectedField.int_layout_felderid] ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+                          title={aspectRatioLocked[selectedField.int_layout_felderid] ? t('layoutDesigner.unlockAspectRatio') : t('layoutDesigner.lockAspectRatio')}
                         >
                           {aspectRatioLocked[selectedField.int_layout_felderid] ? (
                             <LockClosedIcon className="h-4 w-4" />
@@ -1219,7 +1222,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       
                       <div className="flex-1">
                         <label className="block text-xs text-gray-500 mb-1">
-                          Height (0.0-1.0)
+                          {t('layoutDesigner.height')}
                         </label>
                         <input
                           type="number"
@@ -1236,7 +1239,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
                   {/* Alignment */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Text Alignment</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('layoutDesigner.textAlignment')}</label>
                     <select
                       value={selectedField.int_align}
                       onChange={(e) => updateField(selectedField.int_layout_felderid, { int_align: Number(e.target.value) })}
@@ -1250,7 +1253,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
                   {/* Layer */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Layer (Z-Index)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('layoutDesigner.layer')}</label>
                     <input
                       type="number"
                       min="0"
@@ -1260,14 +1263,14 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                     />
                     <div className="mt-1 text-xs text-gray-500">
-                      <div>Lower numbers = Background (0, 1, 2)</div>
-                      <div>Higher numbers = Foreground (8, 9, 10)</div>
+                      <div>{t('layoutDesigner.layerBackground')}</div>
+                      <div>{t('layoutDesigner.layerForeground')}</div>
                     </div>
                   </div>
 
                   {/* Font */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Font</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">{t('layoutDesigner.font')}</label>
                     <input
                       type="text"
                       value={selectedField.var_font || ''}
@@ -1284,7 +1287,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                       className="w-full px-3 py-2 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700"
                     >
                       <TrashIcon className="h-3 w-3 mr-1 inline" />
-                      Delete Field
+                      {t('layoutDesigner.deleteField')}
                     </button>
                   </div>
                 </div>

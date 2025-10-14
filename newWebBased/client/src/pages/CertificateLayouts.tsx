@@ -11,6 +11,7 @@ import { useCertificateLayout } from '@/contexts/CertificateLayoutContext'
 import LayoutDesigner from '@/components/LayoutDesigner'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 import { BlueInfoBox } from '@/components/InfoBoxes'
+import { useTranslation } from 'react-i18next'
 
 // Database field descriptions from C++ code (_global.cpp)
 // These numbers correspond to the field indices used in certificate layouts
@@ -61,6 +62,8 @@ interface LayoutField {
 }
 
 const CertificateLayouts: React.FC = () => {
+  const { t } = useTranslation()
+  
   // State management
   const [layouts, setLayouts] = useState<Layout[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -106,7 +109,7 @@ const CertificateLayouts: React.FC = () => {
   const handleCreateLayout = async () => {
     try {
       const newLayout = await apiPost('/layouts', {
-        name: 'New Layout',
+        name: t('certificateLayouts.newLayout'),
         comment: ''
       })
       
@@ -130,7 +133,7 @@ const CertificateLayouts: React.FC = () => {
   const handleDeleteLayout = async (layout: Layout) => {
     console.log('Delete button clicked for layout:', layout)
     
-    if (!confirm('Are you sure you want to delete this layout? This action cannot be undone.')) {
+    if (!confirm(t('certificateLayouts.confirmDelete'))) {
       console.log('Delete cancelled by user')
       return
     }
@@ -143,13 +146,13 @@ const CertificateLayouts: React.FC = () => {
       console.log('Layout removed from state')
     } catch (error) {
       console.error('Error deleting layout:', error)
-      alert('Error deleting layout: ' + (error instanceof Error ? error.message : String(error)))
+      alert(t('certificateLayouts.deleteError', { error: error instanceof Error ? error.message : String(error) }))
     }
   }
 
   // Duplicate layout
   const handleDuplicateLayout = async (layout: Layout) => {
-    const newName = prompt(`Enter name for duplicated layout:`, `${layout.var_name} (Copy)`)
+    const newName = prompt(t('certificateLayouts.enterDuplicateName'), `${layout.var_name} ${t('certificateLayouts.copyLabel')}`)
     if (!newName || !newName.trim()) return
 
     try {
@@ -380,19 +383,19 @@ const CertificateLayouts: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Layout Name
+        {t('certificateLayouts.layoutName')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Comment
+        {t('certificateLayouts.comment')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Fields
+        {t('certificateLayouts.fields')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Status
+        {t('certificateLayouts.status')}
       </th>
       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Actions
+        {t('certificateLayouts.actions')}
       </th>
     </tr>
   )
@@ -410,17 +413,17 @@ const CertificateLayouts: React.FC = () => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {layout.fieldCount || 0} fields
+          {t('certificateLayouts.fieldsCount', { count: layout.fieldCount || 0 })}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         {contextSelectedLayout?.int_layoutid === layout.int_layoutid ? (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            Selected for Printing
+            {t('certificateLayouts.selectedForPrinting')}
           </span>
         ) : (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-            Available
+            {t('certificateLayouts.available')}
           </span>
         )}
       </td>
@@ -433,28 +436,28 @@ const CertificateLayouts: React.FC = () => {
                 ? 'bg-green-100 text-green-600 hover:bg-green-200'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
-            title="Select for Certificate Printing"
+            title={t('certificateLayouts.selectForPrinting')}
           >
             <PrinterIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleEditLayout(layout)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Edit Layout"
+            title={t('certificateLayouts.editLayout')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDuplicateLayout(layout)}
             className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-            title="Duplicate Layout"
+            title={t('certificateLayouts.duplicateLayout')}
           >
             <DocumentDuplicateIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDeleteLayout(layout)}
             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete Layout"
+            title={t('certificateLayouts.deleteLayout')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -477,12 +480,12 @@ const CertificateLayouts: React.FC = () => {
           <div className="flex items-center space-x-4 text-sm text-gray-500">
             <span className="inline-flex items-center">
               <DocumentTextIcon className="h-4 w-4 mr-1" />
-              {layout.fieldCount || 0} fields
+              {t('certificateLayouts.fieldsCount', { count: layout.fieldCount || 0 })}
             </span>
             {contextSelectedLayout?.int_layoutid === layout.int_layoutid && (
               <span className="inline-flex items-center text-green-600">
                 <PrinterIcon className="h-4 w-4 mr-1" />
-                Selected for Printing
+                {t('certificateLayouts.selectedForPrinting')}
               </span>
             )}
           </div>
@@ -495,28 +498,28 @@ const CertificateLayouts: React.FC = () => {
                 ? 'bg-green-100 text-green-600 hover:bg-green-200'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
-            title="Select for Certificate Printing"
+            title={t('certificateLayouts.selectForPrinting')}
           >
             <PrinterIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleEditLayout(layout)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Edit Layout"
+            title={t('certificateLayouts.editLayout')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDuplicateLayout(layout)}
             className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-            title="Duplicate Layout"
+            title={t('certificateLayouts.duplicateLayout')}
           >
             <DocumentDuplicateIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDeleteLayout(layout)}
             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete Layout"
+            title={t('certificateLayouts.deleteLayout')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -527,35 +530,35 @@ const CertificateLayouts: React.FC = () => {
 
   // Help content
   const helpContent = (
-    <BlueInfoBox title="Certificate Layouts Help">
+    <BlueInfoBox title={t('certificateLayouts.help.title')}>
       <div className="space-y-4">
         <div>
-          <h4 className="font-medium text-blue-900 mb-2">Layout Management</h4>
+          <h4 className="font-medium text-blue-900 mb-2">{t('certificateLayouts.help.layoutManagement')}</h4>
           <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-            <li>Create new layouts using the "Add Layout" button</li>
-            <li>Edit layouts to modify name, description, and design fields</li>
-            <li>Duplicate existing layouts to create variations</li>
-            <li>Select layouts for certificate printing</li>
-            <li>Delete unused layouts</li>
+            <li>{t('certificateLayouts.help.createLayouts')}</li>
+            <li>{t('certificateLayouts.help.editLayouts')}</li>
+            <li>{t('certificateLayouts.help.duplicateLayouts')}</li>
+            <li>{t('certificateLayouts.help.selectLayouts')}</li>
+            <li>{t('certificateLayouts.help.deleteLayouts')}</li>
           </ul>
         </div>
         
         <div>
-          <h4 className="font-medium text-blue-900 mb-2">Layout Designer</h4>
+          <h4 className="font-medium text-blue-900 mb-2">{t('certificateLayouts.help.layoutDesigner')}</h4>
           <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-            <li>Add text fields, data fields, and images to your layout</li>
-            <li>Position and resize elements by dragging</li>
-            <li>Configure fonts, alignment, and formatting</li>
-            <li>Preview your layout before saving</li>
+            <li>{t('certificateLayouts.help.addElements')}</li>
+            <li>{t('certificateLayouts.help.positionElements')}</li>
+            <li>{t('certificateLayouts.help.configureFonts')}</li>
+            <li>{t('certificateLayouts.help.previewLayout')}</li>
           </ul>
         </div>
         
         <div>
-          <h4 className="font-medium text-blue-900 mb-2">Special Features</h4>
+          <h4 className="font-medium text-blue-900 mb-2">{t('certificateLayouts.help.specialFeatures')}</h4>
           <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-            <li><strong>Duplicate:</strong> Create copies of existing layouts with custom names</li>
-            <li><strong>Select:</strong> Choose layouts for certificate printing in competitions</li>
-            <li><strong>Designer Integration:</strong> Edit names and descriptions directly in the designer</li>
+            <li><strong>{t('certificateLayouts.help.duplicateFeature')}</strong></li>
+            <li><strong>{t('certificateLayouts.help.selectFeature')}</strong></li>
+            <li><strong>{t('certificateLayouts.help.designerIntegration')}</strong></li>
           </ul>
         </div>
       </div>
@@ -565,18 +568,18 @@ const CertificateLayouts: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Certificate Layouts"
-        subtitle={`Design and manage certificate templates and layouts for competitions • ${layouts.length} layouts loaded`}
+        title={t('certificateLayouts.title')}
+        subtitle={t('certificateLayouts.subtitle', { count: layouts.length })}
         icon={DocumentTextIcon}
         data={filteredLayouts}
         isLoading={isLoading}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search layouts by name or comment..."
+        searchPlaceholder={t('certificateLayouts.searchPlaceholder')}
         itemsPerPage={20}
         viewStorageKey="certificate-layouts-view"
         onAdd={handleCreateLayout}
-        addLabel="Add Layout"
+        addLabel={t('certificateLayouts.addLayout')}
         onExportCSV={handleExportCSV}
         renderTableHeaders={renderTableHeaders}
         renderTableRow={renderTableRow}
@@ -586,7 +589,7 @@ const CertificateLayouts: React.FC = () => {
         showHelpPanel={showHelpPanel}
         onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
         helpContent={helpContent}
-        helpLabel="Layout Help"
+        helpLabel={t('certificateLayouts.layoutHelp')}
       />
       
       {/* Layout Designer */}
