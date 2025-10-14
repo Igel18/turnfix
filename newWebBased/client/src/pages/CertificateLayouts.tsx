@@ -12,6 +12,32 @@ import LayoutDesigner from '@/components/LayoutDesigner'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 import { BlueInfoBox } from '@/components/InfoBoxes'
 
+// Database field descriptions from C++ code (_global.cpp)
+// These numbers correspond to the field indices used in certificate layouts
+export const DATABASE_FIELD_DESCRIPTIONS: { [key: number]: string } = {
+  0: 'Veranstaltungsname',
+  1: 'Veranstaltungsdatum',
+  2: 'Veranstaltungsort',
+  3: 'Name (Teilnehmer)',
+  4: 'Verein',
+  5: 'Platz',
+  6: 'Punkte',
+  7: 'Wettkampfbezeichnung',
+  8: 'Wettkampfbezeichnung mit Jahrgang',
+  9: 'Turnkreis/-gau',
+  10: 'Verband',
+  11: 'Land',
+  12: 'Ausdruck-Typ (Siegerurkunde/Teilnahmeurkunde)',
+  13: 'Summe Platzziffern',
+  14: 'Mannschaftsnamen',
+  15: 'Wettkampfnummer'
+}
+
+// Helper function to get field description
+export const getDatabaseFieldDescription = (fieldNum: number): string => {
+  return DATABASE_FIELD_DESCRIPTIONS[fieldNum] || `Feld ${fieldNum}`
+}
+
 interface Layout {
   int_layoutid: number
   var_name: string

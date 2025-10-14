@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { debugLog, isDebugEnabled } from '@/utils/debug'
+import { DATABASE_FIELD_DESCRIPTIONS, getDatabaseFieldDescription } from '@/pages/CertificateLayouts'
 import { 
   TrashIcon, 
   DocumentTextIcon,
@@ -415,12 +416,18 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       height: `${field.rel_h * 100}%`,
       border: isSelected 
         ? '2px solid #3B82F6' 
-        : '1px dashed #9CA3AF',
+        : field.int_typ === 0 
+          ? '2px solid #60A5FA'  // Database field - blue border
+          : field.int_typ === 1 
+            ? '2px solid #4ADE80'  // Text field - green border
+            : field.int_typ === 2 
+              ? '2px solid #C084FC'  // Image - purple border
+              : '1px dashed #9CA3AF',  // Default - gray dashed
       backgroundColor: isSelected 
         ? '#EBF8FF' 
-        : field.int_typ === 0 ? '#F8FAFC' :  // Database field - blue
-          field.int_typ === 1 ? '#F9FDF9' :  // Text field - green
-          field.int_typ === 2 ? '#FDFAFF' :  // Image - purple
+        : field.int_typ === 0 ? '#EFF6FF' :  // Database field - light blue
+          field.int_typ === 1 ? '#F0FDF4' :  // Text field - light green
+          field.int_typ === 2 ? '#FAF5FF' :  // Image - light purple
           '#FFFFFF',  // Default - white
       cursor: 'move',
       display: 'flex',
@@ -516,11 +523,13 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
     switch (field.int_typ) {
       case 0: // Database field
+        const fieldNum = field.var_value ? parseInt(field.var_value) : null;
+        const fieldDescription = fieldNum !== null ? getDatabaseFieldDescription(fieldNum) : 'Select DB Field';
         return (
           <div style={contentStyle}>
             <span className="text-blue-600 font-mono text-xs mr-1">🗃</span>
-            <span className="truncate" title={`Database field: ${field.var_value || 'unknown'}`}>
-              {getDatabaseFieldSample(field.var_value)}
+            <span className="truncate" title={`${fieldDescription}: ${getDatabaseFieldSample(field.var_value)}`}>
+              {fieldDescription}
             </span>
           </div>
         );
@@ -734,13 +743,30 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
               <div className="space-y-2">
                 {FIELD_TYPES.map((fieldType) => {
                   const IconComponent = fieldType.icon;
+                  // Determine color based on field type
+                  const colorClasses = fieldType.value === 0 
+                    ? 'bg-blue-50 border-blue-300 hover:bg-blue-100 text-blue-900 border-l-4 border-l-blue-500'
+                    : fieldType.value === 1 
+                      ? 'bg-green-50 border-green-300 hover:bg-green-100 text-green-900 border-l-4 border-l-green-500'
+                      : fieldType.value === 2 
+                        ? 'bg-purple-50 border-purple-300 hover:bg-purple-100 text-purple-900 border-l-4 border-l-purple-500'
+                        : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700';
+                  
+                  const iconColorClass = fieldType.value === 0 
+                    ? 'text-blue-600'
+                    : fieldType.value === 1 
+                      ? 'text-green-600'
+                      : fieldType.value === 2 
+                        ? 'text-purple-600'
+                        : 'text-gray-600';
+                  
                   return (
                     <button
                       key={fieldType.value}
                       onClick={() => addField(fieldType.value)}
-                      className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className={`w-full flex items-center px-3 py-2 text-sm font-medium border rounded-md ${colorClasses}`}
                     >
-                      <IconComponent className="h-4 w-4 mr-2" />
+                      <IconComponent className={`h-4 w-4 mr-2 ${iconColorClass}`} />
                       {fieldType.label}
                     </button>
                   );
@@ -756,22 +782,43 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     const fieldType = FIELD_TYPES.find(t => t.value === field.int_typ);
                     const IconComponent = fieldType?.icon || DocumentTextIcon;
                     
+                    // Get descriptive label for the field
+                    let fieldLabel = fieldType?.label || 'Unknown';
+                    if (field.int_typ === 0 && field.var_value) {
+                      // Database field - show description
+                      const fieldNum = parseInt(field.var_value);
+                      fieldLabel = getDatabaseFieldDescription(fieldNum);
+                    } else if (field.int_typ === 1 && field.var_value) {
+                      // Text field - show truncated content
+                      fieldLabel = field.var_value.substring(0, 30) + (field.var_value.length > 30 ? '...' : '');
+                    }
+                    
                     return (
                       <div
                         key={field.int_layout_felderid}
-                        className={`flex items-center justify-between px-2 py-1 text-xs rounded ${
+                        className={`flex items-center justify-between px-2 py-1 text-xs rounded border-l-2 ${
                           selectedField?.int_layout_felderid === field.int_layout_felderid
                             ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                            : field.int_typ === 0 
+                              ? 'bg-blue-50 text-blue-900 hover:bg-blue-100 border-blue-400'
+                              : field.int_typ === 1
+                                ? 'bg-green-50 text-green-900 hover:bg-green-100 border-green-400'
+                                : field.int_typ === 2
+                                  ? 'bg-purple-50 text-purple-900 hover:bg-purple-100 border-purple-400'
+                                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-400'
                         }`}
                       >
                         <div 
                           className="flex items-center flex-1 cursor-pointer"
                           onClick={() => setSelectedField(field)}
                         >
-                          <IconComponent className="h-3 w-3 mr-1" />
+                          <IconComponent className={`h-3 w-3 mr-1 ${
+                            field.int_typ === 0 ? 'text-blue-600' : 
+                            field.int_typ === 1 ? 'text-green-600' :
+                            field.int_typ === 2 ? 'text-purple-600' : 'text-gray-600'
+                          }`} />
                           <span className="truncate">
-                            {fieldType?.label} {field.int_layer + 1}
+                            {fieldLabel}
                           </span>
                         </div>
                         <button
@@ -1047,20 +1094,36 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                           </div>
                         )}
                       </div>
+                    ) : selectedField.int_typ === 0 ? (
+                      // Database field dropdown with descriptive names
+                      <select
+                        value={selectedField.var_value || ''}
+                        onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
+                        className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="">Select database field...</option>
+                        {Object.entries(DATABASE_FIELD_DESCRIPTIONS).map(([key, description]) => (
+                          <option key={key} value={key}>
+                            {key}: {description}
+                          </option>
+                        ))}
+                      </select>
                     ) : (
                       <input
                         type="text"
                         value={selectedField.var_value || ''}
                         onChange={(e) => updateField(selectedField.int_layout_felderid, { var_value: e.target.value })}
                         className="w-full text-xs border border-gray-300 rounded px-2 py-1"
-                        placeholder={selectedField.int_typ === 0 ? 'participant_name' :
-                                    selectedField.int_typ === 1 ? 'Enter text' : 'solid'}
+                        placeholder={selectedField.int_typ === 1 ? 'Enter text' : 'solid'}
                       />
                     )}
                     
-                    {selectedField.int_typ === 0 && (
+                    {selectedField.int_typ === 0 && selectedField.var_value && (
                       <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
-                        <div className="text-xs text-blue-700 font-medium">Preview:</div>
+                        <div className="text-xs text-blue-700 font-medium mb-1">
+                          {getDatabaseFieldDescription(parseInt(selectedField.var_value))}
+                        </div>
+                        <div className="text-xs text-gray-600">Preview:</div>
                         <div className="text-xs text-blue-600 italic">
                           "{getDatabaseFieldSample(selectedField.var_value)}"
                         </div>
