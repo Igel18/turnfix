@@ -12,6 +12,7 @@
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "helmet": "^8.1.0",
     "http-proxy-middleware": "^3.0.5",
     "node-fetch": "^3.3.2"
   },

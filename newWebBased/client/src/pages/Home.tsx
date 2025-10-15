@@ -63,7 +63,7 @@ export function Home() {
           {/* Secondary Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a 
-              href="http://localhost:5174" 
+              href={`${window.location.protocol}//${window.location.hostname}:3002`}
               target="_blank"
               rel="noopener noreferrer"
               className="group bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
@@ -196,7 +196,7 @@ export function Home() {
                   💡 {t('home.jury.networkNote')}
                 </p>
                 <a 
-                  href="http://localhost:5174"
+                  href={`${window.location.protocol}//${window.location.hostname}:3002`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium"

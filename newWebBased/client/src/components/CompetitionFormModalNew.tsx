@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { debugInfo, debugLog } from '../utils/debug';
+import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 
 // Interface for discipline data from API

@@ -13,7 +13,7 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
   return { handleDragStart, handleDragOver, handleDrop };
 }
 import { useTranslation } from 'react-i18next'
-import TimePlanningRotation, { Squad as RotationSquad, Device as RotationDevice } from './TimePlanningRotation'
+import TimePlanningRotation from './TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
   ClockIcon,

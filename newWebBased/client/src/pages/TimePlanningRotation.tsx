@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { apiGet, apiPut } from '../utils/api';
+import { apiPut } from '../utils/api';
 
 
 export interface Squad {
@@ -68,7 +68,7 @@ interface Bahn {
 
 
 
-const TimePlanningRotation: React.FC<TimePlanningRotationProps> = ({ eventId, squads, devices, competitions }) => {
+const TimePlanningRotation: React.FC<TimePlanningRotationProps> = ({ eventId: _eventId, squads, devices, competitions }) => {
   const [bahnen, setBahnen] = useState<Bahn[]>([]);
   const [draggedSquad, setDraggedSquad] = useState<{ squad: Squad; fromBahn: number } | null>(null);
   const [loading, setLoading] = useState(false);

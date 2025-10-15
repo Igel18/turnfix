@@ -62,7 +62,7 @@ const EditCompetition: React.FC = () => {
   const { selectedEvent } = useEvent();
 
   // State management
-  const [competition, setCompetition] = useState<Competition | null>(null);
+  const [, setCompetition] = useState<Competition | null>(null);
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
   const [loading, setLoading] = useState(false);

@@ -147,10 +147,14 @@ function Start-TurnFix {
     
     # Prüfe ob Build existiert
     $distPath = Join-Path $serverPath "dist"
-    if (-not (Test-Path $distPath)) {
+    $clientDistPath = Join-Path $PSScriptRoot "newWebBased\client\dist"
+    
+    if (-not (Test-Path $distPath) -or -not (Test-Path $clientDistPath)) {
         Write-Host "⚠ Build-Dateien nicht gefunden. Erstelle Build..." -ForegroundColor Yellow
+        Write-Host "  Backend wird kompiliert..." -ForegroundColor DarkGray
+        Write-Host "  Frontend wird gebaut..." -ForegroundColor DarkGray
         Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
-        npm run build
+        npm run build:all
         if ($LASTEXITCODE -ne 0) {
             Write-Host "✗ Build fehlgeschlagen!" -ForegroundColor Red
             Read-Host "Drücken Sie Enter zum Fortfahren"
@@ -366,10 +370,19 @@ function Show-AdvancedMenu {
         }
         "3" {
             Write-Host "Build wird erstellt..." -ForegroundColor Yellow
+            Write-Host "  Backend wird kompiliert..." -ForegroundColor Cyan
+            Write-Host "  Frontend wird gebaut..." -ForegroundColor Cyan
+            Write-Host ""
             $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
             Set-Location $serverPath
-            npm run build
-            Write-Host "✓ Build erstellt! Starten Sie TurnFix neu (Option 3)" -ForegroundColor Green
+            npm run build:all
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host ""
+                Write-Host "✓ Build erfolgreich erstellt!" -ForegroundColor Green
+                Write-Host "  Starten Sie TurnFix neu (Option 3 im Hauptmenü)" -ForegroundColor Yellow
+            } else {
+                Write-Host "✗ Build fehlgeschlagen!" -ForegroundColor Red
+            }
             Read-Host "Drücken Sie Enter zum Fortfahren"
         }
         "4" {
