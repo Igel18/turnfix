@@ -979,7 +979,7 @@
       "description": "The Jury Portal provides a simplified interface specifically for judges on competition day. Optimized for tablets and smartphones.",
       "info": "Access to score sheets, participant lists, and live score entry. Perfect for use directly at the apparatus.",
       "openPortal": "Open Jury Portal",
-      "networkNote": "The Jury Portal runs on port 5174 and can be made accessible to other devices on the network via firewall rules."
+      "networkNote": "The Jury Portal runs on port 3002 and can be made accessible to other devices on the network via firewall rules."
     },
     "help": {
       "title": "Need Help?",

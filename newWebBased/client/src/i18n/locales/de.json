@@ -979,7 +979,7 @@
       "description": "Das Jury-Portal bietet eine vereinfachte Oberfläche speziell für Kampfrichter am Wettkampftag. Optimiert für Tablets und Smartphones.",
       "info": "Zugriff auf Wertungsbögen, Teilnehmerlisten und Live-Eingabe von Punkten. Perfekt für den Einsatz direkt am Gerät.",
       "openPortal": "Jury-Portal öffnen",
-      "networkNote": "Das Jury-Portal läuft auf Port 5174 und kann über Firewall-Regeln für andere Geräte im Netzwerk zugänglich gemacht werden."
+      "networkNote": "Das Jury-Portal läuft auf Port 3002 und kann über Firewall-Regeln für andere Geräte im Netzwerk zugänglich gemacht werden."
     },
     "help": {
       "title": "Benötigen Sie Hilfe?",

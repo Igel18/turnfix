@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
@@ -11,12 +12,38 @@ const app = express();
 const PORT = process.env.JURY_PORT || 3002;
 const MAIN_SERVER_URL = process.env.MAIN_SERVER_URL || 'http://localhost:3001';
 
-// Middleware
-app.use(cors());
+// Middleware - Security headers with relaxed CSP for static frontend serving
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "http:", "ws:", "wss:"], // Allow all HTTP connections (network access)
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      upgradeInsecureRequests: null, // Disable HTTP->HTTPS upgrade
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// CORS - Allow all origins for jury portal network access
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
 app.use(express.json());
 
 // Serve static files from the jury portal build
-app.use(express.static(path.join(__dirname, '../../client/dist-jury')));
+app.use(express.static(path.join(__dirname, '../../jury-portal/dist')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -54,7 +81,7 @@ app.use('/api', async (req, res) => {
 
 // Catch all handler: send back the jury portal index.html file
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../client/dist-jury/index-jury.html'));
+  res.sendFile(path.join(__dirname, '../../jury-portal/dist/index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {

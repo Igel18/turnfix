@@ -148,7 +148,7 @@ export const FirewallManagement: React.FC = () => {
       key: 'juryPortal' as const,
       title: t('configuration.firewall.juryPortal.title'),
       description: t('configuration.firewall.juryPortal.description'),
-      port: status?.ports.juryPortal || 5174,
+      port: status?.ports.juryPortal || 3002,
       color: 'purple'
     }
   ]

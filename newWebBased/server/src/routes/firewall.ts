@@ -12,10 +12,11 @@ const FIREWALL_RULES = {
   juryPortal: 'TurnFix Jury Portal'
 };
 
+// Ports - frontend port depends on NODE_ENV
 const PORTS = {
   backend: 3001,
-  frontend: 5173,
-  juryPortal: 5174
+  frontend: process.env.NODE_ENV === 'production' ? 3001 : 5173, // In production, frontend is served by backend
+  juryPortal: 3002
 };
 
 /**

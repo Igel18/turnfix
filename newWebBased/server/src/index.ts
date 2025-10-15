@@ -92,24 +92,65 @@ const limiter = rateLimit({
 });
 
 // Middleware
-app.use(helmet());
+// Configure Helmet with relaxed CSP for production frontend serving
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "http:", "ws:", "wss:"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      upgradeInsecureRequests: null, // Disable HTTP->HTTPS upgrade
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(compression());
 app.use(morgan('combined'));
 app.use(limiter);
+
+// CORS configuration - allow network access
+const corsOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:3002',
+  process.env.FRONTEND_URL || 'http://localhost:5173'
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-    'http://localhost:5177',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
-    'http://127.0.0.1:5175',
-    'http://127.0.0.1:5176',
-    'http://127.0.0.1:5177',
-    process.env.FRONTEND_URL || 'http://localhost:5173'
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost/127.0.0.1 on any port
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow any IP address on ports 3001, 3002, 5173, 5174 (network access)
+    const urlPattern = /^http:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(3001|3002|5173|5174)$/;
+    if (urlPattern.test(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow specific configured origins
+    if (corsOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -183,6 +224,53 @@ app.use('/api/wertungen-details', wertungenDetailsRoutes);
 app.use('/api/configuration', configurationRoutes);
 app.use('/api/time-planning', timePlanningRoutes);
 app.use('/api/firewall', firewallRoutes);
+
+// Serve static frontend files in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  const clientDistPath = path.join(__dirname, '../../client/dist');
+  
+  console.log('🌐 Serving static frontend from:', clientDistPath);
+  
+  // Serve static files from the client dist directory
+  app.use(express.static(clientDistPath, {
+    maxAge: '1d', // Cache static files for 1 day
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, path) => {
+      // Don't cache index.html to ensure users get latest version
+      if (path.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    }
+  }));
+  
+  // All other routes should serve the index.html (for SPA routing)
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/public/')) {
+      return next();
+    }
+    
+    // Set no-cache headers for index.html
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        next(err);
+      }
+    });
+  });
+  
+  console.log('✅ Production mode: Frontend is served at http://localhost:' + PORT);
+} else {
+  console.log('🔧 Development mode: Frontend should be served separately (e.g., Vite dev server on port 5173)');
+}
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {
