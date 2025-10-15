@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BlueInfoBox } from '../components/InfoBoxes';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom'
 import { 
@@ -1498,6 +1499,35 @@ export function ScoreCapture() {
           ) : (
             <>
               {/* Score Capture Table */}
+              {/* Formula Documentation InfoBox */}
+              <div className="mb-4">
+                <BlueInfoBox title={t('scoreCapture.formulaHelp.title', 'Hinweise zur Wertungserfassung')}>
+                  <ul className="space-y-2 text-sm">
+                    <li className="mb-1">
+                      <span className="font-semibold">{t('scoreCapture.formulaHelp.genericTitle', 'Allgemeine Hinweise zur Wertungsformel')}</span>: {t('scoreCapture.formulaHelp.generic', 'Die Endwertung wird basierend auf den eingegebenen Feldern und der Disziplin-spezifischen Formel berechnet. Die Formel verwendet Variablen (A, B, C, ...) die den einzelnen Feldern zugeordnet sind. Beispiel: Endwert = A - B - C, wobei A = D/A-Note, B = E/B-Note, C = Neutrale Abzüge.')}
+                    </li>
+                    <li className="mb-1">
+                      <span className="font-semibold">{t('scoreCapture.formulaHelp.disciplineTitle', 'Disziplin-spezifische Hinweise')}</span>: {t('scoreCapture.formulaHelp.discipline', 'Jede Disziplin kann eine eigene Formel und Felder haben. Die genaue Berechnung wird oberhalb der Eingabefelder angezeigt.')}
+                    </li>
+                    <li className="mb-1">
+                      <span className="font-semibold">{t('scoreCapture.formulaHelp.editable', 'Bearbeitung der Felder')}</span>: {t('scoreCapture.formulaHelp.editableText', 'Die Felder können direkt bearbeitet werden. Die Berechnung erfolgt automatisch nach Klick auf "Berechnen" oder beim Speichern.')}
+                    </li>
+                    <li className="mb-1 pt-2 border-t border-blue-200">
+                      <span className="font-semibold">{t('scoreCapture.formulaHelp.endwertTypes', 'Unterschied: Endwert offiziell vs. Jury-Endwert')}</span>:
+                      <ul className="ml-4 mt-1 space-y-1">
+                        <li>
+                          <span className="inline-block w-32 text-green-700">• {t('scoreCapture.formulaHelp.officialEndwert', 'Endwert offiziell')}</span> 
+                          <span className="text-gray-700">(grün): {t('scoreCapture.formulaHelp.officialEndwertDesc', 'Wird in tfx_wertungen_details gespeichert. Dies ist der finale, offizielle Endwert für die Ergebnisberechnungen und Ranglisten.')}</span>
+                        </li>
+                        <li>
+                          <span className="inline-block w-32 text-gray-700">• {t('scoreCapture.formulaHelp.juryEndwert', 'Jury-Endwert')}</span> 
+                          <span className="text-gray-700">(grau): {t('scoreCapture.formulaHelp.juryEndwertDesc', 'Wird in tfx_jury_results gespeichert. Dies sind die Detail-Werte der Kampfrichter (z.B. D-Note, E-Note, Abzüge). Automatische Berechnung übernimmt beide Werte.')}</span>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </BlueInfoBox>
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">

@@ -18,9 +18,19 @@ function Show-Status {
     
     # Prüfe PM2 Status
     try {
-        $pm2Status = npx pm2 jlist 2>&1 | ConvertFrom-Json
+        # Unterdrücke Fehlerausgabe und prüfe ob PM2 verfügbar ist
+        $ErrorActionPreference = 'SilentlyContinue'
+        $pm2Output = npx pm2 jlist 2>&1
+        $ErrorActionPreference = 'Continue'
         
-        if ($pm2Status.Count -gt 0) {
+        # Prüfe ob die Ausgabe gültiges JSON ist
+        if (-not $pm2Output) {
+            throw "PM2 nicht initialisiert"
+        }
+        
+        $pm2Status = $pm2Output | ConvertFrom-Json
+        
+        if ($pm2Status -and $pm2Status.Count -gt 0) {
             $mainServer = $pm2Status | Where-Object { $_.name -eq "turnfix-server" }
             $juryServer = $pm2Status | Where-Object { $_.name -eq "turnfix-jury-server" }
             
@@ -64,13 +74,20 @@ function Show-Status {
         } else {
             Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
             Write-Host "│  ⚠ Keine Server gestartet                          │" -ForegroundColor Yellow
-            Write-Host "│  Wählen Sie Option 1 zum Starten                   │" -ForegroundColor Yellow
+            Write-Host "│  Wählen Sie Option 1 zum ersten Start              │" -ForegroundColor Yellow
             Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
         }
     } catch {
+        # PM2 ist nicht initialisiert oder es gibt keine Prozesse
         Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
-        Write-Host "│  ⚠ PM2 noch nicht initialisiert                    │" -ForegroundColor Yellow
-        Write-Host "│  Wählen Sie Option 1 zum ersten Start              │" -ForegroundColor Yellow
+        Write-Host "│  ℹ TurnFix ist noch nicht gestartet                │" -ForegroundColor Yellow
+        Write-Host "│                                                     │" -ForegroundColor Yellow
+        Write-Host "│  Wählen Sie Option 1 zum ersten Start:             │" -ForegroundColor Yellow
+        Write-Host "│  • Baut die Anwendung falls nötig                  │" -ForegroundColor White
+        Write-Host "│  • Startet Haupt-Server (Port 3001)                │" -ForegroundColor White
+        Write-Host "│  • Startet Kampfrichter-Portal (Port 3002)         │" -ForegroundColor White
+        Write-Host "│                                                     │" -ForegroundColor Yellow
+        Write-Host "│  Dies kann beim ersten Mal einige Minuten dauern.  │" -ForegroundColor DarkGray
         Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     }
     Write-Host ""
@@ -99,7 +116,9 @@ function Show-Menu {
 }
 
 function Start-TurnFix {
-    Write-Host "TurnFix wird gestartet..." -ForegroundColor Green
+    Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+    Write-Host "║              TurnFix wird gestartet...                     ║" -ForegroundColor Green
+    Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
     
     # Prüfe ob Server-Verzeichnis existiert
@@ -113,32 +132,92 @@ function Start-TurnFix {
     
     Set-Location $serverPath
     
+    # Prüfe ob node_modules existiert
+    $nodeModulesPath = Join-Path $serverPath "node_modules"
+    if (-not (Test-Path $nodeModulesPath)) {
+        Write-Host "⚠ Node-Module nicht gefunden. Installiere Dependencies..." -ForegroundColor Yellow
+        Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
+        npm install
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "✗ Installation fehlgeschlagen!" -ForegroundColor Red
+            Read-Host "Drücken Sie Enter zum Fortfahren"
+            return
+        }
+    }
+    
     # Prüfe ob Build existiert
     $distPath = Join-Path $serverPath "dist"
     if (-not (Test-Path $distPath)) {
         Write-Host "⚠ Build-Dateien nicht gefunden. Erstelle Build..." -ForegroundColor Yellow
+        Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
         npm run build
         if ($LASTEXITCODE -ne 0) {
             Write-Host "✗ Build fehlgeschlagen!" -ForegroundColor Red
             Read-Host "Drücken Sie Enter zum Fortfahren"
             return
         }
+        Write-Host "✓ Build erfolgreich erstellt!" -ForegroundColor Green
+        Write-Host ""
     }
     
     # Starte mit PM2
     Write-Host "Starte Server mit PM2..." -ForegroundColor Cyan
+    Write-Host "  • Haupt-Server wird gestartet..." -ForegroundColor White
+    Write-Host "  • Kampfrichter-Portal wird gestartet..." -ForegroundColor White
+    Write-Host ""
+    
     npm run pm2:start:prod
     
     if ($LASTEXITCODE -eq 0) {
+        Start-Sleep -Seconds 2  # Kurze Pause damit PM2 hochfährt
+        
+        # Hole lokale IP-Adresse
+        $localIP = "localhost"
+        try {
+            $networkAdapter = Get-NetIPAddress -AddressFamily IPv4 -PrefixOrigin Dhcp,Manual | 
+                              Where-Object { $_.IPAddress -notlike "169.254.*" -and $_.IPAddress -ne "127.0.0.1" } | 
+                              Select-Object -First 1
+            if ($networkAdapter) {
+                $localIP = $networkAdapter.IPAddress
+            }
+        } catch {
+            # Fallback auf localhost wenn IP-Erkennung fehlschlägt
+        }
+        
         Write-Host ""
-        Write-Host "✓ TurnFix erfolgreich gestartet!" -ForegroundColor Green
+        Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+        Write-Host "║        ✓ TurnFix erfolgreich gestartet!                   ║" -ForegroundColor Green
+        Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
         Write-Host ""
-        Write-Host "Zugangsdaten:" -ForegroundColor Cyan
-        Write-Host "  Verwaltung:    http://localhost:3001" -ForegroundColor White
-        Write-Host "  Kampfrichter:  http://localhost:3002" -ForegroundColor White
+        Write-Host "Lokal (nur dieser PC):" -ForegroundColor Cyan
+        Write-Host "  📊 Verwaltung:        http://localhost:3001" -ForegroundColor White
+        Write-Host "  👨‍⚖️  Kampfrichter:      http://localhost:3002" -ForegroundColor White
+        Write-Host ""
+        
+        if ($localIP -ne "localhost") {
+            Write-Host "Im Netzwerk (andere Geräte):" -ForegroundColor Cyan
+            Write-Host "  📊 Verwaltung:        http://${localIP}:3001" -ForegroundColor Yellow
+            Write-Host "  👨‍⚖️  Kampfrichter:      http://${localIP}:3002" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "  ℹ️  Ihre IP-Adresse: $localIP" -ForegroundColor DarkGray
+        }
+        
+        Write-Host ""
+        Write-Host "Hinweise:" -ForegroundColor Yellow
+        Write-Host "  • Die Server laufen jetzt im Hintergrund" -ForegroundColor DarkGray
+        Write-Host "  • Sie können dieses Fenster schließen" -ForegroundColor DarkGray
+        Write-Host "  • Die Server bleiben aktiv bis zum Stoppen oder PC-Neustart" -ForegroundColor DarkGray
+        Write-Host "  • Für Netzwerkzugriff: Firewall-Regeln mit Option 8 aktivieren" -ForegroundColor DarkGray
         Write-Host ""
     } else {
+        Write-Host ""
         Write-Host "✗ Fehler beim Starten!" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Mögliche Lösungen:" -ForegroundColor Yellow
+        Write-Host "  • Prüfen Sie ob die Ports 3001 und 3002 frei sind" -ForegroundColor White
+        Write-Host "  • Prüfen Sie die Logs mit Option 5" -ForegroundColor White
+        Write-Host "  • Versuchen Sie Option 3 (Neustart)" -ForegroundColor White
+        Write-Host ""
     }
     
     Read-Host "Drücken Sie Enter zum Fortfahren"
@@ -294,17 +373,56 @@ function Show-AdvancedMenu {
             Read-Host "Drücken Sie Enter zum Fortfahren"
         }
         "4" {
-            Write-Host "Netzwerk-Informationen:" -ForegroundColor Cyan
-            $networkIP = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "*" -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notlike "169.254.*" -and $_.IPAddress -ne "127.0.0.1" }).IPAddress | Select-Object -First 1
-            Write-Host "  Ihre IP-Adresse: $networkIP" -ForegroundColor White
             Write-Host ""
-            Write-Host "  Zugriff vom Tablet/Handy:" -ForegroundColor Yellow
-            Write-Host "    Verwaltung:    http://${networkIP}:3001" -ForegroundColor White
-            Write-Host "    Kampfrichter:  http://${networkIP}:3002" -ForegroundColor White
+            Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+            Write-Host "║           Netzwerk-Zugriffsinformationen                   ║" -ForegroundColor Cyan
+            Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
             Write-Host ""
-            Write-Host "  WICHTIG: Stellen Sie sicher, dass:" -ForegroundColor Red
-            Write-Host "    - Alle Geräte im gleichen WLAN sind" -ForegroundColor White
-            Write-Host "    - Die Windows Firewall TurnFix erlaubt" -ForegroundColor White
+            
+            # Hole alle verfügbaren Netzwerk-IPs
+            $networkIPs = Get-NetIPAddress -AddressFamily IPv4 -PrefixOrigin Dhcp,Manual | 
+                          Where-Object { $_.IPAddress -notlike "169.254.*" -and $_.IPAddress -ne "127.0.0.1" } |
+                          Select-Object IPAddress, InterfaceAlias
+            
+            if ($networkIPs) {
+                Write-Host "Ihre Netzwerk-Adresse(n):" -ForegroundColor Yellow
+                Write-Host ""
+                
+                foreach ($ip in $networkIPs) {
+                    $ipAddr = $ip.IPAddress
+                    $adapter = $ip.InterfaceAlias
+                    
+                    Write-Host "  📡 $adapter" -ForegroundColor DarkGray
+                    Write-Host "     IP-Adresse: $ipAddr" -ForegroundColor White
+                    Write-Host ""
+                    Write-Host "     Zugriff vom Tablet/Handy/Laptop:" -ForegroundColor Cyan
+                    Write-Host "       📊 Verwaltung:        http://${ipAddr}:3001" -ForegroundColor Green
+                    Write-Host "       👨‍⚖️  Kampfrichter:      http://${ipAddr}:3002" -ForegroundColor Green
+                    Write-Host ""
+                }
+                
+                Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
+                Write-Host "│  ⚠️  WICHTIG für Netzwerkzugriff:                  │" -ForegroundColor Yellow
+                Write-Host "├─────────────────────────────────────────────────────┤" -ForegroundColor Yellow
+                Write-Host "│                                                     │" -ForegroundColor Yellow
+                Write-Host "│  1. Alle Geräte müssen im gleichen WLAN sein       │" -ForegroundColor White
+                Write-Host "│  2. Windows Firewall muss Ports freigeben          │" -ForegroundColor White
+                Write-Host "│     → Zurück zum Hauptmenü → Option 8              │" -ForegroundColor White
+                Write-Host "│     → Dort Firewall-Regeln aktivieren              │" -ForegroundColor White
+                Write-Host "│  3. Router darf Geräte nicht isolieren             │" -ForegroundColor White
+                Write-Host "│     (AP-Isolation/Client-Isolation deaktivieren)   │" -ForegroundColor White
+                Write-Host "│                                                     │" -ForegroundColor Yellow
+                Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
+            } else {
+                Write-Host "⚠️  Keine Netzwerk-Verbindung gefunden!" -ForegroundColor Red
+                Write-Host ""
+                Write-Host "Mögliche Ursachen:" -ForegroundColor Yellow
+                Write-Host "  • Kein WLAN/LAN verbunden" -ForegroundColor White
+                Write-Host "  • Nur Loopback-Adapter aktiv" -ForegroundColor White
+                Write-Host ""
+            }
+            
+            Write-Host ""
             Read-Host "Drücken Sie Enter zum Fortfahren"
         }
         "5" {
