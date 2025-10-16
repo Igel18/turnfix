@@ -80,7 +80,15 @@ b) ~~der Dialog "Edit Discipline" lässt sich nicht speichern~~ ✅
 - Jede Disziplin kann beliebige Felder mit beliebigen Namen haben
 - Zuordnung zu Formelvariablen (A, B, C, etc.) erfolgt automatisch über `int_sortierung` in `tfx_disziplinen_felder`
 
-26. Das Beschreibungsfeld beim editieren von Layouts kann nicht geändert / beschrieben werden. http://localhost:3001/certificate-layouts
+26. ~~Das Beschreibungsfeld beim editieren von Layouts kann nicht geändert / beschrieben werden. http://localhost:3001/certificate-layouts~~ ✅
+    **Status**: ✅ Abgeschlossen - Layout-Name und Beschreibung vollständig editierbar
+    **Problem**: Input-Felder verwendeten direkt die `layout` Prop, onChange mutierte das Objekt direkt mit `Object.assign`, React erkannte die Änderungen nicht
+    **Lösung**: 
+    - Lokale State-Variablen für `layoutName` und `layoutComment` hinzugefügt
+    - Input-Felder auf kontrollierte Komponenten mit setState umgestellt
+    - Save-Button übergibt aktualisierte Werte an onSave
+    - Nach dem Speichern wird die komplette Liste mit `fetchLayouts()` aktualisiert
+    **Dateien**: `client/src/components/LayoutDesigner.tsx`, `client/src/pages/CertificateLayouts.tsx`
 
 27. ~~wäre diese anpassung mit dem singelton dann nicht bei jeder route zu machen?~~ ✅
 import prisma from '../lib/prisma';
@@ -141,4 +149,7 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
     - Verifiziert: EventParticipants, ScoreCapture, SquadStatusManagement, TimePlanningPage, CompetitionsFixed, Meldematrix, CompetitionStatusManagement haben bereits korrektes overflow-x-auto
     **Best Practice Pattern**: Äußerer Container mit overflow-hidden (für rounded corners), innerer Container mit overflow-x-auto (für scrolling)
     **Dokumentation**: Siehe POINT-32-HORIZONTAL-SCROLLING.md
-in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt. 
+in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
+
+
+33. alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)

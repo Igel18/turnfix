@@ -78,6 +78,10 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   const [zoom, setZoom] = useState(0.3); // Smaller default zoom for larger paper formats
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: boolean | string }>({});
   const [aspectRatioLocked, setAspectRatioLocked] = useState<{ [fieldId: number]: boolean }>({});
+  
+  // Local state for layout metadata (name and description)
+  const [layoutName, setLayoutName] = useState(layout.var_name);
+  const [layoutComment, setLayoutComment] = useState(layout.txt_comment || '');
 
   // Convert absolute coordinates to relative (0-1 range)
   // Legacy fields might have absolute coordinates, we need to convert them
@@ -634,14 +638,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                   </label>
                   <input
                     type="text"
-                    value={layout.var_name}
-                    onChange={(e) => {
-                      const updatedLayout = { ...layout, var_name: e.target.value };
-                      // Immediately update the layout state
-                      setFields(prev => prev); // Trigger re-render
-                      // Note: The actual save will happen when the user saves the layout
-                      Object.assign(layout, updatedLayout);
-                    }}
+                    value={layoutName}
+                    onChange={(e) => setLayoutName(e.target.value)}
                     className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder={t('layoutDesigner.enterLayoutName')}
                   />
@@ -652,14 +650,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                   </label>
                   <input
                     type="text"
-                    value={layout.txt_comment || ''}
-                    onChange={(e) => {
-                      const updatedLayout = { ...layout, txt_comment: e.target.value || null };
-                      // Immediately update the layout state
-                      setFields(prev => prev); // Trigger re-render
-                      // Note: The actual save will happen when the user saves the layout
-                      Object.assign(layout, updatedLayout);
-                    }}
+                    value={layoutComment}
+                    onChange={(e) => setLayoutComment(e.target.value)}
                     className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder={t('layoutDesigner.enterDescription')}
                   />
@@ -725,7 +717,12 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                 {t('layoutDesigner.properties')}
               </button>
               <button
-                onClick={async () => await onSave({ ...layout, fields })}
+                onClick={async () => await onSave({ 
+                  ...layout, 
+                  fields,
+                  var_name: layoutName,
+                  txt_comment: layoutComment || null
+                })}
                 className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
               >
                 {t('layoutDesigner.saveLayout')}

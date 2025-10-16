@@ -246,14 +246,13 @@ const CertificateLayouts: React.FC = () => {
         }
       }
       
-      // Refresh the layout from server
-      const refreshedLayout = await apiGet(`/layouts/${layout.int_layoutid}`)
-      
-      setLayouts(prev => prev.map(l => 
-        l.int_layoutid === layout.int_layoutid ? refreshedLayout : l
-      ))
+      // Close designer and refresh the complete list to show updated name/comment
       setShowDesigner(false)
       setSelectedLayout(null)
+      
+      // Reload all layouts to ensure UI is in sync with database
+      await fetchLayouts()
+      
     } catch (error) {
       console.error('Error saving layout:', error)
       alert('Error saving layout. Please check the console for details.')
