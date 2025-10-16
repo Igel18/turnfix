@@ -152,4 +152,4 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
 
 
-33. alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)
+33. in allesn UIs: alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)
