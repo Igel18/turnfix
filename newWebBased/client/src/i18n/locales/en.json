@@ -543,6 +543,7 @@
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
+    "create": "Create",
     "edit": "Edit",
     "delete": "Delete",
     "add": "Add",
@@ -561,7 +562,21 @@
     "warning": "Warning",
     "info": "Information",
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}} results",
+      "showingTotal": "Showing {{total}} results",
+      "showingFiltered": "Showing {{filtered}} of {{total}} results",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}} of {{total}}",
+      "results": "results"
+    },
+    "table": {
+      "search": "Search...",
+      "filters": "Filters",
+      "noResults": "No results found"
+    }
   },
   "events": {
     "title": "Event Management",
@@ -871,7 +886,10 @@
       "female": "Female",
       "custom": "Custom",
       "noFormula": "No formula",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "fields": "Input Fields",
+      "finalScore": "F",
+      "startingScore": "S"
     },
     "filter": {
       "sport": "Sport",
@@ -971,6 +989,87 @@
       "deleteError": "Error deleting discipline",
       "loadError": "Error loading disciplines",
       "confirmDelete": "Are you sure you want to delete this discipline?"
+    }
+  },
+  "disciplineFields": {
+    "title": "Discipline Fields Management",
+    "subtitle": "Configure input fields for score capture",
+    "searchPlaceholder": "Search fields by name or discipline...",
+    "addField": "Add Field",
+    "createField": "Create Field",
+    "editField": "Edit Field",
+    "deleteField": "Delete Field",
+    "noFields": "No fields found",
+    "loadingFields": "Loading fields...",
+    "form": {
+      "basicInformation": "Basic Information",
+      "discipline": "Discipline",
+      "selectDiscipline": "Select Discipline",
+      "disciplineCannotChange": "Discipline cannot be changed when editing, as scores may already exist",
+      "fieldName": "Field Name",
+      "fieldNamePlaceholder": "e.g. D-Score",
+      "fieldNameHelp": "Maximum 15 characters",
+      "sortOrder": "Sort Order",
+      "sortOrderHelp": "Determines the order of fields (0-99)",
+      "group": "Group",
+      "groupHelp": "Field grouping (0-10)",
+      "fieldProperties": "Field Properties",
+      "isFinalScore": "Final Score",
+      "isFinalScoreHelp": "This field contains the final score",
+      "isStartingScore": "Starting Score",
+      "isStartingScoreHelp": "This field contains the starting value",
+      "enabled": "Enabled",
+      "enabledHelp": "Show field in score capture",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "table": {
+      "id": "ID",
+      "fieldName": "Field Name",
+      "discipline": "Discipline",
+      "sortOrder": "Sort Order",
+      "finalScore": "Final Score",
+      "startingScore": "Starting Score",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "card": {
+      "id": "ID",
+      "group": "Group",
+      "discipline": "Discipline",
+      "sortOrder": "Sort Order",
+      "finalScore": "Final Score",
+      "startingScore": "Starting Score",
+      "status": "Status"
+    },
+    "filter": {
+      "discipline": "Discipline",
+      "allDisciplines": "All Disciplines",
+      "scoreType": "Score Type",
+      "allScoreTypes": "All Score Types",
+      "finalScoreOnly": "Final Score Only",
+      "startingScoreOnly": "Starting Score Only",
+      "bothFinalAndStarting": "Both Final & Starting",
+      "neitherFinalNorStarting": "Neither Final nor Starting",
+      "status": "Status",
+      "allStatuses": "All Statuses",
+      "enabledOnly": "Enabled Only",
+      "disabledOnly": "Disabled Only"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "helpLabel": "Field Configuration Help",
+    "messages": {
+      "createSuccess": "Field created successfully",
+      "updateSuccess": "Field updated successfully",
+      "deleteSuccess": "Field deleted successfully",
+      "createError": "Error creating field",
+      "updateError": "Error updating field",
+      "deleteError": "Error deleting field",
+      "loadError": "Error loading fields",
+      "confirmDelete": "Are you sure you want to delete this field?"
     }
   },
   "regions": {

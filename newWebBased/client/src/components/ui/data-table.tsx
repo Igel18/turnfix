@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MagnifyingGlassIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import Pagination, { CompactPagination } from './pagination';
 
@@ -45,6 +46,7 @@ export default function DataTable<T extends Record<string, any>>({
   className = '',
   compact = false
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<{
     key: keyof T | null;
@@ -103,7 +105,7 @@ export default function DataTable<T extends Record<string, any>>({
               <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={t('common.table.search')}
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -111,7 +113,7 @@ export default function DataTable<T extends Record<string, any>>({
             </div>
             <button className="flex items-center gap-2 px-3 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">
               <FunnelIcon className="h-5 w-5" />
-              Filters
+              {t('common.table.filters')}
             </button>
           </div>
         </div>
@@ -183,9 +185,11 @@ export default function DataTable<T extends Record<string, any>>({
             <div className="text-sm text-gray-700">
               {pagination.pageSize && pagination.totalItems && (
                 <span>
-                  Showing {Math.min((pagination.currentPage - 1) * pagination.pageSize + 1, pagination.totalItems)} to{' '}
-                  {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
-                  {pagination.totalItems} results
+                  {t('common.pagination.showing', {
+                    start: Math.min((pagination.currentPage - 1) * pagination.pageSize + 1, pagination.totalItems),
+                    end: Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems),
+                    total: pagination.totalItems
+                  })}
                 </span>
               )}
             </div>

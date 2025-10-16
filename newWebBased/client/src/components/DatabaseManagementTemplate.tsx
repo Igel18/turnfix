@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import UnifiedPageHeader from './UnifiedPageHeader';
 import { SmartPagination } from './SmartPagination';
 import { usePagination } from '../hooks/usePagination';
@@ -68,10 +69,6 @@ interface DatabaseManagementTemplateProps {
   children?: ReactNode; // Custom content (overrides default table/cards if provided)
 }
 
-/**
- * Unified template for all Database Management pages
- * Provides consistent header, pagination, view toggle, and basic CRUD operations
- */
 export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProps> = ({
   title,
   subtitle,
@@ -107,6 +104,8 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   additionalContent,
   children
 }) => {
+  const { t } = useTranslation();
+  
   // View toggle with persistence
   const { viewType, handleViewTypeChange } = useViewToggle({ 
     key: viewStorageKey, 
@@ -175,7 +174,7 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
 
   // Default table structure
   const defaultTable = () => (
-    <div className="overflow-hidden bg-white shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+    <div className="overflow-x-auto bg-white shadow ring-1 ring-black ring-opacity-5 rounded-lg">
       <table className="min-w-full divide-y divide-gray-300">
         <thead className="bg-gray-50">
           {renderTableHeaders ? renderTableHeaders() : (
@@ -350,9 +349,11 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
                 {/* Results Summary */}
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                    <span className="font-medium">{Math.min(endIndex, totalItems)}</span> of{' '}
-                    <span className="font-medium">{totalItems}</span> results
+                    {t('common.pagination.showing', {
+                      start: startIndex + 1,
+                      end: Math.min(endIndex, totalItems),
+                      total: totalItems
+                    })}
                   </p>
                 </div>
 

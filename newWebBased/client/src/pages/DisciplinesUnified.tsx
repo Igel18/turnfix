@@ -48,6 +48,17 @@ interface Sport {
   discipline_count: number;
 }
 
+interface DisciplineField {
+  id: number;
+  disciplineId: number;
+  name: string;
+  sortOrder: number | null;
+  isFinalScore: boolean;
+  isStartingScore: boolean;
+  group: number;
+  enabled: boolean;
+}
+
 interface FormData {
   name: string;
   shortName: string;
@@ -70,6 +81,7 @@ interface FormData {
 const DisciplinesUnified: React.FC = () => {
   const { t } = useTranslation();
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const [sports, setSports] = useState<Sport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,10 +149,22 @@ const DisciplinesUnified: React.FC = () => {
     }
   };
 
+  const fetchDisciplineFields = async () => {
+    try {
+      const response = await fetch('/api/discipline-fields?limit=1000');
+      if (!response.ok) throw new Error('Failed to fetch discipline fields');
+      const data = await response.json();
+      setDisciplineFields(Array.isArray(data.disciplineFields) ? data.disciplineFields : []);
+    } catch (error) {
+      console.error('Error fetching discipline fields:', error);
+      setDisciplineFields([]);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([fetchDisciplines(), fetchFormulas(), fetchSports()]);
+      await Promise.all([fetchDisciplines(), fetchFormulas(), fetchSports(), fetchDisciplineFields()]);
       setLoading(false);
     };
     fetchData();
@@ -468,6 +492,19 @@ const DisciplinesUnified: React.FC = () => {
     );
   };
 
+  // Helper function to get fields for a specific discipline
+  const getFieldsForDiscipline = (disciplineId: number): DisciplineField[] => {
+    return disciplineFields
+      .filter(field => field.disciplineId === disciplineId && field.enabled)
+      .sort((a, b) => {
+        // Sort by sortOrder (nulls last)
+        if (a.sortOrder === null && b.sortOrder === null) return 0;
+        if (a.sortOrder === null) return 1;
+        if (b.sortOrder === null) return -1;
+        return a.sortOrder - b.sortOrder;
+      });
+  };
+
   // Render card view
   const renderCard = (discipline: Discipline) => {
     const sport = Array.isArray(sports) ? sports.find(s => s.int_sportid === discipline.sport_id) : undefined;
@@ -568,6 +605,52 @@ const DisciplinesUnified: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Discipline Fields Section */}
+        {(() => {
+          const fields = getFieldsForDiscipline(discipline.id);
+          if (fields.length > 0) {
+            return (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <dt className="text-sm font-medium text-gray-500 mb-2">
+                  {t('disciplines.card.fields')}
+                </dt>
+                <dd className="space-y-1">
+                  {fields.map((field) => {
+                    // Determine variable name based on sortOrder (A, B, C, etc.)
+                    const varName = field.sortOrder !== null && field.sortOrder > 0 
+                      ? String.fromCharCode(64 + field.sortOrder) // A=65, B=66, C=67
+                      : null;
+                    
+                    return (
+                      <div key={field.id} className="flex items-center text-sm">
+                        {varName && (
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-800 font-bold text-xs mr-2">
+                            {varName}
+                          </span>
+                        )}
+                        <span className="text-gray-700">{field.name}</span>
+                        <span className="ml-2 flex space-x-1">
+                          {field.isFinalScore && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              {t('disciplines.card.finalScore')}
+                            </span>
+                          )}
+                          {field.isStartingScore && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              {t('disciplines.card.startingScore')}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </dd>
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
     );
   };

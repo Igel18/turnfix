@@ -1,10 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createTeamSchema = zod_1.z.object({
     int_vereineid: zod_1.z.number().int().positive(),
@@ -36,7 +38,7 @@ router.get('/', async (req, res) => {
             whereConditions.int_wettkaempfeid = parseInt(eventId);
         }
         const [teams, totalCount] = await Promise.all([
-            prisma.tfx_mannschaften.findMany({
+            prisma_1.default.tfx_mannschaften.findMany({
                 where: whereConditions,
                 skip: offset,
                 take: limit,
@@ -58,7 +60,7 @@ router.get('/', async (req, res) => {
                 },
                 orderBy: { int_mannschaftenid: 'asc' }
             }),
-            prisma.tfx_mannschaften.count({ where: whereConditions })
+            prisma_1.default.tfx_mannschaften.count({ where: whereConditions })
         ]);
         res.json({
             teams,
@@ -82,7 +84,7 @@ router.get('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid team ID' });
         }
-        const team = await prisma.tfx_mannschaften.findUnique({
+        const team = await prisma_1.default.tfx_mannschaften.findUnique({
             where: { int_mannschaftenid: id },
             include: {
                 tfx_vereine: {
@@ -116,7 +118,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const validatedData = createTeamSchema.parse(req.body);
-        const team = await prisma.tfx_mannschaften.create({
+        const team = await prisma_1.default.tfx_mannschaften.create({
             data: validatedData,
             include: {
                 tfx_vereine: {
@@ -154,7 +156,7 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid team ID' });
         }
         const validatedData = updateTeamSchema.parse(req.body);
-        const team = await prisma.tfx_mannschaften.update({
+        const team = await prisma_1.default.tfx_mannschaften.update({
             where: { int_mannschaftenid: id },
             data: validatedData,
             include: {
@@ -195,7 +197,7 @@ router.delete('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid team ID' });
         }
-        await prisma.tfx_mannschaften.delete({
+        await prisma_1.default.tfx_mannschaften.delete({
             where: { int_mannschaftenid: id }
         });
         res.status(204).send();

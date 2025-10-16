@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SmartPaginationProps {
   currentPage: number;
@@ -22,6 +23,8 @@ export const SmartPagination: React.FC<SmartPaginationProps> = ({
   onPageChange,
   className = ''
 }) => {
+  const { t } = useTranslation();
+  
   if (totalPages <= 1) {
     return null; // Don't show pagination for single page
   }
@@ -120,7 +123,7 @@ export const SmartPagination: React.FC<SmartPaginationProps> = ({
           disabled={currentPage === 1}
           className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
         >
-          Previous
+          {t('common.pagination.previous')}
         </button>
         
         {/* Page Numbers */}
@@ -132,7 +135,7 @@ export const SmartPagination: React.FC<SmartPaginationProps> = ({
           disabled={currentPage === totalPages}
           className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
         >
-          Next
+          {t('common.pagination.next')}
         </button>
       </div>
     </div>

@@ -1,10 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Validation schemas
 const regionCreateSchema = z.object({

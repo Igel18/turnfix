@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
   MagnifyingGlassIcon,
@@ -99,6 +100,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
   totalCount,
   filteredCount
 }) => {
+  const { t } = useTranslation();
   const hasActiveFilters = searchTerm || filterOptions.some(filter => filter.selectedValue) || selectedState
 
   return (
@@ -262,15 +264,15 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
             <p className="text-sm text-gray-600">
               {filteredCount !== undefined && totalCount !== undefined ? (
                 hasActiveFilters ? (
-                  <>Showing {filteredCount} of {totalCount} results</>
+                  <>{t('common.pagination.showingFiltered', { filtered: filteredCount, total: totalCount })}</>
                 ) : (
-                  <>Showing {totalCount} results</>
+                  <>{t('common.pagination.showingTotal', { total: totalCount })}</>
                 )
               ) : (
                 filteredCount !== undefined ? (
-                  <>Showing {filteredCount} results</>
+                  <>{t('common.pagination.showingTotal', { total: filteredCount })}</>
                 ) : (
-                  totalCount !== undefined && <>Total: {totalCount} results</>
+                  totalCount !== undefined && <>{t('common.pagination.showingTotal', { total: totalCount })}</>
                 )
               )}
             </p>

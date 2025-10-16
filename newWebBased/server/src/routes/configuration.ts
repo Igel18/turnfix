@@ -2,10 +2,10 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
+import { PrismaClient } from '@prisma/client'; // Still needed for test connections
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Configuration file path
 const CONFIG_FILE = path.join(process.cwd(), 'config', 'app-config.json');

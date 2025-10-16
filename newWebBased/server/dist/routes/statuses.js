@@ -1,10 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createStatusSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -27,13 +29,13 @@ router.get('/', async (req, res) => {
             };
         }
         const [statuses, totalCount] = await Promise.all([
-            prisma.tfx_status.findMany({
+            prisma_1.default.tfx_status.findMany({
                 where: whereConditions,
                 skip: offset,
                 take: limit,
                 orderBy: { var_name: 'asc' }
             }),
-            prisma.tfx_status.count({ where: whereConditions })
+            prisma_1.default.tfx_status.count({ where: whereConditions })
         ]);
         res.json({
             statuses,
@@ -57,7 +59,7 @@ router.get('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid status ID' });
         }
-        const status = await prisma.tfx_status.findUnique({
+        const status = await prisma_1.default.tfx_status.findUnique({
             where: { int_statusid: id }
         });
         if (!status) {
@@ -74,7 +76,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const validatedData = createStatusSchema.parse(req.body);
-        const status = await prisma.tfx_status.create({
+        const status = await prisma_1.default.tfx_status.create({
             data: validatedData
         });
         res.status(201).json(status);
@@ -95,7 +97,7 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid status ID' });
         }
         const validatedData = updateStatusSchema.parse(req.body);
-        const status = await prisma.tfx_status.update({
+        const status = await prisma_1.default.tfx_status.update({
             where: { int_statusid: id },
             data: validatedData
         });
@@ -119,7 +121,7 @@ router.delete('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid status ID' });
         }
-        await prisma.tfx_status.delete({
+        await prisma_1.default.tfx_status.delete({
             where: { int_statusid: id }
         });
         res.status(204).send();

@@ -32,18 +32,22 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDisciplinesForCompetition = getDisciplinesForCompetition;
+const prisma_1 = __importDefault(require("../lib/prisma"));
 /**
  * Generalized discipline selection for a competition name using DB values.
  * @param {string} competitionName
  * @param {PrismaClient} prisma
  * @returns {Promise<string[]>}
  */
-async function getDisciplinesForCompetition(competitionName, prisma) {
+async function getDisciplinesForCompetition(competitionName, prismaInstance) {
     const name = competitionName.toLowerCase();
     // Query all discipline names from DB
-    const allDisciplines = await prisma.tfx_disziplinen.findMany({ select: { var_name: true } });
+    const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
     const disciplineNames = allDisciplines.map(d => d.var_name);
     if (name.includes('vierkampf') && name.includes('w')) {
         // Women's all-around: Boden, Sprung, Stufenbarren, Schwebebalken
@@ -63,7 +67,6 @@ async function getDisciplinesForCompetition(competitionName, prisma) {
     }
 }
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
 const authBypass_1 = require("../middleware/authBypass");
 const zod_1 = require("zod");
 const multer = require("multer");
@@ -71,7 +74,6 @@ const multer = require("multer");
 const xml2js_1 = require("xml2js");
 const fs = __importStar(require("fs"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Generate start numbers for all participants in an event
 router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async (req, res) => {
     try {
@@ -80,7 +82,7 @@ router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async 
             return res.status(400).json({ error: 'Invalid event ID' });
         }
         // Get all participants for the event (from tfx_wertungen, joined with tfx_teilnehmer)
-        const participants = await prisma.$queryRawUnsafe(`SELECT wr.int_wertungenid, wr.int_teilnehmerid
+        const participants = await prisma_1.default.$queryRawUnsafe(`SELECT wr.int_wertungenid, wr.int_teilnehmerid
          FROM tfx_wertungen wr
          JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
         WHERE w.int_veranstaltungenid = $1
@@ -88,7 +90,7 @@ router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async 
         // Assign start numbers sequentially (starting from 1)
         let startNumber = 1;
         for (const p of participants) {
-            await prisma.$queryRawUnsafe(`UPDATE tfx_wertungen SET int_startnummer = $1 WHERE int_wertungenid = $2`, startNumber, p.int_wertungenid);
+            await prisma_1.default.$queryRawUnsafe(`UPDATE tfx_wertungen SET int_startnummer = $1 WHERE int_wertungenid = $2`, startNumber, p.int_wertungenid);
             startNumber++;
         }
         return res.json({ success: true, count: participants.length });
@@ -172,7 +174,7 @@ router.get('/', async (req, res) => {
       FROM tfx_veranstaltungen v
       ${whereClause}
     `;
-        const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
+        const countResult = await prisma_1.default.$queryRawUnsafe(countQuery, ...params);
         const total = parseInt(countResult[0]?.total || '0');
         const dataQuery = `
       SELECT 
@@ -204,7 +206,7 @@ router.get('/', async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(parseInt(limit), parseInt(offset));
-        const events = await prisma.$queryRawUnsafe(dataQuery, ...params);
+        const events = await prisma_1.default.$queryRawUnsafe(dataQuery, ...params);
         // Convert BigInt values and dates for JSON serialization to match client expectations
         const formattedEvents = events.map((event) => {
             // Determine status based on dates
@@ -316,7 +318,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         // Find the venue by name to get the venue ID
         let venueId = 1; // Default venue ID
         if (validatedData.var_location) {
-            const venue = await prisma.tfx_wettkampforte.findFirst({
+            const venue = await prisma_1.default.tfx_wettkampforte.findFirst({
                 where: { var_name: validatedData.var_location }
             });
             if (venue) {
@@ -328,7 +330,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             }
         }
         // Create the event using Prisma
-        const newEvent = await prisma.tfx_veranstaltungen.create({
+        const newEvent = await prisma_1.default.tfx_veranstaltungen.create({
             data: {
                 var_name: validatedData.var_eventname,
                 dat_von: startDate,
@@ -341,7 +343,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             }
         });
         // Get the venue name for the response
-        const venue = await prisma.tfx_wettkampforte.findUnique({
+        const venue = await prisma_1.default.tfx_wettkampforte.findUnique({
             where: { int_wettkampforteid: newEvent.int_wettkampforteid }
         });
         // Format the response to match the expected structure
@@ -402,7 +404,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         if (validatedData.var_location !== undefined && !validatedData.int_wettkampforteid) {
             // Find the venue by name to get the venue ID only if venue ID not provided
-            const venue = await prisma.tfx_wettkampforte.findFirst({
+            const venue = await prisma_1.default.tfx_wettkampforte.findFirst({
                 where: { var_name: validatedData.var_location }
             });
             if (venue) {
@@ -441,20 +443,20 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             updateData.int_edv = validatedData.int_edv;
         }
         // Update the event
-        const updatedEvent = await prisma.tfx_veranstaltungen.update({
+        const updatedEvent = await prisma_1.default.tfx_veranstaltungen.update({
             where: { int_veranstaltungenid: id },
             data: updateData
         });
         // Get the venue for the response
-        const venue = updatedEvent.int_wettkampforteid ? await prisma.tfx_wettkampforte.findUnique({
+        const venue = updatedEvent.int_wettkampforteid ? await prisma_1.default.tfx_wettkampforte.findUnique({
             where: { int_wettkampforteid: updatedEvent.int_wettkampforteid }
         }) : null;
         // Get contact person information
-        const contactPerson = updatedEvent.int_ansprechpartner ? await prisma.tfx_personen.findUnique({
+        const contactPerson = updatedEvent.int_ansprechpartner ? await prisma_1.default.tfx_personen.findUnique({
             where: { int_personenid: updatedEvent.int_ansprechpartner }
         }) : null;
         // Get registration contact person information
-        const registrationContact = updatedEvent.int_meldung_an ? await prisma.tfx_personen.findUnique({
+        const registrationContact = updatedEvent.int_meldung_an ? await prisma_1.default.tfx_personen.findUnique({
             where: { int_personenid: updatedEvent.int_meldung_an }
         }) : null;
         // Format the response using only fields that exist in the database schema
@@ -1497,7 +1499,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         let venueNameToUse = ''; // Default empty venue name
         if (locationId) {
             try {
-                venue = await prisma.tfx_wettkampforte.findUnique({
+                venue = await prisma_1.default.tfx_wettkampforte.findUnique({
                     where: { int_wettkampforteid: parseInt(locationId) }
                 });
                 if (venue) {
@@ -1555,7 +1557,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
         RETURNING int_veranstaltungenid, var_name
       `;
-            const result = await prisma.$queryRawUnsafe(insertQuery, eventName.trim(), // $1: var_name
+            const result = await prisma_1.default.$queryRawUnsafe(insertQuery, eventName.trim(), // $1: var_name
             parsedStartDate, // $2: dat_von  
             parsedEndDate, // $3: dat_bis
             venueNameToUse, // $4: var_veranstalter - venue name
@@ -1637,14 +1639,14 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     continue;
                 }
                 // Check if club exists (only by name since var_vereinsnummer doesn't exist)
-                const existingClub = await prisma.$queryRawUnsafe(`
+                const existingClub = await prisma_1.default.$queryRawUnsafe(`
           SELECT int_vereineid FROM tfx_vereine 
           WHERE LOWER(var_name) = LOWER($1)
           LIMIT 1
         `, club.name.trim());
                 if (existingClub.length > 0) {
                     // Update existing club (just the name since that's what we have)
-                    await prisma.$queryRawUnsafe(`
+                    await prisma_1.default.$queryRawUnsafe(`
             UPDATE tfx_vereine 
             SET var_name = $1
             WHERE int_vereineid = $2
@@ -1654,7 +1656,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 }
                 else {
                     // Insert new club (with required int_gaueid field)
-                    await prisma.$queryRawUnsafe(`
+                    await prisma_1.default.$queryRawUnsafe(`
             INSERT INTO tfx_vereine (var_name, int_gaueid)
             VALUES ($1, $2)
           `, club.name.trim(), 1); // Default gaueid = 1
@@ -1682,7 +1684,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     let clubId = null;
                     if (participant.club) {
                         console.log(`  🔍 Looking for club: "${participant.club.trim()}"`);
-                        const clubResult = await prisma.$queryRawUnsafe(`
+                        const clubResult = await prisma_1.default.$queryRawUnsafe(`
             SELECT int_vereineid FROM tfx_vereine 
             WHERE LOWER(var_name) = LOWER($1)
             LIMIT 1
@@ -1694,7 +1696,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         else {
                             console.log(`  ⚠️ Club not found: "${participant.club}"`);
                             // Try to find similar club names
-                            const similarClubs = await prisma.$queryRawUnsafe(`
+                            const similarClubs = await prisma_1.default.$queryRawUnsafe(`
               SELECT var_name FROM tfx_vereine 
               WHERE LOWER(var_name) LIKE LOWER('%' || $1 || '%')
               LIMIT 3
@@ -1751,7 +1753,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     }
                     // Check if participant exists (same first name, last name)
                     // Also update participants with null birth dates if we have a valid birth date
-                    const existingParticipant = await prisma.$queryRawUnsafe(`
+                    const existingParticipant = await prisma_1.default.$queryRawUnsafe(`
           SELECT int_teilnehmerid, dat_geburtstag FROM tfx_teilnehmer 
           WHERE LOWER(var_vorname) = LOWER($1) 
             AND LOWER(var_nachname) = LOWER($2)
@@ -1770,7 +1772,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         const clubInfo = clubId ? `(club ID: ${clubId})` : '(keeping existing club)';
                         const birthDateInfo = (!existingBirthDate && birthDate) ? ' [FIXED BIRTH DATE]' : '';
                         if (birthDate) {
-                            await prisma.$queryRawUnsafe(`
+                            await prisma_1.default.$queryRawUnsafe(`
               UPDATE tfx_teilnehmer 
               SET var_vorname = $1, var_nachname = $2, dat_geburtstag = $3::date, 
                   int_vereineid = COALESCE($4, int_vereineid), int_geschlecht = $5
@@ -1778,7 +1780,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             `, firstName, lastName, birthDate, clubId, gender, participantId);
                         }
                         else {
-                            await prisma.$queryRawUnsafe(`
+                            await prisma_1.default.$queryRawUnsafe(`
               UPDATE tfx_teilnehmer 
               SET var_vorname = $1, var_nachname = $2, dat_geburtstag = NULL, 
                   int_vereineid = COALESCE($3, int_vereineid), int_geschlecht = $4
@@ -1797,13 +1799,13 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         }
                         // Insert new participant (int_geschlecht is required)
                         if (birthDate) {
-                            await prisma.$queryRawUnsafe(`
+                            await prisma_1.default.$queryRawUnsafe(`
               INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
               VALUES ($1, $2, $3::date, $4, $5)
             `, firstName, lastName, birthDate, clubId, gender);
                         }
                         else {
-                            await prisma.$queryRawUnsafe(`
+                            await prisma_1.default.$queryRawUnsafe(`
               INSERT INTO tfx_teilnehmer (var_vorname, var_nachname, dat_geburtstag, int_vereineid, int_geschlecht)
               VALUES ($1, $2, NULL, $3, $4)
             `, firstName, lastName, clubId, gender);
@@ -1840,7 +1842,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 bereichName = 'Weiblich';
             }
             // Try to find existing bereich
-            const existingBereich = await prisma.tfx_bereiche.findFirst({
+            const existingBereich = await prisma_1.default.tfx_bereiche.findFirst({
                 where: {
                     bol_maennlich: boolMaennlich,
                     bol_weiblich: boolWeiblich
@@ -1850,7 +1852,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 return existingBereich.int_bereicheid;
             }
             // Create new bereich if not found
-            const newBereich = await prisma.tfx_bereiche.create({
+            const newBereich = await prisma_1.default.tfx_bereiche.create({
                 data: {
                     var_name: bereichName,
                     bol_maennlich: boolMaennlich,
@@ -1877,14 +1879,14 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     // Get or create appropriate bereich based on gender
                     const bereichId = await getOrCreateBereich(gender);
                     // Check if competition exists for this event
-                    const existingCompetition = await prisma.$queryRawUnsafe(`
+                    const existingCompetition = await prisma_1.default.$queryRawUnsafe(`
             SELECT int_wettkaempfeid FROM tfx_wettkaempfe 
             WHERE int_veranstaltungenid = $1 AND LOWER(var_name) = LOWER($2)
             LIMIT 1
           `, createdEvent.int_veranstaltungenid, competition.name.trim());
                     if (existingCompetition.length > 0) {
                         // Update existing competition with age ranges, bereich, and competition number
-                        await prisma.$queryRawUnsafe(`
+                        await prisma_1.default.$queryRawUnsafe(`
               UPDATE tfx_wettkaempfe 
               SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4, var_nummer = $5
               WHERE int_wettkaempfeid = $6
@@ -1894,7 +1896,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     }
                     else {
                         // Insert new competition with age ranges, bereich, and competition number
-                        await prisma.$queryRawUnsafe(`
+                        await prisma_1.default.$queryRawUnsafe(`
               INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis, var_nummer)
               VALUES ($1, $2, $3, $4, $5, $6)
             `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo, competition.waNr || competition.number || null);
@@ -1922,7 +1924,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     }
                     console.log(`  🔍 Processing participant: ${firstName} ${lastName}`);
                     // Get the participant ID
-                    const participantResult = await prisma.$queryRawUnsafe(`
+                    const participantResult = await prisma_1.default.$queryRawUnsafe(`
             SELECT int_teilnehmerid FROM tfx_teilnehmer 
             WHERE var_vorname = $1 AND var_nachname = $2 
             ORDER BY int_teilnehmerid DESC LIMIT 1
@@ -1938,7 +1940,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                                 ? participant.competitionNumber.waNr
                                 : participant.competitionNumber;
                             console.log(`    🎯 Looking for competition with number: ${competitionNumber} (type: ${typeof participant.competitionNumber})`);
-                            targetCompetition = await prisma.tfx_wettkaempfe.findFirst({
+                            targetCompetition = await prisma_1.default.tfx_wettkaempfe.findFirst({
                                 where: {
                                     int_veranstaltungenid: createdEvent.int_veranstaltungenid,
                                     var_nummer: competitionNumber
@@ -1953,7 +1955,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         }
                         // Fall back to first competition if no XML assignment or not found
                         if (!targetCompetition) {
-                            targetCompetition = await prisma.tfx_wettkaempfe.findFirst({
+                            targetCompetition = await prisma_1.default.tfx_wettkaempfe.findFirst({
                                 where: { int_veranstaltungenid: createdEvent.int_veranstaltungenid },
                                 orderBy: { int_wettkaempfeid: 'asc' }
                             });
@@ -1963,7 +1965,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         }
                         if (targetCompetition) {
                             // Check if participant is already in the event
-                            const existingEntry = await prisma.tfx_wertungen.findFirst({
+                            const existingEntry = await prisma_1.default.tfx_wertungen.findFirst({
                                 where: {
                                     int_teilnehmerid: participantId,
                                     int_wettkaempfeid: targetCompetition.int_wettkaempfeid
@@ -1971,7 +1973,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                             });
                             if (!existingEntry) {
                                 // Create score entry to add participant to event (using the same logic as /event-participants/add)
-                                await prisma.tfx_wertungen.create({
+                                await prisma_1.default.tfx_wertungen.create({
                                     data: {
                                         int_teilnehmerid: participantId,
                                         int_wettkaempfeid: targetCompetition.int_wettkaempfeid,
@@ -2007,7 +2009,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         // Always try to find and link disciplines, regardless of extraction results
         if (createdEvent) {
             // First, get all competitions created for this event
-            const eventCompetitions = await prisma.$queryRawUnsafe(`
+            const eventCompetitions = await prisma_1.default.$queryRawUnsafe(`
         SELECT int_wettkaempfeid, var_name FROM tfx_wettkaempfe 
         WHERE int_veranstaltungenid = $1
       `, createdEvent.int_veranstaltungenid);
@@ -2015,25 +2017,25 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             let linkedCount = 0;
             // For each competition, link disciplines using the generalized function
             for (const competition of eventCompetitions) {
-                const disciplinesToLink = await getDisciplinesForCompetition(competition.var_name, prisma);
+                const disciplinesToLink = await getDisciplinesForCompetition(competition.var_name, prisma_1.default);
                 console.log(`  🔍 Processing competition: "${competition.var_name}"`);
                 console.log(`    📝 Will attempt to link disciplines: ${disciplinesToLink.join(', ')}`);
                 for (const disciplineName of disciplinesToLink) {
                     try {
-                        const existingDiscipline = await prisma.$queryRawUnsafe(`
+                        const existingDiscipline = await prisma_1.default.$queryRawUnsafe(`
               SELECT int_disziplinenid FROM tfx_disziplinen 
               WHERE LOWER(var_name) = LOWER($1)
               LIMIT 1
             `, disciplineName);
                         if (existingDiscipline.length > 0) {
                             const disciplineId = existingDiscipline[0].int_disziplinenid;
-                            const existingLink = await prisma.$queryRawUnsafe(`
+                            const existingLink = await prisma_1.default.$queryRawUnsafe(`
                 SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
                 WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
                 LIMIT 1
               `, competition.int_wettkaempfeid, disciplineId);
                             if (existingLink.length === 0) {
-                                await prisma.$queryRawUnsafe(`
+                                await prisma_1.default.$queryRawUnsafe(`
                   INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
                   VALUES ($1, $2, $3)
                 `, competition.int_wettkaempfeid, disciplineId, linkedCount + 1);
@@ -2163,7 +2165,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
       WHERE wk.int_veranstaltungenid = $1
     `;
-        const participantStats = await prisma.$queryRawUnsafe(participantStatsQuery, eventId);
+        const participantStats = await prisma_1.default.$queryRawUnsafe(participantStatsQuery, eventId);
         const stats = participantStats[0] || {
             total_participants: 0,
             male_participants: 0,
@@ -2176,7 +2178,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       FROM tfx_wettkaempfe
       WHERE int_veranstaltungenid = $1
     `;
-        const competitionsCount = await prisma.$queryRawUnsafe(competitionsQuery, eventId);
+        const competitionsCount = await prisma_1.default.$queryRawUnsafe(competitionsQuery, eventId);
         const competitions = competitionsCount[0] || { total_competitions: 0 };
         // Get discipline stats
         const disciplineStatsQuery = `
@@ -2191,7 +2193,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       GROUP BY d.int_disziplinenid, d.var_name
       ORDER BY participant_count DESC
     `;
-        const disciplineStats = await prisma.$queryRawUnsafe(disciplineStatsQuery, eventId);
+        const disciplineStats = await prisma_1.default.$queryRawUnsafe(disciplineStatsQuery, eventId);
         // Get age group stats - calculate from birthdate
         const ageGroupStatsQuery = `
       SELECT 
@@ -2228,7 +2230,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
       WHERE wk.int_veranstaltungenid = $1 AND t.dat_geburtstag IS NOT NULL
     `;
-        const ageGroupStats = await prisma.$queryRawUnsafe(ageGroupStatsQuery, eventId);
+        const ageGroupStats = await prisma_1.default.$queryRawUnsafe(ageGroupStatsQuery, eventId);
         const ageGroups = ageGroupStats[0] || {
             "1_6": 0,
             "7_8": 0,
@@ -2251,7 +2253,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       GROUP BY v.int_vereineid, v.var_name
       ORDER BY participant_count DESC
     `;
-        const clubBreakdown = await prisma.$queryRawUnsafe(clubBreakdownQuery, eventId);
+        const clubBreakdown = await prisma_1.default.$queryRawUnsafe(clubBreakdownQuery, eventId);
         // Get Riegen (squads/starting groups) count - stored in tfx_wertungen.var_riege
         // Examples: mBlau, mGrün, wRot, etc.
         const riegenCountQuery = `
@@ -2262,7 +2264,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
         AND w.var_riege IS NOT NULL 
         AND w.var_riege != ''
     `;
-        const riegenCount = await prisma.$queryRawUnsafe(riegenCountQuery, eventId);
+        const riegenCount = await prisma_1.default.$queryRawUnsafe(riegenCountQuery, eventId);
         const groups = riegenCount[0] || { total_groups: 0 };
         const result = {
             totalParticipants: Number(stats.total_participants),
@@ -2348,7 +2350,7 @@ router.get('/:id', async (req, res) => {
       LEFT JOIN tfx_personen rcp ON v.int_meldung_an = rcp.int_personenid
       WHERE v.int_veranstaltungenid = $1
     `;
-        const events = await prisma.$queryRawUnsafe(query, id);
+        const events = await prisma_1.default.$queryRawUnsafe(query, id);
         if (!Array.isArray(events) || events.length === 0) {
             return res.status(404).json({ error: 'Event not found' });
         }
@@ -2402,7 +2404,7 @@ router.get('/:id/participants', authBypass_1.authenticateToken, async (req, res)
             return res.status(400).json({ error: 'Invalid event ID' });
         }
         // Check if event exists
-        const existingEvent = await prisma.tfx_veranstaltungen.findUnique({
+        const existingEvent = await prisma_1.default.tfx_veranstaltungen.findUnique({
             where: { int_veranstaltungenid: eventId }
         });
         if (!existingEvent) {
@@ -2430,14 +2432,14 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Invalid event ID' });
         }
         // Check if event exists
-        const existingEvent = await prisma.tfx_veranstaltungen.findUnique({
+        const existingEvent = await prisma_1.default.tfx_veranstaltungen.findUnique({
             where: { int_veranstaltungenid: eventId }
         });
         if (!existingEvent) {
             return res.status(404).json({ error: 'Event not found' });
         }
         // Check if event has associated data (scores/participants)
-        const scoresCount = await prisma.tfx_wertungen.count({
+        const scoresCount = await prisma_1.default.tfx_wertungen.count({
             where: {
                 tfx_wettkaempfe: {
                     int_veranstaltungenid: eventId
@@ -2456,7 +2458,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (forceDelete && scoresCount > 0) {
             console.log(`🗑️ Force deleting event ${existingEvent.var_name} with ${scoresCount} scores...`);
             // Delete all scores for this event
-            await prisma.tfx_wertungen.deleteMany({
+            await prisma_1.default.tfx_wertungen.deleteMany({
                 where: {
                     tfx_wettkaempfe: {
                         int_veranstaltungenid: eventId
@@ -2466,14 +2468,14 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
             console.log(`🗑️ Deleted ${scoresCount} scores for event ${eventId}`);
         }
         // Delete associated competitions
-        const competitionsCount = await prisma.tfx_wettkaempfe.count({
+        const competitionsCount = await prisma_1.default.tfx_wettkaempfe.count({
             where: { int_veranstaltungenid: eventId }
         });
-        await prisma.tfx_wettkaempfe.deleteMany({
+        await prisma_1.default.tfx_wettkaempfe.deleteMany({
             where: { int_veranstaltungenid: eventId }
         });
         // Delete the event
-        await prisma.tfx_veranstaltungen.delete({
+        await prisma_1.default.tfx_veranstaltungen.delete({
             where: { int_veranstaltungenid: eventId }
         });
         console.log(`🗑️ Event ${existingEvent.var_name} (ID: ${eventId}) deleted successfully`);

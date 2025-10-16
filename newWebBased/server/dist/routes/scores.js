@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const scoreCreateSchema = zod_1.z.object({
     competitionId: zod_1.z.number().int(), // int_wettkaempfeid NOT NULL
@@ -88,7 +90,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         queryParams.push(query.limit, query.offset);
-        const results = await prisma.$queryRawUnsafe(scoresQuery, ...queryParams);
+        const results = await prisma_1.default.$queryRawUnsafe(scoresQuery, ...queryParams);
         const totalCountQuery = `
       SELECT COUNT(*) as count
       FROM tfx_wertungen w  
@@ -96,7 +98,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       ${whereClause}
     `;
-        const totalResult = await prisma.$queryRawUnsafe(totalCountQuery, ...queryParams.slice(0, -2));
+        const totalResult = await prisma_1.default.$queryRawUnsafe(totalCountQuery, ...queryParams.slice(0, -2));
         const totalCount = parseInt(totalResult[0]?.count || '0');
         console.log(`Found ${results.length} scores out of ${totalCount} total`);
         if (results.length > 0) {
@@ -168,7 +170,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `;
-        const created = await prisma.$queryRawUnsafe(insertQuery, validatedData.competitionId, validatedData.participantId, validatedData.groupId || null, validatedData.teamId || null, validatedData.statusId, validatedData.round || null, validatedData.startNumber || null, validatedData.ak || null, validatedData.startetNicht || null, validatedData.riege || null, validatedData.comment || null);
+        const created = await prisma_1.default.$queryRawUnsafe(insertQuery, validatedData.competitionId, validatedData.participantId, validatedData.groupId || null, validatedData.teamId || null, validatedData.statusId, validatedData.round || null, validatedData.startNumber || null, validatedData.ak || null, validatedData.startetNicht || null, validatedData.riege || null, validatedData.comment || null);
         console.log('Created new score');
         res.status(201).json({
             id: created[0].int_wertungenid,
@@ -276,7 +278,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       WHERE int_wertungenid = $${paramIndex}
       RETURNING *
     `;
-        const updated = await prisma.$queryRawUnsafe(updateQuery, ...queryParams);
+        const updated = await prisma_1.default.$queryRawUnsafe(updateQuery, ...queryParams);
         if (updated.length === 0) {
             return res.status(404).json({ error: 'Score not found' });
         }
@@ -317,7 +319,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
       WHERE int_wertungenid = $1
       RETURNING *
     `;
-        const deleted = await prisma.$queryRawUnsafe(deleteQuery, scoreId);
+        const deleted = await prisma_1.default.$queryRawUnsafe(deleteQuery, scoreId);
         if (deleted.length === 0) {
             return res.status(404).json({ error: 'Score not found' });
         }
@@ -365,7 +367,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
       WHERE int_wettkaempfeid = $1 
         AND int_teilnehmerid = $2
     `;
-        const wertungenResults = await prisma.$queryRawUnsafe(wertungenQuery, competitionId, participantId);
+        const wertungenResults = await prisma_1.default.$queryRawUnsafe(wertungenQuery, competitionId, participantId);
         let wertungenId;
         if (wertungenResults.length === 0) {
             // Create new wertungen record first
@@ -375,7 +377,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
         VALUES ($1, $2, $3)
         RETURNING int_wertungenid
       `;
-            const newWertungen = await prisma.$queryRawUnsafe(createWertungenQuery, competitionId, participantId, 1 // Default status ID
+            const newWertungen = await prisma_1.default.$queryRawUnsafe(createWertungenQuery, competitionId, participantId, 1 // Default status ID
             );
             wertungenId = newWertungen[0].int_wertungenid;
             console.log('Created new wertungen record with ID:', wertungenId);
@@ -391,7 +393,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
       WHERE int_wertungenid = $1 
         AND int_disziplinenid = $2
     `;
-        const existingDetails = await prisma.$queryRawUnsafe(existingDetailQuery, wertungenId, actualDisciplineId);
+        const existingDetails = await prisma_1.default.$queryRawUnsafe(existingDetailQuery, wertungenId, actualDisciplineId);
         if (existingDetails.length > 0) {
             // Update existing detail record
             const updateDetailQuery = `
@@ -400,7 +402,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
         WHERE int_wertungen_detailsid = $2
         RETURNING int_wertungen_detailsid, rel_leistung
       `;
-            const updated = await prisma.$queryRawUnsafe(updateDetailQuery, parseFloat(score), existingDetails[0].int_wertungen_detailsid);
+            const updated = await prisma_1.default.$queryRawUnsafe(updateDetailQuery, parseFloat(score), existingDetails[0].int_wertungen_detailsid);
             console.log('Updated existing score detail record');
             res.json({
                 success: true,
@@ -418,7 +420,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
         VALUES ($1, $2, $3, $4, $5)
         RETURNING int_wertungen_detailsid, rel_leistung
       `;
-            const created = await prisma.$queryRawUnsafe(insertDetailQuery, wertungenId, actualDisciplineId, 1, // Default attempt/versuch
+            const created = await prisma_1.default.$queryRawUnsafe(insertDetailQuery, wertungenId, actualDisciplineId, 1, // Default attempt/versuch
             parseFloat(score), 0 // Default int_kp
             );
             console.log('Created new score detail record');

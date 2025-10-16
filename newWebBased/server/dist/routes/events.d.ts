@@ -5,7 +5,7 @@ import type { PrismaClient as PrismaClientType } from '@prisma/client';
  * @param {PrismaClient} prisma
  * @returns {Promise<string[]>}
  */
-export declare function getDisciplinesForCompetition(competitionName: string, prisma: PrismaClientType): Promise<string[]>;
+export declare function getDisciplinesForCompetition(competitionName: string, prismaInstance: PrismaClientType): Promise<string[]>;
 declare const router: import("express-serve-static-core").Router;
 export default router;
 //# sourceMappingURL=events.d.ts.map

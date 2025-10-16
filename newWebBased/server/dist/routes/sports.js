@@ -1,10 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createSportSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -13,7 +15,7 @@ const updateSportSchema = createSportSchema.partial();
 // Get sports count
 router.get('/count', async (req, res) => {
     try {
-        const count = await prisma.tfx_sport.count();
+        const count = await prisma_1.default.tfx_sport.count();
         res.json({ count });
     }
     catch (error) {
@@ -38,13 +40,13 @@ router.get('/', async (req, res) => {
             };
         }
         const [sports, totalCount] = await Promise.all([
-            prisma.tfx_sport.findMany({
+            prisma_1.default.tfx_sport.findMany({
                 where: whereConditions,
                 skip: offset,
                 take: limit,
                 orderBy: { var_name: 'asc' }
             }),
-            prisma.tfx_sport.count({ where: whereConditions })
+            prisma_1.default.tfx_sport.count({ where: whereConditions })
         ]);
         res.json({
             sports,
@@ -68,7 +70,7 @@ router.get('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid sport ID' });
         }
-        const sport = await prisma.tfx_sport.findUnique({
+        const sport = await prisma_1.default.tfx_sport.findUnique({
             where: { int_sportid: id },
             include: {
                 tfx_disziplinen: {
@@ -90,7 +92,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const validatedData = createSportSchema.parse(req.body);
-        const sport = await prisma.tfx_sport.create({
+        const sport = await prisma_1.default.tfx_sport.create({
             data: validatedData
         });
         res.status(201).json(sport);
@@ -111,7 +113,7 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid sport ID' });
         }
         const validatedData = updateSportSchema.parse(req.body);
-        const sport = await prisma.tfx_sport.update({
+        const sport = await prisma_1.default.tfx_sport.update({
             where: { int_sportid: id },
             data: validatedData
         });
@@ -135,7 +137,7 @@ router.delete('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid sport ID' });
         }
-        await prisma.tfx_sport.delete({
+        await prisma_1.default.tfx_sport.delete({
             where: { int_sportid: id }
         });
         res.status(204).send();

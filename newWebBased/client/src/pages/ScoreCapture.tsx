@@ -222,8 +222,9 @@ export function ScoreCapture() {
   }
 
   // Generic formula parsing helper - converts formula variables to readable field names
-  const parseFormulaDisplay = (formula: string, fieldNames: string[], finalFieldName: string) => {
-    if (!formula || fieldNames.length === 0) {
+  // Uses dynamic field-to-variable mapping based on sort order from discipline configuration
+  const parseFormulaDisplay = (formula: string, fields: DisciplineField[], finalFieldName: string) => {
+    if (!formula || !fields || fields.length === 0) {
       return null;
     }
 
@@ -231,16 +232,15 @@ export function ScoreCapture() {
     const variableMap: {[key: string]: string} = {};
     const variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     
-    // Map variables to field names (excluding final score field)
-    const inputFields = fieldNames.filter(name => 
-      !name.toLowerCase().includes('endwert') && 
-      !name.toLowerCase().includes('final') &&
-      !name.toLowerCase().includes('total')
-    );
+    // Sort fields by sortOrder (this determines A, B, C, etc.)
+    const sortedFields = [...fields]
+      .filter(f => !f.isFinalScore) // Exclude final score field (Endwert) from variable mapping
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     
-    inputFields.forEach((fieldName, index) => {
+    // Map each field to its corresponding variable (A, B, C, etc.) based on sort order
+    sortedFields.forEach((field, index) => {
       if (index < variables.length) {
-        variableMap[variables[index]] = fieldName;
+        variableMap[variables[index]] = field.name;
       }
     });
 
@@ -259,7 +259,8 @@ export function ScoreCapture() {
   }
 
   // Generic formula evaluation helper
-  const evaluateFormula = (formula: string, fieldValues: {[key: string]: number}) => {
+  // Uses dynamic field-to-variable mapping based on sort order from discipline configuration
+  const evaluateFormula = (formula: string, fieldValues: {[key: string]: number}, fields?: DisciplineField[]) => {
     if (!formula) {
       return 0;
     }
@@ -268,19 +269,31 @@ export function ScoreCapture() {
     const variableMap: {[key: string]: number} = {};
     const variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     
-    // Map available field values to formula variables
-    const availableFields = Object.keys(fieldValues);
-    availableFields.forEach((fieldName, index) => {
-      if (index < variables.length && fieldValues[fieldName] !== undefined) {
-        variableMap[variables[index]] = fieldValues[fieldName];
-      }
-    });
-
-    // Also try direct field name mapping for common patterns
-    if (fieldValues['D/A-Note'] !== undefined) variableMap['A'] = fieldValues['D/A-Note'];
-    if (fieldValues['E/B-Note'] !== undefined) variableMap['B'] = fieldValues['E/B-Note'];
-    if (fieldValues['Neutrale Abzüge'] !== undefined) variableMap['C'] = fieldValues['Neutrale Abzüge'];
-    if (fieldValues['Ausgangswert'] !== undefined) variableMap['D'] = fieldValues['Ausgangswert'];
+    // If we have field definitions, use their sort order for mapping
+    if (fields && fields.length > 0) {
+      // Sort fields by sortOrder (this determines A, B, C, etc.)
+      const sortedFields = [...fields]
+        .filter(f => !f.isFinalScore) // Exclude final score field (Endwert) from variable mapping
+        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      
+      // Map each field to its corresponding variable (A, B, C, etc.) based on sort order
+      sortedFields.forEach((field, index) => {
+        if (index < variables.length && fieldValues[field.name] !== undefined) {
+          variableMap[variables[index]] = fieldValues[field.name];
+          if (process.env.DEBUG === 'true') {
+            console.log(`  ${variables[index]} = ${field.name} (sortOrder: ${field.sortOrder}) = ${fieldValues[field.name]}`);
+          }
+        }
+      });
+    } else {
+      // Fallback: Map available field values to formula variables by order
+      const availableFields = Object.keys(fieldValues);
+      availableFields.forEach((fieldName, index) => {
+        if (index < variables.length && fieldValues[fieldName] !== undefined) {
+          variableMap[variables[index]] = fieldValues[fieldName];
+        }
+      });
+    }
 
     console.log('Formula evaluation:', { formula, fieldValues, variableMap });
 
@@ -566,6 +579,9 @@ export function ScoreCapture() {
         
         // Get enabled fields for this discipline
         const enabledFields = getDisciplineFields(disciplineId)
+        console.log(`📋 Discipline ${disciplineId} (${discipline.var_name}) has ${enabledFields.length} enabled fields:`, 
+          enabledFields.map(f => `${f.name} (sortOrder: ${f.sortOrder}, id: ${f.id})`).join(', '))
+        
         if (enabledFields.length === 0) {
           // Fallback: if no fields configured, use single score per discipline (old behavior)
           const key = `${participant.id}-${disciplineId}`;
@@ -1051,8 +1067,8 @@ export function ScoreCapture() {
 
         console.log(`Participant ${participant.id} field values:`, fieldValues)
 
-        // Use generic formula evaluation
-        const calculatedScore = evaluateFormula(formula, fieldValues);
+        // Use generic formula evaluation with field definitions for dynamic mapping
+        const calculatedScore = evaluateFormula(formula, fieldValues, fields);
         
         console.log(`Calculated score for ${participant.firstname} ${participant.lastname}: ${calculatedScore}`)
 
@@ -1627,14 +1643,13 @@ export function ScoreCapture() {
                                     const formula = (discipline as any).var_formel;
                                     const formulaName = (discipline as any).formula_name;
                                     
-                                    // Generate meaningful formula display based on enabled fields
-                                    const fieldNames = enabledFields.filter(f => !f.isFinalScore).map(f => f.name);
+                                    // Get final field name
                                     const finalField = enabledFields.find(f => f.isFinalScore);
                                     const finalFieldName = finalField?.name || 'Endwert';
                                     
                                     // Use generic formula parser if we have multiple fields
                                     if (enabledFields.length > 1) {
-                                      const parsedFormula = parseFormulaDisplay(formula, fieldNames, finalFieldName);
+                                      const parsedFormula = parseFormulaDisplay(formula, enabledFields, finalFieldName);
                                       if (parsedFormula) {
                                         return parsedFormula;
                                       }

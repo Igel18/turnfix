@@ -1,10 +1,9 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+import prisma from '../lib/prisma';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // In-memory store for virtual squads (squads created but with no participants yet)
 const virtualSquads: Map<string, { eventId: number, name: string, createdAt: Date }> = new Map();

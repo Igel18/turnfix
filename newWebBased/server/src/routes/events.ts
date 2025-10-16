@@ -1,14 +1,15 @@
 import type { PrismaClient as PrismaClientType } from '@prisma/client';
+import prisma from '../lib/prisma';
 /**
  * Generalized discipline selection for a competition name using DB values.
  * @param {string} competitionName
  * @param {PrismaClient} prisma
  * @returns {Promise<string[]>}
  */
-export async function getDisciplinesForCompetition(competitionName: string, prisma: PrismaClientType): Promise<string[]> {
+export async function getDisciplinesForCompetition(competitionName: string, prismaInstance: PrismaClientType): Promise<string[]> {
   const name = competitionName.toLowerCase();
   // Query all discipline names from DB
-  const allDisciplines = await prisma.tfx_disziplinen.findMany({ select: { var_name: true } });
+  const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
   const disciplineNames = allDisciplines.map(d => d.var_name);
 
   if (name.includes('vierkampf') && name.includes('w')) {
@@ -26,7 +27,6 @@ export async function getDisciplinesForCompetition(competitionName: string, pris
   }
 }
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { z } from 'zod';
 import multer = require('multer');
@@ -36,7 +36,6 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Generate start numbers for all participants in an event
 router.put('/:id/generate-start-numbers', authenticateToken, async (req: AuthRequest, res) => {

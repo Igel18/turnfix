@@ -543,6 +543,7 @@
     "loading": "Lädt...",
     "save": "Speichern",
     "cancel": "Abbrechen",
+    "create": "Erstellen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "add": "Hinzufügen",
@@ -561,7 +562,21 @@
     "warning": "Warnung",
     "info": "Information",
     "expand": "Aufklappen",
-    "collapse": "Zuklappen"
+    "collapse": "Zuklappen",
+    "pagination": {
+      "showing": "Zeige {{start}} bis {{end}} von {{total}} Ergebnissen",
+      "showingTotal": "Zeige {{total}} Ergebnisse",
+      "showingFiltered": "Zeige {{filtered}} von {{total}} Ergebnissen",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "page": "Seite {{page}} von {{total}}",
+      "results": "Ergebnisse"
+    },
+    "table": {
+      "search": "Suchen...",
+      "filters": "Filter",
+      "noResults": "Keine Ergebnisse gefunden"
+    }
   },
   "events": {
     "title": "Veranstaltungsverwaltung",
@@ -871,7 +886,10 @@
       "female": "Weiblich",
       "custom": "Benutzerdefiniert",
       "noFormula": "Keine Formel",
-      "unknown": "Unbekannt"
+      "unknown": "Unbekannt",
+      "fields": "Eingabefelder",
+      "finalScore": "E",
+      "startingScore": "S"
     },
     "filter": {
       "sport": "Sport",
@@ -966,6 +984,83 @@
       "createSuccess": "Disziplin erfolgreich erstellt",
       "updateSuccess": "Disziplin erfolgreich aktualisiert",
       "deleteSuccess": "Disziplin erfolgreich gelöscht",
+      "error": "Fehler beim Verarbeiten der Anfrage"
+    }
+  },
+  "disciplineFields": {
+    "title": "Disziplinfelder-Verwaltung",
+    "subtitle": "Eingabefelder für Wertungserfassung konfigurieren",
+    "searchPlaceholder": "Felder nach Name oder Disziplin suchen...",
+    "addField": "Feld hinzufügen",
+    "createField": "Feld erstellen",
+    "editField": "Feld bearbeiten",
+    "deleteField": "Feld löschen",
+    "noFields": "Keine Felder gefunden",
+    "loadingFields": "Lade Felder...",
+    "form": {
+      "basicInformation": "Grundinformationen",
+      "discipline": "Disziplin",
+      "selectDiscipline": "Disziplin auswählen",
+      "disciplineCannotChange": "Die Disziplin kann beim Bearbeiten nicht geändert werden, da bereits Wertungen vorhanden sein könnten",
+      "fieldName": "Feldname",
+      "fieldNamePlaceholder": "z.B. D-Note",
+      "fieldNameHelp": "Maximal 15 Zeichen",
+      "sortOrder": "Sortierreihenfolge",
+      "sortOrderHelp": "Bestimmt die Reihenfolge der Felder (0-99)",
+      "group": "Gruppe",
+      "groupHelp": "Gruppierung der Felder (0-10)",
+      "fieldProperties": "Feldeigenschaften",
+      "isFinalScore": "Endwert",
+      "isFinalScoreHelp": "Dieses Feld enthält die Endwertung",
+      "isStartingScore": "Ausgangswert",
+      "isStartingScoreHelp": "Dieses Feld enthält den Ausgangswert",
+      "enabled": "Aktiviert",
+      "enabledHelp": "Feld in der Wertungserfassung anzeigen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "table": {
+      "id": "ID",
+      "fieldName": "Feldname",
+      "discipline": "Disziplin",
+      "sortOrder": "Sortierung",
+      "finalScore": "Endwert",
+      "startingScore": "Ausgangswert",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "card": {
+      "id": "ID",
+      "group": "Gruppe",
+      "discipline": "Disziplin",
+      "sortOrder": "Sortierung",
+      "finalScore": "Endwert",
+      "startingScore": "Ausgangswert",
+      "status": "Status"
+    },
+    "filter": {
+      "discipline": "Disziplin",
+      "allDisciplines": "Alle Disziplinen",
+      "scoreType": "Wertungstyp",
+      "allScoreTypes": "Alle Wertungstypen",
+      "finalScoreOnly": "Nur Endwert",
+      "startingScoreOnly": "Nur Ausgangswert",
+      "bothFinalAndStarting": "Endwert & Ausgangswert",
+      "neitherFinalNorStarting": "Weder Endwert noch Ausgangswert",
+      "status": "Status",
+      "allStatuses": "Alle Status",
+      "enabledOnly": "Nur Aktiviert",
+      "disabledOnly": "Nur Deaktiviert"
+    },
+    "status": {
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert"
+    },
+    "helpLabel": "Feldkonfiguration Hilfe",
+    "messages": {
+      "createSuccess": "Feld erfolgreich erstellt",
+      "updateSuccess": "Feld erfolgreich aktualisiert",
+      "deleteSuccess": "Feld erfolgreich gelöscht",
       "createError": "Fehler beim Erstellen der Disziplin",
       "updateError": "Fehler beim Aktualisieren der Disziplin",
       "deleteError": "Fehler beim Löschen der Disziplin",

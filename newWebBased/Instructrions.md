@@ -69,11 +69,76 @@ c) ~~die Calculate / Berechnen können dann auch ausgeblendet werden, oder?~~ �
 a) ~~sind nich lokalisiert~~ ✅
 b) ~~der Dialog "Edit Discipline" lässt sich nicht speichern~~ ✅
 
-24. auf der seite http://localhost:3001/configuration sind in den Anwendungseinstellungen ist der ClientPort angegeben. Dieser passt aber nicht ganz, ich denke das ist nicht der production sondern der develop 
+24. ~~auf der seite http://localhost:3001/configuration sind in den Anwendungseinstellungen ist der ClientPort angegeben. Dieser passt aber nicht ganz, ich denke das ist nicht der production sondern der develop~~ ✅
 
-25. mit aktiver Check-Box Jury results 
-a) die Berechnungsanzeige z.B. "D/A-Note • E/B-Note • Ausgangswert • Endwert" sollte die exakte formel anzeigen 
-b) auch sollte dabei stehen was wie wann berechnet wird. 
-c) Das Feld "Endwert (Jury)" und der Button "Calculate" sollte eingeblendet sein (wenn checkbox nicht angehakt dann ausgeblendet)
+25. ~~mit aktiver Check-Box Jury results~~ ✅
+~~a) die Berechnungsanzeige z.B. "D/A-Note • E/B-Note • Ausgangswert • Endwert" sollte die exakte formel anzeigen~~ ✅
+~~b) auch sollte dabei stehen was wie wann berechnet wird.~~ ✅
+~~c) Das Feld "Endwert (Jury)" und der Button "Calculate" sollte eingeblendet sein (wenn checkbox nicht angehakt dann ausgeblendet)~~ ✅
+**Zusätzlich implementiert**: Vollständig dynamisches Feld-Mapping basierend auf `sortOrder` aus DB (siehe `DYNAMIC_FIELD_MAPPING.md`)
+- Keine hardcodierten Feldnamen mehr
+- Jede Disziplin kann beliebige Felder mit beliebigen Namen haben
+- Zuordnung zu Formelvariablen (A, B, C, etc.) erfolgt automatisch über `int_sortierung` in `tfx_disziplinen_felder`
 
 26. Das Beschreibungsfeld beim editieren von Layouts kann nicht geändert / beschrieben werden. http://localhost:3001/certificate-layouts
+
+27. ~~wäre diese anpassung mit dem singelton dann nicht bei jeder route zu machen?~~ ✅
+import prisma from '../lib/prisma';
+anstatt
+import type { PrismaClient as PrismaClientType} from '@prisma/client';
+
+28. ~~Seit Discipline Fields Management (http://localhost:3001/discipline-fields)~~ ✅
+~~a) vollständig lokalisieren~~ ✅
+~~b) es öffnet sich kein Editieren Dialog~~ ✅
+~~c) wo kann man denn ein neues Disziplin Feld anlegen und zuweisen?~~ ✅
+~~d) vielleicht sollten die Disziplin Felder auch an den Disziplinen dargestellt werden (in der Disziplin-Verwaltung) ggf. an der Formel, damit man sieht wie sich was berechnet?~~ ✅
+    **Status**: ✅ Abgeschlossen - Discipline Fields Management vollständig funktionsfähig
+    **Implementierung**: 
+    - a) Vollständige Lokalisierung (45+ Translation Keys in de.json und en.json)
+    - b) Edit-Dialog funktioniert mit visueller Feedback (disabled dropdown, Warnhinweise)
+    - c) Create-Dialog funktioniert, "Add Field" Button öffnet Modal
+    - d) Felder werden in Disziplin-Verwaltung angezeigt (Card View mit Variable-Buchstaben A, B, C und E/S Badges)
+    **Translation Keys**: disciplineFields.form.*, table.*, card.*, filter.*, status.*, disciplines.card.fields/finalScore/startingScore
+    **Dokumentation**: Siehe Code-Kommentare in DisciplineFieldsUnified.tsx und DisciplineFieldFormModal.tsx
+
+29. Aufräumen
+Ich sehe es gibt viele duplikate. z.B. medals-broken.ts, medals_old.ts, medals_simple usw. 
+genauso bei events, activities, clubs, ... (in den routen)
+kann man da etwas bereinigen bzw. werden diese alle noch benötigt? 
+
+30. unification von male / female / both / undefined in den UIs
+http://localhost:3001/disciplines
+http://localhost:3001/participants
+http://localhost:3001/event-participants?eventId=59&squadName=mBlau
+http://localhost:3001/competitions?eventId=59&squadName=mBlau 
+-> sollte immer gleich benannt sein, nicht mal "male" mal "m" usw. 
+-> sollte immer gleich aussehen z.B. "male" als blauen "tag" female roten "tag" 
+-> sollte immer die gleiche überschrift haben in den Tabellen und edit dialogen 
+-> Sollte immer die gleichen benennungungen in Dropdown listen haben 
+
+31. ~~lokalisierung.~~ ✅
+~~bei den Tabellen steht auf den seiten immer ein Text~~ 
+~~"Showing 1 to 50 of 53 results"~~
+~~und für die Seiten gibt es Buttons mit beschriftungen~~ 
+~~Previous & Next~~
+~~sowie im Filter~~ 
+~~Search.~~
+~~Das ist bestimmt ineinem TEmplate zu loalisieren.~~ ✅
+    **Status**: ✅ Abgeschlossen - Alle Tabellentexte lokalisiert
+    **Implementierung**: 
+    - Translation Keys in common.pagination (showing, showingTotal, showingFiltered, previous, next, page, results)
+    - Translation Keys in common.table (search, filters, noResults)
+    - Komponenten aktualisiert: SmartPagination.tsx, DatabaseManagementTemplate.tsx, UnifiedHeader.tsx, data-table.tsx
+    **Betroffene Seiten**: Alle Datenbank-Management-Seiten (Participants, Clubs, Disciplines, Events, etc.)
+    **Dokumentation**: Siehe POINT-31-LOCALIZATION.md
+
+32. ~~Usability allgemein:~~ ✅
+~~in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.~~ ✅
+    **Status**: ✅ Abgeschlossen - Horizontales Scrollen in allen Tabellen aktiviert
+    **Implementierung**: 
+    - DatabaseManagementTemplate.tsx: overflow-hidden → overflow-x-auto
+    - Medallienspiegel.tsx: overflow-x-auto wrapper hinzugefügt
+    - Verifiziert: EventParticipants, ScoreCapture, SquadStatusManagement, TimePlanningPage, CompetitionsFixed, Meldematrix, CompetitionStatusManagement haben bereits korrektes overflow-x-auto
+    **Best Practice Pattern**: Äußerer Container mit overflow-hidden (für rounded corners), innerer Container mit overflow-x-auto (für scrolling)
+    **Dokumentation**: Siehe POINT-32-HORIZONTAL-SCROLLING.md
+in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt. 

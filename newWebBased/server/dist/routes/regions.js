@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const regionCreateSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -43,7 +45,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       ${whereClause}
     `;
-        const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
+        const countResult = await prisma_1.default.$queryRawUnsafe(countQuery, ...params);
         const total = parseInt(countResult[0]?.total || '0');
         const dataQuery = `
       SELECT 
@@ -60,7 +62,7 @@ router.get('/', async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(query.limit, query.offset);
-        const regions = await prisma.$queryRawUnsafe(dataQuery, ...params);
+        const regions = await prisma_1.default.$queryRawUnsafe(dataQuery, ...params);
         res.json({
             regions,
             pagination: {
@@ -95,7 +97,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       WHERE g.int_gaueid = $1
     `;
-        const regions = await prisma.$queryRawUnsafe(query, id);
+        const regions = await prisma_1.default.$queryRawUnsafe(query, id);
         if (!regions || regions.length === 0) {
             return res.status(404).json({ error: 'Region not found' });
         }
@@ -115,7 +117,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       VALUES ($1, $2, $3)
       RETURNING int_gaueid
     `;
-        const result = await prisma.$queryRawUnsafe(insertQuery, data.var_name, data.var_kuerzel || null, data.int_verbaendeid || null);
+        const result = await prisma_1.default.$queryRawUnsafe(insertQuery, data.var_name, data.var_kuerzel || null, data.int_verbaendeid || null);
         const regionId = result[0]?.int_gaueid;
         // Fetch the created region with association data
         const fetchQuery = `
@@ -130,7 +132,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       WHERE g.int_gaueid = $1
     `;
-        const regions = await prisma.$queryRawUnsafe(fetchQuery, regionId);
+        const regions = await prisma_1.default.$queryRawUnsafe(fetchQuery, regionId);
         res.status(201).json(regions[0]);
     }
     catch (error) {
@@ -175,7 +177,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       RETURNING int_gaueid
     `;
         params.push(id);
-        const result = await prisma.$queryRawUnsafe(updateQuery, ...params);
+        const result = await prisma_1.default.$queryRawUnsafe(updateQuery, ...params);
         if (!result || result.length === 0) {
             return res.status(404).json({ error: 'Region not found' });
         }
@@ -192,7 +194,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       WHERE g.int_gaueid = $1
     `;
-        const regions = await prisma.$queryRawUnsafe(fetchQuery, id);
+        const regions = await prisma_1.default.$queryRawUnsafe(fetchQuery, id);
         res.json(regions[0]);
     }
     catch (error) {
@@ -212,7 +214,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Check if region is being used by clubs
         const clubCheckQuery = 'SELECT COUNT(*) as count FROM tfx_vereine WHERE int_gaueid = $1';
-        const clubCheck = await prisma.$queryRawUnsafe(clubCheckQuery, id);
+        const clubCheck = await prisma_1.default.$queryRawUnsafe(clubCheckQuery, id);
         const clubCount = parseInt(clubCheck[0]?.count || '0');
         if (clubCount > 0) {
             return res.status(400).json({
@@ -220,7 +222,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
             });
         }
         const deleteQuery = 'DELETE FROM tfx_gaue WHERE int_gaueid = $1 RETURNING int_gaueid';
-        const result = await prisma.$queryRawUnsafe(deleteQuery, id);
+        const result = await prisma_1.default.$queryRawUnsafe(deleteQuery, id);
         if (!result || result.length === 0) {
             return res.status(404).json({ error: 'Region not found' });
         }
@@ -239,7 +241,7 @@ router.get('/data/verbaende', async (req, res) => {
       FROM tfx_verbaende
       ORDER BY var_name ASC
     `;
-        const verbaende = await prisma.$queryRawUnsafe(query);
+        const verbaende = await prisma_1.default.$queryRawUnsafe(query);
         res.json(verbaende);
     }
     catch (error) {

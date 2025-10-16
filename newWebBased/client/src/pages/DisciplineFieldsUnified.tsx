@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, TableCellsIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate';
 import { BlueInfoBox, GreenInfoBox, RedInfoBox, InfoList, FeatureList } from '../components/InfoBoxes';
+import DisciplineFieldFormModal from '../components/DisciplineFieldFormModal';
 
 interface DisciplineField {
   id: number;
@@ -23,10 +25,24 @@ interface Discipline {
 }
 
 const DisciplineFieldsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingField, setEditingField] = useState<DisciplineField | null>(null);
+  const [formData, setFormData] = useState({
+    disciplineId: '',
+    name: '',
+    sortOrder: '',
+    group: '',
+    isFinalScore: false,
+    isStartingScore: false,
+    enabled: true
+  });
 
   // Filter states
   const [disciplineFilter, setDisciplineFilter] = useState('all');
@@ -63,6 +79,7 @@ const DisciplineFieldsUnified: React.FC = () => {
         // Handle both array response and object with disciplines property
         const disciplinesArray = Array.isArray(disciplinesData) ? disciplinesData :
                                  (Array.isArray(disciplinesData.disciplines) ? disciplinesData.disciplines : []);
+        console.log('Loaded disciplines:', disciplinesArray.length, disciplinesArray);
         setDisciplines(disciplinesArray);
       }
     } catch (error) {
@@ -71,6 +88,101 @@ const DisciplineFieldsUnified: React.FC = () => {
       setDisciplines([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (field: DisciplineField) => {
+    setEditingField(field);
+    setFormData({
+      disciplineId: field.disciplineId.toString(),
+      name: field.name,
+      sortOrder: field.sortOrder?.toString() || '',
+      group: field.group.toString(),
+      isFinalScore: field.isFinalScore,
+      isStartingScore: field.isStartingScore,
+      enabled: field.enabled
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    console.log('handleCreate called');
+    console.log('Available disciplines:', disciplines.length);
+    setEditingField(null);
+    setFormData({
+      disciplineId: '',
+      name: '',
+      sortOrder: '',
+      group: '0',
+      isFinalScore: false,
+      isStartingScore: false,
+      enabled: true
+    });
+    setIsModalOpen(true);
+    console.log('Modal should be open now');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const submitData = {
+        disciplineId: parseInt(formData.disciplineId),
+        name: formData.name,
+        sortOrder: formData.sortOrder ? parseInt(formData.sortOrder) : null,
+        group: parseInt(formData.group),
+        isFinalScore: formData.isFinalScore,
+        isStartingScore: formData.isStartingScore,
+        enabled: formData.enabled
+      };
+
+      const url = editingField 
+        ? `/api/discipline-fields/${editingField.id}`
+        : '/api/discipline-fields';
+      
+      const method = editingField ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        await fetchData();
+      } else {
+        const error = await response.json();
+        console.error('Error saving discipline field:', error);
+        alert(`Error: ${error.error || 'Failed to save discipline field'}`);
+      }
+    } catch (error) {
+      console.error('Error saving discipline field:', error);
+      alert('Error saving discipline field');
+    }
+  };
+
+  const handleDelete = async (field: DisciplineField) => {
+    if (!confirm(`Are you sure you want to delete the field "${field.name}"?\n\nNote: Fields with existing jury evaluations cannot be deleted.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/discipline-fields/${field.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchData();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to delete discipline field'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting discipline field:', error);
+      alert('Error deleting discipline field');
     }
   };
 
@@ -116,28 +228,28 @@ const DisciplineFieldsUnified: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        ID
+        {t('disciplineFields.table.id')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Field Name
+        {t('disciplineFields.table.fieldName')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Discipline
+        {t('disciplineFields.table.discipline')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Sort Order
+        {t('disciplineFields.table.sortOrder')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Final Score
+        {t('disciplineFields.table.finalScore')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Starting Score
+        {t('disciplineFields.table.startingScore')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Status
+        {t('disciplineFields.table.status')}
       </th>
       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Actions
+        {t('disciplineFields.table.actions')}
       </th>
     </tr>
   );
@@ -175,12 +287,12 @@ const DisciplineFieldsUnified: React.FC = () => {
           {field.isFinalScore ? (
             <>
               <CheckIcon className="w-3 h-3 mr-1" />
-              Yes
+              {t('common.yes')}
             </>
           ) : (
             <>
               <XMarkIcon className="w-3 h-3 mr-1" />
-              No
+              {t('common.no')}
             </>
           )}
         </span>
@@ -194,12 +306,12 @@ const DisciplineFieldsUnified: React.FC = () => {
           {field.isStartingScore ? (
             <>
               <CheckIcon className="w-3 h-3 mr-1" />
-              Yes
+              {t('common.yes')}
             </>
           ) : (
             <>
               <XMarkIcon className="w-3 h-3 mr-1" />
-              No
+              {t('common.no')}
             </>
           )}
         </span>
@@ -210,18 +322,20 @@ const DisciplineFieldsUnified: React.FC = () => {
             ? 'bg-green-100 text-green-800' 
             : 'bg-red-100 text-red-800'
         }`}>
-          {field.enabled ? 'Enabled' : 'Disabled'}
+          {field.enabled ? t('disciplineFields.status.enabled') : t('disciplineFields.status.disabled')}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <div className="flex space-x-2 justify-end">
           <button
+            onClick={() => handleEdit(field)}
             className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
             title="Edit field"
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
+            onClick={() => handleDelete(field)}
             className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
             title="Delete field"
           >
@@ -241,13 +355,13 @@ const DisciplineFieldsUnified: React.FC = () => {
             <TableCellsIcon className="h-6 w-6 text-blue-500 mr-3" />
             <div>
               <h3 className="text-lg font-medium text-gray-900">{field.name}</h3>
-              <p className="text-sm text-gray-500">ID: {field.id} • Group: {field.group}</p>
+              <p className="text-sm text-gray-500">{t('disciplineFields.card.id')}: {field.id} • {t('disciplineFields.card.group')}: {field.group}</p>
             </div>
           </div>
           
           <div className="space-y-2">
             <div className="flex items-center">
-              <span className="text-sm text-gray-500 w-24">Discipline:</span>
+              <span className="text-sm text-gray-500 w-24">{t('disciplineFields.card.discipline')}:</span>
               <div>
                 <div className="text-sm font-medium text-gray-900">{field.disciplineName}</div>
                 <div className="text-sm text-gray-500">{field.disciplineShort}</div>
@@ -255,13 +369,13 @@ const DisciplineFieldsUnified: React.FC = () => {
             </div>
             
             <div className="flex items-center">
-              <span className="text-sm text-gray-500 w-24">Sort Order:</span>
+              <span className="text-sm text-gray-500 w-24">{t('disciplineFields.card.sortOrder')}:</span>
               <span className="text-sm text-gray-900">{field.sortOrder || 'N/A'}</span>
             </div>
             
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 mr-2">Final Score:</span>
+                <span className="text-sm text-gray-500 mr-2">{t('disciplineFields.card.finalScore')}:</span>
                 <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
                   field.isFinalScore 
                     ? 'bg-green-100 text-green-800' 
@@ -270,19 +384,19 @@ const DisciplineFieldsUnified: React.FC = () => {
                   {field.isFinalScore ? (
                     <>
                       <CheckIcon className="w-3 h-3 mr-1" />
-                      Yes
+                      {t('common.yes')}
                     </>
                   ) : (
                     <>
                       <XMarkIcon className="w-3 h-3 mr-1" />
-                      No
+                      {t('common.no')}
                     </>
                   )}
                 </span>
               </div>
               
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 mr-2">Starting:</span>
+                <span className="text-sm text-gray-500 mr-2">{t('disciplineFields.card.startingScore')}:</span>
                 <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
                   field.isStartingScore 
                     ? 'bg-blue-100 text-blue-800' 
@@ -291,12 +405,12 @@ const DisciplineFieldsUnified: React.FC = () => {
                   {field.isStartingScore ? (
                     <>
                       <CheckIcon className="w-3 h-3 mr-1" />
-                      Yes
+                      {t('common.yes')}
                     </>
                   ) : (
                     <>
                       <XMarkIcon className="w-3 h-3 mr-1" />
-                      No
+                      {t('common.no')}
                     </>
                   )}
                 </span>
@@ -304,13 +418,13 @@ const DisciplineFieldsUnified: React.FC = () => {
             </div>
             
             <div className="flex items-center">
-              <span className="text-sm text-gray-500 w-24">Status:</span>
+              <span className="text-sm text-gray-500 w-24">{t('disciplineFields.card.status')}:</span>
               <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
                 field.enabled 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-red-100 text-red-800'
               }`}>
-                {field.enabled ? 'Enabled' : 'Disabled'}
+                {field.enabled ? t('disciplineFields.status.enabled') : t('disciplineFields.status.disabled')}
               </span>
             </div>
           </div>
@@ -318,12 +432,14 @@ const DisciplineFieldsUnified: React.FC = () => {
         
         <div className="flex space-x-2 ml-4">
           <button
+            onClick={() => handleEdit(field)}
             className="text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50"
             title="Edit Field"
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
+            onClick={() => handleDelete(field)}
             className="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50"
             title="Delete Field"
           >
@@ -337,11 +453,11 @@ const DisciplineFieldsUnified: React.FC = () => {
   const filterOptions = [
     {
       value: 'discipline',
-      label: 'Discipline',
+      label: t('disciplineFields.filter.discipline'),
       selectedValue: disciplineFilter,
       onChange: setDisciplineFilter,
       options: [
-        { value: 'all', label: 'All Disciplines' },
+        { value: 'all', label: t('disciplineFields.filter.allDisciplines') },
         ...disciplines.map(discipline => ({
           value: discipline.id.toString(),
           label: `${discipline.name} (${discipline.short_name || 'N/A'})`
@@ -350,26 +466,26 @@ const DisciplineFieldsUnified: React.FC = () => {
     },
     {
       value: 'fieldType',
-      label: 'Score Type',
+      label: t('disciplineFields.filter.scoreType'),
       selectedValue: fieldTypeFilter,
       onChange: setFieldTypeFilter,
       options: [
-        { value: 'all', label: 'All Score Types' },
-        { value: 'final', label: 'Final Score Only' },
-        { value: 'starting', label: 'Starting Score Only' },
-        { value: 'both', label: 'Both Final & Starting' },
-        { value: 'neither', label: 'Neither Final nor Starting' }
+        { value: 'all', label: t('disciplineFields.filter.allScoreTypes') },
+        { value: 'final', label: t('disciplineFields.filter.finalScoreOnly') },
+        { value: 'starting', label: t('disciplineFields.filter.startingScoreOnly') },
+        { value: 'both', label: t('disciplineFields.filter.bothFinalAndStarting') },
+        { value: 'neither', label: t('disciplineFields.filter.neitherFinalNorStarting') }
       ]
     },
     {
       value: 'status',
-      label: 'Status',
+      label: t('disciplineFields.filter.status'),
       selectedValue: statusFilter,
       onChange: setStatusFilter,
       options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'enabled', label: 'Enabled Only' },
-        { value: 'disabled', label: 'Disabled Only' }
+        { value: 'all', label: t('disciplineFields.filter.allStatuses') },
+        { value: 'enabled', label: t('disciplineFields.filter.enabledOnly') },
+        { value: 'disabled', label: t('disciplineFields.filter.disabledOnly') }
       ]
     }
   ];
@@ -456,17 +572,18 @@ const DisciplineFieldsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Discipline Fields Management"
-        subtitle={`Configure input fields for score capture • ${disciplineFields.length} fields loaded`}
+        title={t('disciplineFields.title')}
+        subtitle={t('disciplineFields.subtitle', { count: disciplineFields.length })}
         icon={TableCellsIcon}
         data={filteredData}
         isLoading={loading}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search fields by name or discipline..."
+        searchPlaceholder={t('disciplineFields.searchPlaceholder')}
         itemsPerPage={50}
         viewStorageKey="discipline-fields-view"
-        addLabel="Add Field"
+        addLabel={t('disciplineFields.addField')}
+        onAdd={handleCreate}
         renderTableHeaders={renderTableHeaders}
         renderTableRow={renderTableRow}
         renderCard={renderCard}
@@ -476,7 +593,17 @@ const DisciplineFieldsUnified: React.FC = () => {
         showHelpPanel={showHelpPanel}
         onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
         helpContent={helpContent}
-        helpLabel="Field Configuration Help"
+        helpLabel={t('disciplineFields.helpLabel')}
+      />
+
+      <DisciplineFieldFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editingField={editingField}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        disciplines={disciplines}
       />
     </>
   );
