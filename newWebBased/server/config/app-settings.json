@@ -1,0 +1,15 @@
+{
+  "scoreCapture": {
+    "showJuryScores": false,
+    "description": "When true, shows individual jury scores in score capture. When false, shows only the total score."
+  },
+  "juryPortal": {
+    "blindMode": false,
+    "description": "When true, jury members cannot see scores from other judges until they submit their own."
+  },
+  "general": {
+    "autoSave": true,
+    "autoSaveInterval": 30000,
+    "description": "Auto-save interval in milliseconds (default: 30000 = 30 seconds)"
+  }
+}

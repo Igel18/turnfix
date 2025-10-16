@@ -9,15 +9,15 @@ const prisma = new PrismaClient();
 // Validation schemas - using client-friendly field names
 const createDisciplineSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  shortName: z.string().min(1, "Short name is required").max(6).optional(),
-  displayName: z.string().max(20).optional(),
-  formula: z.string().max(300).optional(),
-  inputMask: z.string().max(10).optional(),
+  shortName: z.string().max(6).nullable().optional(),
+  displayName: z.string().max(20).nullable().optional(),
+  formula: z.string().max(300).nullable().optional(),
+  inputMask: z.string().max(10).nullable().optional(),
   attempts: z.number().min(1).default(1),
-  icon: z.string().max(50).optional(),
-  shortcut: z.string().max(50).optional(),
-  calculationType: z.number().min(1).max(3).default(2),
-  unit: z.string().max(5).optional(),
+  icon: z.string().max(50).nullable().optional(),
+  shortcut: z.string().max(50).nullable().optional(),
+  calculationType: z.number().min(0).max(3).default(2),
+  unit: z.string().max(10).nullable().optional(),
   lanesDivision: z.boolean().default(false),
   maleAllowed: z.boolean().default(true),
   femaleAllowed: z.boolean().default(true),
@@ -345,6 +345,11 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const disciplineId = parseInt(req.params.id);
+    
+    if (process.env.DEBUG === 'true') {
+      console.log('PUT /api/disciplines/:id - Request body:', JSON.stringify(req.body, null, 2));
+    }
+    
     const validatedData = updateDisciplineSchema.parse(req.body);
     
     // Build dynamic update query
@@ -489,6 +494,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error updating discipline:', error);
     if (error instanceof z.ZodError) {
+      console.error('Validation error details:', JSON.stringify(error.issues, null, 2));
       res.status(400).json({ error: 'Validation error', details: error.issues });
     } else {
       res.status(500).json({ error: 'Internal server error' });

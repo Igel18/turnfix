@@ -59,7 +59,20 @@
     - DB verbindung herstellen ✅ (automatisch)
     - DB erzeugen wenn nicht schon vorhanden ✅ (automatisch)
 
+22. Jury-Results: 
+a) ~~auf der seite http://localhost:3001/score-capture?eventId=59 am Gerät nur noch den Endwert (offiziell) anzeigen~~ ✅
+b) ~~die Hinweise können dann auch ausgeblendet werden~~ ✅
+Hinweise zur Wertungserfassung
+c) ~~die Calculate / Berechnen können dann auch ausgeblendet werden, oder?~~ ✅
 
- 
+23. die Seite http://localhost:3001/disciplines und der Dialog (Edit Discipline) 
+a) ~~sind nich lokalisiert~~ ✅
+b) ~~der Dialog "Edit Discipline" lässt sich nicht speichern~~ ✅
 
+24. auf der seite http://localhost:3001/configuration sind in den Anwendungseinstellungen ist der ClientPort angegeben. Dieser passt aber nicht ganz, ich denke das ist nicht der production sondern der develop 
 
+25. mit aktiver Check-Box Jury results 
+a) die Berechnungsanzeige z.B. "D/A-Note • E/B-Note • Ausgangswert • Endwert" sollte die exakte formel anzeigen 
+b) auch sollte dabei stehen was wie wann berechnet wird. 
+
+26. Das Beschreibungsfeld beim editieren von Layouts kann nicht geändert / beschrieben werden. http://localhost:3001/certificate-layouts

@@ -298,7 +298,7 @@
         },
         "clientPort": {
           "label": "Client Port",
-          "description": "Frontend development server port"
+          "description": "Frontend port (5173 in development, 3001 in production)"
         }
       },
       "localization": {
@@ -510,6 +510,14 @@
         "dbQueries": {
           "label": "Log Database Queries",
           "description": "Log all database queries (debug mode only)"
+        }
+      },
+      "scoreCapture": {
+        "title": "Score Capture",
+        "description": "Settings for score capture and jury scoring",
+        "showJuryScores": {
+          "label": "Show Jury Scores",
+          "description": "When enabled, individual jury scores will be shown in score capture. When disabled, only the total score will be displayed."
         }
       }
     },
@@ -834,30 +842,85 @@
   },
   "disciplines": {
     "title": "Discipline Management",
-    "subtitle": "Manage gymnastics disciplines and apparatus",
+    "subtitle": "Manage gymnastics disciplines and apparatus ({{count}} disciplines loaded)",
     "searchPlaceholder": "Search disciplines...",
     "addDiscipline": "Add Discipline",
+    "createDiscipline": "Create Discipline",
     "editDiscipline": "Edit Discipline",
     "deleteDiscipline": "Delete Discipline",
     "noDisciplines": "No disciplines found",
     "loadingDisciplines": "Loading disciplines...",
     "table": {
-      "name": "Discipline Name",
-      "description": "Description",
+      "name": "Name",
+      "shortName": "Short Name",
+      "sport": "Sport",
       "gender": "Gender",
+      "attempts": "Attempts",
+      "unit": "Unit",
+      "formula": "Formula",
       "actions": "Actions"
     },
+    "card": {
+      "shortName": "Short Name",
+      "sport": "Sport",
+      "gender": "Gender",
+      "attempts": "Attempts",
+      "unit": "Unit",
+      "formula": "Formula",
+      "male": "Male",
+      "female": "Female",
+      "custom": "Custom",
+      "noFormula": "No formula",
+      "unknown": "Unknown"
+    },
+    "filter": {
+      "sport": "Sport",
+      "gender": "Gender",
+      "hasFormula": "Has Formula",
+      "allSports": "All Sports",
+      "allGenders": "All Genders",
+      "maleOnly": "Male Only",
+      "femaleOnly": "Female Only",
+      "bothGenders": "Both Genders",
+      "allDisciplines": "All Disciplines",
+      "hasFormulaYes": "Has Formula",
+      "hasFormulaNo": "No Formula"
+    },
     "form": {
-      "name": "Discipline Name",
-      "namePlaceholder": "Enter discipline name",
+      "basicInformation": "Basic Information",
+      "name": "Name",
+      "namePlaceholder": "e.g., Floor",
+      "shortName": "Short Name",
+      "shortNamePlaceholder": "e.g., Fl",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "e.g., Floor Exercise",
       "description": "Description",
       "descriptionPlaceholder": "Enter description",
+      "settings": "Settings",
+      "sport": "Sport",
+      "attempts": "Number of Attempts",
+      "unit": "Unit",
+      "unitPlaceholder": "e.g., Points",
+      "calculationType": "Calculation Type",
+      "formula": "Formula",
+      "selectFormula": "Select Formula",
+      "customFormula": "Custom Formula",
+      "customFormulaPlaceholder": "Enter formula",
+      "inputMask": "Input Mask",
+      "inputMaskPlaceholder": "e.g., 00.00",
+      "icon": "Icon",
+      "iconPlaceholder": "Icon name",
+      "shortcut": "Shortcut",
+      "shortcutPlaceholder": "Shortcut key",
       "gender": "Gender",
-      "genderMale": "Male",
-      "genderFemale": "Female",
-      "genderBoth": "Both",
+      "maleAllowed": "Male Allowed",
+      "femaleAllowed": "Female Allowed",
+      "advanced": "Advanced",
+      "lanesDivision": "Lanes Division",
+      "shouldCalculate": "Auto Calculate",
       "save": "Save",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "required": "Required"
     },
     "messages": {
       "createSuccess": "Discipline created successfully",
@@ -1360,6 +1423,7 @@
     "noEventTitle": "No Event Selected",
     "noEventMessage": "Please select an event from the dashboard to capture scores.",
     "calculateAndSave": "Calculate & Save Both",
+    "showJuryScores": "Capture Jury Scores",
     "table": {
       "participant": "Participant",
       "club": "Club",

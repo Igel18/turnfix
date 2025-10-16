@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import DisciplineFormModal from '../components/DisciplineFormModal';
 import { 
@@ -67,6 +68,7 @@ interface FormData {
 }
 
 const DisciplinesUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const [sports, setSports] = useState<Sport[]>([]);
@@ -205,7 +207,7 @@ const DisciplinesUnified: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this discipline?')) return;
+    if (!confirm(t('disciplines.messages.confirmDelete'))) return;
     
     try {
       const response = await fetch(`/api/disciplines/${id}`, {
@@ -216,7 +218,7 @@ const DisciplinesUnified: React.FC = () => {
       await fetchDisciplines();
     } catch (error) {
       console.error('Error deleting discipline:', error);
-      alert('Error deleting discipline. Please try again.');
+      alert(t('disciplines.messages.deleteError'));
     }
   };
 
@@ -226,21 +228,21 @@ const DisciplinesUnified: React.FC = () => {
     try {
       const disciplineData = {
         name: formData.name,
-        short_name: formData.shortName,
-        display_name: formData.displayName || null,
+        shortName: formData.shortName,
+        displayName: formData.displayName || null,
         formula: formData.formula || null,
-        input_mask: formData.inputMask || null,
+        inputMask: formData.inputMask || null,
         attempts: formData.attempts,
         icon: formData.icon || null,
         shortcut: formData.shortcut || null,
-        calculation_type: formData.calculationType,
+        calculationType: formData.calculationType,
         unit: formData.unit || null,
-        lanes_division: formData.lanesDivision,
-        male_allowed: formData.maleAllowed,
-        female_allowed: formData.femaleAllowed,
-        sport_id: formData.sportId,
-        formula_id: formData.formulaId || null,
-        should_calculate: formData.shouldCalculate
+        lanesDivision: formData.lanesDivision,
+        maleAllowed: formData.maleAllowed,
+        femaleAllowed: formData.femaleAllowed,
+        sportId: formData.sportId,
+        formulaId: formData.formulaId || null,
+        shouldCalculate: formData.shouldCalculate
       };
 
       const url = editingDiscipline 
@@ -257,14 +259,18 @@ const DisciplinesUnified: React.FC = () => {
         body: JSON.stringify(disciplineData)
       });
 
-      if (!response.ok) throw new Error('Failed to save discipline');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Save error:', errorData);
+        throw new Error(errorData.error || 'Failed to save discipline');
+      }
       
       setIsModalOpen(false);
       resetForm();
       await fetchDisciplines();
     } catch (error) {
       console.error('Error saving discipline:', error);
-      alert('Error saving discipline. Please try again.');
+      alert(t('disciplines.messages.updateError') + ': ' + (error as Error).message);
     }
   };
 
@@ -301,11 +307,11 @@ const DisciplinesUnified: React.FC = () => {
   const getFilterOptions = () => [
     {
       value: '',
-      label: 'Sport',
+      label: t('disciplines.filter.sport'),
       selectedValue: sportFilter,
       onChange: setSportFilter,
       options: [
-        { value: '', label: 'All Sports' },
+        { value: '', label: t('disciplines.filter.allSports') },
         ...(Array.isArray(sports) ? sports.map(sport => ({ 
           value: sport.int_sportid.toString(), 
           label: sport.var_name 
@@ -314,25 +320,25 @@ const DisciplinesUnified: React.FC = () => {
     },
     {
       value: '',
-      label: 'Gender',
+      label: t('disciplines.filter.gender'),
       selectedValue: genderFilter,
       onChange: setGenderFilter,
       options: [
-        { value: '', label: 'All Genders' },
-        { value: 'male', label: 'Male Only' },
-        { value: 'female', label: 'Female Only' },
-        { value: 'both', label: 'Both Genders' }
+        { value: '', label: t('disciplines.filter.allGenders') },
+        { value: 'male', label: t('disciplines.filter.maleOnly') },
+        { value: 'female', label: t('disciplines.filter.femaleOnly') },
+        { value: 'both', label: t('disciplines.filter.bothGenders') }
       ]
     },
     {
       value: '',
-      label: 'Has Formula',
+      label: t('disciplines.filter.hasFormula'),
       selectedValue: formulaFilter,
       onChange: setFormulaFilter,
       options: [
-        { value: '', label: 'All Disciplines' },
-        { value: 'yes', label: 'Has Formula' },
-        { value: 'no', label: 'No Formula' }
+        { value: '', label: t('disciplines.filter.allDisciplines') },
+        { value: 'yes', label: t('disciplines.filter.hasFormulaYes') },
+        { value: 'no', label: t('disciplines.filter.hasFormulaNo') }
       ]
     }
   ];
@@ -341,28 +347,28 @@ const DisciplinesUnified: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Name
+        {t('disciplines.table.name')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Short Name
+        {t('disciplines.table.shortName')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Sport
+        {t('disciplines.table.sport')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Gender
+        {t('disciplines.table.gender')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Attempts
+        {t('disciplines.table.attempts')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Unit
+        {t('disciplines.table.unit')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Formula
+        {t('disciplines.table.formula')}
       </th>
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Actions
+        {t('disciplines.table.actions')}
       </th>
     </tr>
   );
@@ -400,7 +406,7 @@ const DisciplinesUnified: React.FC = () => {
           </span>
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-          {sport?.var_name || 'Unknown'}
+          {sport?.var_name || t('disciplines.card.unknown')}
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex space-x-1">
@@ -432,12 +438,12 @@ const DisciplinesUnified: React.FC = () => {
               )}
               {hasCustomFormula && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Custom
+                  {t('disciplines.card.custom')}
                 </span>
               )}
             </div>
           ) : (
-            <span className="text-gray-400 text-sm">No formula</span>
+            <span className="text-gray-400 text-sm">{t('disciplines.card.noFormula')}</span>
           )}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -508,7 +514,7 @@ const DisciplinesUnified: React.FC = () => {
 
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm font-medium text-gray-500">Short Name</dt>
+            <dt className="text-sm font-medium text-gray-500">{t('disciplines.card.shortName')}</dt>
             <dd className="mt-1">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                 {discipline.short_name}
@@ -516,37 +522,37 @@ const DisciplinesUnified: React.FC = () => {
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">Sport</dt>
-            <dd className="mt-1 text-sm text-gray-900">{sport?.var_name || 'Unknown'}</dd>
+            <dt className="text-sm font-medium text-gray-500">{t('disciplines.card.sport')}</dt>
+            <dd className="mt-1 text-sm text-gray-900">{sport?.var_name || t('disciplines.card.unknown')}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">Gender</dt>
+            <dt className="text-sm font-medium text-gray-500">{t('disciplines.card.gender')}</dt>
             <dd className="mt-1 flex space-x-1">
               {discipline.male_allowed && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Male
+                  {t('disciplines.card.male')}
                 </span>
               )}
               {discipline.female_allowed && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
-                  Female
+                  {t('disciplines.card.female')}
                 </span>
               )}
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">Attempts</dt>
+            <dt className="text-sm font-medium text-gray-500">{t('disciplines.card.attempts')}</dt>
             <dd className="mt-1 text-sm text-gray-900">{discipline.attempts}</dd>
           </div>
           {discipline.unit && (
             <div>
-              <dt className="text-sm font-medium text-gray-500">Unit</dt>
+              <dt className="text-sm font-medium text-gray-500">{t('disciplines.card.unit')}</dt>
               <dd className="mt-1 text-sm text-gray-900">{discipline.unit}</dd>
             </div>
           )}
           {hasFormula && (
             <div className="col-span-2">
-              <dt className="text-sm font-medium text-gray-500">Formula</dt>
+              <dt className="text-sm font-medium text-gray-500">{t('disciplines.card.formula')}</dt>
               <dd className="mt-1 flex space-x-2">
                 {formula && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -555,7 +561,7 @@ const DisciplinesUnified: React.FC = () => {
                 )}
                 {hasCustomFormula && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    Custom: {discipline.formula}
+                    {t('disciplines.card.custom')}: {discipline.formula}
                   </span>
                 )}
               </dd>
@@ -577,18 +583,18 @@ const DisciplinesUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Disciplines Management"
-        subtitle={`Manage competition disciplines, formulas, and scoring configurations (${disciplines.length} disciplines loaded)`}
+        title={t('disciplines.title')}
+        subtitle={t('disciplines.subtitle', { count: disciplines.length })}
         icon={CogIcon}
         data={filteredDisciplines}
         isLoading={loading}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search disciplines..."
+        searchPlaceholder={t('disciplines.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Create Discipline"
+        addLabel={t('disciplines.createDiscipline')}
         onEdit={handleEdit}
         onDelete={(discipline) => handleDelete(discipline.id)}
         viewStorageKey="disciplines-view"

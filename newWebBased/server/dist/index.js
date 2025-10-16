@@ -55,6 +55,7 @@ const wertungenDetails_1 = __importDefault(require("./routes/wertungenDetails"))
 const configuration_1 = __importDefault(require("./routes/configuration"));
 const timePlanning_1 = __importDefault(require("./routes/timePlanning"));
 const firewall_1 = __importDefault(require("./routes/firewall"));
+const appSettings_1 = __importDefault(require("./routes/appSettings"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
@@ -203,6 +204,7 @@ app.use('/api/wertungen-details', wertungenDetails_1.default);
 app.use('/api/configuration', configuration_1.default);
 app.use('/api/time-planning', timePlanning_1.default);
 app.use('/api/firewall', firewall_1.default);
+app.use('/api/app-settings', appSettings_1.default);
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {
     const path = require('path');

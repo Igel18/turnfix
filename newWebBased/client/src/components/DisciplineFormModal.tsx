@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { getIconUrl } from '../utils/iconUtils';
 
 interface Discipline {
@@ -80,6 +81,8 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
   formulas,
   sports
 }) => {
+  const { t } = useTranslation();
+  
   if (!isOpen) return null;
 
   return (
@@ -87,7 +90,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold">
-            {editingDiscipline ? 'Edit Discipline' : 'Create New Discipline'}
+            {editingDiscipline ? t('disciplines.editDiscipline') : t('disciplines.createDiscipline')}
           </h2>
           <button
             onClick={onClose}
@@ -104,11 +107,11 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
             
             {/* Basic Information */}
             <div className="md:col-span-2">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('disciplines.form.basicInformation')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name *
+                    {t('disciplines.form.name')} *
                   </label>
                   <input
                     type="text"
@@ -116,12 +119,12 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Boden"
+                    placeholder={t('disciplines.form.namePlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Short Name *
+                    {t('disciplines.form.shortName')} *
                   </label>
                   <input
                     type="text"
@@ -130,12 +133,12 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.shortName}
                     onChange={(e) => setFormData({...formData, shortName: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Bo"
+                    placeholder={t('disciplines.form.shortNamePlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Display Name
+                    {t('disciplines.form.displayName')}
                   </label>
                   <input
                     type="text"
@@ -143,7 +146,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.displayName}
                     onChange={(e) => setFormData({...formData, displayName: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Bodenturnen"
+                    placeholder={t('disciplines.form.displayNamePlaceholder')}
                   />
                 </div>
               </div>
@@ -198,7 +201,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Formula
+                    {t('disciplines.form.customFormula')}
                     <span className="text-xs text-gray-500 ml-1">(Mathematical expression with variable "x")</span>
                   </label>
                   <textarea
@@ -207,7 +210,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.formula}
                     onChange={(e) => setFormData({...formData, formula: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., x*2, 20-x, if(x>0,sqrt(x)*10,0)"
+                    placeholder={t('disciplines.form.customFormulaPlaceholder')}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Enter custom formula to transform input scores. Use "x" as the variable for input values.
@@ -225,7 +228,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Calculation Type (Decimal Places)
+                      {t('disciplines.form.calculationType')}
                       <span className="text-xs text-gray-500 ml-1">(Result precision)</span>
                     </label>
                     <select
@@ -244,8 +247,8 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Predefined Formula
-                      <span className="text-xs text-gray-500 ml-1">(Select from Formulas Management)</span>
+                      {t('disciplines.form.formula')}
+                      <span className="text-xs text-gray-500 ml-1">({t('disciplines.form.selectFormula')})</span>
                     </label>
                     <select
                       value={formData.formulaId || ''}
@@ -292,7 +295,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                         onChange={(e) => setFormData({...formData, shouldCalculate: e.target.checked})}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span className="text-sm text-gray-700">Enable automatic calculation</span>
+                      <span className="text-sm text-gray-700">{t('disciplines.form.shouldCalculate')}</span>
                     </label>
                     <p className="text-xs text-gray-500 mt-1">
                       When enabled, formulas are automatically applied to input scores during result processing.
@@ -304,11 +307,11 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
 
             {/* Technical Settings */}
             <div className="md:col-span-2">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Technical Settings</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('disciplines.form.settings')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Input Mask
+                    {t('disciplines.form.inputMask')}
                   </label>
                   <input
                     type="text"
@@ -316,12 +319,12 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.inputMask}
                     onChange={(e) => setFormData({...formData, inputMask: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., ##.## or ###m"
+                    placeholder={t('disciplines.form.inputMaskPlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Attempts
+                    {t('disciplines.form.attempts')}
                   </label>
                   <input
                     type="number"
@@ -334,7 +337,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Unit
+                    {t('disciplines.form.unit')}
                   </label>
                   <input
                     type="text"
@@ -342,7 +345,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.unit}
                     onChange={(e) => setFormData({...formData, unit: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., points, m, sec"
+                    placeholder={t('disciplines.form.unitPlaceholder')}
                   />
                 </div>
               </div>
@@ -350,11 +353,11 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
 
             {/* Visual & Organization */}
             <div className="md:col-span-2">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Visual & Organization</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('disciplines.form.advanced')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Icon
+                    {t('disciplines.form.icon')}
                   </label>
                   <div className="flex items-center space-x-2">
                     <input
@@ -363,7 +366,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                       value={formData.icon}
                       onChange={(e) => setFormData({...formData, icon: e.target.value})}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g., boden.png"
+                      placeholder={t('disciplines.form.iconPlaceholder')}
                     />
                     {formData.icon && (
                       <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center bg-gray-50">
@@ -384,7 +387,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Shortcut
+                    {t('disciplines.form.shortcut')}
                   </label>
                   <input
                     type="text"
@@ -392,12 +395,12 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     value={formData.shortcut}
                     onChange={(e) => setFormData({...formData, shortcut: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Ctrl+B"
+                    placeholder={t('disciplines.form.shortcutPlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sport *
+                    {t('disciplines.form.sport')} *
                   </label>
                   <select
                     required
@@ -418,7 +421,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
 
             {/* Gender & Configuration */}
             <div className="md:col-span-2">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Gender & Configuration</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('disciplines.form.gender')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-4">
                   <div>
@@ -429,7 +432,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                         onChange={(e) => setFormData({...formData, maleAllowed: e.target.checked})}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span className="text-sm text-gray-700">Male allowed</span>
+                      <span className="text-sm text-gray-700">{t('disciplines.form.maleAllowed')}</span>
                     </label>
                   </div>
                   <div>
@@ -440,7 +443,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                         onChange={(e) => setFormData({...formData, femaleAllowed: e.target.checked})}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span className="text-sm text-gray-700">Female allowed</span>
+                      <span className="text-sm text-gray-700">{t('disciplines.form.femaleAllowed')}</span>
                     </label>
                   </div>
                 </div>
@@ -452,7 +455,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                       onChange={(e) => setFormData({...formData, lanesDivision: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">Lanes division</span>
+                    <span className="text-sm text-gray-700">{t('disciplines.form.lanesDivision')}</span>
                   </label>
                   <p className="text-xs text-gray-500 mt-1">
                     Enable if this discipline uses lane-based competition format.
@@ -469,13 +472,13 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
               onClick={onClose}
               className="px-6 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Cancel
+              {t('disciplines.form.cancel')}
             </button>
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              {editingDiscipline ? 'Update' : 'Create'} Discipline
+              {t('disciplines.form.save')}
             </button>
           </div>
         </form>

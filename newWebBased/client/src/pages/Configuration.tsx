@@ -10,7 +10,8 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
@@ -52,6 +53,15 @@ const Configuration: React.FC = () => {
     setLoading(true)
     try {
       const response = await apiGet('/configuration')
+      
+      // Load app settings from separate API
+      let appSettings = {}
+      try {
+        const appSettingsResponse = await fetch('/api/app-settings')
+        appSettings = await appSettingsResponse.json()
+      } catch (error) {
+        console.error('Error loading app settings:', error)
+      }
       
       // Initialize configuration sections with translations
       const defaultSections: ConfigSection[] = [
@@ -150,8 +160,8 @@ const Configuration: React.FC = () => {
               key: 'client_port',
               label: t('configuration.sections.application.clientPort.label'),
               type: 'number',
-              value: response?.application?.client_port || 5173,
-              description: 'Frontend development server port',
+              value: response?.application?.client_port || (import.meta.env.MODE === 'production' ? 3001 : 5173),
+              description: t('configuration.sections.application.clientPort.description'),
               required: true
             }
           ]
@@ -440,6 +450,21 @@ const Configuration: React.FC = () => {
           ]
         },
         {
+          id: 'scoreCapture',
+          name: t('configuration.sections.scoreCapture.title'),
+          icon: ClipboardDocumentListIcon,
+          description: t('configuration.sections.scoreCapture.description'),
+          settings: [
+            {
+              key: 'showJuryScores',
+              label: t('configuration.sections.scoreCapture.showJuryScores.label'),
+              type: 'boolean',
+              value: (appSettings as any)?.scoreCapture?.showJuryScores || false,
+              description: t('configuration.sections.scoreCapture.showJuryScores.description')
+            }
+          ]
+        },
+        {
           id: 'firewall',
           name: t('configuration.firewall.title'),
           icon: GlobeAltIcon,
@@ -469,6 +494,12 @@ const Configuration: React.FC = () => {
           section.settings.forEach(setting => {
             acc['printing'][setting.key] = setting.value
           })
+        } else if (section.id === 'scoreCapture') {
+          // Save scoreCapture settings to app-settings API
+          acc['scoreCapture'] = section.settings.reduce((sectionAcc, setting) => {
+            sectionAcc[setting.key] = setting.value
+            return sectionAcc
+          }, {} as any)
         } else {
           acc[section.id] = section.settings.reduce((sectionAcc, setting) => {
             sectionAcc[setting.key] = setting.value
@@ -477,6 +508,16 @@ const Configuration: React.FC = () => {
         }
         return acc
       }, {} as any)
+
+      // Save scoreCapture settings to app-settings API
+      if (configData.scoreCapture) {
+        await fetch('/api/app-settings/scoreCapture', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(configData.scoreCapture)
+        })
+        delete configData.scoreCapture // Don't send to main configuration API
+      }
 
       await apiPost('/configuration/save', configData)
       setMessage({ type: 'success', text: t('configuration.messages.saveSuccess') })

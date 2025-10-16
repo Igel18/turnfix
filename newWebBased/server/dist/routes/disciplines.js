@@ -9,15 +9,15 @@ const prisma = new client_1.PrismaClient();
 // Validation schemas - using client-friendly field names
 const createDisciplineSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "Name is required"),
-    shortName: zod_1.z.string().min(1, "Short name is required").max(6).optional(),
-    displayName: zod_1.z.string().max(20).optional(),
-    formula: zod_1.z.string().max(300).optional(),
-    inputMask: zod_1.z.string().max(10).optional(),
+    shortName: zod_1.z.string().max(6).nullable().optional(),
+    displayName: zod_1.z.string().max(20).nullable().optional(),
+    formula: zod_1.z.string().max(300).nullable().optional(),
+    inputMask: zod_1.z.string().max(10).nullable().optional(),
     attempts: zod_1.z.number().min(1).default(1),
-    icon: zod_1.z.string().max(50).optional(),
-    shortcut: zod_1.z.string().max(50).optional(),
-    calculationType: zod_1.z.number().min(1).max(3).default(2),
-    unit: zod_1.z.string().max(5).optional(),
+    icon: zod_1.z.string().max(50).nullable().optional(),
+    shortcut: zod_1.z.string().max(50).nullable().optional(),
+    calculationType: zod_1.z.number().min(0).max(3).default(2),
+    unit: zod_1.z.string().max(10).nullable().optional(),
     lanesDivision: zod_1.z.boolean().default(false),
     maleAllowed: zod_1.z.boolean().default(true),
     femaleAllowed: zod_1.z.boolean().default(true),
@@ -307,6 +307,9 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
 router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const disciplineId = parseInt(req.params.id);
+        if (process.env.DEBUG === 'true') {
+            console.log('PUT /api/disciplines/:id - Request body:', JSON.stringify(req.body, null, 2));
+        }
         const validatedData = updateDisciplineSchema.parse(req.body);
         // Build dynamic update query
         const updateFields = [];
@@ -429,6 +432,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error updating discipline:', error);
         if (error instanceof zod_1.z.ZodError) {
+            console.error('Validation error details:', JSON.stringify(error.issues, null, 2));
             res.status(400).json({ error: 'Validation error', details: error.issues });
         }
         else {

@@ -102,6 +102,7 @@ export function ScoreCapture() {
   } = useEvent()
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const [showJuryScores, setShowJuryScores] = useState(false) // Jury-Wertungen erfassen (like Qt chk_jury)
   
   // URL parameters as fallback (for direct navigation)
   const urlEventId = searchParams.get('eventId')
@@ -131,6 +132,22 @@ export function ScoreCapture() {
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
     contextDiscipline ? (contextDiscipline.int_disziplinid || contextDiscipline.var_name) : ''
   )
+
+  // Load showJuryScores setting from API on mount
+  useEffect(() => {
+    const loadJuryScoresSetting = async () => {
+      try {
+        const response = await fetch('/api/app-settings/scoreCapture')
+        const data = await response.json()
+        setShowJuryScores(data.showJuryScores || false)
+      } catch (error) {
+        console.error('Failed to load jury scores setting:', error)
+        // Default to false if loading fails
+        setShowJuryScores(false)
+      }
+    }
+    loadJuryScoresSetting()
+  }, [])
 
   // Load initial data when eventId is available
   useEffect(() => {
@@ -174,11 +191,34 @@ export function ScoreCapture() {
     reinitializeMatrix()
   }, [activeSquad, participants, disciplines, existingScores])
 
+  // Handler for showJuryScores checkbox
+  const handleShowJuryScoresChange = async (checked: boolean) => {
+    setShowJuryScores(checked)
+    
+    // Save setting to backend
+    try {
+      await fetch('/api/app-settings/scoreCapture/showJuryScores', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: checked })
+      })
+    } catch (error) {
+      console.error('Failed to save jury scores setting:', error)
+    }
+  }
+
   // Helper function to get enabled fields for a discipline
   const getDisciplineFields = (disciplineId: number | string) => {
-    return disciplineFields
+    const allFields = disciplineFields
       .filter(field => field.disciplineId === disciplineId && field.enabled)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+    
+    // If showJuryScores is false, only show the final score field (Endwert)
+    if (!showJuryScores) {
+      return allFields.filter(field => field.isFinalScore === true)
+    }
+    
+    return allFields
   }
 
   // Generic formula parsing helper - converts formula variables to readable field names
@@ -1278,13 +1318,28 @@ export function ScoreCapture() {
         onExportCSV={handleExportCSV}
         showEventContext={true}
         customBelowActions={
-          <button
-            onClick={loadInitialData}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" />
-            {t('scoreCapture.refreshData')}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={loadInitialData}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <PlusIcon className="h-4 w-4 mr-2" />
+              {t('scoreCapture.refreshData')}
+            </button>
+            
+            {/* Jury-Wertungen erfassen Checkbox (like Qt chk_jury) */}
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showJuryScores}
+                onChange={(e) => handleShowJuryScoresChange(e.target.checked)}
+                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+              />
+              <span className="ml-2 text-sm font-medium text-gray-700">
+                {t('scoreCapture.showJuryScores')}
+              </span>
+            </label>
+          </div>
         }
       />
       
@@ -1499,35 +1554,37 @@ export function ScoreCapture() {
           ) : (
             <>
               {/* Score Capture Table */}
-              {/* Formula Documentation InfoBox */}
-              <div className="mb-4">
-                <BlueInfoBox title={t('scoreCapture.formulaHelp.title', 'Hinweise zur Wertungserfassung')}>
-                  <ul className="space-y-2 text-sm">
-                    <li className="mb-1">
-                      <span className="font-semibold">{t('scoreCapture.formulaHelp.genericTitle', 'Allgemeine Hinweise zur Wertungsformel')}</span>: {t('scoreCapture.formulaHelp.generic', 'Die Endwertung wird basierend auf den eingegebenen Feldern und der Disziplin-spezifischen Formel berechnet. Die Formel verwendet Variablen (A, B, C, ...) die den einzelnen Feldern zugeordnet sind. Beispiel: Endwert = A - B - C, wobei A = D/A-Note, B = E/B-Note, C = Neutrale Abzüge.')}
-                    </li>
-                    <li className="mb-1">
-                      <span className="font-semibold">{t('scoreCapture.formulaHelp.disciplineTitle', 'Disziplin-spezifische Hinweise')}</span>: {t('scoreCapture.formulaHelp.discipline', 'Jede Disziplin kann eine eigene Formel und Felder haben. Die genaue Berechnung wird oberhalb der Eingabefelder angezeigt.')}
-                    </li>
-                    <li className="mb-1">
-                      <span className="font-semibold">{t('scoreCapture.formulaHelp.editable', 'Bearbeitung der Felder')}</span>: {t('scoreCapture.formulaHelp.editableText', 'Die Felder können direkt bearbeitet werden. Die Berechnung erfolgt automatisch nach Klick auf "Berechnen" oder beim Speichern.')}
-                    </li>
-                    <li className="mb-1 pt-2 border-t border-blue-200">
-                      <span className="font-semibold">{t('scoreCapture.formulaHelp.endwertTypes', 'Unterschied: Endwert offiziell vs. Jury-Endwert')}</span>:
-                      <ul className="ml-4 mt-1 space-y-1">
-                        <li>
-                          <span className="inline-block w-32 text-green-700">• {t('scoreCapture.formulaHelp.officialEndwert', 'Endwert offiziell')}</span> 
-                          <span className="text-gray-700">(grün): {t('scoreCapture.formulaHelp.officialEndwertDesc', 'Wird in tfx_wertungen_details gespeichert. Dies ist der finale, offizielle Endwert für die Ergebnisberechnungen und Ranglisten.')}</span>
-                        </li>
-                        <li>
-                          <span className="inline-block w-32 text-gray-700">• {t('scoreCapture.formulaHelp.juryEndwert', 'Jury-Endwert')}</span> 
-                          <span className="text-gray-700">(grau): {t('scoreCapture.formulaHelp.juryEndwertDesc', 'Wird in tfx_jury_results gespeichert. Dies sind die Detail-Werte der Kampfrichter (z.B. D-Note, E-Note, Abzüge). Automatische Berechnung übernimmt beide Werte.')}</span>
-                        </li>
-                      </ul>
-                    </li>
-                  </ul>
-                </BlueInfoBox>
-              </div>
+              {/* Formula Documentation InfoBox - only show when showJuryScores is enabled */}
+              {showJuryScores && (
+                <div className="mb-4">
+                  <BlueInfoBox title={t('scoreCapture.formulaHelp.title', 'Hinweise zur Wertungserfassung')}>
+                    <ul className="space-y-2 text-sm">
+                      <li className="mb-1">
+                        <span className="font-semibold">{t('scoreCapture.formulaHelp.genericTitle', 'Allgemeine Hinweise zur Wertungsformel')}</span>: {t('scoreCapture.formulaHelp.generic', 'Die Endwertung wird basierend auf den eingegebenen Feldern und der Disziplin-spezifischen Formel berechnet. Die Formel verwendet Variablen (A, B, C, ...) die den einzelnen Feldern zugeordnet sind. Beispiel: Endwert = A - B - C, wobei A = D/A-Note, B = E/B-Note, C = Neutrale Abzüge.')}
+                      </li>
+                      <li className="mb-1">
+                        <span className="font-semibold">{t('scoreCapture.formulaHelp.disciplineTitle', 'Disziplin-spezifische Hinweise')}</span>: {t('scoreCapture.formulaHelp.discipline', 'Jede Disziplin kann eine eigene Formel und Felder haben. Die genaue Berechnung wird oberhalb der Eingabefelder angezeigt.')}
+                      </li>
+                      <li className="mb-1">
+                        <span className="font-semibold">{t('scoreCapture.formulaHelp.editable', 'Bearbeitung der Felder')}</span>: {t('scoreCapture.formulaHelp.editableText', 'Die Felder können direkt bearbeitet werden. Die Berechnung erfolgt automatisch nach Klick auf "Berechnen" oder beim Speichern.')}
+                      </li>
+                      <li className="mb-1 pt-2 border-t border-blue-200">
+                        <span className="font-semibold">{t('scoreCapture.formulaHelp.endwertTypes', 'Unterschied: Endwert offiziell vs. Jury-Endwert')}</span>:
+                        <ul className="ml-4 mt-1 space-y-1">
+                          <li>
+                            <span className="inline-block w-32 text-green-700">• {t('scoreCapture.formulaHelp.officialEndwert', 'Endwert offiziell')}</span> 
+                            <span className="text-gray-700">(grün): {t('scoreCapture.formulaHelp.officialEndwertDesc', 'Wird in tfx_wertungen_details gespeichert. Dies ist der finale, offizielle Endwert für die Ergebnisberechnungen und Ranglisten.')}</span>
+                          </li>
+                          <li>
+                            <span className="inline-block w-32 text-gray-700">• {t('scoreCapture.formulaHelp.juryEndwert', 'Jury-Endwert')}</span> 
+                            <span className="text-gray-700">(grau): {t('scoreCapture.formulaHelp.juryEndwertDesc', 'Wird in tfx_jury_results gespeichert. Dies sind die Detail-Werte der Kampfrichter (z.B. D-Note, E-Note, Abzüge). Automatische Berechnung übernimmt beide Werte.')}</span>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </BlueInfoBox>
+                </div>
+              )}
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -1833,15 +1890,17 @@ export function ScoreCapture() {
                                             </div>
                                           )}
                                           {/* Calculate button */}
-                                          <div className="flex justify-center mt-1">
-                                            <button
-                                              type="button"
-                                              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                                              onClick={handleCalculate}
-                                            >
-                                              {t('scoreCapture.calculateAndSave')}
-                                            </button>
-                                          </div>
+                                          {showJuryScores && (
+                                            <div className="flex justify-center mt-1">
+                                              <button
+                                                type="button"
+                                                className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                                                onClick={handleCalculate}
+                                              >
+                                                {t('scoreCapture.calculateAndSave')}
+                                              </button>
+                                            </div>
+                                          )}
                                         </div>
                                       );
                                     })()}

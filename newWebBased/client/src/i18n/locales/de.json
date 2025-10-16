@@ -298,7 +298,7 @@
         },
         "clientPort": {
           "label": "Client-Port",
-          "description": "Frontend-Entwicklungsserver Port"
+          "description": "Frontend-Port (5173 in Entwicklung, 3001 in Produktion)"
         }
       },
       "localization": {
@@ -510,6 +510,14 @@
         "dbQueries": {
           "label": "Datenbankabfragen protokollieren",
           "description": "Alle Datenbankabfragen protokollieren (nur Debug-Modus)"
+        }
+      },
+      "scoreCapture": {
+        "title": "Wertungserfassung",
+        "description": "Einstellungen für die Wertungserfassung und Jury-Scores",
+        "showJuryScores": {
+          "label": "Jury-Wertungen anzeigen",
+          "description": "Wenn aktiviert, werden die einzelnen Jury-Wertungen in der Wertungserfassung angezeigt. Wenn deaktiviert, wird nur die Gesamtwertung angezeigt."
         }
       }
     },
@@ -834,30 +842,85 @@
   },
   "disciplines": {
     "title": "Disziplinenverwaltung",
-    "subtitle": "Turndisziplinen und Geräte verwalten",
+    "subtitle": "Turndisziplinen und Geräte verwalten ({{count}} Disziplinen geladen)",
     "searchPlaceholder": "Disziplinen suchen...",
     "addDiscipline": "Disziplin hinzufügen",
+    "createDiscipline": "Disziplin erstellen",
     "editDiscipline": "Disziplin bearbeiten",
     "deleteDiscipline": "Disziplin löschen",
     "noDisciplines": "Keine Disziplinen gefunden",
     "loadingDisciplines": "Lade Disziplinen...",
     "table": {
-      "name": "Disziplinname",
-      "description": "Beschreibung",
+      "name": "Name",
+      "shortName": "Kurzname",
+      "sport": "Sport",
       "gender": "Geschlecht",
+      "attempts": "Versuche",
+      "unit": "Einheit",
+      "formula": "Formel",
       "actions": "Aktionen"
     },
+    "card": {
+      "shortName": "Kurzname",
+      "sport": "Sport",
+      "gender": "Geschlecht",
+      "attempts": "Versuche",
+      "unit": "Einheit",
+      "formula": "Formel",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "custom": "Benutzerdefiniert",
+      "noFormula": "Keine Formel",
+      "unknown": "Unbekannt"
+    },
+    "filter": {
+      "sport": "Sport",
+      "gender": "Geschlecht",
+      "hasFormula": "Hat Formel",
+      "allSports": "Alle Sportarten",
+      "allGenders": "Alle Geschlechter",
+      "maleOnly": "Nur Männlich",
+      "femaleOnly": "Nur Weiblich",
+      "bothGenders": "Beide Geschlechter",
+      "allDisciplines": "Alle Disziplinen",
+      "hasFormulaYes": "Hat Formel",
+      "hasFormulaNo": "Keine Formel"
+    },
     "form": {
-      "name": "Disziplinname",
-      "namePlaceholder": "Disziplinname eingeben",
+      "basicInformation": "Grundinformationen",
+      "name": "Name",
+      "namePlaceholder": "z.B. Boden",
+      "shortName": "Kurzname",
+      "shortNamePlaceholder": "z.B. Bo",
+      "displayName": "Anzeigename",
+      "displayNamePlaceholder": "z.B. Bodenturnen",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Beschreibung eingeben",
+      "settings": "Einstellungen",
+      "sport": "Sport",
+      "attempts": "Anzahl Versuche",
+      "unit": "Einheit",
+      "unitPlaceholder": "z.B. Punkte",
+      "calculationType": "Berechnungstyp",
+      "formula": "Formel",
+      "selectFormula": "Formel auswählen",
+      "customFormula": "Benutzerdefinierte Formel",
+      "customFormulaPlaceholder": "Formel eingeben",
+      "inputMask": "Eingabemaske",
+      "inputMaskPlaceholder": "z.B. 00.00",
+      "icon": "Symbol",
+      "iconPlaceholder": "Symbolname",
+      "shortcut": "Tastenkürzel",
+      "shortcutPlaceholder": "Tastenkürzel",
       "gender": "Geschlecht",
-      "genderMale": "Männlich",
-      "genderFemale": "Weiblich",
-      "genderBoth": "Beide",
+      "maleAllowed": "Männlich erlaubt",
+      "femaleAllowed": "Weiblich erlaubt",
+      "advanced": "Erweitert",
+      "lanesDivision": "Bahnenteilung",
+      "shouldCalculate": "Automatisch berechnen",
       "save": "Speichern",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "required": "Pflichtfeld"
     },
     "messages": {
       "createSuccess": "Disziplin erfolgreich erstellt",
@@ -1361,6 +1424,7 @@
     "noEventTitle": "Keine Veranstaltung ausgewählt",
     "noEventMessage": "Bitte wählen Sie eine Veranstaltung aus dem Dashboard aus, um Wertungen zu erfassen.",
     "calculateAndSave": "Berechnen & beide speichern",
+    "showJuryScores": "Jury-Wertungen erfassen",
     "table": {
       "participant": "Teilnehmer",
       "club": "Verein",
