@@ -1614,13 +1614,14 @@ export function ScoreCapture() {
                                   Max: {discipline.maxScore.toFixed(2)}
                                 </div>
                               )}
-                              {enabledFields.length > 0 && (
+                              {/* Formula display - show when jury scores are enabled */}
+                              {showJuryScores && enabledFields.length > 0 && (
                                 <div className="text-xs text-gray-400 normal-case mt-1">
                                   {enabledFields.map(field => field.name).join(' • ')}
                                 </div>
                               )}
-                              {/* Formula display */}
-                              {(discipline as any).var_formel && (
+                              {/* Formula display with calculation explanation */}
+                              {showJuryScores && (discipline as any).var_formel && (
                                 <div className="text-xs text-purple-600 normal-case mt-1 font-mono">
                                   {(() => {
                                     const formula = (discipline as any).var_formel;
@@ -1643,13 +1644,19 @@ export function ScoreCapture() {
                                     if (formulaName) {
                                       return `${formulaName}: ${formula}`;
                                     } else {
-                                      return `Formula: ${formula}`;
+                                      return `Formel: ${formula}`;
                                     }
                                   })()}
                                 </div>
                               )}
-                              {/* Calculate button for disciplines with formulas and final score field */}
-                              {(discipline as any).var_formel && enabledFields.length > 0 && enabledFields.some(f => f.isFinalScore) && (
+                              {/* Calculation timing explanation */}
+                              {showJuryScores && enabledFields.length > 0 && (discipline as any).var_formel && (
+                                <div className="text-xs text-blue-500 normal-case mt-1">
+                                  ⓘ Berechnung: automatisch bei "Berechnen" oder manuell editierbar
+                                </div>
+                              )}
+                              {/* Calculate button for disciplines with formulas and final score field - only show when jury scores are enabled */}
+                              {showJuryScores && (discipline as any).var_formel && enabledFields.length > 0 && enabledFields.some(f => f.isFinalScore) && (
                                 <button
                                   onClick={() => calculateDisciplineScores(disciplineId, enabledFields)}
                                   className="mt-1 px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
@@ -1866,8 +1873,8 @@ export function ScoreCapture() {
                                               title="Click to edit total score (Endwert)"
                                             />
                                           </div>
-                                          {/* Grey Endwert (jury) */}
-                                          {juryFieldKey && (
+                                          {/* Grey Endwert (jury) - only show when jury scores are enabled */}
+                                          {showJuryScores && juryFieldKey && (
                                             <div className="p-2 bg-gray-100 border border-gray-300 rounded mb-1">
                                               <div className="text-xs text-gray-600 font-medium text-center mb-1">Endwert (Jury)</div>
                                               <input
@@ -1889,7 +1896,7 @@ export function ScoreCapture() {
                                               />
                                             </div>
                                           )}
-                                          {/* Calculate button */}
+                                          {/* Calculate button - only show when jury scores are enabled */}
                                           {showJuryScores && (
                                             <div className="flex justify-center mt-1">
                                               <button
@@ -1905,8 +1912,8 @@ export function ScoreCapture() {
                                       );
                                     })()}
                                     
-                                    {/* Individual field inputs (hide Endwert field if already shown above) */}
-                                    {enabledFields.filter(field => {
+                                    {/* Individual field inputs (hide Endwert field if already shown above) - only show when jury scores are enabled */}
+                                    {showJuryScores && enabledFields.filter(field => {
                                       // Hide jury Endwert field if it's already shown as the grey box above
                                       if (field.isFinalScore || field.name.toLowerCase().includes('endwert')) return false;
                                       return true;

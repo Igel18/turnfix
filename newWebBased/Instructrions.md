@@ -74,5 +74,6 @@ b) ~~der Dialog "Edit Discipline" lässt sich nicht speichern~~ ✅
 25. mit aktiver Check-Box Jury results 
 a) die Berechnungsanzeige z.B. "D/A-Note • E/B-Note • Ausgangswert • Endwert" sollte die exakte formel anzeigen 
 b) auch sollte dabei stehen was wie wann berechnet wird. 
+c) Das Feld "Endwert (Jury)" und der Button "Calculate" sollte eingeblendet sein (wenn checkbox nicht angehakt dann ausgeblendet)
 
 26. Das Beschreibungsfeld beim editieren von Layouts kann nicht geändert / beschrieben werden. http://localhost:3001/certificate-layouts

@@ -158,43 +158,43 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
               
               {/* Help Text Section */}
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">📋 Formula System Guide</h4>
+                <h4 className="text-sm font-medium text-blue-900 mb-2">{t('disciplines.form.formulaGuide.title')}</h4>
                 <div className="text-sm text-blue-800 space-y-2">
-                  <p><strong>How it works:</strong> Formulas are mathematical expressions that transform raw judge scores into final results using the FunctionParser library.</p>
+                  <p><strong>{t('disciplines.form.formulaGuide.howItWorks').split(':')[0]}:</strong> {t('disciplines.form.formulaGuide.howItWorks').split(':').slice(1).join(':')}</p>
                   
-                  <p><strong>Variable "x":</strong> Represents the input value from discipline fields (judge scores, measurements, etc.)</p>
+                  <p><strong>{t('disciplines.form.formulaGuide.variableX').split(':')[0]}:</strong> {t('disciplines.form.formulaGuide.variableX').split(':').slice(1).join(':')}</p>
                   
-                  <p><strong>Two Formula Options:</strong></p>
+                  <p><strong>{t('disciplines.form.formulaGuide.twoOptions')}</strong></p>
                   <ul className="text-xs ml-4 space-y-1">
-                    <li>• <strong>Custom Formula:</strong> Enter formula directly in the text area below</li>
-                    <li>• <strong>Predefined Formula:</strong> Select from Formulas Management (overrides custom formula)</li>
-                    <li>• <strong>Priority:</strong> Predefined formula takes precedence if both are set</li>
+                    <li>• <strong>{t('disciplines.form.formulaGuide.customFormulaOption').split(':')[0]}:</strong> {t('disciplines.form.formulaGuide.customFormulaOption').split(':').slice(1).join(':')}</li>
+                    <li>• <strong>{t('disciplines.form.formulaGuide.predefinedFormulaOption').split(':')[0]}:</strong> {t('disciplines.form.formulaGuide.predefinedFormulaOption').split(':').slice(1).join(':')}</li>
+                    <li>• <strong>{t('disciplines.form.formulaGuide.priority').split(':')[0]}:</strong> {t('disciplines.form.formulaGuide.priority').split(':').slice(1).join(':')}</li>
                   </ul>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                     <div>
-                      <p className="font-medium mb-1">📐 Supported Functions:</p>
+                      <p className="font-medium mb-1">{t('disciplines.form.formulaGuide.supportedFunctions')}</p>
                       <ul className="text-xs space-y-1">
-                        <li>• Basic: +, -, *, /, ^ (power)</li>
-                        <li>• Math: sin(x), cos(x), tan(x), sqrt(x)</li>
-                        <li>• Logarithms: log(x), ln(x)</li>
-                        <li>• Conditionals: if(condition, true, false)</li>
-                        <li>• Constants: pi, e</li>
+                        <li>• {t('disciplines.form.formulaGuide.basicOps')}</li>
+                        <li>• {t('disciplines.form.formulaGuide.mathFunctions')}</li>
+                        <li>• {t('disciplines.form.formulaGuide.logarithms')}</li>
+                        <li>• {t('disciplines.form.formulaGuide.conditionals')}</li>
+                        <li>• {t('disciplines.form.formulaGuide.constants')}</li>
                       </ul>
                     </div>
                     <div>
-                      <p className="font-medium mb-1">💡 Example Formulas:</p>
+                      <p className="font-medium mb-1">{t('disciplines.form.formulaGuide.exampleFormulas')}</p>
                       <ul className="text-xs space-y-1">
-                        <li>• <code>x</code> - Direct score (no transformation)</li>
-                        <li>• <code>x*2</code> - Double the input score</li>
-                        <li>• <code>20-x</code> - Gymnastics difficulty + execution</li>
-                        <li>• <code>if(x&gt;0,sqrt(x)*10,0)</code> - Track & field points</li>
-                        <li>• <code>sin(x*pi/180)</code> - Angle calculations</li>
+                        <li>• <code>x</code> - {t('disciplines.form.formulaGuide.exampleDirect')}</li>
+                        <li>• <code>x*2</code> - {t('disciplines.form.formulaGuide.exampleDouble')}</li>
+                        <li>• <code>20-x</code> - {t('disciplines.form.formulaGuide.exampleGymnastics')}</li>
+                        <li>• <code>if(x&gt;0,sqrt(x)*10,0)</code> - {t('disciplines.form.formulaGuide.exampleTrackField')}</li>
+                        <li>• <code>sin(x*pi/180)</code> - {t('disciplines.form.formulaGuide.exampleAngle')}</li>
                       </ul>
                     </div>
                   </div>
                   
-                  <p className="mt-2"><strong>⚠️ Note:</strong> Formulas are evaluated for each participant's score, with validation against maximum values and constraints from discipline fields.</p>
+                  <p className="mt-2"><strong>{t('disciplines.form.formulaGuide.note').split(':')[0]}:</strong> {t('disciplines.form.formulaGuide.note').split(':').slice(1).join(':')}</p>
                 </div>
               </div>
               
@@ -202,7 +202,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('disciplines.form.customFormula')}
-                    <span className="text-xs text-gray-500 ml-1">(Mathematical expression with variable "x")</span>
+                    <span className="text-xs text-gray-500 ml-1">({t('disciplines.form.help.mathematicalExpression')})</span>
                   </label>
                   <textarea
                     maxLength={300}
@@ -213,14 +213,14 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                     placeholder={t('disciplines.form.customFormulaPlaceholder')}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Enter custom formula to transform input scores. Use "x" as the variable for input values.
+                    {t('disciplines.form.help.customFormulaHelp')}
                     {formData.formulaId ? (
                       <span className="text-orange-600 block mt-1">
-                        ⚠️ This field will be ignored because a predefined formula is selected above.
+                        {t('disciplines.form.help.customFormulaIgnored')}
                       </span>
                     ) : (
                       <span className="text-green-600 block mt-1">
-                        ✓ This custom formula will be used for calculations.
+                        {t('disciplines.form.help.customFormulaActive')}
                       </span>
                     )}
                   </p>
@@ -229,20 +229,20 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t('disciplines.form.calculationType')}
-                      <span className="text-xs text-gray-500 ml-1">(Result precision)</span>
+                      <span className="text-xs text-gray-500 ml-1">({t('disciplines.form.help.resultPrecision')})</span>
                     </label>
                     <select
                       value={formData.calculationType}
                       onChange={(e) => setFormData({...formData, calculationType: parseInt(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value={0}>0 decimals (e.g., 15)</option>
-                      <option value={1}>1 decimal (e.g., 15.5)</option>
-                      <option value={2}>2 decimals (e.g., 15.75)</option>
-                      <option value={3}>3 decimals (e.g., 15.750)</option>
+                      <option value={0}>{t('disciplines.form.help.decimals0')}</option>
+                      <option value={1}>{t('disciplines.form.help.decimals1')}</option>
+                      <option value={2}>{t('disciplines.form.help.decimals2')}</option>
+                      <option value={3}>{t('disciplines.form.help.decimals3')}</option>
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
-                      Number of decimal places for calculated results display.
+                      {t('disciplines.form.help.decimalPlaces')}
                     </p>
                   </div>
                   <div>
@@ -255,7 +255,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                       onChange={(e) => setFormData({...formData, formulaId: e.target.value ? parseInt(e.target.value) : undefined})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">No predefined formula</option>
+                      <option value="">{t('disciplines.form.help.noPredefinedFormula')}</option>
                       {Array.isArray(formulas) && formulas.map(formula => (
                         <option key={formula.int_formelid} value={formula.int_formelid}>
                           {formula.var_name}
@@ -266,12 +266,12 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                       ))}
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
-                      Choose a predefined formula from Formulas Management ({formulas.length} available), or leave empty to use the custom formula field above. 
+                      {t('disciplines.form.help.selectPredefinedFormula', { count: formulas.length })}
                       {formData.formulaId && (
                         <>
                           <br />
                           <span className="text-blue-600">
-                            ✓ Using predefined formula (overrides custom formula field)
+                            {t('disciplines.form.help.usingPredefinedFormula')}
                           </span>
                         </>
                       )}
@@ -279,7 +279,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                         <>
                           <br />
                           <span className="text-orange-600">
-                            ⚠️ No formulas available. Create formulas in Formulas Management first.
+                            {t('disciplines.form.help.noFormulasAvailable')}
                           </span>
                         </>
                       )}
@@ -298,7 +298,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                       <span className="text-sm text-gray-700">{t('disciplines.form.shouldCalculate')}</span>
                     </label>
                     <p className="text-xs text-gray-500 mt-1">
-                      When enabled, formulas are automatically applied to input scores during result processing.
+                      {t('disciplines.form.help.autoCalculate')}
                     </p>
                   </div>
                 </div>
