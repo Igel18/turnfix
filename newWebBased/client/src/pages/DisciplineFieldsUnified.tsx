@@ -516,57 +516,57 @@ const DisciplineFieldsUnified: React.FC = () => {
   // Help content similar to the screenshot
   const helpContent = (
     <div className="space-y-4">
-      <BlueInfoBox title="Score Capture Configuration">
+      <BlueInfoBox title={t('disciplineFields.help.scoreCapture.title')}>
         <div className="space-y-2">
           <p>
-            These fields determine which input fields are displayed in the competition capture (Score Capture).
+            {t('disciplineFields.help.scoreCapture.description')}
           </p>
           <div className="mt-3">
-            <p><strong>Visible fields appear as:</strong></p>
+            <p><strong>{t('disciplineFields.help.scoreCapture.visibleFields')}</strong></p>
             <InfoList items={[
-              { label: "D/A-Note", value: "Difficulty (Schwierigkeit)" },
-              { label: "E/B-Note", value: "Execution (Ausführung)" },
-              { label: "Neutral Deductions", value: "Neutral Abzüge" },
-              { label: "Execution Deductions", value: "Ausganswert" },
-              { label: "Additional configured fields", value: "Weitere konfigurierte Felder" }
+              { label: "D/A-Note", value: t('disciplineFields.help.scoreCapture.fields.dNote') },
+              { label: "E/B-Note", value: t('disciplineFields.help.scoreCapture.fields.eNote') },
+              { label: t('disciplineFields.help.scoreCapture.fields.neutralDeductions'), value: "" },
+              { label: t('disciplineFields.help.scoreCapture.fields.executionDeductions'), value: "" },
+              { label: t('disciplineFields.help.scoreCapture.fields.additional'), value: "" }
             ]} />
           </div>
           <div className="mt-3">
-            <p><strong>Configuration:</strong></p>
+            <p><strong>{t('disciplineFields.help.scoreCapture.configuration')}</strong></p>
             <InfoList items={[
-              { label: "Sorting", value: "Order of field sequence" },
-              { label: "Grouping", value: "Field grouping" },
-              { label: "Type", value: "Final/Starting score value" },
-              { label: "Visibility", value: "Enabled/Disabled for Score Capture" }
+              { label: "", value: t('disciplineFields.help.scoreCapture.configItems.sorting') },
+              { label: "", value: t('disciplineFields.help.scoreCapture.configItems.grouping') },
+              { label: "", value: t('disciplineFields.help.scoreCapture.configItems.type') },
+              { label: "", value: t('disciplineFields.help.scoreCapture.configItems.visibility') }
             ]} />
           </div>
         </div>
       </BlueInfoBox>
 
-      <GreenInfoBox title="Field-specific Evaluations">
+      <GreenInfoBox title={t('disciplineFields.help.fieldEvaluations.title')}>
         <div className="space-y-2">
           <p>
-            <strong>Field-specific evaluations are already stored in the database (tfx_jury_results).</strong>
+            <strong>{t('disciplineFields.help.fieldEvaluations.description')}</strong>
           </p>
           <div className="mt-2">
-            <p><strong>Functionality:</strong></p>
+            <p><strong>{t('disciplineFields.help.fieldEvaluations.functionality')}</strong></p>
             <FeatureList features={[
-              "Fields are displayed correctly",
-              "Inputs are stored",
-              "API binding implemented",
-              "Database integration active"
+              t('disciplineFields.help.fieldEvaluations.features.displayed'),
+              t('disciplineFields.help.fieldEvaluations.features.stored'),
+              t('disciplineFields.help.fieldEvaluations.features.apiBinding'),
+              t('disciplineFields.help.fieldEvaluations.features.dbIntegration')
             ]} />
           </div>
           <p className="mt-2 text-green-700">
-            The configuration and storage of fields is fully functional. Jury evaluations are correctly persisted in the database.
+            {t('disciplineFields.help.fieldEvaluations.summary')}
           </p>
         </div>
       </GreenInfoBox>
 
-      <RedInfoBox title="Deletion of Discipline Fields">
+      <RedInfoBox title={t('disciplineFields.help.deletion.title')}>
         <div className="space-y-2">
           <p>
-            <strong>Fields with existing jury evaluations cannot be deleted.</strong>
+            <strong>{t('disciplineFields.help.deletion.warning')}</strong>
           </p>
           <div className="mt-2">
             <p><strong>Deletion not possible when:</strong></p>

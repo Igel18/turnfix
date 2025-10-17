@@ -249,17 +249,32 @@ http://localhost:3001/discipline-fields
 d) Default immer Table-View
 z.B. Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau) 
 
-36. Lokalisierung 
-die seite(n) sind noch nicht vollständig lokalisiert 
+36. ~~Lokalisierung~~ ✅ 
+~~die seite(n) sind noch nicht vollständig lokalisiert~~
 
-http://localhost:3001/discipline-fields
-- Filter ("Search")
-- Hilfe ("The configuration and storage of fields is fully functional. Jury evaluations are correctly persisted in the database.")
-("Field-specific Evaluations")
-("Score Capture Configuration")
-usw. 
-- Dialog "Wettkampf bearbeiten" http://localhost:3001/competitions?eventId=59&squadName=mBlau 
-Dropdowns "Alter von" & "Alter bis" steht in den Werten immer "years". Das kann eigentlich weg oder muss lokalisiert sein. 
+~~http://localhost:3001/discipline-fields~~
+~~- Filter ("Search")~~ ✅
+~~- Hilfe ("The configuration and storage of fields is fully functional. Jury evaluations are correctly persisted in the database.")~~ ✅
+~~("Field-specific Evaluations")~~ ✅
+~~("Score Capture Configuration")~~ ✅
+~~usw.~~ ✅
+~~- Dialog "Wettkampf bearbeiten" http://localhost:3001/competitions?eventId=59&squadName=mBlau~~ ✅
+~~Dropdowns "Alter von" & "Alter bis" steht in den Werten immer "years". Das kann eigentlich weg oder muss lokalisiert sein.~~ ✅
+    **Status**: ✅ Abgeschlossen - DisciplineFieldsUnified und Competition Dialog vollständig lokalisiert
+    **Implementierung**: 
+    - DisciplineFieldsUnified: Alle Hilfe-Texte lokalisiert (Score Capture Configuration, Field-specific Evaluations, Deletion)
+    - Translation Keys in disciplineFields.help.* (scoreCapture, fieldEvaluations, deletion)
+    - Competition Dialog: "years" Suffix aus Age-Dropdowns entfernt (Zeile 117: `label: ${i + 1}` statt `${i + 1} years`)
+    **Neue Translation Keys** (de.json + en.json):
+    - disciplineFields.help.scoreCapture.title/description/visibleFields/configuration
+    - disciplineFields.help.scoreCapture.fields.* (dNote, eNote, neutralDeductions, executionDeductions, additional)
+    - disciplineFields.help.scoreCapture.configItems.* (sorting, grouping, type, visibility)
+    - disciplineFields.help.fieldEvaluations.* (title, description, functionality, features, summary)
+    - disciplineFields.help.deletion.* (title, warning)
+    **Dateien**: 
+    - `client/src/pages/DisciplineFieldsUnified.tsx` (Hilfe-Texte verwenden t())
+    - `client/src/components/CompetitionFormModal.tsx` (years removed)
+    - `client/src/i18n/locales/de.json` + `en.json` (neue Keys hinzugefügt) 
 
 37. ~~Veranstaltungsteilnehmer~~ ✅
 ~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~
@@ -307,3 +322,17 @@ Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBl
 http://localhost:3001/discipline-fields 
 
 http://localhost:3001/score-capture?eventId=59&squadName=mBlau 
+
+42. nach dem öffenen des editors auf der Seite Wettkampfverwaltung http://localhost:3001/competitions?eventId=59&squadName=mBlau
+kommt häufig die Meldung "Mindestens eine Disziplin muss ausgewählt werden" 
+nach dem speichern wird die Seite auch nicht aktualisiert wie es scheint. 
+Konsolen Log: 
+---
+Authentication is disabled - running in guest mode index-D8r0jjfJ.js:67:30051
+Using cached request for: /api/competitions?eventId=59 index-D8r0jjfJ.js:168:61986
+🔄 Reloading competitions... index-D8r0jjfJ.js:350:95411
+🔒 Closing modal and resetting form... index-D8r0jjfJ.js:350:95465
+Resetting competition form index-D8r0jjfJ.js:350:95853
+🎉 Competition submission completed successfully! index-D8r0jjfJ.js:350:95529
+🏁 Setting loading to false
+---

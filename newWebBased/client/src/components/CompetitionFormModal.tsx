@@ -111,10 +111,10 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   // Track previous gender to detect changes
   const previousGenderRef = useRef<string>(formData.gender);
 
-  // Age groups for dropdowns
+  // Age groups for dropdowns - just numbers without "years" suffix
   const ageGroups = Array.from({ length: 50 }, (_, i) => ({
     value: i + 1,
-    label: `${i + 1} years`
+    label: `${i + 1}`
   }));
 
   // Load disciplines and discipline groups

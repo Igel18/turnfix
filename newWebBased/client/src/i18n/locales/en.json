@@ -1070,6 +1070,43 @@
       "disabled": "Disabled"
     },
     "helpLabel": "Field Configuration Help",
+    "help": {
+      "scoreCapture": {
+        "title": "Score Capture Configuration",
+        "description": "These fields determine which input fields are displayed in the competition capture (Score Capture).",
+        "visibleFields": "Visible fields appear as:",
+        "fields": {
+          "dNote": "D/A-Note: Difficulty",
+          "eNote": "E/B-Note: Execution",
+          "neutralDeductions": "Neutral Deductions",
+          "executionDeductions": "Starting Value",
+          "additional": "Additional configured fields"
+        },
+        "configuration": "Configuration:",
+        "configItems": {
+          "sorting": "Sorting: Order of field sequence",
+          "grouping": "Grouping: Field grouping",
+          "type": "Type: Final/Starting score value",
+          "visibility": "Visibility: Enabled/Disabled for Score Capture"
+        }
+      },
+      "fieldEvaluations": {
+        "title": "Field-specific Evaluations",
+        "description": "Field-specific evaluations are already stored in the database (tfx_jury_results).",
+        "functionality": "Functionality:",
+        "features": {
+          "displayed": "Fields are displayed correctly",
+          "stored": "Inputs are stored",
+          "apiBinding": "API binding implemented",
+          "dbIntegration": "Database integration active"
+        },
+        "summary": "The configuration and storage of fields is fully functional. Jury evaluations are correctly persisted in the database."
+      },
+      "deletion": {
+        "title": "Deletion of Discipline Fields",
+        "warning": "Fields with existing jury evaluations cannot be deleted."
+      }
+    },
     "messages": {
       "createSuccess": "Field created successfully",
       "updateSuccess": "Field updated successfully",

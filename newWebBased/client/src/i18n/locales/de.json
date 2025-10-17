@@ -1066,6 +1066,43 @@
       "disabled": "Deaktiviert"
     },
     "helpLabel": "Feldkonfiguration Hilfe",
+    "help": {
+      "scoreCapture": {
+        "title": "Wertungserfassung Konfiguration",
+        "description": "Diese Felder bestimmen, welche Eingabefelder in der Wettkampf-Erfassung (Score Capture) angezeigt werden.",
+        "visibleFields": "Sichtbare Felder erscheinen als:",
+        "fields": {
+          "dNote": "D/A-Note: Schwierigkeit",
+          "eNote": "E/B-Note: Ausführung",
+          "neutralDeductions": "Neutrale Abzüge",
+          "executionDeductions": "Ausgangswert",
+          "additional": "Weitere konfigurierte Felder"
+        },
+        "configuration": "Konfiguration:",
+        "configItems": {
+          "sorting": "Sortierung: Reihenfolge der Feldabfolge",
+          "grouping": "Gruppierung: Feldgruppierung",
+          "type": "Typ: Endwert/Ausgangswert",
+          "visibility": "Sichtbarkeit: Aktiviert/Deaktiviert für Wertungserfassung"
+        }
+      },
+      "fieldEvaluations": {
+        "title": "Feldspezifische Wertungen",
+        "description": "Feldspezifische Wertungen werden bereits in der Datenbank gespeichert (tfx_jury_results).",
+        "functionality": "Funktionalität:",
+        "features": {
+          "displayed": "Felder werden korrekt angezeigt",
+          "stored": "Eingaben werden gespeichert",
+          "apiBinding": "API-Anbindung implementiert",
+          "dbIntegration": "Datenbankintegration aktiv"
+        },
+        "summary": "Die Konfiguration und Speicherung der Felder ist vollständig funktionsfähig. Jury-Wertungen werden korrekt in der Datenbank gespeichert."
+      },
+      "deletion": {
+        "title": "Löschen von Disziplinfeldern",
+        "warning": "Felder mit vorhandenen Jury-Wertungen können nicht gelöscht werden."
+      }
+    },
     "messages": {
       "createSuccess": "Feld erfolgreich erstellt",
       "updateSuccess": "Feld erfolgreich aktualisiert",
