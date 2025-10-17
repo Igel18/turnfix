@@ -101,7 +101,7 @@ const Competitions: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   
   const [bulkMaxScore, setBulkMaxScore] = useState<string>('');
   

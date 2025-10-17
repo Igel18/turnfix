@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
+import { UnifiedActionButtons } from '../components/templates/EventManagementTemplate';
 import ParticipantFormModal from '../components/ParticipantFormModal';
 import { 
   UserGroupIcon, 
-  PencilIcon, 
-  TrashIcon,
   CalendarIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
@@ -356,22 +355,12 @@ const ParticipantsUnified: React.FC = () => {
           {participant.int_startpassnummer || '-'}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleEdit(participant)}
-              className="text-blue-600 hover:text-blue-900 p-1 rounded-md hover:bg-blue-50"
-              title={t('participants.editParticipant')}
-            >
-              <PencilIcon className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleDelete(participant.int_teilnehmerid)}
-              className="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50"
-              title={t('participants.deleteParticipant')}
-            >
-              <TrashIcon className="h-4 w-4" />
-            </button>
-          </div>
+          <UnifiedActionButtons
+            onEdit={() => handleEdit(participant)}
+            onDelete={() => handleDelete(participant.int_teilnehmerid)}
+            editTitle={t('participants.editParticipant')}
+            deleteTitle={t('participants.deleteParticipant')}
+          />
         </td>
       </tr>
     );
@@ -395,22 +384,12 @@ const ParticipantsUnified: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="flex space-x-1">
-            <button
-              onClick={() => handleEdit(participant)}
-              className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-50"
-              title={t('participants.editParticipant')}
-            >
-              <PencilIcon className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleDelete(participant.int_teilnehmerid)}
-              className="text-red-600 hover:text-red-800 p-1 rounded-md hover:bg-red-50"
-              title={t('participants.deleteParticipant')}
-            >
-              <TrashIcon className="h-4 w-4" />
-            </button>
-          </div>
+          <UnifiedActionButtons
+            onEdit={() => handleEdit(participant)}
+            onDelete={() => handleDelete(participant.int_teilnehmerid)}
+            editTitle={t('participants.editParticipant')}
+            deleteTitle={t('participants.deleteParticipant')}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-4">

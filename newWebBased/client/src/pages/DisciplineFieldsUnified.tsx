@@ -612,7 +612,7 @@ const DisciplineFieldsUnified: React.FC = () => {
         renderCard={renderCard}
         filterOptions={filterOptions}
         onClearAllFilters={handleClearAllFilters}
-        showFilters={true}
+        showFilters={false}
         showHelpPanel={showHelpPanel}
         onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
         helpContent={helpContent}

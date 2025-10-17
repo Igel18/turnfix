@@ -246,6 +246,9 @@ c) manchmal ist der Filter ausgeblendet, manchmal eingeblendet per default
 Standardmäßig sollte dieser ausgeblendet sein 
 http://localhost:3001/discipline-fields
 
+d) Default immer Table-View
+z.B. Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau) 
+
 36. Lokalisierung 
 die seite(n) sind noch nicht vollständig lokalisiert 
 
@@ -255,6 +258,8 @@ http://localhost:3001/discipline-fields
 ("Field-specific Evaluations")
 ("Score Capture Configuration")
 usw. 
+- Dialog "Wettkampf bearbeiten" http://localhost:3001/competitions?eventId=59&squadName=mBlau 
+Dropdowns "Alter von" & "Alter bis" steht in den Werten immer "years". Das kann eigentlich weg oder muss lokalisiert sein. 
 
 37. ~~Veranstaltungsteilnehmer~~ ✅
 ~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~
@@ -277,3 +282,23 @@ usw.
 38. GymNet (Wettkampf) Import
 Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt? 
 Das wäre nicht gut und muss korrigiert werden. 
+
+39. Sortieren der Tabellen fehlt 
+Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau) 
+
+40. ~~Default Table-View Verification~~ ✅
+~~Das DatabaseManagementTemplate hat bereits defaultView='table' als Standard, daher sollten alle Seiten, die dieses Template verwenden (ParticipantsUnified, DisciplinesUnified, ClubsUnified, etc.) bereits Table-View als Standard haben.~~ ✅
+    **Status**: ✅ Verifiziert und dokumentiert - Keine Aktion erforderlich
+    **Analyse**: 16 Seiten verwenden DatabaseManagementTemplate
+    **Ergebnis**: 
+    - DatabaseManagementTemplate.tsx hat `defaultView='table'` als Default (Zeile 97)
+    - Alle 16 Seiten geben nur `viewStorageKey` an, kein explizites `defaultView`
+    - Daher verwenden alle automatisch den Template-Default `'table'`
+    **Betroffene Seiten**: 
+    - ParticipantsUnified, DisciplinesUnified, ClubsUnified, Events
+    - DisciplineFieldsUnified, FormulasUnified, CertificateLayouts
+    - Associations, Regions, SportsUnified, LocationsUnified
+    - PersonsUnified, StatusUnified, DisciplineGroupsUnified
+    **Ausnahme**: CompetitionsFixed.tsx (verwendet nicht das Template, wurde in Point 35d manuell korrigiert)
+    **Dokumentation**: Siehe `POINT-40-DEFAULT-TABLE-VIEW.md`
+    **Vorteile**: Zentrale Konfiguration, Konsistenz, User Preferences werden pro Seite gespeichert
