@@ -11,6 +11,7 @@ import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import CompetitionFormModal from '../components/CompetitionFormModal';
 import { useEvent } from '../contexts/EventContext';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 
 // Interface for competition display
 interface Competition {
@@ -104,6 +105,9 @@ const Competitions: React.FC = () => {
   // viewMode removed - now handled by EventManagementTemplate with persistence
   
   const [bulkMaxScore, setBulkMaxScore] = useState<string>('');
+  
+  // Sorting state
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort<Competition>();
   
   const [formData, setFormData] = useState<CompetitionFormData>({
     number: '',
@@ -393,14 +397,16 @@ const Competitions: React.FC = () => {
     return statusStyles[status as keyof typeof statusStyles] || 'bg-gray-100 text-gray-800';
   };
 
-  const filteredCompetitions = competitions.filter(competition => {
-    const matchesSearch = competition.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         competition.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGender = !genderFilter || competition.gender === genderFilter;
-    const matchesStatus = !statusFilter || competition.status === statusFilter;
-    
-    return matchesSearch && matchesGender && matchesStatus;
-  });
+  const filteredCompetitions = sortData(
+    competitions.filter(competition => {
+      const matchesSearch = competition.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           competition.location.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesGender = !genderFilter || competition.gender === genderFilter;
+      const matchesStatus = !statusFilter || competition.status === statusFilter;
+      
+      return matchesSearch && matchesGender && matchesStatus;
+    })
+  );
 
   const handleClearAllFilters = () => {
     setSearchTerm('');
@@ -597,24 +603,44 @@ const Competitions: React.FC = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('competitions.fields.competition')}
-                        </th>
+                        <SortableTableHeader
+                          sortKey="name"
+                          label={t('competitions.fields.competition')}
+                          currentSortKey={sortKey}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {t('competitions.fields.disciplines')}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('competitions.fields.participants')}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getGenderColumnHeader(t)}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('competitions.fields.ageGroup')}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('competitions.filters.status')}
-                        </th>
+                        <SortableTableHeader
+                          sortKey="participantCount"
+                          label={t('competitions.fields.participants')}
+                          currentSortKey={sortKey}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                        <SortableTableHeader
+                          sortKey="gender"
+                          label={getGenderColumnHeader(t)}
+                          currentSortKey={sortKey}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                        <SortableTableHeader
+                          sortKey="ageFrom"
+                          label={t('competitions.fields.ageGroup')}
+                          currentSortKey={sortKey}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                        <SortableTableHeader
+                          sortKey="status"
+                          label={t('competitions.filters.status')}
+                          currentSortKey={sortKey}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {t('competitions.fields.actions')}
                         </th>
