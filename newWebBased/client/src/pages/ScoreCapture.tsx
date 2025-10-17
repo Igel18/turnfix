@@ -5,7 +5,8 @@ import { useSearchParams } from 'react-router-dom'
 import { 
   PlusIcon,
   ClipboardDocumentListIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
@@ -104,6 +105,7 @@ export function ScoreCapture() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [showJuryScores, setShowJuryScores] = useState(false) // Jury-Wertungen erfassen (like Qt chk_jury)
+  const [showHelpPanel, setShowHelpPanel] = useState(false) // Help texts toggle
   
   // URL parameters as fallback (for direct navigation)
   const urlEventId = searchParams.get('eventId')
@@ -1326,6 +1328,20 @@ export function ScoreCapture() {
                 {t('scoreCapture.showJuryScores')}
               </span>
             </label>
+
+            {/* Help Panel Toggle Button */}
+            <button
+              onClick={() => setShowHelpPanel(!showHelpPanel)}
+              className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium transition-colors ${
+                showHelpPanel
+                  ? 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+              title={showHelpPanel ? t('common.hideHelp', 'Hilfe ausblenden') : t('common.showHelp', 'Hilfe anzeigen')}
+            >
+              <QuestionMarkCircleIcon className="h-4 w-4 mr-2" />
+              {showHelpPanel ? t('common.hideHelp', 'Hilfe ausblenden') : t('common.showHelp', 'Hilfe anzeigen')}
+            </button>
           </div>
         }
       />
@@ -1541,8 +1557,8 @@ export function ScoreCapture() {
           ) : (
             <>
               {/* Score Capture Table */}
-              {/* Formula Documentation InfoBox - only show when showJuryScores is enabled */}
-              {showJuryScores && (
+              {/* Formula Documentation InfoBox - only show when showJuryScores AND showHelpPanel are enabled */}
+              {showJuryScores && showHelpPanel && (
                 <div className="mb-4">
                   <BlueInfoBox title={t('scoreCapture.formulaHelp.title', 'Hinweise zur Wertungserfassung')}>
                     <ul className="space-y-2 text-sm">

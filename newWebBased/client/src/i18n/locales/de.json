@@ -564,6 +564,8 @@
     "info": "Information",
     "expand": "Aufklappen",
     "collapse": "Zuklappen",
+    "showHelp": "Hilfe anzeigen",
+    "hideHelp": "Hilfe ausblenden",
     "pagination": {
       "showing": "Zeige {{start}} bis {{end}} von {{total}} Ergebnissen",
       "showingTotal": "Zeige {{total}} Ergebnisse",

@@ -330,10 +330,27 @@ Das wäre nicht gut und muss korrigiert werden.
     **Dokumentation**: Siehe `POINT-40-DEFAULT-TABLE-VIEW.md`
     **Vorteile**: Zentrale Konfiguration, Konsistenz, User Preferences werden pro Seite gespeichert
 
-41. Hilfe texte per default ausblenden. und über einen Button einblenden wie in dieser View: 
-http://localhost:3001/discipline-fields 
-
-http://localhost:3001/score-capture?eventId=59&squadName=mBlau 
+41. ~~Hilfe texte per default ausblenden. und über einen Button einblenden wie in dieser View:~~ ✅
+~~http://localhost:3001/discipline-fields~~ ✅
+~~http://localhost:3001/score-capture?eventId=59&squadName=mBlau~~ ✅
+    **Status**: ✅ Abgeschlossen - Help Texts standardmäßig ausgeblendet mit Toggle-Button
+    **Problem**: Hilfe-Texte ("Hinweise zur Wertungserfassung") waren immer sichtbar und nahmen viel Platz ein
+    **Lösung**: 
+    - useState Hook für `showHelpPanel` hinzugefügt (default: false)
+    - Toggle-Button mit QuestionMarkCircleIcon neben Jury-Checkbox hinzugefügt
+    - BlueInfoBox nur anzeigen wenn `showJuryScores && showHelpPanel` beide true sind
+    - Button zeigt aktiven Zustand mit blauem Hintergrund
+    - Konsistentes Pattern wie in DisciplineFieldsUnified
+    **Translation Keys hinzugefügt** (de.json + en.json):
+    - common.showHelp: "Hilfe anzeigen" / "Show Help"
+    - common.hideHelp: "Hilfe ausblenden" / "Hide Help"
+    **Features**:
+    - Help-Texte standardmäßig ausgeblendet (showHelpPanel = false)
+    - Ein Klick auf Button zeigt/versteckt die Hilfe
+    - Visuelles Feedback durch Button-Farbe (blau wenn aktiv, grau wenn inaktiv)
+    - Hilfe nur verfügbar wenn Jury-Wertungen aktiviert sind
+    **Datei**: `client/src/pages/ScoreCapture.tsx` (Zeilen 108, 1320-1337, 1560)
+    **Build Status**: ✓ 2207 modules, 6.63s, keine Fehler
 
 42. ~~nach dem öffenen des editors auf der Seite Wettkampfverwaltung http://localhost:3001/competitions?eventId=59&squadName=mBlau~~ ✅
 ~~kommt häufig die Meldung "Mindestens eine Disziplin muss ausgewählt werden"~~ ✅
