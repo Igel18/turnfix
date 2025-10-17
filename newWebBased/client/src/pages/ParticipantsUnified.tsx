@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import ParticipantFormModal from '../components/ParticipantFormModal';
 import { 
   UserGroupIcon, 
@@ -45,6 +46,9 @@ const ParticipantsUnified: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Sorting state
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_nachname', 'asc');
   
   // Filter states
   const [clubFilter, setClubFilter] = useState('');
@@ -202,8 +206,23 @@ const ParticipantsUnified: React.FC = () => {
     setAgeFilter('');
   };
 
+  // Apply sorting first, then filter
+  const sortedParticipants = sortData(participants, (item, key) => {
+    // Custom value extraction for nested/computed properties
+    if (key === 'verein_name') {
+      return item.verein_name || '';
+    }
+    if (key === 'geschlecht_name') {
+      return item.geschlecht_name || '';
+    }
+    if (key === 'full_name') {
+      return `${item.var_nachname} ${item.var_vorname}`;
+    }
+    return (item as any)[key];
+  });
+
   // Filter and search participants
-  const filteredParticipants = participants.filter(participant => {
+  const filteredParticipants = sortedParticipants.filter(participant => {
     const matchesSearch = searchTerm === '' || 
       participant.var_vorname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       participant.var_nachname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -265,21 +284,42 @@ const ParticipantsUnified: React.FC = () => {
   // Render table headers
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('participants.table.name')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('participants.table.age')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('participants.table.gender')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('participants.table.club')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('participants.table.startNumber')}
-      </th>
+      <SortableTableHeader
+        label={t('participants.table.name')}
+        sortKey="full_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('participants.table.age')}
+        sortKey="age"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('participants.table.gender')}
+        sortKey="geschlecht_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('participants.table.club')}
+        sortKey="verein_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('participants.table.startNumber')}
+        sortKey="int_startpassnummer"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      {/* Actions column is not sortable */}
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         {t('participants.table.actions')}
       </th>

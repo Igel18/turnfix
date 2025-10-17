@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import DisciplineFormModal from '../components/DisciplineFormModal';
 import { 
   CogIcon, 
@@ -88,6 +89,9 @@ const DisciplinesUnified: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Sorting state
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('name', 'asc');
   
   // Filter states
   const [sportFilter, setSportFilter] = useState('');
@@ -305,8 +309,21 @@ const DisciplinesUnified: React.FC = () => {
     setFormulaFilter('');
   };
 
+  // Apply sorting first, then filter
+  const sortedDisciplines = sortData(disciplines, (item, key) => {
+    // Custom value extraction for nested/computed properties
+    if (key === 'sport_id') {
+      const sport = sports.find(s => s.int_sportid === item.sport_id);
+      return sport?.var_name || '';
+    }
+    if (key === 'gender') {
+      return item.gender_text || '';
+    }
+    return (item as any)[key];
+  });
+
   // Filter disciplines based on search term and filters
-  const filteredDisciplines = disciplines.filter(discipline => {
+  const filteredDisciplines = sortedDisciplines.filter(discipline => {
     const matchesSearch = searchTerm === '' || 
       discipline.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       discipline.short_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -370,27 +387,56 @@ const DisciplinesUnified: React.FC = () => {
   // Render table headers
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.name')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.shortName')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.sport')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.gender')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.attempts')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.unit')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplines.table.formula')}
-      </th>
+      <SortableTableHeader
+        label={t('disciplines.table.name')}
+        sortKey="name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplines.table.shortName')}
+        sortKey="short_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplines.table.sport')}
+        sortKey="sport_id"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplines.table.gender')}
+        sortKey="gender"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplines.table.attempts')}
+        sortKey="attempts"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplines.table.unit')}
+        sortKey="unit"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplines.table.formula')}
+        sortKey="formula"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      {/* Actions column is not sortable */}
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         {t('disciplines.table.actions')}
       </th>

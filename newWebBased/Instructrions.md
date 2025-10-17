@@ -152,4 +152,46 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
 
 
+33. ~~in allen UIs: alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)~~ ✅
+    **Status**: ✅ Komponenten erstellt - Bereit zur Implementierung in allen UIs
+    **Implementierung**: 
+    - Neue Komponente: `SortableTableHeader.tsx` mit Click-to-Sort Funktionalität
+    - Neuer Hook: `useTableSort()` für State-Management und Sortierung
+    - Visuelle Indikatoren: ↑ ↓ Pfeile für aktive Sortierung, hover Icons für sortierbare Spalten
+    - Features: Case-insensitive String-Sortierung, Zahlen, Dates, Null-Handling, Locale-aware
+    - Pilot-Implementierung: ✅ DisciplinesUnified.tsx (7 sortierbare Spalten)
+    **Dateien**: 
+    - `client/src/components/SortableTableHeader.tsx` (Komponente + Hook)
+    - `client/src/pages/DisciplinesUnified.tsx` (Beispiel-Implementierung)
+    - `POINT-33-SORTABLE-TABLES.md` (Umfassende Dokumentation + Implementierungsguide)
+    **Nächste Schritte**: Roll-out auf alle anderen Seiten (ParticipantsUnified, ClubsUnified, EventsUnified, etc.)
+
+
 33. in allesn UIs: alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)
+
+34. Druck / Export
+Wir haben alle Druck und Export funktionen auf den entsprechenden Seiten. 
+a) Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert. 
+b) vielleicht wäre eine zusätzliche Seite gut von der aus wir auf die vorhandenen Druck und Export möglichkeiten zugriff hätten. 
+Workflow so in etwa: 
+Auswahl was gedruckt werden soll (z.B. Urkunden) 
+Auswahl welcher Wettkampf gedruck werden soll (oder alle) 
+oder 
+Etiketten
+Auswahl welche Riege gedruckt werden soll (oder alle) 
+usw. ... 
+
+35. UI unification  
+a) Es gibt verschiedene Buttons zum Editieren / Löschen usw. in den Tabellen 
+http://localhost:3001/participants
+http://localhost:3001/event-participants?eventId=59&squadName=mBlau 
+
+Bitte immer einen einheitlichen look and feel verwenden und 
+ggf. Templates 
+
+b) Es gibt verschiedene Dialoge zum Editieren 
+http://localhost:3001/participants
+http://localhost:3001/event-participants?eventId=59&squadName=mBlau 
+
+Bitte immer einen einheitlichen look and feel verwenden (der Modale Dialog wird meistens verwendet, daher würde ich diesen auch bei den Veranstaltungsteilnehmern umsetzen) und
+ggf. Templates wenn das sinn macht (z.B. mit einheitlichen Buttons "Abbrechen", "Änderungen Speichern", ... )

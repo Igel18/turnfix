@@ -7,6 +7,7 @@ import {
   PrinterIcon
 } from '@heroicons/react/24/outline'
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate'
+import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader'
 import { useCertificateLayout } from '@/contexts/CertificateLayoutContext'
 import LayoutDesigner from '@/components/LayoutDesigner'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
@@ -71,6 +72,9 @@ const CertificateLayouts: React.FC = () => {
   const [showDesigner, setShowDesigner] = useState(false)
   const [selectedLayout, setSelectedLayout] = useState<Layout | null>(null)
   const [showHelpPanel, setShowHelpPanel] = useState(false)
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc')
 
   // Context for certificate printing
   const { selectedLayout: contextSelectedLayout, setSelectedLayout: setContextSelectedLayout } = useCertificateLayout()
@@ -342,8 +346,14 @@ const CertificateLayouts: React.FC = () => {
     }
   }
 
-  // Filter layouts based on search term
-  const filteredLayouts = layouts.filter(layout =>
+  // Sort and filter layouts
+  const sortedLayouts = sortData(layouts, (layout) => {
+    if (sortKey === 'fieldCount') return layout.fieldCount || 0;
+    if (sortKey === 'txt_comment') return layout.txt_comment || '';
+    return layout[sortKey as keyof Layout];
+  });
+
+  const filteredLayouts = sortedLayouts.filter(layout =>
     layout.var_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     layout.txt_comment?.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -381,15 +391,27 @@ const CertificateLayouts: React.FC = () => {
   // Render table headers
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('certificateLayouts.layoutName')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('certificateLayouts.comment')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('certificateLayouts.fields')}
-      </th>
+      <SortableTableHeader
+        label={t('certificateLayouts.layoutName')}
+        sortKey="var_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('certificateLayouts.comment')}
+        sortKey="txt_comment"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('certificateLayouts.fields')}
+        sortKey="fieldCount"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         {t('certificateLayouts.status')}
       </th>

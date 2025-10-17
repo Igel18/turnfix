@@ -16,6 +16,7 @@ import {
   TagIcon
 } from '@heroicons/react/24/outline';
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
+import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
@@ -317,6 +318,9 @@ const EventParticipants: React.FC = () => {
     key: 'event-participants', 
     defaultView: 'table' 
   });
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('lastname', 'asc');
   
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -880,7 +884,17 @@ const EventParticipants: React.FC = () => {
     doc.save(filename)
   }
 
-  const filteredParticipants = allParticipants.filter(participant => {
+  const sortedParticipants = sortData(allParticipants, (participant) => {
+    if (sortKey === 'firstname') return participant.firstname;
+    if (sortKey === 'lastname') return participant.lastname;
+    if (sortKey === 'club') return participant.club;
+    if (sortKey === 'startNumber') return participant.startNumber || 0;
+    if (sortKey === 'age') return participant.age;
+    if (sortKey === 'squad_name') return participant.squad_name || '';
+    return participant[sortKey as keyof Participant];
+  });
+
+  const filteredParticipants = sortedParticipants.filter(participant => {
     const matchesSearch = 
       participant.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       participant.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1068,21 +1082,41 @@ const EventParticipants: React.FC = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('eventParticipants.table.name')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('eventParticipants.table.startNumber')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('eventParticipants.table.club')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('eventParticipants.table.age')}/{t('eventParticipants.table.gender')}
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              {t('eventParticipants.table.squad')}
-                            </th>
+                            <SortableTableHeader
+                              label={t('eventParticipants.table.name')}
+                              sortKey="lastname"
+                              currentSortKey={sortKey}
+                              currentSortDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                            <SortableTableHeader
+                              label={t('eventParticipants.table.startNumber')}
+                              sortKey="startNumber"
+                              currentSortKey={sortKey}
+                              currentSortDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                            <SortableTableHeader
+                              label={t('eventParticipants.table.club')}
+                              sortKey="club"
+                              currentSortKey={sortKey}
+                              currentSortDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                            <SortableTableHeader
+                              label={`${t('eventParticipants.table.age')}/${t('eventParticipants.table.gender')}`}
+                              sortKey="age"
+                              currentSortKey={sortKey}
+                              currentSortDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                            <SortableTableHeader
+                              label={t('eventParticipants.table.squad')}
+                              sortKey="squad_name"
+                              currentSortKey={sortKey}
+                              currentSortDirection={sortDirection}
+                              onSort={handleSort}
+                            />
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               {t('eventParticipants.table.status')}
                             </th>

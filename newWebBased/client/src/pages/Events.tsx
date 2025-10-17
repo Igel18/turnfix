@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate'
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
 import { exportToCSV, getEventCSVData } from '../utils/csvExport'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
 
@@ -62,6 +63,9 @@ const Events: React.FC = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_eventname', 'asc')
 
   // Form state for creating/editing events
   const [formData, setFormData] = useState({
@@ -489,7 +493,12 @@ const Events: React.FC = () => {
           title={t('events.title')}
           subtitle={t('events.subtitleWithCount', { count: events.length })}
           icon={CalendarDaysIcon}
-          data={events}
+          data={sortData(events, (event) => {
+            if (sortKey === 'participant_count') return event.participant_count;
+            if (sortKey === 'club_count') return event.club_count || 0;
+            if (sortKey === 'dat_eventstartdate') return new Date(event.dat_eventstartdate).getTime();
+            return event[sortKey as keyof Event];
+          })}
           isLoading={isLoading}
           error={errorMessage}
           searchTerm={searchTerm}
@@ -508,21 +517,41 @@ const Events: React.FC = () => {
           onDelete={(event) => handleDelete(event.int_eventid)}
           renderTableHeaders={() => (
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('events.table.eventName')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('events.table.dates')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('events.table.location')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('events.table.participants')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('events.table.clubs')}
-              </th>
+              <SortableTableHeader
+                label={t('events.table.eventName')}
+                sortKey="var_eventname"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableTableHeader
+                label={t('events.table.dates')}
+                sortKey="dat_eventstartdate"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableTableHeader
+                label={t('events.table.location')}
+                sortKey="var_location"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableTableHeader
+                label={t('events.table.participants')}
+                sortKey="participant_count"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableTableHeader
+                label={t('events.table.clubs')}
+                sortKey="club_count"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('events.table.actions')}
               </th>

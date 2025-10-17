@@ -7,6 +7,7 @@ import {
   HashtagIcon
 } from '@heroicons/react/24/outline';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import FormulaFormModal from '../components/FormulaFormModal';
 
 interface Formula {
@@ -33,6 +34,9 @@ const FormulasUnified: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFormula, setEditingFormula] = useState<Formula | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
 
   const [formData, setFormData] = useState<FormData>({
     var_name: '',
@@ -171,8 +175,17 @@ const FormulasUnified: React.FC = () => {
     }
   };
 
-  // Filter data
-  const filteredData = formulas.filter(formula => {
+  // Sort and filter data
+  const sortedFormulas = sortData(formulas, (formula) => {
+    if (sortKey === 'int_typ') {
+      return getFormulaTypeLabel(formula.int_typ || 0);
+    }
+    if (sortKey === 'discipline_count') return formula.discipline_count || 0;
+    if (sortKey === 'var_formel') return formula.var_formel || '';
+    return formula[sortKey as keyof Formula];
+  });
+
+  const filteredData = sortedFormulas.filter(formula => {
     const matchesSearch = !searchFilter || 
       formula.var_name?.toLowerCase().includes(searchFilter.toLowerCase()) ||
       formula.var_formel?.toLowerCase().includes(searchFilter.toLowerCase());
@@ -228,10 +241,34 @@ const FormulasUnified: React.FC = () => {
   // Table headers
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Formula</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage</th>
+      <SortableTableHeader
+        label="Formula"
+        sortKey="var_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Type"
+        sortKey="int_typ"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Code"
+        sortKey="var_formel"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Usage"
+        sortKey="discipline_count"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
     </tr>
   );

@@ -10,6 +10,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import ClubFormModal from '../components/ClubFormModal';
 
 interface Club {
@@ -58,6 +59,9 @@ const ClubsUnified: React.FC = () => {
   const [searchFilter, setSearchFilter] = useState('');
   const [regionFilter, setRegionFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,8 +214,16 @@ const ClubsUnified: React.FC = () => {
     }
   };
 
-  // Filter data
-  const filteredData = clubs.filter(club => {
+  // Sort and filter data
+  const sortedClubs = sortData(clubs, (club) => {
+    if (sortKey === 'gaue_name') return club.gaue_name || '';
+    if (sortKey === 'athlete_count') return club.athlete_count;
+    if (sortKey === 'var_email') return club.var_email || '';
+    if (sortKey === 'var_telefon') return club.var_telefon || '';
+    return club[sortKey as keyof Club];
+  });
+
+  const filteredData = sortedClubs.filter(club => {
     const matchesSearch = !searchFilter || 
       club.var_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
       (club.gaue_name && club.gaue_name.toLowerCase().includes(searchFilter.toLowerCase())) ||
@@ -272,10 +284,35 @@ const ClubsUnified: React.FC = () => {
   // Table render functions
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Club Name</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Athletes</th>
+      <SortableTableHeader
+        label="Club Name"
+        sortKey="var_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Region"
+        sortKey="gaue_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Contact"
+        sortKey="var_email"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Athletes"
+        sortKey="athlete_count"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+        className="text-center"
+      />
       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
     </tr>
   );
