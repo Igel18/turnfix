@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, TableCellsIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import { BlueInfoBox, GreenInfoBox, RedInfoBox, InfoList, FeatureList } from '../components/InfoBoxes';
 import DisciplineFieldFormModal from '../components/DisciplineFieldFormModal';
 
@@ -48,6 +49,9 @@ const DisciplineFieldsUnified: React.FC = () => {
   const [disciplineFilter, setDisciplineFilter] = useState('all');
   const [fieldTypeFilter, setFieldTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('disciplineName', 'asc');
 
   // Help panel state
   const [showHelpPanel, setShowHelpPanel] = useState(false);
@@ -193,9 +197,16 @@ const DisciplineFieldsUnified: React.FC = () => {
     setSearchTerm('');
   };
 
-  // Apply filters
+  // Apply sorting and filters
   const getFilteredData = () => {
-    return disciplineFields.filter(field => {
+    const sorted = sortData(disciplineFields, (field) => {
+      if (sortKey === 'disciplineName') return field.disciplineName || '';
+      if (sortKey === 'sortOrder') return field.sortOrder || 0;
+      if (sortKey === 'group') return field.group;
+      return field[sortKey as keyof DisciplineField];
+    });
+
+    return sorted.filter(field => {
       // Search filter
       const matchesSearch = !searchTerm || 
         field.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -230,15 +241,27 @@ const DisciplineFieldsUnified: React.FC = () => {
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         {t('disciplineFields.table.id')}
       </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplineFields.table.fieldName')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplineFields.table.discipline')}
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        {t('disciplineFields.table.sortOrder')}
-      </th>
+      <SortableTableHeader
+        label={t('disciplineFields.table.fieldName')}
+        sortKey="name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplineFields.table.discipline')}
+        sortKey="disciplineName"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label={t('disciplineFields.table.sortOrder')}
+        sortKey="sortOrder"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         {t('disciplineFields.table.finalScore')}
       </th>

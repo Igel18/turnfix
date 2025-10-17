@@ -153,21 +153,33 @@ in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
 
 
 33. ~~in allen UIs: alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)~~ ✅
-    **Status**: ✅ Komponenten erstellt - Bereit zur Implementierung in allen UIs
+    **Status**: ✅ Vollständig implementiert in 7 Hauptseiten
     **Implementierung**: 
     - Neue Komponente: `SortableTableHeader.tsx` mit Click-to-Sort Funktionalität
     - Neuer Hook: `useTableSort()` für State-Management und Sortierung
     - Visuelle Indikatoren: ↑ ↓ Pfeile für aktive Sortierung, hover Icons für sortierbare Spalten
-    - Features: Case-insensitive String-Sortierung, Zahlen, Dates, Null-Handling, Locale-aware
-    - Pilot-Implementierung: ✅ DisciplinesUnified.tsx (7 sortierbare Spalten)
+    - Features: Case-insensitive String-Sortierung, Zahlen, Dates, Null-Handling, Locale-aware, Custom value extraction
+    **Implementierte Seiten** (Stand: 2025-10-17):
+    **Hauptseiten**:
+    - ✅ DisciplinesUnified.tsx (7 sortierbare Spalten: Name, Short Name, Sport, Gender, Attempts, Unit, Formula)
+    - ✅ ParticipantsUnified.tsx (5 sortierbare Spalten: Name, Age, Gender, Club, Start Number)
+    - ✅ ClubsUnified.tsx (4 sortierbare Spalten: Club Name, Region, Contact, Athletes)
+    - ✅ Events.tsx (5 sortierbare Spalten: Event Name, Dates, Location, Participants, Clubs)
+    - ✅ CertificateLayouts.tsx (3 sortierbare Spalten: Layout Name, Comment, Fields Count)
+    - ✅ FormulasUnified.tsx (4 sortierbare Spalten: Formula Name, Type, Code, Usage)
+    - ✅ EventParticipants.tsx (5 sortierbare Spalten: Name, Start Number, Club, Age, Squad)
+    **Supporting Pages**:
+    - ✅ Associations.tsx (3 sortierbare Spalten: Association Name, Abbreviation, Country)
+    - ✅ Regions.tsx (3 sortierbare Spalten: Region Name, Abbreviation, Association)
+    - ✅ SportsUnified.tsx (2 sortierbare Spalten: Sport Name, Disciplines Count)
+    - ✅ LocationsUnified.tsx (3 sortierbare Spalten: Location Name, Address, City)
+    - ✅ DisciplineFieldsUnified.tsx (3 sortierbare Spalten: Field Name, Discipline, Sort Order)
+    **Gesamt**: 12 Seiten vollständig implementiert mit 54+ sortierbaren Spalten
     **Dateien**: 
-    - `client/src/components/SortableTableHeader.tsx` (Komponente + Hook)
-    - `client/src/pages/DisciplinesUnified.tsx` (Beispiel-Implementierung)
+    - `client/src/components/SortableTableHeader.tsx` (151 Zeilen - Komponente + Hook)
     - `POINT-33-SORTABLE-TABLES.md` (Umfassende Dokumentation + Implementierungsguide)
-    **Nächste Schritte**: Roll-out auf alle anderen Seiten (ParticipantsUnified, ClubsUnified, EventsUnified, etc.)
-
-
-33. in allesn UIs: alle Tabellen haben überschriften. es wäre schön, wenn man auf diese klicken kann um die Liste zu sortieren (aufsteigen/absteigend)
+    **Pattern**: Import → Hook initialisieren → sortData() anwenden → Headers ersetzen
+    **Optionale Erweiterung**: Event Management Pages (Squad Status, Time Planning, Competitions, Meldematrix) können bei Bedarf ergänzt werden
 
 34. Druck / Export
 Wir haben alle Druck und Export funktionen auf den entsprechenden Seiten. 
@@ -195,3 +207,7 @@ http://localhost:3001/event-participants?eventId=59&squadName=mBlau
 
 Bitte immer einen einheitlichen look and feel verwenden (der Modale Dialog wird meistens verwendet, daher würde ich diesen auch bei den Veranstaltungsteilnehmern umsetzen) und
 ggf. Templates wenn das sinn macht (z.B. mit einheitlichen Buttons "Abbrechen", "Änderungen Speichern", ... )
+
+c) manchmal ist der Filter ausgeblendet, manchmal eingeblendet per default
+Standardmäßig sollte dieser ausgeblendet sein 
+http://localhost:3001/discipline-fields

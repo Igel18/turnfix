@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
 
 interface Association {
@@ -37,6 +38,9 @@ const Associations: React.FC = () => {
     var_kuerzel: '',
     int_laenderid: null
   });
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
 
   // Load data
   useEffect(() => {
@@ -85,8 +89,13 @@ const Associations: React.FC = () => {
     }
   ];
 
-  // Filter data
-  const filteredAssociations = associations.filter(association => {
+  // Sort and filter data
+  const sortedAssociations = sortData(associations, (association) => {
+    if (sortKey === 'country_name') return association.country_name || '';
+    return association[sortKey as keyof Association];
+  });
+
+  const filteredAssociations = sortedAssociations.filter(association => {
     const matchesSearch = association.var_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (association.var_kuerzel && association.var_kuerzel.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCountry = selectedCountry === '' || association.int_laenderid === selectedCountry;
@@ -252,15 +261,27 @@ const Associations: React.FC = () => {
         itemsPerPage={20}
         renderTableHeaders={() => (
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Association Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Abbreviation
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Country
-            </th>
+            <SortableTableHeader
+              label="Association Name"
+              sortKey="var_name"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHeader
+              label="Abbreviation"
+              sortKey="var_kuerzel"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHeader
+              label="Country"
+              sortKey="country_name"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            />
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>

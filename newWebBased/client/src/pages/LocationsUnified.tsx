@@ -6,6 +6,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import LocationFormModal from '../components/LocationFormModal';
 
 interface Location {
@@ -30,6 +31,9 @@ const LocationsUnified: React.FC = () => {
   // Filter states
   const [searchFilter, setSearchFilter] = useState('');
   const [cityFilter, setCityFilter] = useState('');
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -142,8 +146,15 @@ const LocationsUnified: React.FC = () => {
     }
   };
 
-  // Filter data
-  const filteredData = locations.filter(location => {
+  // Sort and filter data
+  const sortedLocations = sortData(locations, (location) => {
+    if (sortKey === 'var_adresse') return location.var_adresse || '';
+    if (sortKey === 'var_ort') return location.var_ort || '';
+    if (sortKey === 'var_plz') return location.var_plz || '';
+    return location[sortKey as keyof Location];
+  });
+
+  const filteredData = sortedLocations.filter(location => {
     const matchesSearch = !searchFilter || 
       location.var_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
       (location.var_adresse && location.var_adresse.toLowerCase().includes(searchFilter.toLowerCase())) ||
@@ -188,9 +199,27 @@ const LocationsUnified: React.FC = () => {
   // Table render functions
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location Name</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City</th>
+      <SortableTableHeader
+        label="Location Name"
+        sortKey="var_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Address"
+        sortKey="var_adresse"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="City"
+        sortKey="var_ort"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
     </tr>
   );

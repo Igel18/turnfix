@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, MapIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
 
 interface Region {
@@ -25,6 +26,9 @@ const Regions: React.FC = () => {
   const [editingRegion, setEditingRegion] = useState<Region | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVerband, setSelectedVerband] = useState<string | number>('');
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -94,8 +98,13 @@ const Regions: React.FC = () => {
     }
   ];
 
-  // Filter data
-  const filteredRegions = regions.filter(region => {
+  // Sort and filter data
+  const sortedRegions = sortData(regions, (region) => {
+    if (sortKey === 'verband_name') return region.verband_name || '';
+    return region[sortKey as keyof Region];
+  });
+
+  const filteredRegions = sortedRegions.filter(region => {
     const matchesSearch = region.var_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          region.var_kuerzel.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesVerband = selectedVerband === '' || region.int_verbaendeid === selectedVerband;
@@ -260,15 +269,27 @@ const Regions: React.FC = () => {
         itemsPerPage={20}
         renderTableHeaders={() => (
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Region Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Abbreviation
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Association
-            </th>
+            <SortableTableHeader
+              label="Region Name"
+              sortKey="var_name"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHeader
+              label="Abbreviation"
+              sortKey="var_kuerzel"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHeader
+              label="Association"
+              sortKey="verband_name"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            />
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>

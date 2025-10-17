@@ -6,6 +6,7 @@ import {
   HashtagIcon
 } from '@heroicons/react/24/outline';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import SportFormModal from '../components/SportFormModal';
 
 interface Sport {
@@ -31,6 +32,9 @@ const SportsUnified: React.FC = () => {
   // Filter states
   const [searchFilter, setSearchFilter] = useState('');
   const [disciplineCountFilter, setDisciplineCountFilter] = useState('');
+  
+  // Sorting
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -164,8 +168,13 @@ const SportsUnified: React.FC = () => {
     }
   };
 
-  // Filter data
-  const filteredData = sports.filter(sport => {
+  // Sort and filter data
+  const sortedSports = sortData(sports, (sport) => {
+    if (sortKey === 'discipline_count') return sport.discipline_count || 0;
+    return sport[sortKey as keyof Sport];
+  });
+
+  const filteredData = sortedSports.filter(sport => {
     const matchesSearch = !searchFilter || 
       sport.var_name.toLowerCase().includes(searchFilter.toLowerCase());
     
@@ -203,8 +212,20 @@ const SportsUnified: React.FC = () => {
   // Table render functions
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sport Name</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disciplines</th>
+      <SortableTableHeader
+        label="Sport Name"
+        sortKey="var_name"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
+      <SortableTableHeader
+        label="Disciplines"
+        sortKey="discipline_count"
+        currentSortKey={sortKey}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+      />
       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
     </tr>
   );
