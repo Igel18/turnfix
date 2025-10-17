@@ -2043,8 +2043,9 @@
     },
     "validation": {
       "invalidMaxScore": "Please enter a valid positive number for the max score",
-      "invalidAgeFrom": "Invalid \"Age From\" value: {{value}}. Please enter an age between 5 and 99.",
-      "invalidAgeTo": "Invalid \"Age To\" value: {{value}}. Please enter an age between 5 and 99.",
+      "disciplinesRequired": "At least one discipline must be selected",
+      "invalidAgeFrom": "Invalid \"Age From\" value: {{value}}. Please enter an age between 1 and 99.",
+      "invalidAgeTo": "Invalid \"Age To\" value: {{value}}. Please enter an age between 1 and 99.",
       "invalidAgeRange": "Invalid age range: \"Age From\" ({{ageFrom}}) cannot be greater than \"Age To\" ({{ageTo}})."
     },
     "messages": {

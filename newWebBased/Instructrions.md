@@ -298,8 +298,20 @@ z.B. Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadNam
 Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt? 
 Das wäre nicht gut und muss korrigiert werden. 
 
-39. Sortieren der Tabellen fehlt 
-Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau) 
+39. ~~Sortieren der Tabellen fehlt~~ ✅ 
+~~Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau)~~ ✅
+    **Status**: ✅ Abgeschlossen - Sortierung war bereits vollständig implementiert
+    **Analyse**: CompetitionsFixed.tsx verwendete bereits SortableTableHeader und useTableSort Hook
+    **Bestehende sortierbare Spalten**: Participants, Gender, Age Group, Status
+    **Point 43 Integration**: Durch Spalten-Trennung (Nr/Name) jetzt 6 sortierbare Spalten:
+    - Nr (competition.number)
+    - Name (competition.name)
+    - Teilnehmer (participantCount)
+    - Geschlecht (gender)
+    - Altersgruppe (ageFrom)
+    - Status (status)
+    **Datei**: `client/src/pages/CompetitionsFixed.tsx`
+    **Verknüpfung**: Point 43 hat die fehlenden sortierbaren Spalten für Nr und Name hinzugefügt
 
 40. ~~Default Table-View Verification~~ ✅
 ~~Das DatabaseManagementTemplate hat bereits defaultView='table' als Standard, daher sollten alle Seiten, die dieses Template verwenden (ParticipantsUnified, DisciplinesUnified, ClubsUnified, etc.) bereits Table-View als Standard haben.~~ ✅
@@ -323,16 +335,100 @@ http://localhost:3001/discipline-fields
 
 http://localhost:3001/score-capture?eventId=59&squadName=mBlau 
 
-42. nach dem öffenen des editors auf der Seite Wettkampfverwaltung http://localhost:3001/competitions?eventId=59&squadName=mBlau
-kommt häufig die Meldung "Mindestens eine Disziplin muss ausgewählt werden" 
-nach dem speichern wird die Seite auch nicht aktualisiert wie es scheint. 
-Konsolen Log: 
----
-Authentication is disabled - running in guest mode index-D8r0jjfJ.js:67:30051
-Using cached request for: /api/competitions?eventId=59 index-D8r0jjfJ.js:168:61986
-🔄 Reloading competitions... index-D8r0jjfJ.js:350:95411
-🔒 Closing modal and resetting form... index-D8r0jjfJ.js:350:95465
-Resetting competition form index-D8r0jjfJ.js:350:95853
-🎉 Competition submission completed successfully! index-D8r0jjfJ.js:350:95529
-🏁 Setting loading to false
----
+42. ~~nach dem öffenen des editors auf der Seite Wettkampfverwaltung http://localhost:3001/competitions?eventId=59&squadName=mBlau~~ ✅
+~~kommt häufig die Meldung "Mindestens eine Disziplin muss ausgewählt werden"~~ ✅
+~~nach dem speichern wird die Seite auch nicht aktualisiert wie es scheint.~~ ✅
+~~die selektierten disziplinen werden erst beim 2. mal öffnen des dialogs angezeigt~~ ✅
+    **Status**: ✅ Vollständig abgeschlossen - Alle Competition Dialog Issues behoben
+    **Probleme gelöst** (6 Sub-Issues):
+    **Problem 1**: "Mindestens eine Disziplin" Warnung beim Öffnen des Editors
+    **Lösung 1**: 
+    - Warnung aus UI entfernt (CompetitionFormModal.tsx)
+    - Validierung ins handleSubmit verschoben (CompetitionsFixed.tsx)
+    - Warnung wird nur beim Speicherversuch angezeigt, nicht beim Laden
+    
+    **Problem 2**: Seite wird nach Speichern nicht aktualisiert (Cache-Problem)
+    **Lösung 2**: 
+    - invalidateCache('/competitions') nach apiPost/apiPut aufgerufen (Zeile 283)
+    - invalidateCache('/competitions') nach apiDelete aufgerufen (Zeile 395)
+    - Cache wird vor loadCompetitions() geleert, dadurch aktuelle Daten vom Server
+    
+    **Problem 3**: Disziplinen-Liste im Modal wird nicht aktualisiert
+    **Lösung 3**: 
+    - useEffect lädt Disziplinen mit Cache-Busting Parameter (`?t=${Date.now()}`)
+    - State wird beim Schließen des Modals zurückgesetzt
+    - Console Logs zeigen Lade-Fortschritt (🔄 Fetching, ✅ Loaded)
+    
+    **Problem 4**: Ausgewählte Disziplinen werden im Modal nicht angezeigt
+    **Lösung 4**: 
+    - Filter-Logic erweitert: Bereits ausgewählte Disziplinen werden **immer** angezeigt
+    - Auch wenn sie nicht zum aktuellen Gender-Filter passen
+    - formData.disciplines als Dependency in useEffect hinzugefügt
+    
+    **Problem 5**: Disziplinen werden erst beim 2. Mal Öffnen angezeigt (Race Condition)
+    **Lösung 5**:
+    - Guard Clauses in Filter-useEffect: Wartet bis disciplines geladen sind
+    - Guard Clause für Edit-Mode: Wartet bis formData.disciplines gesetzt ist
+    - previousGenderRef wird beim Öffnen auf aktuellen Gender gesetzt (verhindert falsches "Gender changed")
+    - previousGenderRef wird beim Schließen zurückgesetzt auf ''
+    
+    **Problem 6**: Age Validation Error - Backend lehnte Werte 1-6 ab
+    **Lösung 6**:
+    - Frontend: Age validation 1-99 (CompetitionsFixed.tsx Zeilen 208, 215)
+    - Frontend: Translation strings "1 und 99" / "1 and 99" (de.json, en.json)
+    - Backend: Zod schema `min(1)` statt `min(5)` (competitions.ts Zeilen 18-19)
+    
+    **Neue Translation Keys** (de.json + en.json):
+    - competitions.validation.disciplinesRequired
+    - competitions.validation.invalidAgeFrom (updated: 1-99)
+    - competitions.validation.invalidAgeTo (updated: 1-99)
+    
+    **Dateien geändert**:
+    - `client/src/pages/CompetitionsFixed.tsx` (Validierung + Cache + Age 1-99)
+    - `client/src/components/CompetitionFormModal.tsx` (useEffect Guards + previousGenderRef Reset)
+    - `client/src/i18n/locales/de.json` + `en.json` (neue + updated Keys)
+    - `server/src/routes/competitions.ts` (Age validation 1-99)
+    
+    **Build Status**: ✓ Client 6.56s, Server kompiliert, PM2 neu gestartet
+    **Verified**: Wettkampf "Gerätvierkampf w (1-6Jahre)" mit age 1-6 funktioniert ✅
+
+43. ~~Wettkampfverwaltung~~ ✅
+~~http://localhost:3001/competitions?eventId=59&squadName=mBlau~~ ✅
+~~In der Tabelle gibt es eine Spalte Wettkampf. Hier sind Nr und Name zusammen eingetragen. Die Nummer muss in eine separate Spalte (als erste).~~ ✅
+~~Die Zusatzinfos (männlich, age von bis) kann hier raus, da es separate spalten dafür gibt.~~ ✅
+    **Status**: ✅ Abgeschlossen - Wettkampf-Spalte in Nr und Name getrennt
+    **Problem**: Kombinierte Spalte "Wettkampf" enthielt Nr + Name + Description (redundante Gender/Age Info)
+    **Lösung**: 
+    - Spalte aufgeteilt in zwei separate Spalten:
+      * Spalte "Nr" (competition.number) - sortierbar, als erste Spalte
+      * Spalte "Name" (competition.name) - sortierbar, als zweite Spalte
+    - Description komplett entfernt (Gender und Altersgruppe haben separate Spalten)
+    - Beide neue Spalten verwenden SortableTableHeader
+    - Nummer zeigt "-" wenn keine Nummer vorhanden (statt leer)
+    **Features**:
+    - Unabhängige Sortierung nach Wettkampfnummer möglich
+    - Unabhängige Sortierung nach Wettkampfname möglich
+    - Übersichtlichere Darstellung ohne redundante Informationen
+    - Konsistent mit anderen Tabellen-Implementierungen
+    **Translation Keys verwendet**:
+    - competitions.fields.number → "Nr." (DE) / "No." (EN)
+    - competitions.fields.name → "Name" (DE/EN)
+    **Datei**: `client/src/pages/CompetitionsFixed.tsx` (Zeilen 624-677)
+    **Build Status**: ✓ 2207 modules, 7.17s, keine Fehler
+    **Verknüpfung**: Hat gleichzeitig Point 39 (Sortierung) vervollständigt
+
+44. ~~Sortierung~~ ✅
+~~http://localhost:3001/disciplines~~ ✅
+~~Geschlecht funktioniert nicht~~ ✅
+    **Status**: ✅ Abgeschlossen - Gender-Sortierung auf Disciplines-Seite funktioniert
+    **Problem**: Gender-Sortierung funktionierte nicht, weil `gender_text` Property leer/undefined war
+    **Lösung**: 
+    - Sortier-Logik konvertiert jetzt Boolean-Felder `male_allowed` und `female_allowed` zu sortbarem String
+    - Logic in valueExtractor: both → male → female → unknown (alphabetische Reihenfolge)
+    **Sortier-Reihenfolge**:
+    - "both" (Beide Geschlechter erlaubt)
+    - "female" (Nur weiblich erlaubt)
+    - "male" (Nur männlich erlaubt)
+    - "unknown" (Keine Gender-Info)
+    **Datei**: `client/src/pages/DisciplinesUnified.tsx` (Zeilen 320-327)
+    **Build Status**: ✓ 2207 modules, 7.71s, keine Fehler 

@@ -14,8 +14,8 @@ const createCompetitionSchema = zod_1.z.object({
     description: zod_1.z.string().optional(),
     location: zod_1.z.string().optional(), // Location is optional since it comes from event
     gender: zod_1.z.enum((0, configurationHelpers_1.getCompetitionGenderValues)()),
-    ageFrom: zod_1.z.number().min(5).max(99),
-    ageTo: zod_1.z.number().min(5).max(99),
+    ageFrom: zod_1.z.number().min(1).max(99),
+    ageTo: zod_1.z.number().min(1).max(99),
     disciplines: zod_1.z.array(zod_1.z.object({
         disciplineId: zod_1.z.number(),
         maxScore: zod_1.z.number().min(0)

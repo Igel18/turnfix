@@ -10,7 +10,7 @@ import { EventManagementTemplate, UnifiedActionButtons } from '../components/tem
 import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import CompetitionFormModal from '../components/CompetitionFormModal';
 import { useEvent } from '../contexts/EventContext';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
+import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../utils/api';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 
 // Interface for competition display
@@ -196,15 +196,23 @@ const Competitions: React.FC = () => {
     
     debugLog('🚀 Competition submission started');
     
-    // Client-side validation for age values
-    if (formData.ageFrom < 5 || formData.ageFrom > 99) {
+    // Client-side validation for disciplines
+    if (formData.disciplines.length === 0) {
+      console.error('❌ No disciplines selected');
+      alert(t('competitions.validation.disciplinesRequired'));
+      setLoading(false);
+      return;
+    }
+    
+    // Client-side validation for age values (allow ages 1-99)
+    if (formData.ageFrom < 1 || formData.ageFrom > 99) {
       console.error('❌ Invalid ageFrom value:', formData.ageFrom);
       alert(t('competitions.validation.invalidAgeFrom', { value: formData.ageFrom }));
       setLoading(false);
       return;
     }
     
-    if (formData.ageTo < 5 || formData.ageTo > 99) {
+    if (formData.ageTo < 1 || formData.ageTo > 99) {
       console.error('❌ Invalid ageTo value:', formData.ageTo);
       alert(t('competitions.validation.invalidAgeTo', { value: formData.ageTo }));
       setLoading(false);
@@ -272,7 +280,10 @@ const Competitions: React.FC = () => {
       
       debugLog('✅ API call successful, result:', result);
 
-      console.log('🔄 Reloading competitions...');
+      console.log('�️ Invalidating competitions cache...');
+      invalidateCache('/competitions');
+      
+      console.log('�🔄 Reloading competitions...');
       await loadCompetitions();
       
       console.log('🔒 Closing modal and resetting form...');
@@ -323,6 +334,10 @@ const Competitions: React.FC = () => {
   };
 
   const handleEdit = (competition: Competition) => {
+    console.log('📝 EDIT COMPETITION:', competition);
+    console.log('📝 Competition Disciplines:', competition.disciplines);
+    console.log('📝 Disciplines Type:', typeof competition.disciplines, Array.isArray(competition.disciplines));
+    
     setEditingCompetition(competition);
     
     // Validate and correct age values - if they look like birth years, fix them
@@ -351,11 +366,14 @@ const Competitions: React.FC = () => {
       ageFrom: ageFromValue,
       ageTo: ageToValue,
       disciplines: Array.isArray(competition.disciplines) ? 
-        competition.disciplines.map((d: any) => 
-          typeof d === 'object' && (d.disciplineId || d.id) ? 
+        competition.disciplines.map((d: any) => {
+          console.log('🔄 Processing discipline:', d);
+          const result = typeof d === 'object' && (d.disciplineId || d.id) ? 
             { disciplineId: Number(d.disciplineId || d.id), maxScore: Number(d.maxScore || 0) } : 
-            { disciplineId: Number(typeof d === 'number' ? d : d.int_disziplinid), maxScore: 0 }
-        ) : [],
+            { disciplineId: Number(typeof d === 'number' ? d : d.int_disziplinid), maxScore: 0 };
+          console.log('✅ Mapped to:', result);
+          return result;
+        }) : [],
       
       // Additional competition settings with defaults from competition or fallback
       round: competition.round || 1,
@@ -382,6 +400,8 @@ const Competitions: React.FC = () => {
     
     try {
       await apiDelete(`/competitions/${id}`);
+      console.log('🗑️ Invalidating competitions cache after deletion...');
+      invalidateCache('/competitions');
       await loadCompetitions();
     } catch (error) {
       console.error('Error deleting competition:', error);
@@ -604,8 +624,15 @@ const Competitions: React.FC = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <SortableTableHeader
+                          sortKey="number"
+                          label={t('competitions.fields.number')}
+                          currentSortKey={sortKey}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                        <SortableTableHeader
                           sortKey="name"
-                          label={t('competitions.fields.competition')}
+                          label={t('competitions.fields.name')}
                           currentSortKey={sortKey}
                           currentSortDirection={sortDirection}
                           onSort={handleSort}
@@ -650,22 +677,13 @@ const Competitions: React.FC = () => {
                       {filteredCompetitions.map((competition) => (
                         <tr key={competition.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <div className="flex items-center">
-                                {competition.number && (
-                                  <span className="text-sm font-medium text-blue-600 mr-2">
-                                    Nr. {competition.number}
-                                  </span>
-                                )}
-                                <div className="text-sm font-medium text-gray-900">
-                                  {competition.name}
-                                </div>
-                              </div>
-                              {competition.description && (
-                                <div className="text-sm text-gray-500 mt-1 max-w-xs truncate">
-                                  {competition.description}
-                                </div>
-                              )}
+                            <span className="text-sm font-medium text-blue-600">
+                              {competition.number || '-'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {competition.name}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

@@ -318,7 +318,15 @@ const DisciplinesUnified: React.FC = () => {
       return sport?.var_name || '';
     }
     if (key === 'gender') {
-      return item.gender_text || '';
+      // Convert boolean flags to sortable gender string
+      if (item.male_allowed && item.female_allowed) {
+        return 'both';
+      } else if (item.male_allowed) {
+        return 'male';
+      } else if (item.female_allowed) {
+        return 'female';
+      }
+      return 'unknown';
     }
     return (item as any)[key];
   });

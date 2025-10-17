@@ -118,37 +118,76 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   }));
 
   // Load disciplines and discipline groups
+  // Use a timestamp or counter to force refresh when modal opens
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('/api/disciplines');
+        console.log('🔄 Fetching disciplines for modal...');
+        // Add cache-busting parameter to ensure fresh data
+        const response = await fetch(`/api/disciplines?t=${Date.now()}`);
         const data = await response.json();
+        console.log(`✅ Loaded ${data.length} disciplines`);
         setDisciplines(data);
       } catch (error) {
-        console.error('Error fetching disciplines:', error);
+        console.error('❌ Error fetching disciplines:', error);
       }
     };
 
     const fetchDisciplineGroups = async () => {
       try {
-        const response = await fetch('/api/discipline-groups');
+        console.log('🔄 Fetching discipline groups for modal...');
+        const response = await fetch(`/api/discipline-groups?t=${Date.now()}`);
         const data = await response.json();
         // Ensure data is an array before setting state
-        setDisciplineGroups(Array.isArray(data) ? data : []);
+        const groups = Array.isArray(data) ? data : [];
+        console.log(`✅ Loaded ${groups.length} discipline groups`);
+        setDisciplineGroups(groups);
       } catch (error) {
-        console.error('Error fetching discipline groups:', error);
+        console.error('❌ Error fetching discipline groups:', error);
         setDisciplineGroups([]); // Set empty array on error
       }
     };
 
     if (isOpen) {
+      // Always fetch fresh data when modal opens
       fetchDisciplines();
       fetchDisciplineGroups();
+      // Reset the previous gender ref to current gender to prevent false "gender changed" detection
+      previousGenderRef.current = formData.gender;
+    } else {
+      // Reset state when modal closes
+      setDisciplines([]);
+      setDisciplineGroups([]);
+      setSelectedDisciplineGroup(null);
+      setShowIncompatibleMessage(false);
+      // Reset the gender ref
+      previousGenderRef.current = '';
     }
-  }, [isOpen]);
+  }, [isOpen, formData.gender]);
 
   // Filter disciplines by gender compatibility and selected group
+  // IMPORTANT: Always include already selected disciplines, even if they don't match current filter
   useEffect(() => {
+    // Wait until disciplines are loaded
+    if (disciplines.length === 0) {
+      console.log('⏸️ Skipping filtering - disciplines not loaded yet');
+      return;
+    }
+    
+    // When editing a competition, wait until formData.disciplines is populated
+    // Check if we're in edit mode and if disciplines should be loaded
+    if (editingCompetition && formData.disciplines.length === 0 && isOpen) {
+      console.log('⏸️ Skipping filtering - waiting for formData.disciplines to be populated');
+      return;
+    }
+    
+    console.log('🔍 Filtering disciplines...');
+    console.log('  - Total disciplines:', disciplines.length);
+    console.log('  - Selected discipline IDs:', formData.disciplines.map(d => d.disciplineId));
+    console.log('  - Current gender:', formData.gender);
+    console.log('  - Selected group:', selectedDisciplineGroup);
+    console.log('  - Edit mode:', !!editingCompetition);
+    
     let filtered = disciplines.filter(discipline => {
       const genderMatch = formData.gender === 'gemischt' || 
         (formData.gender === 'männlich' && discipline.male_allowed) ||
@@ -158,29 +197,53 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
       
       return genderMatch && groupMatch;
     });
+    
+    // Also include any currently selected disciplines that might not match the filter
+    // This ensures we show disciplines that were previously selected, even if incompatible with current gender
+    const selectedDisciplineIds = formData.disciplines.map(d => d.disciplineId);
+    const missingSelected = disciplines.filter(d => 
+      selectedDisciplineIds.includes(d.id) && !filtered.some(f => f.id === d.id)
+    );
+    
+    if (missingSelected.length > 0) {
+      console.log('  ⚠️ Adding', missingSelected.length, 'selected disciplines that don\'t match filter:', missingSelected.map(d => d.name));
+      filtered = [...filtered, ...missingSelected];
+    }
 
+    console.log('  ✅ Filtered to', filtered.length, 'disciplines');
     setFilteredDisciplines(filtered);
-  }, [disciplines, formData.gender, selectedDisciplineGroup]);
+  }, [disciplines, formData.gender, formData.disciplines, selectedDisciplineGroup, editingCompetition, isOpen]);
 
   // Remove incompatible disciplines when gender changes
+  // IMPORTANT: Only run this when disciplines are loaded and gender actually changes
   useEffect(() => {
-    if (previousGenderRef.current !== formData.gender) {
+    // Don't run if disciplines haven't loaded yet
+    if (disciplines.length === 0) {
+      console.log('⏸️ Skipping incompatible check - disciplines not loaded yet');
+      return;
+    }
+    
+    // Only run when gender actually changes (not on initial load)
+    if (previousGenderRef.current !== formData.gender && previousGenderRef.current !== '') {
+      console.log('🔄 Gender changed from', previousGenderRef.current, 'to', formData.gender);
       const currentDisciplineIds = formData.disciplines.map(d => d.disciplineId);
       const compatibleDisciplineIds = filteredDisciplines.map(d => d.id);
       
       const incompatibleDisciplines = currentDisciplineIds.filter(id => !compatibleDisciplineIds.includes(id));
       
       if (incompatibleDisciplines.length > 0) {
+        console.log('⚠️ Found', incompatibleDisciplines.length, 'incompatible disciplines, removing...');
         const updatedDisciplines = formData.disciplines.filter(d => compatibleDisciplineIds.includes(d.disciplineId));
         setFormData(prev => ({ ...prev, disciplines: updatedDisciplines }));
         setShowIncompatibleMessage(true);
         
         setTimeout(() => setShowIncompatibleMessage(false), 5000);
       }
-      
-      previousGenderRef.current = formData.gender;
     }
-  }, [formData.gender, filteredDisciplines, formData.disciplines, setFormData]);
+    
+    // Update the ref AFTER checking
+    previousGenderRef.current = formData.gender;
+  }, [formData.gender, filteredDisciplines, formData.disciplines, setFormData, disciplines.length]);
 
   const handleDisciplineGroupChange = (groupId: number | null) => {
     setSelectedDisciplineGroup(groupId);
@@ -666,6 +729,15 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   const isSelected = formData.disciplines.some(d => d.disciplineId === discipline.id);
                   const selectedDiscipline = formData.disciplines.find(d => d.disciplineId === discipline.id);
                   
+                  // DEBUG: Log selection status
+                  if (discipline.id <= 3) { // Only log first few to avoid spam
+                    console.log(`🎯 Discipline "${discipline.display_name}" (ID: ${discipline.id}):`, {
+                      isSelected,
+                      formDataDisciplines: formData.disciplines,
+                      disciplineIds: formData.disciplines.map(d => d.disciplineId)
+                    });
+                  }
+                  
                   return (
                     <div
                       key={discipline.id}
@@ -717,14 +789,6 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   );
                 })}
               </div>
-              
-              {formData.disciplines.length === 0 && (
-                <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
-                  <p className="text-red-700 text-sm">
-                    ⚠️ {t('competitionForm.disciplines.validation.noneSelected')}
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Action buttons */}
