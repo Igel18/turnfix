@@ -1105,8 +1105,15 @@ const EventParticipants: React.FC = () => {
                               onSort={handleSort}
                             />
                             <SortableTableHeader
-                              label={`${t('eventParticipants.table.age')}/${t('eventParticipants.table.gender')}`}
+                              label={t('eventParticipants.table.age')}
                               sortKey="age"
+                              currentSortKey={sortKey}
+                              currentSortDirection={sortDirection}
+                              onSort={handleSort}
+                            />
+                            <SortableTableHeader
+                              label={t('eventParticipants.table.gender')}
+                              sortKey="gender"
                               currentSortKey={sortKey}
                               currentSortDirection={sortDirection}
                               onSort={handleSort}
@@ -1150,7 +1157,10 @@ const EventParticipants: React.FC = () => {
                                   {participant.club}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {participant.age} • <GenderBadge value={participant.gender} />
+                                  {participant.age}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <GenderBadge value={participant.gender} />
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {participant.squad_name || '-'}

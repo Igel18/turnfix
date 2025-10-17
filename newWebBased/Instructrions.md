@@ -256,6 +256,24 @@ http://localhost:3001/discipline-fields
 ("Score Capture Configuration")
 usw. 
 
-37. Veranstaltungsteilnehmer 
-http://localhost:3001/event-participants?eventId=59&squadName=mBlau
-in der Tabelle gibt es eine Spalte "Alter/Geschlecht". diese muss aufgetrennt werden damit man gut sortieren kann. 
+37. ~~Veranstaltungsteilnehmer~~ ✅
+~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~
+~~in der Tabelle gibt es eine Spalte "Alter/Geschlecht". diese muss aufgetrennt werden damit man gut sortieren kann.~~ ✅
+    **Status**: ✅ Abgeschlossen - Alter/Geschlecht in separate Spalten getrennt
+    **Problem**: Kombinierte Spalte "Alter/Geschlecht" verhinderte gutes Sortieren
+    **Lösung**: 
+    - Spalte "Alter/Geschlecht" aufgeteilt in zwei separate Spalten
+    - Spalte "Alter" (Age) - sortierbar nach Alter
+    - Spalte "Geschlecht" (Gender) - sortierbar nach Geschlecht mit GenderBadge
+    - Beide Spalten haben eigene SortableTableHeader
+    - Tabellenzellen entsprechend angepasst
+    **Features**:
+    - Unabhängige Sortierung nach Alter möglich
+    - Unabhängige Sortierung nach Geschlecht möglich
+    - GenderBadge zeigt Geschlecht einheitlich an (wie in Point 30)
+    **Datei**: `client/src/pages/EventParticipants.tsx`
+    **Build Status**: ✓ 2207 modules, 5.33s, keine Fehler 
+
+38. GymNet (Wettkampf) Import
+Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt? 
+Das wäre nicht gut und muss korrigiert werden. 
