@@ -101,7 +101,7 @@ const Competitions: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  // viewMode removed - now handled by EventManagementTemplate with persistence
   
   const [bulkMaxScore, setBulkMaxScore] = useState<string>('');
   
@@ -443,6 +443,7 @@ const Competitions: React.FC = () => {
   };
 
   return (
+    <>
     <EventManagementTemplate
       title={t('competitions.title')}
       description={t('competitions.description')}
@@ -453,8 +454,8 @@ const Competitions: React.FC = () => {
       loading={loading}
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
-      viewMode={viewMode}
-      onViewModeChange={setViewMode}
+      viewStorageKey="competitions-view"  // NEW: Enable view persistence
+      defaultView="table"  // NEW: Default to table view
       showFilters={showFilters}
       onToggleFilters={() => setShowFilters(!showFilters)}
       itemCount={filteredCompetitions.length}
@@ -501,25 +502,25 @@ const Competitions: React.FC = () => {
         </div>
       }
     >
-      {/* Competitions Content */}
-      <div className="p-6">
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">{t('competitions.loading')}</p>
-          </div>
-        ) : filteredCompetitions.length === 0 ? (
-          <div className="text-center py-8">
-            <Trophy className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('competitions.noCompetitions')}</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {competitions.length === 0 ? t('competitions.noCompetitionsHint') : t('competitions.adjustFilters')}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Grid View */}
-            {viewMode === 'grid' && (
+      {(viewMode: 'table' | 'grid') => (
+        <div className="p-6">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">{t('competitions.loading')}</p>
+            </div>
+          ) : filteredCompetitions.length === 0 ? (
+            <div className="text-center py-8">
+              <Trophy className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">{t('competitions.noCompetitions')}</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {competitions.length === 0 ? t('competitions.noCompetitionsHint') : t('competitions.adjustFilters')}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Grid View */}
+              {viewMode === 'grid' && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredCompetitions.map((competition) => (
                   <div key={competition.id} className="bg-white rounded-lg shadow-md border hover:shadow-lg transition-shadow">
@@ -701,23 +702,25 @@ const Competitions: React.FC = () => {
               </div>
             )}
           </>
-        )}
-      </div>
-
-      {/* Competition Form Modal */}
-      <CompetitionFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        editingCompetition={editingCompetition}
-        onSubmit={handleSubmit}
-        formData={formData}
-        setFormData={setFormData}
-        loading={loading}
-        bulkMaxScore={bulkMaxScore}
-        setBulkMaxScore={setBulkMaxScore}
-        handleBulkMaxScore={handleBulkMaxScoreApply}
-      />
+          )}
+        </div>
+      )}
     </EventManagementTemplate>
+
+    {/* Competition Form Modal */}
+    <CompetitionFormModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      editingCompetition={editingCompetition}
+      onSubmit={handleSubmit}
+      formData={formData}
+      setFormData={setFormData}
+      loading={loading}
+      bulkMaxScore={bulkMaxScore}
+      setBulkMaxScore={setBulkMaxScore}
+      handleBulkMaxScore={handleBulkMaxScoreApply}
+    />
+    </>
   );
 };
 

@@ -13,10 +13,11 @@ import {
 } from '@heroicons/react/24/outline';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useEvent } from '@/contexts/EventContext';
+import useViewToggle from '@/hooks/useViewToggle';
 
 interface EventManagementTemplateProps {
   title: string;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((viewMode: 'table' | 'grid') => React.ReactNode);  // NEW: Support render prop
   onAdd?: () => void;
   onRefresh?: () => void;
   onExportCSV?: () => void;
@@ -28,8 +29,13 @@ interface EventManagementTemplateProps {
   loading?: boolean;
   searchTerm?: string;
   onSearchChange?: (value: string) => void;
-  viewMode?: 'table' | 'grid';
-  onViewModeChange?: (mode: 'table' | 'grid') => void;
+  
+  // View mode - now supports persistence
+  viewMode?: 'table' | 'grid';  // DEPRECATED: Use viewStorageKey + defaultView instead
+  onViewModeChange?: (mode: 'table' | 'grid') => void;  // DEPRECATED
+  viewStorageKey?: string;  // NEW: Key for localStorage persistence
+  defaultView?: 'table' | 'grid';  // NEW: Default view (defaults to 'table')
+  
   showFilters?: boolean;
   onToggleFilters?: () => void;
   filterSection?: React.ReactNode;
@@ -50,8 +56,10 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
   loading = false,
   searchTerm,
   onSearchChange,
-  viewMode = 'grid',
-  onViewModeChange,
+  viewMode: legacyViewMode,  // Renamed to indicate legacy usage
+  onViewModeChange: legacyOnViewModeChange,  // Renamed to indicate legacy usage
+  viewStorageKey,
+  defaultView = 'table',  // NEW: Default to 'table' for consistency
   showFilters,
   onToggleFilters,
   filterSection,
@@ -59,6 +67,28 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
 }) => {
   const { t } = useTranslation();
   const { selectedEvent } = useEvent();
+  
+  // View toggle with persistence (if viewStorageKey provided)
+  const { viewType: persistedViewType, handleViewTypeChange: handlePersistedViewChange } = useViewToggle({
+    key: viewStorageKey || 'event-management-view-fallback',
+    defaultView: defaultView === 'grid' ? 'cards' : 'table'
+  });
+  
+  // Determine which view system to use (new persistence or legacy controlled)
+  const isUsingPersistence = !!viewStorageKey;
+  const currentViewMode: 'table' | 'grid' = isUsingPersistence 
+    ? (persistedViewType === 'table' ? 'table' : 'grid')
+    : (legacyViewMode || 'grid');
+  
+  const handleViewChange = (mode: 'table' | 'grid') => {
+    if (isUsingPersistence) {
+      // Use new persistence system
+      handlePersistedViewChange(mode === 'table' ? 'table' : 'cards');
+    } else if (legacyOnViewModeChange) {
+      // Use legacy controlled mode
+      legacyOnViewModeChange(mode);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,15 +166,15 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
               </div>
             </div>
 
-            {/* View Mode Toggle */}
-            {onViewModeChange && (
+            {/* View Mode Toggle - Show if persistence enabled OR legacy props provided */}
+            {(isUsingPersistence || legacyOnViewModeChange) && (
               <div className="flex justify-between items-center pb-4">
                 <div></div>
                 <div className="bg-gray-100 rounded-lg p-1 flex">
                   <button
-                    onClick={() => onViewModeChange('table')}
+                    onClick={() => handleViewChange('table')}
                     className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      viewMode === 'table'
+                      currentViewMode === 'table'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
@@ -153,9 +183,9 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
                     Table
                   </button>
                   <button
-                    onClick={() => onViewModeChange('grid')}
+                    onClick={() => handleViewChange('grid')}
                     className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      viewMode === 'grid'
+                      currentViewMode === 'grid'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
@@ -237,7 +267,7 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
 
         {/* Content */}
         <div className="bg-white rounded-lg shadow">
-          {children}
+          {typeof children === 'function' ? children(currentViewMode) : children}
         </div>
       </div>
     </div>
