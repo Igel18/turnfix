@@ -302,3 +302,8 @@ Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBl
     **Ausnahme**: CompetitionsFixed.tsx (verwendet nicht das Template, wurde in Point 35d manuell korrigiert)
     **Dokumentation**: Siehe `POINT-40-DEFAULT-TABLE-VIEW.md`
     **Vorteile**: Zentrale Konfiguration, Konsistenz, User Preferences werden pro Seite gespeichert
+
+41. Hilfe texte per default ausblenden. und über einen Button einblenden wie in dieser View: 
+http://localhost:3001/discipline-fields 
+
+http://localhost:3001/score-capture?eventId=59&squadName=mBlau 
