@@ -151,7 +151,8 @@
       },
       "selectEvent": {
         "title": "Veranstaltung auswählen",
-        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 3-Schritte-Workflow zuzugreifen: Setup → Wettkampf → Ergebnisse"
+        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 3-Schritte-Workflow zuzugreifen: Setup → Wettkampf → Ergebnisse",
+        "label": "Veranstaltung auswählen"
       }
     },
     "configuration": {

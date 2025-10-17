@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ChevronDownIcon, CalendarDaysIcon, TrophyIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import { apiGet } from '../utils/api'
+import { useTranslation } from 'react-i18next'
 
 interface Event {
   int_eventid: number
@@ -43,6 +44,8 @@ export function EventSelector({
   showSquads = false, // Changed default to false 
   className = "" 
 }: EventSelectorProps) {
+  const { t } = useTranslation()
+  
   // Use context if available, otherwise fall back to callback mode
   const eventContext = useEvent()
   
@@ -218,7 +221,7 @@ export function EventSelector({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <CalendarDaysIcon className="h-4 w-4 inline mr-1" />
-          Select Event
+          {t('eventManagement.selectEvent')}
         </label>
         <div className="relative">
           <select

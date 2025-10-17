@@ -211,3 +211,13 @@ ggf. Templates wenn das sinn macht (z.B. mit einheitlichen Buttons "Abbrechen", 
 c) manchmal ist der Filter ausgeblendet, manchmal eingeblendet per default
 Standardmäßig sollte dieser ausgeblendet sein 
 http://localhost:3001/discipline-fields
+
+36. Lokalisierung 
+die seite(n) sind noch nicht vollständig lokalisiert 
+
+http://localhost:3001/discipline-fields
+- Filter ("Search")
+- Hilfe ("The configuration and storage of fields is fully functional. Jury evaluations are correctly persisted in the database.")
+("Field-specific Evaluations")
+("Score Capture Configuration")
+usw. 

@@ -151,7 +151,8 @@
       },
       "selectEvent": {
         "title": "Select an Event",
-        "description": "Choose an event above to access the 3-step workflow: Setup → Competition → Results"
+        "description": "Choose an event above to access the 3-step workflow: Setup → Competition → Results",
+        "label": "Select Event"
       }
     },
     "configuration": {
