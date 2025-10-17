@@ -29,7 +29,16 @@
     **Entscheidung**: ✅ Client Jury Portal (`/jury`) wurde erfolgreich entfernt (2025-01-14)
     **Ergebnis**: Nur noch Standalone Jury Portal (Port 5174) ist aktiv.
     **Entfernte Dateien**: `client/src/pages/JuryPortal.tsx`, `client/src/jury-main.tsx`, `client/index-jury.html`
-21. http://localhost:5173/management ist folgendes nicht lokalisiert: "Select Event"
+21. ~~http://localhost:5173/management ist folgendes nicht lokalisiert: "Select Event"~~ ✅
+    **Status**: ✅ Abgeschlossen - "Select Event" Label lokalisiert
+    **Problem**: Text "Select Event" war in EventSelector.tsx hardcodiert
+    **Lösung**: 
+    - useTranslation Hook in EventSelector.tsx hinzugefügt
+    - Translation Key verwendet: `t('eventManagement.selectEvent')`
+    - Deutsche Übersetzung: "Veranstaltung auswählen"
+    - Englische Übersetzung: "Select Event"
+    **Hinweis**: Es gibt zwei `eventManagement` Objekte in der JSON - das zweite (für EventManagement-Page) überschreibt das erste (für ManagementCenter). Der flache String-Key wird verwendet.
+    **Datei**: `client/src/components/EventSelector.tsx`
 11. ~~Setup so gestalten, dass mit einem klick alles installiert wird, so wie ich das sehe ist das u.a.~~ ✅
     **Status**: ✅ Abgeschlossen - Setup-System wurde verbessert
     **Implementierung**: Siehe `POINT-11-IMPLEMENTATION.md`
@@ -114,15 +123,40 @@ Ich sehe es gibt viele duplikate. z.B. medals-broken.ts, medals_old.ts, medals_s
 genauso bei events, activities, clubs, ... (in den routen)
 kann man da etwas bereinigen bzw. werden diese alle noch benötigt? 
 
-30. unification von male / female / both / undefined in den UIs
-http://localhost:3001/disciplines
-http://localhost:3001/participants
-http://localhost:3001/event-participants?eventId=59&squadName=mBlau
-http://localhost:3001/competitions?eventId=59&squadName=mBlau 
--> sollte immer gleich benannt sein, nicht mal "male" mal "m" usw. 
--> sollte immer gleich aussehen z.B. "male" als blauen "tag" female roten "tag" 
--> sollte immer die gleiche überschrift haben in den Tabellen und edit dialogen 
--> Sollte immer die gleichen benennungungen in Dropdown listen haben 
+30. ~~unification von male / female / both / undefined in den UIs~~ ✅
+~~http://localhost:3001/disciplines~~ ✅
+~~http://localhost:3001/participants~~ ✅
+~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~ ✅
+~~http://localhost:3001/competitions?eventId=59&squadName=mBlau~~ ✅
+~~http://localhost:3001/score-capture?eventId=59&squadName=mBlau~~ ✅
+~~http://localhost:3001/competition-status?eventId=59&squadName=mBlau~~ ✅
+~~-> sollte immer gleich benannt sein, nicht mal "male" mal "m" usw.~~ ✅
+~~-> sollte immer gleich aussehen z.B. "male" als blauen "tag" female roten "tag"~~ ✅
+~~-> sollte immer die gleiche überschrift haben in den Tabellen und edit dialogen~~ ✅
+~~-> Sollte immer die gleichen benennungungen in Dropdown listen haben~~ ✅
+    **Status**: ✅ Vollständig abgeschlossen - Gender-Unifikation über 6 Hauptseiten
+    **Implementierung**: 
+    - Neue Komponente: `GenderBadge.tsx` mit automatischer Normalisierung aller Gender-Varianten
+    - Farbcodierte Badges: Blau (male), Pink (female), Lila (both), Grau (unknown)
+    - Lokalisierte Labels: "Geschlecht" (DE) / "Gender" (EN)
+    - Smart normalizeGender(): Wandelt alle Varianten um (m, w, männlich, weiblich, 1, 2, true, false, etc.)
+    **Implementierte Seiten** (6/6):
+    - ✅ DisciplinesUnified.tsx (Boolean-Felder: male_allowed, female_allowed)
+    - ✅ ParticipantsUnified.tsx (Numerische Codes: int_geschlecht 1=male, 2=female)
+    - ✅ EventParticipants.tsx (String-Werte: 'male', 'female', 'männlich', 'weiblich')
+    - ✅ CompetitionsFixed.tsx (Deutsche Strings: 'männlich', 'weiblich', 'gemischt')
+    - ✅ ScoreCapture.tsx (String-Werte: 'male', 'female', formatGender() entfernt)
+    - ✅ CompetitionStatusManagement.tsx (String-Werte: 'male', 'female', 'männlich', 'weiblich')
+    **Features**:
+    - Einheitliche Darstellung mit farbcodierten Badges
+    - Konsistente Spaltenüberschrift mit getGenderColumnHeader()
+    - Automatische Normalisierung aller Datenformate
+    - Vollständig lokalisiert (DE/EN)
+    - Vorhandene Filter bleiben kompatibel
+    **Dateien**: 
+    - `client/src/components/GenderBadge.tsx` (165 Zeilen)
+    - `newWebBased/POINT-30-GENDER-UNIFICATION.md` (Dokumentation)
+    **Build Status**: ✓ 2207 modules, 5.20s, keine Fehler 
 
 31. ~~lokalisierung.~~ ✅
 ~~bei den Tabellen steht auf den seiten immer ein Text~~ 
@@ -221,3 +255,7 @@ http://localhost:3001/discipline-fields
 ("Field-specific Evaluations")
 ("Score Capture Configuration")
 usw. 
+
+37. Veranstaltungsteilnehmer 
+http://localhost:3001/event-participants?eventId=59&squadName=mBlau
+in der Tabelle gibt es eine Spalte "Alter/Geschlecht". diese muss aufgetrennt werden damit man gut sortieren kann. 

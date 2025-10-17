@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import { GenderBadge } from '@/components/GenderBadge'
 import { apiGet, apiPost } from '../utils/api'
 import { getIconUrl } from '../utils/iconUtils'
 
@@ -1194,36 +1195,6 @@ export function ScoreCapture() {
       .filter(name => name) // Remove any undefined/empty names
   }
 
-  // Helper function to display gender properly
-  const formatGender = (gender: any): string => {
-    if (!gender) {
-      return 'Unknown'
-    }
-    
-    const genderStr = String(gender).toLowerCase().trim()
-    
-    // Map various possible gender values to display names
-    switch (genderStr) {
-      case 'male':
-      case 'm':
-      case 'männlich':
-      case 'maennlich':
-        return 'Male'
-      case 'female':
-      case 'f':
-      case 'weiblich':
-        return 'Female'
-      case 'other':
-      case 'o':
-      case 'diverse':
-      case 'othe': // Handle truncated "other"
-        return 'Other'
-      default:
-        // If it's an unexpected value, show the original but capitalize first letter
-        return genderStr.charAt(0).toUpperCase() + genderStr.slice(1)
-    }
-  }
-
   // Helper function to check if score exceeds maximum and validation is enabled
   const getScoreValidation = (disciplineId: number | string, scoreValue: string) => {
     const discipline = displayDisciplines.find(d => 
@@ -1716,7 +1687,7 @@ export function ScoreCapture() {
                             {participant.club}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {participant.age} • {formatGender(participant.gender)}
+                            {participant.age} • <GenderBadge value={participant.gender} />
                           </td>
                           {displayDisciplines.map((discipline, disciplineIndex) => {
                             const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${disciplineIndex}` || disciplineIndex;

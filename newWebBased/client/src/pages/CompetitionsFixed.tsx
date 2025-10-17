@@ -7,6 +7,7 @@ import {
   Trophy
 } from 'lucide-react';
 import { EventManagementTemplate, UnifiedActionButtons } from '../components/templates/EventManagementTemplate';
+import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import CompetitionFormModal from '../components/CompetitionFormModal';
 import { useEvent } from '../contexts/EventContext';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
@@ -570,9 +571,7 @@ const Competitions: React.FC = () => {
 
                       <div className="flex justify-between items-center">
                         <div className="flex gap-2">
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                            {competition.gender}
-                          </span>
+                          <GenderBadge value={competition.gender} />
                           <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                             {competition.ageFrom}-{competition.ageTo} {t('competitions.fields.years')}
                           </span>
@@ -607,7 +606,7 @@ const Competitions: React.FC = () => {
                           {t('competitions.fields.participants')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('competitions.fields.gender')}
+                          {getGenderColumnHeader(t)}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {t('competitions.fields.ageGroup')}
@@ -674,9 +673,7 @@ const Competitions: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              {competition.gender}
-                            </span>
+                            <GenderBadge value={competition.gender} />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">

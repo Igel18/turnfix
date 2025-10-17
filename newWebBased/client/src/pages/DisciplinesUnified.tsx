@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
-import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
+import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
+import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import DisciplineFormModal from '../components/DisciplineFormModal';
 import { 
   CogIcon, 
@@ -409,7 +410,7 @@ const DisciplinesUnified: React.FC = () => {
         onSort={handleSort}
       />
       <SortableTableHeader
-        label={t('disciplines.table.gender')}
+        label={getGenderColumnHeader(t)}
         sortKey="gender"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
@@ -480,15 +481,14 @@ const DisciplinesUnified: React.FC = () => {
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex space-x-1">
-            {discipline.male_allowed && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                M
-              </span>
-            )}
-            {discipline.female_allowed && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
-                F
-              </span>
+            {discipline.male_allowed && discipline.female_allowed ? (
+              <GenderBadge value="both" />
+            ) : discipline.male_allowed ? (
+              <GenderBadge value="male" />
+            ) : discipline.female_allowed ? (
+              <GenderBadge value="female" />
+            ) : (
+              <GenderBadge value="unknown" />
             )}
           </div>
         </td>

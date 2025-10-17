@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
+import { GenderBadge } from '@/components/GenderBadge';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
@@ -1149,7 +1150,7 @@ const EventParticipants: React.FC = () => {
                                   {participant.club}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {participant.age} • {participant.gender === 'male' ? 'Male' : 'Female'}
+                                  {participant.age} • <GenderBadge value={participant.gender} />
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {participant.squad_name || '-'}
@@ -1238,7 +1239,7 @@ const EventParticipants: React.FC = () => {
                                     </div>
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Gender:</span>
-                                      <span className="font-medium capitalize">{participant.gender}</span>
+                                      <GenderBadge value={participant.gender} />
                                     </div>
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Club:</span>
@@ -1509,8 +1510,8 @@ const EventParticipants: React.FC = () => {
                         <p className="font-medium text-gray-900">
                           {participant.firstname} {participant.lastname}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {participant.club} • {participant.gender} • Age {participant.age}
+                        <p className="text-sm text-gray-500 flex items-center gap-2">
+                          {participant.club} • <GenderBadge value={participant.gender} /> • Age {participant.age}
                         </p>
                       </div>
                       <button

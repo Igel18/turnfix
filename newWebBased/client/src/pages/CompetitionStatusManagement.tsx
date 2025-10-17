@@ -7,6 +7,7 @@ import {
   ClockIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import { GenderBadge } from '@/components/GenderBadge'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
 
@@ -398,7 +399,7 @@ const CompetitionStatusManagement = () => {
                         {item.ageFrom}-{item.ageTo} {t('competitionStatus.years')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.gender}
+                        <GenderBadge value={item.gender} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {(() => { const s = getAggregatedOverallStatus(item); return (
@@ -514,7 +515,7 @@ const CompetitionStatusManagement = () => {
                       <div>
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.details')}</label>
                         <div className="mt-1 text-sm text-gray-900">
-                          <div>{item.gender} • {item.ageFrom}-{item.ageTo} {t('competitionStatus.years')}</div>
+                          <div className="flex items-center gap-2"><GenderBadge value={item.gender} /> • {item.ageFrom}-{item.ageTo} {t('competitionStatus.years')}</div>
                           <div>{item.disciplines_detail.length} {t('competitionStatus.grid.disciplines')} • {item.participantCount} {t('competitionStatus.grid.participants')}</div>
                           <div>{t('competitionStatus.details.totalParticipantsDiscipline')}: {item.totalSquadDisciplines}</div>
                         </div>

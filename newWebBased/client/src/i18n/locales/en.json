@@ -577,6 +577,14 @@
       "search": "Search...",
       "filters": "Filters",
       "noResults": "No results found"
+    },
+    "gender": {
+      "label": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "both": "Both",
+      "unknown": "Unknown",
+      "all": "All Genders"
     }
   },
   "events": {

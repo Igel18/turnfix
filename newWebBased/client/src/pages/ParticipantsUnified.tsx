@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
+import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import ParticipantFormModal from '../components/ParticipantFormModal';
 import { 
   UserGroupIcon, 
@@ -299,7 +300,7 @@ const ParticipantsUnified: React.FC = () => {
         onSort={handleSort}
       />
       <SortableTableHeader
-        label={t('participants.table.gender')}
+        label={getGenderColumnHeader(t)}
         sortKey="geschlecht_name"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
@@ -346,15 +347,7 @@ const ParticipantsUnified: React.FC = () => {
           {participant.age || t('participants.card.notAssigned')}
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            participant.int_geschlecht === 1 
-              ? 'bg-blue-100 text-blue-800' 
-              : participant.int_geschlecht === 2
-              ? 'bg-pink-100 text-pink-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}>
-            {participant.geschlecht_name}
-          </span>
+          <GenderBadge value={participant.int_geschlecht} />
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
           {participant.verein_name}
@@ -422,17 +415,9 @@ const ParticipantsUnified: React.FC = () => {
 
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm font-medium text-gray-500">{t('participants.table.gender')}</dt>
+            <dt className="text-sm font-medium text-gray-500">{getGenderColumnHeader(t)}</dt>
             <dd className="mt-1">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                participant.int_geschlecht === 1 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : participant.int_geschlecht === 2
-                  ? 'bg-pink-100 text-pink-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {participant.geschlecht_name}
-              </span>
+              <GenderBadge value={participant.int_geschlecht} />
             </dd>
           </div>
           <div>
