@@ -6,9 +6,7 @@ import {
   Trophy,
   ArrowRight,
   ArrowLeft,
-  UserPlus,
-  UserMinus,
-  Edit
+  UserPlus
 } from 'lucide-react';
 import { 
   UsersIcon,
@@ -18,6 +16,7 @@ import {
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { GenderBadge } from '@/components/GenderBadge';
+import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
 import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
@@ -326,7 +325,8 @@ const EventParticipants: React.FC = () => {
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [addModalSearchTerm, setAddModalSearchTerm] = useState('');
-  const [editingParticipant, setEditingParticipant] = useState<number | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   
   // PDF Label Configuration Modal State
   const [showLabelModal, setShowLabelModal] = useState(false);
@@ -1181,43 +1181,17 @@ const EventParticipants: React.FC = () => {
                                   {participant.assignedCompetitions.length} competitions
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button
-                                      onClick={() => setEditingParticipant(editingParticipant === participant.id ? null : participant.id)}
-                                      className={`p-1 ${editingParticipant === participant.id ? 'text-green-600 hover:text-green-900' : 'text-blue-600 hover:text-blue-900'}`}
-                                      title={editingParticipant === participant.id ? t('eventParticipants.editParticipant.save') : t('eventParticipants.actions.editParticipant')}
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => removeParticipantFromEvent(participant.id)}
-                                      className="text-red-600 hover:text-red-900 p-1"
-                                      title={t('eventParticipants.actions.removeFromEvent')}
-                                    >
-                                      <UserMinus className="w-4 h-4" />
-                                    </button>
-                                  </div>
+                                  <UnifiedActionButtons
+                                    onEdit={() => {
+                                      setSelectedParticipant(participant);
+                                      setShowEditModal(true);
+                                    }}
+                                    onDelete={() => removeParticipantFromEvent(participant.id)}
+                                    editTitle={t('eventParticipants.actions.editParticipant')}
+                                    deleteTitle={t('eventParticipants.actions.removeFromEvent')}
+                                  />
                                 </td>
                               </tr>
-                              
-                              {/* Expandable edit row */}
-                              {editingParticipant === participant.id && (
-                                <tr className="bg-gray-50">
-                                  <td colSpan={7} className="px-6 py-4">
-                                    <EditParticipantForm 
-                                      participant={participant}
-                                      eventId={eventId!}
-                                      clubs={clubs}
-                                      competitions={competitions}
-                                      onSave={async (updatedData) => {
-                                        await updateParticipantDetails(participant.id, updatedData);
-                                        setEditingParticipant(null);
-                                      }}
-                                      onCancel={() => setEditingParticipant(null)}
-                                    />
-                                  </td>
-                                </tr>
-                              )}
                             </React.Fragment>
                           ))}
                         </tbody>
@@ -1277,39 +1251,18 @@ const EventParticipants: React.FC = () => {
                                   </div>
                                 </div>
                                 
-                                <div className="ml-4 flex flex-col gap-2">
-                                  <button
-                                    onClick={() => setEditingParticipant(participant.id)}
-                                    className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
-                                    title={t('eventParticipants.actions.editParticipant')}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => removeParticipantFromEvent(participant.id)}
-                                    className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
-                                    title={t('eventParticipants.actions.removeFromEvent')}
-                                  >
-                                    <UserMinus className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
-                              
-                              {editingParticipant === participant.id && (
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                  <EditParticipantForm
-                                    participant={participant}
-                                    eventId={eventId!}
-                                    clubs={clubs}
-                                    competitions={competitions}
-                                    onSave={async (updatedData) => {
-                                      await updateParticipantDetails(participant.id, updatedData);
-                                      setEditingParticipant(null);
+                                <div className="ml-4">
+                                  <UnifiedActionButtons
+                                    onEdit={() => {
+                                      setSelectedParticipant(participant);
+                                      setShowEditModal(true);
                                     }}
-                                    onCancel={() => setEditingParticipant(null)}
+                                    onDelete={() => removeParticipantFromEvent(participant.id)}
+                                    editTitle={t('eventParticipants.actions.editParticipant')}
+                                    deleteTitle={t('eventParticipants.actions.removeFromEvent')}
                                   />
                                 </div>
-                              )}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1716,6 +1669,31 @@ const EventParticipants: React.FC = () => {
               >
                 {t('eventParticipants.labelConfig.exportLabels')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Participant Modal */}
+      {showEditModal && selectedParticipant && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <EditParticipantForm
+                participant={selectedParticipant}
+                eventId={eventId!}
+                clubs={clubs}
+                competitions={competitions}
+                onSave={async (updatedData) => {
+                  await updateParticipantDetails(selectedParticipant.id, updatedData);
+                  setShowEditModal(false);
+                  setSelectedParticipant(null);
+                }}
+                onCancel={() => {
+                  setShowEditModal(false);
+                  setSelectedParticipant(null);
+                }}
+              />
             </div>
           </div>
         </div>

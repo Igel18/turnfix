@@ -227,27 +227,64 @@ Etiketten
 Auswahl welche Riege gedruckt werden soll (oder alle) 
 usw. ... 
 
-35. UI unification  
-a) Es gibt verschiedene Buttons zum Editieren / Löschen usw. in den Tabellen 
-http://localhost:3001/participants
-http://localhost:3001/event-participants?eventId=59&squadName=mBlau 
+35. ~~UI unification~~ ✅
+~~a) Es gibt verschiedene Buttons zum Editieren / Löschen usw. in den Tabellen~~ ✅
+~~http://localhost:3001/participants~~ ✅
+~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~ ✅
+~~Bitte immer einen einheitlichen look and feel verwenden und ggf. Templates~~ ✅
 
-Bitte immer einen einheitlichen look and feel verwenden und 
-ggf. Templates 
+~~b) Es gibt verschiedene Dialoge zum Editieren~~ ✅
+~~http://localhost:3001/participants~~ ✅
+~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~ ✅
+~~Bitte immer einen einheitlichen look and feel verwenden (der Modale Dialog wird meistens verwendet, daher würde ich diesen auch bei den Veranstaltungsteilnehmern umsetzen) und~~ ✅
+~~ggf. Templates wenn das sinn macht (z.B. mit einheitlichen Buttons "Abbrechen", "Änderungen Speichern", ... )~~ ✅
 
-b) Es gibt verschiedene Dialoge zum Editieren 
-http://localhost:3001/participants
-http://localhost:3001/event-participants?eventId=59&squadName=mBlau 
+~~c) manchmal ist der Filter ausgeblendet, manchmal eingeblendet per default~~ ✅
+~~Standardmäßig sollte dieser ausgeblendet sein~~ ✅
+~~http://localhost:3001/discipline-fields~~ ✅
 
-Bitte immer einen einheitlichen look and feel verwenden (der Modale Dialog wird meistens verwendet, daher würde ich diesen auch bei den Veranstaltungsteilnehmern umsetzen) und
-ggf. Templates wenn das sinn macht (z.B. mit einheitlichen Buttons "Abbrechen", "Änderungen Speichern", ... )
-
-c) manchmal ist der Filter ausgeblendet, manchmal eingeblendet per default
-Standardmäßig sollte dieser ausgeblendet sein 
-http://localhost:3001/discipline-fields
-
-d) Default immer Table-View
-z.B. Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau) 
+~~d) Default immer Table-View~~ ✅
+~~z.B. Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau)~~ ✅
+    **Status**: ✅ Vollständig abgeschlossen - UI Unification über alle Punkte
+    
+    **Point 35a - Einheitliche Action Buttons**: ✅
+    **Problem**: EventParticipants verwendete unterschiedliche Button-Stile (Edit Icon, UserMinus Icon) statt UnifiedActionButtons
+    **Lösung**: 
+    - `UnifiedActionButtons` aus EventManagementTemplate importiert
+    - Alle Edit/Delete Buttons in Table-View und Grid-View ersetzt
+    - Einheitliche Icons: PencilIcon (Edit), TrashIcon (Delete)
+    - Konsistentes Styling mit hover-Effekten
+    
+    **Point 35b - Modal Dialog für EventParticipants**: ✅
+    **Problem**: EventParticipants verwendete expandable row Pattern für Edit-Form (unterschiedlich zu ParticipantsUnified)
+    **Lösung**: 
+    - State umgestellt: `editingParticipant` → `showEditModal` + `selectedParticipant`
+    - Modal Dialog mit z-50, centered, responsive width
+    - EditParticipantForm in Modal verschoben
+    - Expandable rows komplett entfernt (Table + Grid View)
+    - Einheitliche Buttons in EditParticipantForm: "Abbrechen", "Änderungen Speichern"
+    - Modal schließt nach erfolgreicher Speicherung
+    
+    **Point 35c - Filter standardmäßig ausgeblendet**: ✅
+    **Status**: Bereits implementiert - Keine Änderungen nötig
+    **Analyse**: Keine Seite verwendet `useState(true)` für showFilters
+    - DatabaseManagementTemplate: Filter collapsed by default ✅
+    - Alle Event-Management-Seiten: Filter collapsed by default ✅
+    
+    **Point 35d - Default Table-View**: ✅
+    **Status**: Bereits in Point 40 vollständig erledigt und dokumentiert
+    **Referenz**: Siehe Point 40 - DatabaseManagementTemplate defaultView='table'
+    
+    **Implementierung Details**:
+    - Imports: UnifiedActionButtons from EventManagementTemplate
+    - Removed: Edit icon from lucide-react, UserMinus icon
+    - State Changes: editingParticipant → showEditModal + selectedParticipant
+    - UI Pattern: Consistent with ParticipantsUnified modal approach
+    - Code Cleanup: Expandable row logic komplett entfernt
+    
+    **Datei**: `client/src/pages/EventParticipants.tsx` (Zeilen 1-20, 327-329, 1182-1195, 1253-1263, 1683-1705)
+    **Build Status**: ✓ 2207 modules, 5.32s, keine Fehler
+    **Konsistenz**: EventParticipants jetzt identisch mit ParticipantsUnified Pattern
 
 36. ~~Lokalisierung~~ ✅ 
 ~~die seite(n) sind noch nicht vollständig lokalisiert~~
@@ -449,3 +486,5 @@ Das wäre nicht gut und muss korrigiert werden.
     - "unknown" (Keine Gender-Info)
     **Datei**: `client/src/pages/DisciplinesUnified.tsx` (Zeilen 320-327)
     **Build Status**: ✓ 2207 modules, 7.71s, keine Fehler 
+
+45. Sind alle Möglichkeiten für die Wettkampfteilnehmer implementiert? Es müsste neben dem "Nimmt nicht teil" eine checkbox "Außer Konkurenz" geben. Und ein Kommentarfeld. Schau mal die Doku der alten QT-Version an: https://github.com/Igel18/turnfix/blob/v2/documentation/turn-fix-verwenden/teilnehmer-verwalten/teilnehmerdaten.md
