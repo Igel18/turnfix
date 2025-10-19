@@ -1865,17 +1865,58 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         // 3. Insert/Update Competitions (if event was created successfully)
         if (createdEvent && extractedData.competitions.length > 0) {
             console.log('🏆 Processing competitions...');
+            // Get event year for age-to-birth-year conversion
+            const eventYear = createdEvent.dat_von
+                ? new Date(createdEvent.dat_von).getFullYear()
+                : new Date().getFullYear();
             for (const competition of extractedData.competitions) {
                 try {
                     if (!competition.name || competition.name.trim() === '') {
                         console.log('  ⚠️ Skipping competition with empty name');
                         continue;
                     }
-                    // Extract age ranges and gender
-                    const ageFrom = competition.ageInfo?.min || 2000;
-                    const ageTo = competition.ageInfo?.max || 2030;
+                    // Extract gender
                     const gender = competition.gender || 'mixed';
-                    console.log(`  🔍 Processing: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Gender: ${gender})`);
+                    // Convert ages from XML to birth years for database storage
+                    // Database fields yer_von and yer_bis store BIRTH YEARS, not ages!
+                    // IMPORTANT: waAlterMin = minimum age (youngest), waAlterMax = maximum age (oldest)
+                    let birthYearFrom = null;
+                    let birthYearTo = null;
+                    // waAlterMin = minimum age (e.g., 18) → youngest participant → born eventYear - 18
+                    // waAlterMax = maximum age (e.g., 100) → oldest participant → born eventYear - 100
+                    if (competition.ageInfo?.min && competition.ageInfo.min > 0) {
+                        birthYearFrom = eventYear - competition.ageInfo.min; // Youngest (min age)
+                    }
+                    if (competition.ageInfo?.max && competition.ageInfo.max > 0 && competition.ageInfo.max < 999) {
+                        birthYearTo = eventYear - competition.ageInfo.max; // Oldest (max age)
+                    }
+                    // If no age information at all, use a sensible default birth year range
+                    // Default age range: 1-100 Jahre (breiteste Altersgruppe)
+                    if (!birthYearFrom && !birthYearTo) {
+                        console.log(`  ⚠️ No age information for competition "${competition.name}" - using default range (age 1-100)`);
+                        birthYearFrom = eventYear - 1; // Youngest: age 1
+                        birthYearTo = eventYear - 100; // Oldest: age 100
+                    }
+                    else if (!birthYearFrom && birthYearTo) {
+                        // Only max age specified, assume min age is 1
+                        birthYearFrom = eventYear - 1;
+                    }
+                    else if (birthYearFrom && !birthYearTo) {
+                        // Only min age specified, assume max age is 100
+                        birthYearTo = eventYear - 100;
+                    }
+                    // Calculate display ages for logging (reverse conversion)
+                    const displayAgeFrom = birthYearFrom ? eventYear - birthYearFrom : null;
+                    const displayAgeTo = birthYearTo ? eventYear - birthYearTo : null;
+                    console.log(`  🔍 Processing: ${competition.name}`);
+                    console.log(`     - Event year: ${eventYear}`);
+                    console.log(`     - Ages from XML: ${competition.ageInfo?.min ?? 'none'} - ${competition.ageInfo?.max ?? 'none'}`);
+                    console.log(`     - Birth years (DB): ${birthYearFrom} - ${birthYearTo}`);
+                    console.log(`     - Display ages: ${displayAgeFrom} - ${displayAgeTo}`);
+                    console.log(`     - Gender: ${gender}`);
+                    // Use birth years for database operations
+                    const ageFrom = birthYearFrom;
+                    const ageTo = birthYearTo;
                     // Get or create appropriate bereich based on gender
                     const bereichId = await getOrCreateBereich(gender);
                     // Check if competition exists for this event
@@ -1885,23 +1926,23 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             LIMIT 1
           `, createdEvent.int_veranstaltungenid, competition.name.trim());
                     if (existingCompetition.length > 0) {
-                        // Update existing competition with age ranges, bereich, and competition number
+                        // Update existing competition with birth year ranges, bereich, and competition number
                         await prisma_1.default.$queryRawUnsafe(`
               UPDATE tfx_wettkaempfe 
               SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4, var_nummer = $5
               WHERE int_wettkaempfeid = $6
             `, competition.name.trim(), ageFrom, ageTo, bereichId, competition.waNr || competition.number || null, existingCompetition[0].int_wettkaempfeid);
                         insertionResults.competitions.updated++;
-                        console.log(`  ✅ Updated competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId}, Number: ${competition.waNr || competition.number || 'none'})`);
+                        console.log(`  ✅ Updated: ${competition.name} (Birth years: ${ageFrom}-${ageTo}, Ages: ${displayAgeFrom}-${displayAgeTo}, Number: ${competition.waNr || competition.number || 'none'})`);
                     }
                     else {
-                        // Insert new competition with age ranges, bereich, and competition number
+                        // Insert new competition with birth year ranges, bereich, and competition number
                         await prisma_1.default.$queryRawUnsafe(`
               INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis, var_nummer)
               VALUES ($1, $2, $3, $4, $5, $6)
             `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo, competition.waNr || competition.number || null);
                         insertionResults.competitions.inserted++;
-                        console.log(`  ✅ Inserted competition: ${competition.name} (Ages: ${ageFrom}-${ageTo}, Bereich: ${bereichId}, Number: ${competition.waNr || competition.number || 'none'})`);
+                        console.log(`  ✅ Inserted: ${competition.name} (Birth years: ${ageFrom}-${ageTo}, Ages: ${displayAgeFrom}-${displayAgeTo}, Number: ${competition.waNr || competition.number || 'none'})`);
                     }
                 }
                 catch (error) {
@@ -2107,6 +2148,20 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 rootElements: Object.keys(parsedXml || {}),
                 potentialDataFound: Object.keys(foundElements).length,
                 fileProcessed: req.file.originalname,
+                importLog: [
+                    `📄 Datei: ${req.file.originalname} (${req.file.size} bytes)`,
+                    `📊 Extrahierte Daten:`,
+                    `   - ${extractedData.clubs.length} Vereine`,
+                    `   - ${extractedData.competitions.length} Wettkämpfe`,
+                    `   - ${extractedData.participants.length} Teilnehmer`,
+                    `   - ${extractedData.devices.length} Disziplinen`,
+                    `💾 Datenbank-Import:`,
+                    `   - Vereine: ${insertionResults.clubs.inserted} neu, ${insertionResults.clubs.updated} aktualisiert`,
+                    `   - Teilnehmer: ${insertionResults.participants.inserted} neu, ${insertionResults.participants.updated} aktualisiert`,
+                    `   - Wettkämpfe: ${insertionResults.competitions.inserted} neu`,
+                    `   - Disziplinen: ${insertionResults.devices.inserted} neu, ${insertionResults.devices.updated} verknüpft`,
+                    createdEvent ? `✅ Event "${createdEvent.var_name}" (ID: ${createdEvent.int_veranstaltungenid}) erfolgreich erstellt` : '❌ Event-Erstellung fehlgeschlagen'
+                ],
                 nextSteps: createdEvent ? [
                     'Event created successfully',
                     'Review the extracted and imported data',

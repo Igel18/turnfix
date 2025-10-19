@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GymNetExport>
+  <Veranstaltung>
+    <var_name>Test Event - Age Conversion 2025</var_name>
+    <dat_von>2025-09-10</dat_von>
+    <dat_bis>2025-09-10</dat_bis>
+    <var_veranstalter>Test Organizer</var_veranstalter>
+  </Veranstaltung>
+  
+  <Wettkämpfe>
+    <!-- Test Case 1: Normal age range with both min and max -->
+    <Wettkampf waNr="TC01" waGeschlecht="1" waAlterMin="11" waAlterMax="12">
+      <var_name>Test Case 1: Ages 11-12</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 2: Wide age range -->
+    <Wettkampf waNr="TC02" waGeschlecht="2" waAlterMin="6" waAlterMax="18">
+      <var_name>Test Case 2: Ages 6-18</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 3: Single age (min and max same) -->
+    <Wettkampf waNr="TC03" waGeschlecht="1" waAlterMin="10" waAlterMax="10">
+      <var_name>Test Case 3: Age 10 only</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 4: Very young (Kinderturnen) -->
+    <Wettkampf waNr="TC04" waGeschlecht="2" waAlterMin="4" waAlterMax="6">
+      <var_name>Test Case 4: Ages 4-6 (Kinderturnen)</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 5: Older athletes -->
+    <Wettkampf waNr="TC05" waGeschlecht="1" waAlterMin="18" waAlterMax="25">
+      <var_name>Test Case 5: Ages 18-25 (Senior)</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 6: Missing age info (should use defaults) -->
+    <Wettkampf waNr="TC06" waGeschlecht="2">
+      <var_name>Test Case 6: No age info (should default to 6-18)</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 7: Only min age specified -->
+    <Wettkampf waNr="TC07" waGeschlecht="1" waAlterMin="15">
+      <var_name>Test Case 7: Only min age 15</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 8: Only max age specified -->
+    <Wettkampf waNr="TC08" waGeschlecht="2" waAlterMax="12">
+      <var_name>Test Case 8: Only max age 12</var_name>
+    </Wettkampf>
+    
+    <!-- Test Case 9: Age = 0 (invalid, should use defaults) -->
+    <Wettkampf waNr="TC09" waGeschlecht="1" waAlterMin="0" waAlterMax="0">
+      <var_name>Test Case 9: Age 0 (invalid)</var_name>
+    </Wettkampf>
+  </Wettkämpfe>
+</GymNetExport>

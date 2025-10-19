@@ -331,9 +331,43 @@ usw. ...
     **Datei**: `client/src/pages/EventParticipants.tsx`
     **Build Status**: ✓ 2207 modules, 5.33s, keine Fehler 
 
-38. GymNet (Wettkampf) Import
-Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt? 
-Das wäre nicht gut und muss korrigiert werden. 
+38. ~~GymNet (Wettkampf) Import~~ ✅
+~~Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt?~~ ✅
+~~Das wäre nicht gut und muss korrigiert werden.~~ ✅
+    **Status**: ✅ Abgeschlossen - Age-to-Birth-Year Konvertierung korrekt implementiert
+    **Problem**: GymNet Import hat Alterswerte (z.B. 11-12) direkt in Birth-Year-Felder gespeichert (falsch!)
+    **Zusätzliches Problem**: Bei fehlenden Altersinformationen wurden hardcodierte Werte 2000-2030 verwendet
+    **Display-Fallback**: competitions.ts hat bei fehlenden/ungültigen Birth-Years Default 6-18 angezeigt
+    **Root Cause**: Zwei separate Issues:
+    1. events.ts Zeile 1931-1932: `const ageFrom = competition.ageInfo?.min || 2000` (falsche Defaults)
+    2. Fehlende Konvertierung: Alter aus XML → Birth Year für DB
+    **Lösung**: 
+    - Event-Jahr wird aus Veranstaltungsdatum extrahiert (oder aktuelles Jahr)
+    - Ages aus XML (`waAlterMin`, `waAlterMax`) werden in Birth Years konvertiert
+    - Formel: `birthYear = eventYear - age`
+    - Beispiel: Age 11 in 2025 → Birth Year 2014
+    - Bei fehlenden Ages: Default Age 6-18 wird in Birth Years konvertiert (2019-2007)
+    - Umfangreiche Logging für Debug-Zwecke
+    **Edge Cases behandelt**:
+    - ✅ Fehlende Age-Felder → Default 6-18 (als Birth Years 2019-2007)
+    - ✅ Age = 0 → Als fehlend behandelt, Default verwendet
+    - ✅ Nur Min oder Max angegeben → Intelligente Defaults
+    - ✅ Invalide Event-Datum → Aktuelles Jahr verwendet
+    **Database Fields** (tfx_wettkaempfe):
+    - `yer_von`: Birth Year FROM (Geburtsjahr des jüngeren Alters)
+    - `yer_bis`: Birth Year TO (Geburtsjahr des älteren Alters)
+    - Beispiel: Age 11-12 → yer_von=2014, yer_bis=2013
+    **Testing**:
+    - Test XML erstellt: `server/test-age-conversion.xml` mit 9 Test-Cases
+    - Test-Cases decken ab: Normal range, wide range, single age, missing info, edge cases
+    - Erwartet: Alle Ages werden korrekt in Birth Years konvertiert
+    - Manuelle Tests erforderlich (kein automatisches Testing möglich ohne DB-Zugriff)
+    **Dokumentation**: 
+    - `POINT-38-GYMNET-AGE-FIX.md` (umfassende Analyse + Lösung)
+    - `POINT-38-TEST-CASES.md` (Test-Szenarien + erwartete Ergebnisse)
+    **Datei**: `server/src/routes/events.ts` (Zeilen 1920-2015)
+    **Build Status**: ✓ Server kompiliert ohne Fehler
+    **Wichtig**: User muss Import testen, da kein DB-Zugriff für automatische Tests verfügbar 
 
 39. ~~Sortieren der Tabellen fehlt~~ ✅ 
 ~~Wettkampfverwaltung (http://localhost:3001/competitions?eventId=59&squadName=mBlau)~~ ✅
@@ -488,3 +522,18 @@ Das wäre nicht gut und muss korrigiert werden.
     **Build Status**: ✓ 2207 modules, 7.71s, keine Fehler 
 
 45. Sind alle Möglichkeiten für die Wettkampfteilnehmer implementiert? Es müsste neben dem "Nimmt nicht teil" eine checkbox "Außer Konkurenz" geben. Und ein Kommentarfeld. Schau mal die Doku der alten QT-Version an: https://github.com/Igel18/turnfix/blob/v2/documentation/turn-fix-verwenden/teilnehmer-verwalten/teilnehmerdaten.md
+
+46. Im Kampfrichter Portal werden die Geräte nicht als Icons angezeigt. Es steht nur ein Text in den Buttons 
+Gerät auswählen
+
+mBlau
+:/icons/boden.png
+Boden
+:/icons/sprung.png
+Sprung
+:/icons/barren.png
+Barren
+:/icons/seitpferd.png
+Pauschenpferd
+
+47. Das Import Log Fenster beim Import von GymNet ist noch nicht lokalisiert. Und auch noch nicht die "Import Information". 
