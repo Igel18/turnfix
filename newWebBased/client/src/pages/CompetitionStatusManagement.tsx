@@ -10,6 +10,7 @@ import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { GenderBadge } from '@/components/GenderBadge'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
+import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
 
 // Types
 interface CompetitionStatus {
@@ -68,6 +69,9 @@ const CompetitionStatusManagement = () => {
 
   // View options
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+
+  // Sorting hook
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort()
 
   const selectedEventId = eventIdParam ? parseInt(eventIdParam) : selectedEvent?.int_eventid
 
@@ -260,6 +264,16 @@ const CompetitionStatusManagement = () => {
     return true
   })
 
+  // Sort filtered data with custom value extractor for nested properties
+  const sortedFilteredCompetitions = sortData(filteredCompetitions, (item: CompetitionStatus, key: string) => {
+    if (key === 'name') return item.name
+    if (key === 'ageFrom') return item.ageFrom
+    if (key === 'gender') return item.gender
+    if (key === 'overallStatus') return item.overallStatus
+    if (key === 'progress') return getCompletionPercentage(item)
+    return (item as any)[key]
+  })
+
   const handleClearAllFilters = () => {
     setSearchTerm('')
     setFilterStatus('')
@@ -356,24 +370,44 @@ const CompetitionStatusManagement = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('competitionStatus.table.competition')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('competitionStatus.table.ageGroup')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('competitionStatus.table.gender')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('competitionStatus.table.overallStatus')}
-                    </th>
+                    <SortableTableHeader
+                      label={t('competitionStatus.table.competition')}
+                      sortKey="name"
+                      currentSortKey={sortKey}
+                      currentSortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
+                    <SortableTableHeader
+                      label={t('competitionStatus.table.ageGroup')}
+                      sortKey="ageFrom"
+                      currentSortKey={sortKey}
+                      currentSortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
+                    <SortableTableHeader
+                      label={t('competitionStatus.table.gender')}
+                      sortKey="gender"
+                      currentSortKey={sortKey}
+                      currentSortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
+                    <SortableTableHeader
+                      label={t('competitionStatus.table.overallStatus')}
+                      sortKey="overallStatus"
+                      currentSortKey={sortKey}
+                      currentSortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('competitionStatus.table.squadStates')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('competitionStatus.table.progress')}
-                    </th>
+                    <SortableTableHeader
+                      label={t('competitionStatus.table.progress')}
+                      sortKey="progress"
+                      currentSortKey={sortKey}
+                      currentSortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('competitionStatus.table.squads')}
                     </th>
@@ -383,7 +417,7 @@ const CompetitionStatusManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCompetitions.map((item) => (
+                  {sortedFilteredCompetitions.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -444,7 +478,10 @@ const CompetitionStatusManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex flex-wrap gap-1">
-                          {item.disciplines_detail.map(discipline => (
+                          {item.disciplines_detail.map((discipline: {
+                            disciplineId: number;
+                            disciplineShort: string;
+                          }) => (
                             <span key={discipline.disciplineId} className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100">
                               {discipline.disciplineShort}
                             </span>

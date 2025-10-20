@@ -849,7 +849,7 @@ für das Jury-Portal & den Server
 Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den Einstellungen deaktiviert werden können für development zwecke. 
 
 55. ~~Tabelle lässt sich nicht sortieren~~ ✅
-~~http://localhost:3001/squad-status?eventId=59&squadName=mBlau~~ ✅
+~~a) http://localhost:3001/squad-status?eventId=59&squadName=mBlau~~ ✅
     **Status**: ✅ Abgeschlossen - Squad Status Tabelle vollständig sortierbar
     **Problem**: Table headers waren nicht klickbar für Sortierung
     **Lösung**: 
@@ -872,4 +872,4 @@ Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den 
     **Build Status**: ✓ 2207 modules, 5.41s, keine Fehler
     **Pattern**: useTableSort() Hook → sortData() → SortableTableHeader Props
 
-    http://localhost:3001/competition-status?eventId=59&squadName=mBlau
+b) http://localhost:3001/competition-status?eventId=59&squadName=mBlau
