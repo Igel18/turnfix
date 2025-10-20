@@ -523,17 +523,68 @@ usw. ...
 
 45. Sind alle Möglichkeiten für die Wettkampfteilnehmer implementiert? Es müsste neben dem "Nimmt nicht teil" eine checkbox "Außer Konkurenz" geben. Und ein Kommentarfeld. Schau mal die Doku der alten QT-Version an: https://github.com/Igel18/turnfix/blob/v2/documentation/turn-fix-verwenden/teilnehmer-verwalten/teilnehmerdaten.md
 
-46. Im Kampfrichter Portal werden die Geräte nicht als Icons angezeigt. Es steht nur ein Text in den Buttons 
-Gerät auswählen
+46. ~~Im Kampfrichter Portal werden die Geräte nicht als Icons angezeigt. Es steht nur un Text in den Buttons~~ ✅
+~~Gerät auswählen~~
 
-mBlau
-:/icons/boden.png
-Boden
-:/icons/sprung.png
-Sprung
-:/icons/barren.png
-Barren
-:/icons/seitpferd.png
-Pauschenpferd
+~~mBlau~~
+~~:/icons/boden.png~~
+~~Boden~~
+~~:/icons/sprung.png~~
+~~Sprung~~
+~~:/icons/barren.png~~
+~~Barren~~
+~~:/icons/seitpferd.png~~
+~~Pauschenpferd~~
+    **Status**: ✅ Abgeschlossen - Icons werden korrekt als Bilder angezeigt
+    **Problem 1**: Qt-Resource-Pfade wurden als Text angezeigt (z.B. `:/icons/boden.png`)
+    **Problem 2**: Nach erstem Fix wurden Fallback-Emojis statt Icons angezeigt
+    **Problem 3**: CSP (Content Security Policy) blockierte Cross-Origin-Bilder vom Backend
+    **Root Cause**: Jury-Portal hatte keine lokalen Icons, CSP erlaubte nur Same-Origin-Requests
+    
+    **Lösung Development** (`npm run dev`): ✅
+    - Vite Proxy leitet `/assets` Requests an Backend (Port 3001) weiter
+    - Requests erscheinen als Same-Origin → CSP erlaubt Laden
+    - Backend stellt Icons bereit: `/assets/*` → `client/public/`
+    - Zentrale Asset-Verwaltung ohne Duplikation
+    
+    **Lösung Production** (`npm run build`): ✅
+    - Prebuild-Script kopiert Icons automatisch ins Jury-Portal: `copy-icons.ps1`
+    - Icons werden in Production-Build eingebettet
+    - Relative URLs funktionieren ohne Backend-Dependency
+    - Command: `npm run build` führt automatisch das Kopieren durch
+    
+    **Architektur**:
+    - Backend als zentraler Asset-Server (Development + optional Production)
+    - Vite Proxy macht Backend-Assets als Same-Origin verfügbar (Development)
+    - Icons kopiert in Jury-Portal Public (Production Fallback)
+    - CORS-Header korrekt gesetzt für direkte Backend-Zugriffe
+    
+    **Fallback-Mechanismus** (3 Stufen):
+    1. Icon aus DB (`var_icon`) → Relative URL `/assets/icons/...`
+    2. Name-basiertes Mapping → Relative URL `/assets/icons/...`
+    3. Emoji-Fallback bei Ladefehler (onError handler)
+    
+    **Verfügbare Icons**: boden, sprung, barren, reck, seitpferd, ringe, balken, minitrampolin, geraetebahn
+    
+    **Dateien**:
+    - `server/src/index.ts` - Neue `/assets` Route (Backend Asset Server)
+    - `jury-portal/vite.config.ts` - `/assets` Proxy hinzugefügt (Dev Mode)
+    - `jury-portal/copy-icons.ps1` - Prebuild-Script für Production
+    - `jury-portal/package.json` - `prebuild` Script hinzugefügt
+    - `jury-portal/src/utils/iconUtils.ts` - Relative URLs (Proxy-kompatibel)
+    - `jury-portal/src/components/JuryPortal.tsx` - getDisciplineIcon() verwendet
+    
+    **Build Status**: ✓ Server + Jury-Portal kompiliert
+    **Dokumentation**: Siehe `POINT-46-JURY-PORTAL-ICONS.md`
+    
+    **Wichtig für Development**: 
+    - Server + Jury-Portal müssen im Dev-Mode neu gestartet werden (`npm run dev`)
+    - Vite Proxy funktioniert nur im Dev-Mode, nicht bei `npm run build`
+    
+    **Wichtig für Production**:
+    - `npm run build` kopiert automatisch Icons ins Jury-Portal
+    - Icons sind dann lokal verfügbar, keine Backend-Abhängigkeit
 
 47. Das Import Log Fenster beim Import von GymNet ist noch nicht lokalisiert. Und auch noch nicht die "Import Information". 
+
+48. In der Wettkampfverwaltung steht bei Altersgruppe 18-100 im editieren 18-18 

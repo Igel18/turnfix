@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Trophy } from 'lucide-react';
-import { getIconUrl, getFallbackDeviceEmoji } from '../utils/iconUtils';
+import { getDisciplineIcon, getFallbackDeviceEmoji } from '../utils/iconUtils';
 
 interface Participant {
   id: number;
@@ -29,7 +29,7 @@ interface Device {
   id: number;
   name: string;
   icon: string; // Can be emoji or icon path
-  iconPath?: string; // Optional: database icon path
+  iconPath?: string | null; // Optional: database icon path (web-accessible URL)
   disciplineId: number;
 }
 
@@ -270,26 +270,32 @@ const JuryPortal: React.FC = () => {
         console.log('🔍 JURY: Filtered disciplines using Score Capture logic:', filteredDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
         
         // Transform to Device format - use database icon if available, fallback to emoji
-        const devicesList = filteredDisciplines.map((discipline: any) => ({
-          id: discipline.int_disziplinid,
-          name: discipline.var_name,
-          disciplineId: discipline.int_disziplinid,
-          icon: discipline.var_icon || getFallbackDeviceEmoji(discipline.var_name), // Use DB icon or emoji fallback
-          iconPath: discipline.var_icon // Store original icon path for display
-        }));
+        const devicesList = filteredDisciplines.map((discipline: any) => {
+          const iconUrl = getDisciplineIcon(discipline.var_name, discipline.var_icon);
+          return {
+            id: discipline.int_disziplinid,
+            name: discipline.var_name,
+            disciplineId: discipline.int_disziplinid,
+            icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
+            iconPath: iconUrl // Web-accessible icon path or null
+          };
+        });
         
         console.log('🔍 JURY: Final devices list:', devicesList);
         
         // Fallback: if no disciplines found, show all disciplines (same as Score Capture fallback)
         if (devicesList.length === 0) {
           console.log('🔍 JURY: No filtered disciplines found, using fallback to all unique disciplines');
-          const fallbackDevices = uniqueDisciplines.map((discipline: any) => ({
-            id: discipline.int_disziplinid,
-            name: discipline.var_name,
-            disciplineId: discipline.int_disziplinid,
-            icon: discipline.var_icon || getFallbackDeviceEmoji(discipline.var_name), // Use DB icon or emoji fallback
-            iconPath: discipline.var_icon // Store original icon path for display
-          }));
+          const fallbackDevices = uniqueDisciplines.map((discipline: any) => {
+            const iconUrl = getDisciplineIcon(discipline.var_name, discipline.var_icon);
+            return {
+              id: discipline.int_disziplinid,
+              name: discipline.var_name,
+              disciplineId: discipline.int_disziplinid,
+              icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
+              iconPath: iconUrl // Web-accessible icon path or null
+            };
+          });
           setDevices(fallbackDevices);
         } else {
           setDevices(devicesList);
@@ -659,7 +665,7 @@ const JuryPortal: React.FC = () => {
                     <div className="flex justify-center mb-4">
                       {device.iconPath ? (
                         <img 
-                          src={getIconUrl(device.iconPath) || ''}
+                          src={device.iconPath}
                           alt={`${device.name} icon`}
                           className="w-16 h-16 object-contain"
                           onError={(e) => {
@@ -667,12 +673,13 @@ const JuryPortal: React.FC = () => {
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
-                              parent.innerHTML = `<div class="text-4xl">${device.icon}</div>`;
+                              const emoji = getFallbackDeviceEmoji(device.name);
+                              parent.innerHTML = `<div class="text-4xl">${emoji}</div>`;
                             }
                           }}
                         />
                       ) : (
-                        <div className="text-4xl">{device.icon}</div>
+                        <div className="text-4xl">{device.icon || getFallbackDeviceEmoji(device.name)}</div>
                       )}
                     </div>
                     <h3 className="text-xl font-semibold">{device.name}</h3>
@@ -702,16 +709,23 @@ const JuryPortal: React.FC = () => {
             <div className="flex items-center space-x-3">
               {selectedDevice?.iconPath ? (
                 <img 
-                  src={getIconUrl(selectedDevice.iconPath) || ''}
+                  src={selectedDevice.iconPath}
                   alt={`${selectedDevice.name} icon`}
                   className="w-10 h-10 object-contain bg-white bg-opacity-20 rounded-lg p-1"
                   onError={(e) => {
                     // Fallback to emoji if image fails to load
                     e.currentTarget.style.display = 'none';
+                    const parent = e.currentTarget.parentElement;
+                    if (parent && selectedDevice?.name) {
+                      const emoji = getFallbackDeviceEmoji(selectedDevice.name);
+                      parent.innerHTML = `<div class="text-3xl">${emoji}</div>`;
+                    }
                   }}
                 />
-              ) : selectedDevice?.icon && (
+              ) : selectedDevice?.icon ? (
                 <div className="text-3xl">{selectedDevice.icon}</div>
+              ) : selectedDevice?.name && (
+                <div className="text-3xl">{getFallbackDeviceEmoji(selectedDevice.name)}</div>
               )}
               <div>
                 <h1 className="text-xl font-bold">{selectedDevice?.name}</h1>

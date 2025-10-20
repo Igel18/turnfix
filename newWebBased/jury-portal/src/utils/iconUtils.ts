@@ -13,8 +13,9 @@ export function getIconUrl(iconPath?: string): string | null {
   
   // Handle Qt resource paths that start with ":/"
   if (iconPath.startsWith(':/')) {
-    const filename = iconPath.substring(2); // Remove ":/" prefix
-    return `http://localhost:3001/public/${filename}`;
+    const filename = iconPath.replace(':/icons/', ''); // Remove ":/icons/" prefix
+    // Use relative path - Vite proxy will forward to backend server
+    return `/assets/icons/${filename}`;
   }
   
   // Handle already formatted paths
@@ -23,7 +24,7 @@ export function getIconUrl(iconPath?: string): string | null {
   }
   
   // Default handling - assume it's a filename in the icons directory
-  return `http://localhost:3001/public/icons/${iconPath}`;
+  return `/assets/icons/${iconPath}`;
 }
 
 /**
@@ -54,11 +55,47 @@ export function getFallbackDeviceEmoji(deviceName: string): string {
     'Barren': '💪', 
     'Pferd': '🏇',
     'Pauschenpferd': '🏇',
+    'Seitpferd': '🏇',
     'Stufenbarren': '🤸‍♀️',
     'Schwebebalken': '⚖️',
     'Balken': '⚖️',
     'Sprung': '🤾',
-    'Ringe': '💍'
+    'Ringe': '💍',
+    'Minitrampolin': '🤾',
+    'Gerätebahn A': '🏃',
+    'Gerätebahn B': '🏃'
   };
   return emojiMap[deviceName] || '🏆';
+}
+
+/**
+ * Gets the discipline icon path, with fallback logic
+ * @param disciplineName - Name of the discipline
+ * @param iconPath - Optional database icon path (Qt resource format)
+ * @returns Web-accessible icon URL or null for emoji fallback
+ */
+export function getDisciplineIcon(disciplineName: string, iconPath?: string): string | null {
+  if (iconPath && iconPath !== '') {
+    return getIconUrl(iconPath);
+  }
+  
+  // Fallback mapping based on discipline name - use relative paths (Vite proxy)
+  const nameToIcon: Record<string, string> = {
+    'Balken': '/assets/icons/balken.png',
+    'Schwebebalken': '/assets/icons/balken.png',
+    'Boden': '/assets/icons/boden.png',
+    'Sprung': '/assets/icons/sprung.png',
+    'Stufenbarren': '/assets/icons/barren.png',
+    'Barren': '/assets/icons/barren.png',
+    'Reck': '/assets/icons/reck.png',
+    'Pferd': '/assets/icons/seitpferd.png',
+    'Seitpferd': '/assets/icons/seitpferd.png',
+    'Pauschenpferd': '/assets/icons/seitpferd.png',
+    'Ringe': '/assets/icons/ringe.png',
+    'Minitrampolin': '/assets/icons/minitrampolin.png',
+    'Gerätebahn A': '/assets/icons/geraetebahn.png',
+    'Gerätebahn B': '/assets/icons/geraetebahn.png',
+  };
+  
+  return nameToIcon[disciplineName] || null;
 }

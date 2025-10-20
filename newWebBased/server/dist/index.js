@@ -158,6 +158,15 @@ app.use('/public', express_1.default.static('public', {
         res.set('Access-Control-Allow-Origin', '*');
     }
 }));
+// Serve assets (icons, images) from client public directory for Jury Portal
+const path_1 = __importDefault(require("path"));
+const clientPublicPath = path_1.default.join(__dirname, '../../client/public');
+app.use('/assets', express_1.default.static(clientPublicPath, {
+    setHeaders: (res, path, stat) => {
+        res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.set('Access-Control-Allow-Origin', '*');
+    }
+}));
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
