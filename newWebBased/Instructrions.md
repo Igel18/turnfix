@@ -118,10 +118,11 @@ import type { PrismaClient as PrismaClientType} from '@prisma/client';
     **Translation Keys**: disciplineFields.form.*, table.*, card.*, filter.*, status.*, disciplines.card.fields/finalScore/startingScore
     **Dokumentation**: Siehe Code-Kommentare in DisciplineFieldsUnified.tsx und DisciplineFieldFormModal.tsx
 
-29. Aufräumen
-Ich sehe es gibt viele duplikate. z.B. medals-broken.ts, medals_old.ts, medals_simple usw. 
+29. Aufräumen & Refactoring
+a) Ich sehe es gibt viele duplikate. z.B. medals-broken.ts, medals_old.ts, medals_simple usw. 
 genauso bei events, activities, clubs, ... (in den routen)
 kann man da etwas bereinigen bzw. werden diese alle noch benötigt? 
+b) kann man vielleicht einiges refacoren? Dialoge, Tabellen, Templates usw? 
 
 30. ~~unification von male / female / both / undefined in den UIs~~ ✅
 ~~http://localhost:3001/disciplines~~ ✅
@@ -663,10 +664,33 @@ usw. ...
     **Betrifft auch**: Alle anderen DatabaseManagement-Seiten (Participants, Disciplines, Clubs, etc.)
 
 
-50. auf der Seite http://localhost:3001/competitions?eventId=77&squadName=mBlau 
-gibt es keine Umschaltmöglichkeit der Sprache. Hier gibt es diese: http://localhost:3001/event-participants?eventId=77&squadName=mBlau
-
-Das müsste doch eigentlich in dem template drin sein? Wir dieses Template auf der Seite verwendet? 
+50. ~~auf der Seite http://localhost:3001/competitions?eventId=77&squadName=mBlau gibt es keine Umschaltmöglichkeit der Sprache. Hier gibt es diese: http://localhost:3001/event-participants?eventId=77&squadName=mBlau~~ ✅
+~~Das müsste doch eigentlich in dem template drin sein? Wir dieses Template auf der Seite verwendet?~~ ✅
+    **Status**: ✅ Abgeschlossen - Language Switcher zu EventManagementTemplate hinzugefügt
+    **Problem**: Competitions-Seite hatte keinen Language Switcher, während EventParticipants einen hatte
+    **Root Cause**: 
+    - EventParticipants verwendet UnifiedPageHeader (hat LanguageSwitcher ✅)
+    - CompetitionsFixed verwendet EventManagementTemplate (hatte keinen LanguageSwitcher ❌)
+    **Lösung**: 
+    - LanguageSwitcher Component zum EventManagementTemplate hinzugefügt
+    - Import: `import LanguageSwitcher from '../LanguageSwitcher';`
+    - Component in Header eingefügt vor Filter Toggle Button
+    - Positioniert mit Flexbox Layout (flex items-center space-x-2)
+    **Benefits**:
+    - Competitions-Seite hat jetzt Language Switcher ✅
+    - ALLE Seiten mit EventManagementTemplate haben jetzt Language Switcher ✅
+    - Konsistente UX über Event Management Pages
+    - Matches UnifiedPageHeader Behavior
+    **Betroffene Seiten**: 
+    - CompetitionsFixed.tsx ✅
+    - Alle anderen Seiten die EventManagementTemplate verwenden ✅
+    **Datei**: `client/src/components/templates/EventManagementTemplate.tsx` (Zeilen 16, 117-118)
+    **Build Status**: ✓ Client 5.21s, PM2 neu gestartet
+    **Template Entscheidung**: Templates NICHT zusammenführen ✅
+    - EventManagementTemplate: Für Event-bezogene Seiten (einfacher, Event-Kontext)
+    - DatabaseManagementTemplate: Für DB-Verwaltung (Pagination, komplexe Filter)
+    - Gemeinsame Components nutzen (LanguageSwitcher, UnifiedActionButtons, etc.)
+    - Separation of Concerns beibehalten
 
 
 51. ~~macht das sinn UnifiedHeader und UnifiedPageHeader zusammenzuführen?~~ ✅

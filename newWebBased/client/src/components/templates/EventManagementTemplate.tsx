@@ -14,6 +14,7 @@ import {
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useEvent } from '@/contexts/EventContext';
 import useViewToggle from '@/hooks/useViewToggle';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 interface EventManagementTemplateProps {
   title: string;
@@ -113,6 +114,9 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
               </div>
               
               <div className="flex items-center space-x-2">
+                {/* Language Switcher */}
+                <LanguageSwitcher />
+                
                 {/* Filter Toggle */}
                 {onToggleFilters && (
                   <button
