@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { debugLog } from '../utils/debug';
@@ -335,6 +335,12 @@ const Competitions: React.FC = () => {
 
   const handleEdit = (competition: Competition) => {
     console.log('📝 EDIT COMPETITION:', competition);
+    console.log('📝 Competition Ages (raw):', { 
+      ageFrom: competition.ageFrom, 
+      ageTo: competition.ageTo,
+      typeFrom: typeof competition.ageFrom,
+      typeTo: typeof competition.ageTo
+    });
     console.log('📝 Competition Disciplines:', competition.disciplines);
     console.log('📝 Disciplines Type:', typeof competition.disciplines, Array.isArray(competition.disciplines));
     
@@ -344,19 +350,33 @@ const Competitions: React.FC = () => {
     let ageFromValue = Number(competition.ageFrom);
     let ageToValue = Number(competition.ageTo);
     
+    // Handle NaN values
+    if (isNaN(ageFromValue) || ageFromValue < 1) {
+      console.warn('⚠️ Invalid ageFrom value, setting default to 6:', ageFromValue);
+      ageFromValue = 6;
+    }
+    if (isNaN(ageToValue) || ageToValue < 1) {
+      console.warn('⚠️ Invalid ageTo value, setting default to 18:', ageToValue);
+      ageToValue = 18;
+    }
+    
     // If age values are unreasonably high (likely birth years), set reasonable defaults
     if (ageFromValue > 100 || ageToValue > 100) {
-      console.warn('⚠️ Invalid age values detected, setting defaults:', { ageFrom: ageFromValue, ageTo: ageToValue });
+      console.warn('⚠️ Age values > 100 detected (likely birth years), setting defaults:', { ageFrom: ageFromValue, ageTo: ageToValue });
       ageFromValue = 6;
       ageToValue = 18;
     }
     
-    // Ensure ageFrom is not greater than ageTo
+    // NO SWAP - Backend already provides ageFrom < ageTo (youngest to oldest)
+    // Just ensure ageFrom is not greater than ageTo as a safety check
     if (ageFromValue > ageToValue) {
+      console.warn('⚠️ ageFrom > ageTo detected, this should not happen! Swapping values:', { ageFrom: ageFromValue, ageTo: ageToValue });
       const temp = ageFromValue;
       ageFromValue = ageToValue;
       ageToValue = temp;
     }
+    
+    console.log('✅ Final age values for form:', { ageFrom: ageFromValue, ageTo: ageToValue });
     
     setFormData({
       number: competition.number || '',

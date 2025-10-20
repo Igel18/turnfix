@@ -587,4 +587,18 @@ usw. ...
 
 47. Das Import Log Fenster beim Import von GymNet ist noch nicht lokalisiert. Und auch noch nicht die "Import Information". 
 
-48. In der Wettkampfverwaltung steht bei Altersgruppe 18-100 im editieren 18-18 
+48. ~~In der Wettkampfverwaltung steht bei Altersgruppe 18-100 im editieren 18-18~~ ✅
+    **Status**: ✅ Abgeschlossen - Age-Dropdown erweitert auf 1-100 Jahre
+    **Problem**: Age-Dropdown in CompetitionFormModal hatte nur Werte 1-50
+    - Backend gab korrekt `ageFrom: 18, ageTo: 100` zurück
+    - Dropdown konnte Wert 100 nicht anzeigen (maximum war 50)
+    - React-Select fiel auf nächstbesten Wert zurück
+    - Im Dialog wurde "18-18" angezeigt statt "18-100"
+    **Lösung**: 
+    - `ageGroups` Array von `length: 50` auf `length: 100` erweitert
+    - Jetzt werden Altersgruppen von 1-100 Jahren unterstützt
+    - Dropdown zeigt alle gültigen Werte korrekt an
+    **Datei**: `client/src/components/CompetitionFormModal.tsx` (Zeile 115-119)
+    **Code-Änderung**: `Array.from({ length: 100 }, ...)` statt `Array.from({ length: 50 }, ...)`
+    **Build Status**: ✓ 2207 modules, 6.20s, keine Fehler
+    **Debug-Logs**: Umfangreiche Console-Logs hinzugefügt in CompetitionsFixed.tsx für zukünftige Diagnose 

@@ -112,7 +112,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   const previousGenderRef = useRef<string>(formData.gender);
 
   // Age groups for dropdowns - just numbers without "years" suffix
-  const ageGroups = Array.from({ length: 50 }, (_, i) => ({
+  // Generate age groups from 1 to 100 years
+  const ageGroups = Array.from({ length: 100 }, (_, i) => ({
     value: i + 1,
     label: `${i + 1}`
   }));
