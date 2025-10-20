@@ -11,6 +11,7 @@ import {
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiPost } from '@/utils/api'
+import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
 
 // Types
 interface SquadDisciplineStatus {
@@ -67,6 +68,9 @@ export function SquadStatusManagement() {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   const [editingItem, setEditingItem] = useState<SquadDisciplineStatus | null>(null)
   const [generating, setGenerating] = useState(false)
+
+  // Sorting hook
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort()
 
   // Load initial data
   useEffect(() => {
@@ -268,6 +272,12 @@ export function SquadStatusManagement() {
     return matchesSquad && matchesDiscipline && matchesStatus
   })
 
+  // Sort filtered data with custom value extractor for nested properties
+  const sortedFilteredData = sortData(filteredData, (item: SquadDisciplineStatus, key: string) => {
+    if (key === 'status.name') return item.status.name
+    return (item as any)[key]
+  })
+
   // Get unique values for filter dropdowns
   const uniqueSquads = [...new Set(squadDisciplines.map(item => item.squadName))].sort()
   const uniqueDisciplines = [...new Set(squadDisciplines.map(item => item.disciplineName))].sort()
@@ -436,16 +446,46 @@ export function SquadStatusManagement() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.squad')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.discipline')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.status')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.round')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.firstApparatus')}</th>
+                  <SortableTableHeader
+                    label={t('squadStatus.table.squad')}
+                    sortKey="squadName"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <SortableTableHeader
+                    label={t('squadStatus.table.discipline')}
+                    sortKey="disciplineName"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <SortableTableHeader
+                    label={t('squadStatus.table.status')}
+                    sortKey="status.name"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <SortableTableHeader
+                    label={t('squadStatus.table.round')}
+                    sortKey="round"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <SortableTableHeader
+                    label={t('squadStatus.table.firstApparatus')}
+                    sortKey="isFirstApparatus"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredData.map((item) => (
+                {sortedFilteredData.map((item: SquadDisciplineStatus) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.squadName}
@@ -514,7 +554,7 @@ export function SquadStatusManagement() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredData.map((item) => (
+          {sortedFilteredData.map((item: SquadDisciplineStatus) => (
             <div key={item.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
