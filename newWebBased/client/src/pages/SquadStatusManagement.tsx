@@ -5,11 +5,12 @@ import {
   PencilIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useEvent } from '@/contexts/EventContext'
-import { apiGet } from '@/utils/api'
+import { apiGet, apiPost } from '@/utils/api'
 
 // Types
 interface SquadDisciplineStatus {
@@ -65,13 +66,27 @@ export function SquadStatusManagement() {
   // View options
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   const [editingItem, setEditingItem] = useState<SquadDisciplineStatus | null>(null)
+  const [generating, setGenerating] = useState(false)
 
   // Load initial data
   useEffect(() => {
-    if (selectedEventId) {
+    if (selectedEventId && selectedEventId !== '') {
       loadData()
+    } else {
+      // Load events list if no event is selected
+      loadEvents()
+      setLoading(false)
     }
   }, [selectedEventId])
+
+  const loadEvents = async () => {
+    try {
+      const eventsData = await apiGet('/events?limit=100')
+      setEvents(eventsData.events || [])
+    } catch (error) {
+      console.error('Error loading events:', error)
+    }
+  }
 
   const loadData = async () => {
     try {
@@ -95,6 +110,29 @@ export function SquadStatusManagement() {
       console.error('Error loading squad status data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Auto-generate squad-discipline combinations
+  const generateCombinations = async () => {
+    if (!selectedEventId) return
+
+    try {
+      setGenerating(true)
+      
+      const response = await apiPost('/squad-disciplines/generate', {
+        eventId: parseInt(selectedEventId)
+      })
+
+      if (response.success) {
+        alert(`${t('squadStatus.generateSuccess')}\n\n${t('squadStatus.created')}: ${response.created}\n${t('squadStatus.existing')}: ${response.existing}\n${t('squadStatus.total')}: ${response.total}`)
+        await loadData() // Reload data to show new combinations
+      }
+    } catch (error: any) {
+      console.error('Error generating squad disciplines:', error)
+      alert(t('squadStatus.generateError') + ': ' + (error.message || 'Unknown error'))
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -276,6 +314,59 @@ export function SquadStatusManagement() {
     )
   }
 
+  // Show event selection message if no event is selected
+  if (!selectedEventId || selectedEventId === '') {
+    return (
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        <UnifiedPageHeader
+          title={t('squadStatus.title')}
+          subtitle={t('squadStatus.selectEventMessage')}
+          icon={UserGroupIcon}
+          showEventContext={true}
+          searchTerm=""
+          onSearchChange={() => {}}
+          showFilters={false}
+          hasFilters={false}
+          showAdd={false}
+          showImport={false}
+          showExportCSV={false}
+        />
+        
+        <div className="bg-white rounded-lg border p-8">
+          <div className="text-center">
+            <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              {t('squadStatus.noEventSelected')}
+            </h3>
+            <p className="mt-2 text-sm text-gray-500">
+              {t('squadStatus.pleaseSelectEvent')}
+            </p>
+            
+            {!selectedEvent && events.length > 0 && (
+              <div className="mt-6 max-w-md mx-auto">
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
+                  {t('squadStatus.selectEvent')}
+                </label>
+                <select
+                  value={selectedEventId}
+                  onChange={(e) => setSelectedEventId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('squadStatus.chooseEvent')}</option>
+                  {events.map((event) => (
+                    <option key={event.int_eventid} value={event.int_eventid}>
+                      {event.var_eventname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <UnifiedPageHeader
@@ -304,6 +395,17 @@ export function SquadStatusManagement() {
         viewMode={viewMode}
         onViewModeChange={(mode) => setViewMode(mode)}
         showViewToggle={true}
+        customActions={[
+          <button
+            key="generate"
+            onClick={generateCombinations}
+            disabled={generating}
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <SparklesIcon className="h-5 w-5 mr-2" />
+            {generating ? t('squadStatus.generating') : t('squadStatus.generateButton')}
+          </button>
+        ]}
       />
 
       {/* Event Selection */}
@@ -482,6 +584,19 @@ export function SquadStatusManagement() {
               t('squadStatus.adjustFilters')
             }
           </p>
+          {squadDisciplines.length === 0 && (
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 max-w-2xl mx-auto text-left">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">{t('squadStatus.howToCreateData')}</h4>
+              <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                <li>{t('squadStatus.step1')}</li>
+                <li>{t('squadStatus.step2')}</li>
+                <li>{t('squadStatus.step3')}</li>
+              </ol>
+              <p className="mt-3 text-xs text-blue-700">
+                {t('squadStatus.note')}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

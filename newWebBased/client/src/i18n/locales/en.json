@@ -1526,7 +1526,17 @@
     "title": "Squad Status Management",
     "subtitle": "Manage status for {{count}} squad-discipline combinations",
     "selectEvent": "Select Event",
+    "selectEventMessage": "Please select an event",
     "chooseEvent": "Choose an event...",
+    "noEventSelected": "No Event Selected",
+    "pleaseSelectEvent": "Please select an event from the dropdown menu above or from the event context.",
+    "generateButton": "Auto-generate Combinations",
+    "generating": "Generating...",
+    "generateSuccess": "Squad-discipline combinations successfully generated!",
+    "generateError": "Error generating combinations",
+    "created": "Newly created",
+    "existing": "Already existing",
+    "total": "Total",
     "filters": {
       "squad": "Squad",
       "discipline": "Discipline",
@@ -1543,7 +1553,13 @@
     "firstApparatus": "First Apparatus",
     "noDataTitle": "No squad-discipline combinations found",
     "noDataForEvent": "No data available for the selected event.",
-    "adjustFilters": "Try adjusting your filters to see results."
+    "adjustFilters": "Try adjusting your filters to see results.",
+    "howToCreateData": "How to create squad-discipline assignments?",
+    "step1": "Go to 'Manage Squads' and create squads for your event",
+    "step2": "Assign participants to squads",
+    "step3": "The system automatically creates squad-discipline combinations based on the competitions of assigned participants",
+    "note": "Note: Squad-discipline combinations are automatically generated when participants are assigned to squads.",
+    "autoGenerateInfo": "Alternatively, you can use the 'Auto-generate Combinations' button to create all combinations for existing squads and disciplines."
   },
   "competitionStatus": {
     "title": "Competition Status Management",

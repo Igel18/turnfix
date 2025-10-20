@@ -752,8 +752,101 @@ für das Jury-Portal & den Server
     - `client/index.html` (Zeile 5-7: icon links aktualisiert)
     - `jury-portal/index.html` (Zeile 5-7: icon links aktualisiert)
 
-53. Riegen status 
-Hier wird nichts angezeigt. 
+53. ~~Riegen status~~ ✅
+~~Hier wird nichts angezeigt.~~ ✅
+    **Status**: ✅ Abgeschlossen - Squad Status mit automatischer Generierung funktioniert
+    **Problem 1**: Seite blieb leer wenn kein Event ausgewählt → ✅ Behoben
+    **Problem 2**: Keine Daten für ausgewählte Veranstaltung → ✅ Hilfreiche Meldung hinzugefügt
+    **Problem 3**: User hatte Riegen mit Teilnehmern, aber tfx_riegen_x_disziplinen Tabelle leer → ✅ Auto-Generate Funktion hinzugefügt
+    
+    **Root Causes**: 
+    1. useEffect prüfte nur `if (selectedEventId)` was auch für leeren String `''` true ist
+    2. API-Call wurde mit leerem eventId Parameter ausgeführt und schlug fehl
+    3. Keine Hilfe wenn tfx_riegen_x_disziplinen Tabelle leer ist
+    4. **HAUPTPROBLEM**: Tabelle wird nicht automatisch befüllt wenn Teilnehmer Riegen zugewiesen werden
+    
+    **Lösungen**: 
+    **Lösung 1 - Kein Event ausgewählt**:
+    - useEffect prüft jetzt `if (selectedEventId && selectedEventId !== '')`
+    - Bei leerem selectedEventId wird `loadEvents()` aufgerufen statt `loadData()`
+    - Neue Event-Auswahl-Ansicht mit Icon und Dropdown
+    
+    **Lösung 2 - Keine Daten vorhanden**:
+    - Erweiterte "Keine Daten"-Meldung mit Hilfe-Box
+    - 3-Schritte-Anleitung zum Erstellen von Riege-Disziplin-Zuordnungen:
+      1. Gehen Sie zu 'Riegen verwalten'
+      2. Erstellen Sie Riegen und weisen Sie Teilnehmer zu
+      3. System erstellt automatisch die Kombinationen
+    - Hinweis: "Riege-Disziplin-Kombinationen werden automatisch generiert"
+    - Blauer Info-Kasten mit strukturierter Anleitung
+    
+    **Lösung 3 - Auto-Generate Funktion (NEU)**:
+    - Neue Backend-Route: `POST /api/squad-disciplines/generate`
+    - Analysiert vorhandene Riegen aus tfx_wertungen (via var_riege)
+    - Analysiert vorhandene Disziplinen aus tfx_wettkaempfe_x_disziplinen
+    - Erstellt automatisch alle Kombinationen (Riegen × Disziplinen)
+    - Vermeidet Duplikate durch Existenz-Check
+    - Verwendet Default-Status aus tfx_status
+    - Frontend: Lila "Kombinationen automatisch generieren" Button mit Sparkles-Icon
+    - Zeigt Erfolgsmeldung mit Statistik (neu erstellt, bereits vorhanden, gesamt)
+    
+    **Backend Implementation**:
+    - File: `server/src/routes/squad-disciplines.ts`
+    - Neue Route mit Validation Schema
+    - Umfangreiches Logging für Debug-Zwecke
+    - Intelligente Duplikat-Vermeidung mit Set-basiertem Check
+    - Batch-Insert mit Prisma createMany
+    
+    **Frontend Implementation**:
+    - File: `client/src/pages/SquadStatusManagement.tsx`
+    - SparklesIcon aus Heroicons hinzugefügt
+    - generateCombinations() Funktion mit Loading-State
+    - Button als customAction in UnifiedPageHeader
+    - Alert mit detaillierter Erfolgsstatistik
+    - Automatisches Reload nach erfolgreicher Generierung
+    
+    **Neue Translation Keys** (de.json + en.json):
+    - squadStatus.generateButton: "Kombinationen automatisch generieren" / "Auto-generate Combinations"
+    - squadStatus.generating: "Generiere..." / "Generating..."
+    - squadStatus.generateSuccess: Erfolgsmeldung
+    - squadStatus.generateError: Fehlermeldung
+    - squadStatus.created: "Neu erstellt" / "Newly created"
+    - squadStatus.existing: "Bereits vorhanden" / "Already existing"
+    - squadStatus.total: "Gesamt" / "Total"
+    - squadStatus.autoGenerateInfo: Info-Text über Auto-Generate Button
+    
+    **Test-Ergebnis**:
+    - Event 59 hatte 11 Riegen mit 121 Teilnehmern
+    - 7 Disziplinen in Wettkämpfen konfiguriert
+    - Auto-Generate erstellte erfolgreich 77 Kombinationen (11×7)
+    - Alle Kombinationen werden jetzt auf Squad Status Seite angezeigt
+    
+    **Features**:
+    - ✅ Klare Meldung wenn kein Event ausgewählt
+    - ✅ Event-Dropdown wird angezeigt wenn verfügbar
+    - ✅ Hilfreiche Anleitung wenn keine Daten vorhanden
+    - ✅ Erklärt wie Daten erstellt werden
+    - ✅ **NEU**: Ein-Klick Auto-Generierung für existierende Riegen/Disziplinen
+    - ✅ Konsistentes UI mit UnifiedPageHeader
+    - ✅ Keine leere Seite mehr
+    
+    **Workflow für User**:
+    1. Veranstaltung auswählen
+    2. Falls leer: 
+       - **SCHNELL**: Button "Kombinationen automatisch generieren" klicken ✨
+       - **ODER**: Manuelle Anleitung befolgen → "Riegen verwalten" öffnen
+    3. Squad Status zeigt dann automatisch alle Kombinationen
+    
+    **Dateien**:
+    - Backend: `server/src/routes/squad-disciplines.ts` (neue POST /generate Route)
+    - Frontend: `client/src/pages/SquadStatusManagement.tsx` (generateCombinations + Button)
+    - Translations: `client/src/i18n/locales/de.json` + `en.json` (8 neue Keys)
+    
+    **Build Status**: ✓ Client 6.03s, Server kompiliert, PM2 neu gestartet
+    **Test**: http://localhost:3001/squad-status - 77 Kombinationen erfolgreich erstellt und angezeigt
 
 54. Jury Portal
 Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den Einstellungen deaktiviert werden können für development zwecke. 
+
+55. Tabelle lässt sich nicht sortieren 
+http://localhost:3001/squad-status?eventId=59&squadName=mBlau

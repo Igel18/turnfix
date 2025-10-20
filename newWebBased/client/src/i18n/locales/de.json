@@ -1523,7 +1523,17 @@
     "title": "Riegenstatus-Verwaltung",
     "subtitle": "Status für {{count}} Riege-Disziplin-Kombinationen verwalten",
     "selectEvent": "Veranstaltung auswählen",
+    "selectEventMessage": "Bitte wählen Sie eine Veranstaltung aus",
     "chooseEvent": "Eine Veranstaltung auswählen...",
+    "noEventSelected": "Keine Veranstaltung ausgewählt",
+    "pleaseSelectEvent": "Bitte wählen Sie eine Veranstaltung aus dem Dropdown-Menü oben oder aus dem Event-Kontext aus.",
+    "generateButton": "Kombinationen automatisch generieren",
+    "generating": "Generiere...",
+    "generateSuccess": "Riege-Disziplin-Kombinationen erfolgreich generiert!",
+    "generateError": "Fehler beim Generieren der Kombinationen",
+    "created": "Neu erstellt",
+    "existing": "Bereits vorhanden",
+    "total": "Gesamt",
     "filters": {
       "squad": "Riege",
       "discipline": "Disziplin",
@@ -1540,7 +1550,13 @@
     "firstApparatus": "Erstes Gerät",
     "noDataTitle": "Keine Riege-Disziplin-Kombinationen gefunden",
     "noDataForEvent": "Keine Daten für die ausgewählte Veranstaltung verfügbar.",
-    "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen, um Ergebnisse zu sehen."
+    "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen, um Ergebnisse zu sehen.",
+    "howToCreateData": "Wie erstelle ich Riege-Disziplin-Zuordnungen?",
+    "step1": "Gehen Sie zu 'Riegen verwalten' und erstellen Sie Riegen für Ihre Veranstaltung",
+    "step2": "Weisen Sie Teilnehmer den Riegen zu",
+    "step3": "Das System erstellt automatisch die Riege-Disziplin-Kombinationen basierend auf den Wettkämpfen der zugewiesenen Teilnehmer",
+    "note": "Hinweis: Die Riege-Disziplin-Kombinationen werden automatisch generiert, wenn Teilnehmer Riegen zugewiesen werden.",
+    "autoGenerateInfo": "Alternativ können Sie den Button 'Kombinationen automatisch generieren' verwenden, um alle Kombinationen für existierende Riegen und Disziplinen zu erstellen."
   },
   "competitionStatus": {
     "title": "Wettkampfstatus-Verwaltung",
