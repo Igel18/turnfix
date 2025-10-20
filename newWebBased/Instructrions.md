@@ -848,5 +848,28 @@ für das Jury-Portal & den Server
 54. Jury Portal
 Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den Einstellungen deaktiviert werden können für development zwecke. 
 
-55. Tabelle lässt sich nicht sortieren 
-http://localhost:3001/squad-status?eventId=59&squadName=mBlau
+55. ~~Tabelle lässt sich nicht sortieren~~ ✅
+~~http://localhost:3001/squad-status?eventId=59&squadName=mBlau~~ ✅
+    **Status**: ✅ Abgeschlossen - Squad Status Tabelle vollständig sortierbar
+    **Problem**: Table headers waren nicht klickbar für Sortierung
+    **Lösung**: 
+    - SortableTableHeader Component und useTableSort Hook implementiert
+    - 5 sortierbare Spalten hinzugefügt:
+      * Squad (squadName)
+      * Discipline (disciplineName)
+      * Status (status.name mit custom valueExtractor)
+      * Round (round)
+      * First Apparatus (isFirstApparatus)
+    - Custom value extractor für nested property `status.name`
+    - Sortierung funktioniert in Table-View und Grid-View
+    **Features**:
+    - Click-to-Sort: Aufsteigend/Absteigend Toggle
+    - Visuelle Indikatoren: ↑ ↓ Pfeile zeigen aktive Sortierung
+    - Funktioniert mit gefilterten Daten
+    - Case-insensitive String-Sortierung
+    - Konsistentes Pattern wie Point 33 (DisciplinesUnified, ParticipantsUnified, etc.)
+    **Datei**: `client/src/pages/SquadStatusManagement.tsx`
+    **Build Status**: ✓ 2207 modules, 5.41s, keine Fehler
+    **Pattern**: useTableSort() Hook → sortData() → SortableTableHeader Props
+
+    http://localhost:3001/competition-status?eventId=59&squadName=mBlau

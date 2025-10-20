@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import prisma from '../lib/prisma';
 import { PrismaClient } from '@prisma/client'; // Still needed for test connections
+import { exec } from 'child_process';
 
 const router = express.Router();
 
@@ -13,6 +14,9 @@ const CONFIG_DIR = path.dirname(CONFIG_FILE);
 
 // Encryption key for sensitive data (in production, use environment variable)
 const ENCRYPTION_KEY = process.env.CONFIG_ENCRYPTION_KEY || 'turnfix-config-key-2024-secret-key';
+
+// .env file path
+const ENV_FILE = path.join(process.cwd(), '.env');
 
 // Utility functions for encryption/decryption
 const encrypt = (text: string): string => {
@@ -148,6 +152,81 @@ const loadConfig = async (): Promise<AppConfig> => {
   }
 };
 
+// Update .env file with new database configuration
+const updateEnvFile = async (config: AppConfig): Promise<void> => {
+  try {
+    // Read current .env file
+    let envContent = '';
+    try {
+      envContent = await fs.readFile(ENV_FILE, 'utf-8');
+    } catch (error) {
+      // File doesn't exist, will create new one
+      console.log('📝 .env file not found, creating new one');
+    }
+
+    // Build new DATABASE_URL
+    const sslParam = config.database.db_ssl ? 'sslmode=require' : '';
+    const baseParams = 'schema=public&connection_limit=20&pool_timeout=10';
+    const allParams = sslParam ? `${baseParams}&${sslParam}` : baseParams;
+    const newDatabaseUrl = `postgresql://${config.database.db_user}:${config.database.db_password}@${config.database.db_host}:${config.database.db_port}/${config.database.db_name}?${allParams}`;
+
+    // Parse existing .env content into key-value pairs
+    const envLines = envContent.split('\n');
+    const envVars: { [key: string]: string } = {};
+    
+    for (const line of envLines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine && !trimmedLine.startsWith('#')) {
+        const equalIndex = trimmedLine.indexOf('=');
+        if (equalIndex > 0) {
+          const key = trimmedLine.substring(0, equalIndex).trim();
+          const value = trimmedLine.substring(equalIndex + 1).trim();
+          envVars[key] = value;
+        }
+      }
+    }
+
+    // Update database-related variables
+    envVars['DATABASE_URL'] = `"${newDatabaseUrl}"`;
+    envVars['DATABASE_HOST'] = `"${config.database.db_host}"`;
+    envVars['DATABASE_PORT'] = `"${config.database.db_port}"`;
+    envVars['DATABASE_NAME'] = `"${config.database.db_name}"`;
+    envVars['DATABASE_USER'] = `"${config.database.db_user}"`;
+    envVars['DATABASE_PASSWORD'] = `"${config.database.db_password}"`;
+    envVars['DATABASE_SSL'] = `"${config.database.db_ssl}"`;
+
+    // Update application port if changed
+    if (config.application && config.application.server_port) {
+      envVars['PORT'] = `"${config.application.server_port}"`;
+    }
+
+    // Rebuild .env file content
+    const newEnvContent = Object.entries(envVars)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n');
+
+    // Write updated .env file
+    await fs.writeFile(ENV_FILE, newEnvContent + '\n');
+
+    // Update process.env for immediate effect
+    process.env.DATABASE_URL = newDatabaseUrl;
+    process.env.DATABASE_HOST = config.database.db_host;
+    process.env.DATABASE_PORT = config.database.db_port.toString();
+    process.env.DATABASE_NAME = config.database.db_name;
+    process.env.DATABASE_USER = config.database.db_user;
+    process.env.DATABASE_PASSWORD = config.database.db_password;
+    process.env.DATABASE_SSL = config.database.db_ssl.toString();
+
+    if (process.env.DEBUG === 'true') {
+      console.log('✅ .env file updated successfully');
+      console.log('📝 New DATABASE_URL:', newDatabaseUrl.replace(config.database.db_password, '***'));
+    }
+  } catch (error) {
+    console.error('❌ Error updating .env file:', error);
+    throw error;
+  }
+};
+
 // Save configuration to file
 const saveConfig = async (config: AppConfig): Promise<boolean> => {
   try {
@@ -163,11 +242,29 @@ const saveConfig = async (config: AppConfig): Promise<boolean> => {
     
     await fs.writeFile(CONFIG_FILE, JSON.stringify(configToSave, null, 2));
     
+    // Update .env file with database configuration
+    if (config.database) {
+      await updateEnvFile(config);
+
+      // Automatically regenerate Prisma client after .env update
+      exec('npx prisma generate', { cwd: process.cwd() }, (error, stdout, stderr) => {
+        if (process.env.DEBUG === 'true') {
+          if (error) {
+            console.error('❌ Error running npx prisma generate:', error);
+          } else {
+            console.log('✅ Prisma client generated successfully.');
+            if (stdout) console.log('Prisma generate output:', stdout);
+            if (stderr) console.log('Prisma generate stderr:', stderr);
+          }
+        }
+      });
+    }
+
     // Update environment variables for immediate effect
     if (config.application && config.application.debug_mode !== undefined) {
       process.env.DEBUG = config.application.debug_mode ? 'true' : 'false';
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error saving configuration:', error);
