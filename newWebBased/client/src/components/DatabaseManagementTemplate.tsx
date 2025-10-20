@@ -78,7 +78,7 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   error,
   searchTerm,
   onSearchChange,
-  searchPlaceholder = "Search...",
+  searchPlaceholder,
   showFilters = false,
   onToggleFilters,
   filterOptions = [],
@@ -105,6 +105,9 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   children
 }) => {
   const { t } = useTranslation();
+  
+  // Default search placeholder if not provided
+  const finalSearchPlaceholder = searchPlaceholder || t('common.search');
   
   // View toggle with persistence
   const { viewType, handleViewTypeChange } = useViewToggle({ 
@@ -293,7 +296,7 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
         icon={icon}
         searchTerm={searchTerm}
         onSearchChange={onSearchChange}
-        searchPlaceholder={searchPlaceholder}
+        searchPlaceholder={finalSearchPlaceholder}
         showFilters={showFiltersState}
         onToggleFilters={handleToggleFilters}
         hasFilters={filterOptions.length > 0}

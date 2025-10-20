@@ -541,6 +541,7 @@
     }
   },
   "common": {
+    "locale": "de",
     "loading": "Lädt...",
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -578,6 +579,7 @@
     "table": {
       "search": "Suchen...",
       "filters": "Filter",
+      "clearAllFilters": "Alle Filter zurücksetzen",
       "noResults": "Keine Ergebnisse gefunden"
     },
     "gender": {
@@ -658,6 +660,7 @@
       "csv": "Als CSV exportieren",
       "filename": "veranstaltungen"
     },
+    "importButton": "Aus Gymnet importieren",
     "import": {
       "title": "Veranstaltung aus DTB Gymnet importieren",
       "selectFile": "Gymnet XML-Datei auswählen",
@@ -675,7 +678,25 @@
       "import": "Importieren",
       "importing": "Importiere...",
       "selectXmlFirst": "Bitte wählen Sie zuerst eine XML-Datei aus",
-      "eventNameRequired": "Veranstaltungsname ist erforderlich"
+      "eventNameRequired": "Veranstaltungsname ist erforderlich",
+      "information": {
+        "title": "Import-Informationen",
+        "eventInfo": "Veranstaltungsinformationen werden extrahiert und erstellt",
+        "competitions": "Wettkämpfe und Disziplinen werden importiert",
+        "participants": "Teilnehmer werden zur Datenbank hinzugefügt",
+        "clubsUpdate": "Bestehende Vereine werden aktualisiert, falls vorhanden",
+        "participantsUpdate": "Bestehende Teilnehmer werden aktualisiert, falls vorhanden"
+      },
+      "progress": {
+        "completed": "Import erfolgreich abgeschlossen!",
+        "failed": "Import fehlgeschlagen:",
+        "eventCreated": "Veranstaltung erstellt: \"{name}\" (ID: {id})",
+        "databaseResults": "Datenbank-Import-Ergebnisse:",
+        "clubs": "Vereine: {inserted} neu, {updated} aktualisiert, {errors} Fehler",
+        "participants": "Teilnehmer: {inserted} neu, {updated} aktualisiert, {errors} Fehler",
+        "competitions": "Wettkämpfe: {inserted} neu, {updated} aktualisiert, {errors} Fehler",
+        "disciplines": "Disziplinen: {inserted} neu, {updated} aktualisiert, {errors} Fehler"
+      }
     },
     "organizerInfo": "Veranstalterinformationen",
     "competitions": "Wettkämpfe",

@@ -541,6 +541,7 @@
     }
   },
   "common": {
+    "locale": "en",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -578,6 +579,7 @@
     "table": {
       "search": "Search...",
       "filters": "Filters",
+      "clearAllFilters": "Clear All Filters",
       "noResults": "No results found"
     },
     "gender": {
@@ -658,6 +660,7 @@
       "csv": "Export to CSV",
       "filename": "events"
     },
+    "importButton": "Import from Gymnet",
     "import": {
       "title": "Import Event from DTB Gymnet",
       "selectFile": "Select Gymnet XML File",
@@ -675,7 +678,25 @@
       "import": "Import",
       "importing": "Importing...",
       "selectXmlFirst": "Please select an XML file first",
-      "eventNameRequired": "Event name is required"
+      "eventNameRequired": "Event name is required",
+      "information": {
+        "title": "Import Information",
+        "eventInfo": "Event information will be extracted and created",
+        "competitions": "Competitions and disciplines will be imported",
+        "participants": "Participants will be added to the database",
+        "clubsUpdate": "Existing clubs will be updated if found",
+        "participantsUpdate": "Existing participants will be updated if found"
+      },
+      "progress": {
+        "completed": "Import completed successfully!",
+        "failed": "Import failed:",
+        "eventCreated": "Event Created: \"{name}\" (ID: {id})",
+        "databaseResults": "Database Import Results:",
+        "clubs": "Clubs: {inserted} new, {updated} updated, {errors} errors",
+        "participants": "Participants: {inserted} new, {updated} updated, {errors} errors",
+        "competitions": "Competitions: {inserted} new, {updated} updated, {errors} errors",
+        "disciplines": "Disciplines: {inserted} new, {updated} updated, {errors} errors"
+      }
     },
     "organizerInfo": "Organizer Information",
     "competitions": "Competitions",

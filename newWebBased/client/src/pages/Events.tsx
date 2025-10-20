@@ -119,7 +119,8 @@ const Events: React.FC = () => {
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const locale = t('common.locale') === 'de' ? 'de-DE' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -371,26 +372,26 @@ const Events: React.FC = () => {
           // Add database insertion results if available
           if (result.insertionResults) {
             const { clubs: clubResults, participants: participantResults, competitions: compResults, devices: deviceResults } = result.insertionResults
-            summary += '\n\n💾 Database Import Results:\n'
-            summary += `  🏛️ Clubs: ${clubResults.inserted} new, ${clubResults.updated} updated, ${clubResults.errors} errors\n`
-            summary += `  👥 Participants: ${participantResults.inserted} new, ${participantResults.updated} updated, ${participantResults.errors} errors\n`
-            summary += `  🏆 Competitions: ${compResults.inserted} new, ${compResults.updated} updated, ${compResults.errors} errors\n`
-            summary += `  🤸 Disciplines: ${deviceResults.inserted} new, ${deviceResults.updated} updated, ${deviceResults.errors} errors`
+            summary += `\n\n💾 ${t('events.import.progress.databaseResults')}\n`
+            summary += `  🏛️ ${t('events.import.progress.clubs', { inserted: clubResults.inserted, updated: clubResults.updated, errors: clubResults.errors })}\n`
+            summary += `  👥 ${t('events.import.progress.participants', { inserted: participantResults.inserted, updated: participantResults.updated, errors: participantResults.errors })}\n`
+            summary += `  🏆 ${t('events.import.progress.competitions', { inserted: compResults.inserted, updated: compResults.updated, errors: compResults.errors })}\n`
+            summary += `  🤸 ${t('events.import.progress.disciplines', { inserted: deviceResults.inserted, updated: deviceResults.updated, errors: deviceResults.errors })}`
           }
 
           // Add event creation info if available
           if (result.createdEvent) {
-            summary = `\n🎪 Event Created: "${result.createdEvent.name}" (ID: ${result.createdEvent.id})${summary}`
+            summary = `\n🎪 ${t('events.import.progress.eventCreated', { name: result.createdEvent.name, id: result.createdEvent.id })}${summary}`
           }
           
           // Update the progress message with the summary
           setImportProgress({ 
-            step: `Import completed successfully! ${summary}`, 
+            step: `${t('events.import.progress.completed')} ${summary}`, 
             progress: 100 
           })
         } else {
           // Fallback if no extracted data
-          setImportProgress({ step: 'Import completed successfully!', progress: 100 })
+          setImportProgress({ step: t('events.import.progress.completed'), progress: 100 })
         }
         
         setTimeout(() => {
@@ -412,7 +413,7 @@ const Events: React.FC = () => {
     } catch (error) {
       console.error('Import error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      setImportProgress({ step: `Import failed: ${errorMessage}`, progress: 0 })
+      setImportProgress({ step: `${t('events.import.progress.failed')} ${errorMessage}`, progress: 0 })
     }
   }
 
@@ -618,7 +619,7 @@ const Events: React.FC = () => {
                 onClick={openImportModal}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Import from Gymnet
+                {t('events.importButton')}
               </button>
             </div>
           }
@@ -852,13 +853,13 @@ const Events: React.FC = () => {
                 )}
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-yellow-800 mb-2">Import Information</h4>
+                  <h4 className="text-sm font-medium text-yellow-800 mb-2">{t('events.import.information.title')}</h4>
                   <ul className="text-xs text-yellow-700 space-y-1">
-                    <li>• Event information will be extracted and created</li>
-                    <li>• Competitions and disciplines will be imported</li>
-                    <li>• Participants will be added to the database</li>
-                    <li>• Existing clubs will be updated if found</li>
-                    <li>• Existing participants will be updated if found</li>
+                    <li>• {t('events.import.information.eventInfo')}</li>
+                    <li>• {t('events.import.information.competitions')}</li>
+                    <li>• {t('events.import.information.participants')}</li>
+                    <li>• {t('events.import.information.clubsUpdate')}</li>
+                    <li>• {t('events.import.information.participantsUpdate')}</li>
                   </ul>
                 </div>
 

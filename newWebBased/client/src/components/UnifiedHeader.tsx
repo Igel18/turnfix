@@ -190,7 +190,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center">
             <FunnelIcon className="h-5 w-5 mr-2" />
-            Filters & Search
+            {t('common.table.filters')}
           </h2>
           <div className="flex items-center space-x-3">
             {hasActiveFilters && (
@@ -199,7 +199,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
                 className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
               >
                 <XMarkIcon className="h-4 w-4" />
-                <span>Clear All Filters</span>
+                <span>{t('common.table.clearAllFilters')}</span>
               </button>
             )}
             <button
@@ -207,7 +207,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
               className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md flex items-center space-x-1 text-sm font-medium"
             >
               <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export CSV</span>
+              <span>{t('common.export')}</span>
             </button>
           </div>
         </div>
@@ -215,7 +215,7 @@ export const UnifiedHeader: React.FC<UnifiedHeaderProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('common.search')}</label>
             <div className="relative">
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input

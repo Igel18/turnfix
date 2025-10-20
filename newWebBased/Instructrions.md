@@ -585,7 +585,31 @@ usw. ...
     - `npm run build` kopiert automatisch Icons ins Jury-Portal
     - Icons sind dann lokal verfügbar, keine Backend-Abhängigkeit
 
-47. Das Import Log Fenster beim Import von GymNet ist noch nicht lokalisiert. Und auch noch nicht die "Import Information". 
+47. ~~Das Import Log Fenster beim Import von GymNet ist noch nicht lokalisiert. Und auch noch nicht die "Import Information".~~ ✅
+    **Status**: ✅ Abgeschlossen - GymNet Import-Fenster vollständig lokalisiert
+    **Problem**: Import-Informationen und Progress-Meldungen waren hardcodiert in Englisch/Deutsch
+    **Lösung**: 
+    - Neue Translation Keys in events.import.information.* hinzugefügt
+      * title: "Import-Informationen" / "Import Information"
+      * eventInfo, competitions, participants, clubsUpdate, participantsUpdate
+    - Neue Translation Keys in events.import.progress.* hinzugefügt
+      * completed, failed, eventCreated, databaseResults
+      * clubs, participants, competitions, disciplines (mit Variablen)
+    - Import Information Box verwendet jetzt t() für alle Texte
+    - Progress-Meldungen verwenden jetzt t() mit String-Interpolation
+    - Erfolgs- und Fehlermeldungen lokalisiert
+    **Lokalisierte Texte**:
+    - Import-Informationen Header (5 Bullet Points)
+    - "Import erfolgreich abgeschlossen!" / "Import completed successfully!"
+    - "Import fehlgeschlagen:" / "Import failed:"
+    - "Veranstaltung erstellt" / "Event Created" mit Name und ID
+    - Datenbank-Ergebnisse mit Zählern (neu/aktualisiert/Fehler)
+    **Translation Keys**: 11+ neue Keys in de.json und en.json
+    **Dateien**: 
+    - `client/src/pages/Events.tsx` (Import Information Box + Progress Messages)
+    - `client/src/i18n/locales/de.json` (neue Keys)
+    - `client/src/i18n/locales/en.json` (neue Keys)
+    **Build Status**: ✓ 2207 modules, 6.69s, keine Fehler 
 
 48. ~~In der Wettkampfverwaltung steht bei Altersgruppe 18-100 im editieren 18-18~~ ✅
     **Status**: ✅ Abgeschlossen - Age-Dropdown erweitert auf 1-100 Jahre
@@ -602,3 +626,36 @@ usw. ...
     **Code-Änderung**: `Array.from({ length: 100 }, ...)` statt `Array.from({ length: 50 }, ...)`
     **Build Status**: ✓ 2207 modules, 6.20s, keine Fehler
     **Debug-Logs**: Umfangreiche Console-Logs hinzugefügt in CompetitionsFixed.tsx für zukünftige Diagnose 
+
+49. ~~Lokalisierung auf der Seite http://localhost:3001/events~~ ✅
+    **Status**: ✅ Abgeschlossen - Events-Seite vollständig lokalisiert
+    **a) Filter-Texte**: ✅ Bereits lokalisiert
+    - Events.tsx verwendet DatabaseManagementTemplate
+    - DatabaseManagementTemplate nutzt bereits common.search, common.table.filters, etc.
+    - "Search", "Clear All Filters", "Filters" sind bereits lokalisiert
+    - Keine Änderungen notwendig - Template übernimmt Lokalisierung
+    **b) Import Button**: ✅ Lokalisiert
+    - Neuer Translation Key: `events.importButton`
+    - Deutsch: "Aus Gymnet importieren"
+    - Englisch: "Import from Gymnet"
+    - Button verwendet jetzt `t('events.importButton')`
+    **c) Datumsformat**: ✅ Deutsche Schreibweise implementiert
+    - `formatDate()` Funktion aktualisiert
+    - Verwendet jetzt `t('common.locale')` für Locale-Bestimmung
+    - Deutsch (de): `de-DE` Locale → "14. Jan. 2025" (deutscher Stil)
+    - Englisch (en): `en-US` Locale → "Jan 14, 2025" (englischer Stil)
+    - Neuer Translation Key: `common.locale` ("de" bzw. "en")
+    **Geänderte Dateien**:
+    - `client/src/pages/Events.tsx` (formatDate + Import Button)
+    - `client/src/i18n/locales/de.json` (events.importButton, common.locale)
+    - `client/src/i18n/locales/en.json` (events.importButton, common.locale)
+    **Build Status**: ✓ 2207 modules, 5.11s, keine Fehler
+
+
+50. auf der Seite http://localhost:3001/competitions?eventId=77&squadName=mBlau 
+gibt es keine Umschaltmöglichkeit der Sprache. Hier gibt es diese: http://localhost:3001/event-participants?eventId=77&squadName=mBlau
+
+Das müsste doch eigentlich in dem template drin sein? Wir dieses Template auf der Seite verwendet? 
+
+
+51. macht das sinn UnifiedHeader und UnifiedPageHeader zusammenzuführen? 

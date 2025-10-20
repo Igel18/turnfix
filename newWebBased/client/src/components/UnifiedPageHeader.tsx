@@ -282,7 +282,7 @@ export default function UnifiedPageHeader({
       {showFilters && (
         <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('common.table.filters')}</h3>
             <button
               onClick={onToggleFilters}
               className="text-gray-400 hover:text-gray-600"
@@ -295,7 +295,7 @@ export default function UnifiedPageHeader({
             {onSearchChange && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Search
+                  {t('common.search')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -346,7 +346,7 @@ export default function UnifiedPageHeader({
                   onClick={onClearAllFilters}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
-                  Clear All Filters
+                  {t('common.table.clearAllFilters')}
                 </button>
               )}
             </div>
