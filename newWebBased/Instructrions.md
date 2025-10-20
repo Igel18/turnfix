@@ -629,27 +629,38 @@ usw. ...
 
 49. ~~Lokalisierung auf der Seite http://localhost:3001/events~~ ✅
     **Status**: ✅ Abgeschlossen - Events-Seite vollständig lokalisiert
-    **a) Filter-Texte**: ✅ Bereits lokalisiert
-    - Events.tsx verwendet DatabaseManagementTemplate
-    - DatabaseManagementTemplate nutzt bereits common.search, common.table.filters, etc.
-    - "Search", "Clear All Filters", "Filters" sind bereits lokalisiert
-    - Keine Änderungen notwendig - Template übernimmt Lokalisierung
+    **Problem**: Filter-Texte, Import Button und Datumsformat waren nicht lokalisiert
+    **Root Cause**: UnifiedPageHeader.tsx (nicht UnifiedHeader.tsx!) hatte hardcodierte englische Texte
+    
+    **a) Filter-Texte**: ✅ Lokalisiert
+    - Events.tsx verwendet DatabaseManagementTemplate → UnifiedPageHeader
+    - UnifiedPageHeader.tsx hatte hardcodierte Texte auf Zeilen 285, 299, 349:
+      * "Filters" → `{t('common.table.filters')}`
+      * "Search" → `{t('common.search')}`
+      * "Clear All Filters" → `{t('common.table.clearAllFilters')}`
+    
     **b) Import Button**: ✅ Lokalisiert
     - Neuer Translation Key: `events.importButton`
     - Deutsch: "Aus Gymnet importieren"
     - Englisch: "Import from Gymnet"
     - Button verwendet jetzt `t('events.importButton')`
+    
     **c) Datumsformat**: ✅ Deutsche Schreibweise implementiert
     - `formatDate()` Funktion aktualisiert
     - Verwendet jetzt `t('common.locale')` für Locale-Bestimmung
     - Deutsch (de): `de-DE` Locale → "14. Jan. 2025" (deutscher Stil)
     - Englisch (en): `en-US` Locale → "Jan 14, 2025" (englischer Stil)
     - Neuer Translation Key: `common.locale` ("de" bzw. "en")
+    
     **Geänderte Dateien**:
+    - `client/src/components/UnifiedPageHeader.tsx` (Filter-Texte lokalisiert)
     - `client/src/pages/Events.tsx` (formatDate + Import Button)
-    - `client/src/i18n/locales/de.json` (events.importButton, common.locale)
-    - `client/src/i18n/locales/en.json` (events.importButton, common.locale)
-    **Build Status**: ✓ 2207 modules, 5.11s, keine Fehler
+    - `client/src/i18n/locales/de.json` (events.importButton, common.locale, common.table.clearAllFilters)
+    - `client/src/i18n/locales/en.json` (events.importButton, common.locale, common.table.clearAllFilters)
+    
+    **Build Status**: ✓ Client 5.14s, Server neu gebaut, PM2 restart
+    **Wichtig**: UnifiedPageHeader wird von DatabaseManagementTemplate verwendet (nicht UnifiedHeader!)
+    **Betrifft auch**: Alle anderen DatabaseManagement-Seiten (Participants, Disciplines, Clubs, etc.)
 
 
 50. auf der Seite http://localhost:3001/competitions?eventId=77&squadName=mBlau 
@@ -658,4 +669,67 @@ gibt es keine Umschaltmöglichkeit der Sprache. Hier gibt es diese: http://local
 Das müsste doch eigentlich in dem template drin sein? Wir dieses Template auf der Seite verwendet? 
 
 
-51. macht das sinn UnifiedHeader und UnifiedPageHeader zusammenzuführen? 
+51. ~~macht das sinn UnifiedHeader und UnifiedPageHeader zusammenzuführen?~~ ✅
+    **Status**: ✅ Abgeschlossen - UnifiedHeader.tsx gelöscht, UnifiedPageHeader ist die einzige Header-Komponente
+    **Problem**: Code-Duplikation zwischen UnifiedHeader.tsx und UnifiedPageHeader.tsx
+    **Analyse**: 
+    - UnifiedHeader.tsx wurde NIRGENDWO mehr verwendet (0 imports gefunden)
+    - UnifiedPageHeader.tsx wird von 15+ Seiten aktiv verwendet
+    - Beide Komponenten hatten fast identische Funktionalität
+    **Lösung**: 
+    - UnifiedHeader.tsx gelöscht (287 Zeilen obsoleter Code)
+    - Keine Migration nötig, da keine aktive Verwendung
+    - UnifiedPageHeader bietet alle notwendigen Features
+    **Vorteile**:
+    - ✅ DRY-Prinzip: Nur noch eine Header-Komponente
+    - ✅ Wartbarkeit: Änderungen nur an einer Stelle
+    - ✅ Konsistenz: Garantiert einheitliches Look & Feel
+    - ✅ Vollständig lokalisiert: Profitiert von Point 49
+    **Features von UnifiedPageHeader**:
+    - Filters & Search mit Toggle
+    - Actions (Add, Import, Export CSV/PDF, Print)
+    - View Toggle (Table/Grid)
+    - Event Context Display
+    - Help Panel mit Toggle
+    - Custom Actions
+    - Language Switcher integriert
+    - Responsive Design
+    **Dokumentation**: Siehe `POINT-51-UNIFIED-HEADER-CLEANUP.md`
+    **Gelöschte Dateien**: `client/src/components/UnifiedHeader.tsx`
+    **Bereinigte Code-Duplikation**: ~280 Zeilen 
+
+52. Browser Icon ✅
+bitte ein browser icon hinzufügen. am besten das, welches auch bei der QT implementierung als Programm-Icon verwendet wurde 
+für das Jury-Portal & den Server
+    **Status**: ✅ Abgeschlossen
+    **Implementierung**:
+    - Qt-Icon `resources/turnfix.ico` als Favicon verwendet (Windows)
+    - PNG-Version `resources/icons/turnfix-gross.png` für iOS/iPad hinzugefügt
+    - Kopiert nach `client/public/favicon.ico` und `apple-touch-icon.png`
+    - Kopiert nach `jury-portal/public/favicon.ico` und `apple-touch-icon.png`
+    - HTML-Referenzen aktualisiert in beiden `index.html` Dateien
+    - Vite-Standard-Icon (vite.svg) ersetzt durch turnfix.ico
+    - Zusätzliche PNG-Icons für mobile Kompatibilität (192x192, Apple Touch Icon)
+    - Client neu gebaut (7.58s)
+    - Jury-Portal neu gebaut (2.18s)
+    - PM2 Server neu gestartet
+    **Resultat**:
+    - ✅ Einheitliches Branding zwischen Desktop (Qt) und Web Version
+    - ✅ TurnFix-Icon sichtbar in Browser-Tabs für Client & Jury-Portal
+    - ✅ iOS/iPad Unterstützung mit PNG-Icons (Apple Touch Icon)
+    - ✅ Automatisch in Production-Build integriert (dist/favicon.ico, apple-touch-icon.png)
+    **Betroffene Dateien**:
+    - `client/public/favicon.ico` (NEU - Windows)
+    - `client/public/apple-touch-icon.png` (NEU - iOS/iPad)
+    - `client/public/favicon-192.png` (NEU - Android)
+    - `jury-portal/public/favicon.ico` (NEU - Windows)
+    - `jury-portal/public/apple-touch-icon.png` (NEU - iOS/iPad)
+    - `jury-portal/public/favicon-192.png` (NEU - Android)
+    - `client/index.html` (Zeile 5-7: icon links aktualisiert)
+    - `jury-portal/index.html` (Zeile 5-7: icon links aktualisiert)
+
+53. Riegen status 
+Hier wird nichts angezeigt. 
+
+54. Jury Portal
+Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den Einstellungen deaktiviert werden können für development zwecke. 
