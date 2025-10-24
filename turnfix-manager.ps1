@@ -20,7 +20,7 @@ function Show-Status {
     try {
         # Unterdrücke Fehlerausgabe und prüfe ob PM2 verfügbar ist
         $ErrorActionPreference = 'SilentlyContinue'
-        $pm2Output = npx pm2 jlist 2>&1
+    $pm2Output = pm2 jlist 2>&1
         $ErrorActionPreference = 'Continue'
         
         # Prüfe ob die Ausgabe gültiges JSON ist
@@ -170,7 +170,7 @@ function Start-TurnFix {
     Write-Host "  • Kampfrichter-Portal wird gestartet..." -ForegroundColor White
     Write-Host ""
     
-    npm run pm2:start:prod
+    pm2 start ecosystem.config.js --env production
     
     if ($LASTEXITCODE -eq 0) {
         Start-Sleep -Seconds 2  # Kurze Pause damit PM2 hochfährt
@@ -234,7 +234,7 @@ function Stop-TurnFix {
     $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
     Set-Location $serverPath
     
-    npm run pm2:stop
+    pm2 stop all
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
@@ -253,7 +253,7 @@ function Restart-TurnFix {
     $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
     Set-Location $serverPath
     
-    npm run pm2:restart
+    pm2 restart all
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
@@ -272,7 +272,7 @@ function Show-DetailedStatus {
     $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
     Set-Location $serverPath
     
-    npx pm2 status
+    pm2 status
     
     Write-Host ""
     Write-Host "Für detaillierte Informationen über einen Server:" -ForegroundColor Yellow
@@ -291,7 +291,7 @@ function Show-LiveLogs {
     $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
     Set-Location $serverPath
     
-    npm run pm2:logs
+    pm2 logs
 }
 
 function Show-SystemMonitor {

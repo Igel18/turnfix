@@ -258,6 +258,19 @@ const saveConfig = async (config: AppConfig): Promise<boolean> => {
           }
         }
       });
+
+      // Restart server via PM2 after DB config change
+      exec('pm2 restart turnfix-server', { cwd: process.cwd() }, (error, stdout, stderr) => {
+        if (process.env.DEBUG === 'true') {
+          if (error) {
+            console.error('❌ Error running pm2 restart turnfix-server:', error);
+          } else {
+            console.log('✅ Server restarted via PM2.');
+            if (stdout) console.log('PM2 restart output:', stdout);
+            if (stderr) console.log('PM2 restart stderr:', stderr);
+          }
+        }
+      });
     }
 
     // Update environment variables for immediate effect

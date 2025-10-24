@@ -873,3 +873,15 @@ Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den 
     **Pattern**: useTableSort() Hook → sortData() → SortableTableHeader Props
 
 b) http://localhost:3001/competition-status?eventId=59&squadName=mBlau
+
+56. Doppelte Info
+Beschreibung und Zusätzliche Informationen ist das enthält die gleiche Information. Wenn es das nicht separat in der DB gibt, dann sollte Zusätzliche Informationen weg. 
+http://localhost:3001/event-management?eventId=59&squadName=mBlau
+
+57. Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
+
+58. Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
+http://localhost:3001/competitions?eventId=77&squadName=m
+
+59. Auf der Seite passen die Statistik nicht von männlich und weiblich
+http://localhost:3001/event-management?eventId=53&squadName=m
