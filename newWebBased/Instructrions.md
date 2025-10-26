@@ -872,7 +872,34 @@ Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den 
     **Build Status**: ✓ 2207 modules, 5.41s, keine Fehler
     **Pattern**: useTableSort() Hook → sortData() → SortableTableHeader Props
 
-b) http://localhost:3001/competition-status?eventId=59&squadName=mBlau
+~~b) http://localhost:3001/competition-status?eventId=59&squadName=mBlau~~ ✅
+    **Status**: ✅ Abgeschlossen (Prio 3) - Competition Status Tabelle vollständig sortierbar in Table und Grid View
+    **Problem**: Grid View verwendete `filteredCompetitions` statt `sortedFilteredCompetitions`, wodurch Sortierung nur in Table View funktionierte
+    **Root Cause**: 
+    - Table View (Zeile 446): Korrekt `sortedFilteredCompetitions.map()` 
+    - Grid View (Zeile 535): Falsch `filteredCompetitions.map()` ohne Sortierung
+    - useTableSort Hook war bereits importiert und konfiguriert
+    - SortableTableHeader Components waren bereits implementiert (5 Spalten)
+    **Lösung**:
+    - Grid View von `filteredCompetitions` auf `sortedFilteredCompetitions` umgestellt
+    - TypeScript-Fehler behoben: Expliziter Typ für status Parameter in map()
+    - Value extractor erweitert um `number` und `round` Felder für zukünftige Erweiterungen
+    **Sortierbare Spalten** (5):
+    1. Competition (name) - Wettkampfname
+    2. Age Group (ageFrom) - Altersgruppe von-bis
+    3. Gender (gender) - Geschlecht (männlich/weiblich)
+    4. Overall Status (overallStatus) - Gesamtstatus (completed/in_progress/not_started)
+    5. Progress (progress) - Fortschritt in % (berechnet aus completedSquadDisciplines/totalSquadDisciplines)
+    **Value Extractor Felder**: name, number, round, ageFrom, gender, overallStatus, progress
+    **Features**:
+    - Sortierung funktioniert jetzt in beiden Views (Table + Grid)
+    - Konsistente Datendarstellung zwischen Views
+    - Custom value extractor für berechnete Werte (z.B. progress percentage)
+    - Visuelles Feedback mit ↑ ↓ Pfeilen
+    **Dateien**: `client/src/pages/CompetitionStatusManagement.tsx` (Zeilen 296-304, 535)
+    **Build Status**: ✓ 2237 modules, 7.28s, keine Fehler
+    **Test URL**: http://localhost:5173/competition-status?eventId=59&squadName=mBlau
+
 
 56. Prio 5 Doppelte Info
 Beschreibung und Zusätzliche Informationen ist das enthält die gleiche Information. Wenn es das nicht separat in der DB gibt, dann sollte Zusätzliche Informationen weg. 
@@ -883,19 +910,92 @@ http://localhost:3001/event-management?eventId=59&squadName=mBlau
 58. Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
 http://localhost:3001/competitions?eventId=77&squadName=m
 
-59. Prio 2 Auf der Seite passen die Statistik nicht von männlich und weiblich
-http://localhost:3001/event-management?eventId=53&squadName=m
-Vielleicht wäre es sinnvoll. Die selection des Gender in dem Server zu machen statt in der UI? 
+~~59. Prio 2 Auf der Seite passen die Statistik nicht von männlich und weiblich~~ ✅
+~~http://localhost:3001/event-management?eventId=53&squadName=m~~
+~~Vielleicht wäre es sinnvoll. Die selection des Gender in dem Server zu machen statt in der UI?~~ ✅
+    **Status**: ✅ Abgeschlossen - Gender-Statistiken zeigen jetzt korrekte Werte für gesamte Veranstaltung
+    **Problem**: squadName URL-Parameter wurde an Statistics API gesendet und verfälschte die Haupt-Statistiken
+    **Root Cause**: 
+    - Frontend: EventManagement.tsx sendete squadName Parameter an `/events/:id/statistics`
+    - Backend: squadName Filter wurde auf ALLE Statistik-Queries angewendet
+    - Resultat: Bei URL `?squadName=m` wurden nur Teilnehmer aus männlichen Riegen gezählt
+    **Lösung Backend** (`server/src/routes/events.ts`):
+    - Haupt-Statistiken (totalParticipants, maleParticipants, femaleParticipants) zeigen IMMER komplette Veranstaltung
+    - squadName Filter wird nur auf Detail-Breakdowns angewendet (clubBreakdown, ageGroups, disciplines)
+    - Separate WHERE-Clause für Haupt-Stats ohne squadName
+    **Lösung Frontend** (`client/src/pages/EventManagement.tsx`):
+    - squadName Parameter wird NICHT mehr an Statistics API gesendet
+    - Nur gender und club Filter werden optional weitergeleitet
+    - Kommentar hinzugefügt: "Main statistics should show entire event"
+    **Resultat**: 
+    - Event 53 zeigt jetzt korrekt: 105 Teilnehmer gesamt, 20 männlich, 6 weiblich
+    - Unabhängig vom squadName URL-Parameter
+    - Detail-Breakdowns können optional gefiltert werden
+    **Dateien**: 
+    - `server/src/routes/events.ts` (Zeilen 2310-2370)
+    - `client/src/pages/EventManagement.tsx` (Zeilen 167-183)
+    **Build Status**: ✓ Server + Client kompiliert, PM2 neu gestartet
 
-60. Prio 2 Neu hinzugefügte Athletes werden nicht beim wettkampf zum hinzufügen angezeigt. Jonathan Bader 
+~~60. Prio 2 Neu hinzugefügte Athletes werden nicht beim wettkampf zum hinzufügen angezeigt. Jonathan Bader~~ ✅
+    **Status**: ✅ Vollständig abgeschlossen - Alle Athletes aus Datenbank werden im Add Modal angezeigt
+    **Problem 1**: Neu hinzugefügte Athletes (z.B. "Jonathan Bader") wurden nicht im "Add Participant to Event" Modal angezeigt
+    **Problem 2**: Modal zeigte nur die ersten 50 Athletes aus der Datenbank
+    **Root Causes**:
+    - Available Participants wurden nur beim ersten Laden geladen (nicht wenn Modal geöffnet wird)
+    - Backend `/participants` API hat Default limit=50
+    - Frontend sendete keinen limit Parameter → nur erste 50 Athletes wurden geladen
+    - Neu hinzugefügte Athletes waren nicht in den ersten 50
+    **Lösung 1 - Modal Refresh** (`client/src/pages/EventParticipants.tsx` Zeilen 384-389):
+    - useEffect hinzugefügt mit `showAddModal` dependency
+    - Lädt availableParticipants neu JEDES Mal wenn Modal geöffnet wird
+    - Console Log: "🔄 Add Modal opened - refreshing available participants..."
+    **Lösung 2 - Cache-Busting** (`client/src/pages/EventParticipants.tsx` Zeile 431):
+    - Timestamp-Parameter hinzugefügt: `?_t=${Date.now()}`
+    - Verhindert gecachte API-Antworten
+    - Garantiert frische Daten bei jedem Load
+    **Lösung 3 - HAUPTFIX: Limit erhöht** (`client/src/pages/EventParticipants.tsx` Zeile 431):
+    - API-Call geändert von `/participants?_t=...` zu `/participants?limit=10000&_t=...`
+    - Lädt jetzt ALLE Athletes aus der Datenbank (nicht nur erste 50)
+    - 10000 ist hoch genug für realistische Szenarien
+    **Zusätzliche Verbesserungen**:
+    - Console Logs hinzugefügt: "🔄 Available participants data loaded", "✅ Loaded X participants"
+    - Besseres Error-Handling beibehalten
+    **Resultat**: 
+    - Add Modal zeigt jetzt ALLE Athletes aus der Datenbank
+    - "Jonathan Bader" und alle anderen neu hinzugefügten Personen sind sofort verfügbar
+    - Modal refresht automatisch bei jedem Öffnen
+    **Dateien**: `client/src/pages/EventParticipants.tsx` (Zeilen 384-389, 426-465)
+    **Build Status**: ✓ Client kompiliert
 
-61. Prio 2 Layout editor hat häufig fehler. 
-z.B. Ein DB-Feld oder Bild hinzugefügt und gespeichert: 
-POST
-http://localhost:3001/api/layouts/28/fields
-[HTTP/1.1 400 Bad Request 13ms]
-
-API request failed for /api/layouts/28/fields : Error: Validation error
+~~61. Prio 2 Layout editor hat häufig fehler.~~ ✅
+~~z.B. Ein DB-Feld oder Bild hinzugefügt und gespeichert:~~ ✅
+~~POST http://localhost:3001/api/layouts/28/fields~~ ✅
+~~[HTTP/1.1 400 Bad Request 13ms]~~ ✅
+~~API request failed for /api/layouts/28/fields : Error: Validation error~~ ✅
+    **Status**: ✅ Abgeschlossen - Layout Fields können ohne Validierungsfehler hinzugefügt werden
+    **Problem**: Backend Validation Schema war zu streng für x/y Koordinaten
+    **Root Cause**: 
+    - Zod Schema validierte `x: z.number().min(0)` und `y: z.number().min(0)`
+    - Während des Editierens können Koordinaten temporär negativ sein
+    - Koordinaten außerhalb [0,1] Range waren möglich bei Drag & Drop
+    - Validation schlug fehl bevor UI-Constraints greifen konnten
+    **Lösung** (`server/src/routes/layouts.ts` Zeilen 301-323):
+    - x und y Koordinaten: `z.number()` ohne min(0) Constraint
+    - Erlaubt beliebige Zahlen (auch negativ oder > 1)
+    - Kommentar hinzugefügt: "Coordinates can be negative or outside [0,1] range during editing"
+    - Width und Height behalten min(0) Constraint (müssen positiv sein)
+    **Verbessertes Error-Handling** (`server/src/routes/layouts.ts` Zeilen 305, 357-364):
+    - Request Body wird komplett geloggt: `console.log('📝 Creating layout field - Request body:', JSON.stringify(req.body))`
+    - Validation Success: `console.log('✅ Validation passed - Creating layout field')`
+    - Validation Errors: Detailliertes Logging mit allen Zod issues
+    - Error Response erweitert mit `message` Field: Zeigt exakt welches Feld das Problem verursacht
+    **Resultat**: 
+    - DB-Felder können hinzugefügt werden ✅
+    - Bilder können hinzugefügt werden ✅
+    - Bessere Fehlermeldungen bei anderen Validierungsproblemen
+    - Debugging deutlich vereinfacht durch umfassendes Logging
+    **Dateien**: `server/src/routes/layouts.ts` (Zeilen 301-364)
+    **Build Status**: ✓ Server kompiliert, PM2 neu gestartet ✅
     s http://localhost:3001/assets/index-TsMcNJXE.js:158
     Rm http://localhost:3001/assets/index-TsMcNJXE.js:158
     Jn http://localhost:3001/assets/index-TsMcNJXE.js:158

@@ -293,6 +293,8 @@ const CompetitionStatusManagement = () => {
   // Sort filtered data with custom value extractor for nested properties
   const sortedFilteredCompetitions = sortData(filteredCompetitions, (item: CompetitionStatus, key: string) => {
     if (key === 'name') return item.name
+    if (key === 'number') return item.number
+    if (key === 'round') return item.round
     if (key === 'ageFrom') return item.ageFrom
     if (key === 'gender') return item.gender
     if (key === 'overallStatus') return item.overallStatus
@@ -532,7 +534,7 @@ const CompetitionStatusManagement = () => {
             // Grid View
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCompetitions.map((item) => (
+                {sortedFilteredCompetitions.map((item) => (
                   <div key={item.id} className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -587,7 +589,7 @@ const CompetitionStatusManagement = () => {
                       <div>
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.statusBreakdown')}</label>
                         <div className="mt-1 text-sm text-gray-900">
-                          {item.statusDistribution.map((status) => (
+                          {item.statusDistribution.map((status: { statusId: number; statusName: string; count: number }) => (
                             <div key={status.statusId} className="flex justify-between">
                               <span>{status.statusName}:</span>
                               <span>{status.count}</span>
