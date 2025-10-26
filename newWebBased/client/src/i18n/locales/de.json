@@ -1661,6 +1661,10 @@
     "noResultsForCompetition": "Keine Ergebnisse für diesen Wettkampf gefunden",
     "noResultsForEvent": "Keine Ergebnisse für diese Veranstaltung gefunden",
     "participantsCount": "{{count}} Teilnehmer",
+    "showDetails": "Details anzeigen",
+    "hideDetails": "Details ausblenden",
+    "showDisciplineScores": "Einzelwertungen anzeigen",
+    "hideDisciplineScores": "Einzelwertungen ausblenden",
     "filters": {
       "competition": "Wettkampf",
       "gender": "Geschlecht",

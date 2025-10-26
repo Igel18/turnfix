@@ -1079,7 +1079,35 @@ Editfenster.
     **Kommentar**: "Rate limiting is fully disabled for all IPs"
     **Ergebnis**: Keine IP-basierten Request-Limits mehr, Multi-Client-Zugriff funktioniert
 
-66. Prio 3 Wenn jemand als "nimmt nicht teil" gekennzeichnet ist, darf er trotz wertungen nicht in der siegerliste auftauchen
+~~66. Prio 3 Wenn jemand als "nimmt nicht teil" gekennzeichnet ist, darf er trotz wertungen nicht in der siegerliste auftauchen~~ ✅
+    **Status**: ✅ Abgeschlossen (Prio 3) - Teilnehmer mit "nimmt nicht teil" werden aus Siegerauswertung ausgeschlossen
+    **Problem**: Teilnehmer, die als "nimmt nicht teil" markiert sind, erschienen trotzdem in der Siegerliste/Ergebnissen
+    **Root Cause**: Results.tsx filterte nicht nach dem `startet_nicht` (bol_startet_nicht) Feld
+    **Lösung**: 
+    - Participant Interface erweitert um `startet_nicht?: boolean` Feld
+    - Filter vor map() hinzugefügt: `.filter((participant: any) => !participant.startet_nicht)`
+    - Feld wird von `/event-participants` API mitgeliefert
+    **Implementierung**:
+    ```typescript
+    const participantsList: Participant[] = participants
+      .filter((participant: any) => !participant.startet_nicht) // Exclude "does not participate"
+      .map((participant: any) => {
+        // ... participant mapping
+        startet_nicht: participant.startet_nicht || false,
+        // ...
+      })
+    ```
+    **Effekt**: 
+    - Teilnehmer mit `bol_startet_nicht = true` erscheinen nicht in Ranglisten
+    - Gilt für Single Competition View und Competition Groups View
+    - Ranking-Berechnung erfolgt ohne diese Teilnehmer
+    - Ränge werden korrekt ohne Lücken vergeben
+    **Datenbank-Feld**: `tfx_wertungen.bol_startet_nicht` (Boolean)
+    **API-Feld**: `startet_nicht` in `/event-participants` Response
+    **Dateien**: `client/src/pages/Results.tsx` (Zeilen 19-26, 328-330, 343)
+    **Build Status**: ✓ 2237 modules, 5.67s, keine Fehler
+    **Test**: Teilnehmer mit startet_nicht=true erscheinen nicht in Results
+    **Resultat**: Siegerlisten zeigen nur aktiv teilnehmende Athleten
 
 ~~67. Prio 1. Siehe auch 65.~~ ✅
 ~~Ich bekomme immer die FEhlermeldung: "Zu viele Anfragen von dieser IP" wenn ich mit einem anderen Rechner auf diesen Server zugreife. bitte beheben.~~ ✅  
@@ -1136,15 +1164,70 @@ Editfenster.
     **Test URL**: http://localhost:5173/results?eventId=59
     **Resultat**: Gender-Filter funktioniert jetzt korrekt mit deutschen Datenbankwerten und zeigt lokalisierte Labels
 
-71. Prio 3 Auf der Seite 
-http://localhost:3001/results?eventId=59&squadName=mRot
-Müssen alle Werte ohne Scrollen dargestellt werden. z.B. über insgesamt breitere Tabelle (aber dann im TEmplate) oder über eine möglichkeit die Einzelwertungen auszublenden. 
-
-72. Prio 3 Die Tabellen auf dieser Seite müssen nach der Wettkampfnummer sortiert werden: 
-http://localhost:3001/results?eventId=59&squadName=mRot
+~~71. Prio 3 Auf der Seite~~ ✅
+~~http://localhost:3001/results?eventId=59&squadName=mRot~~
+~~Müssen alle Werte ohne Scrollen dargestellt werden. z.B. über insgesamt breitere Tabelle (aber dann im TEmplate) oder über eine möglichkeit die Einzelwertungen auszublenden.~~ ✅
+    **Status**: ✅ Abgeschlossen (Prio 3) - Toggle-Button zum Ein-/Ausblenden von Einzelwertungen implementiert
+    **Problem**: Tabelle wurde bei vielen Disziplinen sehr breit und erforderte horizontales Scrollen
+    **Lösung**: 
+    - Toggle-Button "Details anzeigen/ausblenden" als customAction im UnifiedPageHeader
+    - State `showDisciplineScores` (default: true) steuert Sichtbarkeit der Disziplin-Spalten
+    - Button zeigt Icon 📊 und aktuellen Status
+    - Conditional Rendering: `{showDisciplineScores && disciplines.map(...)}`
+    - Funktioniert in beiden Ansichten:
+      * Single Competition View (Zeilen 1386-1388, 1442-1456)
+      * Competition Groups View (Zeilen 1509-1529, 1565-1579)
+    **Features**:79. Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine 
+    - Kompakte Ansicht: Nur Rang, Startnummer, Name, Verein, Alter, Gesamtwertung
+    - Detail-Ansicht: Zusätzlich alle Einzelwertungen pro Disziplin
+    - Visuelles Feedback: Button-Farbe ändert sich (blau aktiv, grau inaktiv)
+    - Tooltip zeigt vollständigen Text
+    - State bleibt während Navigation erhalten
+    **UI-Pattern**: Konsistent mit anderen Toggle-Funktionen (Filter, View-Mode)
+    **Lokalisierung**: 
+    - `results.showDetails` / `results.hideDetails`
+    - `results.showDisciplineScores` / `results.hideDisciplineScores`
+    **Dateien**: 
+    - Frontend: `client/src/pages/Results.tsx` (6 Änderungen)
+    - Lokalisierung: `client/src/i18n/locales/de.json`, `en.json`
+    **Build Status**: ✓ 2237 modules, 6.12s, keine Fehler
+    **Test URL**: http://localhost:5173/results?eventId=59&squadName=mRot
+    **Resultat**: Tabelle passt nun ohne Scrollen auf den Bildschirm wenn Details ausgeblendet sind
+ 
+~~72. Prio 3 Die Tabellen auf dieser Seite müssen nach der Wettkampfnummer sortiert werden:~~ ✅
+~~http://localhost:3001/results?eventId=59&squadName=mRot~~ ✅
+    **Status**: ✅ Abgeschlossen (Prio 3) - Competition Groups werden jetzt nach Wettkampfnummer sortiert
+    **Problem**: Competition Groups wurden alphabetisch nach Name sortiert statt nach Wettkampfnummer
+    **Root Cause**: Sortierung verwendete nur `competitionName.localeCompare()` (Zeile 438)
+    **Lösung**: Intelligente Sortierung implementiert mit 3-stufiger Logik:
+    1. **Beide haben Nummer**: Sortierung nach Nummer (numerisch, z.B. "1" vor "10")
+    2. **Nur eine hat Nummer**: Competition mit Nummer kommt zuerst
+    3. **Keine haben Nummer**: Fallback auf alphabetische Sortierung nach Name
+    **Sortier-Logik**:
+    ```typescript
+    groups.sort((a, b) => {
+      const compA = availableCompetitions.find(c => c.id === a.competitionId)
+      const compB = availableCompetitions.find(c => c.id === b.competitionId)
+      
+      if (compA?.number && compB?.number) {
+        return compA.number.localeCompare(compB.number, undefined, { numeric: true })
+      }
+      if (compA?.number && !compB?.number) return -1
+      if (!compA?.number && compB?.number) return 1
+      return a.competitionName.localeCompare(b.competitionName)
+    })
+    ```
+    **Features**:
+    - Numerische Sortierung: "1", "2", "10" statt "1", "10", "2"
+    - Robuste Fallbacks für fehlende Nummern
+    - Kompatibel mit verschiedenen Nummerierungsformaten
+    **Dateien**: `client/src/pages/Results.tsx` (Zeilen 438-453)
+    **Build Status**: ✓ 2237 modules, 7.08s, keine Fehler
+    **Test URL**: http://localhost:5173/results?eventId=59&squadName=mRot
+    **Resultat**: Competition Groups werden korrekt nach Wettkampfnummer sortiert angezeigt
 
 72. Prio 4 http://localhost:3001/results?eventId=77&squadName=mRot
-Der Button "Print" muss besser heißen: "Generate Certificats PDF"
+Der Button "Print" muss besser heißen z.B. "Generate Certificats PDF"
 
 73. Die UI für das Jury-Portal muss überarbeitet werden: 
 Es muss immer die Liste aller Teilnehmer sichtbar sein. 
@@ -1178,6 +1261,19 @@ Ich könnte mir so etwas vorstellen:
 C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\client> npm run build
 PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run build   
 
-76. Falls ein prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
+76. Falls ein Prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
 
 77. Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden. 
+- Use Cache-Buster techniques for live updates of the client.
+- Use socket.io for live updates from server to client when data changes.
+
+78. Die Status Seite 
+http://localhost:3001/squad-status?eventId=59&squadName=m 
+sollte überarbeitet werden: 
+- Das sollte besser wie die meldematrix aufgebaut sein http://localhost:3001/meldematrix
+- Hierfür müsste ein template erstellt werden, dass die matrix immer gleich aussehen 
+- Die Zeilen sollten die Riegenbezeichnungen haben 
+- Die Spalten sollten die Gerätebezeichnungen haben 
+- Die Zellen sollten den jeweiligen status anzeigen. Aber der Status sollte auch geändert werden können (auswahl als DropDown) 
+
+79. Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 

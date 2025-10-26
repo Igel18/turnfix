@@ -1664,6 +1664,10 @@
     "noResultsForCompetition": "No results found for this competition",
     "noResultsForEvent": "No results found for this event",
     "participantsCount": "{{count}} participants",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "showDisciplineScores": "Show discipline scores",
+    "hideDisciplineScores": "Hide discipline scores",
     "filters": {
       "competition": "Competition",
       "gender": "Gender",

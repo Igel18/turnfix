@@ -23,6 +23,7 @@ interface Participant {
   startNumber: number
   age: number
   gender: string // Add gender field for filtering
+  startet_nicht?: boolean // Flag if participant is marked as "does not participate"
   scores: { [discipline: string]: number }
   totalScore: number
   rank: number
@@ -100,6 +101,7 @@ const Results = () => {
   const [selectedCompetition, setSelectedCompetition] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
   const [genderFilter, setGenderFilter] = useState('')
+  const [showDisciplineScores, setShowDisciplineScores] = useState(true)
   
   // Certificate printing state
   const { selectedLayout: contextSelectedLayout, setSelectedLayout: setContextSelectedLayout } = useCertificateLayout()
@@ -324,7 +326,9 @@ const Results = () => {
       console.log('Scores map:', scoresMap)
 
       // Build ranking list from participants with their scores
-      const participantsList: Participant[] = participants.map((participant: any) => {
+      const participantsList: Participant[] = participants
+        .filter((participant: any) => !participant.startet_nicht) // Exclude participants marked as "does not participate"
+        .map((participant: any) => {
         const participantScores = scoresMap.get(participant.id) || {}
         const totalScore = Object.values(participantScores).reduce((sum: number, score: number) => sum + score, 0)
 
@@ -335,6 +339,7 @@ const Results = () => {
           startNumber: participant.startNumber || 0,
           age: participant.age || 0,
           gender: participant.gender || 'unbekannt', // Add gender field for filtering
+          startet_nicht: participant.startet_nicht || false,
           scores: participantScores,
           totalScore,
           rank: 0,
@@ -433,8 +438,23 @@ const Results = () => {
           })
         }
 
-        // Sort groups by competition name
-        groups.sort((a, b) => a.competitionName.localeCompare(b.competitionName))
+        // Sort groups by competition number (if available), then by name
+        groups.sort((a, b) => {
+          const compA = availableCompetitions.find(c => c.id === a.competitionId)
+          const compB = availableCompetitions.find(c => c.id === b.competitionId)
+          
+          // If both have numbers, sort by number
+          if (compA?.number && compB?.number) {
+            return compA.number.localeCompare(compB.number, undefined, { numeric: true })
+          }
+          
+          // If only one has a number, prioritize it
+          if (compA?.number && !compB?.number) return -1
+          if (!compA?.number && compB?.number) return 1
+          
+          // Otherwise, sort by name
+          return a.competitionName.localeCompare(b.competitionName)
+        })
         
         setCompetitionGroups(groups)
         setRanking([]) // Clear single ranking when showing groups
@@ -1348,6 +1368,19 @@ const Results = () => {
         onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
         totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
         showEventContext={true}
+        customActions={
+          <button
+            onClick={() => setShowDisciplineScores(!showDisciplineScores)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              showDisciplineScores
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title={showDisciplineScores ? t('results.hideDisciplineScores') : t('results.showDisciplineScores')}
+          >
+            {showDisciplineScores ? '📊 ' + t('results.hideDetails') : '📊 ' + t('results.showDetails')}
+          </button>
+        }
       />
 
       {/* Rankings Table */}
@@ -1384,7 +1417,7 @@ const Results = () => {
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('results.table.yearOfBirth')}
                     </th>
-                    {disciplines.map(discipline => (
+                    {showDisciplineScores && disciplines.map(discipline => (
                       <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
                         <div className="flex flex-col">
                           <span className="font-semibold">{discipline}</span>
@@ -1428,7 +1461,7 @@ const Results = () => {
                       <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
                         {participant.age}
                       </td>
-                      {disciplines.map(discipline => (
+                      {showDisciplineScores && disciplines.map(discipline => (
                         <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
                           <div className="flex flex-col items-center">
                             {participant.scores[discipline] ? (
@@ -1494,7 +1527,7 @@ const Results = () => {
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {t('results.table.yearOfBirth')}
                           </th>
-                          {group.disciplineInfo.map(disciplineInfo => (
+                          {showDisciplineScores && group.disciplineInfo.map(disciplineInfo => (
                             <th key={disciplineInfo.name} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
                               <div className="flex flex-col items-center">
                                 <div className="flex items-center gap-1 mb-1">
@@ -1549,7 +1582,7 @@ const Results = () => {
                             <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
                               {participant.age}
                             </td>
-                            {group.disciplines.map(discipline => (
+                            {showDisciplineScores && group.disciplines.map(discipline => (
                               <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
                                 <div className="flex flex-col items-center">
                                   {participant.scores[discipline] ? (
