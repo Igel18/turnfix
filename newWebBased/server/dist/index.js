@@ -60,9 +60,11 @@ const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-        methods: ['GET', 'POST']
-    }
+        origin: '*', // Allow all origins for local network access
+        methods: ['GET', 'POST'],
+        credentials: true
+    },
+    transports: ['websocket', 'polling']
 });
 exports.io = io;
 const PORT = process.env.PORT || 3001;

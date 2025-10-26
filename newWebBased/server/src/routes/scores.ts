@@ -389,10 +389,14 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 // Save/update score value (simple endpoint for score capture)
 router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    console.log('🎯 ======= SAVE-VALUE ENDPOINT CALLED =======');
+    console.log('🎯 Request body:', req.body);
+    
     const { competitionId, participantId, disciplineId, score } = req.body;
     
     // Validate required fields
     if (!participantId || !disciplineId || score === undefined || score === null) {
+      console.log('❌ Validation failed - missing required fields');
       return res.status(400).json({ 
         error: 'Missing required fields: participantId, disciplineId, and score are required' 
       });
@@ -488,8 +492,11 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
       FROM tfx_wettkaempfe wk
       WHERE wk.int_wettkaempfeid = $1
     `;
+    console.log(`🔍 Looking up eventId for competitionId: ${actualCompetitionId}`);
     const eventIdResult = await prisma.$queryRawUnsafe(eventIdQuery, actualCompetitionId) as any[];
+    console.log(`🔍 Event ID query result:`, eventIdResult);
     const eventId = eventIdResult[0]?.event_id;
+    console.log(`🔍 Extracted eventId: ${eventId}`);
 
     // Emit Socket.IO events for real-time updates
     if (eventId) {
@@ -500,11 +507,13 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
         competitionId: actualCompetitionId,
         participantId,
         disciplineId: actualDisciplineId,
+        score: parseFloat(score), // Include the actual score value!
         updated: true 
       });
-      console.log(`✅ Socket.IO event emitted to competition-${eventId}`);
+      console.log(`✅ Socket.IO event emitted to competition-${eventId} with score: ${score}`);
     } else {
-      console.warn('⚠️ No eventId found, skipping Socket.IO emission');
+      console.warn(`⚠️ No eventId found for competitionId ${actualCompetitionId}, skipping Socket.IO emission`);
+      console.warn(`⚠️ Query result was:`, eventIdResult);
     }
     
     res.json({

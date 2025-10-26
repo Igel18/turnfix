@@ -1229,12 +1229,22 @@ Editfenster.
 72. Prio 4 http://localhost:3001/results?eventId=77&squadName=mRot
 Der Button "Print" muss besser heißen z.B. "Generate Certificats PDF"
 
-73. Prio 4 Die UI für das Jury-Portal muss überarbeitet werden: 
-Es muss immer die Liste aller Teilnehmer sichtbar sein. 
-Ich könnte mir so etwas vorstellen: 
-- Es wird die Liste aller Turner links dargestellt
-- Der aktuelle Turner wird in der Liste selektiert und die Eingabe der Wertung hervorgehoben (wie sie bisher aus sah) 
-- Die Eingabe der Wertung wird auf der Rechten Seite dargestellt, wie so ein großer Pfeil. 
+~~73. Prio 4 Die UI für das Jury-Portal muss überarbeitet werden:~~ ✅
+~~Es muss immer die Liste aller Teilnehmer sichtbar sein.~~ ✅
+~~Ich könnte mir so etwas vorstellen:~~ ✅
+~~- Es wird die Liste aller Turner links dargestellt~~ ✅
+~~- Der aktuelle Turner wird in der Liste selektiert und die Eingabe der Wertung hervorgehoben (wie sie bisher aus sah)~~ ✅ 
+~~- Die Eingabe der Wertung wird auf der Rechten Seite dargestellt, wie so ein großer Pfeil.~~ ✅
+    **Status**: ✅ Vollständig implementiert - Split-View Layout für Jury-Portal
+    **Implementierung**:
+    **Layout**: ✅ Split-View mit scrollbarer Teilnehmerliste links (w-2/5 lg:w-1/3) und fixierter Eingabe rechts
+    **Teilnehmerliste**: ✅ Scrollbar NUR in linker Liste, mit Startnummern-Badge, Status-Anzeige, Fortschrittsbalken
+    **Eingabe**: ✅ Große Score-Eingabe rechts, komplett sichtbar ohne Scrollen, optimiert für Querformat
+    **Header**: ✅ Minimiert für Querformat (p-2 sm:p-4, kleinere Icons/Text)
+    **Mobile**: ✅ Touch-optimiert, landscape-first Design, kompakte Elemente
+    **Navigation**: ✅ Vor/Zurück-Buttons, direktes Anklicken von Teilnehmern in Liste
+    **Visual Feedback**: ✅ Aktueller Teilnehmer highlighted, erledigte grün markiert
+    **File**: `jury-portal/src/components/JuryPortal.tsx` Lines 695-936
 
 ~~74. Statt Point 67. wäre das hier denkbar:~~ ✅
 ~~Die Echtzeit-Updates per Socket.IO werden für mehrere Seiten benötigt:~~ ✅
@@ -1263,9 +1273,23 @@ PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run 
 
 76. Prio 9 Falls ein Prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
 
-77. Prio 5 Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden. 
-- Use Cache-Buster techniques for live updates of the client.
-- Use socket.io for live updates from server to client when data changes.
+~~77. Prio 5 Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden.~~ ✅
+~~- Use Cache-Buster techniques for live updates of the client.~~ ✅
+~~- Use socket.io for live updates from server to client when data changes.~~ ✅
+    **Status**: ✅ Vollständig implementiert - Socket.IO Live-Updates im Jury-Portal
+    **Implementierung**:
+    **Socket.IO Client**: ✅ Installiert und konfiguriert in jury-portal (v4.x)
+    **Socket Utils**: ✅ `jury-portal/src/utils/socket.ts` mit Auto-Reconnection (5 attempts, 1s delay)
+    **Live-Updates**: ✅ Real-time Score-Updates für aktuelles Event und Gerät
+    **Event Listeners**: ✅ `score-update` und `result-update` Events
+    **Auto-Update**: ✅ Teilnehmerliste aktualisiert sich automatisch bei neuen Scores
+    **Context-Aware**: ✅ Updates nur für aktuelles Event und Disziplin
+    **Visual Feedback**: ✅ Teilnehmer-Status ändert sich live von "pending" zu "completed"
+    **Architektur**: ✅ Gleiche Socket.IO-Infrastruktur wie Haupt-Client (Port 3001)
+    **Files**: 
+    - `jury-portal/src/utils/socket.ts` - Socket.IO Connection Manager
+    - `jury-portal/src/components/JuryPortal.tsx` Lines 402-452 - Live-Update Logic
+    **Bundle Size**: JS wuchs von 165KB auf 208KB (+43KB für Socket.IO Client)
 
 78. Prio 6 Die Status Seite 
 http://localhost:3001/squad-status?eventId=59&squadName=m 

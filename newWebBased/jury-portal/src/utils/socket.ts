@@ -2,17 +2,13 @@ import { io, Socket } from 'socket.io-client';
 
 // Use relative URL in production (served from same server) or VITE_SOCKET_URL for dev
 const getSocketUrl = () => {
-  // In production, always use the current page's origin for Socket.IO
-  // This ensures it works both on localhost and network IP
+  // If we're in production and served from the main server, use relative URL
   if (import.meta.env.PROD) {
-    const origin = window.location.origin;
-    console.log('🔌 Socket.IO: Using production origin:', origin);
-    return origin;
+    // Connect to the same host that served the page
+    return window.location.origin.replace(':3002', ':3001').replace(':5174', ':3001');
   }
   // In development, use environment variable or default
-  const devUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
-  console.log('🔌 Socket.IO: Using development URL:', devUrl);
-  return devUrl;
+  return import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 };
 
 const SOCKET_URL = getSocketUrl();
@@ -23,7 +19,7 @@ export function getSocket(): Socket {
   if (!socket || !socket.connected) {
     // Only create new socket if none exists or it's disconnected
     if (!socket) {
-      console.log('🔌 Creating new Socket.IO connection to:', SOCKET_URL);
+      console.log('🔌 JURY: Creating new Socket.IO connection to:', SOCKET_URL);
       socket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
         autoConnect: true,
@@ -33,27 +29,35 @@ export function getSocket(): Socket {
       });
 
       socket.on('connect', () => {
-        console.log('✅ Socket.IO connected with ID:', socket?.id);
+        console.log('✅ JURY: Socket.IO connected with ID:', socket?.id);
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('❌ Socket.IO disconnected:', reason);
+        console.log('❌ JURY: Socket.IO disconnected:', reason);
         // Don't reset socket to null on disconnect, allow reconnection
       });
 
       socket.on('connect_error', (error) => {
-        console.error('❌ Socket.IO connection error:', error);
+        console.error('❌ JURY: Socket.IO connection error:', error);
       });
 
       socket.on('reconnect', (attemptNumber) => {
-        console.log('🔄 Socket.IO reconnected after', attemptNumber, 'attempts');
+        console.log('🔄 JURY: Socket.IO reconnected after', attemptNumber, 'attempts');
       });
     } else if (!socket.connected) {
-      console.log('🔄 Reconnecting existing socket...');
+      console.log('🔄 JURY: Reconnecting existing socket...');
       socket.connect();
     }
   }
   return socket;
+}
+
+export function disconnectSocket(): void {
+  if (socket) {
+    console.log('🔌 JURY: Disconnecting Socket.IO');
+    socket.disconnect();
+    socket = null;
+  }
 }
 
 export default getSocket;

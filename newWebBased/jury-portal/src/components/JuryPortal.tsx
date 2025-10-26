@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { getDisciplineIcon, getFallbackDeviceEmoji } from '../utils/iconUtils';
+import getSocket from '../utils/socket';
 
 interface Participant {
   id: number;
@@ -40,8 +41,20 @@ interface Competition {
   disciplines?: Device[];
 }
 
-// API configuration - always use relative URLs for Vite proxy
-const API_BASE_URL = '/api';
+// API configuration - use full URL to main server port in production
+const getApiBaseUrl = () => {
+  if (import.meta.env.PROD) {
+    // In production, connect to port 3001 (main server) instead of 3002 (jury server)
+    const origin = window.location.origin.replace(':3002', ':3001');
+    console.log('🔧 JURY API: Using production URL:', `${origin}/api`);
+    return `${origin}/api`;
+  }
+  // In development, use proxy
+  console.log('🔧 JURY API: Using development proxy: /api');
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const JuryPortal: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
@@ -321,13 +334,26 @@ const JuryPortal: React.FC = () => {
       try {
         setLoading(true);
         
-        // Use participants from the selected squad
-        const squadParticipants = selectedSquad.participants || [];
+        // Use participants from the selected squad and DEDUPLICATE immediately
+        const rawSquadParticipants = selectedSquad.participants || [];
         
-        console.log('Selected squad participants:', squadParticipants);
+        console.log('Raw squad participants (may contain duplicates):', rawSquadParticipants.length);
+        
+        // Deduplicate based on participant ID BEFORE processing
+        const uniqueSquadParticipants = rawSquadParticipants.reduce((acc: any[], current: any) => {
+          const exists = acc.find(p => p.id === current.id);
+          if (!exists) {
+            acc.push(current);
+          } else {
+            console.log(`⚠️ JURY: Skipping duplicate participant from squad: ${current.firstname} ${current.lastname} (ID: ${current.id})`);
+          }
+          return acc;
+        }, []);
+        
+        console.log('Unique squad participants (after dedup):', uniqueSquadParticipants.length);
         
         // Format participants for scoring and fetch existing scores (same logic as Score Capture)
-        const formattedParticipantsPromises = squadParticipants.map(async (participant: any, index: number) => {
+        const formattedParticipantsPromises = uniqueSquadParticipants.map(async (participant: any, index: number) => {
           // Fetch existing scores for this participant and discipline using Score Capture's approach
           let existingScore = null;
           try {
@@ -396,6 +422,52 @@ const JuryPortal: React.FC = () => {
 
     fetchParticipants();
   }, [selectedEvent, selectedSquad, selectedDevice]);
+
+  // Socket.IO Live Updates for Scores
+  useEffect(() => {
+    if (!selectedEvent || !selectedDevice) return;
+
+    console.log('🔌 JURY: Setting up Socket.IO listeners for live score updates');
+    const socket = getSocket();
+
+    // Join the competition room to receive updates
+    socket.emit('join-competition', selectedEvent);
+    console.log(`🔌 JURY: Joined competition room: competition-${selectedEvent}`);
+
+    // Listen for score updates (server sends 'score-updated' event)
+    const handleScoreUpdate = (data: any) => {
+      console.log('📡 JURY: Received score-updated:', data);
+      
+      // Only update if it's for our current event and discipline
+      if (data.eventId === selectedEvent && data.disciplineId === selectedDevice.disciplineId) {
+        console.log('✅ JURY: Score update matches current context, updating participant list');
+        
+        // Update the participant's score in the list
+        setParticipants(prevParticipants => {
+          return prevParticipants.map(participant => {
+            if (participant.participantId === data.participantId) {
+              console.log(`✅ JURY: Updating participant ${participant.name} with new score: ${data.score}`);
+              return {
+                ...participant,
+                currentScore: data.score,
+                status: 'completed' as const
+              };
+            }
+            return participant;
+          });
+        });
+      }
+    };
+
+    socket.on('score-updated', handleScoreUpdate);
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      console.log('🔌 JURY: Cleaning up Socket.IO listeners');
+      socket.emit('leave-competition', selectedEvent);
+      socket.off('score-updated', handleScoreUpdate);
+    };
+  }, [selectedEvent, selectedDevice]);
 
   const currentParticipant = participants[currentParticipantIndex];
 

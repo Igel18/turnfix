@@ -368,9 +368,12 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
 // Save/update score value (simple endpoint for score capture)
 router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
     try {
+        console.log('🎯 ======= SAVE-VALUE ENDPOINT CALLED =======');
+        console.log('🎯 Request body:', req.body);
         const { competitionId, participantId, disciplineId, score } = req.body;
         // Validate required fields
         if (!participantId || !disciplineId || score === undefined || score === null) {
+            console.log('❌ Validation failed - missing required fields');
             return res.status(400).json({
                 error: 'Missing required fields: participantId, disciplineId, and score are required'
             });
@@ -439,8 +442,11 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
       FROM tfx_wettkaempfe wk
       WHERE wk.int_wettkaempfeid = $1
     `;
+        console.log(`🔍 Looking up eventId for competitionId: ${actualCompetitionId}`);
         const eventIdResult = await prisma_1.default.$queryRawUnsafe(eventIdQuery, actualCompetitionId);
+        console.log(`🔍 Event ID query result:`, eventIdResult);
         const eventId = eventIdResult[0]?.event_id;
+        console.log(`🔍 Extracted eventId: ${eventId}`);
         // Emit Socket.IO events for real-time updates
         if (eventId) {
             const { io } = await Promise.resolve().then(() => __importStar(require('../index')));
@@ -450,12 +456,14 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
                 competitionId: actualCompetitionId,
                 participantId,
                 disciplineId: actualDisciplineId,
+                score: parseFloat(score), // Include the actual score value!
                 updated: true
             });
-            console.log(`✅ Socket.IO event emitted to competition-${eventId}`);
+            console.log(`✅ Socket.IO event emitted to competition-${eventId} with score: ${score}`);
         }
         else {
-            console.warn('⚠️ No eventId found, skipping Socket.IO emission');
+            console.warn(`⚠️ No eventId found for competitionId ${actualCompetitionId}, skipping Socket.IO emission`);
+            console.warn(`⚠️ Query result was:`, eventIdResult);
         }
         res.json({
             success: true,
