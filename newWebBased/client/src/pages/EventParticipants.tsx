@@ -382,6 +382,14 @@ const EventParticipants: React.FC = () => {
     }
   }, [eventId]);
 
+  // Reload available participants when Add Modal is opened
+  useEffect(() => {
+    if (showAddModal) {
+      console.log('🔄 Add Modal opened - refreshing available participants...');
+      loadAvailableParticipants();
+    }
+  }, [showAddModal]);
+
   const loadParticipants = async () => {
     try {
       const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=false`)
@@ -422,9 +430,11 @@ const EventParticipants: React.FC = () => {
 
   const loadAvailableParticipants = async () => {
     try {
-      // Load all participants (not just event participants)
-      const data = await apiGet('/participants');
-      console.log('Available participants data:', data);
+      // Load all participants (not just event participants) with cache busting for fresh data
+      // Use high limit to ensure all participants are loaded (not just first 50)
+      const timestamp = Date.now();
+      const data = await apiGet(`/participants?limit=10000&_t=${timestamp}`);
+      console.log('🔄 Available participants data loaded:', data);
       
       let participants = [];
       // Handle different response structures
@@ -456,6 +466,7 @@ const EventParticipants: React.FC = () => {
         startNumber: p.startNumber || p.int_startnummer
       }));
 
+      console.log(`✅ Loaded ${normalizedParticipants.length} available participants`);
       setAvailableParticipants(normalizedParticipants);
     } catch (error) {
       console.error('Error loading available participants:', error);

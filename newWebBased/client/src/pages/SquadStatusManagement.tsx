@@ -11,6 +11,7 @@ import {
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiPost } from '@/utils/api'
+import getSocket from '@/utils/socket'
 import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
 
 // Types
@@ -83,6 +84,30 @@ export function SquadStatusManagement() {
     }
   }, [selectedEventId])
 
+  // Socket.IO: Listen for real-time status updates
+  useEffect(() => {
+    if (!selectedEventId || selectedEventId === '') return;
+
+    const socket = getSocket();
+    socket.emit('join-competition', selectedEventId);
+
+    const handleStatusUpdate = (data: any) => {
+      if (data.eventId === Number(selectedEventId)) {
+        console.log('🔔 Squad or Competition status updated, reloading data...');
+        loadData();
+      }
+    };
+
+    socket.on('squad-status-updated', handleStatusUpdate);
+    socket.on('competition-status-updated', handleStatusUpdate);
+
+    return () => {
+      socket.emit('leave-competition', selectedEventId);
+      socket.off('squad-status-updated', handleStatusUpdate);
+      socket.off('competition-status-updated', handleStatusUpdate);
+    };
+  }, [selectedEventId]);
+
   const loadEvents = async () => {
     try {
       const eventsData = await apiGet('/events?limit=100')
@@ -96,8 +121,9 @@ export function SquadStatusManagement() {
     try {
       setLoading(true)
 
+      const cacheBuster = Date.now()
       // Load squad disciplines
-      const squadDisciplinesData = await apiGet(`/squad-disciplines?eventId=${selectedEventId}`)
+      const squadDisciplinesData = await apiGet(`/squad-disciplines?eventId=${selectedEventId}&_cb=${cacheBuster}`)
       setSquadDisciplines(squadDisciplinesData.squadDisciplines || [])
 
       // Load statuses

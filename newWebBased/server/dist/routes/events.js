@@ -67,6 +67,7 @@ async function getDisciplinesForCompetition(competitionName, prismaInstance) {
     }
 }
 const express_1 = require("express");
+const index_1 = require("../index");
 const authBypass_1 = require("../middleware/authBypass");
 const zod_1 = require("zod");
 const multer = require("multer");
@@ -487,6 +488,13 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             id: updatedEvent.int_veranstaltungenid,
             name: updatedEvent.var_name
         });
+        // Emit Socket.IO event for real-time update
+        if (index_1.io) {
+            index_1.io.to(`competition-${updatedEvent.int_veranstaltungenid}`).emit('event-updated', {
+                eventId: updatedEvent.int_veranstaltungenid,
+                updated: true
+            });
+        }
         res.json({ event: response });
     }
     catch (error) {
@@ -2207,8 +2215,54 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
         if (!eventId || isNaN(eventId)) {
             return res.status(400).json({ error: 'Invalid event ID' });
         }
-        console.log(`📊 Getting statistics for event ${eventId}`);
-        // Get total participants for this event through tfx_wertungen -> tfx_wettkaempfe -> tfx_veranstaltungen
+        // Extract query parameters for filtering
+        const { squadName, gender, club } = req.query;
+        console.log(`📊 Getting statistics for event ${eventId}`, { squadName, gender, club });
+        // Build WHERE conditions based on query parameters
+        let whereConditions = ['wk.int_veranstaltungenid = $1'];
+        let queryParams = [eventId];
+        let paramIndex = 1;
+        // Add squad name filter (Riege) - only for detail filtering, not main statistics
+        let squadFilter = '';
+        if (squadName && typeof squadName === 'string') {
+            paramIndex++;
+            if (squadName === 'm') {
+                // Filter for male squads (starting with 'm')
+                squadFilter = `AND w.var_riege LIKE $${paramIndex}`;
+                queryParams.push('m%');
+            }
+            else if (squadName === 'w') {
+                // Filter for female squads (starting with 'w')
+                squadFilter = `AND w.var_riege LIKE $${paramIndex}`;
+                queryParams.push('w%');
+            }
+            else {
+                // Exact squad name match
+                squadFilter = `AND w.var_riege = $${paramIndex}`;
+                queryParams.push(squadName);
+            }
+        }
+        // Add gender filter
+        if (gender && typeof gender === 'string') {
+            paramIndex++;
+            if (gender === 'male' || gender === 'm' || gender === '1') {
+                whereConditions.push(`t.int_geschlecht = $${paramIndex}`);
+                queryParams.push(1);
+            }
+            else if (gender === 'female' || gender === 'w' || gender === '2') {
+                whereConditions.push(`t.int_geschlecht = $${paramIndex}`);
+                queryParams.push(2);
+            }
+        }
+        // Add club filter
+        if (club && typeof club === 'string') {
+            paramIndex++;
+            whereConditions.push(`t.int_vereineid = $${paramIndex}`);
+            queryParams.push(parseInt(club));
+        }
+        const whereClause = whereConditions.join(' AND ');
+        // Get total participants for this event - ALWAYS show complete event statistics
+        // Squad filter should not affect the main participant count
         const participantStatsQuery = `
       SELECT 
         COUNT(DISTINCT w.int_teilnehmerid) as total_participants,
@@ -2227,15 +2281,15 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
             female_participants: 0,
             total_clubs: 0
         };
-        // Get competitions count
-        const competitionsQuery = `
+        // Get competitions count (no squad filter for competitions)
+        let competitionsQuery = `
       SELECT COUNT(*) as total_competitions
       FROM tfx_wettkaempfe
       WHERE int_veranstaltungenid = $1
     `;
         const competitionsCount = await prisma_1.default.$queryRawUnsafe(competitionsQuery, eventId);
         const competitions = competitionsCount[0] || { total_competitions: 0 };
-        // Get discipline stats
+        // Get discipline stats - apply filters here for detailed breakdown
         const disciplineStatsQuery = `
       SELECT 
         d.var_name as discipline_name,
@@ -2244,12 +2298,13 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       INNER JOIN tfx_wettkaempfe_x_disziplinen wxd ON wk.int_wettkaempfeid = wxd.int_wettkaempfeid
       INNER JOIN tfx_disziplinen d ON wxd.int_disziplinenid = d.int_disziplinenid
-      WHERE wk.int_veranstaltungenid = $1
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE ${whereClause} ${squadFilter}
       GROUP BY d.int_disziplinenid, d.var_name
       ORDER BY participant_count DESC
     `;
-        const disciplineStats = await prisma_1.default.$queryRawUnsafe(disciplineStatsQuery, eventId);
-        // Get age group stats - calculate from birthdate
+        const disciplineStats = await prisma_1.default.$queryRawUnsafe(disciplineStatsQuery, ...queryParams);
+        // Get age group stats - calculate from birthdate, apply filters for breakdown
         const ageGroupStatsQuery = `
       SELECT 
         COUNT(DISTINCT CASE 
@@ -2283,9 +2338,9 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
-      WHERE wk.int_veranstaltungenid = $1 AND t.dat_geburtstag IS NOT NULL
+      WHERE ${whereClause} ${squadFilter} AND t.dat_geburtstag IS NOT NULL
     `;
-        const ageGroupStats = await prisma_1.default.$queryRawUnsafe(ageGroupStatsQuery, eventId);
+        const ageGroupStats = await prisma_1.default.$queryRawUnsafe(ageGroupStatsQuery, ...queryParams);
         const ageGroups = ageGroupStats[0] || {
             "1_6": 0,
             "7_8": 0,
@@ -2295,7 +2350,7 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
             "15_16": 0,
             "17_18": 0
         };
-        // Get club breakdown
+        // Get club breakdown - apply filters for detailed breakdown
         const clubBreakdownQuery = `
       SELECT 
         v.var_name as club_name,
@@ -2304,22 +2359,22 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
       INNER JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-      WHERE wk.int_veranstaltungenid = $1
+      WHERE ${whereClause} ${squadFilter}
       GROUP BY v.int_vereineid, v.var_name
       ORDER BY participant_count DESC
     `;
-        const clubBreakdown = await prisma_1.default.$queryRawUnsafe(clubBreakdownQuery, eventId);
-        // Get Riegen (squads/starting groups) count - stored in tfx_wertungen.var_riege
-        // Examples: mBlau, mGrün, wRot, etc.
+        const clubBreakdown = await prisma_1.default.$queryRawUnsafe(clubBreakdownQuery, ...queryParams);
+        // Get Riegen (squads/starting groups) count - apply filters for detailed breakdown
         const riegenCountQuery = `
       SELECT COUNT(DISTINCT w.var_riege) as total_groups
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      WHERE wk.int_veranstaltungenid = $1 
+      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE ${whereClause} ${squadFilter}
         AND w.var_riege IS NOT NULL 
         AND w.var_riege != ''
     `;
-        const riegenCount = await prisma_1.default.$queryRawUnsafe(riegenCountQuery, eventId);
+        const riegenCount = await prisma_1.default.$queryRawUnsafe(riegenCountQuery, ...queryParams);
         const groups = riegenCount[0] || { total_groups: 0 };
         const result = {
             totalParticipants: Number(stats.total_participants),
@@ -2328,6 +2383,11 @@ router.get('/:id/statistics', authBypass_1.authenticateToken, async (req, res) =
             totalClubs: Number(stats.total_clubs),
             totalCompetitions: Number(competitions.total_competitions),
             totalGroups: Number(groups.total_groups),
+            filters: {
+                squadName: squadName || null,
+                gender: gender || null,
+                club: club || null
+            },
             disciplines: disciplineStats.map((d) => ({
                 name: d.discipline_name,
                 count: Number(d.participant_count)

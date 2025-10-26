@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -315,21 +316,56 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
     console.log('DEBUG: eventId in request:', validatedData.eventId);
     console.log('DEBUG: competitionId in request:', validatedData.competitionId);
 
-    // First, we need to find the wertungenid for this participant
-    // The participantId in the request is actually the participant ID, not the wertungenid
-    // We need to filter by event to get the correct wertungenid for this specific event
+    // Get the discipline ID from the discipline field first
+    const fieldDisciplineQuery = `
+      SELECT int_disziplinenid 
+      FROM tfx_disziplinen_felder 
+      WHERE int_disziplinen_felderid = $1
+    `;
+    
+    const fieldDisciplineResult = await prisma.$queryRawUnsafe(
+      fieldDisciplineQuery,
+      validatedData.disciplineFieldId
+    ) as any[];
+
+    if (fieldDisciplineResult.length === 0) {
+      return res.status(400).json({ 
+        error: 'Invalid discipline field ID. Field not found.' 
+      });
+    }
+
+    const disciplineId = fieldDisciplineResult[0].int_disziplinenid;
+    console.log(`✅ Found discipline ID ${disciplineId} for field ID ${validatedData.disciplineFieldId}`);
+
+    // Use ScoreSynchronizer to find the correct competition ID with the actual discipline ID
+    const actualCompetitionId = await ScoreSynchronizer.findCorrectCompetitionId(
+      validatedData.participantId,
+      disciplineId, // Use the actual discipline ID, not the field ID
+      validatedData.eventId,
+      validatedData.competitionId
+    );
+
+    if (!actualCompetitionId) {
+      return res.status(400).json({ 
+        error: 'Could not determine correct competition for this participant and discipline field. Please ensure the participant is registered for a competition that includes this discipline.' 
+      });
+    }
+
+    console.log(`✅ Using competition ID: ${actualCompetitionId} (from ScoreSynchronizer)`);
+
+    // Find the wertungenid for this participant and competition
     const wertungenQuery = `
       SELECT w.int_wertungenid
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       WHERE w.int_teilnehmerid = $1
-      AND wk.int_veranstaltungenid = $2
+        AND wk.int_veranstaltungenid = $2
+        AND w.int_wettkaempfeid = $3
       ORDER BY w.int_wertungenid DESC
       LIMIT 1
     `;
 
-    const queryParams = [validatedData.participantId, validatedData.eventId];
-    
+    const queryParams = [validatedData.participantId, validatedData.eventId, actualCompetitionId];
     console.log('DEBUG: Final query:', wertungenQuery);
     console.log('DEBUG: Query params:', queryParams);
 
@@ -337,17 +373,25 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
       wertungenQuery,
       ...queryParams
     ) as any[];
-    
+
     console.log('DEBUG: Query result:', wertungenResult);
 
     if (!wertungenResult || wertungenResult.length === 0) {
       return res.status(400).json({ 
-        error: 'No evaluation record found for this participant. Participant must be registered for a competition first.' 
+        error: 'No evaluation record found for this participant in this competition and event. Participant must be registered for the correct competition.' 
       });
     }
 
     const wertungenId = wertungenResult[0].int_wertungenid;
-    console.log(`Found wertungenid ${wertungenId} for participant ${validatedData.participantId}`);
+    console.log(`Found wertungenid ${wertungenId} for participant ${validatedData.participantId}, event ${validatedData.eventId}, competition ${actualCompetitionId}`);
+
+    // Ensure there's a corresponding entry in tfx_wertungen_details for Qt compatibility
+    await ScoreSynchronizer.ensureWertungsDetailsEntry(
+      wertungenId,
+      disciplineId, // Use the disciplineId we found earlier
+      validatedData.attempt,
+      validatedData.type
+    );
 
     // Check if jury result already exists
     const existingQuery = `

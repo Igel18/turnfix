@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -7,6 +40,7 @@ const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const prisma_1 = __importDefault(require("../lib/prisma"));
+const scoreSynchronizer_1 = require("../utils/scoreSynchronizer");
 const router = (0, express_1.Router)();
 // Validation schemas
 const scoreCreateSchema = zod_1.z.object({
@@ -336,9 +370,9 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const { competitionId, participantId, disciplineId, score } = req.body;
         // Validate required fields
-        if (!competitionId || !participantId || !disciplineId || score === undefined || score === null) {
+        if (!participantId || !disciplineId || score === undefined || score === null) {
             return res.status(400).json({
-                error: 'Missing required fields: competitionId, participantId, disciplineId, and score are required'
+                error: 'Missing required fields: participantId, disciplineId, and score are required'
             });
         }
         console.log('Saving score value:', { competitionId, participantId, disciplineId, score });
@@ -360,6 +394,15 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
                 });
             }
         }
+        // Use ScoreSynchronizer to find the correct competition ID
+        const actualCompetitionId = await scoreSynchronizer_1.ScoreSynchronizer.findCorrectCompetitionId(participantId, actualDisciplineId, undefined, // eventId - we'll derive it from competition
+        competitionId ? parseInt(competitionId) : undefined);
+        if (!actualCompetitionId) {
+            return res.status(400).json({
+                error: 'Could not determine correct competition for this participant and discipline. Please ensure the participant is registered for a competition that includes this discipline.'
+            });
+        }
+        console.log(`✅ Using competition ID: ${actualCompetitionId}`);
         // Find the wertungen record for this competition/participant
         const wertungenQuery = `
       SELECT int_wertungenid 
@@ -367,7 +410,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
       WHERE int_wettkaempfeid = $1 
         AND int_teilnehmerid = $2
     `;
-        const wertungenResults = await prisma_1.default.$queryRawUnsafe(wertungenQuery, competitionId, participantId);
+        const wertungenResults = await prisma_1.default.$queryRawUnsafe(wertungenQuery, actualCompetitionId, participantId);
         let wertungenId;
         if (wertungenResults.length === 0) {
             // Create new wertungen record first
@@ -377,7 +420,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
         VALUES ($1, $2, $3)
         RETURNING int_wertungenid
       `;
-            const newWertungen = await prisma_1.default.$queryRawUnsafe(createWertungenQuery, competitionId, participantId, 1 // Default status ID
+            const newWertungen = await prisma_1.default.$queryRawUnsafe(createWertungenQuery, actualCompetitionId, participantId, 1 // Default status ID
             );
             wertungenId = newWertungen[0].int_wertungenid;
             console.log('Created new wertungen record with ID:', wertungenId);
@@ -386,52 +429,41 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
             wertungenId = wertungenResults[0].int_wertungenid;
             console.log('Using existing wertungen record with ID:', wertungenId);
         }
-        // Check if a score detail record already exists for this discipline
-        const existingDetailQuery = `
-      SELECT int_wertungen_detailsid 
-      FROM tfx_wertungen_details 
-      WHERE int_wertungenid = $1 
-        AND int_disziplinenid = $2
+        // Use ScoreSynchronizer to update the score and ensure consistency
+        await scoreSynchronizer_1.ScoreSynchronizer.updateWertungsDetailsScore(wertungenId, actualDisciplineId, parseFloat(score), 1, // attempt
+        0 // kp (default)
+        );
+        // Get event ID for Socket.IO emission
+        const eventIdQuery = `
+      SELECT wk.int_veranstaltungenid as event_id
+      FROM tfx_wettkaempfe wk
+      WHERE wk.int_wettkaempfeid = $1
     `;
-        const existingDetails = await prisma_1.default.$queryRawUnsafe(existingDetailQuery, wertungenId, actualDisciplineId);
-        if (existingDetails.length > 0) {
-            // Update existing detail record
-            const updateDetailQuery = `
-        UPDATE tfx_wertungen_details 
-        SET rel_leistung = $1
-        WHERE int_wertungen_detailsid = $2
-        RETURNING int_wertungen_detailsid, rel_leistung
-      `;
-            const updated = await prisma_1.default.$queryRawUnsafe(updateDetailQuery, parseFloat(score), existingDetails[0].int_wertungen_detailsid);
-            console.log('Updated existing score detail record');
-            res.json({
-                success: true,
-                message: 'Score updated successfully',
-                wertungenId: wertungenId,
-                detailId: updated[0].int_wertungen_detailsid,
-                score: updated[0].rel_leistung
+        const eventIdResult = await prisma_1.default.$queryRawUnsafe(eventIdQuery, actualCompetitionId);
+        const eventId = eventIdResult[0]?.event_id;
+        // Emit Socket.IO events for real-time updates
+        if (eventId) {
+            const { io } = await Promise.resolve().then(() => __importStar(require('../index')));
+            console.log(`🔔 Emitting score-updated event for eventId ${eventId}`);
+            io.to(`competition-${eventId}`).emit('score-updated', {
+                eventId,
+                competitionId: actualCompetitionId,
+                participantId,
+                disciplineId: actualDisciplineId,
+                updated: true
             });
+            console.log(`✅ Socket.IO event emitted to competition-${eventId}`);
         }
         else {
-            // Create new detail record
-            const insertDetailQuery = `
-        INSERT INTO tfx_wertungen_details 
-          (int_wertungenid, int_disziplinenid, int_versuch, rel_leistung, int_kp)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING int_wertungen_detailsid, rel_leistung
-      `;
-            const created = await prisma_1.default.$queryRawUnsafe(insertDetailQuery, wertungenId, actualDisciplineId, 1, // Default attempt/versuch
-            parseFloat(score), 0 // Default int_kp
-            );
-            console.log('Created new score detail record');
-            res.json({
-                success: true,
-                message: 'Score saved successfully',
-                wertungenId: wertungenId,
-                detailId: created[0].int_wertungen_detailsid,
-                score: created[0].rel_leistung
-            });
+            console.warn('⚠️ No eventId found, skipping Socket.IO emission');
         }
+        res.json({
+            success: true,
+            message: 'Score saved successfully with synchronization',
+            wertungenId: wertungenId,
+            competitionId: actualCompetitionId,
+            score: parseFloat(score)
+        });
     }
     catch (error) {
         console.error('Error saving score value:', error);

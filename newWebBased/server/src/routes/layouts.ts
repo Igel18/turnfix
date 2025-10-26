@@ -17,14 +17,14 @@ const updateLayoutSchema = z.object({
 });
 
 const createLayoutFieldSchema = z.object({
-  layoutId: z.number().int().positive(),
+  layoutId: z.number().int().positive().optional(), // layoutId is added from URL params
   type: z.number().int().min(0).max(10),
-  font: z.string().max(150).optional(),
+  font: z.string().max(150).optional().nullable(),
   x: z.number().min(0), // Remove max constraint temporarily 
   y: z.number().min(0), // Remove max constraint temporarily
   width: z.number().min(0), // Remove max constraint temporarily
   height: z.number().min(0), // Remove max constraint temporarily
-  value: z.string().max(200).optional(), // Match database constraint: VarChar(200)
+  value: z.string().max(200).optional().nullable(), // Match database constraint: VarChar(200)
   align: z.number().int().min(0).max(2).default(0),
   layer: z.number().int().min(0).max(10).default(0)
 });
@@ -43,7 +43,17 @@ router.get('/count', async (req, res) => {
   }
 });
 
-const updateLayoutFieldSchema = createLayoutFieldSchema.partial();
+const updateLayoutFieldSchema = z.object({
+  type: z.number().int().min(0).max(10).optional(),
+  font: z.string().max(150).optional().nullable(),
+  x: z.number().min(0).optional(),
+  y: z.number().min(0).optional(),
+  width: z.number().min(0).optional(),
+  height: z.number().min(0).optional(),
+  value: z.string().max(200).optional().nullable(),
+  align: z.number().int().min(0).max(2).optional(),
+  layer: z.number().int().min(0).max(10).optional()
+});
 
 // Get all layouts
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
@@ -291,16 +301,30 @@ router.get('/:id/fields', authenticateToken, async (req: AuthRequest, res) => {
 router.post('/:id/fields', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const layoutId = parseInt(req.params.id);
-    const validatedData = createLayoutFieldSchema.parse({
-      ...req.body,
-      layoutId
+    
+    console.log('📝 Creating layout field - Request body:', JSON.stringify(req.body, null, 2));
+    
+    // Validate the request body without layoutId, then add it
+    // Note: Coordinates can be negative or outside [0,1] range during editing
+    const baseValidation = z.object({
+      type: z.number().int().min(0).max(10),
+      font: z.string().max(150).optional().nullable(),
+      x: z.number(), // Allow any number, validation happens in UI
+      y: z.number(), // Allow any number, validation happens in UI
+      width: z.number().min(0), // Width and height must be positive
+      height: z.number().min(0),
+      value: z.string().max(200).optional().nullable(),
+      align: z.number().int().min(0).max(2).default(0),
+      layer: z.number().int().min(0).max(10).default(0)
     });
+    
+    const validatedData = baseValidation.parse(req.body);
 
-    console.log('Creating layout field:', validatedData);
+    console.log('✅ Validation passed - Creating layout field:', { layoutId, ...validatedData });
 
     const field = await prisma.tfx_layout_felder.create({
       data: {
-        int_layoutid: validatedData.layoutId,
+        int_layoutid: layoutId,
         int_typ: validatedData.type,
         var_font: validatedData.font || null,
         rel_x: validatedData.x,
@@ -330,9 +354,14 @@ router.post('/:id/fields', authenticateToken, async (req: AuthRequest, res) => {
 
     res.status(201).json(transformedField);
   } catch (error) {
-    console.error('Error creating layout field:', error);
+    console.error('❌ Error creating layout field:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.issues });
+      console.error('📋 Validation errors:', JSON.stringify(error.issues, null, 2));
+      return res.status(400).json({ 
+        error: 'Validation error', 
+        details: error.issues,
+        message: error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ')
+      });
     }
     res.status(500).json({ error: 'Internal server error' });
   }

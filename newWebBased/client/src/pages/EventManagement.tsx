@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import getSocket from '../utils/socket';
 import { useEvent } from '../contexts/EventContext';
 import { useTranslation } from 'react-i18next';
 import UnifiedPageHeader from '../components/UnifiedPageHeader';
@@ -72,6 +73,11 @@ interface EventStatistics {
   totalClubs: number;
   totalCompetitions: number;
   totalGroups: number;
+  filters?: {
+    squadName?: string | null;
+    gender?: string | null;
+    club?: string | null;
+  };
   ageGroups: { [key: string]: number };
   clubBreakdown: { clubName: string; count: number }[];
 }
@@ -79,6 +85,25 @@ interface EventStatistics {
 const EventManagement: React.FC = () => {
   const { t } = useTranslation();
   const { selectedEvent, setSelectedEvent, refreshEvents } = useEvent();
+  // Socket.IO: Listen for event updates
+  useEffect(() => {
+    const socket = getSocket();
+    if (!selectedEvent) return;
+    // Join room for this event
+    socket.emit('join-competition', selectedEvent.int_eventid);
+    // Listen for event update
+    const handleEventUpdate = (data: any) => {
+      if (data && data.eventId === selectedEvent.int_eventid) {
+        loadEventData();
+      }
+    };
+    socket.on('event-updated', handleEventUpdate);
+    // Cleanup on unmount
+    return () => {
+      socket.emit('leave-competition', selectedEvent.int_eventid);
+      socket.off('event-updated', handleEventUpdate);
+    };
+  }, [selectedEvent]);
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [statistics, setStatistics] = useState<EventStatistics | null>(null);
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -140,7 +165,23 @@ const EventManagement: React.FC = () => {
 
       // Load statistics (with error handling for missing endpoint)
       try {
-        const statsResponse = await apiGet(`/events/${selectedEvent.int_eventid}/statistics`);
+        // Get current URL search parameters for selective filtering
+        // NOTE: squadName is intentionally NOT included - main statistics should show entire event
+        const urlParams = new URLSearchParams(window.location.search);
+        const gender = urlParams.get('gender');
+        const club = urlParams.get('club');
+        
+        // Build query string for statistics API (exclude squadName for main event statistics)
+        const statsParams = new URLSearchParams();
+        // if (squadName) statsParams.append('squadName', squadName); // REMOVED: Main stats show entire event
+        if (gender) statsParams.append('gender', gender);
+        if (club) statsParams.append('club', club);
+        
+        const statsUrl = `/events/${selectedEvent.int_eventid}/statistics${statsParams.toString() ? '?' + statsParams.toString() : ''}`;
+        console.log('📊 Loading statistics for entire event (no squad filter):', statsUrl);
+        
+        const statsResponse = await apiGet(statsUrl);
+        setStatistics(statsResponse);
         setStatistics(statsResponse);
       } catch (error: any) {
         console.warn('Statistics endpoint not available:', error.message);

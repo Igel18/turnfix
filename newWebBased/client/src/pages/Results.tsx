@@ -12,6 +12,7 @@ import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
 import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
 import { getDisciplineIcon, getDisciplineShortName } from '@/utils/disciplineIcons'
+import getSocket from '../utils/socket'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -21,6 +22,7 @@ interface Participant {
   club: string
   startNumber: number
   age: number
+  gender: string // Add gender field for filtering
   scores: { [discipline: string]: number }
   totalScore: number
   rank: number
@@ -97,6 +99,7 @@ const Results = () => {
   const [competitions, setCompetitions] = useState<any[]>([])
   const [selectedCompetition, setSelectedCompetition] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
+  const [genderFilter, setGenderFilter] = useState('')
   
   // Certificate printing state
   const { selectedLayout: contextSelectedLayout, setSelectedLayout: setContextSelectedLayout } = useCertificateLayout()
@@ -116,12 +119,24 @@ const Results = () => {
         label: `${comp.name || 'Unknown Competition'}${comp.number ? ` (Nr. ${comp.number})` : ''}`
       })),
       onChange: setSelectedCompetition
+    },
+    {
+      value: 'gender',
+      label: 'Gender', // TODO: Add to localization
+      selectedValue: genderFilter,
+      options: [
+        { value: 'male', label: 'Male' }, // TODO: Add to localization
+        { value: 'female', label: 'Female' }, // TODO: Add to localization
+        { value: 'other', label: 'Other' } // TODO: Add to localization
+      ],
+      onChange: setGenderFilter
     }
   ];
 
   const handleClearAllFilters = () => {
     setSearchTerm('')
     setSelectedCompetition('')
+    setGenderFilter('')
   }
 
   // Format score with 3 decimal places
@@ -154,7 +169,8 @@ const Results = () => {
     if (!eventId) return
 
     try {
-      const data = await apiGet(`/competitions?eventId=${eventId}`)
+      const cacheBuster = Date.now()
+      const data = await apiGet(`/competitions?eventId=${eventId}&_cb=${cacheBuster}`)
       // The API returns competitions directly as an array, not wrapped in { competitions: [] }
       const competitionsArray = Array.isArray(data) ? data : []
       setCompetitions(competitionsArray)
@@ -194,7 +210,8 @@ const Results = () => {
       // Then fetch scores for the specific event
       const scoresParams = new URLSearchParams({ 
         limit: '1000',
-        eventId: eventId
+        eventId: eventId,
+        _cb: Date.now().toString()
       })
       if (squadName) scoresParams.append('squadName', squadName)
       if (selectedCompetition) scoresParams.append('competitionId', selectedCompetition)
@@ -317,6 +334,7 @@ const Results = () => {
           club: participant.club || 'Unknown Club',
           startNumber: participant.startNumber || 0,
           age: participant.age || 0,
+          gender: participant.gender || 'other', // Add gender field for filtering
           scores: participantScores,
           totalScore,
           rank: 0,
@@ -1161,12 +1179,16 @@ const Results = () => {
     }
   }
 
-  // Filter participants based on search term
-  const filteredRanking = ranking.filter(participant =>
-    participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
-  )
+  // Filter participants based on search term and gender
+  const filteredRanking = ranking.filter(participant => {
+    const matchesSearch = participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
+    
+    const matchesGender = !genderFilter || participant.gender === genderFilter
+    
+    return matchesSearch && matchesGender
+  })
 
   // Get competitions that actually have participants in this event
   const getAvailableCompetitions = () => {
@@ -1203,14 +1225,18 @@ const Results = () => {
     }
   }
 
-  // Filter competition groups based on search term
+  // Filter competition groups based on search term and gender
   const filteredCompetitionGroups = competitionGroups.map(group => ({
     ...group,
-    participants: group.participants.filter(participant =>
-      participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
-    )
+    participants: group.participants.filter(participant => {
+      const matchesSearch = participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          participant.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (participant.startNumber && participant.startNumber.toString().includes(searchTerm))
+      
+      const matchesGender = !genderFilter || participant.gender === genderFilter
+      
+      return matchesSearch && matchesGender
+    })
   })).filter(group => group.participants.length > 0)
 
   useEffect(() => {
@@ -1226,6 +1252,51 @@ const Results = () => {
       loadData()
     }
   }, [eventId, squadName, selectedCompetition])
+
+  // Socket.IO: Listen for real-time updates
+  useEffect(() => {
+    if (!eventId) return;
+
+    const socket = getSocket();
+    socket.emit('join-competition', eventId);
+
+    const handleResultsUpdate = (data: any) => {
+      if (data.eventId === Number(eventId)) {
+        console.log('🔔 Results updated, reloading data...');
+        const loadData = async () => {
+          await fetchCompetitions();
+          const cacheBuster = Date.now();
+          const freshCompetitions = await apiGet(`/competitions?eventId=${eventId}&_cb=${cacheBuster}`);
+          const competitionsArray = Array.isArray(freshCompetitions) ? freshCompetitions : [];
+          await fetchEventRanking(competitionsArray);
+        };
+        loadData();
+      }
+    };
+
+    const handleScoreUpdate = (data: any) => {
+      if (data.eventId === Number(eventId)) {
+        console.log('🔔 Score updated, reloading results...');
+        const loadData = async () => {
+          await fetchCompetitions();
+          const cacheBuster = Date.now();
+          const freshCompetitions = await apiGet(`/competitions?eventId=${eventId}&_cb=${cacheBuster}`);
+          const competitionsArray = Array.isArray(freshCompetitions) ? freshCompetitions : [];
+          await fetchEventRanking(competitionsArray);
+        };
+        loadData();
+      }
+    };
+
+    socket.on('results-updated', handleResultsUpdate);
+    socket.on('score-updated', handleScoreUpdate);
+
+    return () => {
+      socket.emit('leave-competition', eventId);
+      socket.off('results-updated', handleResultsUpdate);
+      socket.off('score-updated', handleScoreUpdate);
+    };
+  }, [eventId]);
 
   // Refresh ranking data when competitions are loaded (only if we have competitions but no proper names yet)
   useEffect(() => {

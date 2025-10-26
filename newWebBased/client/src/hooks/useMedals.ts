@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import getSocket from '../utils/socket';
 
 export interface MedalStanding {
   clubId: number;
@@ -36,7 +37,8 @@ export const useMedals = (eventId: number | null) => {
     setError(null);
     
     try {
-      const response = await fetch(`/api/medals/${eventId}`);
+      const cacheBuster = Date.now();
+      const response = await fetch(`/api/medals/${eventId}?_cb=${cacheBuster}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -57,6 +59,30 @@ export const useMedals = (eventId: number | null) => {
     }
 
     fetchMedals();
+  }, [eventId]);
+
+  // Socket.IO: Listen for real-time medal and results updates
+  useEffect(() => {
+    if (!eventId) return;
+
+    const socket = getSocket();
+    socket.emit('join-competition', eventId);
+
+    const handleUpdate = (data: any) => {
+      if (data.eventId === Number(eventId)) {
+        console.log('🔔 Medals or results updated, refetching medal data...');
+        fetchMedals();
+      }
+    };
+
+    socket.on('medals-updated', handleUpdate);
+    socket.on('results-updated', handleUpdate);
+
+    return () => {
+      socket.emit('leave-competition', eventId);
+      socket.off('medals-updated', handleUpdate);
+      socket.off('results-updated', handleUpdate);
+    };
   }, [eventId]);
 
   return { medalData, loading, error, refetch: fetchMedals };

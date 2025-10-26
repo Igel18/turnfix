@@ -194,13 +194,13 @@ function Start-TurnFix {
         Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
         Write-Host ""
         Write-Host "Lokal (nur dieser PC):" -ForegroundColor Cyan
-        Write-Host "  📊 Verwaltung:        http://localhost:3001" -ForegroundColor White
+        Write-Host "  🌐 Web-Interface:     http://localhost:3001" -ForegroundColor White
         Write-Host "  👨‍⚖️  Kampfrichter:      http://localhost:3002" -ForegroundColor White
         Write-Host ""
         
         if ($localIP -ne "localhost") {
             Write-Host "Im Netzwerk (andere Geräte):" -ForegroundColor Cyan
-            Write-Host "  📊 Verwaltung:        http://${localIP}:3001" -ForegroundColor Yellow
+            Write-Host "  🌐 Web-Interface:     http://${localIP}:3001" -ForegroundColor Yellow
             Write-Host "  👨‍⚖️  Kampfrichter:      http://${localIP}:3002" -ForegroundColor Yellow
             Write-Host ""
             Write-Host "  ℹ️  Ihre IP-Adresse: $localIP" -ForegroundColor DarkGray
@@ -409,7 +409,7 @@ function Show-AdvancedMenu {
                     Write-Host "     IP-Adresse: $ipAddr" -ForegroundColor White
                     Write-Host ""
                     Write-Host "     Zugriff vom Tablet/Handy/Laptop:" -ForegroundColor Cyan
-                    Write-Host "       📊 Verwaltung:        http://${ipAddr}:3001" -ForegroundColor Green
+                    Write-Host "       🌐 Web-Interface:     http://${ipAddr}:3001" -ForegroundColor Green
                     Write-Host "       👨‍⚖️  Kampfrichter:      http://${ipAddr}:3002" -ForegroundColor Green
                     Write-Host ""
                 }

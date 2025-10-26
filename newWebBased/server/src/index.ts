@@ -15,7 +15,7 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
 import { errorHandler } from './middleware/errorHandler';
-import { notFoundHandler } from './middleware/notFoundHandler';
+// import { notFoundHandler } from './middleware/notFoundHandler'; // DISABLED FOR FRONTEND INTEGRATION
 import { 
   setupGracefulShutdown, 
   setupProcessWarnings,
@@ -76,21 +76,8 @@ const io = new SocketIOServer(server, {
 const PORT = process.env.PORT || 3001;
 
 // Rate limiting - very permissive for development, adjust for production
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000'), // 10000 requests per minute (very permissive)
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip rate limiting for localhost (including proxy from jury-server)
-  skip: (req) => {
-    const isLocalhost = req.ip === '::1' || 
-                       req.ip === '127.0.0.1' || 
-                       req.ip === '::ffff:127.0.0.1' ||
-                       req.hostname === 'localhost';
-    return isLocalhost; // Always skip localhost, regardless of NODE_ENV
-  }
-});
+// Rate limiting is fully disabled for all IPs
+// If you want to re-enable, uncomment the limiter and app.use(limiter) lines below.
 
 // Middleware
 // Configure Helmet with relaxed CSP for production frontend serving
@@ -114,7 +101,7 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined'));
-app.use(limiter);
+// Rate limiting is disabled. If you want to re-enable, uncomment the app.use(limiter) line above.
 
 // CORS configuration - allow network access
 const corsOrigins = [
@@ -160,6 +147,12 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Debug middleware - log all requests
+app.use((req, res, next) => {
+  console.log(`🔍 REQUEST: ${req.method} ${req.path} - Time: ${new Date().toISOString()}`);
+  next();
+});
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads', {
@@ -240,9 +233,11 @@ app.use('/api/app-settings', appSettingsRoutes);
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');
-  const clientDistPath = path.join(__dirname, '../../client/dist');
+  // Use proper cross-platform path handling - correct path with newWebBased
+  const clientDistPath = path.resolve(__dirname, '../../client/dist');
   
   console.log('🌐 Serving static frontend from:', clientDistPath);
+  console.log('🔍 Directory exists:', require('fs').existsSync(clientDistPath));
   
   // Serve static files from the client dist directory
   app.use(express.static(clientDistPath, {
@@ -261,10 +256,15 @@ if (process.env.NODE_ENV === 'production') {
   
   // All other routes should serve the index.html (for SPA routing)
   app.get('*', (req, res, next) => {
+    console.log(`🔍 Catch-all handler called for: ${req.path}`);
+    
     // Skip API routes
     if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/public/')) {
+      console.log(`⏭️ Skipping API/upload route: ${req.path}`);
       return next();
     }
+    
+    console.log(`📄 Serving index.html for: ${req.path}`);
     
     // Set no-cache headers for index.html
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -275,6 +275,8 @@ if (process.env.NODE_ENV === 'production') {
       if (err) {
         console.error('Error serving index.html:', err);
         next(err);
+      } else {
+        console.log(`✅ Successfully served index.html for: ${req.path}`);
       }
     });
   });
@@ -305,9 +307,10 @@ io.on('connection', (socket) => {
 
 // Store io instance for use in other modules
 app.set('io', io);
+export { io };
 
-// Error handling
-app.use(notFoundHandler);
+// Error handling - MUST BE LAST after all routes including frontend
+// app.use(notFoundHandler); // TEMPORARILY DISABLED FOR TESTING
 app.use(errorHandler);
 
 console.log('🔧 About to start server on port', PORT);

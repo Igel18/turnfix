@@ -1,10 +1,10 @@
 {
   "database": {
-    "db_host": "192.168.1.51",
+    "db_host": "localhost",
     "db_port": 5432,
     "db_name": "turnfix",
     "db_user": "postgres",
-    "db_password": "87bdf1425e4c639bd0c16c5a124ad0dc:4c8084577ab2505007419edcd083f06d",
+    "db_password": "2b10352b6ccb09ba333ae91b77a0ad91:3b2e6a8f918e9316aa4f139fdc44be1a",
     "db_ssl": false
   },
   "application": {

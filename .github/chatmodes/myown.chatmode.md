@@ -154,3 +154,8 @@ Use the pdfUtils functions to generate the PDF document.
 
 # Testing Setup Summary
 Run all tests with coverage to see the current coverage status. 
+
+# Live Updates 
+- Use Cache-Buster techniques for live updates of the client.
+- Use socket.io for live updates from server to client when data changes.
+

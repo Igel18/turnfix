@@ -10,6 +10,7 @@ import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { GenderBadge } from '@/components/GenderBadge'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
+import getSocket from '@/utils/socket'
 import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
 
 // Types
@@ -82,12 +83,37 @@ const CompetitionStatusManagement = () => {
     }
   }, [selectedEventId])
 
+  // Socket.IO: Listen for real-time status updates
+  useEffect(() => {
+    if (!selectedEventId) return;
+
+    const socket = getSocket();
+    socket.emit('join-competition', selectedEventId);
+
+    const handleStatusUpdate = (data: any) => {
+      if (data.eventId === Number(selectedEventId)) {
+        console.log('🔔 Competition or Squad status updated, reloading data...');
+        loadData();
+      }
+    };
+
+    socket.on('competition-status-updated', handleStatusUpdate);
+    socket.on('squad-status-updated', handleStatusUpdate);
+
+    return () => {
+      socket.emit('leave-competition', selectedEventId);
+      socket.off('competition-status-updated', handleStatusUpdate);
+      socket.off('squad-status-updated', handleStatusUpdate);
+    };
+  }, [selectedEventId]);
+
   const loadData = async () => {
     try {
       setLoading(true)
 
       // Load competition status data from our new aggregated endpoint
-      const competitionStatusData = await apiGet(`/competition-status?eventId=${selectedEventId}`)
+      const cacheBuster = Date.now()
+      const competitionStatusData = await apiGet(`/competition-status?eventId=${selectedEventId}&_cb=${cacheBuster}`)
       setCompetitionStatuses(competitionStatusData.competitions || [])
 
       // Load events data separately for the dropdown

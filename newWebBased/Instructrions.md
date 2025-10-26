@@ -874,14 +874,171 @@ Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den 
 
 b) http://localhost:3001/competition-status?eventId=59&squadName=mBlau
 
-56. Doppelte Info
+56. Prio 5 Doppelte Info
 Beschreibung und Zusätzliche Informationen ist das enthält die gleiche Information. Wenn es das nicht separat in der DB gibt, dann sollte Zusätzliche Informationen weg. 
 http://localhost:3001/event-management?eventId=59&squadName=mBlau
 
-57. Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
+57. Prio 5 Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
 
-58. Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
+58. Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
 http://localhost:3001/competitions?eventId=77&squadName=m
 
-59. Auf der Seite passen die Statistik nicht von männlich und weiblich
+59. Prio 2 Auf der Seite passen die Statistik nicht von männlich und weiblich
 http://localhost:3001/event-management?eventId=53&squadName=m
+Vielleicht wäre es sinnvoll. Die selection des Gender in dem Server zu machen statt in der UI? 
+
+60. Prio 2 Neu hinzugefügte Athletes werden nicht beim wettkampf zum hinzufügen angezeigt. Jonathan Bader 
+
+61. Prio 2 Layout editor hat häufig fehler. 
+z.B. Ein DB-Feld oder Bild hinzugefügt und gespeichert: 
+POST
+http://localhost:3001/api/layouts/28/fields
+[HTTP/1.1 400 Bad Request 13ms]
+
+API request failed for /api/layouts/28/fields : Error: Validation error
+    s http://localhost:3001/assets/index-TsMcNJXE.js:158
+    Rm http://localhost:3001/assets/index-TsMcNJXE.js:158
+    Jn http://localhost:3001/assets/index-TsMcNJXE.js:158
+    EE/L/k.current[X.int_layout_felderid]< http://localhost:3001/assets/index-TsMcNJXE.js:365
+    setTimeout handler*L http://localhost:3001/assets/index-TsMcNJXE.js:365
+    ie http://localhost:3001/assets/index-TsMcNJXE.js:362
+    onClick http://localhost:3001/assets/index-TsMcNJXE.js:362
+    a4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    o4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    l4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    S1 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    Fy http://localhost:3001/assets/index-TsMcNJXE.js:37
+    Of http://localhost:3001/assets/index-TsMcNJXE.js:37
+    T0 http://localhost:3001/assets/index-TsMcNJXE.js:40
+    ty http://localhost:3001/assets/index-TsMcNJXE.js:37
+    Of http://localhost:3001/assets/index-TsMcNJXE.js:37
+    c0 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    S4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+index-TsMcNJXE.js:158:62723
+Error saving field: -352 Error: Validation error
+    s http://localhost:3001/assets/index-TsMcNJXE.js:158
+    Rm http://localhost:3001/assets/index-TsMcNJXE.js:158
+    Jn http://localhost:3001/assets/index-TsMcNJXE.js:158
+    EE/L/k.current[X.int_layout_felderid]< http://localhost:3001/assets/index-TsMcNJXE.js:365
+    setTimeout handler*L http://localhost:3001/assets/index-TsMcNJXE.js:365
+    ie http://localhost:3001/assets/index-TsMcNJXE.js:362
+    onClick http://localhost:3001/assets/index-TsMcNJXE.js:362
+    a4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    o4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    l4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    S1 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    Fy http://localhost:3001/assets/index-TsMcNJXE.js:37
+    Of http://localhost:3001/assets/index-TsMcNJXE.js:37
+    T0 http://localhost:3001/assets/index-TsMcNJXE.js:40
+    ty http://localhost:3001/assets/index-TsMcNJXE.js:37
+    Of http://localhost:3001/assets/index-TsMcNJXE.js:37
+    c0 http://localhost:3001/assets/index-TsMcNJXE.js:37
+    S4 http://localhost:3001/assets/index-TsMcNJXE.js:37
+
+62. ~~Prio 1 Wertungen werden nicht richtig gespeichert. Sowohl im Jury als auch in der Wertungserfassung. Diese sind zwar synchron, aber die Werte werden nicht in Turnfix angezeigt. Wahrscheinlich wird beim Leistung erfassen die Person einem Anderen Wettkampf zusätzlich zugeordnet und darum wird die Wertung nicht in dem korrekten gespeichert.~~ ✅
+    **Status**: ✅ Abgeschlossen - Daten-Synchronisation zwischen beiden Tabellen implementiert
+    **Root Cause**: Web-App verwendete zwei verschiedene Tabellen für Wertungen ohne Synchronisation:
+    1. **`tfx_wertungen_details`** - für normale Disziplinwerte (`/api/scores/save-value`)
+    2. **`tfx_jury_results`** - für Jury-Feldwerte (`/api/jury-results/save-field-score`)
+    **Problem**: Qt-App benötigt konsistente Daten zwischen beiden Tabellen für JOIN-Query
+    **Lösung**: 
+    - **ScoreSynchronizer-Klasse** erstellt (`server/src/utils/scoreSynchronizer.ts`)
+    - **ensureWertungsDetailsEntry()**: Erstellt Placeholder-Einträge in tfx_wertungen_details für jeden tfx_jury_results Eintrag
+    - **updateWertungsDetailsScore()**: Vereinheitlichte Score-Updates
+    - **findCorrectCompetitionId()**: Intelligente Competition-Zuordnung
+    **Implementierung**:
+    - Beide APIs verwenden jetzt ScoreSynchronizer
+    - Automatische Erstellung fehlender Einträge für Qt-Kompatibilität
+    - Vereinheitlichte Competition-Assignment-Logik
+    **Qt-Kompatibilität**: JOIN zwischen beiden Tabellen funktioniert jetzt korrekt
+
+63. ~~Prio 1~~ ✅
+~~die Teilnehmer sind in zwei Wettkämpfen. Ggf. ist der grund in 62.~~ ✅
+~~http://localhost:3001/score-capture?eventId=59&squadName=wBlau~~ 
+    **Status**: ✅ Abgeschlossen - Competition-Assignment vereinheitlicht
+    **Root Cause**: Verschiedene APIs verwendeten unterschiedliche Logik für `competitionId`-Bestimmung
+    **Problem**: 
+    - `/scores/save-value`: Fallback auf erste verfügbare Competition (inkorrekt)
+    - `/jury-results/save-field-score`: Strenge competitionId + eventId Validierung
+    **Lösung**: 
+    - **ScoreSynchronizer.findCorrectCompetitionId()** implementiert
+    - Intelligente Logik: Prüft zuerst provided competitionId, dann Participant-Discipline-Zuordnung
+    - Beide APIs verwenden jetzt dieselbe Competition-Finding-Logik
+    - Automatische Ermittlung wenn competitionId fehlt oder ungültig
+    **Resultat**: Teilnehmer werden konsistent der korrekten Competition zugeordnet 
+
+64. Prio 4 Wettkampf zu Alter und Gender validieren in 
+http://localhost:3001/event-participants?eventId=59&squadName=mRot 
+Editfenster. 
+
+~~65. Prio 1 Zu viele Zugriffe über diese IP. Firewallregel?~~ ✅
+    **Status**: ✅ Abgeschlossen - Rate Limiting deaktiviert
+    **Problem**: "Zu viele Anfragen von dieser IP" Fehlermeldung bei Multi-Client-Zugriff  
+    **Lösung**: Rate Limiting vollständig deaktiviert in `server/src/index.ts`
+    **Code**: `limiter` und `app.use(limiter)` auskommentiert
+    **Kommentar**: "Rate limiting is fully disabled for all IPs"
+    **Ergebnis**: Keine IP-basierten Request-Limits mehr, Multi-Client-Zugriff funktioniert
+
+66. Prio 3 Wenn jemand als "nimmt nicht teil" gekennzeichnet ist, darf er trotz wertungen nicht in der siegerliste auftauchen
+
+~~67. Prio 1. Siehe auch 65.~~ ✅
+~~Ich bekomme immer die FEhlermeldung: "Zu viele Anfragen von dieser IP" wenn ich mit einem anderen Rechner auf diesen Server zugreife. bitte beheben.~~ ✅  
+~~Vielleicht wäre es auch gut sich auf Änderungen zu registrieren und bei einer Änderung in der DB (z.b. über zyklische abfrage jede Minute), dass sich der Server den Wert in der UI ändert.~~ ✅
+    **Status**: ✅ Vollständig abgeschlossen - Rate Limiting deaktiviert + Socket.IO implementiert
+    **Problem 1**: "Zu viele Anfragen von dieser IP" → ✅ Gelöst durch Rate Limiting Deaktivierung
+    **Problem 2**: Live Updates für DB-Änderungen → ✅ Gelöst durch Socket.IO Real-time Updates
+    **Socket.IO Implementation**:
+    - **Client**: `socket.io-client` + `socket.ts` Utils
+    - **Server**: `socket.io` WebSocket Server 
+    - **Real-time Events**: score-update, result-update, medal-update
+    - **Auto-Reconnection**: 5 attempts, 1s delay
+    **Bessere Lösung als zyklische Abfrage**: Echte Real-time Updates via WebSockets statt Polling
+
+68. pdf dokumente serverseitig generieren und dann runterladen. 
+-> Erledigt! 
+
+70. Prio 2 bei den Wettkampfergebnissen muss der Filter erweitert werden um gender
+
+71. Prio 3 Auf der Seite 
+http://localhost:3001/results?eventId=59&squadName=mRot
+Müssen alle Werte ohne Scrollen dargestellt werden. z.B. über insgesamt breitere Tabelle (aber dann im TEmplate) oder über eine möglichkeit die Einzelwertungen auszublenden. 
+
+72. Prio 3 Die Tabellen auf dieser Seite müssen nach der Wettkampfnummer sortiert werden: 
+http://localhost:3001/results?eventId=59&squadName=mRot
+
+72. Prio 4 http://localhost:3001/results?eventId=77&squadName=mRot
+Der Button "Print" muss besser heißen: "Generate Certificats PDF"
+
+73. Die UI für das Jury-Portal muss überarbeitet werden: 
+Es muss immer die Liste aller Teilnehmer sichtbar sein. 
+Ich könnte mir so etwas vorstellen: 
+- Es wird die Liste aller Turner links dargestellt
+- Der aktuelle Turner wird in der Liste selektiert und die Eingabe der Wertung hervorgehoben (wie sie bisher aus sah) 
+- Die Eingabe der Wertung wird auf der Rechten Seite dargestellt, wie so ein großer Pfeil. 
+
+~~74. Statt Point 67. wäre das hier denkbar:~~ ✅
+~~Die Echtzeit-Updates per Socket.IO werden für mehrere Seiten benötigt:~~ ✅
+~~- Ergebnisse~~ ✅ 
+~~- Wettkampfstatus~~ ✅
+~~- Riegenstatus~~ ✅
+~~- Wertungserfassung~~ ✅
+~~- Medallienspiegel~~ ✅
+    **Status**: ✅ Vollständig implementiert - Socket.IO Real-time Updates für alle genannten Bereiche
+    **Implementierung**:
+    **Wertungserfassung**: ✅ `scores.ts` emittiert `score-update` und `result-update` Events
+    **Ergebnisse**: ✅ Medal Updates via `useMedals.ts` Hook mit Socket.IO Listener
+    **Medallienspiegel**: ✅ Real-time Medal Updates über Socket Events
+    **Wettkampfstatus**: ✅ Competition Status Updates via Socket.IO
+    **Riegenstatus**: ✅ Squad Status Updates implementiert
+    **Architektur**:
+    - **Client**: `socket.ts` Utils mit Auto-Reconnection (5 attempts, 1s delay)
+    - **Server**: Socket.IO Server auf Port 3001 mit CORS für Multi-Client
+    - **Events**: score-update, result-update, medal-update, competition-update
+    - **Transports**: WebSocket + Polling Fallback
+    **Vorteile**: Instant Updates ohne Polling, bessere Performance, echte Real-time UX 
+
+75. der TurnFix-Manager.bat hätte eigentlich neu bauen sollen. das hat er nicht. 
+C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\client> npm run build
+PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run build   
+
+76. Falls ein prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
