@@ -1665,6 +1665,7 @@
     "hideDetails": "Details ausblenden",
     "showDisciplineScores": "Einzelwertungen anzeigen",
     "hideDisciplineScores": "Einzelwertungen ausblenden",
+    "printCertificates": "Urkunden-PDF generieren",
     "filters": {
       "competition": "Wettkampf",
       "gender": "Geschlecht",

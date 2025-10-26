@@ -1366,6 +1366,7 @@ const Results = () => {
         onExportPDF={exportResultsPDF}
         showPrint={true}
         onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
+        printLabel={t('results.printCertificates')}
         totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
         showEventContext={true}
         customActions={
