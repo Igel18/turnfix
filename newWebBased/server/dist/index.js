@@ -212,8 +212,31 @@ if (process.env.NODE_ENV === 'production') {
     const path = require('path');
     // Use proper cross-platform path handling - correct path with newWebBased
     const clientDistPath = path.resolve(__dirname, '../../client/dist');
+    const juryPortalDistPath = path.resolve(__dirname, '../../jury-portal/dist');
     console.log('🌐 Serving static frontend from:', clientDistPath);
     console.log('🔍 Directory exists:', require('fs').existsSync(clientDistPath));
+    console.log('⚖️ Serving Jury Portal from:', juryPortalDistPath);
+    console.log('🔍 Jury Portal exists:', require('fs').existsSync(juryPortalDistPath));
+    // Serve Jury Portal on /jury route (BEFORE main client to avoid conflicts)
+    app.use('/jury', express_1.default.static(juryPortalDistPath, {
+        maxAge: '1d',
+        etag: true,
+        lastModified: true,
+        setHeaders: (res, path) => {
+            if (path.endsWith('index.html')) {
+                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
+            }
+        }
+    }));
+    // Serve Jury Portal index.html for /jury route
+    app.get('/jury', (req, res) => {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.sendFile(path.join(juryPortalDistPath, 'index.html'));
+    });
     // Serve static files from the client dist directory
     app.use(express_1.default.static(clientDistPath, {
         maxAge: '1d', // Cache static files for 1 day
@@ -231,9 +254,9 @@ if (process.env.NODE_ENV === 'production') {
     // All other routes should serve the index.html (for SPA routing)
     app.get('*', (req, res, next) => {
         console.log(`🔍 Catch-all handler called for: ${req.path}`);
-        // Skip API routes
-        if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/public/')) {
-            console.log(`⏭️ Skipping API/upload route: ${req.path}`);
+        // Skip API routes, uploads, public files, and jury portal
+        if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/public/') || req.path.startsWith('/jury')) {
+            console.log(`⏭️ Skipping API/upload/jury route: ${req.path}`);
             return next();
         }
         console.log(`📄 Serving index.html for: ${req.path}`);

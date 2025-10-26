@@ -398,8 +398,6 @@ const JuryPortal: React.FC = () => {
   }, [selectedEvent, selectedSquad, selectedDevice]);
 
   const currentParticipant = participants[currentParticipantIndex];
-  const previousParticipant = participants[currentParticipantIndex - 1];
-  const nextParticipant = participants[currentParticipantIndex + 1];
 
   // Update score input when current participant changes
   useEffect(() => {
@@ -693,12 +691,12 @@ const JuryPortal: React.FC = () => {
     );
   }
 
-  // Scoring interface
+  // Scoring interface - NEW SPLIT-VIEW LAYOUT
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-blue-600 text-white p-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <div className="bg-blue-600 text-white p-4 flex-shrink-0">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => setStep('device')}
@@ -742,166 +740,189 @@ const JuryPortal: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Participant Navigation */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {/* Previous Participant */}
-          <div className="bg-gray-200 rounded-lg p-4 text-center">
-            <h3 className="font-medium text-gray-600 mb-2">Vorheriger</h3>
-            {previousParticipant ? (
-              <div>
-                <p className="font-semibold">#{previousParticipant.startNumber}</p>
-                <p className="text-sm">{previousParticipant.name}</p>
-                <p className="text-xs text-gray-500">{previousParticipant.club}</p>
-                {previousParticipant.currentScore && previousParticipant.currentScore > 0 && (
-                  <p className="text-lg font-bold text-green-600 mt-2">
-                    {previousParticipant.currentScore.toFixed(2)}
-                  </p>
-                )}
+      {/* Main Content: Split View */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar: Participants List */}
+        <div className="w-1/3 bg-white border-r border-gray-300 flex flex-col">
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <h2 className="text-lg font-semibold text-gray-900">Teilnehmer ({participants.length})</h2>
+            <p className="text-sm text-gray-600">{selectedDevice?.name} - {selectedSquad?.name}</p>
+            
+            {/* Progress Bar */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-gray-700">Fortschritt</span>
+                <span className="text-xs text-gray-500">
+                  {participants.filter(p => p.currentScore && p.currentScore > 0).length} / {participants.length}
+                </span>
               </div>
-            ) : (
-              <p className="text-gray-400">-</p>
-            )}
-          </div>
-
-          {/* Current Participant */}
-          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 text-center">
-            <h3 className="font-medium text-blue-600 mb-2">Aktuell</h3>
-            {currentParticipant && (
-              <div>
-                <p className="text-2xl font-bold">#{currentParticipant.startNumber}</p>
-                <p className="text-lg font-semibold">{currentParticipant.name}</p>
-                <p className="text-sm text-gray-600">{currentParticipant.club}</p>
-                
-                {/* Participant Navigation Controls */}
-                <div className="mt-4 flex justify-center space-x-2">
-                  <button
-                    onClick={() => {
-                      if (currentParticipantIndex > 0) {
-                        setCurrentParticipantIndex(currentParticipantIndex - 1);
-                        setScore(''); // Clear score when changing participant
-                      }
-                    }}
-                    disabled={currentParticipantIndex <= 0}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ← Vorherig
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (currentParticipantIndex < participants.length - 1) {
-                        setCurrentParticipantIndex(currentParticipantIndex + 1);
-                        setScore(''); // Clear score when changing participant
-                      }
-                    }}
-                    disabled={currentParticipantIndex >= participants.length - 1}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Nächste →
-                  </button>
-                </div>
-                
-                {/* Score Input */}
-                <div className="mt-6 space-y-4">
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="20"
-                    value={score}
-                    onChange={(e) => setScore(e.target.value)}
-                    placeholder="0.0"
-                    className="w-full text-2xl text-center p-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                  />
-                  <button
-                    onClick={handleScoreSubmit}
-                    disabled={!score || loading}
-                    className="w-full bg-green-600 text-white py-3 px-6 rounded-lg text-lg font-medium hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {loading ? 'Speichert...' : 'Bewertung speichern'}
-                  </button>
-                </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: participants.length 
+                      ? `${(participants.filter(p => p.currentScore && p.currentScore > 0).length / participants.length) * 100}%` 
+                      : '0%' 
+                  }}
+                ></div>
               </div>
-            )}
-          </div>
-
-          {/* Next Participant */}
-          <div className="bg-gray-100 rounded-lg p-4 text-center">
-            <h3 className="font-medium text-gray-600 mb-2">Nächster</h3>
-            {nextParticipant ? (
-              <div>
-                <p className="font-semibold">#{nextParticipant.startNumber}</p>
-                <p className="text-sm">{nextParticipant.name}</p>
-                <p className="text-xs text-gray-500">{nextParticipant.club}</p>
-              </div>
-            ) : (
-              <p className="text-gray-400">Ende der Riege</p>
-            )}
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="bg-white rounded-lg p-6 shadow">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Fortschritt</span>
-            <span className="text-sm text-gray-500">
-              {currentParticipantIndex + 1} von {participants.length || 0}
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ 
-                width: participants.length 
-                  ? `${((currentParticipantIndex + 1) / participants.length) * 100}%` 
-                  : '0%' 
-              }}
-            ></div>
+            </div>
           </div>
           
-          {/* Participant List for this Device */}
-          {participants.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-4">Teilnehmer in dieser Riege für {selectedDevice?.name}:</h3>
-              <div className="max-h-40 overflow-y-auto">
+          {/* Scrollable Participants List */}
+          <div className="flex-1 overflow-y-auto">
+            {participants.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>Keine Teilnehmer gefunden</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
                 {participants.map((participant, index) => (
                   <div 
                     key={participant.id} 
-                    className={`flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-100 transition-colors ${
+                    className={`p-4 cursor-pointer transition-all ${
                       index === currentParticipantIndex 
-                        ? 'bg-blue-100 border-l-4 border-blue-500' 
-                        : participant.status === 'completed' 
-                        ? 'bg-green-50' 
-                        : 'bg-gray-50'
+                        ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm' 
+                        : participant.currentScore && participant.currentScore > 0
+                        ? 'bg-green-50 hover:bg-green-100' 
+                        : 'hover:bg-gray-50'
                     }`}
                     onClick={() => {
                       setCurrentParticipantIndex(index);
-                      setScore(''); // Clear score when switching participant
+                      setScore(participant.currentScore?.toString() || '');
                     }}
                   >
-                    <div>
-                      <span className="font-medium">#{participant.startNumber} {participant.name}</span>
-                      <div className="text-sm text-gray-500">{participant.clubName}</div>
-                    </div>
-                    <div className="text-right">
-                      {participant.currentScore && participant.currentScore > 0 && (
-                        <div className="mb-1">
-                          <span className="text-green-600 font-bold">{participant.currentScore.toFixed(2)}</span>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                            index === currentParticipantIndex 
+                              ? 'bg-blue-600 text-white' 
+                              : participant.currentScore && participant.currentScore > 0
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-200 text-gray-700'
+                          }`}>
+                            {participant.startNumber}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-semibold truncate ${
+                              index === currentParticipantIndex ? 'text-blue-900' : 'text-gray-900'
+                            }`}>
+                              {participant.name}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{participant.clubName}</p>
+                          </div>
                         </div>
-                      )}
-                      {participant.status === 'current' && (
-                        <span className="text-blue-600 font-medium">Aktuell</span>
-                      )}
-                      {participant.status === 'pending' && !participant.currentScore && (
-                        <span className="text-gray-400">Wartend</span>
-                      )}
-                      {participant.status === 'completed' && (
-                        <span className="text-green-600 font-medium">Abgeschlossen</span>
-                      )}
+                      </div>
+                      
+                      <div className="ml-2 text-right flex-shrink-0">
+                        {participant.currentScore && participant.currentScore > 0 ? (
+                          <div className="flex flex-col items-end">
+                            <span className="text-lg font-bold text-green-700">
+                              {participant.currentScore.toFixed(2)}
+                            </span>
+                            <span className="text-xs text-green-600">✓ Bewertet</span>
+                          </div>
+                        ) : index === currentParticipantIndex ? (
+                          <span className="text-sm font-medium text-blue-600">→ Aktuell</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">Wartend</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Panel: Score Input (Large Arrow Design) */}
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-8">
+          {currentParticipant ? (
+            <div className="w-full max-w-2xl">
+              {/* Large Participant Card */}
+              <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-600 text-white text-3xl font-bold mb-4">
+                    {currentParticipant.startNumber}
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">{currentParticipant.name}</h2>
+                  <p className="text-lg text-gray-600">{currentParticipant.club}</p>
+                </div>
+
+                {/* Score Input Section */}
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
+                      Wertung eingeben
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="20"
+                      value={score}
+                      onChange={(e) => setScore(e.target.value)}
+                      placeholder="0.0"
+                      className="w-full text-6xl text-center p-6 border-4 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-blue-900 bg-blue-50"
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col space-y-3">
+                    <button
+                      onClick={handleScoreSubmit}
+                      disabled={!score || loading}
+                      className="w-full bg-green-600 text-white py-6 px-8 rounded-xl text-2xl font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all transform hover:scale-105"
+                    >
+                      {loading ? '💾 Speichert...' : '✓ Bewertung speichern'}
+                    </button>
+
+                    {/* Navigation Buttons */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          if (currentParticipantIndex > 0) {
+                            setCurrentParticipantIndex(currentParticipantIndex - 1);
+                            const prevParticipant = participants[currentParticipantIndex - 1];
+                            setScore(prevParticipant.currentScore?.toString() || '');
+                          }
+                        }}
+                        disabled={currentParticipantIndex <= 0}
+                        className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed font-medium"
+                      >
+                        ← Vorheriger
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (currentParticipantIndex < participants.length - 1) {
+                            setCurrentParticipantIndex(currentParticipantIndex + 1);
+                            const nextPart = participants[currentParticipantIndex + 1];
+                            setScore(nextPart.currentScore?.toString() || '');
+                          }
+                        }}
+                        disabled={currentParticipantIndex >= participants.length - 1}
+                        className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed font-medium"
+                      >
+                        Nächster →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Context Info */}
+              <div className="text-center text-sm text-gray-500">
+                <p>Teilnehmer {currentParticipantIndex + 1} von {participants.length}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">
+              <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-xl">Wählen Sie einen Teilnehmer aus der Liste</p>
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/jury/', // Set base path for assets when served under /jury route
   server: {
     host: '0.0.0.0',
     port: 5174,
