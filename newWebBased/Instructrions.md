@@ -1229,7 +1229,7 @@ Editfenster.
 72. Prio 4 http://localhost:3001/results?eventId=77&squadName=mRot
 Der Button "Print" muss besser heißen z.B. "Generate Certificats PDF"
 
-73. Die UI für das Jury-Portal muss überarbeitet werden: 
+73. Prio 4 Die UI für das Jury-Portal muss überarbeitet werden: 
 Es muss immer die Liste aller Teilnehmer sichtbar sein. 
 Ich könnte mir so etwas vorstellen: 
 - Es wird die Liste aller Turner links dargestellt
@@ -1257,17 +1257,17 @@ Ich könnte mir so etwas vorstellen:
     - **Transports**: WebSocket + Polling Fallback
     **Vorteile**: Instant Updates ohne Polling, bessere Performance, echte Real-time UX 
 
-75. der TurnFix-Manager.bat hätte eigentlich neu bauen sollen. das hat er nicht. 
+75. Prio 9 der TurnFix-Manager.bat hätte eigentlich neu bauen sollen. das hat er nicht. 
 C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\client> npm run build
 PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run build   
 
-76. Falls ein Prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
+76. Prio 9 Falls ein Prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
 
-77. Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden. 
+77. Prio 5 Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden. 
 - Use Cache-Buster techniques for live updates of the client.
 - Use socket.io for live updates from server to client when data changes.
 
-78. Die Status Seite 
+78. Prio 6 Die Status Seite 
 http://localhost:3001/squad-status?eventId=59&squadName=m 
 sollte überarbeitet werden: 
 - Das sollte besser wie die meldematrix aufgebaut sein http://localhost:3001/meldematrix
@@ -1276,4 +1276,4 @@ sollte überarbeitet werden:
 - Die Spalten sollten die Gerätebezeichnungen haben 
 - Die Zellen sollten den jeweiligen status anzeigen. Aber der Status sollte auch geändert werden können (auswahl als DropDown) 
 
-79. Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 
+79. Prio 10 Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 

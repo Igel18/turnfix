@@ -1384,6 +1384,7 @@
       "selectGroup": "Gruppe auswählen...",
       "bulkMaxScore": "Maximalpunktzahl für alle",
       "applyToAll": "Auf alle anwenden",
+      "selectGroupAndApply": "Gruppe auswählen & Max-Punkte setzen",
       "maxScore": "Max. Punkte",
       "genderCompatibility": {
         "male": "Männlich",

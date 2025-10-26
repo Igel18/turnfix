@@ -1388,6 +1388,7 @@
       "selectGroup": "Select group...",
       "bulkMaxScore": "Max Score for All",
       "applyToAll": "Apply to All",
+      "selectGroupAndApply": "Select Group & Set Max Score",
       "maxScore": "Max Score",
       "genderCompatibility": {
         "male": "Male",

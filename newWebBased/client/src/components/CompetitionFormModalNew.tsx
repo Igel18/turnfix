@@ -95,14 +95,18 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   loading,
   bulkMaxScore,
   setBulkMaxScore,
-  handleBulkMaxScore
+  handleBulkMaxScore: _handleBulkMaxScore // Renamed to avoid unused variable warning
 }) => {
   // Translation hook
   const { t } = useTranslation();
   
   // State for modal-specific data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
-  const [disciplineGroups, setDisciplineGroups] = useState<{ id: number; name: string }[]>([]);
+  const [disciplineGroups, setDisciplineGroups] = useState<{ 
+    int_disziplinen_gruppenid: number; 
+    var_name: string; 
+    disciplines: Array<{ int_disziplinenid: number; position: number }> 
+  }[]>([]);
   const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
   const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
   const [showIncompatibleMessage, setShowIncompatibleMessage] = useState(false);
@@ -132,7 +136,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
       try {
         const response = await fetch('/api/discipline-groups');
         const data = await response.json();
-        setDisciplineGroups(data);
+        // Extract disciplineGroups array from response
+        const groups = data.disciplineGroups || [];
+        setDisciplineGroups(groups);
       } catch (error) {
         console.error('Error fetching discipline groups:', error);
       }
@@ -146,18 +152,28 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 
   // Filter disciplines by gender compatibility and selected group
   useEffect(() => {
+    // Get discipline IDs that belong to the selected group
+    let groupDisciplineIds: number[] = [];
+    if (selectedDisciplineGroup !== null) {
+      const selectedGroup = disciplineGroups.find(g => g.int_disziplinen_gruppenid === selectedDisciplineGroup);
+      if (selectedGroup) {
+        groupDisciplineIds = selectedGroup.disciplines.map(d => d.int_disziplinenid);
+      }
+    }
+    
     let filtered = disciplines.filter(discipline => {
       const genderMatch = formData.gender === 'gemischt' || 
         (formData.gender === 'männlich' && discipline.male_allowed) ||
         (formData.gender === 'weiblich' && discipline.female_allowed);
       
-      const groupMatch = selectedDisciplineGroup === null || discipline.id === selectedDisciplineGroup;
+      // If a group is selected, only show disciplines that are part of that group
+      const groupMatch = selectedDisciplineGroup === null || groupDisciplineIds.includes(discipline.id);
       
       return genderMatch && groupMatch;
     });
 
     setFilteredDisciplines(filtered);
-  }, [disciplines, formData.gender, selectedDisciplineGroup]);
+  }, [disciplines, formData.gender, selectedDisciplineGroup, disciplineGroups]);
 
   // Remove incompatible disciplines when gender changes
   useEffect(() => {
@@ -181,6 +197,48 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 
   const handleDisciplineGroupChange = (groupId: number | null) => {
     setSelectedDisciplineGroup(groupId);
+  };
+
+  const handleBulkSelectGroup = () => {
+    // If no group is selected, just apply max score to already selected disciplines
+    if (selectedDisciplineGroup === null) {
+      // Apply bulk max score to all currently selected disciplines
+      if (bulkMaxScore) {
+        const maxScore = parseFloat(bulkMaxScore);
+        if (!isNaN(maxScore) && maxScore > 0) {
+          setFormData(prev => ({
+            ...prev,
+            disciplines: prev.disciplines.map(d => ({ ...d, maxScore }))
+          }));
+        }
+      }
+      return;
+    }
+    
+    // Get all disciplines from the selected group
+    const selectedGroup = disciplineGroups.find(g => g.int_disziplinen_gruppenid === selectedDisciplineGroup);
+    if (!selectedGroup) return;
+    
+    const groupDisciplineIds = selectedGroup.disciplines.map(d => d.int_disziplinenid);
+    
+    // Get disciplines that match the current gender and are in the group
+    const disciplinesToSelect = filteredDisciplines
+      .filter(d => groupDisciplineIds.includes(d.id))
+      .map(d => d.id);
+    
+    const maxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
+    
+    // Create new disciplines array: keep existing selections not in this group, add/update group disciplines
+    const existingNonGroupDisciplines = formData.disciplines.filter(d => !groupDisciplineIds.includes(d.disciplineId));
+    const newGroupDisciplines = disciplinesToSelect.map(disciplineId => ({
+      disciplineId,
+      maxScore
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      disciplines: [...existingNonGroupDisciplines, ...newGroupDisciplines]
+    }));
   };
 
   const handleDisciplineToggle = (disciplineId: number) => {
@@ -610,7 +668,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   >
                     <option value="">{t('competitionForm.disciplines.selectGroup')}</option>
                     {disciplineGroups.map(group => (
-                      <option key={group.id} value={group.id}>{group.name}</option>
+                      <option key={group.int_disziplinen_gruppenid} value={group.int_disziplinen_gruppenid}>{group.var_name}</option>
                     ))}
                   </select>
                 </div>
@@ -633,10 +691,12 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                 <div className="flex items-end">
                   <button
                     type="button"
-                    onClick={handleBulkMaxScore}
+                    onClick={handleBulkSelectGroup}
                     className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
-                    {t('competitionForm.disciplines.applyToAll')}
+                    {selectedDisciplineGroup 
+                      ? t('competitionForm.disciplines.selectGroupAndApply') || 'Gruppe auswählen & Max-Punkte setzen'
+                      : t('competitionForm.disciplines.applyToAll')}
                   </button>
                 </div>
               </div>
