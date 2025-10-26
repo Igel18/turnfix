@@ -52,9 +52,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         w.int_startnummer,
         w.int_wertungenid,
         CASE 
-          WHEN t.int_geschlecht = 1 THEN 'male'
-          WHEN t.int_geschlecht = 2 THEN 'female'
-          ELSE 'other'
+          WHEN t.int_geschlecht = 1 THEN 'männlich'
+          WHEN t.int_geschlecht = 2 THEN 'weiblich'
+          ELSE 'unbekannt'
         END as gender,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -115,7 +115,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           lastname: participant.var_nachname,
           club: participant.tfx_vereine?.var_name || 'Unknown Club',
           clubId: participant.int_vereineid || 0,
-          gender: participant.int_geschlecht === 1 ? 'male' : participant.int_geschlecht === 2 ? 'female' : 'other',
+          gender: participant.int_geschlecht === 1 ? 'männlich' : participant.int_geschlecht === 2 ? 'weiblich' : 'unbekannt',
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.dat_geburtstag ? 
             new Date().getFullYear() - new Date(participant.dat_geburtstag).getFullYear() : null,
@@ -166,7 +166,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           lastname: participant.var_nachname,
           club: participant.verein_name || 'Unknown Club',
           clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
-          gender: participant.gender as 'male' | 'female',
+          gender: participant.gender as 'männlich' | 'weiblich' | 'unbekannt',
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.age ? Number(participant.age) : null,
           squad_name: participant.squad_name || null,
@@ -196,9 +196,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           t.int_startpassnummer,
           v.var_name as verein_name,
           CASE 
-            WHEN t.int_geschlecht = 1 THEN 'male'
-            WHEN t.int_geschlecht = 2 THEN 'female'
-            ELSE 'other'
+            WHEN t.int_geschlecht = 1 THEN 'männlich'
+            WHEN t.int_geschlecht = 2 THEN 'weiblich'
+            ELSE 'unbekannt'
           END as gender,
           CASE 
             WHEN t.dat_geburtstag IS NOT NULL THEN 
@@ -223,7 +223,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         lastname: participant.var_nachname,
         club: participant.verein_name || 'Unknown Club',
         clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
-        gender: participant.gender as 'male' | 'female',
+        gender: participant.gender as 'männlich' | 'weiblich' | 'unbekannt',
         birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
         age: participant.age ? Number(participant.age) : null,
         squad_name: null, // Available participants don't have squads assigned
@@ -672,7 +672,7 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
         updateData.dat_geburtstag = new Date(birthday);
       }
       if (gender !== undefined) {
-        updateData.int_geschlecht = gender === 'male' ? 1 : gender === 'female' ? 2 : 0;
+        updateData.int_geschlecht = gender === 'männlich' ? 1 : gender === 'weiblich' ? 2 : 0;
       }
       if (clubId !== undefined) {
         updateData.int_vereineid = clubId;

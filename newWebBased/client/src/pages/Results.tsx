@@ -112,7 +112,7 @@ const Results = () => {
   const getFilterOptions = () => [
     {
       value: 'competition',
-      label: 'Competition',
+      label: t('results.filters.competition'),
       selectedValue: selectedCompetition,
       options: getAvailableCompetitions().map(comp => ({
         value: comp.id?.toString() || '',
@@ -122,12 +122,12 @@ const Results = () => {
     },
     {
       value: 'gender',
-      label: 'Gender', // TODO: Add to localization
+      label: t('results.filters.gender'),
       selectedValue: genderFilter,
       options: [
-        { value: 'male', label: 'Male' }, // TODO: Add to localization
-        { value: 'female', label: 'Female' }, // TODO: Add to localization
-        { value: 'other', label: 'Other' } // TODO: Add to localization
+        { value: 'männlich', label: t('results.filters.male') },
+        { value: 'weiblich', label: t('results.filters.female') },
+        { value: 'gemischt', label: t('results.filters.both') }
       ],
       onChange: setGenderFilter
     }
@@ -334,7 +334,7 @@ const Results = () => {
           club: participant.club || 'Unknown Club',
           startNumber: participant.startNumber || 0,
           age: participant.age || 0,
-          gender: participant.gender || 'other', // Add gender field for filtering
+          gender: participant.gender || 'unbekannt', // Add gender field for filtering
           scores: participantScores,
           totalScore,
           rank: 0,

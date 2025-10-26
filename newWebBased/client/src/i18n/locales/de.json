@@ -1661,6 +1661,14 @@
     "noResultsForCompetition": "Keine Ergebnisse für diesen Wettkampf gefunden",
     "noResultsForEvent": "Keine Ergebnisse für diese Veranstaltung gefunden",
     "participantsCount": "{{count}} Teilnehmer",
+    "filters": {
+      "competition": "Wettkampf",
+      "gender": "Geschlecht",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "both": "Gemischt",
+      "unknown": "Unbekannt"
+    },
     "table": {
       "rank": "Platz",
       "startNumber": "Start #",

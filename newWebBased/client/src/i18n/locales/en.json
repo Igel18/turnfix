@@ -1664,6 +1664,14 @@
     "noResultsForCompetition": "No results found for this competition",
     "noResultsForEvent": "No results found for this event",
     "participantsCount": "{{count}} participants",
+    "filters": {
+      "competition": "Competition",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "both": "Mixed",
+      "unknown": "Unknown"
+    },
     "table": {
       "rank": "Rank",
       "startNumber": "Start #",

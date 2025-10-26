@@ -1097,7 +1097,44 @@ Editfenster.
 68. pdf dokumente serverseitig generieren und dann runterladen. 
 -> Erledigt! 
 
-70. Prio 2 bei den Wettkampfergebnissen muss der Filter erweitert werden um gender
+~~70. Prio 2 bei den Wettkampfergebnissen muss der Filter erweitert werden um gender~~ ✅
+    **Status**: ✅ Abgeschlossen (Prio 2) - Gender-Filter in Wettkampfergebnissen korrekt implementiert und lokalisiert
+    **Problem**: Gender-Filter war bereits in der UI vorhanden, aber verwendete englische Werte ('male', 'female', 'other') während die Datenbank deutsche Werte speichert ('männlich', 'weiblich', 'gemischt')
+    **Root Cause**: 
+    - Backend API `/event-participants` gab englische Gender-Werte zurück: 'male', 'female', 'other'
+    - Frontend Filter-Optionen verwendeten ebenfalls englische Werte
+    - Datenbank speichert deutsche Werte: int_geschlecht = 1 ('männlich'), 2 ('weiblich'), 0 ('unbekannt')
+    - Filter funktionierte nicht, da Vergleich 'male' !== 'männlich' immer false ergab
+    **Lösung**:
+    1. **Backend** (`server/src/routes/eventParticipants.ts`):
+       - CASE-Statement in SQL-Queries geändert: 'male'→'männlich', 'female'→'weiblich', 'other'→'unbekannt' (Zeilen 53-57, 199-203)
+       - TypeScript Type-Annotations aktualisiert: `'male' | 'female'` → `'männlich' | 'weiblich' | 'unbekannt'` (Zeilen 169, 226)
+       - Prisma-Mapping angepasst für alle Participant-Queries (3 Stellen)
+       - Update-Logic korrigiert: `gender === 'male'` → `gender === 'männlich'` (Zeile 675)
+    2. **Frontend** (`client/src/pages/Results.tsx`):
+       - Filter-Optionen von englisch auf deutsch umgestellt (Zeile 128-131)
+       - Fallback-Wert korrigiert: `'other'` → `'unbekannt'` (Zeile 337)
+       - Lokalisierungs-Keys hinzugefügt statt Hardcoded Strings
+    3. **Lokalisierung** (`client/src/i18n/locales/`):
+       - Neue Filter-Keys in de.json und en.json hinzugefügt:
+         * `results.filters.competition` - "Wettkampf" / "Competition"
+         * `results.filters.gender` - "Geschlecht" / "Gender"
+         * `results.filters.male` - "Männlich" / "Male"
+         * `results.filters.female` - "Weiblich" / "Female"
+         * `results.filters.both` - "Gemischt" / "Mixed"
+         * `results.filters.unknown` - "Unbekannt" / "Unknown"
+    **Filter-Optionen**: Wettkampf (Competition), Geschlecht (männlich/weiblich/gemischt)
+    **Filter-Logic**: Zeilen 1183-1190 (filteredRanking), 1228-1238 (filteredCompetitionGroups)
+    **Kompatibilität**: GenderBadge Component unterstützt bereits beide Formate via normalizeGender()
+    **Dateien**: 
+    - Backend: `server/src/routes/eventParticipants.ts` (4 Änderungen)
+    - Frontend: `client/src/pages/Results.tsx` (2 Änderungen)
+    - Lokalisierung: `client/src/i18n/locales/de.json`, `en.json`
+    **Build Status**: 
+    - ✓ Server: tsc kompiliert, PM2 restart count 16
+    - ✓ Client: 2237 modules, 5.76s, keine Fehler
+    **Test URL**: http://localhost:5173/results?eventId=59
+    **Resultat**: Gender-Filter funktioniert jetzt korrekt mit deutschen Datenbankwerten und zeigt lokalisierte Labels
 
 71. Prio 3 Auf der Seite 
 http://localhost:3001/results?eventId=59&squadName=mRot
@@ -1142,3 +1179,5 @@ C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\client> npm run bui
 PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run build   
 
 76. Falls ein prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
+
+77. Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden. 
