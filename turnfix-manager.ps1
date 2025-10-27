@@ -155,22 +155,89 @@ function Start-TurnFix {
     
     Set-Location $serverPath
     
-    # Prüfe ob node_modules existiert
-    $nodeModulesPath = Join-Path $serverPath "node_modules"
-    if (-not (Test-Path $nodeModulesPath)) {
-        Write-Host "⚠ Node-Module nicht gefunden. Installiere Dependencies..." -ForegroundColor Yellow
-        Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
-        npm install
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "✗ Installation fehlgeschlagen!" -ForegroundColor Red
-            Read-Host "Drücken Sie Enter zum Fortfahren"
-            return
+    # Prüfe ob node_modules existiert (Server, Client, Jury-Portal)
+    $serverNodeModules = Join-Path $serverPath "node_modules"
+    $clientPath = Join-Path $scriptRoot "newWebBased\client"
+    $clientNodeModules = Join-Path $clientPath "node_modules"
+    $juryPath = Join-Path $scriptRoot "newWebBased\jury-portal"
+    $juryNodeModules = Join-Path $juryPath "node_modules"
+    
+    $installNeeded = $false
+    
+    if (-not (Test-Path $serverNodeModules)) {
+        Write-Host "⚠ Server node_modules nicht gefunden" -ForegroundColor Yellow
+        $installNeeded = $true
+    }
+    if (-not (Test-Path $clientNodeModules)) {
+        Write-Host "⚠ Client node_modules nicht gefunden" -ForegroundColor Yellow
+        $installNeeded = $true
+    }
+    if (-not (Test-Path $juryNodeModules)) {
+        Write-Host "⚠ Jury-Portal node_modules nicht gefunden" -ForegroundColor Yellow
+        $installNeeded = $true
+    }
+    
+    if ($installNeeded) {
+        Write-Host "`nInstalliere Dependencies..." -ForegroundColor Cyan
+        Write-Host "Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
+        Write-Host ""
+        
+        # Server Dependencies
+        if (-not (Test-Path $serverNodeModules)) {
+            Write-Host "  [1/3] Server Dependencies..." -ForegroundColor Cyan
+            npm install
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "✗ Server Installation fehlgeschlagen!" -ForegroundColor Red
+                Read-Host "Drücken Sie Enter zum Fortfahren"
+                return
+            }
         }
+        
+        # Client Dependencies
+        if (-not (Test-Path $clientNodeModules)) {
+            Write-Host "  [2/3] Client Dependencies..." -ForegroundColor Cyan
+            Push-Location $clientPath
+            try {
+                npm install
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "✗ Client Installation fehlgeschlagen!" -ForegroundColor Red
+                    Pop-Location
+                    Read-Host "Drücken Sie Enter zum Fortfahren"
+                    return
+                }
+            } finally {
+                Pop-Location
+            }
+        }
+        
+        # Jury-Portal Dependencies
+        if (-not (Test-Path $juryNodeModules)) {
+            Write-Host "  [3/3] Jury-Portal Dependencies..." -ForegroundColor Cyan
+            Push-Location $juryPath
+            try {
+                npm install
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "✗ Jury-Portal Installation fehlgeschlagen!" -ForegroundColor Red
+                    Pop-Location
+                    Read-Host "Drücken Sie Enter zum Fortfahren"
+                    return
+                }
+            } finally {
+                Pop-Location
+            }
+        }
+        
+        Write-Host "✓ Alle Dependencies installiert!" -ForegroundColor Green
+        Write-Host ""
     }
     
     # Prüfe ob Build existiert und aktuell ist
     $distPath = Join-Path $serverPath "dist"
-    $clientDistPath = Join-Path $scriptRoot "newWebBased\client\dist"
+    $clientPath = Join-Path $scriptRoot "newWebBased\client"
+    $clientDistPath = Join-Path $clientPath "dist"
+    $juryPath = Join-Path $scriptRoot "newWebBased\jury-portal"
+    $juryDistPath = Join-Path $juryPath "dist"
+    
     $buildRequired = $false
     $buildReason = ""
     
@@ -181,7 +248,11 @@ function Start-TurnFix {
     }
     elseif (-not (Test-Path $clientDistPath)) {
         $buildRequired = $true
-        $buildReason = "Frontend dist/ Ordner fehlt"
+        $buildReason = "Client dist/ Ordner fehlt"
+    }
+    elseif (-not (Test-Path $juryDistPath)) {
+        $buildRequired = $true
+        $buildReason = "Jury-Portal dist/ Ordner fehlt"
     }
     else {
         # Prüfe ob Source-Dateien neuer sind als dist
@@ -202,12 +273,14 @@ function Start-TurnFix {
     if ($buildRequired) {
         Write-Host "⚠ Build erforderlich: $buildReason" -ForegroundColor Yellow
         Write-Host "  Backend wird kompiliert..." -ForegroundColor DarkGray
-        Write-Host "  Frontend wird gebaut..." -ForegroundColor DarkGray
+        Write-Host "  Client wird gebaut..." -ForegroundColor DarkGray
+        Write-Host "  Jury-Portal wird gebaut..." -ForegroundColor DarkGray
         Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
         Write-Host ""
         
         # Baue Backend
-        Write-Host "  [1/2] Backend Build..." -ForegroundColor Cyan
+        Write-Host "  [1/3] Backend Build..." -ForegroundColor Cyan
+        Set-Location $serverPath
         npm run build
         if ($LASTEXITCODE -ne 0) {
             Write-Host "✗ Backend Build fehlgeschlagen!" -ForegroundColor Red
@@ -215,14 +288,13 @@ function Start-TurnFix {
             return
         }
         
-        # Baue Frontend
-        Write-Host "  [2/2] Frontend Build..." -ForegroundColor Cyan
-        $clientPath = Join-Path $scriptRoot "newWebBased\client"
+        # Baue Client
+        Write-Host "  [2/3] Client Build..." -ForegroundColor Cyan
         Push-Location $clientPath
         try {
             npm run build
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "✗ Frontend Build fehlgeschlagen!" -ForegroundColor Red
+                Write-Host "✗ Client Build fehlgeschlagen!" -ForegroundColor Red
                 Pop-Location
                 Read-Host "Drücken Sie Enter zum Fortfahren"
                 return
@@ -230,6 +302,24 @@ function Start-TurnFix {
         } finally {
             Pop-Location
         }
+        
+        # Baue Jury-Portal
+        Write-Host "  [3/3] Jury-Portal Build..." -ForegroundColor Cyan
+        Push-Location $juryPath
+        try {
+            npm run build
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "✗ Jury-Portal Build fehlgeschlagen!" -ForegroundColor Red
+                Pop-Location
+                Read-Host "Drücken Sie Enter zum Fortfahren"
+                return
+            }
+        } finally {
+            Pop-Location
+        }
+        
+        # Zurück zum Server-Verzeichnis
+        Set-Location $serverPath
         
         Write-Host "✓ Build erfolgreich erstellt!" -ForegroundColor Green
         Write-Host ""
