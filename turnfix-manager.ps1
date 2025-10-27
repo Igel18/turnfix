@@ -1,6 +1,25 @@
 ﻿# TurnFix Manager - Einfache Bedienung für Anwender
 # Dieses Script bietet ein benutzerfreundliches Menü zum Starten, Stoppen und Überwachen von TurnFix
 
+# Prüfe PowerShell Version
+$psVersion = $PSVersionTable.PSVersion.Major
+if ($psVersion -lt 5) {
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+    Write-Host "║                   VERSION ZU ALT!                          ║" -ForegroundColor Red
+    Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "PowerShell Version $psVersion.x ist zu alt!" -ForegroundColor Red
+    Write-Host "Mindestanforderung: PowerShell 5.1 oder neuer" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Bitte installieren Sie:" -ForegroundColor Cyan
+    Write-Host "  • PowerShell Core 7.x (empfohlen)" -ForegroundColor White
+    Write-Host "    https://github.com/PowerShell/PowerShell/releases" -ForegroundColor DarkGray
+    Write-Host ""
+    Read-Host "Drücken Sie Enter zum Beenden"
+    exit 1
+}
+
 # Farben und Formatierung
 function Show-Header {
     Clear-Host
