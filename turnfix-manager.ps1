@@ -538,6 +538,129 @@ function Open-Websites {
     Read-Host "Drücken Sie Enter zum Fortfahren"
 }
 
+function Force-Rebuild {
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
+    Write-Host "║           ERZWUNGENER REBUILD ALLER KOMPONENTEN           ║" -ForegroundColor Magenta
+    Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+    Write-Host ""
+    Write-Host "⚠️  Dies wird ALLE Builds neu erstellen:" -ForegroundColor Yellow
+    Write-Host "   • Backend (TypeScript → JavaScript)" -ForegroundColor White
+    Write-Host "   • Client (React/Vite)" -ForegroundColor White
+    Write-Host "   • Jury-Portal (React/Vite)" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
+    Write-Host ""
+    
+    $confirm = Read-Host "Fortfahren? (j/n)"
+    
+    if ($confirm -ne "j" -and $confirm -ne "J") {
+        Write-Host "Abgebrochen." -ForegroundColor Yellow
+        Read-Host "Drücken Sie Enter zum Fortfahren"
+        return
+    }
+    
+    # Bestimme Script-Root
+    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    
+    $serverPath = Join-Path $scriptRoot "newWebBased\server"
+    $clientPath = Join-Path $scriptRoot "newWebBased\client"
+    $juryPath = Join-Path $scriptRoot "newWebBased\jury-portal"
+    
+    $totalSteps = 3
+    $currentStep = 0
+    $allSuccess = $true
+    
+    Write-Host ""
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    
+    # Backend Build
+    $currentStep++
+    Write-Host ""
+    Write-Host "[$currentStep/$totalSteps] 🔨 Backend Build..." -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    
+    Set-Location $serverPath
+    Write-Host "   → TypeScript wird kompiliert..." -ForegroundColor White
+    npm run build
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "   ✓ Backend Build erfolgreich!" -ForegroundColor Green
+    } else {
+        Write-Host "   ✗ Backend Build fehlgeschlagen!" -ForegroundColor Red
+        $allSuccess = $false
+    }
+    
+    # Client Build
+    $currentStep++
+    Write-Host ""
+    Write-Host "[$currentStep/$totalSteps] 🔨 Client Build..." -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    
+    Push-Location $clientPath
+    Write-Host "   → React/Vite Build läuft..." -ForegroundColor White
+    npm run build
+    $clientExitCode = $LASTEXITCODE
+    Pop-Location
+    
+    if ($clientExitCode -eq 0) {
+        Write-Host "   ✓ Client Build erfolgreich!" -ForegroundColor Green
+    } else {
+        Write-Host "   ✗ Client Build fehlgeschlagen!" -ForegroundColor Red
+        $allSuccess = $false
+    }
+    
+    # Jury-Portal Build
+    $currentStep++
+    Write-Host ""
+    Write-Host "[$currentStep/$totalSteps] 🔨 Jury-Portal Build..." -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    
+    Push-Location $juryPath
+    Write-Host "   → React/Vite Build läuft..." -ForegroundColor White
+    npm run build
+    $juryExitCode = $LASTEXITCODE
+    Pop-Location
+    
+    Set-Location $serverPath  # Zurück zum Server-Verzeichnis
+    
+    if ($juryExitCode -eq 0) {
+        Write-Host "   ✓ Jury-Portal Build erfolgreich!" -ForegroundColor Green
+    } else {
+        Write-Host "   ✗ Jury-Portal Build fehlgeschlagen!" -ForegroundColor Red
+        $allSuccess = $false
+    }
+    
+    # Zusammenfassung
+    Write-Host ""
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    
+    if ($allSuccess) {
+        Write-Host ""
+        Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+        Write-Host "║        ✓ Alle Builds erfolgreich erstellt!                ║" -ForegroundColor Green
+        Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "💡 Nächster Schritt:" -ForegroundColor Cyan
+        Write-Host "   → Hauptmenü → Option 3 (TurnFix NEU STARTEN)" -ForegroundColor Yellow
+        Write-Host "   → oder Option 1 falls Server nicht läuft" -ForegroundColor Yellow
+    } else {
+        Write-Host ""
+        Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+        Write-Host "║        ✗ Build-Fehler aufgetreten!                        ║" -ForegroundColor Red
+        Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "⚠️  Prüfen Sie die Fehler oben." -ForegroundColor Yellow
+        Write-Host "💡 Mögliche Lösungen:" -ForegroundColor Cyan
+        Write-Host "   • node_modules löschen und neu installieren" -ForegroundColor White
+        Write-Host "   • npm cache clean --force" -ForegroundColor White
+        Write-Host "   • Genug Festplattenspeicher verfügbar?" -ForegroundColor White
+    }
+    
+    Write-Host ""
+    Read-Host "Drücken Sie Enter zum Fortfahren"
+}
+
 function Show-AdvancedMenu {
     Clear-Host
     Write-Host ""
@@ -547,7 +670,7 @@ function Show-AdvancedMenu {
     Write-Host ""
     Write-Host "  [1] Logs löschen (Flush)" -ForegroundColor White
     Write-Host "  [2] PM2 komplett neu starten" -ForegroundColor White
-    Write-Host "  [3] Build neu erstellen" -ForegroundColor White
+    Write-Host "  [3] 🔨 FORCE REBUILD (alle Komponenten)" -ForegroundColor Magenta
     Write-Host "  [4] Netzwerk-IP anzeigen (für Tablets)" -ForegroundColor White
     Write-Host "  [5] Datenbank-Status prüfen" -ForegroundColor White
     Write-Host "  [0] Zurück zum Hauptmenü" -ForegroundColor DarkGray
@@ -578,23 +701,7 @@ function Show-AdvancedMenu {
             Read-Host "Drücken Sie Enter zum Fortfahren"
         }
         "3" {
-            Write-Host "Build wird erstellt..." -ForegroundColor Yellow
-            Write-Host "  Backend wird kompiliert..." -ForegroundColor Cyan
-            Write-Host "  Frontend wird gebaut..." -ForegroundColor Cyan
-            Write-Host ""
-            # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-            $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-            $serverPath = Join-Path $scriptRoot "newWebBased\server"
-            Set-Location $serverPath
-            npm run build:all
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host ""
-                Write-Host "✓ Build erfolgreich erstellt!" -ForegroundColor Green
-                Write-Host "  Starten Sie TurnFix neu (Option 3 im Hauptmenü)" -ForegroundColor Yellow
-            } else {
-                Write-Host "✗ Build fehlgeschlagen!" -ForegroundColor Red
-            }
-            Read-Host "Drücken Sie Enter zum Fortfahren"
+            Force-Rebuild
         }
         "4" {
             Write-Host ""
