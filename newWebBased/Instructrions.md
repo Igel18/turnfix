@@ -1360,10 +1360,31 @@ PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run 
    - Example: Squad "m" with competition 744 shows only 5 devices (Boden, Sprung, Stufenbarren, Balken, Alter) instead of all event devices
    - Files: `jury-portal/src/components/JuryPortal.tsx` (Lines 205-230) 
 
-81. Wettkampfstatus umsetzen als Matrix view mit dem Template 
+81. ~~Wettkampfstatus umsetzen als Matrix view mit dem Template~~ ✅
 http://localhost:3001/competition-status?eventId=77&squadName=m
 - Rows -> Links Wettkampf (bezeichnung) 
 - Columns -> Oberste Zeile Gerät 
 - in den Cellen der Fortschritt in % 
 - Ganz rechts eine zusammenfassende Spalte 
 - Ganz unten eine zusammenfassende Spalte 
+
+**Status**: ✅ Abgeschlossen
+**Implementierung**:
+- Matrix View mit MatrixView Template erstellt
+- Competitions als Rows, Disciplines als Columns
+- Progress % in Cells mit 4-stufiger Farbkodierung:
+  * 🟢 Green (100%) - Vollständig abgeschlossen
+  * 🟡 Yellow (50-99%) - Größtenteils abgeschlossen
+  * 🟠 Orange (1-49%) - In Bearbeitung
+  * ⚪ Gray (0%) - Nicht gestartet
+- Summary Row: Fortschritt pro Disziplin über alle Wettkämpfe
+- Summary Column: Gesamtfortschritt pro Wettkampf über alle Disziplinen
+- Drei View-Modi: Matrix (default), Table, Grid
+- **WICHTIG - Korrekte Fortschrittsberechnung**:
+  * Nur Teilnehmer mit `bol_startet_nicht IS NULL OR bol_startet_nicht = false` werden gezählt
+  * Teilnehmer, die als "nimmt nicht teil" markiert sind, beeinflussen die Statistik nicht
+  * Filter in beiden SQL-Queries: Participant Count und Completed Participant-Discipline Count
+**Dateien**:
+- `client/src/pages/CompetitionStatusManagement.tsx` - Matrix View UI
+- `server/src/routes/competition-status.ts` - Backend API mit korrekter Filterung
+- `client/src/components/MatrixView.tsx` - Reusable Template Component 
