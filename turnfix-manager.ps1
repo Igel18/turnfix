@@ -1,4 +1,4 @@
-# TurnFix Manager - Einfache Bedienung für Anwender
+﻿# TurnFix Manager - Einfache Bedienung für Anwender
 # Dieses Script bietet ein benutzerfreundliches Menü zum Starten, Stoppen und Überwachen von TurnFix
 
 # Farben und Formatierung
@@ -121,8 +121,11 @@ function Start-TurnFix {
     Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
     
+    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    
     # Prüfe ob Server-Verzeichnis existiert
-    $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+    $serverPath = Join-Path $scriptRoot "newWebBased\server"
     if (-not (Test-Path $serverPath)) {
         Write-Host "✗ Fehler: Server-Verzeichnis nicht gefunden!" -ForegroundColor Red
         Write-Host "  Erwartet: $serverPath" -ForegroundColor Yellow
@@ -147,7 +150,7 @@ function Start-TurnFix {
     
     # Prüfe ob Build existiert
     $distPath = Join-Path $serverPath "dist"
-    $clientDistPath = Join-Path $PSScriptRoot "newWebBased\client\dist"
+    $clientDistPath = Join-Path $scriptRoot "newWebBased\client\dist"
     
     if (-not (Test-Path $distPath) -or -not (Test-Path $clientDistPath)) {
         Write-Host "⚠ Build-Dateien nicht gefunden. Erstelle Build..." -ForegroundColor Yellow
@@ -231,7 +234,10 @@ function Stop-TurnFix {
     Write-Host "TurnFix wird gestoppt..." -ForegroundColor Red
     Write-Host ""
     
-    $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    
+    $serverPath = Join-Path $scriptRoot "newWebBased\server"
     Set-Location $serverPath
     
     pm2 stop all
@@ -250,7 +256,10 @@ function Restart-TurnFix {
     Write-Host "TurnFix wird neu gestartet..." -ForegroundColor Yellow
     Write-Host ""
     
-    $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    
+    $serverPath = Join-Path $scriptRoot "newWebBased\server"
     Set-Location $serverPath
     
     pm2 restart all
@@ -269,7 +278,10 @@ function Show-DetailedStatus {
     Write-Host "Detaillierter Status wird geladen..." -ForegroundColor Cyan
     Write-Host ""
     
-    $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    
+    $serverPath = Join-Path $scriptRoot "newWebBased\server"
     Set-Location $serverPath
     
     pm2 status
@@ -288,7 +300,10 @@ function Show-LiveLogs {
     Write-Host "Drücken Sie STRG+C zum Beenden" -ForegroundColor Yellow
     Write-Host ""
     
-    $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    
+    $serverPath = Join-Path $scriptRoot "newWebBased\server"
     Set-Location $serverPath
     
     pm2 logs
@@ -353,7 +368,9 @@ function Show-AdvancedMenu {
     switch ($choice) {
         "1" {
             Write-Host "Logs werden gelöscht..." -ForegroundColor Yellow
-            $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+            # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+            $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+            $serverPath = Join-Path $scriptRoot "newWebBased\server"
             Set-Location $serverPath
             npm run pm2:flush
             Write-Host "✓ Logs gelöscht!" -ForegroundColor Green
@@ -361,7 +378,9 @@ function Show-AdvancedMenu {
         }
         "2" {
             Write-Host "PM2 wird komplett neu gestartet..." -ForegroundColor Yellow
-            $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+            # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+            $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+            $serverPath = Join-Path $scriptRoot "newWebBased\server"
             Set-Location $serverPath
             npx pm2 kill
             npm run pm2:start:prod
@@ -373,7 +392,9 @@ function Show-AdvancedMenu {
             Write-Host "  Backend wird kompiliert..." -ForegroundColor Cyan
             Write-Host "  Frontend wird gebaut..." -ForegroundColor Cyan
             Write-Host ""
-            $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+            # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
+            $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+            $serverPath = Join-Path $scriptRoot "newWebBased\server"
             Set-Location $serverPath
             npm run build:all
             if ($LASTEXITCODE -eq 0) {

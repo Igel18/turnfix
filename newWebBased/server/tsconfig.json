@@ -27,20 +27,9 @@
     "dist", 
     "prisma", 
     "src/checkDb.ts",
-    "src/seedData.ts", 
-    "src/routes/events-new.ts",
-    "src/routes/events-clean.ts",
-    "src/routes/clubs_temp.ts",
-    "src/routes/clubsNew.ts",
-    "src/routes/participants.ts",
-    "src/routes/auth.ts",
-    "src/routes/users.ts", 
-    "src/routes/competitions.ts",
-    "src/routes/results.ts",
-    "src/routes/scores.ts",
-    "src/routes/refreshTokens.ts",
-    "src/routes/competitionEntries.ts",
-    "src/routes/auditLogs.ts",
+    "src/seedData.ts",
+    "src/routes/_archive/**/*",
+    "src/_archive/**/*",
     "src/middleware/auth.ts"
   ]
 }

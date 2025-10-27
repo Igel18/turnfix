@@ -118,11 +118,46 @@ import type { PrismaClient as PrismaClientType} from '@prisma/client';
     **Translation Keys**: disciplineFields.form.*, table.*, card.*, filter.*, status.*, disciplines.card.fields/finalScore/startingScore
     **Dokumentation**: Siehe Code-Kommentare in DisciplineFieldsUnified.tsx und DisciplineFieldFormModal.tsx
 
-29. Aufräumen & Refactoring
-a) Ich sehe es gibt viele duplikate. z.B. medals-broken.ts, medals_old.ts, medals_simple usw. 
-genauso bei events, activities, clubs, ... (in den routen)
-kann man da etwas bereinigen bzw. werden diese alle noch benötigt? 
+29. ~~Aufräumen & Refactoring~~ ✅
+~~a) Ich sehe es gibt viele duplikate. z.B. medals-broken.ts, medals_old.ts, medals_simple usw.~~ ✅
+~~genauso bei events, activities, clubs, ... (in den routen)~~
+~~kann man da etwas bereinigen bzw. werden diese alle noch benötigt?~~ 
 b) kann man vielleicht einiges refacoren? Dialoge, Tabellen, Templates usw? 
+
+**Status Point 29a**: ✅ Abgeschlossen (2025-10-27)
+**Problem**: 28 nicht verwendete/duplizierte Dateien (24 routes + 4 index variants)
+**Analyse**:
+- **Route-Duplikate**:
+  * Medals (6): medals_old.ts, medals_simple.ts, medals_ultra_simple.ts, medals_broken.ts, medals_new.ts, medals-simple.ts
+  * Events (7): events_backup.ts (56KB!), events_debug.ts, events_new.ts, events-clean.ts, events-new.ts, events-simple.ts, events.test.ts
+  * Clubs (4): clubs_new.ts, clubs_temp.ts, clubsNew.ts
+  * Participants (1): participants_simple.ts
+  * Activities (2): activities.ts, activities_backup.ts
+  * Auth/User (4): auth.ts, users.ts, auditLogs.ts, refreshTokens.ts (nie implementiert)
+  * CompetitionEntries (1): competitionEntries.ts
+- **Index-Duplikate** (4): index_backup.ts, index_clean.ts, index_new.ts, index-minimal.ts
+
+**Lösung**:
+- ✅ Archiv-Ordner erstellt: 
+  * `server/src/routes/_archive` (24 route files)
+  * `server/src/_archive` (4 index variants)
+- ✅ 28 Dateien archiviert (insgesamt ~217KB)
+- ✅ Vollständige Dokumentation: `_archive/README.md` in beiden Ordnern
+- ✅ TypeScript-Build ausschließt Archive: `tsconfig.json` updated
+- ✅ Build erfolgreich, Server läuft stabil
+- ✅ Alle 34 aktiven Routes funktionieren
+
+**Vorteile**:
+- Klarere Code-Struktur
+- Schnellere Kompilierung (28 Dateien weniger)
+- Einfachere Navigation im Projekt
+- Backup bleibt verfügbar falls benötigt
+
+**Notizen**:
+- Auth-Dateien könnten für zukünftige echte Authentifizierung nützlich sein
+- `events_backup.ts` (56KB) könnte nützliche Legacy-Logik enthalten
+- Archiv kann jederzeit wiederhergestellt werden
+- Bei Bedarf mit: `Move-Item "src/routes/_archive/filename.ts" "src/routes/"`
 
 30. ~~unification von male / female / both / undefined in den UIs~~ ✅
 ~~http://localhost:3001/disciplines~~ ✅
@@ -1505,3 +1540,112 @@ Vergleichen der Anzahl von Gold, welcher verein am Meisten hat ist Rang 1
 - **Neue Sortierung**: totalGold → totalSilver → totalBronze (totalMedals entfernt)
 - Jetzt: Verein mit meisten Gold-Medaillen = Rang 1, dann Silver, dann Bronze
 **Datei**: `server/src/routes/medals.ts`
+
+84. In der Readme.md gibt es eine QuickStart for new users. das muss aktualisert werden mit dem aktuellen Build. 
+Im Setup muss folgendes angepasst werden: 
+- Installationspfad: in Program ordner
+- Beim DB setup muss der 
+    - DB Host 
+    - Host passwort 
+    - DB name eingegeben werden. 
+    - Das Skript turnfix-manager.ps1 kann aus dem bat heraus nicht gestartet werden. 
+    turnfix-manager.ps1:42 Zeichen:79 LÄ"UFT" 
+
+
+    - Das Skript turnfix-manager.ps1 hat folgendes PM2 problem: 
+    Ihre Wahl: 1
+╔════════════════════════════════════════════════════════════╗
+║              TurnFix wird gestartet...                     ║
+╚════════════════════════════════════════════════════════════╝
+
+Join-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es sich um eine
+leere Zeichenfolge handelt.
+In Zeile:125 Zeichen:29
++     $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
++                             ~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Join-Path], ParameterBindingValidationException  
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Microsoft.P  
+   owerShell.Commands.JoinPathCommand
+
+Test-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es NULL ist.     
+In Zeile:126 Zeichen:25
++     if (-not (Test-Path $serverPath)) {
++                         ~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException  
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShe  
+   ll.Commands.TestPathCommand
+
+Set-Location : Das Argument kann nicht verarbeitet werden, da der Wert des Arguments "path"
+NULL ist. Ändern Sie den Wert des Arguments "path" in einen Wert ungleich NULL.
+In Zeile:133 Zeichen:5
++     Set-Location $serverPath
++     ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Set-Location], PSArgumentNullException       
+    + FullyQualifiedErrorId : ArgumentNull,Microsoft.PowerShell.Commands.SetLocationCommand
+
+Join-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es NULL ist.     
+In Zeile:136 Zeichen:34
++     $nodeModulesPath = Join-Path $serverPath "node_modules"
++                                  ~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Join-Path], ParameterBindingValidationException  
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShe  
+   ll.Commands.JoinPathCommand
+ 
+Test-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es NULL ist.
+In Zeile:137 Zeichen:25
++     if (-not (Test-Path $nodeModulesPath)) {
++                         ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException  
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShe  
+   ll.Commands.TestPathCommand
+
+Join-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es NULL ist.     
+In Zeile:149 Zeichen:27
++     $distPath = Join-Path $serverPath "dist"
++                           ~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Join-Path], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShe  
+   ll.Commands.JoinPathCommand
+
+Join-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es sich um eine
+leere Zeichenfolge handelt.
+In Zeile:150 Zeichen:33
++     $clientDistPath = Join-Path $PSScriptRoot "newWebBased\client\dis ...
++                                 ~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Join-Path], ParameterBindingValidationException  
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Microsoft.P  
+   owerShell.Commands.JoinPathCommand
+
+Test-Path : Das Argument kann nicht an den Parameter "Path" gebunden werden, da es NULL ist.     
+In Zeile:152 Zeichen:25
++     if (-not (Test-Path $distPath) -or -not (Test-Path $clientDistPat ...
++                         ~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException  
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShe  
+   ll.Commands.TestPathCommand
+ 
+Starte Server mit PM2...
+  • Haupt-Server wird gestartet...
+  • Kampfrichter-Portal wird gestartet...
+
+pm2 : Die Benennung "pm2" wurde nicht als Name eines Cmdlet, einer Funktion, einer Skriptdatei
+oder eines ausführbaren Programms erkannt. Überprüfen Sie die Schreibweise des Namens, oder ob   
+der Pfad korrekt ist (sofern enthalten), und wiederholen Sie den Vorgang.
+In Zeile:173 Zeichen:5
++     pm2 start ecosystem.config.js --env production
++     ~~~
+    + CategoryInfo          : ObjectNotFound: (pm2:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+
+✗ Fehler beim Starten!
+
+Mögliche Lösungen:
+  • Prüfen Sie ob die Ports 3001 und 3002 frei sind
+  • Prüfen Sie die Logs mit Option 5
+  • Versuchen Sie Option 3 (Neustart)
+
+Drücken Sie Enter zum Fortfahren:
+
+
+
