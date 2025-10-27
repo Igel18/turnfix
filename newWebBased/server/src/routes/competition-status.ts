@@ -86,6 +86,7 @@ router.get('/', async (req, res) => {
     })
 
     // Pre-compute participant counts per competition (distinct participants)
+    // WICHTIG: Nur Teilnehmer zählen, die auch wirklich starten (bol_startet_nicht IS NULL OR bol_startet_nicht = false)
     const competitionIds = competitions.map(c => c.int_wettkaempfeid)
     let participantCountByCompetition = new Map<number, number>()
     let completedParticipantDisciplineByCompetition = new Map<number, number>()
@@ -98,6 +99,7 @@ router.get('/', async (req, res) => {
         FROM tfx_wertungen
         WHERE int_wettkaempfeid = ANY($1)
           AND int_teilnehmerid IS NOT NULL
+          AND (bol_startet_nicht IS NULL OR bol_startet_nicht = false)
         GROUP BY int_wettkaempfeid
         `,
         competitionIds
@@ -107,6 +109,7 @@ router.get('/', async (req, res) => {
       )
 
       // Completed participant×discipline entries: any score recorded for a participant in a discipline
+      // WICHTIG: Nur Teilnehmer zählen, die auch wirklich starten (bol_startet_nicht IS NULL OR bol_startet_nicht = false)
       const completedPairs = await prisma.$queryRawUnsafe(
         `
         SELECT 
@@ -117,6 +120,7 @@ router.get('/', async (req, res) => {
         WHERE w.int_wettkaempfeid = ANY($1)
           AND w.int_teilnehmerid IS NOT NULL
           AND wd.int_disziplinenid IS NOT NULL
+          AND (w.bol_startet_nicht IS NULL OR w.bol_startet_nicht = false)
         GROUP BY w.int_wettkaempfeid
         `,
         competitionIds
