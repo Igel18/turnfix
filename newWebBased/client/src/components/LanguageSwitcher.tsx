@@ -1,11 +1,17 @@
 import React, { useState } from 'react'
-import { useLanguage } from '../contexts/LanguageContext'
+import { useOptionalLanguage } from '../contexts/LanguageContext'
 import { ChevronDownIcon, LanguageIcon } from '@heroicons/react/24/outline'
 
 const LanguageSwitcher: React.FC = () => {
-  const { currentLanguage, changeLanguage, availableLanguages } = useLanguage()
+  const languageContext = useOptionalLanguage()
   const [isOpen, setIsOpen] = useState(false)
 
+  // Return null if no language context is available (e.g., in tests)
+  if (!languageContext) {
+    return null
+  }
+
+  const { currentLanguage, changeLanguage, availableLanguages } = languageContext
   const currentLang = availableLanguages.find(lang => lang.code === currentLanguage)
 
   return (

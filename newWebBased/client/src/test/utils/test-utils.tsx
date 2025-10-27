@@ -288,8 +288,17 @@ const createTestQueryClient = () => new QueryClient({
 
 // Mock EventProvider for tests that need it
 const MockEventProvider = ({ children }: { children: React.ReactNode }) => {
-  // Create a simple provider that doesn't require the actual EventProvider
-  return React.createElement('div', { 'data-testid': 'mock-event-provider' }, children);
+  // Create a mock context value
+  const mockEventContext = {
+    selectedEvent: null,
+    setSelectedEvent: vi.fn(),
+    selectedEventId: null,
+  };
+
+  // Import EventContext and provide the mock value
+  const EventContext = React.createContext<any>(mockEventContext);
+  
+  return React.createElement(EventContext.Provider, { value: mockEventContext }, children);
 };
 
 // Custom render function with providers

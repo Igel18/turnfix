@@ -14,7 +14,7 @@ import {
   XMarkIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline'
-import { useEvent } from '../contexts/EventContext'
+import { useOptionalEvent } from '../contexts/EventContext'
 import LanguageSwitcher from './LanguageSwitcher'
 
 interface FilterOption {
@@ -127,7 +127,8 @@ export default function UnifiedPageHeader({
   customBelowActions
 }: UnifiedPageHeaderProps) {
   const { t } = useTranslation()
-  const { selectedEvent } = useEvent()
+  const eventContext = useOptionalEvent()
+  const selectedEvent = eventContext?.selectedEvent ?? null
 
   // Debug logging to track when the header re-renders with updated event data
   useEffect(() => {

@@ -59,3 +59,9 @@ export const useLanguage = () => {
   }
   return context
 }
+
+// Optional version that returns null if provider is not available
+export const useOptionalLanguage = () => {
+  const context = useContext(LanguageContext)
+  return context ?? null
+}

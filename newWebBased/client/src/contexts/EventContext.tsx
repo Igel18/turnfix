@@ -190,4 +190,10 @@ export function useEvent() {
   return context
 }
 
+// Optional version that returns null if provider is not available
+export function useOptionalEvent() {
+  const context = useContext(EventContext)
+  return context ?? null
+}
+
 export default EventContext
