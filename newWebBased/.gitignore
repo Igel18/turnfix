@@ -157,8 +157,8 @@ temp_*.*
 config/local.json
 config/production.json
 
-# PM2 process file
-ecosystem.config.js
+# PM2 process file - REMOVED: ecosystem.config.js now tracked in git
+# ecosystem.config.js
 
 # Webpack bundle analyzer
 bundle-analyzer-report.html
