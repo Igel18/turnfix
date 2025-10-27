@@ -1350,7 +1350,74 @@ PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run 
      - Squad Status: http://localhost:3001/squad-status?eventId=59
      - Meldematrix: http://localhost:3001/meldematrix?eventId=59
 
-79. Prio 10 Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 
+79. ~~Prio 10 Live-Updates~~ ✅
+- Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 
+- Funktionieren die Live-Updates auch mit den Status Seiten 
+http://localhost:3001/medallienspiegel?eventId=57&squadName=Rot
+http://localhost:3001/squad-status?eventId=57&squadName=Rot
+http://localhost:3001/competition-status?eventId=57&squadName=Rot
+
+**Status**: ✅ Abgeschlossen
+**Implementierung**:
+- **LiveScoreUpdates Component** (`client/src/components/LiveScoreUpdates.tsx`):
+  * Real-time Socket.IO Integration mit join/leave-competition events
+  * Zeigt letzte N Wertungen als Liste: Person, Wettkampf, Gerät, Punkte
+  * Konfigurierbare Anzahl an Einträgen (5-100, default 10) via localStorage
+  * Toggle für Squad-Anzeige (default true)
+  * Farbkodierung der Punkte: 🟢≥15, 🔵≥10, 🟡≥5, ⚪<5
+  * FadeIn Animation für neue Einträge
+  * Geschlechts-Badge (männlich/weiblich)
+  * Live-Indikator mit pulsierendem grünen Punkt
+  
+- **LiveScoresPage** (`client/src/pages/LiveScoresPage.tsx`):
+  * Vollständige Seite mit Settings Panel
+  * Route: `/live-scores?eventId=X`
+  * Settings: maxEntries Slider, showSquad Checkbox
+  * Info-Box mit Nutzungsanweisungen
+  * Persistenz der Einstellungen in localStorage
+  
+- **Socket.IO Backend** (`server/src/routes/scores.ts`):
+  * Enhanced `/save-value` endpoint mit Socket.IO Emission
+  * SQL Query für Participant Details:
+    - Vorname, Nachname, Geschlecht (tfx_teilnehmer)
+    - Wettkampf-Name, Nummer (tfx_wettkaempfe)
+    - Disziplin-Name, Kurzform (tfx_disziplinen)
+    - Riege/Squad (tfx_wertungen.var_riege)
+  * Event: `score-updated` in Room `competition-${eventId}`
+  * Vollständige Datenübertragung mit allen Teilnehmerdetails
+  * Error Handling mit try-catch und Debug-Logging
+  * **Fix**: Entfernt nicht-existierende Tabelle `tfx_riegen`, verwendet `w.var_riege` stattdessen
+  
+- **Menu Integration** (`client/src/pages/ManagementCenter.tsx`):
+  * Eintrag unter "Wettkampftag" → "Live-Wertungen"
+  * Vollständige DE/EN Lokalisierung
+  
+- **Lokalisierung** (`client/src/i18n/locales/de.json` + `en.json`):
+  * liveScores.title, liveScores.live, liveScores.noScores
+  * liveScores.showing, liveScores.settings.*
+  * managementCenter.eventManagement.competitionDay.liveScores
+  
+- **Styling** (`client/src/index.css`):
+  * fadeIn keyframes Animation (0-100% opacity)
+
+**Socket.IO Flow**:
+1. Client verbindet und emittet `join-competition` mit eventId
+2. Server fügt Client zu Room `competition-${eventId}` hinzu
+3. Bei Score-Save: Server lädt Details aus DB und emittet `score-updated`
+4. Alle Clients im Room empfangen Update in Echtzeit
+5. Client zeigt neue Wertung mit fadeIn-Animation an
+
+**Dateien**:
+- `client/src/components/LiveScoreUpdates.tsx` - Real-time Score Widget
+- `client/src/pages/LiveScoresPage.tsx` - Full Page mit Settings
+- `client/src/App.tsx` - Route hinzugefügt
+- `client/src/pages/ManagementCenter.tsx` - Menu Entry
+- `client/src/i18n/locales/de.json` - Deutsche Übersetzungen
+- `client/src/i18n/locales/en.json` - Englische Übersetzungen
+- `client/src/index.css` - fadeIn Animation
+- `server/src/routes/scores.ts` - Socket.IO Emission mit Participant Details
+
+**Test-URL**: http://localhost:3001/live-scores?eventId=77 
 
 80. ✅ Prio 1 auf der seite http://192.168.1.108:3002/jury/ kann das gerät ausgewählt werden. Es werden aber viel mehr geräte angezeigt, als in dieser Riege verfügbar sind. 
    - **Fixed**: Device filtering now uses `competitions` array from squad participants
@@ -1388,3 +1455,15 @@ http://localhost:3001/competition-status?eventId=77&squadName=m
 - `client/src/pages/CompetitionStatusManagement.tsx` - Matrix View UI
 - `server/src/routes/competition-status.ts` - Backend API mit korrekter Filterung
 - `client/src/components/MatrixView.tsx` - Reusable Template Component 
+
+
+82. Einheitliche Eingabe-/Anzeige format für die Wertungen: 
+Auf der Seite Disciplinen 
+http://localhost:3001/disciplines
+lässt sich die Eingabemaske (unter Einstellungen) für jede Disziplin definieren. 
+z.B. 0.00 oder 0.000 usw. 
+Diese muss einheitlich angewendet werden bei der Eingabe und auch bei den Ergebnissen: 
+http://localhost:3001/live-scores?eventId=77&squadName=Rot
+http://localhost:3001/score-capture?eventId=77&squadName=m
+http://localhost:3001/results?eventId=77&squadName=m
+http://localhost:3002/jury 

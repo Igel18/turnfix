@@ -218,6 +218,13 @@ const competitionDayActions = [
     color: 'bg-green-500'
   },
   {
+    name: 'Live Scores',
+    description: 'Live score updates and recent results',
+    href: '/live-scores',
+    icon: ClipboardDocumentListIcon,
+    color: 'bg-indigo-500'
+  },
+  {
     name: 'Score Capture',
     description: 'Enter competition results and scores',
     href: '/score-capture',
@@ -311,6 +318,7 @@ export function ManagementCenter() {
       'Meldematrix': 'managementCenter.eventManagement.eventSetup.meldematrix.title',
       'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.title',
       'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.title',
+      'Live Scores': 'managementCenter.eventManagement.competitionDay.liveScores.title',
       'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.title',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.title',
       'View Results': 'managementCenter.eventManagement.resultsAwards.results.title',
@@ -341,6 +349,7 @@ export function ManagementCenter() {
       'Meldematrix': 'managementCenter.eventManagement.eventSetup.meldematrix.description',
       'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.description',
       'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.description',
+      'Live Scores': 'managementCenter.eventManagement.competitionDay.liveScores.description',
       'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.description',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.description',
       'View Results': 'managementCenter.eventManagement.resultsAwards.results.description',

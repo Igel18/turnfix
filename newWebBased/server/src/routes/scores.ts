@@ -500,17 +500,63 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
 
     // Emit Socket.IO events for real-time updates
     if (eventId) {
-      const { io } = await import('../index');
-      console.log(`🔔 Emitting score-updated event for eventId ${eventId}`);
-      io.to(`competition-${eventId}`).emit('score-updated', { 
-        eventId, 
-        competitionId: actualCompetitionId,
-        participantId,
-        disciplineId: actualDisciplineId,
-        score: parseFloat(score), // Include the actual score value!
-        updated: true 
-      });
-      console.log(`✅ Socket.IO event emitted to competition-${eventId} with score: ${score}`);
+      try {
+        const { io } = await import('../index');
+        
+        console.log(`🔍 About to query score details with wertungenId=${wertungenId}, disciplineId=${actualDisciplineId}`);
+        
+        // Fetch additional data for the live score update
+        const scoreDetailsQuery = `
+          SELECT 
+            t.var_vorname as firstname,
+            t.var_nachname as lastname,
+            CASE 
+              WHEN t.int_geschlecht = 1 THEN 'männlich'
+              WHEN t.int_geschlecht = 2 THEN 'weiblich'
+              ELSE 'männlich'
+            END as gender,
+            wk.var_name as competition_name,
+            wk.var_nummer as competition_number,
+            d.var_name as discipline_name,
+            d.var_kurz1 as discipline_short,
+            w.var_riege as squad_name
+          FROM tfx_wertungen w
+          LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+          LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          LEFT JOIN tfx_disziplinen d ON $2 = d.int_disziplinenid
+          WHERE w.int_wertungenid = $1
+        `;
+        
+        console.log(`🔍 Executing SQL query for score details...`);
+        const scoreDetails = await prisma.$queryRawUnsafe(scoreDetailsQuery, wertungenId, actualDisciplineId) as any[];
+        console.log(`🔍 Query returned ${scoreDetails?.length || 0} rows`);
+        const details = scoreDetails[0] || {};
+        
+        console.log(`🔔 Score details from DB:`, details);
+        console.log(`🔔 Emitting score-updated event for eventId ${eventId}`);
+        io.to(`competition-${eventId}`).emit('score-updated', { 
+          scoreId: wertungenId,
+          eventId, 
+          competitionId: actualCompetitionId,
+          competitionName: details.competition_name,
+          competitionNumber: details.competition_number,
+          participantId,
+          firstname: details.firstname,
+          lastname: details.lastname,
+          gender: details.gender,
+          disciplineId: actualDisciplineId,
+          disciplineName: details.discipline_name,
+          disciplineShort: details.discipline_short,
+          squadName: details.squad_name,
+          score: parseFloat(score),
+          finalScore: parseFloat(score),
+          timestamp: new Date().toISOString(),
+          updated: true 
+        });
+        console.log(`✅ Socket.IO event emitted to competition-${eventId} with score: ${score} for ${details.firstname} ${details.lastname}`);
+      } catch (socketError) {
+        console.error('❌ Error fetching score details or emitting Socket.IO event:', socketError);
+      }
     } else {
       console.warn(`⚠️ No eventId found for competitionId ${actualCompetitionId}, skipping Socket.IO emission`);
       console.warn(`⚠️ Query result was:`, eventIdResult);

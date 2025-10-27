@@ -128,6 +128,10 @@
           "title": "Wettkampfstatus",
           "description": "Wettkampffortschritt und Status überwachen"
         },
+        "liveScores": {
+          "title": "Live-Wertungen",
+          "description": "Live-Wertungen und aktuelle Ergebnisse"
+        },
         "juryPortal": {
           "title": "Kampfrichter-Portal",
           "description": "Vereinfachte Kampfrichter-Oberfläche für den Wettkampftag (öffnet in neuem Fenster)"
@@ -2120,6 +2124,22 @@
         "created": "Erstellt"
       }
     }
+  },
+  "liveScores": {
+    "title": "Live-Wertungen",
+    "live": "Live",
+    "noScores": "Noch keine Wertungen vorhanden",
+    "showing": "Zeige {{count}} von max. {{max}} Einträgen",
+    "settings": {
+      "title": "Live-Wertungen Einstellungen",
+      "maxEntries": "Maximale Anzahl Einträge",
+      "maxEntriesHelp": "Wie viele Live-Wertungen sollen maximal angezeigt werden?",
+      "showSquad": "Riege anzeigen",
+      "showSquadHelp": "Soll der Riegen-Name bei jeder Wertung angezeigt werden?",
+      "autoRefresh": "Automatische Aktualisierung",
+      "autoRefreshHelp": "Live-Updates über Socket.IO aktivieren"
+    }
   }
 }
+
 

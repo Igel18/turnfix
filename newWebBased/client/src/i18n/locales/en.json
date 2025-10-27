@@ -128,6 +128,10 @@
           "title": "Competition Status",
           "description": "Monitor competition progress and status"
         },
+        "liveScores": {
+          "title": "Live Scores",
+          "description": "Live score updates and recent results"
+        },
         "juryPortal": {
           "title": "Jury Portal",
           "description": "Simplified jury interface for competition day (opens in new window)"
@@ -2122,6 +2126,21 @@
         "disciplines": "Disciplines",
         "created": "Created"
       }
+    }
+  },
+  "liveScores": {
+    "title": "Live Scores",
+    "live": "Live",
+    "noScores": "No scores yet",
+    "showing": "Showing {{count}} of max. {{max}} entries",
+    "settings": {
+      "title": "Live Scores Settings",
+      "maxEntries": "Maximum number of entries",
+      "maxEntriesHelp": "How many live scores should be displayed at maximum?",
+      "showSquad": "Show squad",
+      "showSquadHelp": "Should the squad name be displayed for each score?",
+      "autoRefresh": "Auto refresh",
+      "autoRefreshHelp": "Enable live updates via Socket.IO"
     }
   }
 }
