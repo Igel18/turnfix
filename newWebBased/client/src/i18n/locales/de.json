@@ -1853,7 +1853,9 @@
       "saving": "Speichern...",
       "cancel": "Abbrechen",
       "validationError": "Vor- und Nachname sind erforderlich",
-      "ageValidationError": "Bitte geben Sie ein gültiges Geburtsdatum ein (Alter muss zwischen 1 und 100 liegen)"
+      "ageValidationError": "Bitte geben Sie ein gültiges Geburtsdatum ein (Alter muss zwischen 1 und 100 liegen)",
+      "ageWarning": "Alter {{age}} liegt außerhalb des Wettkampfbereichs ({{ageFrom}}-{{ageTo}} Jahre)",
+      "genderWarning": "Geschlecht {{participantGender}} passt nicht zum Wettkampf ({{competitionGender}})"
     },
     "filters": {
       "gender": "Geschlecht",

@@ -907,8 +907,11 @@ http://localhost:3001/event-management?eventId=59&squadName=mBlau
 
 57. Prio 5 Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
 Das soll sowohl in jury-portal als auch im Turnfix server passieren auf der 
+http://localhost:3001/score-capture?eventId=59&squadName=m
 
-58. Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
+58. ✅ Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
+   - **Fixed**: Discipline groups are now selectable in competition edit
+   - File: `client/src/pages/Competitions.tsx`
 http://localhost:3001/competitions?eventId=77&squadName=m
 
 ~~59. Prio 2 Auf der Seite passen die Statistik nicht von männlich und weiblich~~ ✅
@@ -1068,7 +1071,19 @@ Error saving field: -352 Error: Validation error
     - Automatische Ermittlung wenn competitionId fehlt oder ungültig
     **Resultat**: Teilnehmer werden konsistent der korrekten Competition zugeordnet 
 
-64. Prio 4 Wettkampf zu Alter und Gender validieren in 
+64. ✅ Prio 4 Wettkampf zu Alter und Gender validieren in 
+   - **Fixed**: Competition assignments now validate age and gender compatibility
+   - **Age Validation**: Shows warning if participant age is outside competition age range (ageFrom-ageTo)
+   - **Gender Validation**: Shows warning if participant gender doesn't match competition (except "gemischt")
+   - **Visual Feedback**: Invalid assignments highlighted with yellow background (bg-yellow-50, border-yellow-300)
+   - **Warning Message**: Specific validation reasons displayed below competition name with ⚠️ icon
+   - **Save Allowed**: User can still save despite warnings (as requested)
+   - **Localization**: Added `ageWarning` and `genderWarning` keys to de.json and en.json
+   - **Example**: 12-year-old male assigned to "Gerätvierkampf w" (female, 10-14) shows gender warning
+   - Files: 
+     * `client/src/pages/EventParticipants.tsx` (Lines 117-138: validateCompetition function)
+     * `client/src/pages/EventParticipants.tsx` (Lines 257-298: visual warning display)
+     * `client/src/i18n/locales/de.json` and `en.json` (new translation keys)
 http://localhost:3001/event-participants?eventId=59&squadName=mRot 
 Editfenster. 
 
@@ -1227,7 +1242,9 @@ Editfenster.
     **Test URL**: http://localhost:5173/results?eventId=59&squadName=mRot
     **Resultat**: Competition Groups werden korrekt nach Wettkampfnummer sortiert angezeigt
 
-72. Prio 4 http://localhost:3001/results?eventId=77&squadName=mRot
+72. ✅ Prio 4 http://localhost:3001/results?eventId=77&squadName=mRot
+   - **Fixed**: Der Button "Print" wurde umbenannt zu "Generate Certificates PDF"
+   - File: `client/src/pages/Results.tsx`
 Der Button "Print" muss besser heißen z.B. "Generate Certificats PDF"
 
 ~~73. Prio 4 Die UI für das Jury-Portal muss überarbeitet werden:~~ ✅

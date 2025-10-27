@@ -113,6 +113,57 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
     return age;
   };
 
+  // Validate if participant fits competition requirements
+  const validateCompetition = (competition: Competition): { valid: boolean; reasons: string[] } => {
+    const reasons: string[] = [];
+    const age = calculateAge(formData.birthday);
+    
+    // Age validation
+    if (age > 0 && (age < competition.ageFrom || age > competition.ageTo)) {
+      reasons.push(t('eventParticipants.editParticipant.ageWarning', { 
+        age, 
+        ageFrom: competition.ageFrom, 
+        ageTo: competition.ageTo 
+      }));
+    }
+    
+    // Gender validation
+    // Check if formData.gender is already in German or English format
+    let participantGender: string;
+    if (formData.gender === 'male' || formData.gender === 'female') {
+      // English format - convert to German
+      participantGender = formData.gender === 'male' ? 'männlich' : 'weiblich';
+    } else {
+      // Already in German format (männlich/weiblich)
+      participantGender = formData.gender;
+    }
+    
+    // Debug logging
+    console.log('🔍 Gender Validation:', {
+      formDataGender: formData.gender,
+      participantGender: participantGender,
+      competitionGender: competition.gender,
+      competitionName: competition.name,
+      isGemischt: competition.gender === 'gemischt',
+      gendersMatch: competition.gender === participantGender,
+      shouldWarn: competition.gender !== 'gemischt' && competition.gender !== participantGender
+    });
+    
+    // Only warn if competition is NOT mixed AND genders don't match
+    if (competition.gender !== 'gemischt' && competition.gender !== participantGender) {
+      // Get localized gender strings
+      const localizedParticipantGender = t(`common.gender.${formData.gender}`);
+      const localizedCompetitionGender = t(`common.gender.${competition.gender === 'männlich' ? 'male' : 'female'}`);
+      
+      reasons.push(t('eventParticipants.editParticipant.genderWarning', { 
+        participantGender: localizedParticipantGender,
+        competitionGender: localizedCompetitionGender
+      }));
+    }
+    
+    return { valid: reasons.length === 0, reasons };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -226,35 +277,54 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
       {/* Competition Assignments */}
       <div className="mt-6">
         <h5 className="text-sm font-medium text-gray-700 mb-3">{t('eventParticipants.editParticipant.competitionAssignments')}</h5>
-        <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
+        <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-3">
           {competitions.length === 0 ? (
             <p className="text-sm text-gray-500">{t('eventParticipants.editParticipant.loadingCompetitions')}</p>
           ) : (
-            competitions.map((competition: Competition) => (
-              <label key={`competition-${competition.id}`} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.assignedCompetitions.includes(competition.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFormData({
-                        ...formData,
-                        assignedCompetitions: [...formData.assignedCompetitions, competition.id]
-                      });
-                    } else {
-                      setFormData({
-                        ...formData,
-                        assignedCompetitions: formData.assignedCompetitions.filter(id => id !== competition.id)
-                      });
-                    }
-                  }}
-                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <span className="text-sm text-gray-700">
-                  {competition.name}{competition.number ? ` (Nr. ${competition.number})` : ''} ({competition.gender}, Ages {competition.ageFrom}-{competition.ageTo})
-                </span>
-              </label>
-            ))
+            competitions.map((competition: Competition) => {
+              const validation = validateCompetition(competition);
+              const isSelected = formData.assignedCompetitions.includes(competition.id);
+              const showWarning = !validation.valid && isSelected;
+              
+              return (
+                <div key={`competition-${competition.id}`}>
+                  <label 
+                    className={`flex items-start p-2 rounded ${
+                      showWarning ? 'bg-yellow-50 border border-yellow-300' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({
+                            ...formData,
+                            assignedCompetitions: [...formData.assignedCompetitions, competition.id]
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            assignedCompetitions: formData.assignedCompetitions.filter(id => id !== competition.id)
+                          });
+                        }
+                      }}
+                      className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5"
+                    />
+                    <div className="flex-1">
+                      <span className={`text-sm ${showWarning ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
+                        {competition.name}{competition.number ? ` (Nr. ${competition.number})` : ''} ({competition.gender}, Ages {competition.ageFrom}-{competition.ageTo})
+                      </span>
+                      {showWarning && (
+                        <div className="mt-1 text-xs text-yellow-700">
+                          ⚠️ {validation.reasons.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

@@ -1856,7 +1856,9 @@
       "saving": "Saving...",
       "cancel": "Cancel",
       "validationError": "First name and last name are required",
-      "ageValidationError": "Please enter a valid birthday (age must be between 1 and 100)"
+      "ageValidationError": "Please enter a valid birthday (age must be between 1 and 100)",
+      "ageWarning": "Age {{age}} is outside competition range ({{ageFrom}}-{{ageTo}} years)",
+      "genderWarning": "Gender {{participantGender}} does not match competition ({{competitionGender}})"
     },
     "filters": {
       "gender": "Gender",
