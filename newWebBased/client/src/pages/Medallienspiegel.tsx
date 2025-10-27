@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { TrophyIcon } from '@heroicons/react/24/outline'
@@ -7,6 +7,7 @@ import { useMedals, MedalStanding } from '../hooks/useMedals'
 import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import getSocket from '@/utils/socket'
 
 export default function Medallienspiegel() {
   const { t } = useTranslation()
@@ -16,6 +17,29 @@ export default function Medallienspiegel() {
   const { medalData, loading, error, refetch } = useMedals(
     selectedEvent ? selectedEvent.int_eventid : null
   )
+
+  // Socket.IO: Listen for real-time medal updates
+  useEffect(() => {
+    if (!selectedEvent) return
+
+    const selectedEventId = selectedEvent.int_eventid
+    const socket = getSocket()
+    socket.emit('join-competition', selectedEventId)
+
+    const handleMedalUpdate = () => {
+      console.log('🏅 Medal standings update received, refetching data...')
+      refetch()
+    }
+
+    socket.on('score-updated', handleMedalUpdate)
+    socket.on('medal-updated', handleMedalUpdate)
+
+    return () => {
+      socket.emit('leave-competition', selectedEventId)
+      socket.off('score-updated', handleMedalUpdate)
+      socket.off('medal-updated', handleMedalUpdate)
+    }
+  }, [selectedEvent, refetch])
 
   const handleExportPDF = () => {
     if (!medalData || !selectedEvent) {

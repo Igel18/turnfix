@@ -293,9 +293,8 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
       });
     }
 
-    // Convert to array and sort by total medals (then by gold, silver, bronze)
+    // Convert to array and sort by gold first, then silver, then bronze (as per requirements)
     const standings = Array.from(clubStandings.values()).sort((a, b) => {
-      if (a.totalMedals !== b.totalMedals) return b.totalMedals - a.totalMedals;
       if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold;
       if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver;
       return b.totalBronze - a.totalBronze;

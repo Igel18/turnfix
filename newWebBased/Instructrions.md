@@ -1357,7 +1357,7 @@ http://localhost:3001/medallienspiegel?eventId=57&squadName=Rot
 http://localhost:3001/squad-status?eventId=57&squadName=Rot
 http://localhost:3001/competition-status?eventId=57&squadName=Rot
 
-**Status**: ✅ Abgeschlossen
+**Status**: ✅ Vollständig abgeschlossen
 **Implementierung**:
 - **LiveScoreUpdates Component** (`client/src/components/LiveScoreUpdates.tsx`):
   * Real-time Socket.IO Integration mit join/leave-competition events
@@ -1419,6 +1419,26 @@ http://localhost:3001/competition-status?eventId=57&squadName=Rot
 
 **Test-URL**: http://localhost:3001/live-scores?eventId=77 
 
+**Status Seiten Live-Updates** (2025-01-XX):
+- ✅ **Squad Status** (`client/src/pages/SquadStatusManagement.tsx`): Socket.IO bereits implementiert
+  * Events: squad-status-updated, competition-status-updated
+  * Real-time updates bei Score-Änderungen
+  
+- ✅ **Competition Status** (`client/src/pages/CompetitionStatusManagement.tsx`): Socket.IO bereits implementiert
+  * Events: competition-status-updated, squad-status-updated
+  * Matrix-View aktualisiert live
+  
+- ✅ **Medallienspiegel** (`client/src/pages/Medallienspiegel.tsx`): Socket.IO hinzugefügt
+  * Events: score-updated, medal-updated
+  * Medal standings aktualisieren in Echtzeit
+  * Alle drei Status-Seiten haben jetzt vollständige Live-Update-Funktionalität
+
+**Zusätzliche Fixes**:
+- ✅ Icon Serving Fix (`server/src/index.ts`): Absolute path für public static files
+  * Problem: Icons auf Score Capture Seite mit 404 (relative path funktionierte nicht)
+  * Lösung: `path.join(__dirname, '../public')` statt `'public'`
+  * Icons nun erreichbar: http://localhost:3001/public/icons/*.png
+
 80. ✅ Prio 1 auf der seite http://192.168.1.108:3002/jury/ kann das gerät ausgewählt werden. Es werden aber viel mehr geräte angezeigt, als in dieser Riege verfügbar sind. 
    - **Fixed**: Device filtering now uses `competitions` array from squad participants
    - Changed from non-existent `assignedCompetitions` field to actual `competitions: [{id, name, number}]` structure
@@ -1467,3 +1487,21 @@ http://localhost:3001/live-scores?eventId=77&squadName=Rot
 http://localhost:3001/score-capture?eventId=77&squadName=m
 http://localhost:3001/results?eventId=77&squadName=m
 http://localhost:3002/jury 
+
+83. Medallienspiegel: 
+http://localhost:3001/medallienspiegel?eventId=77&squadName=m
+Ich glaube der medallienspiegel wird noch nicht richtig berechnet: 
+Alle 1. Plätze von einem Verein -> Gold zählen 
+Alle 2. Platze von eienm Verein -> Silber zählen 
+Alle 3. Plätze von einem Verein -> Bronze zählen 
+
+Vergleichen der Anzahl von Gold, welcher verein am Meisten hat ist Rang 1 
+**Status Point 83**: ✅ Abgeschlossen (2025-01-XX)
+**Problem**: Ranking-Logik war falsch - sortierte nach Gesamtanzahl Medaillen statt nach Gold zuerst
+**Lösung**: 
+- Medal-Berechnung war bereits korrekt (Top 3 in jedem Wettkampf bekommen Medaillen)
+- Ranking-Sortierung korrigiert in `server/src/routes/medals.ts` (Lines 297-301)
+- **Alte Sortierung**: totalMedals → totalGold → totalSilver → totalBronze
+- **Neue Sortierung**: totalGold → totalSilver → totalBronze (totalMedals entfernt)
+- Jetzt: Verein mit meisten Gold-Medaillen = Rang 1, dann Silver, dann Bronze
+**Datei**: `server/src/routes/medals.ts`
