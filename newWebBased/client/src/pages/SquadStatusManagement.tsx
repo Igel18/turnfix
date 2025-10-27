@@ -10,6 +10,7 @@ import {
   TableCellsIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import MatrixView, { MatrixStatusBadge, MatrixColumn, MatrixRow, MatrixCellProps } from '@/components/MatrixView'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiPost } from '@/utils/api'
 import getSocket from '@/utils/socket'
@@ -502,92 +503,96 @@ export function SquadStatusManagement() {
 
       {/* Data Display */}
       {viewMode === 'matrix' ? (
-        /* Matrix View - Rows: Squads, Columns: Disciplines */
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
-                    {t('squadStatus.table.squad')}
-                  </th>
-                  {uniqueDisciplines.map((disciplineName, index) => {
-                    const discipline = squadDisciplines.find(sd => sd.disciplineName === disciplineName)
-                    return (
-                      <th key={index} className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 min-w-[120px]">
-                        <div className="font-semibold">{discipline?.disciplineShort || disciplineName}</div>
-                        <div className="text-[10px] font-normal text-gray-400">{disciplineName}</div>
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {uniqueSquads.map((squadName, squadIndex) => (
-                  <tr key={squadIndex} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
-                      {squadName}
-                    </td>
-                    {uniqueDisciplines.map((disciplineName, disciplineIndex) => {
-                      const item = squadDisciplines.find(
-                        sd => sd.squadName === squadName && sd.disciplineName === disciplineName
-                      )
-                      
-                      if (!item) {
-                        return (
-                          <td key={disciplineIndex} className="px-3 py-3 text-center border-r border-gray-200">
-                            <span className="text-gray-300 text-xs">-</span>
-                          </td>
-                        )
-                      }
+        /* Matrix View - Using MatrixView Template */
+        <MatrixView
+          columns={uniqueDisciplines.map((disciplineName) => {
+            const discipline = squadDisciplines.find(sd => sd.disciplineName === disciplineName)
+            return {
+              id: disciplineName,
+              label: discipline?.disciplineShort || disciplineName,
+              subLabel: disciplineName,
+              minWidth: '120px'
+            } as MatrixColumn
+          })}
+          rows={uniqueSquads.map((squadName) => {
+            // Build data object for this row
+            const rowData: Record<string, SquadDisciplineStatus | undefined> = {}
+            uniqueDisciplines.forEach((disciplineName) => {
+              const item = squadDisciplines.find(
+                sd => sd.squadName === squadName && sd.disciplineName === disciplineName
+              )
+              rowData[disciplineName] = item
+            })
+            
+            return {
+              id: squadName,
+              label: squadName,
+              data: rowData
+            } as MatrixRow
+          })}
+          renderCell={({ data, isEditing }: MatrixCellProps) => {
+            const item = data as SquadDisciplineStatus | undefined
+            
+            if (!item) {
+              return <span className="text-gray-300 text-xs">-</span>
+            }
 
-                      const isEditing = editingItem?.id === item.id
-                      const statusColor = getStatusColor(item.status.colorCode)
+            const statusColor = getStatusColor(item.status.colorCode)
 
-                      return (
-                        <td key={disciplineIndex} className="px-3 py-3 text-center border-r border-gray-200">
-                          {isEditing ? (
-                            <div className="flex flex-col items-center space-y-1">
-                              <select
-                                value={item.statusId}
-                                onChange={(e) => {
-                                  updateStatus(item, parseInt(e.target.value))
-                                }}
-                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                autoFocus
-                              >
-                                {statuses.map(status => (
-                                  <option key={status.int_statusid} value={status.int_statusid}>
-                                    {status.var_name}
-                                  </option>
-                                ))}
-                              </select>
-                              <button
-                                onClick={() => setEditingItem(null)}
-                                className="text-xs text-gray-500 hover:text-gray-700"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setEditingItem(item)}
-                              className={`w-full px-2 py-1.5 rounded text-xs font-medium transition-all hover:shadow-md ${statusColor.className}`}
-                              style={statusColor.style}
-                              title={`Click to change status for ${squadName} - ${disciplineName}`}
-                            >
-                              {item.status.name}
-                            </button>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            if (isEditing) {
+              return (
+                <div className="flex flex-col items-center space-y-1">
+                  <select
+                    value={item.statusId}
+                    onChange={(e) => {
+                      updateStatus(item, parseInt(e.target.value))
+                    }}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                    autoFocus
+                  >
+                    {statuses.map(status => (
+                      <option key={status.int_statusid} value={status.int_statusid}>
+                        {status.var_name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setEditingItem(null)
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )
+            }
+
+            return (
+              <MatrixStatusBadge
+                label={item.status.name}
+                colorClass={statusColor.className}
+                style={statusColor.style}
+              />
+            )
+          }}
+          stickyFirstColumn={true}
+          stickyHeader={true}
+          onCellClick={(rowId, columnId) => {
+            const item = squadDisciplines.find(
+              sd => sd.squadName === rowId && sd.disciplineName === columnId
+            )
+            if (item) {
+              setEditingItem(item)
+            }
+          }}
+          editingCell={editingItem ? {
+            rowId: editingItem.squadName,
+            columnId: editingItem.disciplineName
+          } : null}
+          emptyMessage={t('squadStatus.noDataForEvent')}
+        />
       ) : viewMode === 'table' ? (
         <div className="bg-white rounded-lg border overflow-hidden">
           <div className="overflow-x-auto">

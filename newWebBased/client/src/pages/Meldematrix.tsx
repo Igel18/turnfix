@@ -6,6 +6,7 @@ import {
   TableCellsIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '../components/UnifiedPageHeader'
+import MatrixView, { MatrixCountCell, MatrixColumn, MatrixRow } from '../components/MatrixView'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -345,82 +346,81 @@ export default function Meldematrix() {
 
       {/* Remove the old manual filters section since it's now handled by UnifiedPageHeader */}
 
-      {/* Matrix Table */}
-      <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border-collapse">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 border-r border-gray-300">
-                  {t('meldematrix.table.club')}
-                </th>
-                {filteredCompetitions.map((competition) => (
-                  <th
-                    key={competition.id}
-                    className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] border-r border-gray-300 hover:bg-gray-100 transition-colors cursor-help"
-                    title={`${competition.name}${competition.number ? ` (${t('meldematrix.table.number')} ${competition.number})` : ''} - ${competition.gender || ''} ${competition.ageFrom || ''}${competition.ageTo ? `-${competition.ageTo}` : ''} ${t('meldematrix.table.years')}`}
-                  >
-                    <div className="flex flex-col items-center justify-center h-16">
-                      <div className="font-bold text-gray-900 text-sm">
-                        {competition.number ? competition.number : competition.id}
-                      </div>
-                      {(competition.gender || competition.ageFrom) && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {competition.gender && competition.gender !== 'unbekannt' ? competition.gender.charAt(0).toUpperCase() : ''}
-                          {competition.ageFrom && ` ${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J`}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                ))}
-                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-r border-gray-300">
-                  {t('meldematrix.table.total')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredClubs.map((club, index) => (
-                <tr key={club.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit z-10 border-r border-gray-300">
-                    {club.name}
-                  </td>
-                  {filteredCompetitions.map((competition) => {
-                    const count = registrationData[club.id]?.[competition.id] || 0
-                    return (
-                      <td
-                        key={competition.id}
-                        className="px-3 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-300"
-                      >
-                        {count > 0 ? count : ''}
-                      </td>
-                    )
-                  })}
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-semibold text-center text-gray-900 bg-blue-50 border-r border-gray-300">
-                    {getClubTotal(club.id)}
-                  </td>
-                </tr>
-              ))}
-              {/* Totals Row */}
-              <tr className="bg-gray-100 font-semibold">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 sticky left-0 bg-gray-100 z-10 border-r border-gray-300">
-                  {t('meldematrix.table.total')}
-                </td>
-                {filteredCompetitions.map((competition) => (
-                  <td
-                    key={competition.id}
-                    className="px-3 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900 border-r border-gray-300"
-                  >
-                    {getCompetitionTotal(competition.id)}
-                  </td>
-                ))}
-                <td className="px-3 py-4 whitespace-nowrap text-sm font-bold text-center text-gray-900 bg-blue-100 border-r border-gray-300">
-                  {getGrandTotal()}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Matrix Table using MatrixView Template */}
+      <MatrixView
+        columns={[
+          ...filteredCompetitions.map((competition): MatrixColumn => ({
+            id: competition.id,
+            label: competition.number ? competition.number : competition.id.toString(),
+            subLabel: competition.gender && competition.gender !== 'unbekannt' 
+              ? `${competition.gender.charAt(0).toUpperCase()} ${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
+              : competition.ageFrom 
+                ? `${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
+                : '',
+            minWidth: '60px'
+          })),
+          // Total column
+          {
+            id: 'total',
+            label: t('meldematrix.table.total'),
+            subLabel: '',
+            minWidth: '80px'
+          }
+        ]}
+        rows={[
+          // Club rows
+          ...filteredClubs.map((club): MatrixRow => {
+            const rowData: Record<string | number, number> = {}
+            
+            // Add competition counts
+            filteredCompetitions.forEach((competition) => {
+              rowData[competition.id] = registrationData[club.id]?.[competition.id] || 0
+            })
+            
+            // Add total
+            rowData['total'] = getClubTotal(club.id)
+            
+            return {
+              id: club.id,
+              label: club.name,
+              data: rowData
+            }
+          }),
+          // Totals row
+          {
+            id: 'totals',
+            label: t('meldematrix.table.total'),
+            isHighlighted: true,
+            data: {
+              ...Object.fromEntries(
+                filteredCompetitions.map(comp => [comp.id, getCompetitionTotal(comp.id)])
+              ),
+              total: getGrandTotal()
+            }
+          }
+        ]}
+        renderCell={({ rowId, columnId, data }) => {
+          const count = data as number
+          const isTotalsRow = rowId === 'totals'
+          const isTotalColumn = columnId === 'total'
+          
+          // Special styling for totals
+          if (isTotalsRow || isTotalColumn) {
+            return (
+              <div className={`font-semibold ${isTotalsRow && isTotalColumn ? 'text-lg' : ''}`}>
+                {count > 0 ? count : '-'}
+              </div>
+            )
+          }
+          
+          // Regular cells
+          return <MatrixCountCell count={count} showZero={false} />
+        }}
+        stickyFirstColumn={true}
+        stickyHeader={true}
+        className="shadow-sm"
+        emptyMessage={t('meldematrix.statistics.totalRegistrations') + ': 0'}
+      />
 
       {/* Statistics */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">

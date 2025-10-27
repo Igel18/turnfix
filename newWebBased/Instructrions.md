@@ -1310,16 +1310,45 @@ PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run 
     **Bundle Size**: JS wuchs von 165KB auf 208KB (+43KB für Socket.IO Client)
 
 78. ✅ Prio 6 Die Status Seite 
-   - **Matrix View Implemented**: New matrix layout similar to Meldematrix http://localhost:3001/meldematrix
-   - **Rows**: Squad names (Riegenbezeichnungen)
-   - **Columns**: Discipline names (Gerätebezeichnungen) with short names displayed
-   - **Cells**: Status badges that are clickable - clicking opens dropdown to change status
-   - **Three View Modes**: Matrix (default), Table (list view), Grid (card view)
-   - **Live Updates**: Socket.IO integration for real-time status changes
-   - **Sticky Header**: Squad column and header row stay visible when scrolling
-   - **Color-coded Status**: Visual status indicators using database color codes
-   - **File**: `client/src/pages/SquadStatusManagement.tsx`
-   - **URL**: http://localhost:3001/squad-status?eventId=59
+   - **Matrix View Template Created**: Reusable `MatrixView` component for consistent matrix layouts
+   - **Template Features**:
+     - Configurable columns and rows with labels and sub-labels
+     - Sticky first column and header row (optional)
+     - Custom cell rendering via `renderCell` prop
+     - Cell click handling and editing state management
+     - Row highlighting for special rows (e.g., totals)
+     - Alternating row colors for better readability
+     - Empty state handling
+     - Helper components: `MatrixStatusBadge`, `MatrixCountCell`
+   - **Squad Status Implementation**:
+     - Rows: Squad names (Riegenbezeichnungen)
+     - Columns: Discipline names (Gerätebezeichnungen) with short names
+     - Cells: Status badges that are clickable - clicking opens dropdown to change status
+     - Three View Modes: Matrix (default), Table (list view), Grid (card view)
+     - Live Updates: Socket.IO integration for real-time status changes
+     - Color-coded Status: Visual status indicators using database color codes
+   - **Meldematrix Migration**:
+     - ✅ Migrated to use MatrixView template
+     - Rows: Club names with alternating background colors
+     - Columns: Competition numbers with gender/age info
+     - Cells: Participant counts with `MatrixCountCell` component
+     - Totals row: Highlighted with bold styling
+     - Total column: Sum of all registrations per club
+     - Same functionality, cleaner code, consistent UI
+   - **Files**: 
+     - `client/src/components/MatrixView.tsx` - Reusable Matrix Template
+     - `client/src/pages/SquadStatusManagement.tsx` - Squad Status using template
+     - `client/src/pages/Meldematrix.tsx` - Meldematrix using template
+   - **Benefits**: 
+     - ✅ Consistent look across all matrix views
+     - ✅ DRY principle - no code duplication
+     - ✅ Centralized styling and behavior
+     - ✅ Type-safe with TypeScript interfaces
+     - ✅ Easy to add new matrix views in the future
+     - ✅ Reduced bundle size (shared component code)
+   - **URLs**: 
+     - Squad Status: http://localhost:3001/squad-status?eventId=59
+     - Meldematrix: http://localhost:3001/meldematrix?eventId=59
 
 79. Prio 10 Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 
 
@@ -1330,3 +1359,11 @@ PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run 
    - Now correctly shows only devices available in the selected squad's competitions
    - Example: Squad "m" with competition 744 shows only 5 devices (Boden, Sprung, Stufenbarren, Balken, Alter) instead of all event devices
    - Files: `jury-portal/src/components/JuryPortal.tsx` (Lines 205-230) 
+
+81. Wettkampfstatus umsetzen als Matrix view mit dem Template 
+http://localhost:3001/competition-status?eventId=77&squadName=m
+- Rows -> Links Wettkampf (bezeichnung) 
+- Columns -> Oberste Zeile Gerät 
+- in den Cellen der Fortschritt in % 
+- Ganz rechts eine zusammenfassende Spalte 
+- Ganz unten eine zusammenfassende Spalte 
