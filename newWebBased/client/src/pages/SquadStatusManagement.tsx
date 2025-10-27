@@ -6,7 +6,8 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   UserGroupIcon,
-  SparklesIcon
+  SparklesIcon,
+  TableCellsIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useEvent } from '@/contexts/EventContext'
@@ -66,7 +67,7 @@ export function SquadStatusManagement() {
   const [showFilters, setShowFilters] = useState(false)
   
   // View options
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+  const [viewMode, setViewMode] = useState<'table' | 'grid' | 'matrix'>('matrix')
   const [editingItem, setEditingItem] = useState<SquadDisciplineStatus | null>(null)
   const [generating, setGenerating] = useState(false)
 
@@ -428,10 +429,44 @@ export function SquadStatusManagement() {
         }}
         showAdd={false}
         showImport={false}
-        viewMode={viewMode}
-        onViewModeChange={(mode) => setViewMode(mode)}
-        showViewToggle={true}
+        showViewToggle={false}
         customActions={[
+          // View Mode Toggle (3 options: Matrix, Table, Grid)
+          <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setViewMode('matrix')}
+              className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
+                viewMode === 'matrix'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <TableCellsIcon className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm font-medium border-t border-b ${
+                viewMode === 'table'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 text-sm font-medium rounded-r-md border ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              Grid
+            </button>
+          </div>,
           <button
             key="generate"
             onClick={generateCombinations}
@@ -466,7 +501,94 @@ export function SquadStatusManagement() {
       )}
 
       {/* Data Display */}
-      {viewMode === 'table' ? (
+      {viewMode === 'matrix' ? (
+        /* Matrix View - Rows: Squads, Columns: Disciplines */
+        <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
+                    {t('squadStatus.table.squad')}
+                  </th>
+                  {uniqueDisciplines.map((disciplineName, index) => {
+                    const discipline = squadDisciplines.find(sd => sd.disciplineName === disciplineName)
+                    return (
+                      <th key={index} className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 min-w-[120px]">
+                        <div className="font-semibold">{discipline?.disciplineShort || disciplineName}</div>
+                        <div className="text-[10px] font-normal text-gray-400">{disciplineName}</div>
+                      </th>
+                    )
+                  })}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {uniqueSquads.map((squadName, squadIndex) => (
+                  <tr key={squadIndex} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
+                      {squadName}
+                    </td>
+                    {uniqueDisciplines.map((disciplineName, disciplineIndex) => {
+                      const item = squadDisciplines.find(
+                        sd => sd.squadName === squadName && sd.disciplineName === disciplineName
+                      )
+                      
+                      if (!item) {
+                        return (
+                          <td key={disciplineIndex} className="px-3 py-3 text-center border-r border-gray-200">
+                            <span className="text-gray-300 text-xs">-</span>
+                          </td>
+                        )
+                      }
+
+                      const isEditing = editingItem?.id === item.id
+                      const statusColor = getStatusColor(item.status.colorCode)
+
+                      return (
+                        <td key={disciplineIndex} className="px-3 py-3 text-center border-r border-gray-200">
+                          {isEditing ? (
+                            <div className="flex flex-col items-center space-y-1">
+                              <select
+                                value={item.statusId}
+                                onChange={(e) => {
+                                  updateStatus(item, parseInt(e.target.value))
+                                }}
+                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                autoFocus
+                              >
+                                {statuses.map(status => (
+                                  <option key={status.int_statusid} value={status.int_statusid}>
+                                    {status.var_name}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => setEditingItem(null)}
+                                className="text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setEditingItem(item)}
+                              className={`w-full px-2 py-1.5 rounded text-xs font-medium transition-all hover:shadow-md ${statusColor.className}`}
+                              style={statusColor.style}
+                              title={`Click to change status for ${squadName} - ${disciplineName}`}
+                            >
+                              {item.status.name}
+                            </button>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : viewMode === 'table' ? (
         <div className="bg-white rounded-lg border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

@@ -1309,14 +1309,17 @@ PS C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server> npm run 
     - `jury-portal/src/components/JuryPortal.tsx` Lines 402-452 - Live-Update Logic
     **Bundle Size**: JS wuchs von 165KB auf 208KB (+43KB für Socket.IO Client)
 
-78. Prio 6 Die Status Seite 
-http://localhost:3001/squad-status?eventId=59&squadName=m 
-sollte überarbeitet werden: 
-- Das sollte besser wie die meldematrix aufgebaut sein http://localhost:3001/meldematrix
-- Hierfür müsste ein template erstellt werden, dass die matrix immer gleich aussehen 
-- Die Zeilen sollten die Riegenbezeichnungen haben 
-- Die Spalten sollten die Gerätebezeichnungen haben 
-- Die Zellen sollten den jeweiligen status anzeigen. Aber der Status sollte auch geändert werden können (auswahl als DropDown) 
+78. ✅ Prio 6 Die Status Seite 
+   - **Matrix View Implemented**: New matrix layout similar to Meldematrix http://localhost:3001/meldematrix
+   - **Rows**: Squad names (Riegenbezeichnungen)
+   - **Columns**: Discipline names (Gerätebezeichnungen) with short names displayed
+   - **Cells**: Status badges that are clickable - clicking opens dropdown to change status
+   - **Three View Modes**: Matrix (default), Table (list view), Grid (card view)
+   - **Live Updates**: Socket.IO integration for real-time status changes
+   - **Sticky Header**: Squad column and header row stay visible when scrolling
+   - **Color-coded Status**: Visual status indicators using database color codes
+   - **File**: `client/src/pages/SquadStatusManagement.tsx`
+   - **URL**: http://localhost:3001/squad-status?eventId=59
 
 79. Prio 10 Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 
 
