@@ -168,22 +168,74 @@ function Start-TurnFix {
         }
     }
     
-    # Prüfe ob Build existiert
+    # Prüfe ob Build existiert und aktuell ist
     $distPath = Join-Path $serverPath "dist"
     $clientDistPath = Join-Path $scriptRoot "newWebBased\client\dist"
+    $buildRequired = $false
+    $buildReason = ""
     
-    if (-not (Test-Path $distPath) -or -not (Test-Path $clientDistPath)) {
-        Write-Host "⚠ Build-Dateien nicht gefunden. Erstelle Build..." -ForegroundColor Yellow
+    # Prüfe ob dist-Ordner existieren
+    if (-not (Test-Path $distPath)) {
+        $buildRequired = $true
+        $buildReason = "Backend dist/ Ordner fehlt"
+    }
+    elseif (-not (Test-Path $clientDistPath)) {
+        $buildRequired = $true
+        $buildReason = "Frontend dist/ Ordner fehlt"
+    }
+    else {
+        # Prüfe ob Source-Dateien neuer sind als dist
+        $srcIndexPath = Join-Path $serverPath "src\index.ts"
+        $distIndexPath = Join-Path $distPath "index.js"
+        
+        if ((Test-Path $srcIndexPath) -and (Test-Path $distIndexPath)) {
+            $srcTime = (Get-Item $srcIndexPath).LastWriteTime
+            $distTime = (Get-Item $distIndexPath).LastWriteTime
+            
+            if ($srcTime -gt $distTime) {
+                $buildRequired = $true
+                $buildReason = "Source-Code ist neuer als Build"
+            }
+        }
+    }
+    
+    if ($buildRequired) {
+        Write-Host "⚠ Build erforderlich: $buildReason" -ForegroundColor Yellow
         Write-Host "  Backend wird kompiliert..." -ForegroundColor DarkGray
         Write-Host "  Frontend wird gebaut..." -ForegroundColor DarkGray
         Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
-        npm run build:all
+        Write-Host ""
+        
+        # Baue Backend
+        Write-Host "  [1/2] Backend Build..." -ForegroundColor Cyan
+        npm run build
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "✗ Build fehlgeschlagen!" -ForegroundColor Red
+            Write-Host "✗ Backend Build fehlgeschlagen!" -ForegroundColor Red
             Read-Host "Drücken Sie Enter zum Fortfahren"
             return
         }
+        
+        # Baue Frontend
+        Write-Host "  [2/2] Frontend Build..." -ForegroundColor Cyan
+        $clientPath = Join-Path $scriptRoot "newWebBased\client"
+        Push-Location $clientPath
+        try {
+            npm run build
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "✗ Frontend Build fehlgeschlagen!" -ForegroundColor Red
+                Pop-Location
+                Read-Host "Drücken Sie Enter zum Fortfahren"
+                return
+            }
+        } finally {
+            Pop-Location
+        }
+        
         Write-Host "✓ Build erfolgreich erstellt!" -ForegroundColor Green
+        Write-Host ""
+    }
+    else {
+        Write-Host "✓ Build ist aktuell" -ForegroundColor Green
         Write-Host ""
     }
     
