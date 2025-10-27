@@ -146,15 +146,16 @@ app.use('/uploads', express_1.default.static('uploads', {
         res.set('Access-Control-Allow-Origin', '*');
     }
 }));
+// Serve assets (icons, images) from client public directory for Jury Portal
+const path_1 = __importDefault(require("path"));
 // Serve static files from public directory (including icons)
-app.use('/public', express_1.default.static('public', {
+const serverPublicPath = path_1.default.join(__dirname, '../public');
+app.use('/public', express_1.default.static(serverPublicPath, {
     setHeaders: (res, path, stat) => {
         res.set('Cross-Origin-Resource-Policy', 'cross-origin');
         res.set('Access-Control-Allow-Origin', '*');
     }
 }));
-// Serve assets (icons, images) from client public directory for Jury Portal
-const path_1 = __importDefault(require("path"));
 const clientPublicPath = path_1.default.join(__dirname, '../../client/public');
 app.use('/assets', express_1.default.static(clientPublicPath, {
     setHeaders: (res, path, stat) => {
