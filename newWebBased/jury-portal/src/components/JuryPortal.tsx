@@ -204,14 +204,7 @@ const JuryPortal: React.FC = () => {
         console.log('🔍 JURY: All loaded disciplines (before dedup):', allDisciplines)
         console.log('🔍 JURY: Unique disciplines (after dedup):', uniqueDisciplines)
         
-        // Now apply the EXACT SAME filtering logic as Score Capture
-        // Load all participants for the event to get assignedCompetitions data
-        const participantsResponse = await fetch(`${API_BASE_URL}/event-participants?eventId=${selectedEvent}&includeAvailable=true`);
-        const participantsData = await participantsResponse.json();
-        const allEventParticipants = participantsData?.participants || [];
-        
-        console.log('🔍 JURY: Loaded all event participants for filtering:', allEventParticipants.length);
-        
+        // Now filter disciplines by the squad's assigned competitions
         const squadParticipants = selectedSquad.participants || [];
         console.log('🔍 JURY: Squad participants for filtering:', squadParticipants.length);
         
@@ -221,31 +214,22 @@ const JuryPortal: React.FC = () => {
           return;
         }
 
-        // Get the participant IDs from the squad
-        const squadParticipantIds = new Set(squadParticipants.map((p: any) => p.id || p.participantId));
-        console.log('🔍 JURY: Squad participant IDs:', Array.from(squadParticipantIds));
-        
-        // Find the full participant data for squad members (with assignedCompetitions)
-        const squadParticipantsWithCompetitions = allEventParticipants.filter((participant: any) => 
-          squadParticipantIds.has(participant.id)
-        );
-        
-        console.log('🔍 JURY: Squad participants with competition data:', squadParticipantsWithCompetitions.length);
-        console.log('🔍 JURY: Sample participant assignedCompetitions:', squadParticipantsWithCompetitions[0]?.assignedCompetitions);
-
-        // Get available disciplines for this squad using EXACT SAME logic as Score Capture
+        // Get available disciplines for this squad using competition data
         const participantCompetitionIds = new Set<number>();
         
-        // Approach 1: Check assignedCompetitions field (same as Score Capture)
-        squadParticipantsWithCompetitions.forEach((participant: any) => {
-          if (participant.assignedCompetitions && Array.isArray(participant.assignedCompetitions)) {
-            participant.assignedCompetitions.forEach((competitionId: number) => {
-              participantCompetitionIds.add(competitionId);
+        // Extract competition IDs from squad participants
+        // Squad participants have a 'competitions' array with objects: [{id, name, number}, ...]
+        squadParticipants.forEach((participant: any) => {
+          if (participant.competitions && Array.isArray(participant.competitions)) {
+            participant.competitions.forEach((comp: any) => {
+              if (comp.id) {
+                participantCompetitionIds.add(comp.id);
+              }
             });
           }
         });
         
-        console.log('🔍 JURY: Competitions from assignedCompetitions:', Array.from(participantCompetitionIds));
+        console.log('🔍 JURY: Competitions from squad participants:', Array.from(participantCompetitionIds));
         
         // Get disciplines from these competitions (same as Score Capture)
         const availableDisciplineIds = new Set<number>();

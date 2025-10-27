@@ -906,6 +906,7 @@ Beschreibung und Zusätzliche Informationen ist das enthält die gleiche Informa
 http://localhost:3001/event-management?eventId=59&squadName=mBlau
 
 57. Prio 5 Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
+Das soll sowohl in jury-portal als auch im Turnfix server passieren auf der 
 
 58. Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
 http://localhost:3001/competitions?eventId=77&squadName=m
@@ -1301,3 +1302,11 @@ sollte überarbeitet werden:
 - Die Zellen sollten den jeweiligen status anzeigen. Aber der Status sollte auch geändert werden können (auswahl als DropDown) 
 
 79. Prio 10 Es gibt ja diese Live-Updates der Wertungen. Für diese benötige ich eine neue UI, welche die letzen Werte als Liste darstellt. Also irgendwie so: Person Wettkampf Gerät Punkte und das dann als liste mit konfigurierbaren anzahl an einträgen. Die Konfiguration muss in den Einstellungen stattfinden. Das sollte doch mit den Live-Updates möglich sein... 
+
+80. ✅ Prio 1 auf der seite http://192.168.1.108:3002/jury/ kann das gerät ausgewählt werden. Es werden aber viel mehr geräte angezeigt, als in dieser Riege verfügbar sind. 
+   - **Fixed**: Device filtering now uses `competitions` array from squad participants
+   - Changed from non-existent `assignedCompetitions` field to actual `competitions: [{id, name, number}]` structure
+   - Removed unnecessary API call to `/event-participants` - squad API already provides complete data
+   - Now correctly shows only devices available in the selected squad's competitions
+   - Example: Squad "m" with competition 744 shows only 5 devices (Boden, Sprung, Stufenbarren, Balken, Alter) instead of all event devices
+   - Files: `jury-portal/src/components/JuryPortal.tsx` (Lines 205-230) 
