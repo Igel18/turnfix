@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { 
   TrophyIcon,
   ExclamationTriangleIcon,
-  ClockIcon
+  ClockIcon,
+  TableCellsIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import MatrixView, { MatrixColumn, MatrixRow } from '@/components/MatrixView'
 import { GenderBadge } from '@/components/GenderBadge'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
@@ -69,7 +71,7 @@ const CompetitionStatusManagement = () => {
   const [showFilters, setShowFilters] = useState(false)
 
   // View options
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+  const [viewMode, setViewMode] = useState<'table' | 'grid' | 'matrix'>('matrix')
 
   // Sorting hook
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort()
@@ -365,9 +367,48 @@ const CompetitionStatusManagement = () => {
         }}
         showAdd={false}
         showImport={false}
-        viewMode={viewMode}
-        onViewModeChange={(mode) => setViewMode(mode)}
-        showViewToggle={true}
+        showViewToggle={false}
+        customActions={[
+          // View Mode Toggle (3 options: Matrix, Table, Grid)
+          <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setViewMode('matrix')}
+              className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
+                viewMode === 'matrix'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+              title="Matrix View"
+            >
+              <TableCellsIcon className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm font-medium border-t border-b ${
+                viewMode === 'table'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+              title="Table View"
+            >
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 text-sm font-medium rounded-r-md border ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+              title="Grid View"
+            >
+              Grid
+            </button>
+          </div>
+        ]}
       />
 
       {/* Event Selection */}
@@ -391,10 +432,159 @@ const CompetitionStatusManagement = () => {
 
       {/* Competition Status Display */}
       {selectedEventId && (
-        <div className="bg-white rounded-lg shadow-sm border mx-6 overflow-hidden">
-          {viewMode === 'table' ? (
+        <div className="mx-6">
+          {viewMode === 'matrix' ? (
+            // Matrix View - Rows: Competitions, Columns: Disciplines, Cells: Progress %
+            (() => {
+              // Get all unique disciplines across all competitions
+              const allDisciplines = new Map<number, { id: number; short: string; name: string }>()
+              sortedFilteredCompetitions.forEach(comp => {
+                comp.disciplines_detail.forEach((d: any) => {
+                  if (!allDisciplines.has(d.disciplineId)) {
+                    allDisciplines.set(d.disciplineId, {
+                      id: d.disciplineId,
+                      short: d.disciplineShort,
+                      name: d.disciplineName
+                    })
+                  }
+                })
+              })
+              const disciplineList = Array.from(allDisciplines.values()).sort((a, b) => a.id - b.id)
+
+              return (
+                <MatrixView
+                  columns={[
+                    ...disciplineList.map((discipline): MatrixColumn => ({
+                      id: discipline.id,
+                      label: discipline.short,
+                      subLabel: discipline.name,
+                      minWidth: '100px'
+                    })),
+                    // Summary column
+                    {
+                      id: 'summary',
+                      label: t('competitionStatus.grid.progress'),
+                      subLabel: 'Gesamt',
+                      minWidth: '120px'
+                    }
+                  ]}
+                  rows={[
+                    // Competition rows
+                    ...sortedFilteredCompetitions.map((comp): MatrixRow => {
+                      const rowData: Record<string | number, any> = {}
+                      
+                      // Add discipline progress data
+                      disciplineList.forEach((discipline) => {
+                        const disciplineDetail = comp.disciplines_detail.find((d: any) => d.disciplineId === discipline.id)
+                        if (disciplineDetail) {
+                          // Calculate completion for this discipline
+                          const completed = disciplineDetail.statusDistribution?.find((s: any) => classifySquadState(s.statusName, s.statusId) === 'completed')?.count || 0
+                          const total = disciplineDetail.totalSquads || 0
+                          const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
+                          
+                          rowData[discipline.id] = {
+                            percentage,
+                            completed,
+                            total,
+                            statusDistribution: disciplineDetail.statusDistribution
+                          }
+                        } else {
+                          rowData[discipline.id] = null
+                        }
+                      })
+                      
+                      // Add summary data
+                      rowData['summary'] = {
+                        percentage: getCompletionPercentage(comp),
+                        completed: comp.completedSquadDisciplines,
+                        total: comp.totalSquadDisciplines
+                      }
+                      
+                      return {
+                        id: comp.id,
+                        label: `${comp.name}${comp.number ? ` (${comp.number})` : ''}`,
+                        data: rowData
+                      }
+                    }),
+                    // Summary row
+                    {
+                      id: 'summary-row',
+                      label: 'Gesamt',
+                      isHighlighted: true,
+                      data: (() => {
+                        const summaryData: Record<string | number, any> = {}
+                        
+                        // Calculate totals for each discipline
+                        disciplineList.forEach((discipline) => {
+                          let totalCompleted = 0
+                          let totalSquads = 0
+                          
+                          sortedFilteredCompetitions.forEach(comp => {
+                            const disciplineDetail = comp.disciplines_detail.find((d: any) => d.disciplineId === discipline.id)
+                            if (disciplineDetail) {
+                              const completed = disciplineDetail.statusDistribution?.find((s: any) => classifySquadState(s.statusName, s.statusId) === 'completed')?.count || 0
+                              totalCompleted += completed
+                              totalSquads += disciplineDetail.totalSquads || 0
+                            }
+                          })
+                          
+                          summaryData[discipline.id] = {
+                            percentage: totalSquads > 0 ? Math.round((totalCompleted / totalSquads) * 100) : 0,
+                            completed: totalCompleted,
+                            total: totalSquads
+                          }
+                        })
+                        
+                        // Grand total
+                        const grandTotal = sortedFilteredCompetitions.reduce((sum, comp) => sum + comp.totalSquadDisciplines, 0)
+                        const grandCompleted = sortedFilteredCompetitions.reduce((sum, comp) => sum + comp.completedSquadDisciplines, 0)
+                        summaryData['summary'] = {
+                          percentage: grandTotal > 0 ? Math.round((grandCompleted / grandTotal) * 100) : 0,
+                          completed: grandCompleted,
+                          total: grandTotal
+                        }
+                        
+                        return summaryData
+                      })()
+                    }
+                  ]}
+                  renderCell={({ rowId, columnId, data }) => {
+                    if (data === null) {
+                      return <span className="text-gray-300 text-xs">-</span>
+                    }
+                    
+                    const isSummaryRow = rowId === 'summary-row'
+                    const isSummaryColumn = columnId === 'summary'
+                    const cellData = data as { percentage: number; completed: number; total: number }
+                    
+                    // Determine progress color
+                    const getProgressColor = (percentage: number) => {
+                      if (percentage === 100) return 'bg-green-100 text-green-800 border-green-300'
+                      if (percentage >= 50) return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                      if (percentage > 0) return 'bg-orange-100 text-orange-800 border-orange-300'
+                      return 'bg-gray-100 text-gray-800 border-gray-300'
+                    }
+                    
+                    return (
+                      <div className={`text-center ${isSummaryRow || isSummaryColumn ? 'font-semibold' : ''}`}>
+                        <div className={`inline-flex flex-col items-center px-2 py-1 rounded border ${getProgressColor(cellData.percentage)}`}>
+                          <div className="text-lg">{cellData.percentage}%</div>
+                          <div className="text-xs text-gray-600">{cellData.completed}/{cellData.total}</div>
+                        </div>
+                      </div>
+                    )
+                  }}
+                  stickyFirstColumn={true}
+                  stickyHeader={true}
+                  className="shadow-sm"
+                  emptyMessage={t('competitionStatus.noCompetitionsForEvent')}
+                />
+              )
+            })()
+          ) : viewMode === 'table' ? (
             // Table View
-            <div className="overflow-x-auto">
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -529,6 +719,7 @@ const CompetitionStatusManagement = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           ) : (
             // Grid View
