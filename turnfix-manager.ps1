@@ -174,8 +174,22 @@ function Start-TurnFix {
     Write-Host "  • Kampfrichter-Portal wird gestartet..." -ForegroundColor White
     Write-Host ""
     
+    # Debug: Zeige aktuelles Verzeichnis und ecosystem.config.js Pfad
+    Write-Host "  Working Directory: $serverPath" -ForegroundColor DarkGray
+    $ecosystemPath = Join-Path $serverPath "ecosystem.config.js"
+    if (Test-Path $ecosystemPath) {
+        Write-Host "  ✓ ecosystem.config.js gefunden" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  ✗ ecosystem.config.js nicht gefunden!" -ForegroundColor Red
+        Write-Host "  Erwartet: $ecosystemPath" -ForegroundColor Yellow
+        Read-Host "Drücken Sie Enter zum Fortfahren"
+        return
+    }
+    Write-Host ""
+    
     # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-    npx pm2 start ecosystem.config.js --env production
+    # Verwende absoluten Pfad zur ecosystem.config.js
+    npx pm2 start "$ecosystemPath" --env production
     
     if ($LASTEXITCODE -eq 0) {
         Start-Sleep -Seconds 2  # Kurze Pause damit PM2 hochfährt

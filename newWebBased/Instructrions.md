@@ -1647,6 +1647,8 @@ Mögliche Lösungen:
 
 Drücken Sie Enter zum Fortfahren:
 
-
+---
+ich bekomme so eine fehlermeldung beim starten auf einem anderen PC: 
+PM2 error Ecosystem.config.js not found
 
 
