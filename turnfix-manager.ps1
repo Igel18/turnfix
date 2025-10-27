@@ -206,11 +206,20 @@ function Start-TurnFix {
     }
     Write-Host ""
     
-    # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-    # Verwende absoluten Pfad zur ecosystem.config.js
-    npx pm2 start "$ecosystemPath" --env production
+    # Wechsle ins Server-Verzeichnis (wichtig für PM2 und relative Pfade)
+    Push-Location $serverPath
     
-    if ($LASTEXITCODE -eq 0) {
+    try {
+        # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
+        # Verwende relativen Pfad da wir im Server-Verzeichnis sind
+        npx pm2 start ecosystem.config.js --env production
+        $pm2ExitCode = $LASTEXITCODE
+    } finally {
+        # Kehre zum ursprünglichen Verzeichnis zurück
+        Pop-Location
+    }
+    
+    if ($pm2ExitCode -eq 0) {
         Start-Sleep -Seconds 2  # Kurze Pause damit PM2 hochfährt
         
         # Hole lokale IP-Adresse
