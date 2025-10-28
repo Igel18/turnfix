@@ -557,7 +557,51 @@ usw. ...
     **Datei**: `client/src/pages/DisciplinesUnified.tsx` (Zeilen 320-327)
     **Build Status**: ✓ 2207 modules, 7.71s, keine Fehler 
 
-45. Sind alle Möglichkeiten für die Wettkampfteilnehmer implementiert? Es müsste neben dem "Nimmt nicht teil" eine checkbox "Außer Konkurenz" geben. Und ein Kommentarfeld. Schau mal die Doku der alten QT-Version an: https://github.com/Igel18/turnfix/blob/v2/documentation/turn-fix-verwenden/teilnehmer-verwalten/teilnehmerdaten.md
+45. ~~Sind alle Möglichkeiten für die Wettkampfteilnehmer implementiert? Es müsste neben dem "Nimmt nicht teil" eine checkbox "Außer Konkurenz" geben. Und ein Kommentarfeld.~~ ✅
+    **Status**: ✅ Abgeschlossen - "Außer Konkurrenz" Checkbox und Kommentarfeld implementiert
+    **Problem**: Wettkampfteilnehmer-Features fehlten in EventParticipants.tsx
+    - "Nimmt nicht teil" (bol_startet_nicht) war bereits implementiert
+    - "Außer Konkurrenz" (bol_ak) Checkbox fehlte
+    - Kommentarfeld (var_comment) fehlte
+    
+    **Datenbank-Felder** (tfx_wertungen):
+    - `bol_ak` (Boolean) - Außer Konkurrenz (erscheint auf Ergebnisliste unten ohne Platz mit Bemerkung "AK")
+    - `bol_startet_nicht` (Boolean) - Nimmt nicht teil (erscheint weder auf Wettkampfbögen noch Ergebnisliste)
+    - `var_comment` (VARCHAR(150)) - Kommentar zum Teilnehmer
+    
+    **Lösung**:
+    1. **Participant Interface erweitert** (Zeile 30-46):
+       - `bol_ak: boolean` hinzugefügt
+       - `var_comment?: string` hinzugefügt
+    
+    2. **EditParticipantData Interface erweitert** (Zeile 63-74):
+       - `bol_ak: boolean` hinzugefügt
+       - `var_comment: string` hinzugefügt
+    
+    3. **UI-Elemente hinzugefügt** (Zeile 270-295):
+       - **Checkbox "Außer Konkurrenz (AK)"** nach "Startet nicht"
+       - **Textarea "Kommentar"** mit 3 Zeilen, max. 150 Zeichen
+       - Zeichenzähler angezeigt (z.B. "45/150")
+    
+    4. **Daten-Normalisierung** (Zeile 552-568):
+       - `bol_ak: p.bol_ak || false` beim Laden
+       - `var_comment: p.var_comment || ''` beim Laden
+    
+    5. **Update-Logik erweitert** (Zeile 700-708):
+       - `bol_ak: updatedData.bol_ak` beim Speichern
+       - `var_comment: updatedData.var_comment` beim Speichern
+    
+    6. **Lokalisierung** (de.json, Zeile 1854-1856):
+       - `outOfCompetition: "Außer Konkurrenz (AK)"`
+       - `comment: "Kommentar"`
+       - `commentPlaceholder: "Bemerkung zum Teilnehmer (max. 150 Zeichen)"`
+    
+    **Dateien geändert**:
+    - `client/src/pages/EventParticipants.tsx` (Interfaces, UI, Daten-Handling)
+    - `client/src/i18n/locales/de.json` (Translation Keys)
+    
+    **Build Status**: ✓ 2240 modules, 5.98s, keine Fehler
+    **Bundle Size**: 1512.49 kB JS (406.02 kB gzipped)
 
 46. ~~Im Kampfrichter Portal werden die Geräte nicht als Icons angezeigt. Es steht nur un Text in den Buttons~~ ✅
 ~~Gerät auswählen~~
@@ -1799,4 +1843,9 @@ Wäre es nicht denkbar dies einheitlich zu machen?
 87. Prio 9 Analysiere mal den ganzen QT Code hinsichtlich Gruppen und Mannschaftswettkämpfe 
 Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert? 
 
+88. Es gibt einen Ordner client/dist-jury/index-jury.html
+Dieser ist denke ich obsolet, da der richtige Jury portal über die ordner jury-portal und jury-server abgebildet werden. 
+Bitte prüfen und ggf. archivieren. 
 
+89. Das Feld Geschlecht scheint in der http://localhost:3001/event-participants?eventId=59&squadName=m 
+Edit view nicht bei weiblich nicht zu stimmen. da wird immer männlich angezeigt. 

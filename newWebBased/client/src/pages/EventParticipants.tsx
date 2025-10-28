@@ -38,6 +38,8 @@ interface Participant {
   age: number;
   squad_name?: string;
   startet_nicht: boolean;
+  bol_ak: boolean;
+  var_comment?: string;
   startNumber?: number | null;
   isInEvent: boolean;
   assignedCompetitions: number[];
@@ -67,6 +69,8 @@ interface EditParticipantData {
   gender: 'male' | 'female';
   squad_name: string;
   startet_nicht: boolean;
+  bol_ak: boolean;
+  var_comment: string;
   assignedCompetitions: number[];
 }
 
@@ -96,6 +100,8 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
     gender: participant.gender,
     squad_name: participant.squad_name || '',
     startet_nicht: participant.startet_nicht,
+    bol_ak: participant.bol_ak || false,
+    var_comment: participant.var_comment || '',
     assignedCompetitions: participant.assignedCompetitions || []
   });
   const [saving, setSaving] = useState(false);
@@ -271,6 +277,29 @@ const EditParticipantForm: React.FC<EditParticipantFormProps> = ({ participant, 
             />
             <span className="text-sm font-medium text-gray-700">{t('eventParticipants.editParticipant.notStarting')}</span>
           </label>
+        </div>
+        <div className="flex items-center">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.bol_ak}
+              onChange={(e) => setFormData({ ...formData, bol_ak: e.target.checked })}
+              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-700">{t('eventParticipants.editParticipant.outOfCompetition')}</span>
+          </label>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('eventParticipants.editParticipant.comment')}</label>
+          <textarea
+            value={formData.var_comment}
+            onChange={(e) => setFormData({ ...formData, var_comment: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder={t('eventParticipants.editParticipant.commentPlaceholder')}
+            rows={3}
+            maxLength={150}
+          />
+          <p className="text-xs text-gray-500 mt-1">{formData.var_comment.length}/150</p>
         </div>
       </div>
 
@@ -489,6 +518,8 @@ const EventParticipants: React.FC = () => {
           age: 16,
           squad_name: 'mBlau',
           startet_nicht: false,
+          bol_ak: false,
+          var_comment: '',
           isInEvent: true,
           assignedCompetitions: [1, 3],
           registrationDate: '2023-10-15',
@@ -530,6 +561,8 @@ const EventParticipants: React.FC = () => {
         birthYear: p.birthYear || (p.dat_geburtstag ? new Date(p.dat_geburtstag).getFullYear() : null),
         squad_name: p.squad_name,
         startet_nicht: p.startet_nicht || false,
+        bol_ak: p.bol_ak || false,
+        var_comment: p.var_comment || '',
         isInEvent: p.isInEvent || false,
         assignedCompetitions: p.assignedCompetitions || [],
         registrationDate: p.registrationDate,
@@ -668,6 +701,8 @@ const EventParticipants: React.FC = () => {
                 gender: updatedData.gender,
                 squad_name: updatedData.squad_name,
                 startet_nicht: updatedData.startet_nicht,
+                bol_ak: updatedData.bol_ak,
+                var_comment: updatedData.var_comment,
                 assignedCompetitions: updatedData.assignedCompetitions
               }
             : p
