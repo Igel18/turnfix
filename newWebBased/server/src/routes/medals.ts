@@ -199,6 +199,32 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
       competitions: any[];
     }>();
 
+    // First, collect ALL clubs that have participants in ANY competition
+    for (const competition of competitions) {
+      const allParticipants = competition.tfx_wertungen
+        .filter(w => w.tfx_teilnehmer?.tfx_vereine); // Only participants with valid club
+      
+      allParticipants.forEach(wertung => {
+        const clubId = wertung.tfx_teilnehmer!.tfx_vereine!.int_vereineid;
+        const clubName = wertung.tfx_teilnehmer!.tfx_vereine!.var_name || `Club ${clubId}`;
+        
+        if (!clubStandings.has(clubId)) {
+          clubStandings.set(clubId, {
+            clubId,
+            clubName,
+            totalGold: 0,
+            totalSilver: 0,
+            totalBronze: 0,
+            totalMedals: 0,
+            totalStarters: 0,
+            competitions: []
+          });
+        }
+      });
+    }
+
+    console.log(`DEBUG: Found ${clubStandings.size} participating clubs`);
+
     // Process each competition
     for (const competition of competitions) {
       console.log(`DEBUG: Processing competition ${competition.int_wettkaempfeid} with ${competition.tfx_wertungen.length} entries`);
@@ -260,12 +286,15 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
 
       // Count total starters per club for this competition
       const clubStarters = new Map<number, number>();
-      participantScores.forEach(entry => {
-        const clubId = entry.club.int_vereineid;
-        clubStarters.set(clubId, (clubStarters.get(clubId) || 0) + 1);
-      });
+      // Include ALL participants, not just medal winners
+      competition.tfx_wertungen
+        .filter(w => w.tfx_teilnehmer?.tfx_vereine)
+        .forEach(wertung => {
+          const clubId = wertung.tfx_teilnehmer!.tfx_vereine!.int_vereineid;
+          clubStarters.set(clubId, (clubStarters.get(clubId) || 0) + 1);
+        });
 
-      // Add competition data to each club's record
+      // Add competition data to each club's record (including those with 0 medals)
       clubStarters.forEach((starters, clubId) => {
         if (clubStandings.has(clubId)) {
           const standing = clubStandings.get(clubId)!;
@@ -293,11 +322,27 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
       });
     }
 
-    // Convert to array and sort by gold first, then silver, then bronze (as per requirements)
+    // Convert to array and sort: 
+    // 1. Clubs with medals first (sorted by gold, silver, bronze)
+    // 2. Clubs without medals after (sorted alphabetically)
     const standings = Array.from(clubStandings.values()).sort((a, b) => {
-      if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold;
-      if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver;
-      return b.totalBronze - a.totalBronze;
+      // If one has medals and the other doesn't, medals come first
+      const aMedals = a.totalMedals > 0;
+      const bMedals = b.totalMedals > 0;
+      
+      if (aMedals && !bMedals) return -1;
+      if (!aMedals && bMedals) return 1;
+      
+      // Both have medals or both don't have medals
+      if (aMedals && bMedals) {
+        // Sort by gold, then silver, then bronze
+        if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold;
+        if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver;
+        if (a.totalBronze !== b.totalBronze) return b.totalBronze - a.totalBronze;
+      }
+      
+      // If equal medals (or both have none), sort alphabetically by club name
+      return a.clubName.localeCompare(b.clubName);
     });
 
     console.log(`DEBUG: Final standings - ${standings.length} clubs`);

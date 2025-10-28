@@ -8,6 +8,7 @@ import {
   addPDFHeaderFooter, 
   getContentArea,
   getUnifiedTableStyles,
+  drawRankingBadge,
   PDF_CONFIG
 } from '@/utils/pdfUtils'
 import jsPDF from 'jspdf'
@@ -146,13 +147,50 @@ export default function Medallienspiegel() {
         startY: yPosition,
         ...unifiedStyles,
         columnStyles: {
-          0: { halign: 'center', cellWidth: 20 }, // Rang
+          0: { halign: 'center', cellWidth: 20, fontStyle: 'bold' }, // Rang - fett
           1: { halign: 'left', cellWidth: 120 }, // Verein (wider for club names)
-          2: { halign: 'center', cellWidth: 25, fillColor: [255, 215, 0] }, // Gold
-          3: { halign: 'center', cellWidth: 25, fillColor: [192, 192, 192] }, // Silber
-          4: { halign: 'center', cellWidth: 25, fillColor: [205, 127, 50] }, // Bronze
-          5: { halign: 'center', cellWidth: 25 }, // Summe
+          2: { halign: 'center', cellWidth: 25 }, // Gold
+          3: { halign: 'center', cellWidth: 25 }, // Silber
+          4: { halign: 'center', cellWidth: 25 }, // Bronze
+          5: { halign: 'center', cellWidth: 25, fontStyle: 'bold' }, // Summe - fett
           6: { halign: 'center', cellWidth: 30 } // Starter
+        },
+        didParseCell: function(data: any) {
+          // Highlight top 3 ranks with subtle background
+          if (data.section === 'body' && data.column.index === 0) {
+            const rank = parseInt(data.cell.text[0])
+            if (rank === 1) {
+              data.cell.styles.fillColor = [255, 250, 205] // Cremig-Gelb für Platz 1
+            } else if (rank === 2) {
+              data.cell.styles.fillColor = [245, 245, 245] // Hellgrau für Platz 2
+            } else if (rank === 3) {
+              data.cell.styles.fillColor = [255, 243, 224] // Cremig-Orange für Platz 3
+            }
+          }
+        },
+        didDrawCell: function(data: any) {
+          // Draw rounded badge-style backgrounds for medal columns
+          if (data.section === 'body' && data.column.index >= 2 && data.column.index <= 4) {
+            const value = parseInt(data.cell.text[0])
+            if (value > 0) {
+              const cell = data.cell
+              const x = cell.x + cell.width / 2
+              const y = cell.y + cell.height / 2
+              
+              // Determine badge type based on column
+              let badgeType: 'gold' | 'silver' | 'bronze'
+              if (data.column.index === 2) {
+                badgeType = 'gold'
+              } else if (data.column.index === 3) {
+                badgeType = 'silver'
+              } else {
+                badgeType = 'bronze'
+              }
+              
+              // Use the utility function to draw the badge
+              drawRankingBadge(doc, value, x, y, badgeType)
+            }
+          }
         },
         didDrawPage: function(data) {
           // Add header and footer to each new page

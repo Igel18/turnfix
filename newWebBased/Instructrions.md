@@ -2122,5 +2122,12 @@ Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert?
 91. Prio 5 status: 
 Es gibt einen Status für die Riegen. Nach dem Wettkampf werden aber Urkunden für die Wettkampfklassen gedruckt. Dafür gibt es nach meinem Wissen keine möglichkeit den Status zu visualisieren. 
 
-92. Prio 1 
+92. Prio 1 ✅ ERLEDIGT
 Der medallienspiegel passt nicht http://localhost:3001/medallienspiegel?eventId=59&squadName=m Es müssen immer alle Vereine die am Event teilnehmen angezeigt werden. Vielleicht ist dies das einzige problem?
+
+**Lösung**: 
+- API `/api/medals/:eventId` zeigt jetzt ALLE teilnehmenden Vereine
+- Vereine MIT Medaillen werden zuerst angezeigt (sortiert nach Gold/Silber/Bronze)
+- Vereine OHNE Medaillen werden danach angezeigt (alphabetisch sortiert)
+- Alle Vereine zeigen korrekte Teilnehmerzahl in `totalStarters`
+- Datei: `server/src/routes/medals.ts` (Zeilen 195-230, 282-303)

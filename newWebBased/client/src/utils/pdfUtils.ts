@@ -222,6 +222,78 @@ export const PDF_CONFIG = {
 }
 
 /**
+ * Draw a rounded badge for rankings/placements in PDF tables
+ * Creates a badge similar to the Web UI (rounded-full style)
+ * 
+ * @param doc - jsPDF document instance
+ * @param value - The value to display in the badge (e.g., rank number, medal count)
+ * @param x - X position (center of badge)
+ * @param y - Y position (center of badge)
+ * @param type - Badge type: 'rank' (for placements 1-3), 'gold', 'silver', 'bronze', or 'default'
+ * @param options - Optional customization (width, height, radius, fontSize)
+ */
+export const drawRankingBadge = (
+  doc: jsPDF, 
+  value: string | number, 
+  x: number, 
+  y: number, 
+  type: 'rank' | 'gold' | 'silver' | 'bronze' | 'default' = 'default',
+  options?: {
+    width?: number
+    height?: number
+    radius?: number
+    fontSize?: number
+  }
+) => {
+  const badgeWidth = options?.width || 16
+  const badgeHeight = options?.height || 6
+  const radius = options?.radius || 3
+  const fontSize = options?.fontSize || 9
+  
+  // Badge colors based on type
+  let fillColor: [number, number, number]
+  let textColor: [number, number, number] = [0, 0, 0] // Black text by default
+  
+  switch (type) {
+    case 'rank':
+      // For rank 1-3, use special colors
+      const rankNum = typeof value === 'number' ? value : parseInt(value.toString())
+      if (rankNum === 1) {
+        fillColor = [255, 250, 205] // Cream yellow for 1st place
+      } else if (rankNum === 2) {
+        fillColor = [245, 245, 245] // Light gray for 2nd place
+      } else if (rankNum === 3) {
+        fillColor = [255, 243, 224] // Cream orange for 3rd place
+      } else {
+        fillColor = [255, 255, 255] // White for other ranks
+      }
+      break
+    case 'gold':
+      fillColor = [255, 235, 59] // Soft yellow
+      break
+    case 'silver':
+      fillColor = [224, 224, 224] // Light gray
+      break
+    case 'bronze':
+      fillColor = [255, 193, 7] // Warm orange
+      break
+    default:
+      fillColor = [240, 248, 255] // Light blue (default)
+      break
+  }
+  
+  // Draw rounded rectangle as badge background
+  doc.setFillColor(...fillColor)
+  doc.roundedRect(x - badgeWidth/2, y - badgeHeight/2, badgeWidth, badgeHeight, radius, radius, 'F')
+  
+  // Draw text on badge
+  doc.setTextColor(...textColor)
+  doc.setFontSize(fontSize)
+  doc.setFont('helvetica', 'bold')
+  doc.text(value.toString(), x, y + 1.5, { align: 'center' })
+}
+
+/**
  * Get unified table styles for autoTable
  * Ensures consistent table appearance across all PDF exports
  */

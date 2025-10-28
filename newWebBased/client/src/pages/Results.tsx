@@ -15,6 +15,7 @@ import {
   getContentArea,
   getUnifiedTableStyles,
   addSectionTitle,
+  drawRankingBadge,
   PDF_CONFIG
 } from '@/utils/pdfUtils'
 import { getDisciplineIcon, getDisciplineShortName } from '@/utils/disciplineIcons'
@@ -602,19 +603,19 @@ const Results = () => {
           return styles
         })(),
         didParseCell: function(data: any) {
-          // Highlight medal positions
+          // Highlight medal positions (background only, badges drawn in didDrawCell)
           if (data.section === 'body' && data.column.index === 0) {
             const rank = parseInt(data.cell.text[0])
             if (rank <= 3) {
               switch (rank) {
                 case 1:
-                  data.cell.styles.fillColor = [255, 215, 0] // Gold
+                  data.cell.styles.fillColor = [255, 250, 205] // Cream yellow
                   break
                 case 2:
-                  data.cell.styles.fillColor = [192, 192, 192] // Silver
+                  data.cell.styles.fillColor = [245, 245, 245] // Light gray
                   break
                 case 3:
-                  data.cell.styles.fillColor = [205, 127, 50] // Bronze
+                  data.cell.styles.fillColor = [255, 243, 224] // Cream orange
                   break
               }
               data.cell.styles.textColor = [0, 0, 0]
@@ -626,6 +627,20 @@ const Results = () => {
           if (data.section === 'body' && data.column.index === headers.length - 1) {
             data.cell.styles.fillColor = [240, 248, 255]
             data.cell.styles.fontStyle = 'bold'
+          }
+        },
+        didDrawCell: function(data: any) {
+          // Draw ranking badges for top 3 positions
+          if (data.section === 'body' && data.column.index === 0) {
+            const rank = parseInt(data.cell.text[0])
+            if (rank <= 3) {
+              const cell = data.cell
+              const x = cell.x + cell.width / 2
+              const y = cell.y + cell.height / 2
+              
+              // Use the utility function to draw the ranking badge
+              drawRankingBadge(doc, rank, x, y, 'rank')
+            }
           }
         },
         didDrawPage: function() {
@@ -744,19 +759,19 @@ const Results = () => {
             return styles
           })(),
           didParseCell: function(data: any) {
-            // Highlight medal positions
+            // Highlight medal positions (background only, badges drawn in didDrawCell)
             if (data.section === 'body' && data.column.index === 0) {
               const rank = parseInt(data.cell.text[0])
               if (rank <= 3) {
                 switch (rank) {
                   case 1:
-                    data.cell.styles.fillColor = [255, 215, 0] // Gold
+                    data.cell.styles.fillColor = [255, 250, 205] // Cream yellow
                     break
                   case 2:
-                    data.cell.styles.fillColor = [192, 192, 192] // Silver
+                    data.cell.styles.fillColor = [245, 245, 245] // Light gray
                     break
                   case 3:
-                    data.cell.styles.fillColor = [205, 127, 50] // Bronze
+                    data.cell.styles.fillColor = [255, 243, 224] // Cream orange
                     break
                 }
                 data.cell.styles.textColor = [0, 0, 0]
@@ -768,6 +783,20 @@ const Results = () => {
             if (data.section === 'body' && data.column.index === headers.length - 1) {
               data.cell.styles.fillColor = [240, 248, 255]
               data.cell.styles.fontStyle = 'bold'
+            }
+          },
+          didDrawCell: function(data: any) {
+            // Draw ranking badges for top 3 positions
+            if (data.section === 'body' && data.column.index === 0) {
+              const rank = parseInt(data.cell.text[0])
+              if (rank <= 3) {
+                const cell = data.cell
+                const x = cell.x + cell.width / 2
+                const y = cell.y + cell.height / 2
+                
+                // Use the utility function to draw the ranking badge
+                drawRankingBadge(doc, rank, x, y, 'rank')
+              }
             }
           },
           didDrawPage: function(data: any) {
