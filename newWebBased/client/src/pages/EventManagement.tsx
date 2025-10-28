@@ -24,7 +24,6 @@ interface EventDetails {
   dat_eventstartdate: string;
   dat_eventenddate: string;
   var_location: string;
-  var_description?: string;
   dat_meldeschluss?: string;
   var_veranstalter?: string;
   int_ansprechpartner?: number;
@@ -767,24 +766,6 @@ const EventManagement: React.FC = () => {
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* Description */}
-              <div className="border-t pt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('eventManagement.form.description')}
-                </label>
-                {isEditing ? (
-                  <textarea
-                    value={editForm.var_description || ''}
-                    onChange={(e) => setEditForm({ ...editForm, var_description: e.target.value })}
-                    placeholder={t('eventManagement.form.descriptionPlaceholder')}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                ) : (
-                  <p className="text-gray-900">{eventDetails?.var_description || '-'}</p>
-                )}
               </div>
 
               {/* Staff Requirements */}
