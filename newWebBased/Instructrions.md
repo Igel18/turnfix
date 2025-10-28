@@ -1843,9 +1843,63 @@ Wäre es nicht denkbar dies einheitlich zu machen?
 87. Prio 9 Analysiere mal den ganzen QT Code hinsichtlich Gruppen und Mannschaftswettkämpfe 
 Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert? 
 
-88. Prio 5 Es gibt einen Ordner client/dist-jury/index-jury.html
-Dieser ist denke ich obsolet, da der richtige Jury portal über die ordner jury-portal und jury-server abgebildet werden. 
-Bitte prüfen und ggf. archivieren. 
+88. ~~Prio 5 Es gibt einen Ordner client/dist-jury/index-jury.html - Dieser ist denke ich obsolet, da der richtige Jury portal über die ordner jury-portal und jury-server abgebildet werden. Bitte prüfen und ggf. archivieren.~~ ✅
+    **Status**: ✅ Abgeschlossen - Obsolete Jury Portal Dateien archiviert
+    **Problem**: Alte Jury Portal Dateien im `client/` Verzeichnis waren veraltet
+    - `client/dist-jury/` - Build-Output des alten integrierten Jury Portals
+    - `client/index-jury.html` - Entry Point für altes Jury Portal
+    - `client/vite.config.jury.ts` - Build-Konfiguration für altes Setup
+    - `package.json` Scripts: `jury:dev`, `jury:build`, `jury:preview`
+    
+    **Analyse**: Jury Portal läuft jetzt als separates Projekt
+    - **Neues Setup**: `jury-portal/` (Frontend, Port 3002) + `jury-server/` (Backend, Port 3003)
+    - **Alte Dateien**: Nicht mehr verwendet, verweisen auf nicht existierende Struktur
+    - **Referenzen**: Nur noch in Dokumentation und obsoleter Config
+    
+    **Lösung - Archivierung durchgeführt**:
+    1. **Archive-Verzeichnis erstellt**: `newWebBased/archive/`
+    
+    2. **Dateien archiviert**:
+       - `client/dist-jury/` → `archive/dist-jury-obsolete/`
+       - `client/index-jury.html` → `archive/index-jury-obsolete.html`
+       - `client/vite.config.jury.ts` → `archive/vite.config.jury-obsolete.ts`
+    
+    3. **package.json bereinigt**:
+       - Entfernt: `jury:dev`, `jury:build`, `jury:preview` Scripts
+       - Behielt: Alle Test- und Main-Client Scripts
+    
+    4. **Dokumentation erstellt**:
+       - `archive/README-OBSOLETE-JURY-FILES.md` mit vollständiger Erklärung
+       - Wiederherstellungsanleitung falls benötigt
+       - Verweis auf neues Jury Portal Setup
+    
+    **Neues Jury Portal Setup** (zur Dokumentation):
+    - **Frontend**: `jury-portal/` - Eigenständiges Vite-Projekt, Port 3002
+    - **Backend**: `jury-server/` - Dedicated API, Port 3003
+    - **Start**: Separate Terminals für beide Projekte
+    - **Vorteile**: 
+      * Separation of Concerns
+      * Kleinere Bundles
+      * Unabhängiges Deployment
+      * Parallele Entwicklung
+    
+    **Archivierte Scripts** (aus package.json entfernt):
+    ```json
+    "jury:dev": "vite --config vite.config.jury.ts --mode jury"
+    "jury:build": "tsc && vite build --config vite.config.jury.ts"
+    "jury:preview": "vite preview --config vite.config.jury.ts"
+    ```
+    
+    **Dateien geändert**:
+    - Verschoben: `client/dist-jury/`, `client/index-jury.html`, `client/vite.config.jury.ts`
+    - Erstellt: `archive/README-OBSOLETE-JURY-FILES.md`
+    - Aktualisiert: `client/package.json` (3 Scripts entfernt)
+    
+    **Validierung**: 
+    - ✅ Keine Referenzen mehr im aktiven Code
+    - ✅ Neue Jury Portal Struktur unberührt (`jury-portal/`, `jury-server/`)
+    - ✅ Dokumentation vollständig
+    - ✅ Wiederherstellung möglich falls nötig
 
 89. ~~Prio 1 Das Feld Geschlecht scheint in der http://localhost:3001/event-participants?eventId=59&squadName=m Edit view nicht bei weiblich nicht zu stimmen. da wird immer männlich angezeigt.~~ ✅
     **Status**: ✅ Abgeschlossen - Gender-Mapping von API zu Frontend korrigiert
