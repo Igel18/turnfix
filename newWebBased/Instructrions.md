@@ -253,7 +253,7 @@ in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
 
 34. Druck / Export
 Wir haben alle Druck und Export funktionen auf den entsprechenden Seiten. 
-a) Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert. 
+a) Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert. 
 b) vielleicht wäre eine zusätzliche Seite gut von der aus wir auf die vorhandenen Druck und Export möglichkeiten zugriff hätten. 
 Workflow so in etwa: 
 Auswahl was gedruckt werden soll (z.B. Urkunden) 
@@ -880,8 +880,25 @@ für das Jury-Portal & den Server
     **Build Status**: ✓ Client 6.03s, Server kompiliert, PM2 neu gestartet
     **Test**: http://localhost:3001/squad-status - 77 Kombinationen erfolgreich erstellt und angezeigt
 
-54. Jury Portal
-Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den Einstellungen deaktiviert werden können für development zwecke. 
+~~54. Jury Portal~~ ✅
+~~Automatisch filtern der Events auf den heutigen Tag (default), soll aber in den Einstellungen deaktiviert werden können für development zwecke.~~ ✅
+    **Status**: ✅ Abgeschlossen - Auto-Filter für heutige Events implementiert
+    **Implementierung**:
+    - **Filter State**: filterToday (default: true), persistiert in localStorage
+    - **Auto-Filter Logik**: Filtert Events nach dat_eventbeginn und dat_eventende
+    - **Datumsbereich**: Event ist "heute" wenn heute zwischen Start- und Enddatum liegt
+    - **Toggle UI**: Checkbox "Nur heutige Events anzeigen" mit Event-Zähler
+    - **Hinweis**: Zeigt Info-Box wenn keine heutigen Events gefunden wurden
+    - **Event-Anzeige**: Zeigt Datum in Dropdown (z.B. "Event Name (28.10.2025)")
+    - **Persistence**: Einstellung wird in localStorage gespeichert und bei jedem Start geladen
+    **Features**:
+    - ✅ Default: Zeigt nur Events von heute (Wettkampftag-optimiert)
+    - ✅ Deaktivierbar: Checkbox zum Anzeigen aller Events (Development-Modus)
+    - ✅ Visual Feedback: Event-Zähler zeigt gefilterte/gesamt Anzahl
+    - ✅ Smart Filter: Berücksichtigt mehrtägige Events (Start- bis Enddatum)
+    - ✅ User-Friendly: Warnung wenn keine heutigen Events vorhanden
+    **Datei**: `jury-portal/src/components/JuryPortal.tsx` (Lines 70-81, 86-151, 603-656)
+    **Build Status**: ✓ Jury-Portal 2.70s, 210KB JS Bundle 
 
 55. ~~Tabelle lässt sich nicht sortieren~~ ✅
 ~~a) http://localhost:3001/squad-status?eventId=59&squadName=mBlau~~ ✅
@@ -1531,7 +1548,7 @@ http://localhost:3001/competition-status?eventId=77&squadName=m
 - `client/src/components/MatrixView.tsx` - Reusable Template Component 
 
 
-82. Einheitliche Eingabe-/Anzeige format für die Wertungen: 
+82. Prio 3 Einheitliche Eingabe-/Anzeige format für die Wertungen: 
 Auf der Seite Disciplinen 
 http://localhost:3001/disciplines
 lässt sich die Eingabemaske (unter Einstellungen) für jede Disziplin definieren. 
@@ -1773,8 +1790,13 @@ Mögliche Lösungen:
 
 Drücken Sie Enter zum Fortfahren:
 
----
-ich bekomme so eine fehlermeldung beim starten auf einem anderen PC: 
-PM2 error Ecosystem.config.js not found
+86. Prio 10 Es gibt verschiedene UI elemente um ein DB Feld einem anderen zuzuweisen. Insbesondere in der Veranstaltungsverwaltung. 
+- Add button (z.B. Teilnehmer einem Event zuweisen)
+- Check-Box Selection (z.B. Geräte bei einem Wettkampf zuweisen oder Wettkampfzuordnungen von Teilnehmern) 
+- Pfeil nach rechts (z.B. in der Riegenverwaltung)
+Wäre es nicht denkbar dies einheitlich zu machen? 
+
+87. Prio 9 Analysiere mal den ganzen QT Code hinsichtlich Gruppen und Mannschaftswettkämpfe 
+Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert? 
 
 

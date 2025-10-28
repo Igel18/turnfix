@@ -71,6 +71,12 @@ const JuryPortal: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Auto-filter settings - persist in localStorage
+  const [filterToday, setFilterToday] = useState<boolean>(() => {
+    const saved = localStorage.getItem('juryPortal_filterToday');
+    return saved !== null ? saved === 'true' : true; // Default: enabled
+  });
 
   // Fetch events
   useEffect(() => {
@@ -104,6 +110,44 @@ const JuryPortal: React.FC = () => {
     
     fetchEvents();
   }, []);
+  
+  // Helper function to check if event is today
+  const isEventToday = (event: any): boolean => {
+    if (!event) return false;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check event start date (dat_eventbeginn)
+    if (event.dat_eventbeginn) {
+      const eventStart = new Date(event.dat_eventbeginn);
+      eventStart.setHours(0, 0, 0, 0);
+      
+      // Check event end date if available
+      if (event.dat_eventende) {
+        const eventEnd = new Date(event.dat_eventende);
+        eventEnd.setHours(0, 0, 0, 0);
+        
+        // Event is "today" if today is between start and end date
+        return today >= eventStart && today <= eventEnd;
+      }
+      
+      // If no end date, just check if start date matches
+      return today.getTime() === eventStart.getTime();
+    }
+    
+    return false;
+  };
+  
+  // Filter events based on today filter setting
+  const filteredEvents = filterToday 
+    ? events.filter(isEventToday)
+    : events;
+  
+  // Save filter preference to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('juryPortal_filterToday', filterToday.toString());
+  }, [filterToday]);
 
   // Fetch squads when event is selected
   useEffect(() => {
@@ -589,6 +633,29 @@ const JuryPortal: React.FC = () => {
               <p className="text-gray-600">Vereinfachte Bewertungsansicht für Wettkampftag</p>
             </div>
 
+            {/* Filter Toggle */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <label className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={filterToday}
+                    onChange={(e) => setFilterToday(e.target.checked)}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div>
+                    <span className="font-medium text-gray-900">Nur heutige Events anzeigen</span>
+                    <p className="text-sm text-gray-600">
+                      Zeigt nur Veranstaltungen, die heute stattfinden
+                    </p>
+                  </div>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {filterToday ? `${filteredEvents.length} Event(s)` : `${events.length} Event(s)`}
+                </span>
+              </label>
+            </div>
+
             <div className="space-y-4">
               <label className="block text-lg font-medium text-gray-700">Event auswählen:</label>
               <select 
@@ -597,12 +664,21 @@ const JuryPortal: React.FC = () => {
                 onChange={(e) => setSelectedEvent(e.target.value ? parseInt(e.target.value) : null)}
               >
                 <option value="">Bitte Event auswählen...</option>
-                {Array.isArray(events) && events.map((event) => (
+                {Array.isArray(filteredEvents) && filteredEvents.map((event) => (
                   <option key={event.int_eventid} value={event.int_eventid}>
                     {event.var_eventname}
+                    {event.dat_eventbeginn && ` (${new Date(event.dat_eventbeginn).toLocaleDateString('de-DE')})`}
                   </option>
                 ))}
               </select>
+              
+              {filterToday && filteredEvents.length === 0 && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    ℹ️ Keine Events für heute gefunden. Deaktiviere den Filter, um alle Events zu sehen.
+                  </p>
+                </div>
+              )}
 
               <button
                 className="w-full mt-6 bg-blue-600 text-white py-4 px-6 rounded-lg text-lg font-medium hover:bg-blue-700 disabled:opacity-50"
