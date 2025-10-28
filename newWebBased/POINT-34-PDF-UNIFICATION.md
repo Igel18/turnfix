@@ -4,10 +4,10 @@
 Alle Druck- und Export-Funktionen sollen einen einheitlichen, professionellen Look haben.
 
 ## Betroffene PDFs:
-1. **Meldematrix** (`Meldematrix.tsx`) - ✅ In Arbeit
-2. **Ergebnisliste** (`Results.tsx`) - ⏳ Geplant
-3. **Medallienspiegel** (`Medallienspiegel.tsx`) - ⏳ Geplant
-4. **Riegenliste** (Squad Management) - ⏳ Geplant
+1. **Meldematrix** (`Meldematrix.tsx`) - ✅ Migriert (getUnifiedTableStyles + addPDFHeaderFooter)
+2. **Ergebnisliste** (`Results.tsx`) - ⏳ Noch zu migrieren (3 Export-Funktionen)
+3. **Medallienspiegel** (`Medallienspiegel.tsx`) - ✅ Migriert (getUnifiedTableStyles + addSectionTitle + Medal-Farben)
+4. **Riegenliste** (Squad Management) - ⏳ Noch zu migrieren
 5. **Event Participants List** (`EventParticipants.tsx`) - ✅ Migriert (didDrawPage)
 6. **Event Management List** (`EventManagement.tsx`) - ✅ Migriert (checkPageBreak)
 
@@ -137,12 +137,29 @@ export const getUnifiedTableStyles = () => ({
 - [x] EventManagement.tsx: checkPageBreak für automatische Seitenumbrüche
 - [x] EventManagement.tsx: Helper-Funktionen für alle Überschriften/Texte
 
-#### Phase 1: Meldematrix ✅
-- [x] pdfUtils importieren
-- [x] Eigene Header-Implementierung entfernen
-- [x] `setupPDFWithHeaderFooter()` verwenden
-- [x] Einheitliche Table-Styles anwenden
-- [x] Lokalisierung prüfen
+#### Phase 1: Meldematrix ✅ KOMPLETT
+- [x] Eigene Header/Footer-Implementierung entfernen
+- [x] `addPDFHeaderFooter()` mit didDrawPage verwenden
+- [x] `getUnifiedTableStyles()` verwenden
+- [x] Vorher: fillColor [240,240,240] grau, fontSize 9
+- [x] Nachher: fillColor [0,102,204] primary blau, fontSize 10
+
+#### Phase 2: Medallienspiegel ✅ KOMPLETT
+- [x] `addSectionTitle()` für Titel verwenden
+- [x] `getUnifiedTableStyles()` verwenden
+- [x] Medal-Farben beibehalten (Gold/Silber/Bronze in columnStyles)
+- [x] Vorher: fillColor [69,90,100] dunkelgrau, fontSize 11
+- [x] Nachher: fillColor [0,102,204] primary blau, fontSize 10 + Medal-Farben
+
+#### Phase 3: Ergebnisliste
+- [ ] 3 PDF-Export-Funktionen identifizieren
+- [ ] `addPDFHeaderFooter()` einbinden
+- [ ] Einheitliche Table-Styles
+- [ ] Lokalisierung
+
+#### Phase 4: Riegenliste
+- [ ] Manuelle doc.text() Aufrufe durch Helper ersetzen
+- [ ] Einheitliches Template
 
 #### Phase 2: Ergebnisliste
 - [ ] PDF-Export-Funktionen identifizieren (3 Vorkommen)

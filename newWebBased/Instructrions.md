@@ -259,10 +259,10 @@ a) ~~Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look
     **Betroffene PDFs**:
     - Event Participants List ✅ Migriert (didDrawPage)
     - Event Management List ✅ Migriert (checkPageBreak)
-    - Meldematrix ⏳ Noch zu migrieren
-    - Ergebnisliste ⏳ Noch zu migrieren
-    - Medallienspiegel ⏳ Noch zu migrieren
-    - Riegenliste ⏳ Noch zu implementieren
+    - Meldematrix ✅ Migriert (getUnifiedTableStyles + addPDFHeaderFooter)
+    - Medallienspiegel ✅ Migriert (getUnifiedTableStyles + addSectionTitle + Medal-Farben)
+    - Ergebnisliste ⏳ Noch zu migrieren (3 Export-Funktionen)
+    - Riegenliste ⏳ Noch zu migrieren
     
     **Anforderungen**:
     - ✅ Einheitliche Schriftart und -größen
@@ -2118,3 +2118,6 @@ Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert?
     **Bundle Size**: 1512.82 kB JS (406.16 kB gzipped)
 
 90. Prio 2 Das Template für die tabellen muss breiter sein, damit mehr Inhalt rein passt. 
+
+91. status: 
+Es gibt einen Status für die Riegen. Nach dem Wettkampf werden aber Urkunden für die Wettkampfklassen gedruckt. 

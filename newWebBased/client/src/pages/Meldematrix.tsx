@@ -9,6 +9,10 @@ import UnifiedPageHeader from '../components/UnifiedPageHeader'
 import MatrixView, { MatrixCountCell, MatrixColumn, MatrixRow } from '../components/MatrixView'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { 
+  getUnifiedTableStyles,
+  addPDFHeaderFooter 
+} from '../utils/pdfUtils'
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
@@ -141,54 +145,33 @@ export default function Meldematrix() {
         format: 'a4'
       })
 
-      // Get current date/time for footer
-      const now = new Date()
-      const dateTimeString = now.toLocaleString('de-DE')
-
       // Page dimensions
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
       
-      // Template layout matching the provided example
-      
-      // Left side - Event information (top left)
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Event: ${selectedEvent?.var_eventname || 'Unknown Event'}`, 10, 15)
-      doc.text(`Datum: ${selectedEvent?.dat_eventstartdate ? new Date(selectedEvent.dat_eventstartdate).toLocaleDateString('de-DE') : 'TBD'}`, 10, 20)
-      doc.text(`Ort: ${selectedEvent?.var_location || 'TBD'}`, 10, 25)
+      // Convert event to format expected by pdfUtils
+      const eventForPDF = selectedEvent ? {
+        int_eventid: selectedEvent.int_eventid,
+        var_eventname: selectedEvent.var_eventname,
+        dat_eventstartdate: selectedEvent.dat_eventstartdate,
+        dat_eventenddate: selectedEvent.dat_eventenddate,
+        var_location: selectedEvent.var_location,
+        status: 'active' as const
+      } : null
 
-      // Right side - Document title (top right)
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      const documentTitle = 'Meldematrix'
-      const documentTitleWidth = doc.getTextWidth(documentTitle)
-      doc.text(documentTitle, pageWidth - documentTitleWidth - 10, 20)
+      // Add header and footer to first page
+      addPDFHeaderFooter({
+        doc,
+        event: eventForPDF,
+        documentTitle: 'Meldematrix',
+        pageWidth,
+        pageHeight
+      })
 
-      // Center section positioning
-      const centerBoxX = 70
-      const centerBoxY = 8
-      const centerBoxWidth = 150
-      
-      // Center - Main title
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0, 0, 0) // Black text
-      const mainTitle = selectedEvent?.var_eventname || 'Event Name'
-      const mainTitleWidth = doc.getTextWidth(mainTitle)
-      doc.text(mainTitle, centerBoxX + (centerBoxWidth - mainTitleWidth) / 2, centerBoxY + 8)
-      
-      // Center - Subtitle
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'normal')
-      const eventYear = selectedEvent?.dat_eventstartdate ? new Date(selectedEvent.dat_eventstartdate).getFullYear() : new Date().getFullYear()
-      const subtitle = `${eventYear} ${selectedEvent?.var_location || 'Location TBD'}`
-      const subtitleWidth = doc.getTextWidth(subtitle)
-      doc.text(subtitle, centerBoxX + (centerBoxWidth - subtitleWidth) / 2, centerBoxY + 16)
-
-      // Reset colors for table
-      doc.setDrawColor(0, 0, 0)
-      doc.setTextColor(0, 0, 0)
+      // Get content area (after header)
+      const contentArea = {
+        startY: 40
+      }
 
       // Prepare table data
       const tableColumns = [
@@ -223,44 +206,27 @@ export default function Meldematrix() {
       
       tableData.push(totalsRow)
 
+      // Get unified table styles
+      const unifiedStyles = getUnifiedTableStyles()
+
       // Create table with autoTable
       autoTable(doc, {
         head: [tableColumns],
         body: tableData,
-        startY: 40, // Start below the header section
-        theme: 'grid',
-        styles: {
-          fontSize: 9,
-          cellPadding: 3,
-          halign: 'center',
-          valign: 'middle',
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1
-        },
-        headStyles: {
-          fillColor: [240, 240, 240],
-          textColor: [0, 0, 0],
-          fontStyle: 'bold',
-          fontSize: 9
-        },
+        startY: contentArea.startY,
+        ...unifiedStyles,
         columnStyles: {
           0: { halign: 'left', minCellWidth: 40 } // Verein column wider and left-aligned
         },
-        alternateRowStyles: {
-          fillColor: [248, 248, 248]
-        },
-        tableLineColor: [0, 0, 0],
-        tableLineWidth: 0.1,
-        margin: { left: 10, right: 10 },
         didDrawPage: () => {
-          // Footer
-          doc.setFontSize(8)
-          doc.setFont('helvetica', 'normal')
-          doc.text(`Erstellt durch TurnFix • ${dateTimeString}`, 10, pageHeight - 10)
-          
-          const footerRight = 'Lizenziert unter der GNU GPL v3.1 • github.com/Igel18/turnfix'
-          const footerRightWidth = doc.getTextWidth(footerRight)
-          doc.text(footerRight, pageWidth - footerRightWidth - 10, pageHeight - 10)
+          // Add header and footer to every page
+          addPDFHeaderFooter({
+            doc,
+            event: eventForPDF,
+            documentTitle: 'Meldematrix',
+            pageWidth,
+            pageHeight
+          })
         }
       })
 

@@ -4,7 +4,13 @@ import { useEvent } from '../contexts/EventContext'
 import { TrophyIcon } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { useMedals, MedalStanding } from '../hooks/useMedals'
-import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
+import { 
+  addPDFHeaderFooter, 
+  getContentArea,
+  getUnifiedTableStyles,
+  addSectionTitle,
+  PDF_CONFIG
+} from '@/utils/pdfUtils'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import getSocket from '@/utils/socket'
@@ -87,16 +93,16 @@ export default function Medallienspiegel() {
         pageHeight: 210
       })
 
-      // Title
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text(t('medallienspiegel.title'), contentArea.startX, contentArea.startY + 10)
+      // Title and event info
+      let yPosition = contentArea.startY + 10
+      yPosition = addSectionTitle(doc, t('medallienspiegel.title'), yPosition)
       
-      doc.setFontSize(12)
+      doc.setFontSize(PDF_CONFIG.fonts.body.size)
       doc.setFont('helvetica', 'normal')
-      doc.text(`${t('medallienspiegel.event')}: ${medalData.eventName}`, contentArea.startX, contentArea.startY + 25)
+      doc.text(`${t('medallienspiegel.event')}: ${medalData.eventName}`, contentArea.startX, yPosition)
+      yPosition += PDF_CONFIG.spacing.line + 5
 
-      // Medal standings table
+      // Prepare medal standings table data
       const tableColumns = [
         { header: t('medallienspiegel.table.rank'), dataKey: 'rank' },
         { header: t('medallienspiegel.table.club'), dataKey: 'clubName' },
@@ -129,40 +135,27 @@ export default function Medallienspiegel() {
       const totalMedals = tableData.reduce((sum, row) => sum + row.total, 0)
       const totalStarters = tableData.reduce((sum, row) => sum + row.starters, 0)
       
-      doc.setFontSize(10)
-      doc.text(`${t('medallienspiegel.participatingClubs')}: ${tableData.length}`, contentArea.startX, contentArea.startY + 35)
-      doc.text(`${t('medallienspiegel.totalMedals')}: ${totalMedals}`, contentArea.startX + 80, contentArea.startY + 35)
-      doc.text(`${t('medallienspiegel.totalStarters')}: ${totalStarters}`, contentArea.startX + 150, contentArea.startY + 35)
+      doc.text(`${t('medallienspiegel.participatingClubs')}: ${tableData.length}`, contentArea.startX, yPosition)
+      doc.text(`${t('medallienspiegel.totalMedals')}: ${totalMedals}`, contentArea.startX + 80, yPosition)
+      doc.text(`${t('medallienspiegel.totalStarters')}: ${totalStarters}`, contentArea.startX + 150, yPosition)
+      yPosition += PDF_CONFIG.spacing.section
 
       console.log('PDF table data prepared:', tableData)
+
+      // Get unified table styles
+      const unifiedStyles = getUnifiedTableStyles()
 
       autoTable(doc, {
         head: [tableColumns.map(col => col.header)],
         body: tableData.map(row => tableColumns.map(col => row[col.dataKey as keyof typeof row])),
-        startY: contentArea.startY + 50,
-        margin: { 
-          left: contentArea.startX, 
-          right: 297 - contentArea.endX,
-          top: 35, // Ensure enough space for header
-          bottom: 30 // Ensure enough space for footer
-        },
-        pageBreak: 'auto',
-        styles: {
-          fontSize: 10,
-          cellPadding: 4
-        },
-        headStyles: {
-          fillColor: [69, 90, 100],
-          textColor: 255,
-          fontStyle: 'bold',
-          fontSize: 11
-        },
+        startY: yPosition,
+        ...unifiedStyles,
         columnStyles: {
           0: { halign: 'center', cellWidth: 20 }, // Rang
           1: { halign: 'left', cellWidth: 120 }, // Verein (wider for club names)
-          2: { halign: 'center', cellWidth: 25 }, // Gold
-          3: { halign: 'center', cellWidth: 25 }, // Silber
-          4: { halign: 'center', cellWidth: 25 }, // Bronze
+          2: { halign: 'center', cellWidth: 25, fillColor: [255, 215, 0] }, // Gold
+          3: { halign: 'center', cellWidth: 25, fillColor: [192, 192, 192] }, // Silber
+          4: { halign: 'center', cellWidth: 25, fillColor: [205, 127, 50] }, // Bronze
           5: { halign: 'center', cellWidth: 25 }, // Summe
           6: { halign: 'center', cellWidth: 30 } // Starter
         },
