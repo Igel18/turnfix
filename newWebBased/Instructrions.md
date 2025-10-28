@@ -1843,9 +1843,11 @@ Wäre es nicht denkbar dies einheitlich zu machen?
 87. Prio 9 Analysiere mal den ganzen QT Code hinsichtlich Gruppen und Mannschaftswettkämpfe 
 Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert? 
 
-88. Es gibt einen Ordner client/dist-jury/index-jury.html
+88. Prio 5 Es gibt einen Ordner client/dist-jury/index-jury.html
 Dieser ist denke ich obsolet, da der richtige Jury portal über die ordner jury-portal und jury-server abgebildet werden. 
 Bitte prüfen und ggf. archivieren. 
 
-89. Das Feld Geschlecht scheint in der http://localhost:3001/event-participants?eventId=59&squadName=m 
+89. Prio 1 Das Feld Geschlecht scheint in der http://localhost:3001/event-participants?eventId=59&squadName=m 
 Edit view nicht bei weiblich nicht zu stimmen. da wird immer männlich angezeigt. 
+
+90. Prio 2 Das Template für die tabellen muss breiter sein, damit mehr Inhalt rein passt. 

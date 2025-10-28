@@ -489,12 +489,40 @@ const EventParticipants: React.FC = () => {
     }
   }, [showAddModal]);
 
+  // Helper function to normalize gender value (used by multiple load functions)
+  const normalizeGender = (genderValue: any): 'male' | 'female' => {
+    if (!genderValue) return 'male'; // Default fallback
+    
+    const genderStr = String(genderValue).toLowerCase();
+    
+    // Handle German values
+    if (genderStr === 'weiblich' || genderStr === 'female' || genderStr === 'w' || genderStr === '2' || genderValue === 2) {
+      return 'female';
+    }
+    
+    // Handle English and numeric values for male
+    if (genderStr === 'männlich' || genderStr === 'male' || genderStr === 'm' || genderStr === '1' || genderValue === 1) {
+      return 'male';
+    }
+    
+    // Default to male if unclear
+    console.warn('⚠️ Unknown gender value, defaulting to male:', genderValue);
+    return 'male';
+  };
+
   const loadParticipants = async () => {
     try {
       const data = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=false`)
-      setAllParticipants(data.participants || []);
+      
+      // Normalize gender values for all participants
+      const normalizedParticipants = (data.participants || []).map((p: any) => ({
+        ...p,
+        gender: normalizeGender(p.gender || p.geschlecht_name || p.int_geschlecht)
+      }));
+      
+      setAllParticipants(normalizedParticipants);
       setTotalInEvent(data.totalInEvent || 0);
-      console.log(`Loaded ${data.participants?.length || 0} participants from API (${data.totalInEvent || 0} in event)`);
+      console.log(`Loaded ${normalizedParticipants.length} participants from API (${data.totalInEvent || 0} in event)`);
     } catch (error: any) {
       console.error('Error loading participants:', error);
       
@@ -556,7 +584,7 @@ const EventParticipants: React.FC = () => {
         lastname: p.lastname || p.var_nachname, 
         club: p.club || p.verein_name,
         clubId: p.clubId || p.int_vereineid,
-        gender: p.gender || p.geschlecht_name,
+        gender: normalizeGender(p.gender || p.geschlecht_name || p.int_geschlecht),
         age: p.age,
         birthYear: p.birthYear || (p.dat_geburtstag ? new Date(p.dat_geburtstag).getFullYear() : null),
         squad_name: p.squad_name,
