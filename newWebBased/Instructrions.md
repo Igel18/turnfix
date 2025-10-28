@@ -1847,7 +1847,53 @@ Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert?
 Dieser ist denke ich obsolet, da der richtige Jury portal über die ordner jury-portal und jury-server abgebildet werden. 
 Bitte prüfen und ggf. archivieren. 
 
-89. Prio 1 Das Feld Geschlecht scheint in der http://localhost:3001/event-participants?eventId=59&squadName=m 
-Edit view nicht bei weiblich nicht zu stimmen. da wird immer männlich angezeigt. 
+89. ~~Prio 1 Das Feld Geschlecht scheint in der http://localhost:3001/event-participants?eventId=59&squadName=m Edit view nicht bei weiblich nicht zu stimmen. da wird immer männlich angezeigt.~~ ✅
+    **Status**: ✅ Abgeschlossen - Gender-Mapping von API zu Frontend korrigiert
+    **Problem**: Geschlecht wurde bei weiblichen Teilnehmern falsch angezeigt - immer "männlich"
+    - API liefert verschiedene Gender-Formate: `int_geschlecht`, `geschlecht_name`, `gender`
+    - `int_geschlecht`: 1 = männlich, 2 = weiblich (numerisch)
+    - `geschlecht_name`: "männlich", "weiblich" (deutsch)
+    - Frontend erwartet: 'male', 'female' (englisch)
+    - Keine Konvertierung zwischen Formaten vorhanden
+    
+    **Root Cause**:
+    - `loadParticipants()` übernahm API-Daten ohne Normalisierung
+    - `loadAvailableParticipants()` hatte inline Gender-Konvertierung
+    - Edit-Formular nutzt Select mit 'male'/'female' options
+    - Deutsche/numerische Werte wurden nicht erkannt → fallback auf 'male'
+    
+    **Lösung**:
+    1. **Zentrale `normalizeGender()` Funktion** erstellt (Zeile 493-510):
+       - Erkennt deutsch: "weiblich", "männlich"
+       - Erkennt englisch: "female", "male"  
+       - Erkennt Buchstaben: "w", "m"
+       - Erkennt numerisch: 1 = male, 2 = female
+       - Gibt immer 'male' | 'female' zurück
+       - Warning-Log für unbekannte Werte
+    
+    2. **`loadParticipants()` erweitert** (Zeile 513-524):
+       - Normalisiert alle Participant-Gender-Werte
+       - Verwendet `normalizeGender(p.gender || p.geschlecht_name || p.int_geschlecht)`
+       - Mapped Daten vor dem Speichern in State
+    
+    3. **`loadAvailableParticipants()` refactored** (Zeile 560-600):
+       - Duplizierte inline-Funktion entfernt
+       - Verwendet zentrale `normalizeGender()` Funktion
+       - Konsistentes Gender-Handling für alle Participants
+    
+    **Getestete Szenarien**:
+    - ✅ Numerisch: `int_geschlecht: 2` → 'female'
+    - ✅ Deutsch: `geschlecht_name: "weiblich"` → 'female'
+    - ✅ Englisch: `gender: "female"` → 'female'
+    - ✅ Edit-Formular zeigt korrekten Wert im Dropdown
+    
+    **Dateien geändert**:
+    - `client/src/pages/EventParticipants.tsx`
+      * Zentrale normalizeGender() Funktion (18 Zeilen)
+      * loadParticipants() mit Gender-Normalisierung
+      * loadAvailableParticipants() refactored (Duplikat entfernt)
+    
+    **Build Status**: ✓ 2240 modules, 5.75s, keine Fehler
+    **Bundle Size**: 1512.82 kB JS (406.16 kB gzipped)
 
 90. Prio 2 Das Template für die tabellen muss breiter sein, damit mehr Inhalt rein passt. 
