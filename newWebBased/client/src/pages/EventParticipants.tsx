@@ -19,7 +19,11 @@ import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
-import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
+import { 
+  setupPDFWithHeaderFooter, 
+  addPDFHeaderFooter, 
+  getUnifiedTableStyles
+} from '../utils/pdfUtils';
 import SmartPagination from '@/components/SmartPagination';
 import { usePagination } from '@/hooks/usePagination';
 import useViewToggle from '@/hooks/useViewToggle';
@@ -864,25 +868,33 @@ const EventParticipants: React.FC = () => {
       participant.startet_nicht ? t('eventParticipants.status.notStarting') : t('eventParticipants.status.active')
     ])
 
+    // Get unified table styles
+    const unifiedStyles = getUnifiedTableStyles()
+
     autoTable(doc, {
       head: [['#', 'Name', 'Club', 'Gender', 'Age', 'Birth Year', 'Status']],
       body: tableData,
       startY: contentArea.startY + 10,
-      margin: { left: 10, right: 10 },
-      styles: {
-        fontSize: 9,
-        cellPadding: 2,
+      ...unifiedStyles,
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 10 },
+        1: { halign: 'left' },
+        2: { halign: 'left' },
+        3: { halign: 'center' },
+        4: { halign: 'center', cellWidth: 15 },
+        5: { halign: 'center', cellWidth: 20 },
+        6: { halign: 'center' }
       },
-      headStyles: {
-        fillColor: [66, 135, 245],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: {
-        fillColor: [248, 249, 250]
-      },
-      tableLineColor: [200, 200, 200],
-      tableLineWidth: 0.1,
+      didDrawPage: () => {
+        // Add header and footer to every page
+        addPDFHeaderFooter({
+          doc,
+          event: selectedEvent,
+          documentTitle: 'Event Participants List',
+          pageWidth: 210,
+          pageHeight: 297
+        })
+      }
     })
 
     // Generate filename with timestamp

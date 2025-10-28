@@ -16,7 +16,14 @@ import {
 } from '@heroicons/react/24/outline';
 import { apiGet, apiPut, invalidateCache } from '../utils/api';
 import jsPDF from 'jspdf';
-import { addPDFHeaderFooter, getContentArea } from '../utils/pdfUtils';
+import { 
+  addPDFHeaderFooter, 
+  getContentArea,
+  PDF_CONFIG,
+  addSectionTitle,
+  addLabeledValue,
+  resetPDFStyles
+} from '../utils/pdfUtils';
 
 interface EventDetails {
   int_eventid: number;
@@ -313,7 +320,9 @@ const EventManagement: React.FC = () => {
       });
 
       // For portrait A4: width = 210mm, height = 297mm
-      const contentArea = getContentArea(210, 297);
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const contentArea = getContentArea(pageWidth, pageHeight);
       
       // Convert selectedEvent to the format expected by pdfUtils
       const eventForPDF = {
@@ -325,29 +334,40 @@ const EventManagement: React.FC = () => {
         status: selectedEvent.status || 'active'
       };
 
-      // Add header and footer
+      // Add header and footer to first page
       addPDFHeaderFooter({
         doc,
         event: eventForPDF,
         documentTitle: t('eventManagement.title'),
-        pageWidth: 210,
-        pageHeight: 297
+        pageWidth,
+        pageHeight
       });
+
+      // Helper function to check if we need a new page and add header/footer
+      const checkPageBreak = (currentY: number, requiredSpace: number = 20) => {
+        if (currentY + requiredSpace > contentArea.endY) {
+          doc.addPage();
+          addPDFHeaderFooter({
+            doc,
+            event: eventForPDF,
+            documentTitle: t('eventManagement.title'),
+            pageWidth,
+            pageHeight
+          });
+          return contentArea.startY;
+        }
+        return currentY;
+      };
 
       // Content starts after header
       let yPosition = contentArea.startY;
       
       // Event Details Section
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text(t('eventManagement.eventDetails'), contentArea.startX, yPosition);
-      yPosition += 10;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      yPosition = checkPageBreak(yPosition, 30);
+      yPosition = addSectionTitle(doc, t('eventManagement.eventDetails'), yPosition)
       
       // Basic event information
-      const eventInfo = [
+      const eventInfoItems = [
         [t('eventManagement.form.eventName'), eventDetails.var_eventname || '-'],
         [t('eventManagement.form.location'), eventDetails.venue_name || eventDetails.var_location || '-'],
         [t('eventManagement.form.startDate'), eventDetails.dat_eventstartdate ? new Date(eventDetails.dat_eventstartdate).toLocaleDateString() : '-'],
@@ -358,21 +378,16 @@ const EventManagement: React.FC = () => {
         [t('eventManagement.form.registrationContact'), eventDetails.registration_contact_name || '-']
       ];
 
-      eventInfo.forEach(([label, value]) => {
-        doc.text(`${label}: ${value}`, contentArea.startX, yPosition);
-        yPosition += 6;
+      eventInfoItems.forEach(([label, value]) => {
+        yPosition = checkPageBreak(yPosition, 10);
+        yPosition = addLabeledValue(doc, label, value, contentArea.startX, yPosition)
       });
 
-      yPosition += 10;
+      yPosition += PDF_CONFIG.spacing.section;
 
       // Statistics Section
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text(t('eventManagement.statistics.title'), contentArea.startX, yPosition);
-      yPosition += 10;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      yPosition = checkPageBreak(yPosition, 30);
+      yPosition = addSectionTitle(doc, t('eventManagement.statistics.title'), yPosition)
 
       // Participant statistics
       const participantStats = [
@@ -385,75 +400,69 @@ const EventManagement: React.FC = () => {
       ];
 
       participantStats.forEach(([label, value]) => {
-        doc.text(`${label}: ${value}`, contentArea.startX, yPosition);
-        yPosition += 6;
+        yPosition = checkPageBreak(yPosition, 10);
+        yPosition = addLabeledValue(doc, label, value, contentArea.startX, yPosition)
       });
 
-      yPosition += 10;
+      yPosition += PDF_CONFIG.spacing.section;
 
       // Age Groups
       if (Object.keys(statistics.ageGroups).length > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('Altersgruppen:', contentArea.startX, yPosition);
-        yPosition += 6;
-        doc.setFont('helvetica', 'normal');
+        yPosition = checkPageBreak(yPosition, 20);
+        yPosition = addSectionTitle(doc, 'Altersgruppen:', yPosition, { fontSize: PDF_CONFIG.fonts.header.size })
 
         Object.entries(statistics.ageGroups).forEach(([ageGroup, count]) => {
-          doc.text(`  ${ageGroup}: ${count}`, contentArea.startX, yPosition);
-          yPosition += 6;
+          yPosition = checkPageBreak(yPosition, 10);
+          yPosition = addLabeledValue(doc, `  ${ageGroup}`, count.toString(), contentArea.startX, yPosition)
         });
 
-        yPosition += 10;
+        yPosition += PDF_CONFIG.spacing.section;
       }
 
       // Club Breakdown
       if (statistics.clubBreakdown && statistics.clubBreakdown.length > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.text(t('eventManagement.statistics.clubDistribution'), contentArea.startX, yPosition);
-        yPosition += 6;
-        doc.setFont('helvetica', 'normal');
+        yPosition = checkPageBreak(yPosition, 20);
+        yPosition = addSectionTitle(doc, t('eventManagement.statistics.clubDistribution'), yPosition, { fontSize: PDF_CONFIG.fonts.header.size })
 
         statistics.clubBreakdown.forEach((club) => {
-          doc.text(`  ${club.clubName}: ${club.count}`, contentArea.startX, yPosition);
-          yPosition += 6;
+          yPosition = checkPageBreak(yPosition, 10);
+          yPosition = addLabeledValue(doc, `  ${club.clubName}`, club.count.toString(), contentArea.startX, yPosition)
         });
       }
 
       // Staff Requirements
       if (eventDetails.int_kampfrichter || eventDetails.int_helfer || eventDetails.int_edv) {
-        yPosition += 10;
-        doc.setFont('helvetica', 'bold');
-        doc.text(t('eventManagement.staffRequirements'), contentArea.startX, yPosition);
-        yPosition += 6;
-        doc.setFont('helvetica', 'normal');
+        yPosition += PDF_CONFIG.spacing.section;
+        yPosition = checkPageBreak(yPosition, 30);
+        yPosition = addSectionTitle(doc, t('eventManagement.staffRequirements'), yPosition)
 
         if (eventDetails.int_kampfrichter) {
-          doc.text(`  ${t('eventManagement.form.numberOfJudges')}: ${eventDetails.int_kampfrichter}`, contentArea.startX, yPosition);
-          yPosition += 6;
+          yPosition = checkPageBreak(yPosition, 10);
+          yPosition = addLabeledValue(doc, `  ${t('eventManagement.form.numberOfJudges')}`, eventDetails.int_kampfrichter.toString(), contentArea.startX, yPosition)
         }
         if (eventDetails.int_helfer) {
-          doc.text(`  ${t('eventManagement.form.numberOfHelpers')}: ${eventDetails.int_helfer}`, contentArea.startX, yPosition);
-          yPosition += 6;
+          yPosition = checkPageBreak(yPosition, 10);
+          yPosition = addLabeledValue(doc, `  ${t('eventManagement.form.numberOfHelpers')}`, eventDetails.int_helfer.toString(), contentArea.startX, yPosition)
         }
         if (eventDetails.int_edv) {
-          doc.text(`  ${t('eventManagement.form.numberOfCompOffice')}: ${eventDetails.int_edv}`, contentArea.startX, yPosition);
-          yPosition += 6;
+          yPosition = checkPageBreak(yPosition, 10);
+          yPosition = addLabeledValue(doc, `  ${t('eventManagement.form.numberOfCompOffice')}`, eventDetails.int_edv.toString(), contentArea.startX, yPosition)
         }
       }
 
       // Additional Information
       if (eventDetails.txt_hinweise) {
-        yPosition += 10;
-        doc.setFont('helvetica', 'bold');
-        doc.text(t('eventManagement.form.additionalInfo'), contentArea.startX, yPosition);
-        yPosition += 6;
-        doc.setFont('helvetica', 'normal');
+        yPosition += PDF_CONFIG.spacing.section;
+        yPosition = checkPageBreak(yPosition, 20);
+        yPosition = addSectionTitle(doc, t('eventManagement.form.additionalInfo'), yPosition)
         
         // Split text into multiple lines if needed
+        resetPDFStyles(doc)
         const textLines = doc.splitTextToSize(eventDetails.txt_hinweise, contentArea.width - 20);
         textLines.forEach((line: string) => {
+          yPosition = checkPageBreak(yPosition, 10);
           doc.text(line, contentArea.startX, yPosition);
-          yPosition += 6;
+          yPosition += PDF_CONFIG.spacing.line + 1;
         });
       }
 

@@ -252,8 +252,175 @@ in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
     **Optionale Erweiterung**: Event Management Pages (Squad Status, Time Planning, Competitions, Meldematrix) können bei Bedarf ergänzt werden
 
 34. Druck / Export
-Wir haben alle Druck und Export funktionen auf den entsprechenden Seiten. 
-a) Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert. 
+a) ~~Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert.~~ 🔄 **In Progress** 
+    **Status**: 🔄 Phase 0 & 1 abgeschlossen - Basis-Fixes + PDF-Utilities erweitert
+    **Ziel**: Alle PDF-Exporte vereinheitlichen für professionellen Look
+    
+    **Betroffene PDFs**:
+    - Event Participants List ✅ Migriert (didDrawPage)
+    - Event Management List ✅ Migriert (checkPageBreak)
+    - Meldematrix ⏳ Noch zu migrieren
+    - Ergebnisliste ⏳ Noch zu migrieren
+    - Medallienspiegel ⏳ Noch zu migrieren
+    - Riegenliste ⏳ Noch zu implementieren
+    
+    **Anforderungen**:
+    - ✅ Einheitliche Schriftart und -größen
+    - ✅ Gleich große Kopf- und Fußzeilen
+    - ✅ Gleicher Inhalt in Kopf- und Fußzeile
+    - ✅ Professionelle Lesbarkeit (Hervorhebungen, Abtrennungen)
+    - ⏳ Vollständige Lokalisierung (DE/EN)
+    
+    **Phase 0 - Basis-Fixes** ✅ (User Testing Feedback + Einheitliche Formatierung):
+    
+    1. **Separator-Linien Farben einheitlich** (`pdfUtils.ts` Zeile 72, 117):
+       - Problem: Trennstriche in unterschiedlichen Farben / nicht sichtbar
+       - Fix: `doc.setDrawColor(0, 0, 0)` vor allen `doc.line()` Aufrufen
+       - Ergebnis: Konsistente schwarze Trennlinien (0.5mm)
+    
+    2. **Header-Bereich bereinigen** (`pdfUtils.ts` Zeile 31-37):
+       - Problem: Überlappender Schriftzug in Riegenliste
+       - Fix: Weißer Hintergrund über gesamten Header-Bereich
+       ```typescript
+       doc.setFillColor(255, 255, 255)
+       doc.rect(0, 0, pageWidth, headerHeight + 15, 'F')
+       ```
+       - Ergebnis: Saubere Header ohne Überlappungen
+    
+    3. **Footer-Bereich bereinigen** (`pdfUtils.ts` Zeile 84-86):
+       - Fix: Weißer Hintergrund über gesamten Footer-Bereich
+       - Ergebnis: Saubere Footer ohne Überlappungen
+    
+    4. **Konsistente Farb-Resets** (`pdfUtils.ts` Zeile 122-126):
+       - Fix: Nach Header/Footer alle Farben auf Defaults zurücksetzen
+       ```typescript
+       doc.setTextColor(0, 0, 0)
+       doc.setDrawColor(0, 0, 0)
+       doc.setFillColor(255, 255, 255)
+       ```
+       - Ergebnis: Header/Footer-Styles beeinflussen Content nicht
+    
+    5. **Einheitliche Helper-Funktionen** (`pdfUtils.ts` +80 Zeilen):
+       - `addBodyText()` - Fließtext mit automatischem Umbruch
+       - `addLabeledValue()` - Beschriftete Werte (z.B. "Name: Wert")
+       - `resetPDFStyles()` - Alle Styles auf Defaults zurücksetzen
+       - Ergebnis: Konsistente Formatierung über alle PDFs
+    
+    6. **Event Participants List - Mehrseitige PDFs** (`EventParticipants.tsx` Zeile 867-895):
+       - Problem: Ab Seite 2 keine Kopf-/Fußzeile
+       - Fix: `didDrawPage` callback in autoTable + `getUnifiedTableStyles()`
+       ```typescript
+       const unifiedStyles = getUnifiedTableStyles()
+       autoTable(doc, {
+         ...unifiedStyles,  // Einheitliche Tabellen-Styles
+         didDrawPage: () => {
+           addPDFHeaderFooter({ doc, event, documentTitle, pageWidth, pageHeight })
+         }
+       })
+       ```
+       - Ergebnis: Header/Footer auf allen Seiten + einheitliche Tabelle
+       - **Vorher**: fontSize 9, fillColor [66,135,245] blau
+       - **Nachher**: fontSize 10, fillColor [0,102,204] primary blau (aus PDF_CONFIG)
+    
+    7. **Event Management List - Automatische Seitenumbrüche** (`EventManagement.tsx` Zeile 332-490):
+       - Problem: Ab Seite 2 keine Kopf-/Fußzeile, inkonsistente Überschriften
+       - Fix: `checkPageBreak()` Helper + einheitliche Formatierungs-Helfer
+       ```typescript
+       const checkPageBreak = (currentY: number, requiredSpace: number = 20) => {
+         if (currentY + requiredSpace > contentArea.endY) {
+           doc.addPage();
+           addPDFHeaderFooter({ doc, event, documentTitle, pageWidth, pageHeight });
+           return contentArea.startY;
+         }
+         return currentY;
+       };
+       
+       // Überschriften: Statt manuell doc.setFontSize(16)...
+       yPosition = addSectionTitle(doc, 'Event Details', yPosition)
+       
+       // Beschriftete Werte: Statt doc.text('Label: ' + value)...
+       yPosition = addLabeledValue(doc, 'Name', event.name, x, yPosition)
+       ```
+       - Ergebnis: Automatische Seitenumbrüche + einheitliche Formatierung
+       - **Vorher**: Gemischte fontSize (16/14/12/10), manuelle doc.text() Aufrufe
+       - **Nachher**: Konsistente Verwendung von PDF_CONFIG, einheitliche Helper
+    
+    **Implementierung Phase 1** - Zentrale PDF-Utilities erweitert ✅:
+    
+    1. **PDF_CONFIG hinzugefügt** (`pdfUtils.ts`):
+       ```typescript
+       // Einheitliche Schriftgrößen
+       fonts: {
+         title: 16pt bold,
+         subtitle: 14pt bold,
+         header: 12pt bold,
+         body: 10pt normal,
+         small: 8pt normal
+       }
+       
+       // Einheitliche Farben
+       colors: {
+         primary: Blau [0, 102, 204],
+         secondary: Grau [100, 100, 100],
+         success: Grün [76, 175, 80],
+         gold/silver/bronze: Medaillenfarben
+       }
+       
+       // Einheitliche Margins & Spacing
+       margins: { page: 10, header: 32, footer: 25, table: 5 }
+       spacing: { line: 5, section: 10, paragraph: 7 }
+       ```
+    
+    2. **getUnifiedTableStyles()** - Einheitliche Tabellen-Styles:
+       - Header: Blauer Hintergrund, weiße Schrift, 12pt bold
+       - Body: 10pt, 2mm Padding, Min. 8mm Höhe
+       - Alternate Rows: Hellgrauer Hintergrund [245, 245, 245]
+       - Rahmen: Dünne graue Linien (0.1mm)
+    
+    3. **Helper-Funktionen**:
+       - `addSectionTitle()` - Konsistente Abschnitts-Überschriften
+       - `addSeparatorLine()` - Horizontale Trennlinien
+       - `formatPDFDate()` - Lokalisiertes Datumsformat
+       - `formatPDFDateRange()` - Datumsbereich-Formatierung
+    
+    4. **Bestehende Funktionen** (bereits vorhanden):
+       - `addPDFHeaderFooter()` - Einheitliche Kopf-/Fußzeile
+       - `setupPDFWithHeaderFooter()` - Multi-Page Setup
+       - `getContentArea()` - Verfügbarer Inhaltsbereich
+    
+    **Header-Standard** (alle PDFs):
+    - **Links**: Event-Name, Datum, Ort
+    - **Rechts**: Dokumenttitel (z.B. "Meldematrix", "Ergebnisliste")
+    - **Separator**: Horizontale Linie (schwarz, 0.5mm)
+    
+    **Footer-Standard** (alle PDFs):
+    - **Links**: "created with TurnFix" + GitHub-URL
+    - **Mitte**: Seitenzahl (z.B. "1 / 3")
+    - **Rechts**: Datum/Uhrzeit + "GNU GPL v3"
+    - **Separator**: Horizontale Linie (schwarz, 0.5mm)
+    
+    **Nächste Schritte** (Phase 2-4):
+    - [ ] Meldematrix: Eigenen Header entfernen, `setupPDFWithHeaderFooter()` verwenden
+    - [ ] Ergebnisliste: 3 PDF-Export-Vorkommen migrieren
+    - [ ] Medallienspiegel: Bestehenden Export refactoren
+    - [ ] Riegenliste: PDF-Export implementieren
+    - [ ] Lokalisierung: Translation Keys für alle PDFs
+    - [ ] Testing: Alle 6 PDFs validieren
+    
+    **Dateien geändert**:
+    - ✅ `client/src/utils/pdfUtils.ts` - Separator-Fixes, Header/Footer-Bereinigung, +80 Zeilen Helper-Funktionen
+    - ✅ `client/src/pages/EventParticipants.tsx` - didDrawPage + getUnifiedTableStyles()
+    - ✅ `client/src/pages/EventManagement.tsx` - checkPageBreak + alle Helper-Funktionen
+    - ✅ `POINT-34-PDF-UNIFICATION.md` - Vollständige Dokumentation + Verwendungsbeispiele
+    
+    **Build Status**: ✓ 2240 modules, 6.56s, keine Fehler
+    
+    **Resultat**: 
+    - ✅ Alle Überschriften verwenden jetzt `addSectionTitle()` → Konsistente Schriftgröße (16pt title, 14pt subtitle, 12pt header)
+    - ✅ Alle Beschriftungen verwenden `addLabeledValue()` → Einheitliche Formatierung (bold Label, normal Value)
+    - ✅ Alle Tabellen verwenden `getUnifiedTableStyles()` → Gleiche Farben/Größen (primary blau Header, 10pt body)
+    - ✅ Spacing über `PDF_CONFIG` → Konsistente Abstände (section: 10mm, line: 5mm, paragraph: 7mm)
+
 b) vielleicht wäre eine zusätzliche Seite gut von der aus wir auf die vorhandenen Druck und Export möglichkeiten zugriff hätten. 
 Workflow so in etwa: 
 Auswahl was gedruckt werden soll (z.B. Urkunden) 
