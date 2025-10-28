@@ -216,7 +216,19 @@ export default function Meldematrix() {
         startY: contentArea.startY,
         ...unifiedStyles,
         columnStyles: {
-          0: { halign: 'left', minCellWidth: 40 } // Verein column wider and left-aligned
+          0: { halign: 'left', minCellWidth: 40 }, // Verein column wider and left-aligned
+          [tableColumns.length - 1]: { 
+            halign: 'center',
+            fillColor: [240, 248, 255],
+            fontStyle: 'bold'
+          } // Gesamt column - same style as Total in Results
+        },
+        didParseCell: function(data: any) {
+          // Highlight last row (totals row) - same style as Total column
+          if (data.section === 'body' && data.row.index === tableData.length - 1) {
+            data.cell.styles.fillColor = [240, 248, 255]
+            data.cell.styles.fontStyle = 'bold'
+          }
         },
         didDrawPage: () => {
           // Add header and footer to every page

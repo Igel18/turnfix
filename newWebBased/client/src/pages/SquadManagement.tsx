@@ -14,8 +14,15 @@ import { InformationCircleIcon, UserGroupIcon } from '@heroicons/react/24/outlin
 import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete } from '../utils/api';
-import { setupPDFWithHeaderFooter } from '../utils/pdfUtils';
+import { 
+  setupPDFWithHeaderFooter, 
+  addSectionTitle, 
+  addBodyText,
+  PDF_CONFIG,
+  getUnifiedTableStyles
+} from '../utils/pdfUtils';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Interface for participant data
 interface Participant {
@@ -406,100 +413,106 @@ const forceLoadAvailableParticipants = async () => {
     
     let yPosition = contentArea.startY + 10;
     const leftMargin = contentArea.startX;
-    const rightMargin = contentArea.endX;
-    
-    // Title
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text(t('squadManagement.pdf.title'), leftMargin, yPosition);
-    yPosition += 15;
 
-    // Summary
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(t('squadManagement.pdf.totalSquads', { count: squads.length }), leftMargin, yPosition);
+    // Summary (directly at the top, no title needed as it's in the header)
     const totalParticipants = squads.reduce((sum, squad) => sum + squad.participantCount, 0);
-    doc.text(t('squadManagement.pdf.totalParticipants', { count: totalParticipants }), leftMargin + 60, yPosition);
-    yPosition += 15;
+    const summaryText = `${t('squadManagement.pdf.totalSquads', { count: squads.length })} | ${t('squadManagement.pdf.totalParticipants', { count: totalParticipants })}`;
+    yPosition = addBodyText(doc, summaryText, yPosition, leftMargin);
+    yPosition += PDF_CONFIG.spacing.section;
+
+    // Get unified table styles
+    const unifiedStyles = getUnifiedTableStyles();
 
     // Iterate through squads
-    squads.forEach((squad) => {
-      // Check if we need a new page
-      if (yPosition > contentArea.endY - 40) {
+    squads.forEach((squad, squadIndex) => {
+      // Check if we need a new page before squad header
+      if (yPosition > contentArea.endY - 80) {
         doc.addPage();
-        setupPDFWithHeaderFooter(doc, selectedEvent, 'Squad Management');
+        setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
         yPosition = contentArea.startY + 10;
       }
 
-      // Squad Header
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text(t('squadManagement.pdf.squadHeader', { name: squad.name, count: squad.participantCount }), leftMargin, yPosition);
-      yPosition += 8;
+      // Squad Name as section title
+      yPosition = addSectionTitle(
+        doc, 
+        squad.name || `Riege ${squadIndex + 1}`, 
+        yPosition,
+        { fontSize: PDF_CONFIG.fonts.subtitle.size }
+      );
+      yPosition += PDF_CONFIG.spacing.line;
 
-      // Squad Competitions
+      // Squad info: Participant count
+      doc.setFontSize(PDF_CONFIG.fonts.body.size);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `${t('squadManagement.pdf.participants')}: ${squad.participantCount}`, 
+        leftMargin, 
+        yPosition
+      );
+      yPosition += PDF_CONFIG.spacing.line;
+
+      // Squad Competitions - each on a separate line
       if (squad.competitions && squad.competitions.length > 0) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(t('squadManagement.pdf.competitions'), leftMargin + 5, yPosition);
-        yPosition += 5;
+        doc.text(
+          `${t('squadManagement.pdf.competitions')}:`, 
+          leftMargin, 
+          yPosition
+        );
+        yPosition += PDF_CONFIG.spacing.line;
         
-        squad.competitions.forEach((competition) => {
-          doc.setFont('helvetica', 'normal');
-          const compText = competition.number ? 
-            `• ${competition.name} (Nr. ${competition.number})` : 
-            `• ${competition.name}`;
-          doc.text(compText, leftMargin + 10, yPosition);
-          yPosition += 4;
+        squad.competitions.forEach((comp) => {
+          const compText = comp.number ? `  • ${comp.name} (Nr. ${comp.number})` : `  • ${comp.name}`;
+          doc.text(compText, leftMargin, yPosition);
+          yPosition += PDF_CONFIG.spacing.line;
         });
-        yPosition += 3;
-      }
-
-      // Squad Participants
-      if (squad.participants && squad.participants.length > 0) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(t('squadManagement.pdf.participants'), leftMargin + 5, yPosition);
-        yPosition += 5;
-
-        // Participants table header
-        doc.setFont('helvetica', 'bold');
-        doc.text(t('squadManagement.pdf.name'), leftMargin + 10, yPosition);
-        doc.text(t('squadManagement.pdf.birthYear'), leftMargin + 80, yPosition);
-        doc.text(t('squadManagement.pdf.club'), leftMargin + 120, yPosition);
-        yPosition += 2;
         
-        // Draw header underline
-        doc.line(leftMargin + 10, yPosition, rightMargin - 10, yPosition);
-        yPosition += 3;
-
-        // Participants data
-        doc.setFont('helvetica', 'normal');
-        squad.participants.forEach((participant) => {
-          // Check if we need a new page
-          if (yPosition > contentArea.endY - 10) {
-            doc.addPage();
-            setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
-            yPosition = contentArea.startY + 10;
-          }
-
-          const name = `${participant.firstname} ${participant.lastname}`;
-          const birthYear = participant.birthYear ? participant.birthYear.toString() : t('squadManagement.pdf.notAvailable');
-          const club = participant.club || t('squadManagement.pdf.noClub');
-
-          doc.text(name, leftMargin + 10, yPosition);
-          doc.text(birthYear, leftMargin + 80, yPosition);
-          doc.text(club, leftMargin + 120, yPosition);
-          yPosition += 4;
-        });
+        yPosition += PDF_CONFIG.spacing.line;
       } else {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'italic');
-        doc.text(t('squadManagement.pdf.noParticipants'), leftMargin + 10, yPosition);
-        yPosition += 5;
+        yPosition += PDF_CONFIG.spacing.line;
       }
 
-      yPosition += 8; // Space between squads
+      // Squad Participants Table
+      if (squad.participants && squad.participants.length > 0) {
+        // Prepare table data
+        const tableData = squad.participants.map(p => [
+          `${p.firstname} ${p.lastname}`,
+          p.birthYear ? p.birthYear.toString() : t('squadManagement.pdf.notAvailable'),
+          p.club || t('squadManagement.pdf.noClub')
+        ]);
+
+        // Add participants table
+        autoTable(doc, {
+          head: [[
+            t('squadManagement.pdf.name'),
+            t('squadManagement.pdf.birthYear'),
+            t('squadManagement.pdf.club')
+          ]],
+          body: tableData,
+          startY: yPosition,
+          ...unifiedStyles,
+          columnStyles: {
+            0: { halign: 'left', cellWidth: 70 },   // Name
+            1: { halign: 'center', cellWidth: 30 }, // Birth Year
+            2: { halign: 'left', cellWidth: 70 }    // Club
+          },
+          didDrawPage: () => {
+            setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
+          }
+        });
+
+        // Update yPosition after table
+        yPosition = (doc as any).lastAutoTable.finalY + PDF_CONFIG.spacing.section;
+      } else {
+        doc.setFontSize(PDF_CONFIG.fonts.small.size);
+        doc.setFont('helvetica', 'italic');
+        doc.text(t('squadManagement.pdf.noParticipants'), leftMargin, yPosition);
+        yPosition += PDF_CONFIG.spacing.section;
+      }
+
+      // Add spacing between squads (except for the last one)
+      if (squadIndex < squads.length - 1) {
+        yPosition += PDF_CONFIG.spacing.section;
+      }
     });
 
     // Generate filename with timestamp

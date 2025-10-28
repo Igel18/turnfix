@@ -5,7 +5,7 @@ Alle Druck- und Export-Funktionen sollen einen einheitlichen, professionellen Lo
 
 ## Betroffene PDFs:
 1. **Meldematrix** (`Meldematrix.tsx`) - ✅ Migriert (getUnifiedTableStyles + addPDFHeaderFooter)
-2. **Ergebnisliste** (`Results.tsx`) - ⏳ Noch zu migrieren (3 Export-Funktionen)
+2. **Ergebnisliste** (`Results.tsx`) - ✅ **Migriert** (Alle 3 Export-Funktionen migriert)
 3. **Medallienspiegel** (`Medallienspiegel.tsx`) - ✅ Migriert (getUnifiedTableStyles + addSectionTitle + Medal-Farben)
 4. **Riegenliste** (Squad Management) - ⏳ Noch zu migrieren
 5. **Event Participants List** (`EventParticipants.tsx`) - ✅ Migriert (didDrawPage)

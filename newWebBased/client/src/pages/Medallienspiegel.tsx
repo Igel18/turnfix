@@ -8,7 +8,6 @@ import {
   addPDFHeaderFooter, 
   getContentArea,
   getUnifiedTableStyles,
-  addSectionTitle,
   PDF_CONFIG
 } from '@/utils/pdfUtils'
 import jsPDF from 'jspdf'
@@ -93,14 +92,8 @@ export default function Medallienspiegel() {
         pageHeight: 210
       })
 
-      // Title and event info
+      // Start position for content
       let yPosition = contentArea.startY + 10
-      yPosition = addSectionTitle(doc, t('medallienspiegel.title'), yPosition)
-      
-      doc.setFontSize(PDF_CONFIG.fonts.body.size)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`${t('medallienspiegel.event')}: ${medalData.eventName}`, contentArea.startX, yPosition)
-      yPosition += PDF_CONFIG.spacing.line + 5
 
       // Prepare medal standings table data
       const tableColumns = [
@@ -113,6 +106,7 @@ export default function Medallienspiegel() {
         { header: t('medallienspiegel.table.starters'), dataKey: 'starters' }
       ]
 
+      // Summary statistics
       const tableData = medalData.standings
         .sort((a, b) => {
           // Sort by total medals desc, then by gold desc, then by silver desc
@@ -131,10 +125,11 @@ export default function Medallienspiegel() {
           starters: standing.totalStarters
         }))
 
-      // Summary statistics
       const totalMedals = tableData.reduce((sum, row) => sum + row.total, 0)
       const totalStarters = tableData.reduce((sum, row) => sum + row.starters, 0)
       
+      doc.setFontSize(PDF_CONFIG.fonts.body.size)
+      doc.setFont('helvetica', 'normal')
       doc.text(`${t('medallienspiegel.participatingClubs')}: ${tableData.length}`, contentArea.startX, yPosition)
       doc.text(`${t('medallienspiegel.totalMedals')}: ${totalMedals}`, contentArea.startX + 80, yPosition)
       doc.text(`${t('medallienspiegel.totalStarters')}: ${totalStarters}`, contentArea.startX + 150, yPosition)

@@ -10,7 +10,13 @@ import {
 import UnifiedPageHeader from '../components/UnifiedPageHeader'
 import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
-import { addPDFHeaderFooter, getContentArea } from '@/utils/pdfUtils'
+import { 
+  addPDFHeaderFooter, 
+  getContentArea,
+  getUnifiedTableStyles,
+  addSectionTitle,
+  PDF_CONFIG
+} from '@/utils/pdfUtils'
 import { getDisciplineIcon, getDisciplineShortName } from '@/utils/disciplineIcons'
 import getSocket from '../utils/socket'
 import jsPDF from 'jspdf'
@@ -531,11 +537,9 @@ const Results = () => {
         ? `${selectedComp.name}${selectedComp.number ? ` (Nr. ${selectedComp.number})` : ''}` 
         : 'Unknown Competition'
       
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text(selectedCompName, contentArea.startX, contentArea.startY + 10)
-      
-      let currentY = contentArea.startY + 35 // Increased spacing to prevent header overlap
+      let currentY = contentArea.startY + 10
+      currentY = addSectionTitle(doc, selectedCompName, currentY)
+      currentY += PDF_CONFIG.spacing.section
       
       // Get competition-specific disciplines
       const selectedCompetitionGroup = competitionGroups.find(g => g.competitionId.toString() === selectedCompetition)
@@ -568,46 +572,35 @@ const Results = () => {
         formatScore(participant.totalScore)
       ])
 
+      // Get unified table styles
+      const unifiedStyles = getUnifiedTableStyles()
+
       // Generate table
       autoTable(doc, {
         head: [headers],
         body: tableData,
         startY: currentY,
-        pageBreak: 'auto',
-        margin: { top: 35, left: 10, right: 10, bottom: 25 }, // Ensure proper margins on all pages
-        styles: {
-          fontSize: 8,
-          cellPadding: 2,
-        },
-        headStyles: {
-          fillColor: [66, 139, 202],
-          textColor: 255,
-          fontSize: 9,
-          fontStyle: 'bold'
-        },
+        ...unifiedStyles,
         columnStyles: (() => {
           const styles: any = {
-            0: { halign: 'center', cellWidth: 15 }, // Rank
-            1: { halign: 'center', cellWidth: 20 }, // Start #
-            2: { halign: 'left', cellWidth: 40 },   // Name
-            3: { halign: 'left', cellWidth: 35 },   // Club
+            0: { halign: 'center', cellWidth: 18 }, // Rank - breiter
+            1: { halign: 'center', cellWidth: 22 }, // Start # - breiter
+            2: { halign: 'left', cellWidth: 50 },   // Name - deutlich breiter
+            3: { halign: 'left', cellWidth: 45 },   // Club - breiter
             4: { halign: 'center', cellWidth: 15 }, // Age
             [headers.length - 1]: { 
               halign: 'center', 
-              cellWidth: 20,
+              cellWidth: 22,
               fillColor: [240, 248, 255],
               fontStyle: 'bold'
-            } // Total
+            } // Total - breiter
           }
           // Add discipline columns (starting at index 5)
           competitionDisciplines.forEach((_, index) => {
-            styles[5 + index] = { halign: 'center', cellWidth: 18 }
+            styles[5 + index] = { halign: 'center', cellWidth: 20 } // breiter
           })
           return styles
         })(),
-        alternateRowStyles: {
-          fillColor: [248, 249, 250]
-        },
         didParseCell: function(data: any) {
           // Highlight medal positions
           if (data.section === 'body' && data.column.index === 0) {
@@ -636,23 +629,16 @@ const Results = () => {
           }
         },
         didDrawPage: function() {
-          // Note: Page numbering will be updated after document completion
-          // to ensure correct total page count
+          // Add header and footer to every page
+          addPDFHeaderFooter({
+            doc,
+            event: selectedEvent,
+            documentTitle: 'Competition Results',
+            pageWidth,
+            pageHeight
+          })
         }
       })
-
-      // Update all page headers/footers with correct page numbering
-      const totalPages = (doc as any).internal.getNumberOfPages()
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i)
-        addPDFHeaderFooter({
-          doc,
-          event: selectedEvent,
-          documentTitle: 'Competition Results',
-          pageWidth,
-          pageHeight
-        })
-      }
 
       // Save the PDF
       doc.save(`results_${selectedCompName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
@@ -694,10 +680,7 @@ const Results = () => {
         }
 
         // Add competition title
-        doc.setFontSize(14)
-        doc.setFont('helvetica', 'bold')
-        doc.text(`${group.competitionName} (${group.participants.length} participants)`, contentArea.startX, currentY)
-        currentY += 12
+        currentY = addSectionTitle(doc, `${group.competitionName} (${group.participants.length} participants)`, currentY, { align: 'left' })
 
         // Prepare table data for this competition with icons in headers
         const headers = [
@@ -725,46 +708,41 @@ const Results = () => {
           formatScore(participant.totalScore)
         ])
 
+        // Get unified table styles
+        const unifiedStyles = getUnifiedTableStyles()
+
         // Generate table for this competition
         autoTable(doc, {
+          ...unifiedStyles,
           head: [headers],
           body: tableData,
           startY: currentY,
           pageBreak: 'auto',
-          margin: { top: 35, left: 10, right: 10, bottom: 25 }, // Ensure proper margins on all pages
           styles: {
-            fontSize: 7,
-            cellPadding: 1.5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 8,
-            fontStyle: 'bold'
+            ...unifiedStyles.styles,
+            fontSize: 8, // Größer für bessere Lesbarkeit
+            cellPadding: 2,
           },
           columnStyles: (() => {
             const styles: any = {
-              0: { halign: 'center', cellWidth: 12 }, // Rank
-              1: { halign: 'center', cellWidth: 15 }, // Start #
-              2: { halign: 'left', cellWidth: 35 },   // Name
-              3: { halign: 'left', cellWidth: 30 },   // Club
+              0: { halign: 'center', cellWidth: 15 }, // Rank - breiter
+              1: { halign: 'center', cellWidth: 18 }, // Start # - breiter
+              2: { halign: 'left', cellWidth: 45 },   // Name - deutlich breiter
+              3: { halign: 'left', cellWidth: 38 },   // Club - breiter
               4: { halign: 'center', cellWidth: 12 }, // Age
               [headers.length - 1]: { 
                 halign: 'center', 
-                cellWidth: 18,
+                cellWidth: 20,
                 fillColor: [240, 248, 255],
                 fontStyle: 'bold'
-              } // Total
+              } // Total - breiter
             }
             // Add discipline columns (starting at index 5)
             group.disciplines.forEach((_, index) => {
-              styles[5 + index] = { halign: 'center', cellWidth: 15 }
+              styles[5 + index] = { halign: 'center', cellWidth: 18 } // breiter
             })
             return styles
           })(),
-          alternateRowStyles: {
-            fillColor: [248, 249, 250]
-          },
           didParseCell: function(data: any) {
             // Highlight medal positions
             if (data.section === 'body' && data.column.index === 0) {
@@ -793,8 +771,14 @@ const Results = () => {
             }
           },
           didDrawPage: function(data: any) {
-            // Note: Page numbering will be updated after document completion
-            // to ensure correct total page count
+            // Add header and footer to every page
+            addPDFHeaderFooter({
+              doc,
+              event: selectedEvent,
+              documentTitle: 'Competition Results - All Competitions',
+              pageWidth,
+              pageHeight
+            })
             currentY = (data as any).cursor.y + 15
           }
         })
@@ -802,19 +786,6 @@ const Results = () => {
         // Add some space between competitions
         currentY += 10
       })
-
-      // Update all page headers/footers with correct page numbering
-      const totalPages = (doc as any).internal.getNumberOfPages()
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i)
-        addPDFHeaderFooter({
-          doc,
-          event: selectedEvent,
-          documentTitle: 'Competition Results - All Competitions',
-          pageWidth,
-          pageHeight
-        })
-      }
 
       // Save the PDF
       doc.save(`results_all_competitions_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)

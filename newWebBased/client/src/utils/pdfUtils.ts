@@ -244,7 +244,10 @@ export const getUnifiedTableStyles = () => ({
   alternateRowStyles: {
     fillColor: PDF_CONFIG.colors.background
   },
-  margin: { top: PDF_CONFIG.margins.header },
+  margin: { 
+    top: PDF_CONFIG.margins.header,
+    bottom: PDF_CONFIG.margins.footer 
+  },
   styles: {
     overflow: 'linebreak' as const,
     cellWidth: 'wrap' as const,

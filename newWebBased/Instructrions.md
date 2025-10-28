@@ -261,7 +261,7 @@ a) ~~Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look
     - Event Management List ✅ Migriert (checkPageBreak)
     - Meldematrix ✅ Migriert (getUnifiedTableStyles + addPDFHeaderFooter)
     - Medallienspiegel ✅ Migriert (getUnifiedTableStyles + addSectionTitle + Medal-Farben)
-    - Ergebnisliste ⏳ Noch zu migrieren (3 Export-Funktionen)
+    - **Ergebnisliste ✅ Migriert** (Alle 3 Export-Funktionen migriert)
     - Riegenliste ⏳ Noch zu migrieren
     
     **Anforderungen**:
@@ -400,9 +400,9 @@ a) ~~Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look
     - **Separator**: Horizontale Linie (schwarz, 0.5mm)
     
     **Nächste Schritte** (Phase 2-4):
-    - [ ] Meldematrix: Eigenen Header entfernen, `setupPDFWithHeaderFooter()` verwenden
-    - [ ] Ergebnisliste: 3 PDF-Export-Vorkommen migrieren
-    - [ ] Medallienspiegel: Bestehenden Export refactoren
+    - [x] Meldematrix: Eigenen Header entfernen, `setupPDFWithHeaderFooter()` verwenden
+    - [x] Ergebnisliste: 3 PDF-Export-Vorkommen migrieren
+    - [x] Medallienspiegel: Bestehenden Export refactoren
     - [ ] Riegenliste: PDF-Export implementieren
     - [ ] Lokalisierung: Translation Keys für alle PDFs
     - [ ] Testing: Alle 6 PDFs validieren
@@ -2119,5 +2119,8 @@ Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert?
 
 90. Prio 2 Das Template für die tabellen muss breiter sein, damit mehr Inhalt rein passt. 
 
-91. status: 
-Es gibt einen Status für die Riegen. Nach dem Wettkampf werden aber Urkunden für die Wettkampfklassen gedruckt. 
+91. Prio 5 status: 
+Es gibt einen Status für die Riegen. Nach dem Wettkampf werden aber Urkunden für die Wettkampfklassen gedruckt. Dafür gibt es nach meinem Wissen keine möglichkeit den Status zu visualisieren. 
+
+92. Prio 1 
+Der medallienspiegel passt nicht http://localhost:3001/medallienspiegel?eventId=59&squadName=m Es müssen immer alle Vereine die am Event teilnehmen angezeigt werden. Vielleicht ist dies das einzige problem?
