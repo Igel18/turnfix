@@ -3,6 +3,7 @@ import { PencilIcon, TrashIcon, BuildingOffice2Icon } from '@heroicons/react/24/
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
+import UnifiedModal from '@/components/UnifiedModal';
 
 interface Association {
   int_verbaendeid: number;
@@ -331,78 +332,62 @@ const Associations: React.FC = () => {
       />
 
       {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium mb-4">
-              {editingAssociation ? 'Edit Association' : 'Add New Association'}
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Association Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.var_name}
-                  onChange={(e) => setFormData({...formData, var_name: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  placeholder="Enter association name"
-                  required
-                />
-              </div>
+      <UnifiedModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingAssociation ? 'Edit Association' : 'Add New Association'}
+        onSave={handleSave}
+        saveLabel={editingAssociation ? 'Update' : 'Create'}
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Association Name *
+            </label>
+            <input
+              type="text"
+              value={formData.var_name}
+              onChange={(e) => setFormData({...formData, var_name: e.target.value})}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter association name"
+              required
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Abbreviation
-                </label>
-                <input
-                  type="text"
-                  value={formData.var_kuerzel}
-                  onChange={(e) => setFormData({...formData, var_kuerzel: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  placeholder="Enter abbreviation"
-                  maxLength={8}
-                />
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Abbreviation
+            </label>
+            <input
+              type="text"
+              value={formData.var_kuerzel}
+              onChange={(e) => setFormData({...formData, var_kuerzel: e.target.value})}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter abbreviation"
+              maxLength={8}
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Country
-                </label>
-                <select
-                  value={formData.int_laenderid || ''}
-                  onChange={(e) => setFormData({...formData, int_laenderid: e.target.value === '' ? null : parseInt(e.target.value)})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                >
-                  <option value="">No Country</option>
-                  {countries.map(country => (
-                    <option key={country.int_laenderid} value={country.int_laenderid}>
-                      {country.var_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                {editingAssociation ? 'Update' : 'Create'}
-              </button>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Country
+            </label>
+            <select
+              value={formData.int_laenderid || ''}
+              onChange={(e) => setFormData({...formData, int_laenderid: e.target.value === '' ? null : parseInt(e.target.value)})}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="">No Country</option>
+              {countries.map(country => (
+                <option key={country.int_laenderid} value={country.int_laenderid}>
+                  {country.var_name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      )}
+      </UnifiedModal>
     </>
   );
 };

@@ -4,6 +4,7 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 // Interface for discipline data from API
 interface Discipline {
@@ -100,6 +101,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 }) => {
   // Translation hook
   const { t } = useTranslation();
+  
+  // ESC key to close modal
+  useEscapeKey(onClose, isOpen);
   
   // State for modal-specific data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);

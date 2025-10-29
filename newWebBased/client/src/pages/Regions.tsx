@@ -3,6 +3,7 @@ import { PencilIcon, TrashIcon, MapIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
+import UnifiedModal from '@/components/UnifiedModal';
 
 interface Region {
   int_gaueid: number;
@@ -28,9 +29,7 @@ const Regions: React.FC = () => {
   const [selectedVerband, setSelectedVerband] = useState<string | number>('');
   
   // Sorting
-  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
-
-  // Form state
+  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');  // Form state
   const [formData, setFormData] = useState({
     var_name: '',
     var_kurz: '',
@@ -340,77 +339,61 @@ const Regions: React.FC = () => {
         renderCard={renderCard}
       />
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium mb-4">
-              {editingRegion ? 'Edit Region' : 'Add New Region'}
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Region Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.var_name}
-                  onChange={(e) => setFormData({...formData, var_name: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  placeholder="Enter region name"
-                />
-              </div>
+      {/* Modal - Using UnifiedModal Template */}
+      <UnifiedModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingRegion ? 'Edit Region' : 'Add New Region'}
+        onSave={handleSave}
+        saveLabel={editingRegion ? 'Update' : 'Create'}
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Region Name
+            </label>
+            <input
+              type="text"
+              value={formData.var_name}
+              onChange={(e) => setFormData({...formData, var_name: e.target.value})}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter region name"
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Abbreviation
-                </label>
-                <input
-                  type="text"
-                  value={formData.var_kurz}
-                  onChange={(e) => setFormData({...formData, var_kurz: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  placeholder="Enter abbreviation"
-                />
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Abbreviation
+            </label>
+            <input
+              type="text"
+              value={formData.var_kurz}
+              onChange={(e) => setFormData({...formData, var_kurz: e.target.value})}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter abbreviation"
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Association
-                </label>
-                <select
-                  value={formData.int_verbaendeid}
-                  onChange={(e) => setFormData({...formData, int_verbaendeid: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                >
-                  <option value="">Select Association</option>
-                  {verbaende.map(verband => (
-                    <option key={verband.int_verbaendeid} value={verband.int_verbaendeid}>
-                      {verband.var_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                {editingRegion ? 'Update' : 'Create'}
-              </button>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Association
+            </label>
+            <select
+              value={formData.int_verbaendeid}
+              onChange={(e) => setFormData({...formData, int_verbaendeid: e.target.value})}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select Association</option>
+              {verbaende.map(verband => (
+                <option key={verband.int_verbaendeid} value={verband.int_verbaendeid}>
+                  {verband.var_name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      )}
+      </UnifiedModal>
     </>
   );
 };

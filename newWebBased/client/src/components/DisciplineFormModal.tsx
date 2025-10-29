@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getIconUrl } from '../utils/iconUtils';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 interface Discipline {
   id: number;
@@ -82,6 +83,9 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
   sports
 }) => {
   const { t } = useTranslation();
+  
+  // ESC key to close modal
+  useEscapeKey(onClose, isOpen);
   
   if (!isOpen) return null;
 

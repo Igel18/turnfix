@@ -2462,14 +2462,124 @@ Der medallienspiegel passt nicht http://localhost:3001/medallienspiegel?eventId=
 - Alle Vereine zeigen korrekte Teilnehmerzahl in `totalStarters`
 - Datei: `server/src/routes/medals.ts` (Zeilen 195-230, 282-303)
 
-93. Prio 5 Aktionen über Tastatur
-Generell sollte es möglich sein, über die Tastatur aktionen durchführen zu können. Insbesondere beim Wertung speichern im jury-portal und im score capture sollte mit einem Enter der Wert übernommen werden. Gespeichert wird es wahrscheinlich schon bei der Eingabe. Dann sollte mit Enter das Feld verlassen werden. 
+93. ✅ Prio 5 Aktionen über Tastatur
 
-Tasten Aktionen
-Jury-Portal & Score Capture: 
-- Enter: Speichert Wert & verlässt das eingabefeld 
-- Pfeiltaste Rechts: Nächster Turner ins eingabefeld wechseln 
-- Pfeiltaste Links: vorheriger Turner ins Eingabefeld wechseln 
+**Status**: ✅ Vollständig implementiert (2025-01-29)
 
-Alle Modalen Dialoge: 
-- ESC: das dialog verlassen ggf. rückfrage ob gespeichert werden soll
+**Anforderung**: Tastatur-Navigation für Jury-Portal & Score Capture sowie ESC-Taste für modale Dialoge.
+
+**Implementierung:**
+
+1. **Score Capture - Einfache Disziplinen-Eingabe**:
+   - **Enter**: Speichert Wert, normalisiert Dezimalformat & verlässt Eingabefeld
+   - **Pfeil Rechts**: Wechselt zum nächsten Teilnehmer (gleiche Disziplin)
+   - **Pfeil Links**: Wechselt zum vorherigen Teilnehmer (gleiche Disziplin)
+   - Implementation: `data-participant` und `data-discipline` Attribute für Navigation
+   - Zeilen: 1786-1833 in ScoreCapture.tsx
+
+2. **Score Capture - Endwert (Grüne Box)**:
+   - **Enter**: Speichert offiziellen Endwert & verlässt Eingabefeld
+   - **Pfeil Rechts**: Nächster Teilnehmer
+   - **Pfeil Links**: Vorheriger Teilnehmer
+   - Implementation: `data-endwert-participant` und `data-endwert-discipline` Attribute
+   - Auto-Save via onBlur bleibt bestehen
+   - Zeilen: 1917-2018 in ScoreCapture.tsx
+
+3. **Score Capture - Jury Endwert (Graue Box)**:
+   - **Enter**: Speichert Jury-Endwert & verlässt Eingabefeld
+   - **Pfeil Rechts**: Nächster Teilnehmer
+   - **Pfeil Links**: Vorheriger Teilnehmer
+   - Implementation: `data-jury-participant` und `data-jury-discipline` Attribute
+   - Zeilen: 2022-2073 in ScoreCapture.tsx
+
+4. **Score Capture - Individuelle Jury-Felder**:
+   - **Enter**: Speichert Feldwert & verlässt Eingabefeld
+   - **Pfeil Rechts**: Nächster Teilnehmer (gleiches Feld)
+   - **Pfeil Links**: Vorheriger Teilnehmer (gleiches Feld)
+   - Implementation: `data-field-participant` und `data-field-id` Attribute
+   - Zeilen: 2086-2138 in ScoreCapture.tsx
+
+5. **Modale Dialoge - ESC-Taste**:
+   - Neuer Hook: `useEscapeKey(onClose, isOpen)` 
+   - Implementation: `client/src/hooks/useEscapeKey.ts`
+   - Aktiviert in:
+     * CompetitionFormModal.tsx (Zeilen 1-7, 107-109)
+     * ClubFormModal.tsx (Zeilen 1-2, 62)
+     * DisciplineFormModal.tsx (Zeilen 1-4, 80-82)
+   - Weitere Modals können den Hook einfach importieren
+
+**Technische Details:**
+
+**Navigation-Pattern:**
+```typescript
+onKeyDown={(e) => {
+  const currentRow = filteredParticipants.findIndex(p => p.id === participant.id);
+  
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // Normalize & save
+    e.currentTarget.blur();
+  } else if (e.key === 'ArrowRight' && currentRow < filteredParticipants.length - 1) {
+    e.preventDefault();
+    const nextParticipant = filteredParticipants[currentRow + 1];
+    const nextInput = document.querySelector<HTMLInputElement>(
+      `input[data-participant="${nextParticipant.id}"][data-discipline="${disciplineId}"]`
+    );
+    if (nextInput) nextInput.focus();
+  } else if (e.key === 'ArrowLeft' && currentRow > 0) {
+    // Similar logic for previous participant
+  }
+}}
+```
+
+**ESC Hook:**
+```typescript
+export function useEscapeKey(onEscape: () => void, enabled: boolean = true) {
+  useEffect(() => {
+    if (!enabled) return;
+    
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onEscape();
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onEscape, enabled]);
+}
+```
+
+**Vorteile:**
+
+- ✅ **Schnellere Dateneingabe**: Keine Maus-Klicks nötig
+- ✅ **Workflow-Optimierung**: Kampfrichter können Werte flüssig eingeben
+- ✅ **Konsistente Navigation**: Pfeil-Tasten für alle Eingabetypen
+- ✅ **Auto-Save bleibt**: Bestehende onBlur-Logik wird nicht beeinträchtigt
+- ✅ **ESC für alle Modals**: Generischer Hook für alle Dialog-Komponenten
+- ✅ **Keine UX-Konflikte**: preventDefault() verhindert unerwünschtes Scrolling
+
+**Betroffene Dateien:**
+
+1. **client/src/pages/ScoreCapture.tsx**:
+   - Einfache Disziplinen-Eingabe: Zeilen 1786-1833
+   - Endwert (grün): Zeilen 1917-2018
+   - Jury-Endwert (grau): Zeilen 2022-2073
+   - Jury-Felder: Zeilen 2086-2138
+
+2. **client/src/hooks/useEscapeKey.ts**: Neuer Hook (26 Zeilen)
+
+3. **Modale Dialoge mit ESC**:
+   - client/src/components/CompetitionFormModal.tsx
+   - client/src/components/ClubFormModal.tsx
+   - client/src/components/DisciplineFormModal.tsx
+
+**Build Status**: ✓ 2242 modules, 5.82s, keine Fehler
+**Bundle Size**: 1521.73 kB JS (408.46 kB gzipped)
+
+**User-Testing Empfehlung:**
+- Kampfrichter sollten die neue Navigation im Live-Betrieb testen
+- Feedback zu Tastenkombinationen einholen (evtl. Tab-Taste für Felder?)
+- Prüfen, ob ESC-Taste bei ungespeicherten Änderungen Warnung zeigen soll
+

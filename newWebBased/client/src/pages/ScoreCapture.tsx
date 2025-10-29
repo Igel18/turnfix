@@ -1800,6 +1800,39 @@ export function ScoreCapture() {
                                         }
                                         saveScore(participant.id, disciplineId);
                                       }}
+                                      onKeyDown={(e) => {
+                                        const currentRow = filteredParticipants.findIndex(p => p.id === participant.id);
+                                        
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          // Normalize and save
+                                          const normalized = normalizeScoreInput(e.currentTarget.value, discipline.int_berechnung || 2);
+                                          if (normalized !== e.currentTarget.value) {
+                                            handleScoreChange(participant.id, disciplineId, normalized);
+                                          }
+                                          saveScore(participant.id, disciplineId);
+                                          // Blur the input field
+                                          e.currentTarget.blur();
+                                        } else if (e.key === 'ArrowRight' && currentRow < filteredParticipants.length - 1) {
+                                          e.preventDefault();
+                                          // Move to next participant
+                                          const nextParticipant = filteredParticipants[currentRow + 1];
+                                          const nextInput = document.querySelector<HTMLInputElement>(
+                                            `input[data-participant="${nextParticipant.id}"][data-discipline="${disciplineId}"]`
+                                          );
+                                          if (nextInput) nextInput.focus();
+                                        } else if (e.key === 'ArrowLeft' && currentRow > 0) {
+                                          e.preventDefault();
+                                          // Move to previous participant
+                                          const prevParticipant = filteredParticipants[currentRow - 1];
+                                          const prevInput = document.querySelector<HTMLInputElement>(
+                                            `input[data-participant="${prevParticipant.id}"][data-discipline="${disciplineId}"]`
+                                          );
+                                          if (prevInput) prevInput.focus();
+                                        }
+                                      }}
+                                      data-participant={participant.id}
+                                      data-discipline={disciplineId}
                                       className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
                                         validation.isValid 
                                           ? 'border-gray-300 focus:ring-blue-500' 
@@ -1883,6 +1916,7 @@ export function ScoreCapture() {
                                             <div className="text-xs text-green-600 font-medium text-center mb-1">Endwert (offiziell)</div>
                                             {(() => {
                                               const endwertValidation = getScoreValidation(disciplineId, currentEndwert)
+                                              const currentRow = filteredParticipants.findIndex(p => p.id === participant.id);
                                               return (
                                                 <div className="relative">
                                                   <input
@@ -1897,20 +1931,17 @@ export function ScoreCapture() {
                                                       }));
                                                     }}
                                                     onBlur={async (e) => {
-                                                      const value = e.target.value; // Use the current input value directly
+                                                      const value = e.target.value;
                                                       if (value && value.trim() !== '' && !isNaN(parseFloat(value))) {
                                                         console.log('🟢 Saving official Endwert:', value, 'for participant', participant.id, 'discipline', disciplineId);
                                                         
-                                                        // Update scoreMatrix immediately
                                                         setScoreMatrix(prev => ({
                                                           ...prev,
                                                           [matrixKey]: value
                                                         }));
                                                         
-                                                        // Track pending save
                                                         setPendingEndwerts(prev => ({ ...prev, [matrixKey]: value }));
                                                         
-                                                        // Update local existingScores state for immediate UI feedback
                                                         setExistingScores(prev => {
                                                           const safePrev = Array.isArray(prev) ? prev : [];
                                                           let numericDisciplineId: number;
@@ -1937,7 +1968,6 @@ export function ScoreCapture() {
                                                           }
                                                         });
                                                         
-                                                        // Save to database
                                                         try {
                                                           console.log('🟢 Calling saveScore...');
                                                           await saveScore(participant.id, disciplineId);
@@ -1950,6 +1980,28 @@ export function ScoreCapture() {
                                                         console.log('⚠️  Skipping save - invalid value:', value);
                                                       }
                                                     }}
+                                                    onKeyDown={(e) => {
+                                                      if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        e.currentTarget.blur();
+                                                      } else if (e.key === 'ArrowRight' && currentRow < filteredParticipants.length - 1) {
+                                                        e.preventDefault();
+                                                        const nextParticipant = filteredParticipants[currentRow + 1];
+                                                        const nextInput = document.querySelector<HTMLInputElement>(
+                                                          `input[data-endwert-participant="${nextParticipant.id}"][data-endwert-discipline="${disciplineId}"]`
+                                                        );
+                                                        if (nextInput) nextInput.focus();
+                                                      } else if (e.key === 'ArrowLeft' && currentRow > 0) {
+                                                        e.preventDefault();
+                                                        const prevParticipant = filteredParticipants[currentRow - 1];
+                                                        const prevInput = document.querySelector<HTMLInputElement>(
+                                                          `input[data-endwert-participant="${prevParticipant.id}"][data-endwert-discipline="${disciplineId}"]`
+                                                        );
+                                                        if (prevInput) prevInput.focus();
+                                                      }
+                                                    }}
+                                                    data-endwert-participant={participant.id}
+                                                    data-endwert-discipline={disciplineId}
                                                     className={`w-full text-sm font-bold text-center bg-transparent border-0 focus:ring-1 rounded px-1 ${
                                                       endwertValidation.isValid
                                                         ? 'text-green-700 focus:ring-green-400'
@@ -1973,6 +2025,7 @@ export function ScoreCapture() {
                                               <div className="text-xs text-gray-600 font-medium text-center mb-1">Endwert (Jury)</div>
                                               {(() => {
                                                 const juryValidation = getScoreValidation(disciplineId, juryEndwert)
+                                                const currentRow = filteredParticipants.findIndex(p => p.id === participant.id);
                                                 return (
                                                   <div className="relative">
                                                     <input
@@ -1993,6 +2046,28 @@ export function ScoreCapture() {
                                                           await saveFieldScore(participant.id, juryEndwertField);
                                                         }
                                                       }}
+                                                      onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                          e.preventDefault();
+                                                          e.currentTarget.blur();
+                                                        } else if (e.key === 'ArrowRight' && currentRow < filteredParticipants.length - 1) {
+                                                          e.preventDefault();
+                                                          const nextParticipant = filteredParticipants[currentRow + 1];
+                                                          const nextInput = document.querySelector<HTMLInputElement>(
+                                                            `input[data-jury-participant="${nextParticipant.id}"][data-jury-discipline="${disciplineId}"]`
+                                                          );
+                                                          if (nextInput) nextInput.focus();
+                                                        } else if (e.key === 'ArrowLeft' && currentRow > 0) {
+                                                          e.preventDefault();
+                                                          const prevParticipant = filteredParticipants[currentRow - 1];
+                                                          const prevInput = document.querySelector<HTMLInputElement>(
+                                                            `input[data-jury-participant="${prevParticipant.id}"][data-jury-discipline="${disciplineId}"]`
+                                                          );
+                                                          if (prevInput) prevInput.focus();
+                                                        }
+                                                      }}
+                                                      data-jury-participant={participant.id}
+                                                      data-jury-discipline={disciplineId}
                                                       className={`w-full text-sm font-bold text-center bg-transparent border-0 focus:ring-1 rounded px-1 ${
                                                         juryValidation.isValid
                                                           ? 'text-gray-700 focus:ring-gray-400'
@@ -2036,6 +2111,7 @@ export function ScoreCapture() {
                                       const fieldKey = `${participant.id}-${field.id}`;
                                       const fieldValue = scoreMatrix[fieldKey] ?? '';
                                       const validation = getScoreValidation(disciplineId, fieldValue);
+                                      const currentRow = filteredParticipants.findIndex(p => p.id === participant.id);
                                       return (
                                         <div key={`field-${participant.id}-${field.id}`} className="flex flex-col items-center">
                                           <label className="text-xs text-gray-600 mb-1 text-center" title={field.name}>
@@ -2062,6 +2138,28 @@ export function ScoreCapture() {
                                                   console.log(`⚠️  Skipping save for empty field: ${field.name}`);
                                                 }
                                               }}
+                                              onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                  e.preventDefault();
+                                                  e.currentTarget.blur();
+                                                } else if (e.key === 'ArrowRight' && currentRow < filteredParticipants.length - 1) {
+                                                  e.preventDefault();
+                                                  const nextParticipant = filteredParticipants[currentRow + 1];
+                                                  const nextInput = document.querySelector<HTMLInputElement>(
+                                                    `input[data-field-participant="${nextParticipant.id}"][data-field-id="${field.id}"]`
+                                                  );
+                                                  if (nextInput) nextInput.focus();
+                                                } else if (e.key === 'ArrowLeft' && currentRow > 0) {
+                                                  e.preventDefault();
+                                                  const prevParticipant = filteredParticipants[currentRow - 1];
+                                                  const prevInput = document.querySelector<HTMLInputElement>(
+                                                    `input[data-field-participant="${prevParticipant.id}"][data-field-id="${field.id}"]`
+                                                  );
+                                                  if (prevInput) prevInput.focus();
+                                                }
+                                              }}
+                                              data-field-participant={participant.id}
+                                              data-field-id={field.id}
                                               className={`w-16 px-1 py-1 text-xs border rounded focus:ring-2 focus:border-transparent transition-colors ${
                                                 validation.isValid 
                                                   ? 'border-gray-300 focus:ring-blue-500' 

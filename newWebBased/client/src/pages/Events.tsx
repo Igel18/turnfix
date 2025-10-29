@@ -7,6 +7,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
+import UnifiedModal from '../components/UnifiedModal'
 import { useEvent } from '../contexts/EventContext'
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate'
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
@@ -626,275 +627,276 @@ const Events: React.FC = () => {
         />
 
       {/* Create/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {editingEvent ? t('events.editEvent') : t('events.addEvent')}
-              </h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('events.form.eventName')} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.var_eventname}
-                    onChange={(e) => setFormData({ ...formData, var_eventname: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={t('events.form.eventNamePlaceholder')}
-                  />
-                </div>
+      <UnifiedModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingEvent ? t('events.editEvent') : t('events.addEvent')}
+        size="md"
+        showFooter={false}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.form.eventName')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.var_eventname}
+              onChange={(e) => setFormData({ ...formData, var_eventname: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={t('events.form.eventNamePlaceholder')}
+            />
+          </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('events.form.startDate')} *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.dat_eventstartdate}
-                      onChange={(e) => setFormData({ ...formData, dat_eventstartdate: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('events.form.startDate')} *
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.dat_eventstartdate}
+                onChange={(e) => setFormData({ ...formData, dat_eventstartdate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('events.form.endDate')} *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.dat_eventenddate}
-                      onChange={(e) => setFormData({ ...formData, dat_eventenddate: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('events.form.location')} *
-                  </label>
-                  <select
-                    required
-                    value={formData.var_location}
-                    onChange={(e) => setFormData({ ...formData, var_location: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">{t('events.form.locationPlaceholder')}</option>
-                    {venues.map((venue) => (
-                      <option key={venue.int_wettkampforteid} value={venue.var_name}>
-                        {venue.var_name}
-                        {venue.var_ort && ` (${venue.var_ort})`}
-                      </option>
-                    ))}
-                  </select>
-                  {venues.length === 0 && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      No venues found. You can manage venues in Database Management → Manage Locations.
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('events.form.description')}
-                  </label>
-                  <textarea
-                    value={formData.var_description}
-                    onChange={(e) => setFormData({ ...formData, var_description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={t('events.form.descriptionPlaceholder')}
-                  />
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                  >
-                    {t('events.form.cancel')}
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    {editingEvent ? t('events.form.updating') : t('events.form.creating')}
-                  </button>
-                </div>
-              </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('events.form.endDate')} *
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.dat_eventenddate}
+                onChange={(e) => setFormData({ ...formData, dat_eventenddate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.form.location')} *
+            </label>
+            <select
+              required
+              value={formData.var_location}
+              onChange={(e) => setFormData({ ...formData, var_location: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">{t('events.form.locationPlaceholder')}</option>
+              {venues.map((venue) => (
+                <option key={venue.int_wettkampforteid} value={venue.var_name}>
+                  {venue.var_name}
+                  {venue.var_ort && ` (${venue.var_ort})`}
+                </option>
+              ))}
+            </select>
+            {venues.length === 0 && (
+              <p className="mt-1 text-xs text-gray-500">
+                No venues found. You can manage venues in Database Management → Manage Locations.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.form.description')}
+            </label>
+            <textarea
+              value={formData.var_description}
+              onChange={(e) => setFormData({ ...formData, var_description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={t('events.form.descriptionPlaceholder')}
+            />
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              {t('events.form.cancel')}
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              {editingEvent ? t('events.form.updating') : t('events.form.creating')}
+            </button>
+          </div>
+        </form>
+      </UnifiedModal>
 
       {/* Import Modal */}
-      {isImportModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {t('events.import.title')}
-              </h2>
-              
-              <div className="space-y-4">
+      <UnifiedModal
+        isOpen={isImportModalOpen}
+        onClose={() => {
+          setIsImportModalOpen(false)
+          setImportEventData({
+            eventName: '',
+            startDate: '',
+            endDate: '',
+            locationId: '',
+            description: ''
+          })
+        }}
+        title={t('events.import.title')}
+        size="md"
+        showFooter={false}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.import.selectFile')}
+            </label>
+            <input
+              type="file"
+              accept=".xml"
+              onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {t('events.import.fileHint')}
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-blue-800 mb-3">{t('events.import.eventInfo')}</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-blue-800 mb-1">
+                  {t('events.import.eventName')} *
+                </label>
+                <input
+                  type="text"
+                  value={importEventData.eventName}
+                  onChange={(e) => setImportEventData({...importEventData, eventName: e.target.value})}
+                  placeholder={t('events.import.eventNamePlaceholder')}
+                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('events.import.selectFile')}
+                  <label className="block text-xs font-medium text-blue-800 mb-1">
+                    {t('events.import.startDate')}
                   </label>
                   <input
-                    type="file"
-                    accept=".xml"
-                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    type="date"
+                    value={importEventData.startDate}
+                    onChange={(e) => setImportEventData({...importEventData, startDate: e.target.value})}
+                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t('events.import.fileHint')}
-                  </p>
                 </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-blue-800 mb-3">{t('events.import.eventInfo')}</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium text-blue-800 mb-1">
-                        {t('events.import.eventName')} *
-                      </label>
-                      <input
-                        type="text"
-                        value={importEventData.eventName}
-                        onChange={(e) => setImportEventData({...importEventData, eventName: e.target.value})}
-                        placeholder={t('events.import.eventNamePlaceholder')}
-                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-blue-800 mb-1">
-                          {t('events.import.startDate')}
-                        </label>
-                        <input
-                          type="date"
-                          value={importEventData.startDate}
-                          onChange={(e) => setImportEventData({...importEventData, startDate: e.target.value})}
-                          className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-blue-800 mb-1">
-                          {t('events.import.endDate')}
-                        </label>
-                        <input
-                          type="date"
-                          value={importEventData.endDate}
-                          onChange={(e) => setImportEventData({...importEventData, endDate: e.target.value})}
-                          className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-blue-800 mb-1">
-                        {t('events.import.location')}
-                      </label>
-                      <select
-                        value={importEventData.locationId}
-                        onChange={(e) => setImportEventData({...importEventData, locationId: e.target.value})}
-                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">{t('events.import.locationPlaceholder')}</option>
-                        {venues.map((venue) => (
-                          <option key={venue.int_wettkampforteid} value={venue.int_wettkampforteid}>
-                            {venue.var_name}
-                            {venue.var_ort && ` (${venue.var_ort})`}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-blue-800 mb-1">
-                        {t('events.import.description')}
-                      </label>
-                      <textarea
-                        value={importEventData.description}
-                        onChange={(e) => setImportEventData({...importEventData, description: e.target.value})}
-                        placeholder={t('events.import.descriptionPlaceholder')}
-                        rows={2}
-                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-xs font-medium text-blue-800 mb-1">
+                    {t('events.import.endDate')}
+                  </label>
+                  <input
+                    type="date"
+                    value={importEventData.endDate}
+                    onChange={(e) => setImportEventData({...importEventData, endDate: e.target.value})}
+                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
-
-                {importProgress && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-start text-sm text-gray-700">
-                      <pre className="whitespace-pre-wrap text-sm leading-relaxed max-w-md">{importProgress.step}</pre>
-                      <span className="ml-2">{importProgress.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          importProgress.progress === 0 ? 'bg-red-500' : 
-                          importProgress.progress === 100 ? 'bg-green-500' : 'bg-blue-500'
-                        }`}
-                        style={{ width: `${Math.max(importProgress.progress, 5)}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-yellow-800 mb-2">{t('events.import.information.title')}</h4>
-                  <ul className="text-xs text-yellow-700 space-y-1">
-                    <li>• {t('events.import.information.eventInfo')}</li>
-                    <li>• {t('events.import.information.competitions')}</li>
-                    <li>• {t('events.import.information.participants')}</li>
-                    <li>• {t('events.import.information.clubsUpdate')}</li>
-                    <li>• {t('events.import.information.participantsUpdate')}</li>
-                  </ul>
-                </div>
-
-                <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsImportModalOpen(false)
-                      setImportEventData({
-                        eventName: '',
-                        startDate: '',
-                        endDate: '',
-                        locationId: '',
-                        description: ''
-                      })
-                    }}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                    disabled={importProgress !== null}
-                  >
-                    {t('events.import.cancel')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleImportFile}
-                    disabled={!importFile || !importEventData.eventName.trim() || importProgress !== null}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    {importProgress ? t('events.import.importing') : t('events.import.import')}
-                  </button>
-                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-blue-800 mb-1">
+                  {t('events.import.location')}
+                </label>
+                <select
+                  value={importEventData.locationId}
+                  onChange={(e) => setImportEventData({...importEventData, locationId: e.target.value})}
+                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('events.import.locationPlaceholder')}</option>
+                  {venues.map((venue) => (
+                    <option key={venue.int_wettkampforteid} value={venue.int_wettkampforteid}>
+                      {venue.var_name}
+                      {venue.var_ort && ` (${venue.var_ort})`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-blue-800 mb-1">
+                  {t('events.import.description')}
+                </label>
+                <textarea
+                  value={importEventData.description}
+                  onChange={(e) => setImportEventData({...importEventData, description: e.target.value})}
+                  placeholder={t('events.import.descriptionPlaceholder')}
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
               </div>
             </div>
           </div>
+
+          {importProgress && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-start text-sm text-gray-700">
+                <pre className="whitespace-pre-wrap text-sm leading-relaxed max-w-md">{importProgress.step}</pre>
+                <span className="ml-2">{importProgress.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    importProgress.progress === 0 ? 'bg-red-500' : 
+                    importProgress.progress === 100 ? 'bg-green-500' : 'bg-blue-500'
+                  }`}
+                  style={{ width: `${Math.max(importProgress.progress, 5)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-yellow-800 mb-2">{t('events.import.information.title')}</h4>
+            <ul className="text-xs text-yellow-700 space-y-1">
+              <li>• {t('events.import.information.eventInfo')}</li>
+              <li>• {t('events.import.information.competitions')}</li>
+              <li>• {t('events.import.information.participants')}</li>
+              <li>• {t('events.import.information.clubsUpdate')}</li>
+              <li>• {t('events.import.information.participantsUpdate')}</li>
+            </ul>
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsImportModalOpen(false)
+                setImportEventData({
+                  eventName: '',
+                  startDate: '',
+                  endDate: '',
+                  locationId: '',
+                  description: ''
+                })
+              }}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              disabled={importProgress !== null}
+            >
+              {t('events.import.cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={handleImportFile}
+              disabled={!importFile || !importEventData.eventName.trim() || importProgress !== null}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              {importProgress ? t('events.import.importing') : t('events.import.import')}
+            </button>
+          </div>
         </div>
-      )}
+      </UnifiedModal>
     </div>
   )
 }

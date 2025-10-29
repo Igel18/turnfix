@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 interface Club {
   int_vereineid: number;
@@ -57,6 +58,9 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
   regions,
   contacts
 }) => {
+  // ESC key to close modal
+  useEscapeKey(onClose, isOpen);
+  
   if (!isOpen) return null;
 
   return (
