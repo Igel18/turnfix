@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { useCertificateLayout } from '../contexts/CertificateLayoutContext'
+import UnifiedModal from '../components/UnifiedModal'
 import { 
   ChartBarIcon,
   TrophyIcon
@@ -1624,123 +1625,125 @@ const Results = () => {
       </div>
 
       {/* Certificate Modal */}
-      {showCertificateModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Print Certificates</h3>
-              
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">
-                  Selected participants: {certificatesToPrint.length}
-                </p>
-                <div className="max-h-32 overflow-y-auto bg-gray-50 rounded p-2 text-sm">
-                  {certificatesToPrint.slice(0, 5).map(p => (
-                    <div key={p.id} className="truncate">
-                      {p.rank}. {p.name} ({p.club})
-                    </div>
-                  ))}
-                  {certificatesToPrint.length > 5 && (
-                    <div className="text-gray-500">...and {certificatesToPrint.length - 5} more</div>
-                  )}
-                </div>
+      <UnifiedModal
+        isOpen={showCertificateModal}
+        onClose={() => {
+          setShowCertificateModal(false)
+          setCertificatesToPrint([])
+          setSelectedPaperFormat('A4')
+        }}
+        title="Print Certificates"
+        size="md"
+        showFooter={false}
+      >
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">
+            Selected participants: {certificatesToPrint.length}
+          </p>
+          <div className="max-h-32 overflow-y-auto bg-gray-50 rounded p-2 text-sm">
+            {certificatesToPrint.slice(0, 5).map(p => (
+              <div key={p.id} className="truncate">
+                {p.rank}. {p.name} ({p.club})
               </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Certificate Layout
-                </label>
-                <select
-                  value={contextSelectedLayout?.int_layoutid || ''}
-                  onChange={(e) => {
-                    const layoutId = Number(e.target.value);
-                    const layout = certificateLayouts.find(l => l.int_layoutid === layoutId);
-                    if (layout) {
-                      // Convert the layout to match the context type
-                      const contextLayout = {
-                        ...layout,
-                        fields: layout.fields?.map((field: any) => ({
-                          ...field,
-                          var_text: field.var_value, // Map var_value to var_text for context compatibility
-                          var_spaltenwert: null // Add missing property for context compatibility
-                        }))
-                      };
-                      setContextSelectedLayout(contextLayout);
-                    } else {
-                      setContextSelectedLayout(null);
-                    }
-                  }}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Choose a layout...</option>
-                  {certificateLayouts.map(layout => (
-                    <option key={layout.int_layoutid} value={layout.int_layoutid}>
-                      {layout.var_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Paper Format
-                </label>
-                <select
-                  value={selectedPaperFormat}
-                  onChange={(e) => setSelectedPaperFormat(e.target.value as keyof typeof PAPER_FORMATS)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  {Object.entries(PAPER_FORMATS).map(([key, format]) => (
-                    <option key={key} value={key}>
-                      {format.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Choose the same paper format used when designing the layout
-                </p>
-              </div>
-
-              <div className="mb-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={isDebugEnabled()}
-                    onChange={(e) => setDebugMode(e.target.checked)}
-                    className="mr-2 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    Debug Mode
-                  </span>
-                </label>
-                <p className="text-xs text-gray-500 mt-1">
-                  Show debug information on certificates (field boundaries, coordinates, etc.)
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowCertificateModal(false)
-                    setCertificatesToPrint([])
-                    setSelectedPaperFormat('A4')
-                  }}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={generateCertificates}
-                  disabled={!contextSelectedLayout || isPrintingCertificates}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isPrintingCertificates ? 'Generating...' : 'Generate PDF'}
-                </button>
-              </div>
-            </div>
+            ))}
+            {certificatesToPrint.length > 5 && (
+              <div className="text-gray-500">...and {certificatesToPrint.length - 5} more</div>
+            )}
           </div>
         </div>
-      )}
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Certificate Layout
+          </label>
+          <select
+            value={contextSelectedLayout?.int_layoutid || ''}
+            onChange={(e) => {
+              const layoutId = Number(e.target.value);
+              const layout = certificateLayouts.find(l => l.int_layoutid === layoutId);
+              if (layout) {
+                // Convert the layout to match the context type
+                const contextLayout = {
+                  ...layout,
+                  fields: layout.fields?.map((field: any) => ({
+                    ...field,
+                    var_text: field.var_value, // Map var_value to var_text for context compatibility
+                    var_spaltenwert: null // Add missing property for context compatibility
+                  }))
+                };
+                setContextSelectedLayout(contextLayout);
+              } else {
+                setContextSelectedLayout(null);
+              }
+            }}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">Choose a layout...</option>
+            {certificateLayouts.map(layout => (
+              <option key={layout.int_layoutid} value={layout.int_layoutid}>
+                {layout.var_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Paper Format
+          </label>
+          <select
+            value={selectedPaperFormat}
+            onChange={(e) => setSelectedPaperFormat(e.target.value as keyof typeof PAPER_FORMATS)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {Object.entries(PAPER_FORMATS).map(([key, format]) => (
+              <option key={key} value={key}>
+                {format.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Choose the same paper format used when designing the layout
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={isDebugEnabled()}
+              onChange={(e) => setDebugMode(e.target.checked)}
+              className="mr-2 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Debug Mode
+            </span>
+          </label>
+          <p className="text-xs text-gray-500 mt-1">
+            Show debug information on certificates (field boundaries, coordinates, etc.)
+          </p>
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={() => {
+              setShowCertificateModal(false)
+              setCertificatesToPrint([])
+              setSelectedPaperFormat('A4')
+            }}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={generateCertificates}
+            disabled={!contextSelectedLayout || isPrintingCertificates}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {isPrintingCertificates ? 'Generating...' : 'Generate PDF'}
+          </button>
+        </div>
+      </UnifiedModal>
     </div>
   )
 }

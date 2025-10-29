@@ -1597,272 +1597,270 @@ const EventParticipants: React.FC = () => {
       </div>
 
       {/* Add Participant Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 m-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Add Participant to Event</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Search Field */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search participants by name, club..."
-                value={addModalSearchTerm}
-                onChange={(e) => setAddModalSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Available Participants List */}
-            <div className="max-h-64 overflow-y-auto border rounded-lg">
-              {filteredAvailableParticipants.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Users className="mx-auto h-8 w-8 mb-2" />
-                  <p>No available participants found</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-200">
-                  {filteredAvailableParticipants.map(participant => (
-                    <div key={participant.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {participant.firstname} {participant.lastname}
-                        </p>
-                        <p className="text-sm text-gray-500 flex items-center gap-2">
-                          {participant.club} • <GenderBadge value={participant.gender} /> • Age {participant.age}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          addParticipantToEvent(participant.id);
-                          setShowAddModal(false);
-                        }}
-                        className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                      >
-                        <UserPlus className="w-4 h-4" />
-                        Add
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+      <UnifiedModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add Participant to Event"
+        size="2xl"
+        showFooter={false}
+        fullHeight={true}
+      >
+        {/* Search Field */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search participants by name, club..."
+            value={addModalSearchTerm}
+            onChange={(e) => setAddModalSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
-      )}
+
+        {/* Available Participants List */}
+        <div className="max-h-64 overflow-y-auto border rounded-lg">
+          {filteredAvailableParticipants.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Users className="mx-auto h-8 w-8 mb-2" />
+              <p>No available participants found</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredAvailableParticipants.map(participant => (
+                <div key={participant.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {participant.firstname} {participant.lastname}
+                    </p>
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      {participant.club} • <GenderBadge value={participant.gender} /> • Age {participant.age}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      addParticipantToEvent(participant.id);
+                      setShowAddModal(false);
+                    }}
+                    className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </UnifiedModal>
 
       {/* Label Configuration Modal */}
-      {showLabelModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-90vh overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">{t('eventParticipants.labelConfig.title')}</h2>
+      <UnifiedModal
+        isOpen={showLabelModal}
+        onClose={() => setShowLabelModal(false)}
+        title={t('eventParticipants.labelConfig.title')}
+        size="2xl"
+        showFooter={false}
+        fullHeight={true}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.rows')}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={labelConfig.rows}
+                onChange={(e) => setLabelConfig({ ...labelConfig, rows: parseInt(e.target.value) || 1 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
             
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.rows')}
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={labelConfig.rows}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, rows: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.columns')}
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={labelConfig.columns}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, columns: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.labelWidth')}
-                  </label>
-                  <input
-                    type="number"
-                    min="10"
-                    max="200"
-                    step="0.1"
-                    value={labelConfig.width}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, width: parseFloat(e.target.value) || 48.5 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.labelHeight')}
-                  </label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="100"
-                    step="0.1"
-                    value={labelConfig.height}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, height: parseFloat(e.target.value) || 16.9 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.marginTop')}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    step="0.1"
-                    value={labelConfig.marginTop}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, marginTop: parseFloat(e.target.value) || 15 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.marginBottom')}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    step="0.1"
-                    value={labelConfig.marginBottom}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, marginBottom: parseFloat(e.target.value) || 15 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.marginLeft')}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    step="0.1"
-                    value={labelConfig.marginLeft}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, marginLeft: parseFloat(e.target.value) || 10 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('eventParticipants.labelConfig.marginRight')}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    step="0.1"
-                    value={labelConfig.marginRight}
-                    onChange={(e) => setLabelConfig({ ...labelConfig, marginRight: parseFloat(e.target.value) || 10 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="showBorders"
-                  checked={labelConfig.showBorders}
-                  onChange={(e) => setLabelConfig({ ...labelConfig, showBorders: e.target.checked })}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="showBorders" className="ml-2 block text-sm text-gray-900">
-                  {t('eventParticipants.labelConfig.showBorders')}
-                </label>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">{t('eventParticipants.labelConfig.previewInfo')}</h4>
-                <p className="text-sm text-gray-600">
-                  {t('eventParticipants.labelConfig.layout')}: {labelConfig.rows} × {labelConfig.columns} {t('eventParticipants.labelConfig.labelsPerPage')}<br/>
-                  {t('eventParticipants.labelConfig.labelSize')}: {labelConfig.width} × {labelConfig.height} mm<br/>
-                  {t('eventParticipants.labelConfig.totalLabelsPerPage')}: {labelConfig.rows * labelConfig.columns}<br/>
-                  {t('eventParticipants.labelConfig.pagesNeeded')}: {Math.ceil(filteredParticipants.filter(p => p.isInEvent).length / (labelConfig.rows * labelConfig.columns))}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setShowLabelModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                {t('eventParticipants.labelConfig.cancel')}
-              </button>
-              <button
-                onClick={() => {
-                  exportParticipantsLabelsPDF()
-                  setShowLabelModal(false)
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {t('eventParticipants.labelConfig.exportLabels')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Participant Modal */}
-      {showEditModal && selectedParticipant && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <EditParticipantForm
-                participant={selectedParticipant}
-                eventId={eventId!}
-                clubs={clubs}
-                competitions={competitions}
-                onSave={async (updatedData) => {
-                  await updateParticipantDetails(selectedParticipant.id, updatedData);
-                  setShowEditModal(false);
-                  setSelectedParticipant(null);
-                }}
-                onCancel={() => {
-                  setShowEditModal(false);
-                  setSelectedParticipant(null);
-                }}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.columns')}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={labelConfig.columns}
+                onChange={(e) => setLabelConfig({ ...labelConfig, columns: parseInt(e.target.value) || 1 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.labelWidth')}
+              </label>
+              <input
+                type="number"
+                min="10"
+                max="200"
+                step="0.1"
+                value={labelConfig.width}
+                onChange={(e) => setLabelConfig({ ...labelConfig, width: parseFloat(e.target.value) || 48.5 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.labelHeight')}
+              </label>
+              <input
+                type="number"
+                min="5"
+                max="100"
+                step="0.1"
+                value={labelConfig.height}
+                onChange={(e) => setLabelConfig({ ...labelConfig, height: parseFloat(e.target.value) || 16.9 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.marginTop')}
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                step="0.1"
+                value={labelConfig.marginTop}
+                onChange={(e) => setLabelConfig({ ...labelConfig, marginTop: parseFloat(e.target.value) || 15 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.marginBottom')}
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                step="0.1"
+                value={labelConfig.marginBottom}
+                onChange={(e) => setLabelConfig({ ...labelConfig, marginBottom: parseFloat(e.target.value) || 15 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.marginLeft')}
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                step="0.1"
+                value={labelConfig.marginLeft}
+                onChange={(e) => setLabelConfig({ ...labelConfig, marginLeft: parseFloat(e.target.value) || 10 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.marginRight')}
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                step="0.1"
+                value={labelConfig.marginRight}
+                onChange={(e) => setLabelConfig({ ...labelConfig, marginRight: parseFloat(e.target.value) || 10 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="showBorders"
+              checked={labelConfig.showBorders}
+              onChange={(e) => setLabelConfig({ ...labelConfig, showBorders: e.target.checked })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="showBorders" className="ml-2 block text-sm text-gray-900">
+              {t('eventParticipants.labelConfig.showBorders')}
+            </label>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-2">{t('eventParticipants.labelConfig.previewInfo')}</h4>
+            <p className="text-sm text-gray-600">
+              {t('eventParticipants.labelConfig.layout')}: {labelConfig.rows} × {labelConfig.columns} {t('eventParticipants.labelConfig.labelsPerPage')}<br/>
+              {t('eventParticipants.labelConfig.labelSize')}: {labelConfig.width} × {labelConfig.height} mm<br/>
+              {t('eventParticipants.labelConfig.totalLabelsPerPage')}: {labelConfig.rows * labelConfig.columns}<br/>
+              {t('eventParticipants.labelConfig.pagesNeeded')}: {Math.ceil(filteredParticipants.filter(p => p.isInEvent).length / (labelConfig.rows * labelConfig.columns))}
+            </p>
+          </div>
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              onClick={() => setShowLabelModal(false)}
+              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              {t('eventParticipants.labelConfig.cancel')}
+            </button>
+            <button
+              onClick={() => {
+                exportParticipantsLabelsPDF()
+                setShowLabelModal(false)
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {t('eventParticipants.labelConfig.exportLabels')}
+            </button>
+          </div>
         </div>
-      )}
+      </UnifiedModal>
+
+      {/* Edit Participant Modal */}
+      <UnifiedModal
+        isOpen={showEditModal && selectedParticipant !== null}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedParticipant(null);
+        }}
+        title="Edit Participant"
+        size="2xl"
+        showFooter={false}
+        fullHeight={true}
+      >
+        {selectedParticipant && (
+          <EditParticipantForm
+            participant={selectedParticipant}
+            eventId={eventId!}
+            clubs={clubs}
+            competitions={competitions}
+            onSave={async (updatedData) => {
+              await updateParticipantDetails(selectedParticipant.id, updatedData);
+              setShowEditModal(false);
+              setSelectedParticipant(null);
+            }}
+            onCancel={() => {
+              setShowEditModal(false);
+              setSelectedParticipant(null);
+            }}
+          />
+        )}
+      </UnifiedModal>
     </div>
   );
 };

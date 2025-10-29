@@ -13,6 +13,7 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
   return { handleDragStart, handleDragOver, handleDrop };
 }
 import { useTranslation } from 'react-i18next'
+import UnifiedModal from '../components/UnifiedModal'
 import TimePlanningRotation from './TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
@@ -923,13 +924,15 @@ export default function TimePlanning() {
       />
 
       {/* Time Settings Modal */}
-      {showTimeSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full mx-4">
-            {renderTimeSettings()}
-          </div>
-        </div>
-      )}
+      <UnifiedModal
+        isOpen={showTimeSettings}
+        onClose={() => setShowTimeSettings(false)}
+        title="Time Settings"
+        size="2xl"
+        showFooter={false}
+      >
+        {renderTimeSettings()}
+      </UnifiedModal>
 
       {/* Content */}
       <div className="space-y-6">
