@@ -2289,14 +2289,17 @@ Mögliche Lösungen:
 
 Drücken Sie Enter zum Fortfahren:
 
-86. Prio 10 Es gibt verschiedene UI elemente um ein DB Feld einem anderen zuzuweisen. Insbesondere in der Veranstaltungsverwaltung. 
+86. Prio 10 Es gibt verschiedene UI elemente 
+a) um ein DB Feld einem anderen zuzuweisen. Insbesondere in der Veranstaltungsverwaltung. 
 - Add button (z.B. Teilnehmer einem Event zuweisen)
 - Check-Box Selection (z.B. Geräte bei einem Wettkampf zuweisen oder Wettkampfzuordnungen von Teilnehmern) 
 - Pfeil nach rechts (z.B. in der Riegenverwaltung)
 Wäre es nicht denkbar dies einheitlich zu machen? 
+b) es gibt verschiedene Styles für Checkboxen und Radiobuttons usw. hierfür muss ein einheitliches Template geschaffen werden. Wenn dieses existiert muss dieses Template überall verwendet werden. 
 
 87. Prio 9 Analysiere mal den ganzen QT Code hinsichtlich Gruppen und Mannschaftswettkämpfe 
 Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert? 
+Erst mal dokumentieren und eine ToDo liste (vielleicht gleich hier drunter) erstellen. 
 
 88. ~~Prio 5 Es gibt einen Ordner client/dist-jury/index-jury.html - Dieser ist denke ich obsolet, da der richtige Jury portal über die ordner jury-portal und jury-server abgebildet werden. Bitte prüfen und ggf. archivieren.~~ ✅
     **Status**: ✅ Abgeschlossen - Obsolete Jury Portal Dateien archiviert
