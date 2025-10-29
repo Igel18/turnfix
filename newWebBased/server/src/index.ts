@@ -26,6 +26,7 @@ import {
   checkDatabaseConnection, 
   startDatabaseHealthCheck 
 } from './db/connection';
+import { ensurePortAvailable } from './utils/portChecker';
 // import { notFoundHandler } from './middleware/notFoundHandler';
 
 // Prisma-based routes using SQL queries
@@ -76,6 +77,7 @@ const io = new SocketIOServer(server, {
 });
 
 const PORT = process.env.PORT || 3001;
+const PORT_NUMBER = typeof PORT === 'string' ? parseInt(PORT) : PORT;
 
 // Rate limiting - very permissive for development, adjust for production
 // Rate limiting is fully disabled for all IPs
@@ -349,27 +351,56 @@ setupUnhandledRejectionHandler();
 setupProcessWarnings();
 setupGracefulShutdown(server, io);
 
-// Check database connection before starting
-checkDatabaseConnection().then((isConnected) => {
-  if (isConnected) {
-    console.log('✅ Database connection verified');
-    // Start periodic health check
-    startDatabaseHealthCheck(60000); // Check every 60 seconds
-  } else {
-    console.error('❌ Database connection failed. Server may not work correctly.');
+// Check if port is available before starting server
+async function startServer() {
+  try {
+    // Check port availability (auto-kill blocking process in development)
+    const autoKill = process.env.NODE_ENV !== 'production';
+    console.log(`🔍 Checking if port ${PORT_NUMBER} is available...`);
+    
+    const portAvailable = await ensurePortAvailable(PORT_NUMBER, autoKill, false);
+    
+    if (!portAvailable) {
+      console.error(`❌ Port ${PORT_NUMBER} is not available. Please free the port and try again.`);
+      console.log(`💡 You can manually kill the blocking process or run: npm run check-port ${PORT_NUMBER} --kill`);
+      process.exit(1);
+    }
+    
+    // Check database connection before starting
+    const isConnected = await checkDatabaseConnection();
+    if (isConnected) {
+      console.log('✅ Database connection verified');
+      // Start periodic health check
+      startDatabaseHealthCheck(60000); // Check every 60 seconds
+    } else {
+      console.error('❌ Database connection failed. Server may not work correctly.');
+    }
+
+    // Start server
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔗 Local API: http://localhost:${PORT}/api`);
+      console.log(`🌐 Network API: http://192.168.1.108:${PORT}/api`);
+    });
+
+    server.on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT_NUMBER} is already in use. Another process may have started during our check.`);
+        console.log(`💡 Run: npm run check-port ${PORT_NUMBER} --kill --force`);
+        process.exit(1);
+      } else {
+        console.error('❌ Server error:', error);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   }
-});
+}
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Local API: http://localhost:${PORT}/api`);
-  console.log(`🌐 Network API: http://192.168.1.108:${PORT}/api`);
-});
-
-server.on('error', (error: any) => {
-  console.error('❌ Server error:', error);
-});
+// Start the server
+startServer();
 
 export default app;
 // Force restart

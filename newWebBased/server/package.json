@@ -8,6 +8,7 @@
     "build": "tsc",
     "build:all": "npm run build && cd ../client && npm run build",
     "start": "node dist/index.js",
+    "check-port": "ts-node src/scripts/check-port.ts",
     "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:start:prod": "npm run build:all && pm2 start ecosystem.config.js --env production",
     "pm2:stop": "pm2 stop turnfix-server",

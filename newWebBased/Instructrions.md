@@ -1623,7 +1623,48 @@ Der Button "Print" muss besser heißen z.B. "Generate Certificats PDF"
     - "Frontend dist/ Ordner fehlt"  
     - "Source-Code ist neuer als Build"
 
-76. Prio 9 Falls ein Prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
+76. ✅ Prio 9 Falls ein Prozess läuft und den port blokiert muss der prozess gestoppt und der Server neu gestartet werden. 
+
+**Status**: ✅ Vollständig implementiert (2025-01-29)
+
+**Implementierung:**
+
+1. **Port Checker Utility** (`server/src/utils/portChecker.ts`):
+   - `isPortInUse(port)` - Prüft ob Port belegt ist
+   - `getPortBlocker(port)` - Ermittelt blockierenden Prozess (PID, Name, CommandLine)
+   - `killProcess(pid, force)` - Stoppt Prozess (Windows: taskkill, Unix: kill)
+   - `ensurePortAvailable(port, autoKill, force)` - Kombinierte Funktion
+   - Plattform-übergreifend: Windows (netstat/taskkill) & Unix (lsof/kill)
+
+2. **CLI Tool** (`server/src/scripts/check-port.ts`):
+   - Manuelles Port-Checking: `npm run check-port [port]`
+   - Automatisches Killen: `npm run check-port [port] --kill`
+   - Force Kill: `npm run check-port [port] --kill --force`
+   - Beispiele:
+     ```bash
+     npm run check-port 3001
+     npm run check-port 3001 --kill
+     npm run check-port 5173 --kill --force
+     ```
+
+3. **Automatische Integration im Server-Start** (`server/src/index.ts`):
+   - Port-Check vor Server-Start
+   - **Development:** Automatisches Killen blockierender Prozesse
+   - **Production:** Nur Warnung, kein Auto-Kill
+   - Detaillierte Fehlerbehandlung mit Anweisungen
+   - EADDRINUSE Error wird abgefangen mit Lösung
+
+**Verhalten:**
+- Development: Port wird automatisch freigegeben (Auto-Kill)
+- Production: Server stoppt mit Fehlermeldung und Anweisungen
+- Nutzer erhält PID und Prozessname des blockierenden Prozesses
+- Klare Anweisungen wie Port manuell freigegeben werden kann
+
+**Dateien:**
+- `server/src/utils/portChecker.ts` (Port-Check Utility)
+- `server/src/scripts/check-port.ts` (CLI Tool)
+- `server/src/index.ts` (Integration in Server-Start)
+- `server/package.json` (Script: check-port) 
 
 ~~77. Prio 5 Im Jury-Portal muss auch das Live werte aktualisieren umgesetzt werden.~~ ✅
 ~~- Use Cache-Buster techniques for live updates of the client.~~ ✅
