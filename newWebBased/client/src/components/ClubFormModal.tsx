@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEscapeKey } from '../hooks/useEscapeKey';
+import UnifiedModal from './UnifiedModal';
 
 interface Club {
   int_vereineid: number;
@@ -58,30 +58,15 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
   regions,
   contacts
 }) => {
-  // ESC key to close modal
-  useEscapeKey(onClose, isOpen);
-  
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">
-            {editingClub ? 'Edit Club' : 'Create New Club'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form onSubmit={onSubmit} className="p-6">
-          <div className="space-y-6">
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingClub ? 'Edit Club' : 'Create New Club'}
+      size="2xl"
+      showFooter={false}
+    >
+      <form onSubmit={onSubmit} className="space-y-6">
             
             {/* Basic Information */}
             <div>
@@ -180,7 +165,6 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-3 mt-8 pt-6 border-t">
@@ -199,8 +183,7 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </UnifiedModal>
   );
 };
 
