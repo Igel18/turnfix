@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TagIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import UnifiedModal from './UnifiedModal';
 
 interface DisciplineGroup {
   int_disziplinen_gruppenid: number;
@@ -128,34 +128,15 @@ const DisciplineGroupFormModal: React.FC<DisciplineGroupFormModalProps> = ({
       .join(', ');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <TagIcon className="h-6 w-6 text-orange-500 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900">
-                {mode === 'edit' ? 'Edit Discipline Group' : 'Create New Discipline Group'}
-              </h3>
-              {mode === 'edit' && disciplineGroup && (
-                <span className="ml-2 text-sm text-gray-500">
-                  (ID: {disciplineGroup.int_disziplinen_gruppenid}, {disciplineGroup.discipline_count} disciplines)
-                </span>
-              )}
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              disabled={isSubmitting}
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={mode === 'edit' ? 'Edit Discipline Group' : 'Create New Discipline Group'}
+      size="2xl"
+      showFooter={false}
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
             {/* Group Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -266,9 +247,7 @@ const DisciplineGroupFormModal: React.FC<DisciplineGroupFormModalProps> = ({
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+    </UnifiedModal>
   );
 };
 
