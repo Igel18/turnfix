@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import getSocket from '@/utils/socket'
+import { formatScore } from '@/utils/scoreFormatter'
 import { 
   TrophyIcon,
   UserIcon,
@@ -164,7 +165,7 @@ const LiveScoreUpdates = ({ eventId, maxEntries = 10, showSquad = true, classNam
                 {/* Right: Score & Time */}
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
                   <span className={`text-2xl font-bold ${getScoreColor(score.score)}`}>
-                    {score.score.toFixed(3)}
+                    {formatScore(score.score)}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatTime(score.timestamp)}

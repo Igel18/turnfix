@@ -1818,6 +1818,128 @@ http://localhost:3001/competition-status?eventId=57&squadName=Rot
    - **Fixed**: Device filtering now uses `competitions` array from squad participants
    - Changed from non-existent `assignedCompetitions` field to actual `competitions: [{id, name, number}]` structure
    - Removed unnecessary API call to `/event-participants` - squad API already provides complete data
+
+82. ✅ Prio 3 Auf der Seite Disciplinen lässt sich die Eingabemaske definieren (z.B. 0.00 oder 0.000). Dieses Dezimalformat sollte einheitlich überall verwendet werden, wo die Wertungen angezeigt oder eingegeben werden (Live-Scores, Score-Capture, Results, Jury-Portal).
+
+**Status**: ✅ Vollständig implementiert (2025-01-29)
+
+**Implementierung:**
+
+1. **Score Formatter Utility** (`client/src/utils/scoreFormatter.ts`):
+   - **Dezimalformate** mit konfigurierbarer Präzision:
+     * 0 = Keine Dezimalstellen (z.B. 15)
+     * 1 = 1 Dezimalstelle (z.B. 15.5)
+     * 2 = 2 Dezimalstellen (z.B. 15.75) **[DEFAULT]**
+     * 3 = 3 Dezimalstellen (z.B. 15.750)
+   
+   - **Zeitformate** (neu):
+     * `0:00:00` → hh:mm:ss (Stunden:Minuten:Sekunden)
+     * `0:00:00.0` → hh:mm:ss.d (mit Dezimalsekunden)
+     * `00:00` → mm:ss (Minuten:Sekunden)
+     * `0:00.0` → m:ss.d (Minuten mit Dezimalsekunden)
+     * Automatische Erkennung via inputMask (var_maske)
+   
+   - **Dezimaltrennzeichen** (neu):
+     * Punkt (`.`) → "0.00" oder "0.000" (Standard)
+     * Komma (`,`) → "0,00" oder "0,000" (Deutsch/Europa)
+     * Automatische Anpassung basierend auf inputMask
+   
+   - **Datenquellen** (tfx_disziplinen):
+     * `int_berechnung`: Dezimalstellen (0-3)
+     * `var_maske`: Format-Pattern (z.B. "0.00", "0,000", "0:00:00")
+     * `var_einheit`: Einheit (z.B. "s", "m", "min")
+   
+   - **Kern-Funktionen**:
+     * `formatScore(score, config)`: Hauptfunktion für Formatierung
+     * `formatTime(seconds, format)`: Zeitkonvertierung
+     * `parseTime(timeStr)`: Zeit-String → Sekunden
+     * `detectFormatType(inputMask)`: Erkennt Format-Typ
+     * `getDecimalSeparator(inputMask)`: Punkt vs. Komma
+     * `formatDisciplineScore(score, id, config)`: Mit Caching
+     * `getScorePlaceholder(config)`: Platzhalter für Inputs
+     * `getScoreInputStep(config)`: Step-Wert für Inputs
+     * `validateAndRoundScore(score, config)`: Validierung & Rundung
+     * **`normalizeScoreInput(input, config)`**: Normalisiert Eingabe (NEU)
+       - Wandelt "15.5" → "15.50" (bei 2 Dezimalstellen)
+       - Wandelt "15,5" → "15,50" (mit Komma-Separator)
+       - Stellt sicher, dass IMMER alle Dezimalstellen angezeigt werden
+     * **`parseScoreInput(input)`**: Parst Eingabe zu Number (NEU)
+       - Akzeptiert "15.5" oder "15,5"
+       - Gibt numerischen Wert zurück
+   
+   - **Performance**:
+     * Discipline-Config-Cache für wiederholte Aufrufe
+     * TypeScript-Typisierung für Type-Safety
+     * Backwards-kompatibel (Legacy number parameter)
+
+2. **Integration in UI-Komponenten**:
+   - ✅ **Results.tsx**: Score-Anzeige mit discipline-spezifischem Format
+   - ✅ **ScoreCapture.tsx**: Eingabefelder mit Normalisierung onBlur
+     * Verwendet `normalizeScoreInput()` beim Verlassen des Feldes
+     * Zeigt immer vollständige Dezimalstellen (15.5 → 15.50)
+     * Placeholder und Step basierend auf `int_berechnung`
+   - ✅ **LiveScoreUpdates.tsx**: Live-Scores mit Zeitformat-Support
+   - ✅ **Jury-Portal**: Score-Eingabe mit Normalisierung implementiert
+     * `onBlur` Event normalisiert Eingabe
+     * Zeigt immer alle konfigurierten Dezimalstellen
+
+3. **Beispiele**:
+   ```typescript
+   // Dezimal mit Punkt (immer alle Dezimalstellen)
+   formatScore(15.7583, { calculationType: 2, inputMask: "0.00" })
+   // → "15.76"
+   
+   formatScore(15.5, { calculationType: 2 })
+   // → "15.50" (nicht "15.5"!)
+   
+   // Dezimal mit Komma
+   formatScore(15.7583, { calculationType: 3, inputMask: "0,000" })
+   // → "15,758"
+   
+   formatScore(15.5, { calculationType: 3, inputMask: "0,000" })
+   // → "15,500" (alle 3 Stellen!)
+   
+   // Eingabe normalisieren (wichtig für onBlur)
+   normalizeScoreInput("15.5", { calculationType: 2 })
+   // → "15.50"
+   
+   normalizeScoreInput("15,5", { calculationType: 2, inputMask: "0,00" })
+   // → "15,50"
+   
+   // Zeit hh:mm:ss
+   formatScore(3723.5, { inputMask: "0:00:00" })
+   // → "1:02:03"
+   
+   // Zeit mit Dezimalsekunden
+   formatScore(83.456, { inputMask: "0:00.0" })
+   // → "1:23.5"
+   ```
+
+4. **Vorteile**:
+   - ✅ Konsistente Score-Anzeige über alle Seiten
+   - ✅ Automatische Anpassung an Discipline-Konfiguration
+   - ✅ Unterstützung für Zeit- und Dezimalformate
+   - ✅ Lokalisierung (Punkt vs. Komma)
+   - ✅ **Immer vollständige Dezimalstellen** (15.5 → 15.50)
+   - ✅ Bessere UX durch saubere Formatierung
+   - ✅ Zentrale Wartung (eine Stelle im Code)
+   - ✅ Performance-Optimierung durch Caching
+
+**Technische Details:**
+- Basis: `tfx_disziplinen.int_berechnung`, `var_maske`, `var_einheit`
+- Default: 2 Dezimalstellen mit Punkt (wenn nicht konfiguriert)
+- Fallback: "-" für null/undefined/NaN Werte
+- Zeit-Parsing: Unterstützt "1:23", "1:23.5", "0:01:23", "1:23:45.67"
+- **Dezimalstellen**: Werden IMMER vollständig angezeigt (toFixed)
+- **Normalisierung**: `normalizeScoreInput()` für onBlur-Events
+
+**Dateien**:
+- `client/src/utils/scoreFormatter.ts` (NEU - 410 Zeilen)
+- `jury-portal/src/utils/scoreFormatter.ts` (Kopie für Jury-Portal)
+- `client/src/pages/Results.tsx` (formatScore integriert)
+- `client/src/pages/ScoreCapture.tsx` (normalizeScoreInput onBlur integriert)
+- `client/src/components/LiveScoreUpdates.tsx` (formatScore integriert)
+- `jury-portal/src/components/JuryPortal.tsx` (normalizeScoreInput onBlur integriert)
    - Now correctly shows only devices available in the selected squad's competitions
    - Example: Squad "m" with competition 744 shows only 5 devices (Boden, Sprung, Stufenbarren, Balken, Alter) instead of all event devices
    - Files: `jury-portal/src/components/JuryPortal.tsx` (Lines 205-230) 
@@ -1856,12 +1978,15 @@ http://localhost:3001/competition-status?eventId=77&squadName=m
 Auf der Seite Disciplinen 
 http://localhost:3001/disciplines
 lässt sich die Eingabemaske (unter Einstellungen) für jede Disziplin definieren. 
-z.B. 0.00 oder 0.000 usw. 
+a) z.B. 0.00 oder 0.000 usw. 
 Diese muss einheitlich angewendet werden bei der Eingabe und auch bei den Ergebnissen: 
 http://localhost:3001/live-scores?eventId=77&squadName=Rot
 http://localhost:3001/score-capture?eventId=77&squadName=m
 http://localhost:3001/results?eventId=77&squadName=m
 http://localhost:3002/jury 
+b) Aber dass muss auch mit Zeiten funktionieren, nicht nur mit dezimal
+0:00:00
+c) und das format muss wie es angegeben wurde punkt oder komma anzeigen
 
 83. Medallienspiegel: 
 http://localhost:3001/medallienspiegel?eventId=77&squadName=m

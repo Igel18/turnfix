@@ -19,6 +19,7 @@ import {
   PDF_CONFIG
 } from '@/utils/pdfUtils'
 import { getDisciplineIcon, getDisciplineShortName } from '@/utils/disciplineIcons'
+import { formatScore as formatScoreUtil } from '@/utils/scoreFormatter'
 import getSocket from '../utils/socket'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -148,9 +149,10 @@ const Results = () => {
     setGenderFilter('')
   }
 
-  // Format score with 3 decimal places
-  const formatScore = (score: number) => {
-    return score.toFixed(3)
+  // Format score with discipline-specific decimal places
+  // This function uses the discipline's calculationType (int_berechnung) setting
+  const formatScore = (score: number, disciplineCalculationType?: number) => {
+    return formatScoreUtil(score, disciplineCalculationType)
   }
 
   // Get medal color for rankings

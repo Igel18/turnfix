@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { getDisciplineIcon, getFallbackDeviceEmoji } from '../utils/iconUtils';
+import { normalizeScoreInput, getScorePlaceholder } from '../utils/scoreFormatter';
 import getSocket from '../utils/socket';
 
 interface Participant {
@@ -33,6 +34,8 @@ interface Device {
   iconPath?: string | null; // Optional: database icon path (web-accessible URL)
   disciplineId: number;
   maxScore?: number; // Maximum allowed score for this discipline
+  int_berechnung?: number; // Number of decimal places (0-3)
+  var_maske?: string; // Format pattern (e.g., "0.00", "0,000", "0:00:00")
 }
 
 interface Competition {
@@ -320,7 +323,9 @@ const JuryPortal: React.FC = () => {
             disciplineId: discipline.int_disziplinid,
             icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
             iconPath: iconUrl, // Web-accessible icon path or null
-            maxScore: discipline.maxScore || 0 // Maximum allowed score
+            maxScore: discipline.maxScore || 0, // Maximum allowed score
+            int_berechnung: discipline.int_berechnung, // Decimal places configuration
+            var_maske: discipline.var_maske // Format mask
           };
         });
         
@@ -337,7 +342,9 @@ const JuryPortal: React.FC = () => {
               disciplineId: discipline.int_disziplinid,
               icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
               iconPath: iconUrl, // Web-accessible icon path or null
-              maxScore: discipline.maxScore || 0 // Maximum allowed score
+              maxScore: discipline.maxScore || 0, // Maximum allowed score
+              int_berechnung: discipline.int_berechnung, // Decimal places configuration
+              var_maske: discipline.var_maske // Format mask
             };
           });
           setDevices(fallbackDevices);
@@ -505,11 +512,16 @@ const JuryPortal: React.FC = () => {
   // Update score input when current participant changes
   useEffect(() => {
     if (currentParticipant && currentParticipant.currentScore) {
-      setScore(currentParticipant.currentScore.toString());
+      // Normalize the score when loading from participant data
+      const normalized = normalizeScoreInput(
+        currentParticipant.currentScore.toString(), 
+        selectedDevice?.int_berechnung || 2
+      );
+      setScore(normalized);
     } else {
       setScore('');
     }
-  }, [currentParticipantIndex, currentParticipant]);
+  }, [currentParticipantIndex, selectedDevice?.int_berechnung]);
 
   const handleScoreSubmit = async () => {
     if (!currentParticipant || !score || !selectedDevice) return;
@@ -579,7 +591,8 @@ const JuryPortal: React.FC = () => {
         }
         
         setParticipants(updatedParticipants);
-        setScore('');
+        // Keep the normalized score visible after saving (don't clear it)
+        // User can manually clear or move to next participant
         
         // Optional: Show success message
         console.log('✅ Score saved! You can now navigate to the next participant or continue scoring.');
@@ -1029,19 +1042,24 @@ const JuryPortal: React.FC = () => {
                         </label>
                         <div className="relative">
                           <input
-                            type="number"
-                            step="0.1"
-                            min="0"
+                            type="text"
+                            inputMode="decimal"
                             value={score}
                             onChange={(e) => setScore(e.target.value)}
-                            placeholder="0.0"
+                            onBlur={(e) => {
+                              // Normalize score to show all decimal places
+                              const normalized = normalizeScoreInput(e.target.value, selectedDevice?.int_berechnung || 2);
+                              if (normalized !== e.target.value) {
+                                setScore(normalized);
+                              }
+                            }}
+                            placeholder={getScorePlaceholder(selectedDevice?.int_berechnung || 2)}
                             className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-3 rounded-lg focus:outline-none font-bold transition-colors ${
                               validation.isValid
                                 ? 'border-gray-300 focus:border-blue-500 text-blue-900 bg-blue-50'
                                 : 'border-red-300 focus:border-red-500 text-red-900 bg-red-50'
                             }`}
                             autoFocus
-                            inputMode="decimal"
                           />
                           {!validation.isValid && (
                             <div className="absolute left-0 right-0 mt-1 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 text-center z-10">

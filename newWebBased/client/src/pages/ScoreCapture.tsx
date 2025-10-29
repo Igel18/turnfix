@@ -13,6 +13,7 @@ import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { GenderBadge } from '@/components/GenderBadge'
 import { apiGet, apiPost } from '../utils/api'
 import { getIconUrl } from '../utils/iconUtils'
+import { normalizeScoreInput, getScorePlaceholder } from '@/utils/scoreFormatter'
 import getSocket from '../utils/socket'
 
 // Interfaces
@@ -40,6 +41,8 @@ interface Discipline {
   apparatus?: string;
   attempts: number;
   inputMask?: string;
+  int_berechnung?: number; // Decimal places (0-3)
+  var_maske?: string; // Format mask (e.g., "0.00", "0,000")
   maxScore?: number; // Maximum allowed score for this discipline in the competition
   icon?: string; // Icon path from database
 }
@@ -657,7 +660,9 @@ export function ScoreCapture() {
               }
               return matchesParticipant && matchesDiscipline;
             });
-            matrix[key] = existingScore ? existingScore.score.toString() : '';
+            // Normalize the loaded score to show all decimal places
+            const scoreStr = existingScore ? existingScore.score.toString() : '';
+            matrix[key] = scoreStr ? normalizeScoreInput(scoreStr, discipline.int_berechnung || 2) : '';
           }
         } else {
           // New behavior: create entries for each field
@@ -688,7 +693,8 @@ export function ScoreCapture() {
           if (pendingEndwerts[key] !== undefined) {
             matrix[key] = pendingEndwerts[key];
           } else if (existingScore) {
-            matrix[key] = existingScore.score.toString();
+            // Normalize the loaded score to show all decimal places
+            matrix[key] = normalizeScoreInput(existingScore.score.toString(), discipline.int_berechnung || 2);
           } else {
             matrix[key] = '';
           }
@@ -721,7 +727,9 @@ export function ScoreCapture() {
             const isForFilteredParticipant = filteredParticipants.some(p => p.id === result.participantId)
             if (isForFilteredParticipant) {
               const fieldKey = `${result.participantId}-${result.disciplineFieldId}`
-              matrix[fieldKey] = result.performance?.toString() || ''
+              // Normalize jury field scores (typically 2 decimals for jury scores)
+              const performanceStr = result.performance?.toString() || '';
+              matrix[fieldKey] = performanceStr ? normalizeScoreInput(performanceStr, 2) : '';
               console.log(`Loaded field score: ${fieldKey} = ${result.performance} (field: ${result.fieldName})`)
             }
           })
@@ -1780,17 +1788,24 @@ export function ScoreCapture() {
                                 <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap text-center">
                                   <div className="relative">
                                     <input
-                                      type="number"
-                                      step="0.01"
+                                      type="text"
+                                      inputMode="decimal"
                                       value={score}
                                       onChange={(e) => handleScoreChange(participant.id, disciplineId, e.target.value)}
-                                      onBlur={() => saveScore(participant.id, disciplineId)}
+                                      onBlur={(e) => {
+                                        // Normalize score to show all decimal places
+                                        const normalized = normalizeScoreInput(e.target.value, discipline.int_berechnung || 2);
+                                        if (normalized !== e.target.value) {
+                                          handleScoreChange(participant.id, disciplineId, normalized);
+                                        }
+                                        saveScore(participant.id, disciplineId);
+                                      }}
                                       className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
                                         validation.isValid 
                                           ? 'border-gray-300 focus:ring-blue-500' 
                                           : 'border-red-300 bg-red-50 focus:ring-red-500'
                                       }`}
-                                      placeholder="0.00"
+                                      placeholder={getScorePlaceholder(discipline.int_berechnung || 2)}
                                       title={!validation.isValid ? validation.message : ''}
                                     />
                                     {!validation.isValid && (
@@ -1961,14 +1976,19 @@ export function ScoreCapture() {
                                                 return (
                                                   <div className="relative">
                                                     <input
-                                                      type="number"
-                                                      step="0.01"
+                                                      type="text"
+                                                      inputMode="decimal"
                                                       value={juryEndwert}
                                                       onChange={e => {
                                                         const value = e.target.value;
                                                         setScoreMatrix(prev => ({ ...prev, [juryFieldKey]: value }));
                                                       }}
-                                                      onBlur={async () => {
+                                                      onBlur={async (e) => {
+                                                        // Normalize score to show all decimal places
+                                                        const normalized = normalizeScoreInput(e.target.value, discipline.int_berechnung || 2);
+                                                        if (normalized !== e.target.value) {
+                                                          setScoreMatrix(prev => ({ ...prev, [juryFieldKey]: normalized }));
+                                                        }
                                                         if (juryFieldKey && juryEndwertField) {
                                                           await saveFieldScore(participant.id, juryEndwertField);
                                                         }
@@ -1978,7 +1998,7 @@ export function ScoreCapture() {
                                                           ? 'text-gray-700 focus:ring-gray-400'
                                                           : 'text-red-700 focus:ring-red-500 bg-red-50'
                                                       }`}
-                                                      placeholder="0.00"
+                                                      placeholder={getScorePlaceholder(discipline.int_berechnung || 2)}
                                                       title={juryValidation.isValid ? "Jury result Endwert" : juryValidation.message}
                                                     />
                                                     {!juryValidation.isValid && (
@@ -2023,12 +2043,17 @@ export function ScoreCapture() {
                                           </label>
                                           <div className="relative">
                                             <input
-                                              type="number"
-                                              step="0.01"
+                                              type="text"
+                                              inputMode="decimal"
                                               value={fieldValue}
                                               data-field={fieldKey}
                                               onChange={(e) => handleFieldScoreChange(participant.id, field.id, e.target.value)}
                                               onBlur={(e) => {
+                                                // Normalize score to show all decimal places
+                                                const normalized = normalizeScoreInput(e.target.value, discipline.int_berechnung || 2);
+                                                if (normalized !== e.target.value) {
+                                                  handleFieldScoreChange(participant.id, field.id, normalized);
+                                                }
                                                 const value = e.target.value;
                                                 if (value && value.trim() !== '') {
                                                   console.log(`🟡 Saving individual field: ${field.name} = ${value}`);
@@ -2042,7 +2067,7 @@ export function ScoreCapture() {
                                                   ? 'border-gray-300 focus:ring-blue-500' 
                                                   : 'border-red-300 bg-red-50 focus:ring-red-500'
                                               }`}
-                                              placeholder="0.00"
+                                              placeholder={getScorePlaceholder(discipline.int_berechnung || 2)}
                                               title={`${field.name}${!validation.isValid ? ' - ' + validation.message : ''}`}
                                             />
                                             {!validation.isValid && (
