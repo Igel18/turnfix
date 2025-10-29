@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getIconUrl } from '../utils/iconUtils';
-import { useEscapeKey } from '../hooks/useEscapeKey';
+import UnifiedModal from './UnifiedModal';
 
 interface Discipline {
   id: number;
@@ -83,30 +83,16 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
   sports
 }) => {
   const { t } = useTranslation();
-  
-  // ESC key to close modal
-  useEscapeKey(onClose, isOpen);
-  
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">
-            {editingDiscipline ? t('disciplines.editDiscipline') : t('disciplines.createDiscipline')}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form onSubmit={onSubmit} className="p-6">
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingDiscipline ? t('disciplines.editDiscipline') : t('disciplines.createDiscipline')}
+      size="4xl"
+      showFooter={false}
+    >
+      <form onSubmit={onSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Basic Information */}
@@ -486,8 +472,7 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </UnifiedModal>
   );
 };
 

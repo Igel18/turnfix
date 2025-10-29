@@ -1,10 +1,10 @@
 // Fixed JSX syntax errors and implemented full localization
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
-import { useEscapeKey } from '../hooks/useEscapeKey';
+import UnifiedModal from './UnifiedModal';
 
 // Interface for discipline data from API
 interface Discipline {
@@ -101,9 +101,6 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 }) => {
   // Translation hook
   const { t } = useTranslation();
-  
-  // ESC key to close modal
-  useEscapeKey(onClose, isOpen);
   
   // State for modal-specific data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -337,25 +334,15 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
     return '';
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {editingCompetition ? t('competitionForm.title.edit') : t('competitionForm.title.create')}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
-          </div>
-
-          <form onSubmit={onSubmit} className="space-y-6">
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingCompetition ? t('competitionForm.title.edit') : t('competitionForm.title.create')}
+      size="4xl"
+      showFooter={false}
+    >
+      <form onSubmit={onSubmit} className="space-y-6">
             {/* Debug Info */}
             {debugInfo(
               <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm">
@@ -880,9 +867,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+    </UnifiedModal>
   );
 };
 
