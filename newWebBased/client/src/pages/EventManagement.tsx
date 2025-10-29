@@ -338,7 +338,7 @@ const EventManagement: React.FC = () => {
       addPDFHeaderFooter({
         doc,
         event: eventForPDF,
-        documentTitle: t('eventManagement.title'),
+        documentTitle: t('pdf.documentTitles.eventManagement'),
         pageWidth,
         pageHeight
       });
@@ -350,7 +350,7 @@ const EventManagement: React.FC = () => {
           addPDFHeaderFooter({
             doc,
             event: eventForPDF,
-            documentTitle: t('eventManagement.title'),
+            documentTitle: t('pdf.documentTitles.eventManagement'),
             pageWidth,
             pageHeight
           });
@@ -409,7 +409,7 @@ const EventManagement: React.FC = () => {
       // Age Groups
       if (Object.keys(statistics.ageGroups).length > 0) {
         yPosition = checkPageBreak(yPosition, 20);
-        yPosition = addSectionTitle(doc, 'Altersgruppen:', yPosition, { fontSize: PDF_CONFIG.fonts.header.size })
+        yPosition = addSectionTitle(doc, t('pdf.common.ageGroups'), yPosition, { fontSize: PDF_CONFIG.fonts.header.size })
 
         Object.entries(statistics.ageGroups).forEach(([ageGroup, count]) => {
           yPosition = checkPageBreak(yPosition, 10);

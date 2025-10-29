@@ -2142,6 +2142,34 @@
       "autoRefresh": "Automatische Aktualisierung",
       "autoRefreshHelp": "Live-Updates über Socket.IO aktivieren"
     }
+  },
+  "pdf": {
+    "documentTitles": {
+      "eventParticipantsList": "Teilnehmerliste",
+      "eventManagement": "Veranstaltungsübersicht",
+      "meldematrix": "Meldematrix",
+      "competitionResults": "Wettkampfergebnisse",
+      "competitionResultsAll": "Wettkampfergebnisse - Alle Wettkämpfe",
+      "medalStandings": "Medallienspiegel",
+      "squadManagement": "Riegenverwaltung"
+    },
+    "common": {
+      "rank": "Platz",
+      "startNumber": "Start-Nr.",
+      "name": "Name",
+      "club": "Verein",
+      "age": "Alter",
+      "gender": "Geschlecht",
+      "birthYear": "Geburtsjahr",
+      "total": "Gesamt",
+      "participants": "Teilnehmer",
+      "noData": "Keine Daten verfügbar",
+      "ageGroups": "Altersgruppen:"
+    },
+    "tableHeaders": {
+      "number": "Nr.",
+      "status": "Status"
+    }
   }
 }
 

@@ -163,7 +163,7 @@ export default function Meldematrix() {
       addPDFHeaderFooter({
         doc,
         event: eventForPDF,
-        documentTitle: 'Meldematrix',
+        documentTitle: t('pdf.documentTitles.meldematrix'),
         pageWidth,
         pageHeight
       })
@@ -175,11 +175,11 @@ export default function Meldematrix() {
 
       // Prepare table data
       const tableColumns = [
-        'Verein',
+        t('pdf.common.club'),
         ...filteredCompetitions.map(comp => 
-          comp.number ? `Wk.\n${comp.number.toString().padStart(4, '0')}` : `Wk.\n${comp.id.toString().padStart(4, '0')}`
+          comp.number ? `${t('pdf.tableHeaders.number')}\n${comp.number.toString().padStart(4, '0')}` : `${t('pdf.tableHeaders.number')}\n${comp.id.toString().padStart(4, '0')}`
         ),
-        'Ges.'
+        t('pdf.common.total')
       ]
 
       const tableData = filteredClubs.map(club => {
@@ -235,7 +235,7 @@ export default function Meldematrix() {
           addPDFHeaderFooter({
             doc,
             event: eventForPDF,
-            documentTitle: 'Meldematrix',
+            documentTitle: t('pdf.documentTitles.meldematrix'),
             pageWidth,
             pageHeight
           })

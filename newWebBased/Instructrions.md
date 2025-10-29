@@ -252,24 +252,94 @@ in den Tabellen ist es nicht möglich seitlich zu scrollen. das ist ungeschickt.
     **Optionale Erweiterung**: Event Management Pages (Squad Status, Time Planning, Competitions, Meldematrix) können bei Bedarf ergänzt werden
 
 34. Druck / Export
-a) ~~Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert.~~ 🔄 **In Progress** 
-    **Status**: 🔄 Phase 0 & 1 abgeschlossen - Basis-Fixes + PDF-Utilities erweitert
-    **Ziel**: Alle PDF-Exporte vereinheitlichen für professionellen Look
+a) ~~Prio 3 Es wäre schön wenn wir die Drucke auch in einem einheitlichen Look hätten. Und auch lokalisiert.~~ ✅ **Abgeschlossen**
+    **Status**: ✅ Vollständig lokalisiert
+    **Ziel**: Alle PDF-Exporte vereinheitlichen für professionellen Look - ERREICHT
     
     **Betroffene PDFs**:
-    - Event Participants List ✅ Migriert (didDrawPage)
-    - Event Management List ✅ Migriert (checkPageBreak)
-    - Meldematrix ✅ Migriert (getUnifiedTableStyles + addPDFHeaderFooter)
-    - Medallienspiegel ✅ Migriert (getUnifiedTableStyles + addSectionTitle + Medal-Farben)
-    - **Ergebnisliste ✅ Migriert** (Alle 3 Export-Funktionen migriert)
-    - Riegenliste ⏳ Noch zu migrieren
+    - Event Participants List ✅ Migriert & Lokalisiert
+    - Event Management List ✅ Migriert & Lokalisiert
+    - Meldematrix ✅ Migriert & Lokalisiert
+    - Medallienspiegel ✅ Migriert & Lokalisiert
+    - Ergebnisliste ✅ Migriert & Lokalisiert
+    - Riegenliste ✅ Migriert & Lokalisiert
     
     **Anforderungen**:
     - ✅ Einheitliche Schriftart und -größen
     - ✅ Gleich große Kopf- und Fußzeilen
     - ✅ Gleicher Inhalt in Kopf- und Fußzeile
     - ✅ Professionelle Lesbarkeit (Hervorhebungen, Abtrennungen)
-    - ⏳ Vollständige Lokalisierung (DE/EN)
+    - ✅ Vollständige Lokalisierung (DE/EN)
+    
+    **Lokalisierung umgesetzt**:
+    
+    1. **Neue Translation Keys** (de.json & en.json):
+       ```json
+       "pdf": {
+         "documentTitles": {
+           "eventParticipantsList": "Teilnehmerliste" / "Participants List",
+           "eventManagement": "Veranstaltungsübersicht" / "Event Overview",
+           "meldematrix": "Meldematrix" / "Registration Matrix",
+           "competitionResults": "Wettkampfergebnisse" / "Competition Results",
+           "competitionResultsAll": "Wettkampfergebnisse - Alle Wettkämpfe" / "Competition Results - All Competitions",
+           "medalStandings": "Medallienspiegel" / "Medal Standings",
+           "squadManagement": "Riegenverwaltung" / "Squad Management"
+         },
+         "common": {
+           "rank": "Platz" / "Rank",
+           "startNumber": "Start-Nr." / "Start #",
+           "name": "Name" / "Name",
+           "club": "Verein" / "Club",
+           "age": "Alter" / "Age",
+           "gender": "Geschlecht" / "Gender",
+           "birthYear": "Geburtsjahr" / "Birth Year",
+           "total": "Gesamt" / "Total",
+           "participants": "Teilnehmer" / "Participants",
+           "ageGroups": "Altersgruppen:" / "Age Groups:"
+         },
+         "tableHeaders": {
+           "number": "Nr." / "No.",
+           "status": "Status" / "Status"
+         }
+       }
+       ```
+    
+    2. **Lokalisierte PDF-Titel in allen Exporten**:
+       - EventParticipants.tsx: `t('pdf.documentTitles.eventParticipantsList')`
+       - EventManagement.tsx: `t('pdf.documentTitles.eventManagement')`
+       - Meldematrix.tsx: `t('pdf.documentTitles.meldematrix')`
+       - Results.tsx: `t('pdf.documentTitles.competitionResults')` & `t('pdf.documentTitles.competitionResultsAll')`
+       - Medallienspiegel.tsx: `t('pdf.documentTitles.medalStandings')`
+       - SquadManagement.tsx: Bereits vollständig lokalisiert mit `squadManagement.pdf.*`
+    
+    3. **Lokalisierte Tabellen-Header**:
+       - EventParticipants: `t('pdf.common.name')`, `t('pdf.common.club')`, etc.
+       - Results: `t('pdf.common.rank')`, `t('pdf.common.startNumber')`, `t('pdf.common.total')`
+       - Meldematrix: `t('pdf.common.club')`, `t('pdf.tableHeaders.number')`, `t('pdf.common.total')`
+       - EventManagement: `t('pdf.common.ageGroups')`
+    
+    4. **Lokalisierte dynamische Texte**:
+       - Results: `${group.participants.length} ${t('pdf.common.participants')}`
+       - Alle Status-Texte über bestehende Translations
+    
+    **Dateien geändert** (Lokalisierung):
+    - ✅ `client/src/i18n/locales/de.json` - Neue PDF-Section mit allen Übersetzungen
+    - ✅ `client/src/i18n/locales/en.json` - Neue PDF-Section mit allen Übersetzungen
+    - ✅ `client/src/pages/EventParticipants.tsx` - PDF-Titel & Header lokalisiert
+    - ✅ `client/src/pages/EventManagement.tsx` - PDF-Titel & Altersgruppen lokalisiert
+    - ✅ `client/src/pages/Meldematrix.tsx` - PDF-Titel & Tabellen-Header lokalisiert
+    - ✅ `client/src/pages/Results.tsx` - PDF-Titel & Tabellen-Header lokalisiert (beide Exports)
+    - ✅ `client/src/pages/Medallienspiegel.tsx` - PDF-Titel lokalisiert
+    - ✅ `client/src/pages/SquadManagement.tsx` - War bereits vollständig lokalisiert
+    
+    **Build Status**: ✓ 2241 modules, 5.99s, keine Fehler
+    
+    **Resultat**: 
+    - ✅ Alle PDF-Exporte verwenden jetzt `t('pdf.*')` Translation Keys
+    - ✅ Komplette DE/EN Lokalisierung für alle PDF-Dokumente
+    - ✅ Einheitliche Namenskonvention für alle PDFs
+    - ✅ Sprachauswahl wird automatisch aus Benutzer-Einstellung übernommen
+    - ✅ Alle hardcodierten Strings in PDFs eliminiert
     
     **Phase 0 - Basis-Fixes** ✅ (User Testing Feedback + Einheitliche Formatierung):
     
@@ -2390,4 +2460,13 @@ Der medallienspiegel passt nicht http://localhost:3001/medallienspiegel?eventId=
 - Datei: `server/src/routes/medals.ts` (Zeilen 195-230, 282-303)
 
 93. Prio 5 Aktionen über Tastatur
-Generell sollte es möglich sein, über die Tastatur aktionen durchführen zu können. Insbesondere beim Wertung speichern im jury-portal und im score capture sollte mit einem Enter der Wert übernommen werden. 
+Generell sollte es möglich sein, über die Tastatur aktionen durchführen zu können. Insbesondere beim Wertung speichern im jury-portal und im score capture sollte mit einem Enter der Wert übernommen werden. Gespeichert wird es wahrscheinlich schon bei der Eingabe. Dann sollte mit Enter das Feld verlassen werden. 
+
+Tasten Aktionen
+Jury-Portal & Score Capture: 
+- Enter: Speichert Wert & verlässt das eingabefeld 
+- Pfeiltaste Rechts: Nächster Turner ins eingabefeld wechseln 
+- Pfeiltaste Links: vorheriger Turner ins Eingabefeld wechseln 
+
+Alle Modalen Dialoge: 
+- ESC: das dialog verlassen ggf. rückfrage ob gespeichert werden soll

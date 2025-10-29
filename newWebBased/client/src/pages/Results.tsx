@@ -526,7 +526,7 @@ const Results = () => {
       addPDFHeaderFooter({
         doc,
         event: selectedEvent,
-        documentTitle: 'Competition Results',
+        documentTitle: t('pdf.documentTitles.competitionResults'),
         pageWidth,
         pageHeight
       })
@@ -551,17 +551,17 @@ const Results = () => {
       
       // Prepare table data with icons in headers
       const headers = [
-        'Rank', 
-        'Start #', 
-        'Name', 
-        'Club', 
-        'Age', 
+        t('pdf.common.rank'), 
+        t('pdf.common.startNumber'), 
+        t('pdf.common.name'), 
+        t('pdf.common.club'), 
+        t('pdf.common.age'), 
         ...competitionDisciplines.map(discipline => {
           const disciplineInfo = competitionDisciplineInfo.find(d => d.name === discipline)
           const shortName = disciplineInfo ? getDisciplineShortName(discipline, disciplineInfo) : discipline
           return shortName
         }), 
-        'Total'
+        t('pdf.common.total')
       ]
       const tableData = filteredRanking.map(participant => [
         participant.rank,
@@ -650,7 +650,7 @@ const Results = () => {
           addPDFHeaderFooter({
             doc,
             event: selectedEvent,
-            documentTitle: 'Competition Results',
+            documentTitle: t('pdf.documentTitles.competitionResults'),
             pageWidth,
             pageHeight
           })
@@ -672,7 +672,7 @@ const Results = () => {
       addPDFHeaderFooter({
         doc,
         event: selectedEvent,
-        documentTitle: 'Competition Results - All Competitions',
+        documentTitle: t('pdf.documentTitles.competitionResultsAll'),
         pageWidth,
         pageHeight
       })
@@ -689,7 +689,7 @@ const Results = () => {
           addPDFHeaderFooter({
             doc,
             event: selectedEvent,
-            documentTitle: 'Competition Results - All Competitions',
+            documentTitle: t('pdf.documentTitles.competitionResultsAll'),
             pageWidth,
             pageHeight
           })
@@ -697,21 +697,21 @@ const Results = () => {
         }
 
         // Add competition title
-        currentY = addSectionTitle(doc, `${group.competitionName} (${group.participants.length} participants)`, currentY, { align: 'left' })
+        currentY = addSectionTitle(doc, `${group.competitionName} (${group.participants.length} ${t('pdf.common.participants')})`, currentY, { align: 'left' })
 
         // Prepare table data for this competition with icons in headers
         const headers = [
-          'Rank', 
-          'Start #', 
-          'Name', 
-          'Club', 
-          'Age', 
+          t('pdf.common.rank'), 
+          t('pdf.common.startNumber'), 
+          t('pdf.common.name'), 
+          t('pdf.common.club'), 
+          t('pdf.common.age'), 
           ...group.disciplines.map(discipline => {
             const disciplineInfo = group.disciplineInfo.find(d => d.name === discipline)
             const shortName = disciplineInfo ? getDisciplineShortName(discipline, disciplineInfo) : discipline
             return shortName
           }), 
-          'Total'
+          t('pdf.common.total')
         ]
         const tableData = group.participants.map(participant => [
           participant.rank,

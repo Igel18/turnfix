@@ -2142,6 +2142,34 @@
       "autoRefresh": "Auto refresh",
       "autoRefreshHelp": "Enable live updates via Socket.IO"
     }
+  },
+  "pdf": {
+    "documentTitles": {
+      "eventParticipantsList": "Participants List",
+      "eventManagement": "Event Overview",
+      "meldematrix": "Registration Matrix",
+      "competitionResults": "Competition Results",
+      "competitionResultsAll": "Competition Results - All Competitions",
+      "medalStandings": "Medal Standings",
+      "squadManagement": "Squad Management"
+    },
+    "common": {
+      "rank": "Rank",
+      "startNumber": "Start #",
+      "name": "Name",
+      "club": "Club",
+      "age": "Age",
+      "gender": "Gender",
+      "birthYear": "Birth Year",
+      "total": "Total",
+      "participants": "Participants",
+      "noData": "No data available",
+      "ageGroups": "Age Groups:"
+    },
+    "tableHeaders": {
+      "number": "No.",
+      "status": "Status"
+    }
   }
 }
 

@@ -855,7 +855,7 @@ const EventParticipants: React.FC = () => {
     }
 
     const doc = new jsPDF('p', 'mm', 'a4')
-    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, 'Event Participants List')
+    const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, t('pdf.documentTitles.eventParticipantsList'))
     
     // Prepare data for the table
     const tableData = eventParticipants.map((participant, index) => [
@@ -872,7 +872,15 @@ const EventParticipants: React.FC = () => {
     const unifiedStyles = getUnifiedTableStyles()
 
     autoTable(doc, {
-      head: [['#', 'Name', 'Club', 'Gender', 'Age', 'Birth Year', 'Status']],
+      head: [[
+        '#', 
+        t('pdf.common.name'), 
+        t('pdf.common.club'), 
+        t('pdf.common.gender'), 
+        t('pdf.common.age'), 
+        t('pdf.common.birthYear'), 
+        t('pdf.tableHeaders.status')
+      ]],
       body: tableData,
       startY: contentArea.startY + 10,
       ...unifiedStyles,
@@ -890,7 +898,7 @@ const EventParticipants: React.FC = () => {
         addPDFHeaderFooter({
           doc,
           event: selectedEvent,
-          documentTitle: 'Event Participants List',
+          documentTitle: t('pdf.documentTitles.eventParticipantsList'),
           pageWidth: 210,
           pageHeight: 297
         })

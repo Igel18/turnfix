@@ -88,7 +88,7 @@ export default function Medallienspiegel() {
       addPDFHeaderFooter({
         doc,
         event: eventForPDF,
-        documentTitle: t('medallienspiegel.title'),
+        documentTitle: t('pdf.documentTitles.medalStandings'),
         pageWidth: 297,
         pageHeight: 210
       })
@@ -197,7 +197,7 @@ export default function Medallienspiegel() {
           addPDFHeaderFooter({
             doc,
             event: eventForPDF,
-            documentTitle: t('medallienspiegel.title'),
+            documentTitle: t('pdf.documentTitles.medalStandings'),
             pageWidth: 297,
             pageHeight: 210
           })
