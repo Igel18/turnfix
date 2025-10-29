@@ -13,10 +13,17 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1536px",  // Erhöht von 1400px auf 1536px für breitere Tabellen
       },
     },
     extend: {
+      maxWidth: {
+        '7xl': '96rem',    // ÜBERSCHREIBT Standard 7xl (80rem/1280px) -> 96rem (1536px)
+        '8xl': '88rem',    // 1408px - Zwischen alt-7xl und neu-7xl
+        '9xl': '96rem',    // 1536px - Gleich wie neu-7xl
+        '10xl': '104rem',  // 1664px - Maximum für sehr breite Ansichten
+        'screen-2xl': '1536px', // Alias für volle Bildschirmbreite
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

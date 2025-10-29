@@ -2210,7 +2210,46 @@ Was wäre in der neuen Web UI noch umzusetzen, damit das hier auch fuktioniert?
     **Build Status**: ✓ 2240 modules, 5.75s, keine Fehler
     **Bundle Size**: 1512.82 kB JS (406.16 kB gzipped)
 
-90. Prio 2 Das Template für die tabellen muss breiter sein, damit mehr Inhalt rein passt. 
+90. ✅ Prio 2 Das Template für die tabellen muss breiter sein, damit mehr Inhalt rein passt. 
+
+**Status**: ✅ Vollständig implementiert (2025-01-29)
+
+**Implementierung:**
+
+1. **Tailwind Config Anpassung** (`client/tailwind.config.js`):
+   - `max-w-7xl` überschrieben: **80rem (1280px) → 96rem (1536px)**
+   - Container 2xl erweitert: **1400px → 1536px**
+   - Zusätzliche Breitenoptionen hinzugefügt:
+     * `max-w-8xl`: 88rem (1408px)
+     * `max-w-9xl`: 96rem (1536px)
+     * `max-w-10xl`: 104rem (1664px)
+     * `max-w-screen-2xl`: 1536px
+
+2. **Vorteile**:
+   - ✅ Keine Code-Änderungen in einzelnen Komponenten nötig
+   - ✅ Alle Seiten mit `max-w-7xl` werden automatisch breiter
+   - ✅ Konsistentes Design über alle Seiten
+   - ✅ Mehr Platz für Tabellen mit vielen Spalten
+   - ✅ Besser nutzbar auf großen Monitoren
+
+3. **Betroffene Seiten** (automatisch breiter):
+   - EventManagement
+   - EventParticipants
+   - Results
+   - ScoreCapture
+   - SquadManagement
+   - CompetitionStatusManagement
+   - Medallienspiegel
+   - LiveScoresPage
+   - TimePlanning
+   - Alle anderen Seiten mit `max-w-7xl`
+
+**Ergebnis:**
+- **Vorher**: Tabellen auf 1280px begrenzt
+- **Jetzt**: Tabellen bis 1536px breit
+- **Verbesserung**: +20% mehr Platz für Inhalte
+
+**Datei**: `client/tailwind.config.js` 
 
 91. Prio 5 status: 
 Es gibt einen Status für die Riegen. Nach dem Wettkampf werden aber Urkunden für die Wettkampfklassen gedruckt. Dafür gibt es nach meinem Wissen keine möglichkeit den Status zu visualisieren. 
