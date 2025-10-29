@@ -1181,31 +1181,48 @@ http://localhost:3001/event-management?eventId=59&squadName=mBlau
 Das soll sowohl in jury-portal als auch im Turnfix server passieren auf der 
 http://localhost:3001/score-capture?eventId=59&squadName=m
 
-**Status**: ✅ Abgeschlossen (2025-01-28)
-**Score-Capture (TurnFix Server)**: 
-- ✅ **VOLLSTÄNDIG IMPLEMENTIERT** in `client/src/pages/ScoreCapture.tsx`
-- Zeilen 1771-1792: Input-Feld mit Validierung
-  * Roter Rahmen bei ungültiger Eingabe (`border-red-300 bg-red-50`)
-  * Roter Focus-Ring (`focus:ring-red-500`)
-  * Warnung unter dem Feld (`⚠️ {validation.message}`)
-  * Max-Score Anzeige über dem Feld
-- **Wert wird trotzdem gespeichert** - Validierung ist nur visuell, blockiert nicht das Speichern
-- Funktionen: `handleScoreChange()` (Zeile 857) und `saveScore()` (Zeile 887)
+**Status**: ✅ VOLLSTÄNDIG IMPLEMENTIERT (2025-01-29)
 
-**Jury-Portal**:
-- ⚠️ Aktuell: HTML5 `max="20"` Validierung (Zeile 996) - **BLOCKIERT** ungültige Werte
-- 📝 **Empfehlung**: HTML5-max entfernen, da:
-  * Jury-Portal für schnelle Eingabe konzipiert
-  * Max-Score variiert pro Disziplin (nicht im Device-Interface verfügbar)
-  * Würde zusätzliche API-Calls für jede Disziplin erfordern
-  * Score-Capture ist der Hauptort für detaillierte Validierung
-- ✅ **Alternative**: Jury-Portal akzeptiert alle Werte, Score-Capture zeigt Warnung bei Review
+**1. Database & API:**
+- Field: `tfx_wettkaempfe_x_disziplinen.rel_max` (max. Punktzahl pro Disziplin/Wettkampf)
+- API: `/competitions/:id/disciplines` gibt jetzt `maxScore` zurück
+- Server: `server/src/routes/competitions.ts` (Lines 307-340)
+
+**2. Score-Capture (TurnFix Server):**
+- ✅ **VOLLSTÄNDIG IMPLEMENTIERT** in `client/src/pages/ScoreCapture.tsx`
+- Validierungsfunktion: `getScoreValidation()` (Lines 1250-1283)
+- **Simple Mode:** ✅ Validierung aktiv (Lines 1771-1792)
+- **Individual Fields:** ✅ Validierung aktiv (Lines 1986-2008)
+- **Endwert (offiziell):** ✅ Validierung aktiv (Lines 1870-1955)
+- **Endwert (Jury):** ✅ Validierung aktiv (Lines 1955-1992)
+- Visual Feedback:
+  * Roter Rahmen: `border-red-300 bg-red-50`
+  * Roter Focus-Ring: `focus:ring-red-500`
+  * Warnung: `⚠️ Der Wert überschreitet die maximale Punktzahl von X.XX`
+  * Max-Score im Header angezeigt
+- **WICHTIG:** Wert wird trotzdem gespeichert (non-blocking validation)
+
+**3. Jury-Portal:**
+- ✅ **VOLLSTÄNDIG IMPLEMENTIERT** in `jury-portal/src/components/JuryPortal.tsx`
+- Device Interface erweitert mit `maxScore` (Line 33)
+- MaxScore wird beim Laden der Disziplinen übernommen (Lines 315-345)
+- Validierungsfunktion: `getScoreValidation()` (Lines 600-622)
+- Input-Feld mit Validierung (Lines 1027-1063):
+  * Max-Wert im Label angezeigt: `(max. XX.XX)`
+  * Roter Rahmen bei Überschreitung: `border-red-300 bg-red-50`
+  * Warnung unter dem Input: `⚠️ {validation.message}`
+  * Wert wird trotzdem gespeichert
+
+**Verhalten:**
+- Score > maxScore → Roter Rahmen + Warnung + Wert wird gespeichert
+- Score ≤ maxScore → Normaler Rahmen
+- maxScore = 0 → Keine Validierung (unbegrenzt)
+- Konsistent in Score-Capture und Jury-Portal
 
 **Dateien**: 
+- `server/src/routes/competitions.ts` (API returns maxScore)
 - `client/src/pages/ScoreCapture.tsx` (vollständig implementiert)
-- `jury-portal/src/components/JuryPortal.tsx` (HTML5 max="20" vorhanden)
-
-**Fazit**: Hauptanforderung in Score-Capture ✅ erfüllt. Jury-Portal kann bei Bedarf angepasst werden.
+- `jury-portal/src/components/JuryPortal.tsx` (vollständig implementiert)
 
 58. ✅ Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
    - **Fixed**: Discipline groups are now selectable in competition edit
@@ -2166,3 +2183,6 @@ Der medallienspiegel passt nicht http://localhost:3001/medallienspiegel?eventId=
 - Vereine OHNE Medaillen werden danach angezeigt (alphabetisch sortiert)
 - Alle Vereine zeigen korrekte Teilnehmerzahl in `totalStarters`
 - Datei: `server/src/routes/medals.ts` (Zeilen 195-230, 282-303)
+
+93. Prio 5 Aktionen über Tastatur
+Generell sollte es möglich sein, über die Tastatur aktionen durchführen zu können. Insbesondere beim Wertung speichern im jury-portal und im score capture sollte mit einem Enter der Wert übernommen werden. 

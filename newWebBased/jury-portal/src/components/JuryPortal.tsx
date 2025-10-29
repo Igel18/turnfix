@@ -32,6 +32,7 @@ interface Device {
   icon: string; // Can be emoji or icon path
   iconPath?: string | null; // Optional: database icon path (web-accessible URL)
   disciplineId: number;
+  maxScore?: number; // Maximum allowed score for this discipline
 }
 
 interface Competition {
@@ -318,7 +319,8 @@ const JuryPortal: React.FC = () => {
             name: discipline.var_name,
             disciplineId: discipline.int_disziplinid,
             icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
-            iconPath: iconUrl // Web-accessible icon path or null
+            iconPath: iconUrl, // Web-accessible icon path or null
+            maxScore: discipline.maxScore || 0 // Maximum allowed score
           };
         });
         
@@ -334,7 +336,8 @@ const JuryPortal: React.FC = () => {
               name: discipline.var_name,
               disciplineId: discipline.int_disziplinid,
               icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
-              iconPath: iconUrl // Web-accessible icon path or null
+              iconPath: iconUrl, // Web-accessible icon path or null
+              maxScore: discipline.maxScore || 0 // Maximum allowed score
             };
           });
           setDevices(fallbackDevices);
@@ -591,6 +594,32 @@ const JuryPortal: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Score validation function
+  const getScoreValidation = (scoreValue: string): { isValid: boolean; message: string } => {
+    if (!selectedDevice || !scoreValue || scoreValue.trim() === '') {
+      return { isValid: true, message: '' };
+    }
+
+    const numericScore = parseFloat(scoreValue);
+    const maxScore = selectedDevice.maxScore || 0;
+
+    console.log('🔍 JURY VALIDATION:', {
+      scoreValue,
+      numericScore,
+      maxScore,
+      selectedDevice: selectedDevice.name
+    });
+
+    if (maxScore > 0 && numericScore > maxScore) {
+      return {
+        isValid: false,
+        message: `Der Wert überschreitet die maximale Punktzahl von ${maxScore.toFixed(2)}`
+      };
+    }
+
+    return { isValid: true, message: '' };
   };
 
   const handleDeviceComplete = async () => {
@@ -986,23 +1015,43 @@ const JuryPortal: React.FC = () => {
 
                 {/* Score Input Section - Compact */}
                 <div className="space-y-2">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1 text-center">
-                      Wertung eingeben
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="20"
-                      value={score}
-                      onChange={(e) => setScore(e.target.value)}
-                      placeholder="0.0"
-                      className="w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-3 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-bold text-blue-900 bg-blue-50"
-                      autoFocus
-                      inputMode="decimal"
-                    />
-                  </div>
+                  {(() => {
+                    const validation = getScoreValidation(score);
+                    return (
+                      <div className={validation.isValid ? '' : 'mb-6'}>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 text-center">
+                          Wertung eingeben
+                          {selectedDevice?.maxScore && selectedDevice.maxScore > 0 && (
+                            <span className="ml-2 text-blue-600">
+                              (max. {selectedDevice.maxScore.toFixed(2)})
+                            </span>
+                          )}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            value={score}
+                            onChange={(e) => setScore(e.target.value)}
+                            placeholder="0.0"
+                            className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-3 rounded-lg focus:outline-none font-bold transition-colors ${
+                              validation.isValid
+                                ? 'border-gray-300 focus:border-blue-500 text-blue-900 bg-blue-50'
+                                : 'border-red-300 focus:border-red-500 text-red-900 bg-red-50'
+                            }`}
+                            autoFocus
+                            inputMode="decimal"
+                          />
+                          {!validation.isValid && (
+                            <div className="absolute left-0 right-0 mt-1 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 text-center z-10">
+                              ⚠️ {validation.message}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Action Buttons - Compact */}
                   <div className="flex flex-col space-y-1.5">
