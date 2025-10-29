@@ -1253,8 +1253,17 @@ export function ScoreCapture() {
       d.int_disziplinid === disciplineId || d.var_name === disciplineId
     )
     
+    console.log('🔍 Score Validation:', {
+      disciplineId,
+      scoreValue,
+      foundDiscipline: discipline?.var_name,
+      maxScore: discipline?.maxScore,
+      allDisciplines: displayDisciplines.map(d => ({ id: d.int_disziplinid, name: d.var_name, maxScore: d.maxScore }))
+    })
+    
     if (!discipline || !discipline.maxScore || discipline.maxScore <= 0) {
       // No validation if maxScore is 0 or undefined
+      console.log('❌ No validation: discipline=%o, maxScore=%o', discipline, discipline?.maxScore)
       return { isValid: true, message: '' }
     }
     
@@ -1264,12 +1273,14 @@ export function ScoreCapture() {
     }
     
     if (numericScore > discipline.maxScore) {
+      console.log('⚠️ Score exceeds maximum!', numericScore, '>', discipline.maxScore)
       return { 
         isValid: false, 
         message: `Score exceeds maximum of ${discipline.maxScore.toFixed(2)} points`
       }
     }
     
+    console.log('✅ Score is valid')
     return { isValid: true, message: '' }
   }
 
@@ -1855,97 +1866,129 @@ export function ScoreCapture() {
                                           {/* Green Endwert (official) */}
                                           <div className="p-2 bg-green-50 border border-green-200 rounded mb-1">
                                             <div className="text-xs text-green-600 font-medium text-center mb-1">Endwert (offiziell)</div>
-                                            <input
-                                              type="number"
-                                              step="0.01"
-                                              value={currentEndwert}
-                                              onChange={e => {
-                                                const value = e.target.value;
-                                                setScoreMatrix(prev => ({
-                                                  ...prev,
-                                                  [matrixKey]: value
-                                                }));
-                                              }}
-                                              onBlur={async (e) => {
-                                                const value = e.target.value; // Use the current input value directly
-                                                if (value && value.trim() !== '' && !isNaN(parseFloat(value))) {
-                                                  console.log('🟢 Saving official Endwert:', value, 'for participant', participant.id, 'discipline', disciplineId);
-                                                  
-                                                  // Update scoreMatrix immediately
-                                                  setScoreMatrix(prev => ({
-                                                    ...prev,
-                                                    [matrixKey]: value
-                                                  }));
-                                                  
-                                                  // Track pending save
-                                                  setPendingEndwerts(prev => ({ ...prev, [matrixKey]: value }));
-                                                  
-                                                  // Update local existingScores state for immediate UI feedback
-                                                  setExistingScores(prev => {
-                                                    const safePrev = Array.isArray(prev) ? prev : [];
-                                                    let numericDisciplineId: number;
-                                                    if (typeof disciplineId === 'number') {
-                                                      numericDisciplineId = disciplineId;
-                                                    } else {
-                                                      const found = disciplines.find(d => d.var_name === disciplineId);
-                                                      numericDisciplineId = found?.int_disziplinid || 0;
-                                                    }
-                                                    const idx = safePrev.findIndex(s => s.participantId === participant.id && s.disciplineId === numericDisciplineId);
-                                                    if (idx !== -1) {
-                                                      const updated = [...safePrev];
-                                                      updated[idx] = { ...updated[idx], score: parseFloat(value) };
-                                                      return updated;
-                                                    } else {
-                                                      return [...safePrev, {
-                                                        participantId: participant.id,
-                                                        disciplineId: numericDisciplineId,
-                                                        competitionId: competitionId ? parseInt(competitionId) : 1,
-                                                        score: parseFloat(value),
-                                                        attempt: 1,
-                                                        status: 'completed'
-                                                      }];
-                                                    }
-                                                  });
-                                                  
-                                                  // Save to database
-                                                  try {
-                                                    console.log('🟢 Calling saveScore...');
-                                                    await saveScore(participant.id, disciplineId);
-                                                    console.log('✅ SaveScore completed successfully');
-                                                  } catch (error) {
-                                                    console.error('❌ SaveScore failed:', error);
-                                                    alert('Failed to save Endwert. Please try again.');
-                                                  }
-                                                } else {
-                                                  console.log('⚠️  Skipping save - invalid value:', value);
-                                                }
-                                              }}
-                                              className="w-full text-sm font-bold text-green-700 text-center bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded px-1"
-                                              placeholder="0.00"
-                                              title="Click to edit total score (Endwert)"
-                                            />
+                                            {(() => {
+                                              const endwertValidation = getScoreValidation(disciplineId, currentEndwert)
+                                              return (
+                                                <div className="relative">
+                                                  <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={currentEndwert}
+                                                    onChange={e => {
+                                                      const value = e.target.value;
+                                                      setScoreMatrix(prev => ({
+                                                        ...prev,
+                                                        [matrixKey]: value
+                                                      }));
+                                                    }}
+                                                    onBlur={async (e) => {
+                                                      const value = e.target.value; // Use the current input value directly
+                                                      if (value && value.trim() !== '' && !isNaN(parseFloat(value))) {
+                                                        console.log('🟢 Saving official Endwert:', value, 'for participant', participant.id, 'discipline', disciplineId);
+                                                        
+                                                        // Update scoreMatrix immediately
+                                                        setScoreMatrix(prev => ({
+                                                          ...prev,
+                                                          [matrixKey]: value
+                                                        }));
+                                                        
+                                                        // Track pending save
+                                                        setPendingEndwerts(prev => ({ ...prev, [matrixKey]: value }));
+                                                        
+                                                        // Update local existingScores state for immediate UI feedback
+                                                        setExistingScores(prev => {
+                                                          const safePrev = Array.isArray(prev) ? prev : [];
+                                                          let numericDisciplineId: number;
+                                                          if (typeof disciplineId === 'number') {
+                                                            numericDisciplineId = disciplineId;
+                                                          } else {
+                                                            const found = disciplines.find(d => d.var_name === disciplineId);
+                                                            numericDisciplineId = found?.int_disziplinid || 0;
+                                                          }
+                                                          const idx = safePrev.findIndex(s => s.participantId === participant.id && s.disciplineId === numericDisciplineId);
+                                                          if (idx !== -1) {
+                                                            const updated = [...safePrev];
+                                                            updated[idx] = { ...updated[idx], score: parseFloat(value) };
+                                                            return updated;
+                                                          } else {
+                                                            return [...safePrev, {
+                                                              participantId: participant.id,
+                                                              disciplineId: numericDisciplineId,
+                                                              competitionId: competitionId ? parseInt(competitionId) : 1,
+                                                              score: parseFloat(value),
+                                                              attempt: 1,
+                                                              status: 'completed'
+                                                            }];
+                                                          }
+                                                        });
+                                                        
+                                                        // Save to database
+                                                        try {
+                                                          console.log('🟢 Calling saveScore...');
+                                                          await saveScore(participant.id, disciplineId);
+                                                          console.log('✅ SaveScore completed successfully');
+                                                        } catch (error) {
+                                                          console.error('❌ SaveScore failed:', error);
+                                                          alert('Failed to save Endwert. Please try again.');
+                                                        }
+                                                      } else {
+                                                        console.log('⚠️  Skipping save - invalid value:', value);
+                                                      }
+                                                    }}
+                                                    className={`w-full text-sm font-bold text-center bg-transparent border-0 focus:ring-1 rounded px-1 ${
+                                                      endwertValidation.isValid
+                                                        ? 'text-green-700 focus:ring-green-400'
+                                                        : 'text-red-700 focus:ring-red-500 bg-red-50'
+                                                    }`}
+                                                    placeholder="0.00"
+                                                    title={endwertValidation.isValid ? "Click to edit total score (Endwert)" : endwertValidation.message}
+                                                  />
+                                                  {!endwertValidation.isValid && (
+                                                    <div className="absolute -bottom-5 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-1 z-10 text-center">
+                                                      ⚠️ {endwertValidation.message}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )
+                                            })()}
                                           </div>
                                           {/* Grey Endwert (jury) - only show when jury scores are enabled */}
                                           {showJuryScores && juryFieldKey && (
                                             <div className="p-2 bg-gray-100 border border-gray-300 rounded mb-1">
                                               <div className="text-xs text-gray-600 font-medium text-center mb-1">Endwert (Jury)</div>
-                                              <input
-                                                type="number"
-                                                step="0.01"
-                                                value={juryEndwert}
-                                                onChange={e => {
-                                                  const value = e.target.value;
-                                                  setScoreMatrix(prev => ({ ...prev, [juryFieldKey]: value }));
-                                                }}
-                                                onBlur={async () => {
-                                                  if (juryFieldKey && juryEndwertField) {
-                                                    await saveFieldScore(participant.id, juryEndwertField);
-                                                  }
-                                                }}
-                                                className="w-full text-sm font-bold text-gray-700 text-center bg-transparent border-0 focus:ring-1 focus:ring-gray-400 rounded px-1"
-                                                placeholder="0.00"
-                                                title="Jury result Endwert"
-                                              />
+                                              {(() => {
+                                                const juryValidation = getScoreValidation(disciplineId, juryEndwert)
+                                                return (
+                                                  <div className="relative">
+                                                    <input
+                                                      type="number"
+                                                      step="0.01"
+                                                      value={juryEndwert}
+                                                      onChange={e => {
+                                                        const value = e.target.value;
+                                                        setScoreMatrix(prev => ({ ...prev, [juryFieldKey]: value }));
+                                                      }}
+                                                      onBlur={async () => {
+                                                        if (juryFieldKey && juryEndwertField) {
+                                                          await saveFieldScore(participant.id, juryEndwertField);
+                                                        }
+                                                      }}
+                                                      className={`w-full text-sm font-bold text-center bg-transparent border-0 focus:ring-1 rounded px-1 ${
+                                                        juryValidation.isValid
+                                                          ? 'text-gray-700 focus:ring-gray-400'
+                                                          : 'text-red-700 focus:ring-red-500 bg-red-50'
+                                                      }`}
+                                                      placeholder="0.00"
+                                                      title={juryValidation.isValid ? "Jury result Endwert" : juryValidation.message}
+                                                    />
+                                                    {!juryValidation.isValid && (
+                                                      <div className="absolute -bottom-5 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-1 z-10 text-center">
+                                                        ⚠️ {juryValidation.message}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                )
+                                              })()}
                                             </div>
                                           )}
                                           {/* Calculate button - only show when jury scores are enabled */}

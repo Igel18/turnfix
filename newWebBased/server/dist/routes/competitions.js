@@ -295,7 +295,8 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
         d.var_icon,
         d.var_formel,
         d.var_maske,
-        d.int_versuche
+        d.int_versuche,
+        wd.rel_max
       FROM tfx_disziplinen d
       INNER JOIN tfx_wettkaempfe_x_disziplinen wd ON d.int_disziplinenid = wd.int_disziplinenid
       WHERE wd.int_wettkaempfeid = $1
@@ -314,7 +315,8 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
             var_formel: discipline.var_formel,
             var_maske: discipline.var_maske,
             int_versuche: discipline.int_versuche || 1,
-            attempts: discipline.int_versuche || 1 // For compatibility
+            attempts: discipline.int_versuche || 1, // For compatibility
+            maxScore: discipline.rel_max || 0 // Maximum score for this discipline in this competition
         }));
         console.log(`Found ${transformedDisciplines.length} disciplines for competition ${competitionId}`);
         res.json({

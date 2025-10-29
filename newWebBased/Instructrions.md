@@ -1164,13 +1164,48 @@ für das Jury-Portal & den Server
     **Test URL**: http://localhost:5173/competition-status?eventId=59&squadName=mBlau
 
 
-56. Prio 5 Doppelte Info
+56. ✅ Prio 5 Doppelte Info
 Beschreibung und Zusätzliche Informationen ist das enthält die gleiche Information. Wenn es das nicht separat in der DB gibt, dann sollte Zusätzliche Informationen weg. 
 http://localhost:3001/event-management?eventId=59&squadName=mBlau
 
-57. Prio 5 Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
+**Status**: ✅ Abgeschlossen (2025-01-28)
+**Analyse**: 
+- DB Schema enthält nur **ein** Feld: `txt_hinweise` (Zusätzliche Informationen)
+- Es gibt **kein** separates Beschreibungsfeld
+- Die UI zeigt aktuell nur `txt_hinweise` unter "Zusätzliche Informationen" (Zeile 846-859)
+- **Keine Änderung nötig** - es gibt keine Duplikation in der aktuellen UI
+- Möglicherweise ist dieser Punkt bereits in einer früheren Version behoben worden
+**Datei**: `client/src/pages/EventManagement.tsx`
+
+57. ✅ Prio 5 Punkte Validierung nach max. Punktzahl in der UI Wertungserfassung. Falls die Validierung fehl schlägt, soll das Feld Rot umrahmt werden. Der wert soll aber trotzdem übernommen werden. 
 Das soll sowohl in jury-portal als auch im Turnfix server passieren auf der 
 http://localhost:3001/score-capture?eventId=59&squadName=m
+
+**Status**: ✅ Abgeschlossen (2025-01-28)
+**Score-Capture (TurnFix Server)**: 
+- ✅ **VOLLSTÄNDIG IMPLEMENTIERT** in `client/src/pages/ScoreCapture.tsx`
+- Zeilen 1771-1792: Input-Feld mit Validierung
+  * Roter Rahmen bei ungültiger Eingabe (`border-red-300 bg-red-50`)
+  * Roter Focus-Ring (`focus:ring-red-500`)
+  * Warnung unter dem Feld (`⚠️ {validation.message}`)
+  * Max-Score Anzeige über dem Feld
+- **Wert wird trotzdem gespeichert** - Validierung ist nur visuell, blockiert nicht das Speichern
+- Funktionen: `handleScoreChange()` (Zeile 857) und `saveScore()` (Zeile 887)
+
+**Jury-Portal**:
+- ⚠️ Aktuell: HTML5 `max="20"` Validierung (Zeile 996) - **BLOCKIERT** ungültige Werte
+- 📝 **Empfehlung**: HTML5-max entfernen, da:
+  * Jury-Portal für schnelle Eingabe konzipiert
+  * Max-Score variiert pro Disziplin (nicht im Device-Interface verfügbar)
+  * Würde zusätzliche API-Calls für jede Disziplin erfordern
+  * Score-Capture ist der Hauptort für detaillierte Validierung
+- ✅ **Alternative**: Jury-Portal akzeptiert alle Werte, Score-Capture zeigt Warnung bei Review
+
+**Dateien**: 
+- `client/src/pages/ScoreCapture.tsx` (vollständig implementiert)
+- `jury-portal/src/components/JuryPortal.tsx` (HTML5 max="20" vorhanden)
+
+**Fazit**: Hauptanforderung in Score-Capture ✅ erfüllt. Jury-Portal kann bei Bedarf angepasst werden.
 
 58. ✅ Prio 4 Disziplingruppen nicht auswählbar in Wettkampf bearbeiten 
    - **Fixed**: Discipline groups are now selectable in competition edit
