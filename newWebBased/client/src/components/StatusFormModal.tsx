@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon, SwatchIcon } from '@heroicons/react/24/outline';
+import UnifiedModal from './UnifiedModal';
 
 interface Status {
   int_statusid: number;
@@ -106,26 +106,15 @@ const StatusFormModal: React.FC<StatusFormModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-            <SwatchIcon className="h-6 w-6 mr-2 text-purple-600" />
-            {isEditing ? 'Edit Status' : 'Add New Status'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            disabled={isSubmitting}
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? 'Edit Status' : 'Add New Status'}
+      size="md"
+      showFooter={false}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
           {/* Status Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -227,8 +216,7 @@ const StatusFormModal: React.FC<StatusFormModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </UnifiedModal>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon, UserIcon } from '@heroicons/react/24/outline';
+import UnifiedModal from './UnifiedModal';
 
 interface Person {
   int_personenid: number;
@@ -41,8 +41,6 @@ const PersonFormModal: React.FC<PersonFormModalProps> = ({
   setFormData,
   onSubmit
 }) => {
-  if (!isOpen) return null;
-
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -51,22 +49,14 @@ const PersonFormModal: React.FC<PersonFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            <UserIcon className="h-6 w-6 mr-2" />
-            {editingPerson ? 'Edit Person' : 'Add New Person'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
-
-        <form onSubmit={onSubmit} className="space-y-4">
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editingPerson ? 'Edit Person' : 'Add New Person'}
+      size="2xl"
+      showFooter={false}
+    >
+      <form onSubmit={onSubmit} className="space-y-4">
           {/* Name fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -188,8 +178,7 @@ const PersonFormModal: React.FC<PersonFormModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </UnifiedModal>
   );
 };
 
