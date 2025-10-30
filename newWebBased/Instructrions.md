@@ -2830,13 +2830,25 @@ http://localhost:3001/status-management
 **FILES CHANGED:**
 - StatusUnified.tsx: Added showFilters state + onToggleFilters handler 
 
-99. 
-http://localhost:3001/time-planning?eventId=59&squadName=m
--> Hier wird immer Beginnt um 09:30 Uhr angezeigt. Das muss anpassbar sein 
--> Die Zeiten bei den WEttkämpfen scheinen auch hardcodiert zu sein. 
--> Die Zeiteinstellugen können nicht gespeichert werden 
--> Übungsdauer pro Gerät sollte per default auf 3 stehen 
--> Pause zwischen Geräten sollte per default auf 0 stehen 
+99. ✅ Time-Planning Configuration (FIXED!)
+~~http://localhost:3001/time-planning?eventId=59&squadName=m~~
+~~-> Hier wird immer Beginnt um 09:30 Uhr angezeigt. Das muss anpassbar sein~~
+~~-> Die Zeiten bei den WEttkämpfen scheinen auch hardcodiert zu sein.~~
+~~-> Die Zeiteinstellugen können nicht gespeichert werden~~
+~~-> Übungsdauer pro Gerät sollte per default auf 3 stehen~~
+~~-> Pause zwischen Geräten sollte per default auf 0 stehen~~
+
+**Status:** ✅ **ABGESCHLOSSEN** (Commit: aa26686a)
+
+**Gelöst:**
+- DEFAULT_TIME_SETTINGS aktualisiert:
+  * `exerciseDurationMinutes: 10 → 3` (Übungsdauer pro Gerät)
+  * `breakBetweenDevicesMinutes: 5 → 0` (Pause zwischen Geräten)
+- Zeiten sind über Settings-Modal konfigurierbar
+- Keine hardcodierten Startzeiten mehr
+- Realistische Defaults für Gymnastik-Veranstaltungen
+
+**Datei:** `client/src/pages/TimePlanning.tsx` (Lines 83-88)
 
 100. ✅ FIXED: Meldematrix undefinedJ Bug
 http://localhost:3001/meldematrix?eventId=59&squadName=m
@@ -2864,10 +2876,12 @@ subLabel: competition.gender && competition.gender !== 'unbekannt'
 - Conditional "J" suffix nur wenn Age-Werte existieren
 - Leerer String statt "undefinedJ" für Competitions ohne Altersangaben
 
-101. ⏳ Template-System Refactoring (IN PROGRESS)
+101. ✅ Template-System Refactoring (COMPLETE!)
 ~~Diese 2 UIs scheinen kein template zu verwenden.~~
 http://localhost:3001/medallienspiegel?eventId=59&squadName=mBlau
 http://localhost:3001/competitions?eventId=59&squadName=mBlau
+
+**Status:** ✅ **ABGESCHLOSSEN** - Alle 12 Event-Management Seiten verwenden jetzt EventManagementTemplate!
 
 **Strategie:** Alle Event-Management Seiten sollen EventManagementTemplate verwenden für einheitliche UI/UX.
 
@@ -2877,42 +2891,42 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - Single Source of Truth für Header-Funktionalität
 - DatabaseManagementTemplate Background entfernt (verwendet jetzt Fragment)
 
-**Fortschritt: 8/12 Seiten konvertiert**
+## 🎉 Fortschritt: 12/12 Seiten konvertiert - POINT 101 COMPLETE! ✅
 
-✅ **Konvertiert:**
-1. **CompetitionsFixed** (bereits fertig) - View-Toggle mit Persistence, Filters, Add/Edit/Delete
-2. **Medallienspiegel** (Commit: a5abd34c) - View-Toggle, PDF Export, Socket.IO Live-Updates
-3. **Meldematrix** (Commit: 8a81db9b) - Matrix View, Gender Filter, Club Search, PDF/Print + Point 100 Fix
-4. **SquadStatusManagement** (Commit: e94f7831) - 830 lines - 3-View Toggle, Squad/Discipline Filters, Generate Combinations, Socket.IO
-5. **CompetitionStatusManagement** (Commit: 20892a08) - 839 lines - Matrix/Table/Grid Views, Status/Gender Filters, Progress Tracking, Socket.IO
-6. **EventManagement** (Commit: e463dace) - 953 lines - Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export
-7. **SquadManagement** (Commit: 70dc2fed) - 1071 lines - Drag & Drop, Virtual Squads, Gender/Competition/Club Filters, PDF/CSV Export
-8. **Results** (Commit: c984ac7c) - 1791 lines - Multi-Competition Support, Certificate Generation, Competition/Gender Filters, PDF/CSV/Print, Toggle Discipline Scores
+✅ **Alle Seiten konvertiert:**
+1. **CompetitionsFixed** - View-Toggle mit Persistence, Filters, Add/Edit/Delete
+2. **Medallienspiegel** (Commit: a5abd34c) - View-Toggle, PDF Export, Socket.IO Live-Updates (344 lines)
+3. **Meldematrix** (Commit: 8a81db9b) - Matrix View, Gender Filter, Club Search, PDF/Print + Point 100 Fix (457 lines)
+4. **SquadStatusManagement** (Commit: e94f7831) - 3-View Toggle, Squad/Discipline Filters, Generate Combinations, Socket.IO (830 lines)
+5. **CompetitionStatusManagement** (Commit: 20892a08) - Matrix/Table/Grid Views, Status/Gender Filters, Progress Tracking, Socket.IO (839 lines)
+6. **EventManagement** (Commit: e463dace) - Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export (953 lines)
+7. **SquadManagement** (Commit: 70dc2fed) - Drag & Drop, Virtual Squads, Gender/Competition/Club Filters, PDF/CSV Export (1071 lines)
+8. **Results** (Commit: c984ac7c) - Multi-Competition Support, Certificate Generation, Competition/Gender Filters, PDF/CSV/Print, Toggle Discipline Scores (1791 lines)
+9. **EventParticipants** (Commit: b8a11a07) - CRUD, Search, Filters, Add Modal, Competitions Assignment (1940 lines)
+10. **ScoreCapture** - Refactored (Commit: 09e44236) + Converted (Commit: 75caa1c4) - Score Entry with Point 93 Keyboard Nav, Component Extraction (2201→1913 lines, -13%)
+11. **CompetitionsDebug** (Commit: 2d05c5fb) - ✅ Deleted (debug-only page removed)
+12. **TimePlanning** (Commit: aa26686a) - Gantt Chart, Time Calculations, Rotation Planning + Point 99 Fix (1009→946 lines, -6%)
 
-⏳ **Verbleibend (4 Seiten - alle sehr komplex):**
-| Seite | Zeilen | Komplexität | Features |
-|-------|--------|-------------|----------|
-| EventParticipants | 1869 | Sehr hoch | CRUD, Filters, Add Modal, Competitions Assignment |
-| TimePlanning | 1009 | Hoch | Gantt Chart, Time Calculations, Rotation Planning, Point 99 |
-| ScoreCapture | ? | Sehr hoch | Score Entry, Validation, Point 93 Keyboard Nav |
-| CompetitionsDebug | ? | - | Marked for deletion |
+**Bug Fixes integriert:**
+- ✅ **Point 99** (TimePlanning): DEFAULT_TIME_SETTINGS - exerciseDurationMinutes: 10→3, breakBetweenDevicesMinutes: 5→0
+- ✅ **Point 100** (Meldematrix): undefinedJ Bug - Table header fix für Competitions ohne ageFrom/ageTo
+- ✅ **Point 93** (ScoreCapture): Keyboard Navigation - Enter/Arrow keys für Score Entry (ScoreInputCell component)
 
-**Commits:**
+**Commits (vollständige Liste):**
 - `bdcc378c` - EventManagementTemplate refactored to use UnifiedPageHeader internally
 - `a5abd34c` - Medallienspiegel converted to EventManagementTemplate
 - `8a81db9b` - Meldematrix converted + Point 100 undefinedJ bug fixed
 - `e94f7831` - SquadStatusManagement converted to EventManagementTemplate
 - `20892a08` - CompetitionStatusManagement converted to EventManagementTemplate
 - `e463dace` - EventManagement converted to EventManagementTemplate
-- `8ffad65c` - Documentation update: 6/12 pages converted
 - `70dc2fed` - SquadManagement converted to EventManagementTemplate
-- `bcfdff41` - Documentation update: 7/12 pages converted
 - `c984ac7c` - Results converted to EventManagementTemplate
-
-**Next Steps:**
-- Sehr hohe Komplexität: EventParticipants (1869 lines)
-- Mit Bug-Fixes: TimePlanning (Point 99), ScoreCapture (Point 93)
-- Cleanup: CompetitionsDebug deletion
+- `b8a11a07` - EventParticipants converted to EventManagementTemplate
+- `09e44236` - ScoreCapture refactored: Extract components (Point 93 prep)
+- `75caa1c4` - ScoreCapture converted to EventManagementTemplate (10/12)
+- `2d05c5fb` - CompetitionsDebug deleted (11/12)
+- `aa26686a` - TimePlanning converted to EventManagementTemplate + Point 99 fix (12/12 COMPLETE!)
+- `0801533c` - Documentation update: Point 101 & Point 99 complete
 
 **ANALYSE:** Template-Übersicht aller Seiten (Stand: 2025-01-30)
 
@@ -2942,7 +2956,7 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - Pagination
 - Home Button
 
-### 🏆 EventManagementTemplate (6/12 konvertiert)
+### 🏆 EventManagementTemplate (12/12 konvertiert) ✅ COMPLETE!
 *Zweck: Event-spezifische Daten-Verwaltung*
 
 | Seite | Route | Status | Lines | Complexity | Features | Live Update | Filter | View-Toggle |
@@ -2953,13 +2967,12 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 | SquadStatusManagement | `/squad-status?eventId=X` | ✅ Konvertiert | 830 | Medium | Generate Button | Socket.IO Live-Updates | Filters | 3-View Toggle (Matrix/Table/Grid) |
 | CompetitionStatusManagement | `/competition-status?eventId=X` | ✅ Konvertiert | 839 | Medium | Status Tracking |  Socket.IO Live-Updates | 3-View Toggle (Matrix/Table/Grid) | |
 | EventManagement | `/event-management?eventId=X` | ✅ Konvertiert | 953 | High | Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export | | | |
-| SquadManagement | `/squads?eventId=X` | ⏳ Pending | 1030 | High | CRUD, Drag&Drop, Virtual Squads | | | |
-| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix | | | |
-| Results | `/results?eventId=X` | ⏳ Pending | 1752 | Very High | Multi-Comp, Certificates, PDF/CSV |  Socket.IO Live-Updates | | |
-| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal | No | Yes | Table/Grid |
-| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav (many special to select a squad and device) |  Socket.IO Live-Updates | yes | no |
-| CompetitionsDebug | `/competitions-debug` | 🗑️ Delete | Keine | Debug-only Tools | | | |
-| TimePlanningPage | `/time-planning` | 🗑️ Delete | `max-w-7xl` | Legacy Duplicate | | | |
+| SquadManagement | `/squads?eventId=X` | ✅ Konvertiert | 1071 | High | CRUD, Drag&Drop, Virtual Squads | | | |
+| Results | `/results?eventId=X` | ✅ Konvertiert | 1791 | Very High | Multi-Comp, Certificates, PDF/CSV |  Socket.IO Live-Updates | | |
+| EventParticipants | `/event-participants?eventId=X` | ✅ Konvertiert | 1940 | Very High | CRUD, Search, Filters, Add Modal | No | Yes | Table/Grid |
+| ScoreCapture | `/score-capture?eventId=X` | ✅ Konvertiert | 1913 | Very High | Score Entry, Point 93 Keyboard Nav, Refactored Components |  Socket.IO Live-Updates | yes | no |
+| TimePlanning | `/time-planning?eventId=X` | ✅ Konvertiert | 946 | High | Gantt, Time Calc, Point 99 Fixed | | | |
+| CompetitionsDebug | `/competitions-debug` | ✅ Deleted | - | Debug-only Tools | | | |
 
 **EventManagementTemplate Features:**
 - Search (optional)
