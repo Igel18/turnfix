@@ -2772,3 +2772,53 @@ http://localhost:3001/competitions?eventId=77&squadName=m
 
 http://localhost:3001/event-participants?eventId=77&squadName=m
 
+94. Lokalisierung:
+http://localhost:3001/associations
+http://localhost:3001/clubs 
+http://localhost:3001/locations
+http://localhost:3001/persons
+http://localhost:3001/sports
+http://localhost:3001/formulas
+http://localhost:3001/discipline-groups
+http://localhost:3001/status-management 
+
+95. Ändern: 
+http://localhost:3001/participants
+-> Startnummer ist heißt eigentlich Startpass-Nummer
+
+96. ⏳ Layout Designer UnifiedModal
+http://localhost:3001/certificate-layouts
+-> kann hier auch das template für das modale layout dialog verwenden? 
+**STATUS:** Möglich, aber komplexer Designer (1330 Zeilen) - benötigt "7xl" size in UnifiedModal. Kann später konvertiert werden.
+
+97. ✅ Keyboard Shortcut Ctrl+S im Layout Designer
+Im Template für das modals layout dialog könnte die tastenkombination ctrl + s den dialog schließen und die änderungen speichern
+**IMPLEMENTIERT:** 
+- Ctrl+S (Windows/Linux) oder Cmd+S (Mac) speichert Layout und schließt Designer
+- Visueller Hinweis "Ctrl+S" am Save-Button
+- i18n Support für DE/EN
+- Commit: 8f322da2
+**FILES CHANGED:**
+- LayoutDesigner.tsx: useEffect Hook für Keyboard Event Listener
+- de.json/en.json: saveShortcut Translation
+
+98. 
+http://localhost:3001/status-management
+-> hier ist per default das Filter eingeblendet. Wird hier nicht das Template verwendet? 
+
+99. 
+http://localhost:3001/time-planning?eventId=59&squadName=m
+-> Hier wird immer Beginnt um 09:30 Uhr angezeigt. Das muss anpassbar sein 
+-> Die Zeiten bei den WEttkämpfen scheinen auch hardcodiert zu sein. 
+-> Die Zeiteinstellugen können nicht gespeichert werden 
+-> Übungsdauer pro Gerät sollte per default auf 3 stehen 
+-> Pause zwischen Geräten sollte per default auf 0 stehen 
+
+100. 
+http://localhost:3001/meldematrix?eventId=59&squadName=m
+Da steht in der Überschrift der Tabelle "undefinedJ" 
+
+101. Uneinheitlicher Hintergrund
+Diese 2 UIs scheinen kein template zu verwenden. 
+http://localhost:3001/medallienspiegel?eventId=59&squadName=mBlau
+http://localhost:3001/competitions?eventId=59&squadName=mBlau
