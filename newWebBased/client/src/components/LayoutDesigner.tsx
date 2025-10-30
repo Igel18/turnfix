@@ -150,6 +150,35 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     setZoom(Math.max(0.1, Math.min(2, fitZoom)));
   }, [canvasSize]);
 
+  // Keyboard shortcut: Ctrl+S to save and close
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      // Check for Ctrl+S (Windows/Linux) or Cmd+S (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault(); // Prevent browser's default save dialog
+        
+        // Save the layout
+        await onSave({ 
+          ...layout, 
+          fields,
+          var_name: layoutName,
+          txt_comment: layoutComment || null
+        });
+        
+        // Close the designer
+        onClose();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [layout, fields, layoutName, layoutComment, onSave, onClose]);
+
   // Handle paper format change
   const handlePaperFormatChange = (format: keyof typeof PAPER_FORMATS) => {
     setPaperFormat(format);
@@ -723,9 +752,11 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                   var_name: layoutName,
                   txt_comment: layoutComment || null
                 })}
-                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
+                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 flex items-center"
+                title={t('layoutDesigner.saveShortcut', { defaultValue: 'Save and close (Ctrl+S)' })}
               >
                 {t('layoutDesigner.saveLayout')}
+                <span className="ml-2 text-xs opacity-75">Ctrl+S</span>
               </button>
               <button
                 onClick={onClose}

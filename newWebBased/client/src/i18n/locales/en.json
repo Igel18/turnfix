@@ -1780,6 +1780,7 @@
     "fitToView": "Fit to View",
     "properties": "Properties",
     "saveLayout": "Save Layout",
+    "saveShortcut": "Save and close (Ctrl+S)",
     "close": "Close",
     "addElements": "Add Elements",
     "fields": "Fields",
