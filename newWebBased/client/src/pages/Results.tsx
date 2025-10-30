@@ -8,7 +8,7 @@ import {
   ChartBarIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '../components/UnifiedPageHeader'
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import { apiGet } from '../utils/api'
 import { debugLog, isDebugEnabled, setDebugMode } from '@/utils/debug'
 import { 
@@ -119,30 +119,6 @@ const Results = () => {
   const [selectedPaperFormat, setSelectedPaperFormat] = useState<keyof typeof PAPER_FORMATS>('A4')
   const [certificatesToPrint, setCertificatesToPrint] = useState<Participant[]>([])
   const [isPrintingCertificates, setIsPrintingCertificates] = useState(false)
-
-  const getFilterOptions = () => [
-    {
-      value: 'competition',
-      label: t('results.filters.competition'),
-      selectedValue: selectedCompetition,
-      options: getAvailableCompetitions().map(comp => ({
-        value: comp.id?.toString() || '',
-        label: `${comp.name || 'Unknown Competition'}${comp.number ? ` (Nr. ${comp.number})` : ''}`
-      })),
-      onChange: setSelectedCompetition
-    },
-    {
-      value: 'gender',
-      label: t('results.filters.gender'),
-      selectedValue: genderFilter,
-      options: [
-        { value: 'männlich', label: t('results.filters.male') },
-        { value: 'weiblich', label: t('results.filters.female') },
-        { value: 'gemischt', label: t('results.filters.both') }
-      ],
-      onChange: setGenderFilter
-    }
-  ];
 
   const handleClearAllFilters = () => {
     setSearchTerm('')
@@ -1337,64 +1313,126 @@ const Results = () => {
   // Show message if no event is selected
   if (!eventId) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="text-center py-8">
-          <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('results.noEventTitle')}</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {t('results.noEventMessage')}
-          </p>
-        </div>
-      </div>
+      <EventManagementTemplate
+        title={t('results.title')}
+        subtitle={t('results.noEventMessage')}
+        icon={ChartBarIcon}
+        showEventContext={true}
+        showViewToggle={false}
+      >
+        {() => (
+          <div className="text-center py-8">
+            <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('results.noEventTitle')}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {t('results.noEventMessage')}
+            </p>
+          </div>
+        )}
+      </EventManagementTemplate>
     )
   }
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      <UnifiedPageHeader
-        title={t('results.title')}
-        subtitle={t('results.subtitle', { eventName })}
-        icon={ChartBarIcon}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder={t('results.searchPlaceholder')}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        hasFilters={true}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={handleClearAllFilters}
-        showExportCSV={true}
-        onExportCSV={exportResults}
-        showExportPDF={true}
-        onExportPDF={exportResultsPDF}
-        showPrint={true}
-        onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
-        printLabel={t('results.printCertificates')}
-        totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
-        showEventContext={true}
-        customActions={
-          <button
-            onClick={() => setShowDisciplineScores(!showDisciplineScores)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              showDisciplineScores
-                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            title={showDisciplineScores ? t('results.hideDisciplineScores') : t('results.showDisciplineScores')}
-          >
-            {showDisciplineScores ? '📊 ' + t('results.hideDetails') : '📊 ' + t('results.showDetails')}
-          </button>
-        }
-      />
+  // Prepare available competitions and genders for filters
+  const availableCompetitions = getAvailableCompetitions();
 
-      {/* Rankings Table */}
-      <div className="bg-white rounded-lg shadow-sm border mx-6">
-        {isLoading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">{t('results.loading')}</p>
+  return (
+    <EventManagementTemplate
+      title={t('results.title')}
+      subtitle={t('results.subtitle', { eventName })}
+      icon={ChartBarIcon}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      searchPlaceholder={t('results.searchPlaceholder')}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      filterSection={
+        showFilters ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Competition Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('results.filters.competition')}
+                </label>
+                <select
+                  value={selectedCompetition}
+                  onChange={(e) => setSelectedCompetition(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('results.filters.allCompetitions')}</option>
+                  {availableCompetitions.map(comp => (
+                    <option key={comp.id} value={comp.id?.toString() || ''}>
+                      {comp.name || 'Unknown Competition'}{comp.number ? ` (Nr. ${comp.number})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Gender Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('results.filters.gender')}
+                </label>
+                <select
+                  value={genderFilter}
+                  onChange={(e) => setGenderFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('results.filters.all')}</option>
+                  <option value="männlich">{t('results.filters.male')}</option>
+                  <option value="weiblich">{t('results.filters.female')}</option>
+                  <option value="gemischt">{t('results.filters.both')}</option>
+                </select>
+              </div>
+
+              {/* Reset Button */}
+              <div className="flex items-end">
+                <button
+                  onClick={handleClearAllFilters}
+                  className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {t('common.resetFilters')}
+                </button>
+              </div>
+            </div>
           </div>
-        ) : selectedCompetition ? (
+        ) : undefined
+      }
+      showExportCSV={true}
+      onExportCSV={exportResults}
+      showExportPDF={true}
+      onExportPDF={exportResultsPDF}
+      showPrint={true}
+      onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
+      printLabel={t('results.printCertificates')}
+      totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
+      showEventContext={true}
+      showViewToggle={false}
+      customActions={
+        <button
+          onClick={() => setShowDisciplineScores(!showDisciplineScores)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            showDisciplineScores
+              ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+          title={showDisciplineScores ? t('results.hideDisciplineScores') : t('results.showDisciplineScores')}
+        >
+          {showDisciplineScores ? '📊 ' + t('results.hideDetails') : '📊 ' + t('results.showDetails')}
+        </button>
+      }
+    >
+      {() => (
+        <div>
+          {/* Rankings Table */}
+          <div className="bg-white rounded-lg shadow-sm border mx-6">
+            {isLoading ? (
+              <div className="p-6 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-gray-600">{t('results.loading')}</p>
+              </div>
+            ) : selectedCompetition ? (
           // Single Competition View
           filteredRanking.length === 0 ? (
             <div className="p-6 text-center">
@@ -1744,7 +1782,9 @@ const Results = () => {
           </button>
         </div>
       </UnifiedModal>
-    </div>
+        </div>
+      )}
+    </EventManagementTemplate>
   )
 }
 
