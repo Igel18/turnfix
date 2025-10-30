@@ -3059,16 +3059,42 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 
 103. Refactoring 
 Refactoring: 
-Gibt es weitere Sachen die wir refactoren können? z.B. könnte ich mir das Layout von verschiedenen Spalten in den tabellen vorstellen. Das kann ja überall gleich aussehen, wenn wir z.B. einen Verein darstellen oder das Alter oder Geschlecht. 
+Gibt es weitere Sachen die wir refactoren können? Die Files haben zum Teil richtig viele Zeilen. z.B. könnte ich mir das Layout von verschiedenen Spalten in den tabellen vorstellen. Das kann ja überall gleich aussehen, wenn wir z.B. einen Verein darstellen oder das Alter oder Geschlecht. 
 z.T. werden auch Infos in einer Spalte zusammengefasst. Das kann auch in verschiedene Spalten (z.B. Alter/Geschlecht). 
 
 104. Inhaltsverzeichnis 
 Inhaltsverzeichnis hier drin mit verlinkung auf die einzelnen punkte
 
-105. event participants 
-Die umschaltung von Table zu grid geht auch nicht
+~~105. event participants~~ ✅
+~~Die umschaltung von Table zu grid geht auch nicht~~ ✅
+~~in dem squad management gibt es auch keinen filter~~ ✅
 
-in dem squad management gibt es auch keinen filter 
+**Status**: ✅ ABGESCHLOSSEN (2025-01-30)
+
+**Problem 105a - EventParticipants Table/Grid Toggle**:
+- View Toggle Button funktionierte nicht
+- Template übergibt `viewMode` Parameter an children function
+- EventParticipants nutzte lokale `viewType` Variable statt dem Parameter
+- **Lösung**: Use viewMode parameter from template
+  * Changed: `{() => (...)}` to `{(viewMode) => (...)}`
+  * Changed: `viewType === 'table'` to `viewMode === 'table'`
+  * Grid View zeigt jetzt korrekt an bei Toggle-Klick
+
+**Problem 105b - SquadManagement Filter Button nicht sichtbar**:
+- Chicken-and-Egg Problem: 
+  * Filter-Button wird nur angezeigt wenn `filterSection` existiert
+  * `filterSection` war nur definiert wenn `showFilters={true}`
+  * Kein Weg für User, Filter zu aktivieren
+- **Lösung**: filterSection immer definieren (nicht conditional)
+  * Removed: `showFilters ? (...) : undefined`
+  * Filter-Button jetzt immer sichtbar im Header
+  * Filter mit Gender, Competition, Club funktioniert
+
+**Dateien**: 
+- `client/src/pages/EventParticipants.tsx`
+- `client/src/pages/SquadManagement.tsx`
+**Build Status**: ✓ 2246 modules, 6.09s, keine Fehler
+**Commit**: fb332fee
 
 106. chatmode 
 myown.chatmode.md komplett überarbeiten und strukturieren. 
