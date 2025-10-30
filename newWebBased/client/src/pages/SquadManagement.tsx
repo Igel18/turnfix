@@ -12,7 +12,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { InformationCircleIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-import UnifiedPageHeader from '@/components/UnifiedPageHeader';
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
 import { apiGet, apiPost, apiDelete } from '../utils/api';
 import { 
@@ -567,105 +567,145 @@ const forceLoadAvailableParticipants = async () => {
     setSelectedCompetitionName(isSameCompetition ? null : competitionName);
   };
 
-  const getFilterOptions = () => {
-    // Get unique competitions from available participants
-    const allCompetitions = availableParticipants
-      .flatMap(p => p.competitions || [])
-      .filter((comp, index, arr) => arr.findIndex(c => c.id === comp.id) === index)
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    // Get unique clubs from available participants
-    const allClubs = [...new Set(availableParticipants.map(p => p.club))]
-      .filter(club => club && club !== 'Unknown Club')
-      .sort((a, b) => a.localeCompare(b));
-
-    return [
-      {
-        value: 'gender',
-        label: t('squadManagement.filters.gender'),
-        selectedValue: genderFilter,
-        options: [
-          { value: 'male', label: t('squadManagement.filters.male') },
-          { value: 'female', label: t('squadManagement.filters.female') }
-        ],
-        onChange: setGenderFilter
-      },
-      {
-        value: 'competition',
-        label: t('squadManagement.filters.competition'),
-        selectedValue: competitionFilter,
-        options: allCompetitions.map(comp => ({
-          value: comp.name,
-          label: `${comp.name} (Nr. ${comp.number})`
-        })),
-        onChange: setCompetitionFilter
-      },
-      {
-        value: 'club',
-        label: t('squadManagement.filters.club'),
-        selectedValue: clubFilter,
-        options: allClubs.map(club => ({
-          value: club,
-          label: club
-        })),
-        onChange: setClubFilter
-      }
-    ];
-  };
-
   if (!eventId) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="text-center py-8">
-          <Users className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('squadManagement.noEventSelected.title')}</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {t('squadManagement.noEventSelected.message')}
-          </p>
-        </div>
-      </div>
+      <EventManagementTemplate
+        title={t('squadManagement.title')}
+        subtitle={t('squadManagement.noEventSelected.message')}
+        icon={UserGroupIcon}
+        showEventContext={true}
+        showViewToggle={false}
+      >
+        {() => (
+          <div className="text-center py-8">
+            <Users className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('squadManagement.noEventSelected.title')}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {t('squadManagement.noEventSelected.message')}
+            </p>
+          </div>
+        )}
+      </EventManagementTemplate>
     );
   }
 
-  return (
-    <div className="max-w-7xl mx-auto relative">
-      {/* Loading Overlay */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="text-sm text-gray-600">{t('squadManagement.messages.processing')}</span>
-          </div>
-        </div>
-      )}
+  // Get unique competitions and clubs for filters
+  const allCompetitions = availableParticipants
+    .flatMap(p => p.competitions || [])
+    .filter((comp, index, arr) => arr.findIndex(c => c.id === comp.id) === index)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-      <UnifiedPageHeader
-        title={t('squadManagement.title')}
-        subtitle={t('squadManagement.subtitle')}
-        icon={UserGroupIcon}
-        showEventContext={true}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder={t('squadManagement.searchPlaceholder')}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        hasFilters={true}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={() => {
-          setSearchTerm('');
-          setGenderFilter('');
-          setCompetitionFilter('');
-          setClubFilter('');
-        }}
-        showAdd={true}
-        addLabel={t('squadManagement.actions.newSquad')}
-        onAdd={() => setIsCreateModalOpen(true)}
-        showExportCSV={true}
-        onExportCSV={() => console.log('Export CSV clicked')}
-        showExportPDF={true}
-        onExportPDF={exportSquadsPDF}
-        showViewToggle={false}
-      />
+  const allClubs = [...new Set(availableParticipants.map(p => p.club))]
+    .filter(club => club && club !== 'Unknown Club')
+    .sort((a, b) => a.localeCompare(b));
+
+  return (
+    <EventManagementTemplate
+      title={t('squadManagement.title')}
+      subtitle={t('squadManagement.subtitle')}
+      icon={UserGroupIcon}
+      showEventContext={true}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      searchPlaceholder={t('squadManagement.searchPlaceholder')}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      filterSection={
+        showFilters ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Gender Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('squadManagement.filters.gender')}
+                </label>
+                <select
+                  value={genderFilter}
+                  onChange={(e) => setGenderFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('squadManagement.filters.all')}</option>
+                  <option value="male">{t('squadManagement.filters.male')}</option>
+                  <option value="female">{t('squadManagement.filters.female')}</option>
+                </select>
+              </div>
+
+              {/* Competition Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('squadManagement.filters.competition')}
+                </label>
+                <select
+                  value={competitionFilter}
+                  onChange={(e) => setCompetitionFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('squadManagement.filters.all')}</option>
+                  {allCompetitions.map(comp => (
+                    <option key={comp.id} value={comp.name}>
+                      {comp.name} (Nr. {comp.number})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Club Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('squadManagement.filters.club')}
+                </label>
+                <select
+                  value={clubFilter}
+                  onChange={(e) => setClubFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('squadManagement.filters.all')}</option>
+                  {allClubs.map(club => (
+                    <option key={club} value={club}>
+                      {club}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Reset Button */}
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setGenderFilter('');
+                    setCompetitionFilter('');
+                    setClubFilter('');
+                  }}
+                  className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {t('common.resetFilters')}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : undefined
+      }
+      showAddButton={true}
+      addButtonText={t('squadManagement.actions.newSquad')}
+      onAdd={() => setIsCreateModalOpen(true)}
+      showExportCSV={true}
+      onExportCSV={() => console.log('Export CSV clicked')}
+      showExportPDF={true}
+      onExportPDF={exportSquadsPDF}
+      showViewToggle={false}
+    >
+      {() => (
+        <div className="relative">
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="text-sm text-gray-600">{t('squadManagement.messages.processing')}</span>
+              </div>
+            </div>
+          )}
 
       {/* Virtual Squad Information */}
       {squads.some(s => s.isVirtual) && (
@@ -1022,7 +1062,9 @@ const forceLoadAvailableParticipants = async () => {
           </button>
         </div>
       </UnifiedModal>
-    </div>
+        </div>
+      )}
+    </EventManagementTemplate>
   );
 };
 
