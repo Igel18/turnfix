@@ -2956,8 +2956,8 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 | SquadManagement | `/squads?eventId=X` | ⏳ Pending | 1030 | High | CRUD, Drag&Drop, Virtual Squads | | | |
 | TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix | | | |
 | Results | `/results?eventId=X` | ⏳ Pending | 1752 | Very High | Multi-Comp, Certificates, PDF/CSV |  Socket.IO Live-Updates | | |
-| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal | | | |
-| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav |  Socket.IO Live-Updates | | |
+| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal | No | Yes | Table/Grid |
+| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav (many special to select a squad and device) |  Socket.IO Live-Updates | yes | no |
 | CompetitionsDebug | `/competitions-debug` | 🗑️ Delete | Keine | Debug-only Tools | | | |
 | TimePlanningPage | `/time-planning` | 🗑️ Delete | `max-w-7xl` | Legacy Duplicate | | | |
 
@@ -3019,3 +3019,24 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 **STATUS:** Warte auf Entscheidung - siehe Tabelle oben zur Bearbeitung
 
 
+101. 
+Der Header ist zu breit, bei den UIs welche das Template verwenden. 
+
+102. 
+Die URL localhost:3002 verweist wieder auf ein falsche Jury-Portal. Wir habe ein komplett anderes entwickelt. Warum taucht immer wieder diese auf? 
+
+103. 
+Inhaltsverzeichnis hier drin mit verlinkung auf die einzelnen punkte
+
+104. 
+event participants 
+Die umschaltung von Table zu grid geht auch nicht
+
+in dem squad management gibt es auch keinen filter 
+
+105. 
+myown.chatmode.md komplett überarbeiten und strukturieren. 
+Allgemeine Programmierhinweise in myown aktualisieren. Mit den ganzen anweisungen die ich dir gegeben habe. 
+*.type.ts (z.B. scorecapture.types.ts) sollte allgemein angewendet werden. 
+
+106. Im ScoreCapture haben wir ein refactoring gemacht. können teile davon wo anders verwendet werden? 

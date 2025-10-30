@@ -51,6 +51,7 @@ Unified Style Pattern:
         - unifieddataview.tsx 
         - unifiedfilter.tsx
         - unifiedpageheader.tsx
+        -> EventManagementTemplate.tsx
         
 Header should use the UnifiedPageHeader.tsx. Each page should have the same header style.
 Pagination should use the Pagination.tsx component. Each page with a list of data should have a pagination.
