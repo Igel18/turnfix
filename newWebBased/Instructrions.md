@@ -2818,9 +2818,17 @@ Im Template für das modals layout dialog könnte die tastenkombination ctrl + s
 - LayoutDesigner.tsx: useEffect Hook für Keyboard Event Listener
 - de.json/en.json: saveShortcut Translation
 
-98. 
+98. ✅ Status-Management Filter Visibility
 http://localhost:3001/status-management
 -> hier ist per default das Filter eingeblendet. Wird hier nicht das Template verwendet? 
+**IMPLEMENTIERT:**
+- Filter war hardcodiert auf `showFilters={true}` 
+- Geändert zu State-gesteuertem `showFilters={showFilters}` (default: false)
+- Filter startet jetzt ausgeblendet und kann vom Benutzer über Button eingeblendet werden
+- Konsistent mit anderen Seiten (Events, EventParticipants, Results, ScoreCapture)
+- Commit: c7a9cbe2
+**FILES CHANGED:**
+- StatusUnified.tsx: Added showFilters state + onToggleFilters handler 
 
 99. 
 http://localhost:3001/time-planning?eventId=59&squadName=m
