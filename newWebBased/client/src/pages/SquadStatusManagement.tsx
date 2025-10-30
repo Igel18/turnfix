@@ -9,7 +9,7 @@ import {
   SparklesIcon,
   TableCellsIcon
 } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixStatusBadge, MatrixColumn, MatrixRow, MatrixCellProps } from '@/components/MatrixView'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiPost } from '@/utils/api'
@@ -67,7 +67,7 @@ export function SquadStatusManagement() {
   const [filterStatus, setFilterStatus] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   
-  // View options
+  // View options - keep manual state for 3-option toggle (matrix/table/grid)
   const [viewMode, setViewMode] = useState<'table' | 'grid' | 'matrix'>('matrix')
   const [editingItem, setEditingItem] = useState<SquadDisciplineStatus | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -311,174 +311,205 @@ export function SquadStatusManagement() {
   const uniqueDisciplines = [...new Set(squadDisciplines.map(item => item.disciplineName))].sort()
   const uniqueStatuses = [...new Set(squadDisciplines.map(item => item.status.name))].sort()
 
-  const getFilterOptions = () => [
-    {
-      value: 'squad',
-      label: t('squadStatus.filters.squad'),
-      selectedValue: filterSquad,
-      options: uniqueSquads.map(squad => ({
-        value: squad,
-        label: squad
-      })),
-      onChange: setFilterSquad
-    },
-    {
-      value: 'discipline',
-      label: t('squadStatus.filters.discipline'),
-      selectedValue: filterDiscipline,
-      options: uniqueDisciplines.map(discipline => ({
-        value: discipline,
-        label: discipline
-      })),
-      onChange: setFilterDiscipline
-    },
-    {
-      value: 'status',
-      label: t('squadStatus.filters.status'),
-      selectedValue: filterStatus,
-      options: uniqueStatuses.map(status => ({
-        value: status,
-        label: status
-      })),
-      onChange: setFilterStatus
-    }
-  ];
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
+      <EventManagementTemplate
+        title={t('squadStatus.title')}
+        subtitle={t('squadStatus.subtitle', { count: 0 })}
+        icon={UserGroupIcon}
+        showEventContext={true}
+        loading={true}
+        showViewToggle={false}
+      >
+        {() => null}
+      </EventManagementTemplate>
     )
   }
 
   // Show event selection message if no event is selected
   if (!selectedEventId || selectedEventId === '') {
     return (
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <UnifiedPageHeader
-          title={t('squadStatus.title')}
-          subtitle={t('squadStatus.selectEventMessage')}
-          icon={UserGroupIcon}
-          showEventContext={true}
-          searchTerm=""
-          onSearchChange={() => {}}
-          showFilters={false}
-          hasFilters={false}
-          showAdd={false}
-          showImport={false}
-          showExportCSV={false}
-        />
-        
-        <div className="bg-white rounded-lg border p-8">
-          <div className="text-center">
-            <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {t('squadStatus.noEventSelected')}
-            </h3>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('squadStatus.pleaseSelectEvent')}
-            </p>
-            
-            {!selectedEvent && events.length > 0 && (
-              <div className="mt-6 max-w-md mx-auto">
-                <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
-                  {t('squadStatus.selectEvent')}
-                </label>
-                <select
-                  value={selectedEventId}
-                  onChange={(e) => setSelectedEventId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('squadStatus.chooseEvent')}</option>
-                  {events.map((event) => (
-                    <option key={event.int_eventid} value={event.int_eventid}>
-                      {event.var_eventname}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+      <EventManagementTemplate
+        title={t('squadStatus.title')}
+        subtitle={t('squadStatus.selectEventMessage')}
+        icon={UserGroupIcon}
+        showEventContext={true}
+        showFilters={false}
+        showViewToggle={false}
+        showExportCSV={false}
+        showAddButton={false}
+        showImportButton={false}
+      >
+        {() => (
+          <div className="bg-white rounded-lg border p-8">
+            <div className="text-center">
+              <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                {t('squadStatus.noEventSelected')}
+              </h3>
+              <p className="mt-2 text-sm text-gray-500">
+                {t('squadStatus.pleaseSelectEvent')}
+              </p>
+              
+              {!selectedEvent && events.length > 0 && (
+                <div className="mt-6 max-w-md mx-auto">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
+                    {t('squadStatus.selectEvent')}
+                  </label>
+                  <select
+                    value={selectedEventId}
+                    onChange={(e) => setSelectedEventId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">{t('squadStatus.chooseEvent')}</option>
+                    {events.map((event) => (
+                      <option key={event.int_eventid} value={event.int_eventid}>
+                        {event.var_eventname}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+      </EventManagementTemplate>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <UnifiedPageHeader
-        title={t('squadStatus.title')}
-        subtitle={t('squadStatus.subtitle', { count: squadDisciplines.length })}
-        icon={UserGroupIcon}
-        showEventContext={true}
-        searchTerm=""
-        onSearchChange={() => {}}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        hasFilters={true}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={() => {
-          setFilterSquad('')
-          setFilterDiscipline('')
-          setFilterStatus('')
-        }}
-        showExportCSV={true}
-        onExportCSV={() => {
-          // TODO: Implement CSV export
-          console.log('Export CSV')
-        }}
-        showAdd={false}
-        showImport={false}
-        showViewToggle={false}
-        customActions={[
-          // View Mode Toggle (3 options: Matrix, Table, Grid)
-          <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
-            <button
-              type="button"
-              onClick={() => setViewMode('matrix')}
-              className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
-                viewMode === 'matrix'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <TableCellsIcon className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-2 text-sm font-medium border-t border-b ${
-                viewMode === 'table'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              List
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-2 text-sm font-medium rounded-r-md border ${
-                viewMode === 'grid'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              Grid
-            </button>
-          </div>,
+    <EventManagementTemplate
+      title={t('squadStatus.title')}
+      subtitle={t('squadStatus.subtitle', { count: squadDisciplines.length })}
+      icon={UserGroupIcon}
+      showEventContext={true}
+      searchTerm=""
+      onSearchChange={() => {}}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      filterSection={
+        showFilters ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('squadStatus.filters.squad')}
+                </label>
+                <select
+                  value={filterSquad}
+                  onChange={(e) => setFilterSquad(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('common.all')}</option>
+                  {uniqueSquads.map(squad => (
+                    <option key={squad} value={squad}>{squad}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('squadStatus.filters.discipline')}
+                </label>
+                <select
+                  value={filterDiscipline}
+                  onChange={(e) => setFilterDiscipline(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('common.all')}</option>
+                  {uniqueDisciplines.map(discipline => (
+                    <option key={discipline} value={discipline}>{discipline}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('squadStatus.filters.status')}
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('common.all')}</option>
+                  {uniqueStatuses.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setFilterSquad('')
+                    setFilterDiscipline('')
+                    setFilterStatus('')
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  {t('common.resetFilters')}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : undefined
+      }
+      showExportCSV={true}
+      onExportCSV={() => {
+        // TODO: Implement CSV export
+        console.log('Export CSV')
+      }}
+      showAddButton={false}
+      showImportButton={false}
+      showViewToggle={false}
+      customActions={[
+        // View Mode Toggle (3 options: Matrix, Table, Grid)
+        <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
           <button
-            key="generate"
-            onClick={generateCombinations}
-            disabled={generating}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            type="button"
+            onClick={() => setViewMode('matrix')}
+            className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
+              viewMode === 'matrix'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
           >
-            <SparklesIcon className="h-5 w-5 mr-2" />
-            {generating ? t('squadStatus.generating') : t('squadStatus.generateButton')}
+            <TableCellsIcon className="h-4 w-4" />
           </button>
-        ]}
-      />
+          <button
+            type="button"
+            onClick={() => setViewMode('table')}
+            className={`px-3 py-2 text-sm font-medium border-t border-b ${
+              viewMode === 'table'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            List
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            className={`px-3 py-2 text-sm font-medium rounded-r-md border ${
+              viewMode === 'grid'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Grid
+          </button>
+        </div>,
+        <button
+          key="generate"
+          onClick={generateCombinations}
+          disabled={generating}
+          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <SparklesIcon className="h-5 w-5 mr-2" />
+          {generating ? t('squadStatus.generating') : t('squadStatus.generateButton')}
+        </button>
+      ]}
+    >
+      {() => (
+        <>
 
       {/* Event Selection */}
       {!selectedEvent && (
@@ -792,6 +823,8 @@ export function SquadStatusManagement() {
           )}
         </div>
       )}
-    </div>
+        </>
+      )}
+    </EventManagementTemplate>
   )
 }
