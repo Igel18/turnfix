@@ -3023,7 +3023,9 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 Der Header ist zu breit, bei den UIs welche das Template verwenden. 
 
 102. 
-Die URL localhost:3002 verweist wieder auf ein falsche Jury-Portal. Wir habe ein komplett anderes entwickelt. Warum taucht immer wieder diese auf? 
+Refactoring: 
+Gibt es weitere Sachen die wir refactoren können? z.B. könnte ich mir das Layout von verschiedenen Spalten in den tabellen vorstellen. Das kann ja überall gleich aussehen, wenn wir z.B. einen Verein darstellen oder das Alter oder Geschlecht. 
+z.T. werden auch Infos in einer Spalte zusammengefasst. Das kann auch in verschiedene Spalten (z.B. Alter/Geschlecht). 
 
 103. 
 Inhaltsverzeichnis hier drin mit verlinkung auf die einzelnen punkte
