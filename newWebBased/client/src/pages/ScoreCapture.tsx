@@ -12,86 +12,18 @@ import { useEvent } from '../contexts/EventContext'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { GenderBadge } from '@/components/GenderBadge'
 import { apiGet, apiPost } from '../utils/api'
-import { getIconUrl } from '../utils/iconUtils'
 import { normalizeScoreInput, getScorePlaceholder } from '@/utils/scoreFormatter'
 import getSocket from '../utils/socket'
-
-// Interfaces
-interface Participant {
-  id: number;
-  firstname: string;
-  lastname: string;
-  club: string;
-  clubId: number;
-  gender: 'male' | 'female';
-  age: number | null;
-  birthYear: number | null;
-  assignedCompetitions: number[];
-  isInEvent: boolean;
-  registrationDate: string;
-  squad_name?: string; // Added by squad lookup
-  int_statusid?: number; // Current status ID
-  startNumber?: number | null; // Start number for the event
-}
-
-interface Discipline {
-  int_disziplinid: number;
-  var_name: string;
-  var_shortname?: string;
-  apparatus?: string;
-  attempts: number;
-  inputMask?: string;
-  int_berechnung?: number; // Decimal places (0-3)
-  var_maske?: string; // Format mask (e.g., "0.00", "0,000")
-  maxScore?: number; // Maximum allowed score for this discipline in the competition
-  icon?: string; // Icon path from database
-}
-
-interface DisciplineField {
-  id: number;
-  disciplineId: number;
-  disciplineName: string;
-  disciplineShort: string;
-  name: string;
-  sortOrder: number | null;
-  isFinalScore: boolean;
-  isStartingScore: boolean;
-  group: number;
-  enabled: boolean;
-}
-
-interface Squad {
-  name: string;
-  participant_count: number;
-}
-
-interface Score {
-  id?: number;
-  participantId: number;
-  disciplineId: number;
-  competitionId: number;
-  score: number;
-  attempt: number;
-  notes?: string;
-  status: 'pending' | 'completed' | 'reviewed';
-}
-
-interface Status {
-  int_statusid: number;
-  var_name: string;
-  ary_colorcode: string;
-  bol_bogen: boolean;
-  bol_karte: boolean;
-}
-
-interface Competition {
-  id: number;
-  name: string;
-  number?: string;
-  var_name?: string;
-  event_id: number;
-  disciplines?: Discipline[];
-}
+import { SquadDisciplineSelector } from '@/components/scoreCapture'
+import type { 
+  Participant, 
+  Discipline, 
+  DisciplineField, 
+  Squad, 
+  Score, 
+  Status, 
+  Competition
+} from '@/types/ScoreCapture.types'
 
 export function ScoreCapture() {
   const { t } = useTranslation();
@@ -1211,6 +1143,44 @@ export function ScoreCapture() {
     }
   }
 
+  // Handler for squad selection change
+  const handleSquadChange = (squadName: string) => {
+    setActiveSquad(squadName);
+    
+    // Reset discipline selection when squad changes
+    if (activeDiscipline) {
+      setActiveDiscipline('');
+      setSelectedDiscipline(null);
+    }
+    
+    // Store in context
+    if (squadName) {
+      const selectedSquadData = squads.find(s => s.name === squadName);
+      if (selectedSquadData) {
+        setSelectedSquad({
+          squad_name: selectedSquadData.name,
+          participant_count: selectedSquadData.participant_count,
+          individual_count: 0,
+          group_count: 0,
+          team_count: 0
+        });
+      }
+    } else {
+      setSelectedSquad(null);
+    }
+  };
+
+  // Handler for discipline selection change
+  const handleDisciplineChange = (disciplineValue: number | string) => {
+    setActiveDiscipline(disciplineValue);
+    const discipline = disciplines.find(d => 
+      d.int_disziplinid === disciplineValue || d.var_name === disciplineValue
+    );
+    if (discipline) {
+      setSelectedDiscipline(discipline);
+    }
+  };
+
   // Function to handle squad status change
   const handleSquadStatusChange = (statusId: string) => {
     const numericStatusId = parseInt(statusId)
@@ -1416,187 +1386,21 @@ export function ScoreCapture() {
       />
       
       {/* Squad and Device Selection */}
-      {!loading && (
-        <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Squad Selection */}
-          <div className="bg-white rounded-lg border p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              <span className="inline-flex items-center">
-                <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">1</span>
-                {t('scoreCapture.selectSquad')}
-              </span>
-            </label>
-            <select
-              value={activeSquad}
-              onChange={(e) => {
-                const squadName = e.target.value
-                setActiveSquad(squadName)
-                
-                // Reset discipline selection when squad changes
-                if (activeDiscipline) {
-                  setActiveDiscipline('');
-                  setSelectedDiscipline(null);
-                }
-                
-                // Store in context
-                if (squadName) {
-                  const selectedSquadData = squads.find(s => s.name === squadName)
-                  if (selectedSquadData) {
-                    setSelectedSquad({
-                      squad_name: selectedSquadData.name,
-                      participant_count: selectedSquadData.participant_count,
-                      individual_count: 0, // These might not be available in the current data
-                      group_count: 0,
-                      team_count: 0
-                    })
-                  }
-                } else {
-                  setSelectedSquad(null)
-                }
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">{t('scoreCapture.chooseSquad')}</option>
-              {getFilteredSquads().map((squad) => (
-                <option key={squad.name} value={squad.name}>
-                  {squad.name} ({squad.participant_count} {t('scoreCapture.participants')})
-                </option>
-              ))}
-            </select>
-            {activeSquad && (
-              <div className="mt-2">
-                <p className="text-sm text-green-600">
-                  ✓ {t('scoreCapture.squadSelected', { squad: activeSquad })}
-                </p>
-                {activeDiscipline && (
-                  <p className="text-xs text-blue-600">
-                    {t('scoreCapture.readyToCapture')}
-                  </p>
-                )}
-              </div>
-            )}
-            
-            {/* Squad Status Selection */}
-            {activeSquad && activeDiscipline && (
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('scoreCapture.squadStatusFor', { 
-                    discipline: typeof activeDiscipline === 'number' ? 
-                      disciplines.find(d => d.int_disziplinid === activeDiscipline)?.var_shortname || t('scoreCapture.selectedDiscipline') :
-                      activeDiscipline
-                  })}
-                </label>
-                <select
-                  value={squadStatus || ''}
-                  onChange={(e) => handleSquadStatusChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('scoreCapture.noStatus')}</option>
-                  {statuses.map(status => (
-                    <option key={status.int_statusid} value={status.int_statusid}>
-                      {status.var_name}
-                    </option>
-                  ))}
-                </select>
-                
-                <p className="mt-1 text-xs text-gray-500">
-                  {t('scoreCapture.statusAppliesTo')}
-                </p>
-                
-                {/* Status Color Indicator */}
-                {squadStatus && (
-                  <div className={`inline-block px-3 py-1 mt-2 text-sm rounded-full ${getStatusColor(squadStatus)}`}>
-                    {statuses.find(s => s.int_statusid === squadStatus)?.var_name || t('scoreCapture.unknownStatus')}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Device/Discipline Selection */}
-          <div className="bg-white rounded-lg border p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              <span className="inline-flex items-center">
-                <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2 ${
-                  activeSquad ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'
-                }`}>2</span>
-                {t('scoreCapture.selectDevice')}
-                {!activeSquad && <span className="text-gray-400 ml-2">({t('scoreCapture.requiresSquad')})</span>}
-              </span>
-            </label>
-            
-            {!activeSquad ? (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">{t('scoreCapture.selectSquadFirst')}</p>
-              </div>
-            ) : getFilteredDisciplines().length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">{t('scoreCapture.noDevicesAvailable')}</p>
-              </div>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                {getFilteredDisciplines().map((discipline, index) => (
-                  <div
-                    key={`discipline-${discipline.int_disziplinid || index}-${discipline.var_name}`}
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      (activeDiscipline === discipline.int_disziplinid || activeDiscipline === discipline.var_name)
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                    }`}
-                    onClick={() => {
-                      const disciplineValue = discipline.int_disziplinid || discipline.var_name;
-                      setActiveDiscipline(disciplineValue);
-                      setSelectedDiscipline(discipline);
-                    }}
-                  >
-                    <div className="text-center">
-                      {discipline.icon && (
-                        <div className="flex justify-center mb-2">
-                          <img 
-                            src={getIconUrl(discipline.icon) || ''}
-                            alt={`${discipline.var_name} icon`}
-                            className="w-8 h-8 object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
-                      <h3 className="font-medium text-sm">{discipline.var_name}</h3>
-                      {discipline.apparatus && (
-                        <p className="text-xs text-gray-500 mt-1">({discipline.apparatus})</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {activeDiscipline && activeSquad && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-700">
-                  ✓ Device "{(disciplines || []).find(d => 
-                    d.int_disziplinid === activeDiscipline || d.var_name === activeDiscipline
-                  )?.var_name}" selected
-                </p>
-                <p className="text-xs text-green-600">
-                  Ready to capture scores for squad "{activeSquad}"
-                </p>
-              </div>
-            )}
-            {activeSquad && !activeDiscipline && getFilteredDisciplines().length > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  {t('scoreCapture.devicesAvailable', { count: getFilteredDisciplines().length })}
-                </p>
-                <p className="text-xs text-blue-600">
-                  {t('scoreCapture.clickDevice')}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <SquadDisciplineSelector
+        squads={squads}
+        activeSquad={activeSquad}
+        onSquadChange={handleSquadChange}
+        getFilteredSquads={getFilteredSquads}
+        disciplines={disciplines}
+        activeDiscipline={activeDiscipline}
+        onDisciplineChange={handleDisciplineChange}
+        getFilteredDisciplines={getFilteredDisciplines}
+        statuses={statuses}
+        squadStatus={squadStatus}
+        onSquadStatusChange={handleSquadStatusChange}
+        getStatusColor={getStatusColor}
+        loading={loading}
+      />
       
       {loading ? (
         <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
