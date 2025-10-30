@@ -140,27 +140,28 @@ export default function UnifiedPageHeader({
   return (
     <div className="mb-6">
       {/* Main Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link 
-            to="/management"
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <HomeIcon className="h-4 w-4 mr-2" />
-            {t('navigation.managementCenter')}
-          </Link>
-          <div>
-            <div className="flex items-center space-x-3">
-              {IconComponent && (
-                <div className="flex-shrink-0">
-                  <IconComponent className="h-8 w-8 text-gray-600" />
-                </div>
-              )}
-              <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/management"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <HomeIcon className="h-4 w-4 mr-2" />
+              {t('navigation.managementCenter')}
+            </Link>
+            <div>
+              <div className="flex items-center space-x-3">
+                {IconComponent && (
+                  <div className="flex-shrink-0">
+                    <IconComponent className="h-8 w-8 text-gray-600" />
+                  </div>
+                )}
+                <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+              </div>
+              <p className="text-gray-600 mt-1">{subtitle}</p>
             </div>
-            <p className="text-gray-600 mt-1">{subtitle}</p>
           </div>
-        </div>
         
         <div className="flex items-center space-x-2">
           {hasFilters && (
@@ -219,10 +220,12 @@ export default function UnifiedPageHeader({
           <LanguageSwitcher />
         </div>
       </div>
+      </div>
 
       {/* Action Buttons Row */}
       {(showAdd || showImport || showViewToggle || customBelowActions) && (
-        <div className="mt-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto">
+          <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {showAdd && onAdd && (
               <button
@@ -274,20 +277,24 @@ export default function UnifiedPageHeader({
             </div>
           )}
         </div>
+        </div>
       )}
 
       {/* Event Context (only for event management UIs) */}
       {showEventContext && selectedEvent && (
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
+        <div className="max-w-7xl mx-auto">
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
           <p className="text-sm text-blue-800">
             <span className="font-medium">Selected Event:</span> {selectedEvent.var_eventname}
           </p>
+        </div>
         </div>
       )}
 
       {/* Filters Section - only render if there are actual filter options or search */}
       {showFilters && (filterOptions.length > 0 || onSearchChange) && (
-        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">{t('common.table.filters')}</h3>
             <button
@@ -359,11 +366,13 @@ export default function UnifiedPageHeader({
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* Help Panel Section */}
       {showHelpPanel && helpContent && (
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-blue-900 flex items-center">
               <QuestionMarkCircleIcon className="h-5 w-5 mr-2" />
@@ -379,6 +388,7 @@ export default function UnifiedPageHeader({
           <div className="text-blue-800">
             {helpContent}
           </div>
+        </div>
         </div>
       )}
     </div>

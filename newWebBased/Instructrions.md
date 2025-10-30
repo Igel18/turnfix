@@ -3032,33 +3032,54 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 **STATUS:** Warte auf Entscheidung - siehe Tabelle oben zur Bearbeitung
 
 
-101. 
-Der Header ist zu breit, bei den UIs welche das Template verwenden. 
+~~102. Header~~ ✅
+~~Der Header ist zu breit, bei den UIs welche das Template verwenden.~~ ✅
 
-102. 
+**Status**: ✅ ABGESCHLOSSEN (2025-01-30)
+**Problem**: Header war breiter als Content bei allen EventManagementTemplate-Seiten
+- Content hatte `max-w-7xl mx-auto` (1280px max)
+- Header hatte volle Bildschirmbreite (unbegrenzt)
+- Führte zu inkonsistentem Layout
+
+**Lösung**: Alle Bereiche des UnifiedPageHeader mit `max-w-7xl mx-auto` eingeschränkt:
+1. Main Header (Titel, Buttons, Navigation)
+2. Action Buttons Row (Add, Import, View Toggle)
+3. Event Context Badge
+4. Filters Section
+5. Help Panel Section
+
+**Betroffene Seiten** (alle 12 Event-Management-Seiten):
+- EventManagement, SquadManagement, CompetitionsFixed
+- EventParticipants, SquadStatusManagement, CompetitionStatusManagement
+- ScoreCapture, Results, Meldematrix
+- Medallienspiegel, TimePlanning
+
+**Datei**: `client/src/components/UnifiedPageHeader.tsx`
+**Build Status**: ✓ 2246 modules, 5.51s, keine Fehler
+
+103. Refactoring 
 Refactoring: 
 Gibt es weitere Sachen die wir refactoren können? z.B. könnte ich mir das Layout von verschiedenen Spalten in den tabellen vorstellen. Das kann ja überall gleich aussehen, wenn wir z.B. einen Verein darstellen oder das Alter oder Geschlecht. 
 z.T. werden auch Infos in einer Spalte zusammengefasst. Das kann auch in verschiedene Spalten (z.B. Alter/Geschlecht). 
 
-103. 
+104. Inhaltsverzeichnis 
 Inhaltsverzeichnis hier drin mit verlinkung auf die einzelnen punkte
 
-104. 
-event participants 
+105. event participants 
 Die umschaltung von Table zu grid geht auch nicht
 
 in dem squad management gibt es auch keinen filter 
 
-105. 
+106. chatmode 
 myown.chatmode.md komplett überarbeiten und strukturieren. 
 Allgemeine Programmierhinweise in myown aktualisieren. Mit den ganzen anweisungen die ich dir gegeben habe. 
 *.type.ts (z.B. scorecapture.types.ts) sollte allgemein angewendet werden. 
 
-106. Im ScoreCapture haben wir ein refactoring gemacht. können teile davon wo anders verwendet werden? 
+107. Im ScoreCapture haben wir ein refactoring gemacht. können teile davon wo anders verwendet werden? 
 
-107. Wenn eine UI das Live-Update implementiert hat, dann sollte das wie auch bei den Live-Wertungen dargestellt werden als Grüner Punkt. Dieses UI-Element sollte auch in ein Template oder allgemein verfügbar gemacht werden. Und auch die Verwendung dokumentiert.
+108. Wenn eine UI das Live-Update implementiert hat, dann sollte das wie auch bei den Live-Wertungen dargestellt werden als Grüner Punkt. Dieses UI-Element sollte auch in ein Template oder allgemein verfügbar gemacht werden. Und auch die Verwendung dokumentiert.
 
-108. Zeit Planung 
+109. Zeit Planung 
 http://localhost:3001/time-planning?eventId=59&squadName=mBlau 
 Durchgänge UI: 
 - Auf der Seite müssen noch Editierbuttons (Einheitliche Vorgabe beachten) Um die Startzeiten zu ändern 
