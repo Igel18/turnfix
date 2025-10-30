@@ -2877,7 +2877,7 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - Single Source of Truth für Header-Funktionalität
 - DatabaseManagementTemplate Background entfernt (verwendet jetzt Fragment)
 
-**Fortschritt: 7/12 Seiten konvertiert**
+**Fortschritt: 8/12 Seiten konvertiert**
 
 ✅ **Konvertiert:**
 1. **CompetitionsFixed** (bereits fertig) - View-Toggle mit Persistence, Filters, Add/Edit/Delete
@@ -2887,11 +2887,11 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 5. **CompetitionStatusManagement** (Commit: 20892a08) - 839 lines - Matrix/Table/Grid Views, Status/Gender Filters, Progress Tracking, Socket.IO
 6. **EventManagement** (Commit: e463dace) - 953 lines - Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export
 7. **SquadManagement** (Commit: 70dc2fed) - 1071 lines - Drag & Drop, Virtual Squads, Gender/Competition/Club Filters, PDF/CSV Export
+8. **Results** (Commit: c984ac7c) - 1791 lines - Multi-Competition Support, Certificate Generation, Competition/Gender Filters, PDF/CSV/Print, Toggle Discipline Scores
 
-⏳ **Verbleibend (5 Seiten - alle sehr komplex):**
+⏳ **Verbleibend (4 Seiten - alle sehr komplex):**
 | Seite | Zeilen | Komplexität | Features |
 |-------|--------|-------------|----------|
-| Results | 1752 | Sehr hoch | Multi-Competition, Certificate Generation, PDF/CSV |
 | EventParticipants | 1869 | Sehr hoch | CRUD, Filters, Add Modal, Competitions Assignment |
 | TimePlanning | 1009 | Hoch | Gantt Chart, Time Calculations, Rotation Planning, Point 99 |
 | ScoreCapture | ? | Sehr hoch | Score Entry, Validation, Point 93 Keyboard Nav |
@@ -2906,9 +2906,11 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - `e463dace` - EventManagement converted to EventManagementTemplate
 - `8ffad65c` - Documentation update: 6/12 pages converted
 - `70dc2fed` - SquadManagement converted to EventManagementTemplate
+- `bcfdff41` - Documentation update: 7/12 pages converted
+- `c984ac7c` - Results converted to EventManagementTemplate
 
 **Next Steps:**
-- Sehr hohe Komplexität: Results (1752 lines), EventParticipants (1869 lines)
+- Sehr hohe Komplexität: EventParticipants (1869 lines)
 - Mit Bug-Fixes: TimePlanning (Point 99), ScoreCapture (Point 93)
 - Cleanup: CompetitionsDebug deletion
 
