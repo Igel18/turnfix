@@ -5,7 +5,7 @@ import { useEvent } from '../contexts/EventContext'
 import { 
   TableCellsIcon
 } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '../components/UnifiedPageHeader'
+import { EventManagementTemplate } from '../components/templates/EventManagementTemplate'
 import MatrixView, { MatrixCountCell, MatrixColumn, MatrixRow } from '../components/MatrixView'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -261,79 +261,100 @@ export default function Meldematrix() {
     setClubFilter('')
   }
 
-  // Filter options for the unified header
-  const filterOptions = [
-    {
-      value: 'gender',
-      label: t('meldematrix.filters.gender'),
-      selectedValue: genderFilter,
-      onChange: (value: string) => setGenderFilter(value || 'all'),
-      options: [
-        { value: 'männlich', label: t('meldematrix.filters.male') },
-        { value: 'weiblich', label: t('meldematrix.filters.female') },
-        { value: 'gemischt', label: t('meldematrix.filters.mixed') }
-      ]
-    }
-  ]
-
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
+      <EventManagementTemplate
+        title={t('meldematrix.title')}
+        subtitle={t('meldematrix.subtitle')}
+        icon={TableCellsIcon}
+        showEventContext={true}
+        loading={true}
+      >
+        <div className="animate-pulse p-8">
           <div className="h-8 bg-gray-300 rounded w-1/4 mb-4"></div>
           <div className="h-64 bg-gray-300 rounded"></div>
         </div>
-      </div>
+      </EventManagementTemplate>
     )
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-red-800">
-            <h3 className="text-lg font-medium">{t('meldematrix.errorTitle')}</h3>
-            <p className="mt-2">{error}</p>
+      <EventManagementTemplate
+        title={t('meldematrix.title')}
+        subtitle={t('meldematrix.subtitle')}
+        icon={TableCellsIcon}
+        showEventContext={true}
+      >
+        <div className="p-8">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="text-red-800">
+              <h3 className="text-lg font-medium">{t('meldematrix.errorTitle')}</h3>
+              <p className="mt-2">{error}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </EventManagementTemplate>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <UnifiedPageHeader
-        title={t('meldematrix.title')}
-        subtitle={t('meldematrix.subtitle')}
-        icon={TableCellsIcon}
-        hasFilters={true}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        searchTerm={clubFilter}
-        onSearchChange={setClubFilter}
-        searchPlaceholder={t('meldematrix.searchPlaceholder')}
-        filterOptions={filterOptions}
-        onClearAllFilters={clearFilters}
-        showPrint={true}
-        onPrint={handlePrint}
-        showExportPDF={true}
-        onExportPDF={handleExportPDF}
-        showEventContext={true}
-      />
-
-      {/* Remove the old manual filters section since it's now handled by UnifiedPageHeader */}
-
-      {/* Matrix Table using MatrixView Template */}
+    <EventManagementTemplate
+      title={t('meldematrix.title')}
+      subtitle={t('meldematrix.subtitle')}
+      icon={TableCellsIcon}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      searchTerm={clubFilter}
+      onSearchChange={setClubFilter}
+      searchPlaceholder={t('meldematrix.searchPlaceholder')}
+      showPrint={true}
+      onPrint={handlePrint}
+      showExportPDF={true}
+      onExportPDF={handleExportPDF}
+      showEventContext={true}
+      filterSection={
+        showFilters ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('meldematrix.filters.gender')}
+                </label>
+                <select
+                  value={genderFilter}
+                  onChange={(e) => setGenderFilter(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">{t('meldematrix.filters.all')}</option>
+                  <option value="männlich">{t('meldematrix.filters.male')}</option>
+                  <option value="weiblich">{t('meldematrix.filters.female')}</option>
+                  <option value="gemischt">{t('meldematrix.filters.mixed')}</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  {t('common.resetFilters')}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : undefined
+      }
+    >
       <MatrixView
         columns={[
           ...filteredCompetitions.map((competition): MatrixColumn => ({
             id: competition.id,
             label: competition.number ? competition.number : competition.id.toString(),
+            // FIX Point 100: Handle undefined ageFrom to prevent "undefinedJ"
             subLabel: competition.gender && competition.gender !== 'unbekannt' 
-              ? `${competition.gender.charAt(0).toUpperCase()} ${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
-              : competition.ageFrom 
-                ? `${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
+              ? `${competition.gender.charAt(0).toUpperCase()} ${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}${competition.ageFrom || competition.ageTo ? 'J' : ''}`
+              : (competition.ageFrom || competition.ageTo)
+                ? `${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
                 : '',
             minWidth: '60px'
           })),
@@ -430,6 +451,6 @@ export default function Meldematrix() {
           }
         }
       `}</style>
-    </div>
+    </EventManagementTemplate>
   )
 }
