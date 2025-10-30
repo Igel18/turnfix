@@ -785,7 +785,7 @@
       "age": "Age",
       "gender": "Gender",
       "club": "Club",
-      "startNumber": "Start Number",
+      "startNumber": "License Number",
       "actions": "Actions"
     },
     "card": {
@@ -804,8 +804,8 @@
       "genderPlaceholder": "Select gender",
       "club": "Club",
       "clubPlaceholder": "Select club",
-      "startNumber": "Start Number",
-      "startNumberPlaceholder": "Start number (optional)",
+      "startNumber": "License Number",
+      "startNumberPlaceholder": "License number (optional)",
       "save": "Save",
       "cancel": "Cancel",
       "creating": "Creating...",
@@ -1624,7 +1624,7 @@
     "subtitle": "Enter and manage competition scores and results",
     "subtitleWithCompetition": "Enter and manage scores for {{name}}{{number}}",
     "numberAbbrev": "No.",
-    "searchPlaceholder": "Search participants by name, club, or start number...",
+    "searchPlaceholder": "Search participants by name, club, or license number...",
     "refreshData": "Refresh Data",
     "selectSquad": "Select Squad",
     "chooseSquad": "Choose a squad...",
@@ -1662,7 +1662,7 @@
   "results": {
     "title": "Competition Results",
     "subtitle": "Rankings for {{eventName}}",
-    "searchPlaceholder": "Search participants, clubs, start numbers...",
+    "searchPlaceholder": "Search participants, clubs, license numbers...",
     "noEventTitle": "No Event Selected",
     "noEventMessage": "Please select an event to view competition results.",
     "loading": "Loading results...",
@@ -1837,7 +1837,7 @@
   "eventParticipants": {
     "title": "Event Participants",
     "subtitle": "Add, remove and assign participants to competitions within the selected event",
-    "searchPlaceholder": "Search participants by name, club or start number...",
+    "searchPlaceholder": "Search participants by name, club or license number...",
     "addParticipant": "Add Participant",
     "noEventSelected": "No Event Selected",
     "selectEventPrompt": "Please select an event to manage participants.",
@@ -1901,7 +1901,7 @@
       "gender": "Gender",
       "club": "Club",
       "squad": "Squad",
-      "startNumber": "Start Number",
+      "startNumber": "License Number",
       "competitions": "Competitions",
       "actions": "Actions",
       "registrationDate": "Registration Date",
@@ -1913,8 +1913,8 @@
       "squad": "Squad",
       "noSquad": "No Squad",
       "noCompetitions": "No Competitions",
-      "startNumber": "Start Number",
-      "noStartNumber": "No Start Number"
+      "startNumber": "License Number",
+      "noStartNumber": "No License Number"
     },
     "empty": {
       "title": "No participants found",

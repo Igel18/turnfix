@@ -785,7 +785,7 @@
       "age": "Alter",
       "gender": "Geschlecht",
       "club": "Verein",
-      "startNumber": "Startnummer",
+      "startNumber": "Startpass-Nummer",
       "actions": "Aktionen"
     },
     "card": {
@@ -804,8 +804,8 @@
       "genderPlaceholder": "Geschlecht auswählen",
       "club": "Verein",
       "clubPlaceholder": "Verein auswählen",
-      "startNumber": "Startnummer",
-      "startNumberPlaceholder": "Startnummer (optional)",
+      "startNumber": "Startpass-Nummer",
+      "startNumberPlaceholder": "Startpass-Nummer (optional)",
       "save": "Speichern",
       "cancel": "Abbrechen",
       "creating": "Erstelle...",
@@ -1621,7 +1621,7 @@
     "subtitle": "Wettkampfergebnisse und -wertungen eingeben und verwalten",
     "subtitleWithCompetition": "Wertungen eingeben und verwalten für {{name}}{{number}}",
     "numberAbbrev": "Nr.",
-    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startnummer suchen...",
+    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startpass-Nummer suchen...",
     "refreshData": "Daten aktualisieren",
     "selectSquad": "Riege auswählen",
     "chooseSquad": "Eine Riege auswählen...",
@@ -1659,7 +1659,7 @@
   "results": {
     "title": "Wettkampfergebnisse",
     "subtitle": "Ranglisten für {{eventName}}",
-    "searchPlaceholder": "Teilnehmer, Vereine, Startnummern suchen...",
+    "searchPlaceholder": "Teilnehmer, Vereine, Startpass-Nummern suchen...",
     "noEventTitle": "Keine Veranstaltung ausgewählt",
     "noEventMessage": "Bitte wählen Sie eine Veranstaltung aus, um Wettkampfergebnisse anzuzeigen.",
     "loading": "Ergebnisse werden geladen...",
@@ -1834,7 +1834,7 @@
   "eventParticipants": {
     "title": "Veranstaltungsteilnehmer",
     "subtitle": "Teilnehmer zur Veranstaltung hinzufügen, entfernen und Wettkämpfen zuordnen",
-    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startnummer suchen...",
+    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startpass-Nummer suchen...",
     "addParticipant": "Teilnehmer hinzufügen",
     "noEventSelected": "Keine Veranstaltung ausgewählt",
     "selectEventPrompt": "Bitte wählen Sie eine Veranstaltung aus, um Teilnehmer zu verwalten.",
@@ -1901,7 +1901,7 @@
       "gender": "Geschlecht",
       "club": "Verein",
       "squad": "Riege",
-      "startNumber": "Startnummer",
+      "startNumber": "Startpass-Nummer",
       "competitions": "Wettkämpfe",
       "actions": "Aktionen",
       "registrationDate": "Anmeldedatum",
@@ -1913,8 +1913,8 @@
       "squad": "Riege",
       "noSquad": "Keine Riege",
       "noCompetitions": "Keine Wettkämpfe",
-      "startNumber": "Startnummer",
-      "noStartNumber": "Keine Startnummer"
+      "startNumber": "Startpass-Nummer",
+      "noStartNumber": "Keine Startpass-Nummer"
     },
     "empty": {
       "title": "Keine Teilnehmer gefunden",
