@@ -3103,7 +3103,64 @@ Allgemeine Programmierhinweise in myown aktualisieren. Mit den ganzen anweisunge
 
 107. Im ScoreCapture haben wir ein refactoring gemacht. können teile davon wo anders verwendet werden? 
 
-108. Wenn eine UI das Live-Update implementiert hat, dann sollte das wie auch bei den Live-Wertungen dargestellt werden als Grüner Punkt. Dieses UI-Element sollte auch in ein Template oder allgemein verfügbar gemacht werden. Und auch die Verwendung dokumentiert.
+~~108. Wenn eine UI das Live-Update implementiert hat, dann sollte das wie auch bei den Live-Wertungen dargestellt werden als Grüner Punkt. Dieses UI-Element sollte auch in ein Template oder allgemein verfügbar gemacht werden. Und auch die Verwendung dokumentiert.~~ ✅
+
+**Status**: ✅ ABGESCHLOSSEN (2025-01-30)
+
+**Implementierung**:
+1. **Neue Komponente**: `LiveUpdateIndicator.tsx`
+   - Grüner pulsierender Punkt für aktive Live-Updates
+   - Konfigurierbare Größe (sm/md/lg)
+   - Optionales Label
+   - Inaktiver Status (grau, kein Puls)
+   - Vollständige JSDoc-Dokumentation mit Verwendungsbeispielen
+
+2. **Dokumentation**: `LIVE_UPDATE_INDICATOR.md`
+   - Komplette Verwendungsanleitung mit Beispielen
+   - Props-Dokumentation
+   - Integrationsbeispiele für verschiedene Templates
+   - Best Practices und Styling-Details
+   - Liste der Seiten mit Socket.IO-Integration
+
+3. **Lokalisierung** (de.json, en.json):
+   - `common.live`: "Live" / "Live"
+   - `common.liveUpdates`: "Live-Updates" / "Live Updates"
+
+4. **Beispiel-Integration**: `CompetitionStatusManagement`
+   - LiveUpdateIndicator zu customActions hinzugefügt
+   - Zeigt "Live-Updates" Label mit grünem pulsierendem Punkt
+   - Indikator für aktive Socket.IO-Verbindung für Echtzeit-Status-Updates
+
+**Verwendung**:
+```tsx
+import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
+
+// Einfach
+<LiveUpdateIndicator />
+
+// Mit eigenem Label
+<LiveUpdateIndicator label="Live Scores" />
+
+// In EventManagementTemplate
+<EventManagementTemplate
+  customActions={<LiveUpdateIndicator />}
+>
+```
+
+**Vorhandene Seiten mit Socket.IO**:
+- ✅ LiveScoreUpdates (bereits implementiert)
+- ✅ CompetitionStatusManagement (jetzt mit Indikator)
+- ⏳ ScoreCapture (könnte hinzugefügt werden)
+- ⏳ SquadStatusManagement (könnte hinzugefügt werden)
+
+**Dateien**:
+- `client/src/components/LiveUpdateIndicator.tsx` (NEU)
+- `newWebBased/LIVE_UPDATE_INDICATOR.md` (NEU)
+- `client/src/i18n/locales/de.json`
+- `client/src/i18n/locales/en.json`
+- `client/src/pages/CompetitionStatusManagement.tsx`
+**Build Status**: ✓ 2247 modules, 6.19s, keine Fehler
+**Commit**: a9d46322
 
 109. Zeit Planung 
 http://localhost:3001/time-planning?eventId=59&squadName=mBlau 
@@ -3111,3 +3168,6 @@ Durchgänge UI:
 - Auf der Seite müssen noch Editierbuttons (Einheitliche Vorgabe beachten) Um die Startzeiten zu ändern 
 - Die Position zum "Durchgang hinzufügen" Button ist nicht wie sonst überall im header. 
 
+110. Wettkampfstatus 
+Der Filter - Button wird in der UI auch nicht angezeigt. 
+http://localhost:3001/competition-status?eventId=59&squadName=mBlau
