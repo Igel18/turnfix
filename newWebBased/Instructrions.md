@@ -2782,9 +2782,25 @@ http://localhost:3001/formulas
 http://localhost:3001/discipline-groups
 http://localhost:3001/status-management 
 
-95. Ändern: 
+95. ✅ Terminology Fix: Startnummer → Startpass-Nummer
 http://localhost:3001/participants
--> Startnummer ist heißt eigentlich Startpass-Nummer
+-> Startnummer heißt eigentlich Startpass-Nummer (permanente Athleten-Lizenznummer)
+**IMPLEMENTIERT:** 
+- Unterscheidung klar definiert:
+  * "Startpass-Nummer" = permanente Athleten-Lizenznummer (Participant-Eigenschaft)
+  * "Startnummern" = temporäre Wettkampf-Startnummern (Event-Generierung)
+- Aktualisiert in 9 Translation-Strings pro Sprache:
+  * participants.table.startNumber
+  * participants.form.startNumber + Placeholder
+  * scoreCapture.searchPlaceholder
+  * results.searchPlaceholder
+  * eventParticipants.searchPlaceholder
+  * eventParticipants.table.startNumber
+  * eventParticipants.card.startNumber + noStartNumber
+- Commit: cb765c53
+**FILES CHANGED:**
+- de.json: "Startnummer" → "Startpass-Nummer" / "Startpass-Nummern"
+- en.json: "Start Number" → "License Number" / "License Numbers"
 
 96. ⏳ Layout Designer UnifiedModal
 http://localhost:3001/certificate-layouts
