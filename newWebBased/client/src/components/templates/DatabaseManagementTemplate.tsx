@@ -23,7 +23,7 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   description
 }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       <UnifiedPageHeader 
         title={title}
         description={description}
@@ -57,6 +57,6 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
           {children}
         </div>
       </div>
-    </div>
+    </>
   );
 };

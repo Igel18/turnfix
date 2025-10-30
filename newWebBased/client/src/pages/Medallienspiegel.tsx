@@ -246,21 +246,19 @@ export default function Medallienspiegel() {
 
   if (!selectedEvent) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
-          <UnifiedPageHeader
-            title={t('medallienspiegel.title')}
-            subtitle={t('medallienspiegel.subtitle')}
-            icon={TrophyIcon}
-            showEventContext={true}
-          />
-          <div className="text-center">
-            <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noEventTitle')}</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {t('medallienspiegel.noEventMessage')}
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto p-6">
+        <UnifiedPageHeader
+          title={t('medallienspiegel.title')}
+          subtitle={t('medallienspiegel.subtitle')}
+          icon={TrophyIcon}
+          showEventContext={true}
+        />
+        <div className="text-center">
+          <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noEventTitle')}</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {t('medallienspiegel.noEventMessage')}
+          </p>
         </div>
       </div>
     )
@@ -268,30 +266,28 @@ export default function Medallienspiegel() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
-          <UnifiedPageHeader
-            title={t('medallienspiegel.title')}
-            subtitle={t('medallienspiegel.subtitle')}
-            icon={TrophyIcon}
-            showEventContext={true}
-          />
-          <div className="text-center">
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{t('medallienspiegel.loadError')}</h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    <p>{error}</p>
-                  </div>
-                  <div className="mt-4">
-                    <button
-                      onClick={refetch}
-                      className="bg-red-100 px-2 py-1 text-sm font-medium text-red-800 rounded-md hover:bg-red-200"
-                    >
-                      {t('medallienspiegel.retry')}
-                    </button>
-                  </div>
+      <div className="max-w-7xl mx-auto p-6">
+        <UnifiedPageHeader
+          title={t('medallienspiegel.title')}
+          subtitle={t('medallienspiegel.subtitle')}
+          icon={TrophyIcon}
+          showEventContext={true}
+        />
+        <div className="text-center">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">{t('medallienspiegel.loadError')}</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={refetch}
+                    className="bg-red-100 px-2 py-1 text-sm font-medium text-red-800 rounded-md hover:bg-red-200"
+                  >
+                    {t('medallienspiegel.retry')}
+                  </button>
                 </div>
               </div>
             </div>
@@ -302,20 +298,19 @@ export default function Medallienspiegel() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        <UnifiedPageHeader
-          title={t('medallienspiegel.title')}
-          subtitle={t('medallienspiegel.subtitleWithEvent', { eventName: selectedEvent.var_eventname })}
-          icon={TrophyIcon}
-          showEventContext={true}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          showViewToggle={true}
-          onExportPDF={handleExportPDF}
-          showExportPDF={true}
-          totalCount={medalData?.standings.length || 0}
-        />
+    <div className="max-w-7xl mx-auto p-6">
+      <UnifiedPageHeader
+        title={t('medallienspiegel.title')}
+        subtitle={t('medallienspiegel.subtitleWithEvent', { eventName: selectedEvent.var_eventname })}
+        icon={TrophyIcon}
+        showEventContext={true}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        showViewToggle={true}
+        onExportPDF={handleExportPDF}
+        showExportPDF={true}
+        totalCount={medalData?.standings.length || 0}
+      />
 
         {loading ? (
           <div className="text-center">
@@ -342,7 +337,6 @@ export default function Medallienspiegel() {
             </p>
           </div>
         )}
-      </div>
     </div>
   )
 }
