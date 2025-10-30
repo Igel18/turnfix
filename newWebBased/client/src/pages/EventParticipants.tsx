@@ -14,7 +14,7 @@ import {
   DocumentArrowDownIcon,
   TagIcon
 } from '@heroicons/react/24/outline';
-import UnifiedPageHeader from '@/components/UnifiedPageHeader';
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
@@ -1117,109 +1117,175 @@ const EventParticipants: React.FC = () => {
     return matchesSearch;
   }) : [];
 
-  const getFilterOptions = () => [
-    {
-      value: 'gender',
-      label: t('eventParticipants.filters.gender'),
-      selectedValue: genderFilter,
-      options: [
-        { value: 'male', label: t('eventParticipants.editParticipant.male') },
-        { value: 'female', label: t('eventParticipants.editParticipant.female') }
-      ],
-      onChange: setGenderFilter
-    },
-    {
-      value: 'club',
-      label: t('eventParticipants.filters.club'),
-      selectedValue: clubFilter,
-      options: [...new Set(allParticipants.map((p: Participant) => p.club))].map(club => ({
-        value: club,
-        label: club
-      })),
-      onChange: setClubFilter
-    },
-    {
-      value: 'age',
-      label: t('eventParticipants.filters.ageGroup'), 
-      selectedValue: ageFilter,
-      options: [
-        { value: '6-8', label: t('eventParticipants.filters.ageGroups.6-8') },
-        { value: '9-10', label: t('eventParticipants.filters.ageGroups.9-10') },
-        { value: '11-12', label: t('eventParticipants.filters.ageGroups.11-12') },
-        { value: '13-14', label: t('eventParticipants.filters.ageGroups.13-14') },
-        { value: '15-16', label: t('eventParticipants.filters.ageGroups.15-16') },
-        { value: '17+', label: t('eventParticipants.filters.ageGroups.17+') }
-      ],
-      onChange: setAgeFilter
-    }
-  ];
-
   if (!eventId) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="text-center py-8">
-          <Users className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('eventParticipants.noEventSelected')}</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {t('eventParticipants.selectEventPrompt')}
-          </p>
-        </div>
-      </div>
+      <EventManagementTemplate
+        title={t('eventParticipants.title')}
+        subtitle={t('eventParticipants.selectEventPrompt')}
+        icon={UsersIcon}
+        showEventContext={true}
+        showViewToggle={false}
+      >
+        {() => (
+          <div className="text-center py-8">
+            <Users className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('eventParticipants.noEventSelected')}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {t('eventParticipants.selectEventPrompt')}
+            </p>
+          </div>
+        )}
+      </EventManagementTemplate>
     );
   }
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      <UnifiedPageHeader
-        title={t('eventParticipants.title')}
-        subtitle={t('eventParticipants.subtitle')}
-        icon={UsersIcon}
-        showEventContext={true}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder={t('eventParticipants.searchPlaceholder')}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        hasFilters={true}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={() => {
-          setSearchTerm('');
-          setGenderFilter('');
-          setClubFilter('');
-          setAgeFilter('');
-        }}
-        showAdd={true}
-        addLabel={t('eventParticipants.addParticipant')}
-        onAdd={() => setShowAddModal(true)}
-        showExportCSV={true}
-        onExportCSV={() => console.log('Export CSV clicked')}
-        showViewToggle={true}
-        viewMode={viewType === 'cards' ? 'grid' : 'table'}
-        onViewModeChange={(mode) => handleViewTypeChange(mode === 'grid' ? 'cards' : 'table')}
-        customActions={
-          filteredParticipants.filter(p => p.isInEvent).length > 0 ? (
-            <div className="flex space-x-2">
-              <button
-                onClick={exportParticipantsListPDF}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-                {t('eventParticipants.actions.exportParticipantsList')}
-              </button>
-              <button
-                onClick={() => setShowLabelModal(true)}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <TagIcon className="h-4 w-4 mr-2" />
-                {t('eventParticipants.actions.exportParticipantsLabels')}
-              </button>
-            </div>
-          ) : null
-        }
-      />
+  // Prepare unique clubs for filter
+  const uniqueClubs = [...new Set(allParticipants.map((p: Participant) => p.club))].sort();
 
-      <div className="p-6">
-        {selectedTab === 'participants' && (
+  return (
+    <EventManagementTemplate
+      title={t('eventParticipants.title')}
+      subtitle={t('eventParticipants.subtitle')}
+      icon={UsersIcon}
+      showEventContext={true}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      filterSection={
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Search Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('common.search')}
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={t('eventParticipants.searchPlaceholder')}
+                className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Gender Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('eventParticipants.filters.gender')}
+            </label>
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">{t('eventParticipants.filters.all')}</option>
+              <option value="male">{t('eventParticipants.editParticipant.male')}</option>
+              <option value="female">{t('eventParticipants.editParticipant.female')}</option>
+            </select>
+          </div>
+
+          {/* Club Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('eventParticipants.filters.club')}
+            </label>
+            <select
+              value={clubFilter}
+              onChange={(e) => setClubFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">{t('eventParticipants.filters.all')}</option>
+              {uniqueClubs.map(club => (
+                <option key={club} value={club}>{club}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Age Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('eventParticipants.filters.ageGroup')}
+            </label>
+            <select
+              value={ageFilter}
+              onChange={(e) => setAgeFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">{t('eventParticipants.filters.all')}</option>
+              <option value="6-8">{t('eventParticipants.filters.ageGroups.6-8')}</option>
+              <option value="9-10">{t('eventParticipants.filters.ageGroups.9-10')}</option>
+              <option value="11-12">{t('eventParticipants.filters.ageGroups.11-12')}</option>
+              <option value="13-14">{t('eventParticipants.filters.ageGroups.13-14')}</option>
+              <option value="15-16">{t('eventParticipants.filters.ageGroups.15-16')}</option>
+              <option value="17+">{t('eventParticipants.filters.ageGroups.17+')}</option>
+            </select>
+          </div>
+
+          {/* Reset Button */}
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setGenderFilter('');
+                setClubFilter('');
+                setAgeFilter('');
+              }}
+              className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {t('common.resetFilters')}
+            </button>
+          </div>
+        </div>
+      }
+      showAddButton={true}
+      addButtonText={t('eventParticipants.addParticipant')}
+      onAdd={() => setShowAddModal(true)}
+      showExportCSV={true}
+      onExportCSV={() => console.log('Export CSV clicked')}
+      viewStorageKey="eventParticipants-view"
+      defaultView={viewType === 'cards' ? 'grid' : 'table'}
+      onViewModeChange={(mode: 'table' | 'grid') => handleViewTypeChange(mode === 'grid' ? 'cards' : 'table')}
+      showViewToggle={true}
+      customActions={
+        filteredParticipants.filter(p => p.isInEvent).length > 0 ? [
+          <button
+            key="export-list"
+            onClick={exportParticipantsListPDF}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+            {t('eventParticipants.actions.exportParticipantsList')}
+          </button>,
+          <button
+            key="export-labels"
+            onClick={() => setShowLabelModal(true)}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <TagIcon className="h-4 w-4 mr-2" />
+            {t('eventParticipants.actions.exportParticipantsLabels')}
+          </button>
+        ] : []
+      }
+    >
+      {() => (
+        <div>
+          <div className="p-6">
+            {selectedTab === 'participants' && (
           <div className="space-y-6">
             {/* Event Participants Section */}
             <div>
@@ -1594,10 +1660,10 @@ const EventParticipants: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+          </div>
 
-      {/* Add Participant Modal */}
-      <UnifiedModal
+          {/* Add Participant Modal */}
+          <UnifiedModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="Add Participant to Event"
@@ -1861,7 +1927,9 @@ const EventParticipants: React.FC = () => {
           />
         )}
       </UnifiedModal>
-    </div>
+        </div>
+      )}
+    </EventManagementTemplate>
   );
 };
 

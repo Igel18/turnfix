@@ -285,8 +285,8 @@ export default function UnifiedPageHeader({
         </div>
       )}
 
-      {/* Filters Section */}
-      {showFilters && (
+      {/* Filters Section - only render if there are actual filter options or search */}
+      {showFilters && (filterOptions.length > 0 || onSearchChange) && (
         <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">{t('common.table.filters')}</h3>
