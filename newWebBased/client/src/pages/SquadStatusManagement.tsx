@@ -14,6 +14,7 @@ import MatrixView, { MatrixStatusBadge, MatrixColumn, MatrixRow, MatrixCellProps
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiPost } from '@/utils/api'
 import getSocket from '@/utils/socket'
+import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
 
 // Types
@@ -461,6 +462,8 @@ export function SquadStatusManagement() {
       showImportButton={false}
       showViewToggle={false}
       customActions={[
+        // Live Update Indicator
+        <LiveUpdateIndicator key="live-indicator" label={t('common.liveUpdates')} />,
         // View Mode Toggle (3 options: Matrix, Table, Grid)
         <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
           <button

@@ -22,6 +22,7 @@ import {
 import { getDisciplineIcon, getDisciplineShortName } from '@/utils/disciplineIcons'
 import { formatScore as formatScoreUtil } from '@/utils/scoreFormatter'
 import getSocket from '../utils/socket'
+import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -1410,17 +1411,20 @@ const Results = () => {
       showEventContext={true}
       showViewToggle={false}
       customActions={
-        <button
-          onClick={() => setShowDisciplineScores(!showDisciplineScores)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            showDisciplineScores
-              ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-          title={showDisciplineScores ? t('results.hideDisciplineScores') : t('results.showDisciplineScores')}
-        >
-          {showDisciplineScores ? '📊 ' + t('results.hideDetails') : '📊 ' + t('results.showDetails')}
-        </button>
+        <>
+          <LiveUpdateIndicator label={t('common.liveUpdates')} />
+          <button
+            onClick={() => setShowDisciplineScores(!showDisciplineScores)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              showDisciplineScores
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title={showDisciplineScores ? t('results.hideDisciplineScores') : t('results.showDisciplineScores')}
+          >
+            {showDisciplineScores ? '📊 ' + t('results.hideDetails') : '📊 ' + t('results.showDetails')}
+          </button>
+        </>
       }
     >
       {() => (

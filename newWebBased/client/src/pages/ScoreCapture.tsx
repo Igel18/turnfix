@@ -13,6 +13,7 @@ import { GenderBadge } from '@/components/GenderBadge'
 import { apiGet, apiPost } from '../utils/api'
 import { normalizeScoreInput, getScorePlaceholder } from '@/utils/scoreFormatter'
 import getSocket from '../utils/socket'
+import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import { SquadDisciplineSelector } from '@/components/scoreCapture'
 import type { 
   Participant, 
@@ -1368,6 +1369,9 @@ export function ScoreCapture() {
       showHelpPanel={showHelpPanel}
       onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
       helpContent={helpContent}
+      customActions={
+        <LiveUpdateIndicator label={t('common.liveUpdates')} />
+      }
       customBelowActions={
         <div className="flex items-center gap-4">
           <button
