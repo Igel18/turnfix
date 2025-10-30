@@ -2583,7 +2583,7 @@ export function useEscapeKey(onEscape: () => void, enabled: boolean = true) {
 - Feedback zu Tastenkombinationen einholen (evtl. Tab-Taste für Felder?)
 - Prüfen, ob ESC-Taste bei ungespeicherten Änderungen Warnung zeigen soll
 
-
+Der Header ist in dem Template zu breit... 
 
 Aber die Modalen Dialoge gibt es in viel mehr UIs. 
 
@@ -2838,11 +2838,177 @@ http://localhost:3001/time-planning?eventId=59&squadName=m
 -> Übungsdauer pro Gerät sollte per default auf 3 stehen 
 -> Pause zwischen Geräten sollte per default auf 0 stehen 
 
-100. 
+100. ✅ FIXED: Meldematrix undefinedJ Bug
 http://localhost:3001/meldematrix?eventId=59&squadName=m
-Da steht in der Überschrift der Tabelle "undefinedJ" 
+~~Da steht in der Überschrift der Tabelle "undefinedJ"~~
 
-101. Uneinheitlicher Hintergrund
-Diese 2 UIs scheinen kein template zu verwenden. 
+**Problem:** MatrixView column headers zeigten "undefinedJ" für Competitions ohne ageFrom/ageTo Werte.
+
+**Root Cause:** Template literal `${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J` generierte "undefinedJ" wenn `ageFrom` undefined war.
+
+**Lösung (Commit: 8a81db9b):**
+```typescript
+// Vorher:
+subLabel: `${competition.ageFrom}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
+
+// Nachher:
+subLabel: competition.gender && competition.gender !== 'unbekannt' 
+  ? `${competition.gender.charAt(0).toUpperCase()} ${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}${competition.ageFrom || competition.ageTo ? 'J' : ''}`
+  : (competition.ageFrom || competition.ageTo)
+    ? `${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
+    : ''
+```
+
+**Verbesserungen:**
+- Null coalescing operator (`??`) für undefined handling
+- Conditional "J" suffix nur wenn Age-Werte existieren
+- Leerer String statt "undefinedJ" für Competitions ohne Altersangaben
+
+101. ⏳ Template-System Refactoring (IN PROGRESS)
+~~Diese 2 UIs scheinen kein template zu verwenden.~~
 http://localhost:3001/medallienspiegel?eventId=59&squadName=mBlau
 http://localhost:3001/competitions?eventId=59&squadName=mBlau
+
+**Strategie:** Alle Event-Management Seiten sollen EventManagementTemplate verwenden für einheitliche UI/UX.
+
+**Architektur-Verbesserung (Commit: bdcc378c):**
+- EventManagementTemplate nutzt jetzt **intern UnifiedPageHeader**
+- Code-Reduktion: 486 → 311 Zeilen (-36% / 175 Zeilen gespart)
+- Single Source of Truth für Header-Funktionalität
+- DatabaseManagementTemplate Background entfernt (verwendet jetzt Fragment)
+
+**Fortschritt: 3/12 Seiten konvertiert**
+
+✅ **Konvertiert:**
+1. **CompetitionsFixed** (bereits fertig) - View-Toggle mit Persistence, Filters, Add/Edit/Delete
+2. **Medallienspiegel** (Commit: a5abd34c) - View-Toggle, PDF Export, Socket.IO Live-Updates
+3. **Meldematrix** (Commit: 8a81db9b) - Matrix View, Gender Filter, Club Search, PDF/Print + Point 100 Fix
+
+⏳ **Verbleibend (9 Seiten - alle komplex):**
+| Seite | Zeilen | Komplexität | Features |
+|-------|--------|-------------|----------|
+| EventParticipants | 1869 | Sehr hoch | CRUD, Filters, Add Modal, Competitions Assignment |
+| Results | 1752 | Sehr hoch | Multi-Competition, Certificate Generation, PDF/CSV |
+| SquadManagement | 1030 | Hoch | Drag&Drop, Participant Assignment, Virtual Squads |
+| TimePlanning | 1009 | Hoch | Gantt Chart, Time Calculations, Rotation Planning, Point 99 |
+| EventManagement | 953 | Hoch | Dashboard, Statistics, Start Number Generation |
+| CompetitionStatusManagement | 816 | Mittel | Status Overview, View Toggle |
+| SquadStatusManagement | 797 | Mittel | Squad Status, View Toggle |
+| ScoreCapture | ? | Sehr hoch | Score Entry, Validation, Point 93 Keyboard Nav |
+| JuryPortal | ? | Hoch | Port 3002, separate UI (kann aus Haupt-App entfernt werden) |
+
+**Commits:**
+- `bdcc378c` - EventManagementTemplate refactored to use UnifiedPageHeader internally
+- `a5abd34c` - Medallienspiegel converted to EventManagementTemplate
+- `8a81db9b` - Meldematrix converted + Point 100 undefinedJ bug fixed
+
+**Next Steps:**
+- Einfachere Seiten zuerst: CompetitionStatusManagement, SquadStatusManagement
+- Dann mittlere: EventManagement, SquadManagement
+- Zuletzt komplexe: EventParticipants, Results, ScoreCapture, TimePlanning
+
+**ANALYSE:** Template-Übersicht aller Seiten (Stand: 2025-01-30)
+
+### 📊 DatabaseManagementTemplate (13 Seiten)
+*Zweck: Stammdaten-Verwaltung mit CRUD-Operationen*
+
+| Seite | Route | Features | Besonderheiten |
+|-------|-------|----------|----------------|
+| Associations | `/associations` | Create/Edit/Delete, Table/Grid View | - |
+| CertificateLayouts | `/certificate-layouts` | Create/Edit/Delete, Layout Designer | Modal mit Canvas/Drag-Drop |
+| Clubs | `/clubs` | Create/Edit/Delete, Table/Grid View | - |
+| DisciplineFields | `/discipline-fields` | Create/Edit/Delete, Table View only | - |
+| DisciplineGroups | `/discipline-groups` | Create/Edit/Delete, Table/Grid View | - |
+| Disciplines | `/disciplines` | Create/Edit/Delete, Table/Grid View | - |
+| Events | `/events` | Create/Edit/Delete, Table/Grid View | Home Button |
+| Formulas | `/formulas` | Create/Edit/Delete, Table/Grid View | - |
+| Locations | `/locations` | Create/Edit/Delete, Table/Grid View | - |
+| Participants | `/participants` | Create/Edit/Delete, Table/Grid View | "Smart" Pagination |
+| Persons | `/persons` | Create/Edit/Delete, Table/Grid View | - |
+| Sports | `/sports` | Create/Edit/Delete, Table/Grid View | - |
+| Status | `/status-management` | Create/Edit/Delete, Color Picker | ✅ Point 98 Fix |
+
+**Template-Features:**
+- Container: Fragment (erbt App.tsx white background)
+- Search, Filters, Add-Button
+- Table/Grid View Toggle
+- Pagination
+- Home Button
+
+### 🏆 EventManagementTemplate (3/12 konvertiert)
+*Zweck: Event-spezifische Daten-Verwaltung*
+
+| Seite | Route | Status | Container | Features | 
+|-------|-------|--------|-----------|----------|
+| CompetitionsFixed | `/competitions?eventId=X` | ✅ Konvertiert | Template | Create/Edit/Delete, Filters, View-Toggle with Persistence |
+| Medallienspiegel | `/medallienspiegel?eventId=X` | ✅ Konvertiert | Template | View-Toggle, PDF Export, Socket.IO Live-Updates |
+| Meldematrix | `/meldematrix?eventId=X` | ✅ Konvertiert | Template | Matrix View, Filters, PDF/Print, Point 100 Fixed |
+| CompetitionStatusManagement | `/competition-status?eventId=X` | ⏳ Pending | `max-w-7xl` | Status-Verwaltung, View Toggle |
+| EventManagement | `/event-management?eventId=X` | ⏳ Pending | `max-w-7xl` | Dashboard, Statistics, Start Numbers |
+| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | `max-w-7xl` | CRUD, Search, Filters, Add Modal |
+| Results | `/results?eventId=X` | ⏳ Pending | `max-w-7xl` | Multi-Comp, Certificates, PDF/CSV |
+| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | `max-w-7xl` | Score Entry, Point 93 Keyboard Nav |
+| SquadManagement | `/squads?eventId=X` | ⏳ Pending | `max-w-7xl` | CRUD, Drag&Drop, Virtual Squads |
+| SquadStatusManagement | `/squad-status?eventId=X` | ⏳ Pending | `max-w-7xl` | Status Display, View Toggle |
+| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | `max-w-7xl` | Gantt, Time Calc, Point 99 Fix |
+| CompetitionsDebug | `/competitions-debug` | 🗑️ Delete | Keine | Debug-only Tools |
+| TimePlanningPage | `/time-planning` | 🗑️ Delete | `max-w-7xl` | Legacy Duplicate |
+
+**EventManagementTemplate Features:**
+- Search (optional)
+- Filters Toggle (optional)
+- View Toggle (Table/Grid, optional)
+- Export Buttons (PDF/CSV, optional)
+- Event Context Badge (zeigt aktuelles Event)
+- Custom Buttons
+- Container: `max-w-7xl mx-auto` 
+- Management Center Link (zurück zu Event-Übersicht)
+- Table/Grid View Toggle mit Persistence
+
+### 🔧 Standalone-Seiten (kein Template)
+
+| Seite | Route | Container | Features | Status |
+|-------|-------|-----------|----------|--------|
+| Configuration | `/configuration` | `max-w-4xl mx-auto p-6` | Settings Editor | ✅ Aktiv |
+| Home | `/` | Custom | Landing Page | ✅ Aktiv |
+| Login | `/login` | Custom | Authentication | ✅ Aktiv |
+| ManagementCenter | `/management` | Custom | Dashboard | ✅ Aktiv |
+
+
+
+### 🎯 Problem-Analyse:
+
+**Inkonsistente Hintergründe:**
+- **EventManagementTemplate:** Grau (`min-h-screen bg-gray-50`)
+- **DatabaseManagementTemplate:** Grau (`min-h-screen bg-gray-50`)
+- **UnifiedPageHeader-Seiten:** Weiß (erben `bg-background` von App.tsx)
+- **App.tsx Root:** Weiß (`min-h-screen bg-background`)
+
+**Betroffene Seiten:**
+- Medallienspiegel: Weiß ✅ (korrekt für UnifiedPageHeader)
+- CompetitionsFixed: Grau ❌ (EventManagementTemplate hat eigenen bg-gray-50)
+
+### 💡 Lösungsoptionen:
+
+**Option A: Alle Event-Seiten mit UnifiedPageHeader** ⭐
+- CompetitionsFixed konvertiert zu UnifiedPageHeader
+- Alle Event-Seiten: Weißer Hintergrund
+- Vorteil: Konsistenz mit Results, ScoreCapture, EventParticipants
+- Nachteil: EventManagementTemplate wird obsolet
+
+**Option B: Alle Event-Seiten mit EventManagementTemplate**
+- 10+ Seiten zu EventManagementTemplate konvertieren
+- Alle Event-Seiten: Grauer Hintergrund
+- Vorteil: Mehr Template-Nutzung
+- Nachteil: Große Umstellung, nicht alle Seiten brauchen Template-Features
+
+**Option C: Templates ohne eigenen Hintergrund** ⭐ EINFACHSTE
+- EventManagementTemplate entfernt `min-h-screen bg-gray-50`
+- DatabaseManagementTemplate entfernt `min-h-screen bg-gray-50`
+- Alle erben Hintergrund von App.tsx
+- Vorteil: Minimale Änderung (2 Zeilen), sofortige Konsistenz
+- Nachteil: Keine
+
+**STATUS:** Warte auf Entscheidung - siehe Tabelle oben zur Bearbeitung
+
+
