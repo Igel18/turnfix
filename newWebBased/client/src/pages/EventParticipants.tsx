@@ -1282,7 +1282,7 @@ const EventParticipants: React.FC = () => {
         ] : []
       }
     >
-      {() => (
+      {(viewMode) => (
         <div>
           <div className="p-6">
             {selectedTab === 'participants' && (
@@ -1310,7 +1310,7 @@ const EventParticipants: React.FC = () => {
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      {viewType === 'table' ? (
+                      {viewMode === 'table' ? (
                         <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>

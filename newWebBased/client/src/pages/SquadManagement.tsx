@@ -611,9 +611,8 @@ const forceLoadAvailableParticipants = async () => {
       showFilters={showFilters}
       onToggleFilters={() => setShowFilters(!showFilters)}
       filterSection={
-        showFilters ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Gender Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -684,7 +683,6 @@ const forceLoadAvailableParticipants = async () => {
               </div>
             </div>
           </div>
-        ) : undefined
       }
       showAddButton={true}
       addButtonText={t('squadManagement.actions.newSquad')}
