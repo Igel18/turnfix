@@ -29,7 +29,7 @@ import {
   ChevronUpIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '../components/UnifiedPageHeader'
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import { useEvent } from '../contexts/EventContext'
 import { apiGet, apiPost, apiPut, invalidateCache } from '../utils/api'
 
@@ -81,8 +81,8 @@ interface GanttTimeSlot {
 }
 
 const DEFAULT_TIME_SETTINGS: TimeSettings = {
-  exerciseDurationMinutes: 10,
-  breakBetweenDevicesMinutes: 5,
+  exerciseDurationMinutes: 3,  // Point 99: Changed from 10 to 3
+  breakBetweenDevicesMinutes: 0,  // Point 99: Changed from 5 to 0
   warmupDurationMinutes: 15,
   rotationIntervalMinutes: 20
 }
@@ -841,87 +841,149 @@ export default function TimePlanning() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <UnifiedPageHeader
-        title={t('timePlanning.title')}
-        subtitle={t('timePlanning.subtitle')}
-        icon={ClockIcon}
-        searchTerm=""
-        onSearchChange={() => {}}
-        showEventContext={true}
-        customActions={
-          <div className="flex items-center space-x-3">
-            {/* View Mode Toggle */}
-            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('sessions')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  viewMode === 'sessions'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {t('timePlanning.viewMode.sessions')}
-              </button>
-              <button
-                onClick={() => setViewMode('timeline')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  viewMode === 'timeline'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {t('timePlanning.viewMode.timeline')}
-              </button>
-              <button
-                onClick={() => setViewMode('gantt')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  viewMode === 'gantt'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {t('timePlanning.viewMode.gantt')}
-              </button>
-              <button
-                onClick={() => setViewMode('rotation')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  viewMode === 'rotation'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {t('timePlanning.viewMode.rotation') || 'Rotation'}
-              </button>
-            </div>
-
-            {/* Action Buttons */}
+    <EventManagementTemplate
+      title={t('timePlanning.title')}
+      subtitle={t('timePlanning.subtitle')}
+      icon={ClockIcon}
+      showEventContext={true}
+      showViewToggle={false}
+      loading={loading}
+      customActions={
+        <div className="flex items-center space-x-3">
+          {/* View Mode Toggle */}
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
             <button
-              onClick={() => setShowTimeSettings(true)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+              onClick={() => setViewMode('sessions')}
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                viewMode === 'sessions'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <Cog6ToothIcon className="h-4 w-4 mr-2" />
-              {t('timePlanning.settings')}
+              {t('timePlanning.viewMode.sessions')}
             </button>
-            
             <button
-              onClick={generateAutomaticSchedule}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+              onClick={() => setViewMode('timeline')}
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                viewMode === 'timeline'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <ArrowPathIcon className="h-4 w-4 mr-2" />
-              {t('timePlanning.generateSchedule')}
+              {t('timePlanning.viewMode.timeline')}
             </button>
-
             <button
-              onClick={exportTimeplan}
-              className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
+              onClick={() => setViewMode('gantt')}
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                viewMode === 'gantt'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <DocumentChartBarIcon className="h-4 w-4 mr-2" />
-              {t('timePlanning.export')}
+              {t('timePlanning.viewMode.gantt')}
+            </button>
+            <button
+              onClick={() => setViewMode('rotation')}
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                viewMode === 'rotation'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {t('timePlanning.viewMode.rotation') || 'Rotation'}
             </button>
           </div>
-        }
-      />
+
+          {/* Action Buttons */}
+          <button
+            onClick={() => setShowTimeSettings(true)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <Cog6ToothIcon className="h-4 w-4 mr-2" />
+            {t('timePlanning.settings')}
+          </button>
+          
+          <button
+            onClick={generateAutomaticSchedule}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <ArrowPathIcon className="h-4 w-4 mr-2" />
+            {t('timePlanning.generateSchedule')}
+          </button>
+
+          <button
+            onClick={exportTimeplan}
+            className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <DocumentChartBarIcon className="h-4 w-4 mr-2" />
+            {t('timePlanning.export')}
+          </button>
+        </div>
+      }
+    >
+      {/* Content based on loading state and view mode */}
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">{t('timePlanning.loading')}</p>
+        </div>
+      ) : competitions.length === 0 && squads.length === 0 ? (
+        <div className="text-center py-8">
+          <ClockIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('timePlanning.noData')}</h3>
+          <p className="text-sm text-gray-600">{t('timePlanning.noDataDescription')}</p>
+        </div>
+      ) : (
+        <>
+          {viewMode === 'sessions' && renderSessionOverview()}
+          {viewMode === 'gantt' && renderGanttChart()}
+          {viewMode === 'timeline' && (
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('timePlanning.timeline')}</h3>
+              <p className="text-gray-600">{t('timePlanning.timelineComingSoon')}</p>
+              <div className="mt-4 text-sm text-gray-500">
+                <p>Loaded: {competitions.length} competitions, {squads.length} squads</p>
+              </div>
+            </div>
+          )}
+          {viewMode === 'rotation' && (
+            <div className="bg-white border rounded-lg p-6">
+              <TimePlanningRotation
+                eventId={eventId || ''}
+                squads={squads.map(s => {
+                  let competitionId = -1;
+                  if (Array.isArray(s.competitions) && s.competitions.length > 0) {
+                    const compObj = competitions.find(c => c.name === s.competitions[0]);
+                    if (compObj) competitionId = compObj.id;
+                  }
+                  return {
+                    name: s.name,
+                    participantCount: s.participantCount,
+                    competitionId
+                  };
+                })}
+                devices={(() => {
+                  if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
+                    const comp = sessionGroups[0].competitions[0];
+                    let disciplineObjs: { name: string }[] = [];
+                    const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === comp.id);
+                    if (filtered.length > 0) {
+                      disciplineObjs = filtered.map(sd => ({ name: sd.tfx_disziplinen.var_name }));
+                    } else if (disciplineCache.current[comp.id] && disciplineCache.current[comp.id].length > 0) {
+                      disciplineObjs = disciplineCache.current[comp.id].map((d: any, idx: number) => ({ name: d.var_name || d.var_disziplinname || d.name || `Device ${idx + 1}` }));
+                    } else if (comp.disciplineCount && comp.disciplineCount > 0) {
+                      disciplineObjs = Array.from({ length: comp.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}` }));
+                    }
+                    return disciplineObjs;
+                  }
+                  return [];
+                })()}
+                competitions={competitions}
+              />
+            </div>
+          )}
+        </>
+      )}
 
       {/* Time Settings Modal */}
       <UnifiedModal
@@ -933,76 +995,6 @@ export default function TimePlanning() {
       >
         {renderTimeSettings()}
       </UnifiedModal>
-
-      {/* Content */}
-      <div className="space-y-6">
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-600">{t('timePlanning.loading')}</p>
-          </div>
-        ) : competitions.length === 0 && squads.length === 0 ? (
-          <div className="text-center py-8">
-            <ClockIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('timePlanning.noData')}</h3>
-            <p className="text-sm text-gray-600">{t('timePlanning.noDataDescription')}</p>
-          </div>
-        ) : (
-          <>
-            {viewMode === 'sessions' && renderSessionOverview()}
-            {viewMode === 'gantt' && renderGanttChart()}
-            {viewMode === 'timeline' && (
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('timePlanning.timeline')}</h3>
-                <p className="text-gray-600">{t('timePlanning.timelineComingSoon')}</p>
-                <div className="mt-4 text-sm text-gray-500">
-                  <p>Loaded: {competitions.length} competitions, {squads.length} squads</p>
-                </div>
-              </div>
-            )}
-            {viewMode === 'rotation' && (
-              <div className="bg-white border rounded-lg p-6">
-                {/* Use first session group for devices, all squads for squads */}
-                <TimePlanningRotation
-                  eventId={eventId}
-                  squads={squads.map(s => {
-                    let competitionId = -1;
-                    if (Array.isArray(s.competitions) && s.competitions.length > 0) {
-                      // Try to find the competition by name in the competitions array
-                      const compObj = competitions.find(c => c.name === s.competitions[0]);
-                      if (compObj) competitionId = compObj.id;
-                    }
-                    return {
-                      name: s.name,
-                      participantCount: s.participantCount,
-                      competitionId
-                    };
-                  })}
-                  devices={(() => {
-                    // Try to get devices from the first session's competitions/discipline logic
-                    if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
-                      const comp = sessionGroups[0].competitions[0];
-                      // Try squadDisciplines first, then disciplineCache, then fallback
-                      let disciplineObjs: { name: string }[] = [];
-                      const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === comp.id);
-                      if (filtered.length > 0) {
-                        disciplineObjs = filtered.map(sd => ({ name: sd.tfx_disziplinen.var_name }));
-                      } else if (disciplineCache.current[comp.id] && disciplineCache.current[comp.id].length > 0) {
-                        disciplineObjs = disciplineCache.current[comp.id].map((d: any, idx: number) => ({ name: d.var_name || d.var_disziplinname || d.name || `Device ${idx + 1}` }));
-                      } else if (comp.disciplineCount && comp.disciplineCount > 0) {
-                        disciplineObjs = Array.from({ length: comp.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}` }));
-                      }
-                      return disciplineObjs;
-                    }
-                    return [];
-                  })()}
-                  competitions={competitions}
-                />
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+    </EventManagementTemplate>
   )
 }
