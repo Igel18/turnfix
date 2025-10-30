@@ -2877,25 +2877,25 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - Single Source of Truth für Header-Funktionalität
 - DatabaseManagementTemplate Background entfernt (verwendet jetzt Fragment)
 
-**Fortschritt: 3/12 Seiten konvertiert**
+**Fortschritt: 7/12 Seiten konvertiert**
 
 ✅ **Konvertiert:**
 1. **CompetitionsFixed** (bereits fertig) - View-Toggle mit Persistence, Filters, Add/Edit/Delete
 2. **Medallienspiegel** (Commit: a5abd34c) - View-Toggle, PDF Export, Socket.IO Live-Updates
 3. **Meldematrix** (Commit: 8a81db9b) - Matrix View, Gender Filter, Club Search, PDF/Print + Point 100 Fix
+4. **SquadStatusManagement** (Commit: e94f7831) - 830 lines - 3-View Toggle, Squad/Discipline Filters, Generate Combinations, Socket.IO
+5. **CompetitionStatusManagement** (Commit: 20892a08) - 839 lines - Matrix/Table/Grid Views, Status/Gender Filters, Progress Tracking, Socket.IO
+6. **EventManagement** (Commit: e463dace) - 953 lines - Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export
+7. **SquadManagement** (Commit: 70dc2fed) - 1071 lines - Drag & Drop, Virtual Squads, Gender/Competition/Club Filters, PDF/CSV Export
 
-⏳ **Verbleibend (9 Seiten - alle komplex):**
+⏳ **Verbleibend (5 Seiten - alle sehr komplex):**
 | Seite | Zeilen | Komplexität | Features |
 |-------|--------|-------------|----------|
-| EventParticipants | 1869 | Sehr hoch | CRUD, Filters, Add Modal, Competitions Assignment |
 | Results | 1752 | Sehr hoch | Multi-Competition, Certificate Generation, PDF/CSV |
-| SquadManagement | 1030 | Hoch | Drag&Drop, Participant Assignment, Virtual Squads |
+| EventParticipants | 1869 | Sehr hoch | CRUD, Filters, Add Modal, Competitions Assignment |
 | TimePlanning | 1009 | Hoch | Gantt Chart, Time Calculations, Rotation Planning, Point 99 |
-| EventManagement | 953 | Hoch | Dashboard, Statistics, Start Number Generation |
-| CompetitionStatusManagement | 816 | Mittel | Status Overview, View Toggle |
-| SquadStatusManagement | 797 | Mittel | Squad Status, View Toggle |
 | ScoreCapture | ? | Sehr hoch | Score Entry, Validation, Point 93 Keyboard Nav |
-| JuryPortal | ? | Hoch | Port 3002, separate UI (kann aus Haupt-App entfernt werden) |
+| CompetitionsDebug | ? | - | Marked for deletion |
 
 **Commits:**
 - `bdcc378c` - EventManagementTemplate refactored to use UnifiedPageHeader internally
@@ -2904,11 +2904,13 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - `e94f7831` - SquadStatusManagement converted to EventManagementTemplate
 - `20892a08` - CompetitionStatusManagement converted to EventManagementTemplate
 - `e463dace` - EventManagement converted to EventManagementTemplate
+- `8ffad65c` - Documentation update: 6/12 pages converted
+- `70dc2fed` - SquadManagement converted to EventManagementTemplate
 
 **Next Steps:**
-- Hohe Komplexität: SquadManagement (1030 lines)
-- Sehr hohe: Results (1752 lines), EventParticipants (1869 lines)
+- Sehr hohe Komplexität: Results (1752 lines), EventParticipants (1869 lines)
 - Mit Bug-Fixes: TimePlanning (Point 99), ScoreCapture (Point 93)
+- Cleanup: CompetitionsDebug deletion
 
 **ANALYSE:** Template-Übersicht aller Seiten (Stand: 2025-01-30)
 
@@ -2941,21 +2943,21 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 ### 🏆 EventManagementTemplate (6/12 konvertiert)
 *Zweck: Event-spezifische Daten-Verwaltung*
 
-| Seite | Route | Status | Lines | Complexity | Features | 
-|-------|-------|--------|-------|------------|----------|
-| CompetitionsFixed | `/competitions?eventId=X` | ✅ Konvertiert | 532 | Medium | Create/Edit/Delete, Filters, View-Toggle with Persistence |
-| Medallienspiegel | `/medallienspiegel?eventId=X` | ✅ Konvertiert | 344 | Low | View-Toggle, PDF Export, Socket.IO Live-Updates |
+| Seite | Route | Status | Lines | Complexity | Features | Live Update | Filter | View-Toggle |
+|-------|-------|--------|-------|------------|----------|-------------|--------|-------------| 
+| CompetitionsFixed | `/competitions?eventId=X` | ✅ Konvertiert | 532 | Medium | nein | Create/Edit/Delete | ja | View-Toggle with Persistence
+| Medallienspiegel | `/medallienspiegel?eventId=X` | ✅ Konvertiert | 344 | Low | PDF Export | Socket.IO Live-Updates | nein | View-Toggle
 | Meldematrix | `/meldematrix?eventId=X` | ✅ Konvertiert | 457 | Medium | Matrix View, Filters, PDF/Print, Point 100 Fixed |
-| SquadStatusManagement | `/squad-status?eventId=X` | ✅ Konvertiert | 830 | Medium | 3-View Toggle (Matrix/Table/Grid), Filters, Socket.IO, Generate Button |
-| CompetitionStatusManagement | `/competition-status?eventId=X` | ✅ Konvertiert | 839 | Medium | 3-View Toggle, Matrix View, Status Tracking, Socket.IO |
-| EventManagement | `/event-management?eventId=X` | ✅ Konvertiert | 953 | High | Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export |
-| SquadManagement | `/squads?eventId=X` | ⏳ Pending | 1030 | High | CRUD, Drag&Drop, Virtual Squads |
-| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix |
-| Results | `/results?eventId=X` | ⏳ Pending | 1752 | Very High | Multi-Comp, Certificates, PDF/CSV |
-| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal |
-| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav |
-| CompetitionsDebug | `/competitions-debug` | 🗑️ Delete | Keine | Debug-only Tools |
-| TimePlanningPage | `/time-planning` | 🗑️ Delete | `max-w-7xl` | Legacy Duplicate |
+| SquadStatusManagement | `/squad-status?eventId=X` | ✅ Konvertiert | 830 | Medium | Generate Button | Socket.IO Live-Updates | Filters | 3-View Toggle (Matrix/Table/Grid) |
+| CompetitionStatusManagement | `/competition-status?eventId=X` | ✅ Konvertiert | 839 | Medium | Status Tracking |  Socket.IO Live-Updates | 3-View Toggle (Matrix/Table/Grid) | |
+| EventManagement | `/event-management?eventId=X` | ✅ Konvertiert | 953 | High | Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export | | | |
+| SquadManagement | `/squads?eventId=X` | ⏳ Pending | 1030 | High | CRUD, Drag&Drop, Virtual Squads | | | |
+| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix | | | |
+| Results | `/results?eventId=X` | ⏳ Pending | 1752 | Very High | Multi-Comp, Certificates, PDF/CSV |  Socket.IO Live-Updates | | |
+| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal | | | |
+| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav |  Socket.IO Live-Updates | | |
+| CompetitionsDebug | `/competitions-debug` | 🗑️ Delete | Keine | Debug-only Tools | | | |
+| TimePlanningPage | `/time-planning` | 🗑️ Delete | `max-w-7xl` | Legacy Duplicate | | | |
 
 **EventManagementTemplate Features:**
 - Search (optional)
