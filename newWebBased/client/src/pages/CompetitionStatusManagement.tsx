@@ -4,10 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { 
   TrophyIcon,
   ExclamationTriangleIcon,
-  ClockIcon,
   TableCellsIcon
 } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixColumn, MatrixRow } from '@/components/MatrixView'
 import { GenderBadge } from '@/components/GenderBadge'
 import { useEvent } from '@/contexts/EventContext'
@@ -310,65 +309,86 @@ const CompetitionStatusManagement = () => {
     setFilterGender('')
   }
 
-  const getFilterOptions = () => [
-    {
-      value: 'status',
-      label: t('competitionStatus.filters.status'),
-      selectedValue: filterStatus,
-      options: [
-        { value: 'completed', label: t('competitionStatus.filters.completed') },
-        { value: 'in_progress', label: t('competitionStatus.filters.inProgress') },
-        { value: 'not_started', label: t('competitionStatus.filters.notStarted') }
-      ],
-      onChange: setFilterStatus
-    },
-    {
-      value: 'gender',
-      label: t('competitionStatus.filters.gender'),
-      selectedValue: filterGender,
-      options: [
-        { value: 'männlich', label: t('competitionStatus.filters.male') },
-        { value: 'weiblich', label: t('competitionStatus.filters.female') }
-      ],
-      onChange: setFilterGender
-    }
-  ];
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <ClockIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">{t('competitionStatus.loading')}</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="max-w-7xl mx-auto">
-      <UnifiedPageHeader
+      <EventManagementTemplate
         title={t('competitionStatus.title')}
         subtitle={t('competitionStatus.subtitle', { eventName: selectedEvent?.var_eventname || t('competitionStatus.selectedEvent') })}
         icon={TrophyIcon}
         showEventContext={true}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder={t('competitionStatus.searchPlaceholder')}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        hasFilters={true}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={handleClearAllFilters}
-        showExportCSV={true}
-        onExportCSV={() => {
-          // TODO: Implement CSV export
-          console.log('Export CSV')
-        }}
-        showAdd={false}
-        showImport={false}
+        loading={true}
         showViewToggle={false}
-        customActions={[
+      >
+        {() => null}
+      </EventManagementTemplate>
+    )
+  }
+
+  return (
+    <EventManagementTemplate
+      title={t('competitionStatus.title')}
+      subtitle={t('competitionStatus.subtitle', { eventName: selectedEvent?.var_eventname || t('competitionStatus.selectedEvent') })}
+      icon={TrophyIcon}
+      showEventContext={true}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      searchPlaceholder={t('competitionStatus.searchPlaceholder')}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      filterSection={
+        showFilters ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('competitionStatus.filters.status')}
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('common.all')}</option>
+                  <option value="completed">{t('competitionStatus.filters.completed')}</option>
+                  <option value="in_progress">{t('competitionStatus.filters.inProgress')}</option>
+                  <option value="not_started">{t('competitionStatus.filters.notStarted')}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('competitionStatus.filters.gender')}
+                </label>
+                <select
+                  value={filterGender}
+                  onChange={(e) => setFilterGender(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">{t('common.all')}</option>
+                  <option value="männlich">{t('competitionStatus.filters.male')}</option>
+                  <option value="weiblich">{t('competitionStatus.filters.female')}</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={handleClearAllFilters}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  {t('common.resetFilters')}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : undefined
+      }
+      showExportCSV={true}
+      onExportCSV={() => {
+        // TODO: Implement CSV export
+        console.log('Export CSV')
+      }}
+      showAddButton={false}
+      showImportButton={false}
+      showViewToggle={false}
+      customActions={[
           // View Mode Toggle (3 options: Matrix, Table, Grid)
           <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
             <button
@@ -409,26 +429,27 @@ const CompetitionStatusManagement = () => {
             </button>
           </div>
         ]}
-      />
-
-      {/* Event Selection */}
-      {!selectedEvent && (
-        <div className="bg-white rounded-lg border p-6 mx-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('competitionStatus.selectEvent')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {events.map(event => (
-              <button
-                key={event.int_eventid}
-                onClick={() => setSelectedEvent(event)}
-                className="p-4 border rounded-lg text-left hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
-              >
-                <h4 className="font-medium text-gray-900">{event.var_eventname}</h4>
-                <p className="text-sm text-gray-500">ID: {event.int_eventid}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      >
+        {() => (
+          <>
+            {/* Event Selection */}
+            {!selectedEvent && (
+              <div className="bg-white rounded-lg border p-6 mx-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('competitionStatus.selectEvent')}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {events.map(event => (
+                    <button
+                      key={event.int_eventid}
+                      onClick={() => setSelectedEvent(event)}
+                      className="p-4 border rounded-lg text-left hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
+                    >
+                      <h4 className="font-medium text-gray-900">{event.var_eventname}</h4>
+                      <p className="text-sm text-gray-500">ID: {event.int_eventid}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
       {/* Competition Status Display */}
       {selectedEventId && (
@@ -809,7 +830,9 @@ const CompetitionStatusManagement = () => {
           )}
         </div>
       )}
-    </div>
+          </>
+        )}
+    </EventManagementTemplate>
   )
 }
 
