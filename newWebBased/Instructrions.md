@@ -2901,11 +2901,12 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - `bdcc378c` - EventManagementTemplate refactored to use UnifiedPageHeader internally
 - `a5abd34c` - Medallienspiegel converted to EventManagementTemplate
 - `8a81db9b` - Meldematrix converted + Point 100 undefinedJ bug fixed
+- `e94f7831` - SquadStatusManagement converted to EventManagementTemplate
 
 **Next Steps:**
-- Einfachere Seiten zuerst: CompetitionStatusManagement, SquadStatusManagement
-- Dann mittlere: EventManagement, SquadManagement
-- Zuletzt komplexe: EventParticipants, Results, ScoreCapture, TimePlanning
+- Mittlere Komplexität: CompetitionStatusManagement (816 lines)
+- Dann höhere: EventManagement, SquadManagement, TimePlanning
+- Zuletzt sehr komplexe: EventParticipants, Results, ScoreCapture
 
 **ANALYSE:** Template-Übersicht aller Seiten (Stand: 2025-01-30)
 
@@ -2935,22 +2936,22 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - Pagination
 - Home Button
 
-### 🏆 EventManagementTemplate (3/12 konvertiert)
+### 🏆 EventManagementTemplate (4/12 konvertiert)
 *Zweck: Event-spezifische Daten-Verwaltung*
 
-| Seite | Route | Status | Container | Features | 
-|-------|-------|--------|-----------|----------|
-| CompetitionsFixed | `/competitions?eventId=X` | ✅ Konvertiert | Template | Create/Edit/Delete, Filters, View-Toggle with Persistence |
-| Medallienspiegel | `/medallienspiegel?eventId=X` | ✅ Konvertiert | Template | View-Toggle, PDF Export, Socket.IO Live-Updates |
-| Meldematrix | `/meldematrix?eventId=X` | ✅ Konvertiert | Template | Matrix View, Filters, PDF/Print, Point 100 Fixed |
-| CompetitionStatusManagement | `/competition-status?eventId=X` | ⏳ Pending | `max-w-7xl` | Status-Verwaltung, View Toggle |
-| EventManagement | `/event-management?eventId=X` | ⏳ Pending | `max-w-7xl` | Dashboard, Statistics, Start Numbers |
-| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | `max-w-7xl` | CRUD, Search, Filters, Add Modal |
-| Results | `/results?eventId=X` | ⏳ Pending | `max-w-7xl` | Multi-Comp, Certificates, PDF/CSV |
-| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | `max-w-7xl` | Score Entry, Point 93 Keyboard Nav |
-| SquadManagement | `/squads?eventId=X` | ⏳ Pending | `max-w-7xl` | CRUD, Drag&Drop, Virtual Squads |
-| SquadStatusManagement | `/squad-status?eventId=X` | ⏳ Pending | `max-w-7xl` | Status Display, View Toggle |
-| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | `max-w-7xl` | Gantt, Time Calc, Point 99 Fix |
+| Seite | Route | Status | Lines | Complexity | Features | 
+|-------|-------|--------|-------|------------|----------|
+| CompetitionsFixed | `/competitions?eventId=X` | ✅ Konvertiert | 532 | Medium | Create/Edit/Delete, Filters, View-Toggle with Persistence |
+| Medallienspiegel | `/medallienspiegel?eventId=X` | ✅ Konvertiert | 344 | Low | View-Toggle, PDF Export, Socket.IO Live-Updates |
+| Meldematrix | `/meldematrix?eventId=X` | ✅ Konvertiert | 457 | Medium | Matrix View, Filters, PDF/Print, Point 100 Fixed |
+| SquadStatusManagement | `/squad-status?eventId=X` | ✅ Konvertiert | 830 | Medium | 3-View Toggle (Matrix/Table/Grid), Filters, Socket.IO, Generate Button |
+| CompetitionStatusManagement | `/competition-status?eventId=X` | ⏳ Pending | 816 | Medium | Status-Verwaltung, View Toggle |
+| EventManagement | `/event-management?eventId=X` | ⏳ Pending | 953 | High | Dashboard, Statistics, Start Numbers |
+| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix |
+| SquadManagement | `/squads?eventId=X` | ⏳ Pending | 1030 | High | CRUD, Drag&Drop, Virtual Squads |
+| Results | `/results?eventId=X` | ⏳ Pending | 1752 | Very High | Multi-Comp, Certificates, PDF/CSV |
+| EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal |
+| ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav |
 | CompetitionsDebug | `/competitions-debug` | 🗑️ Delete | Keine | Debug-only Tools |
 | TimePlanningPage | `/time-planning` | 🗑️ Delete | `max-w-7xl` | Legacy Duplicate |
 
