@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import getSocket from '../utils/socket';
 import { useEvent } from '../contexts/EventContext';
 import { useTranslation } from 'react-i18next';
-import UnifiedPageHeader from '../components/UnifiedPageHeader';
+import { EventManagementTemplate } from '../components/templates/EventManagementTemplate';
 import {
   CalendarDaysIcon,
   MapPinIcon,
@@ -479,111 +479,110 @@ const EventManagement: React.FC = () => {
 
   if (!selectedEvent) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <UnifiedPageHeader 
-          title={t('eventManagement.title')}
-          subtitle={t('eventManagement.noEventSelected')}
-          icon={CalendarDaysIcon}
-          showEventContext={true}
-        />
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <CalendarDaysIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {t('eventManagement.selectEvent')}
-          </h3>
-          <p className="text-gray-500">
-            {t('eventManagement.selectEventDescription')}
-          </p>
-        </div>
-      </div>
+      <EventManagementTemplate
+        title={t('eventManagement.title')}
+        subtitle={t('eventManagement.noEventSelected')}
+        icon={CalendarDaysIcon}
+        showEventContext={true}
+        showViewToggle={false}
+      >
+        {() => (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <CalendarDaysIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {t('eventManagement.selectEvent')}
+            </h3>
+            <p className="text-gray-500">
+              {t('eventManagement.selectEventDescription')}
+            </p>
+          </div>
+        )}
+      </EventManagementTemplate>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <UnifiedPageHeader 
-          title={selectedEvent.var_eventname}
-          subtitle={t('common.loading')}
-          icon={CalendarDaysIcon}
-          showEventContext={true}
-        />
-        <div className="bg-white rounded-lg shadow p-8">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-          </div>
-        </div>
-      </div>
+      <EventManagementTemplate
+        title={selectedEvent.var_eventname}
+        subtitle={t('common.loading')}
+        icon={CalendarDaysIcon}
+        showEventContext={true}
+        loading={true}
+        showViewToggle={false}
+      >
+        {() => null}
+      </EventManagementTemplate>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <UnifiedPageHeader 
-        title={selectedEvent.var_eventname}
-        subtitle={t('eventManagement.subtitle')}
-        icon={CalendarDaysIcon}
-        showEventContext={true}
-        showExportPDF={true}
-        onExportPDF={handleExportPDF}
-        customActions={
-          <div className="flex space-x-2">
-            <button
-              onClick={handleGenerateStartNumbers}
-              disabled={isGeneratingNumbers}
-              className={`bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${isGeneratingNumbers ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {isGeneratingNumbers ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>{t('eventManagement.generatingStartNumbers')}</span>
-                </>
-              ) : (
-                <span>{t('eventManagement.generateStartNumbers')}</span>
-              )}
-            </button>
-            {isEditing ? (
+    <EventManagementTemplate
+      title={selectedEvent.var_eventname}
+      subtitle={t('eventManagement.subtitle')}
+      icon={CalendarDaysIcon}
+      showEventContext={true}
+      showExportPDF={true}
+      onExportPDF={handleExportPDF}
+      showViewToggle={false}
+      customActions={[
+        <button
+          key="generate-start-numbers"
+          onClick={handleGenerateStartNumbers}
+          disabled={isGeneratingNumbers}
+          className={`bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${isGeneratingNumbers ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {isGeneratingNumbers ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>{t('eventManagement.generatingStartNumbers')}</span>
+            </>
+          ) : (
+            <span>{t('eventManagement.generateStartNumbers')}</span>
+          )}
+        </button>,
+        ...(isEditing ? [
+          <button
+            key="save"
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`${
+              isSaving 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            } text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2`}
+          >
+            {isSaving ? (
               <>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className={`${
-                    isSaving 
-                      ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-green-600 hover:bg-green-700'
-                  } text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2`}
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>{t('common.saving')}</span>
-                    </>
-                  ) : (
-                    <span>{t('common.save')}</span>
-                  )}
-                </button>
-                <button
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  {t('common.cancel')}
-                </button>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>{t('common.saving')}</span>
               </>
             ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-              >
-                <PencilIcon className="w-4 h-4" />
-                <span>{t('common.edit')}</span>
-              </button>
+              <span>{t('common.save')}</span>
             )}
-          </div>
-        }
-      />
+          </button>,
+          <button
+            key="cancel"
+            onClick={handleCancel}
+            disabled={isSaving}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            {t('common.cancel')}
+          </button>
+        ] : [
+          <button
+            key="edit"
+            onClick={() => setIsEditing(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+          >
+            <PencilIcon className="w-4 h-4" />
+            <span>{t('common.edit')}</span>
+          </button>
+        ])
+      ]}
+    >
+      {() => (
+        <>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Event Details */}
@@ -945,7 +944,9 @@ const EventManagement: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+        </>
+      )}
+    </EventManagementTemplate>
   );
 };
 
