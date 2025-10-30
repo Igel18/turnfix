@@ -9,6 +9,7 @@ import {
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixColumn, MatrixRow } from '@/components/MatrixView'
 import { GenderBadge } from '@/components/GenderBadge'
+import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
 import getSocket from '@/utils/socket'
@@ -389,6 +390,8 @@ const CompetitionStatusManagement = () => {
       showImportButton={false}
       showViewToggle={false}
       customActions={[
+          // Live Update Indicator
+          <LiveUpdateIndicator key="live-indicator" label={t('common.liveUpdates')} />,
           // View Mode Toggle (3 options: Matrix, Table, Grid)
           <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
             <button

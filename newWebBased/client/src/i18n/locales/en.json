@@ -593,7 +593,9 @@
       "both": "Both",
       "unknown": "Unknown",
       "all": "All Genders"
-    }
+    },
+    "live": "Live",
+    "liveUpdates": "Live Updates"
   },
   "events": {
     "title": "Event Management",

@@ -593,7 +593,9 @@
       "both": "Beide",
       "unknown": "Unbekannt",
       "all": "Alle Geschlechter"
-    }
+    },
+    "live": "Live",
+    "liveUpdates": "Live-Updates"
   },
   "events": {
     "title": "Veranstaltungsverwaltung",
