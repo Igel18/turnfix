@@ -2903,11 +2903,12 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - `8a81db9b` - Meldematrix converted + Point 100 undefinedJ bug fixed
 - `e94f7831` - SquadStatusManagement converted to EventManagementTemplate
 - `20892a08` - CompetitionStatusManagement converted to EventManagementTemplate
+- `e463dace` - EventManagement converted to EventManagementTemplate
 
 **Next Steps:**
-- Mittlere Komplexität: EventManagement (953 lines)
-- Dann höhere: SquadManagement, TimePlanning
-- Zuletzt sehr komplexe: EventParticipants, Results, ScoreCapture
+- Hohe Komplexität: SquadManagement (1030 lines)
+- Sehr hohe: Results (1752 lines), EventParticipants (1869 lines)
+- Mit Bug-Fixes: TimePlanning (Point 99), ScoreCapture (Point 93)
 
 **ANALYSE:** Template-Übersicht aller Seiten (Stand: 2025-01-30)
 
@@ -2937,7 +2938,7 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 - Pagination
 - Home Button
 
-### 🏆 EventManagementTemplate (5/12 konvertiert)
+### 🏆 EventManagementTemplate (6/12 konvertiert)
 *Zweck: Event-spezifische Daten-Verwaltung*
 
 | Seite | Route | Status | Lines | Complexity | Features | 
@@ -2947,9 +2948,9 @@ http://localhost:3001/competitions?eventId=59&squadName=mBlau
 | Meldematrix | `/meldematrix?eventId=X` | ✅ Konvertiert | 457 | Medium | Matrix View, Filters, PDF/Print, Point 100 Fixed |
 | SquadStatusManagement | `/squad-status?eventId=X` | ✅ Konvertiert | 830 | Medium | 3-View Toggle (Matrix/Table/Grid), Filters, Socket.IO, Generate Button |
 | CompetitionStatusManagement | `/competition-status?eventId=X` | ✅ Konvertiert | 839 | Medium | 3-View Toggle, Matrix View, Status Tracking, Socket.IO |
-| EventManagement | `/event-management?eventId=X` | ⏳ Pending | 953 | High | Dashboard, Statistics, Start Numbers |
-| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix |
+| EventManagement | `/event-management?eventId=X` | ✅ Konvertiert | 953 | High | Dashboard, Statistics, Start Numbers, Edit Mode, PDF Export |
 | SquadManagement | `/squads?eventId=X` | ⏳ Pending | 1030 | High | CRUD, Drag&Drop, Virtual Squads |
+| TimePlanning | `/time-planning?eventId=X` | ⏳ Pending | 1009 | High | Gantt, Time Calc, Point 99 Fix |
 | Results | `/results?eventId=X` | ⏳ Pending | 1752 | Very High | Multi-Comp, Certificates, PDF/CSV |
 | EventParticipants | `/event-participants?eventId=X` | ⏳ Pending | 1869 | Very High | CRUD, Search, Filters, Add Modal |
 | ScoreCapture | `/score-capture?eventId=X` | ⏳ Pending | ??? | Very High | Score Entry, Point 93 Keyboard Nav |
