@@ -3044,3 +3044,10 @@ Allgemeine Programmierhinweise in myown aktualisieren. Mit den ganzen anweisunge
 106. Im ScoreCapture haben wir ein refactoring gemacht. können teile davon wo anders verwendet werden? 
 
 107. Wenn eine UI das Live-Update implementiert hat, dann sollte das wie auch bei den Live-Wertungen dargestellt werden als Grüner Punkt. Dieses UI-Element sollte auch in ein Template oder allgemein verfügbar gemacht werden. Und auch die Verwendung dokumentiert.
+
+108. Zeit Planung 
+http://localhost:3001/time-planning?eventId=59&squadName=mBlau 
+Durchgänge UI: 
+- Auf der Seite müssen noch Editierbuttons (Einheitliche Vorgabe beachten) Um die Startzeiten zu ändern 
+- Die Position zum "Durchgang hinzufügen" Button ist nicht wie sonst überall im header. 
+
