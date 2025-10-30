@@ -337,49 +337,47 @@ const CompetitionStatusManagement = () => {
       showFilters={showFilters}
       onToggleFilters={() => setShowFilters(!showFilters)}
       filterSection={
-        showFilters ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('competitionStatus.filters.status')}
-                </label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('common.all')}</option>
-                  <option value="completed">{t('competitionStatus.filters.completed')}</option>
-                  <option value="in_progress">{t('competitionStatus.filters.inProgress')}</option>
-                  <option value="not_started">{t('competitionStatus.filters.notStarted')}</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('competitionStatus.filters.gender')}
-                </label>
-                <select
-                  value={filterGender}
-                  onChange={(e) => setFilterGender(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">{t('common.all')}</option>
-                  <option value="männlich">{t('competitionStatus.filters.male')}</option>
-                  <option value="weiblich">{t('competitionStatus.filters.female')}</option>
-                </select>
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={handleClearAllFilters}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  {t('common.resetFilters')}
-                </button>
-              </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('competitionStatus.filters.status')}
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{t('common.all')}</option>
+                <option value="completed">{t('competitionStatus.filters.completed')}</option>
+                <option value="in_progress">{t('competitionStatus.filters.inProgress')}</option>
+                <option value="not_started">{t('competitionStatus.filters.notStarted')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('competitionStatus.filters.gender')}
+              </label>
+              <select
+                value={filterGender}
+                onChange={(e) => setFilterGender(e.target.value)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{t('common.all')}</option>
+                <option value="männlich">{t('competitionStatus.filters.male')}</option>
+                <option value="weiblich">{t('competitionStatus.filters.female')}</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={handleClearAllFilters}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {t('common.resetFilters')}
+              </button>
             </div>
           </div>
-        ) : undefined
+        </div>
       }
       showExportCSV={true}
       onExportCSV={() => {

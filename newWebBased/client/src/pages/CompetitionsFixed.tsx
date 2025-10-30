@@ -497,6 +497,7 @@ const Competitions: React.FC = () => {
       onRefresh={loadCompetitions}
       onExportCSV={handleExportCSV}
       addButtonText={t('competitions.createButton')}
+      showAddButton={true}
       loading={loading}
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
