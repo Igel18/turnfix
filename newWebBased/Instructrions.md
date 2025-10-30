@@ -3149,9 +3149,12 @@ import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 
 **Vorhandene Seiten mit Socket.IO**:
 - ✅ LiveScoreUpdates (bereits implementiert)
-- ✅ CompetitionStatusManagement (jetzt mit Indikator)
-- ⏳ ScoreCapture (könnte hinzugefügt werden)
-- ⏳ SquadStatusManagement (könnte hinzugefügt werden)
+- ✅ CompetitionStatusManagement (mit Indikator) - Commit: a9d46322
+- ✅ SquadStatusManagement (mit Indikator) - Commit: 17b3b933
+- ✅ Results (mit Indikator) - Commit: 17b3b933
+- ✅ ScoreCapture (mit Indikator) - Commit: 17b3b933
+
+**Alle 5 Seiten mit Live-Updates haben jetzt den visuellen Indikator!**
 
 **Dateien**:
 - `client/src/components/LiveUpdateIndicator.tsx` (NEU)
@@ -3171,3 +3174,8 @@ Durchgänge UI:
 110. Wettkampfstatus 
 Der Filter - Button wird in der UI auch nicht angezeigt. 
 http://localhost:3001/competition-status?eventId=59&squadName=mBlau
+
+111. Filter Lokalisierung 
+Im Filter u.A. bei 
+http://localhost:3001/event-participants?eventId=59&squadName=mBlau
+ist die Lokalisierung weg. 

@@ -12,7 +12,7 @@ Das `LiveUpdateIndicator` Component ist ein wiederverwendbares UI-Element, das a
 - **Socket Events**: 
   - `score-updated` - Neue Wertung eingegangen
   - `join-competition` / `leave-competition` - Raum betreten/verlassen
-- **Live-Indikator**: Bereits integriert (Zeile 123)
+- **Live-Indikator**: ✅ Bereits integriert (Zeile 123)
 
 ### 2. **CompetitionStatusManagement** (Wettkampf-Status)
 - **Datei**: `client/src/pages/CompetitionStatusManagement.tsx`
@@ -20,7 +20,30 @@ Das `LiveUpdateIndicator` Component ist ein wiederverwendbares UI-Element, das a
 - **Socket Events**:
   - `competition-status-updated` - Wettkampfstatus geändert
   - `squad-status-updated` - Riegen-Status geändert
-- **Live-Indikator**: ⚠️ Noch nicht sichtbar implementiert
+- **Live-Indikator**: ✅ Implementiert (customActions)
+
+### 3. **SquadStatusManagement** (Riegen-Status)
+- **Datei**: `client/src/pages/SquadStatusManagement.tsx`
+- **Verwendung**: Echtzeit-Updates für Riegen-Status
+- **Socket Events**:
+  - `squad-status-updated` - Riegen-Status geändert
+  - `competition-status-updated` - Wettkampfstatus geändert
+- **Live-Indikator**: ✅ Implementiert (customActions)
+
+### 4. **Results** (Wettkampfergebnisse)
+- **Datei**: `client/src/pages/Results.tsx`
+- **Verwendung**: Echtzeit-Updates für Ergebnisse
+- **Socket Events**:
+  - `results-updated` - Ergebnisse aktualisiert
+  - `score-updated` - Neue Wertung eingegangen
+- **Live-Indikator**: ✅ Implementiert (customActions)
+
+### 5. **ScoreCapture** (Wertungserfassung)
+- **Datei**: `client/src/pages/ScoreCapture.tsx`
+- **Verwendung**: Echtzeit-Updates für Wertungen von anderen Jury-Mitgliedern
+- **Socket Events**:
+  - `score-updated` - Neue Wertung eingegangen
+- **Live-Indikator**: ✅ Implementiert (customActions)
 
 ## LiveUpdateIndicator Component
 
@@ -224,15 +247,20 @@ test('shows gray static dot when inactive', () => {
 
 1. ✅ Component erstellt: `LiveUpdateIndicator.tsx`
 2. ✅ Dokumentation erstellt: `LIVE_UPDATE_INDICATOR.md`
-3. ⏳ Lokalisierung hinzufügen (de.json, en.json)
-4. ⏳ In CompetitionStatusManagement integrieren
-5. ⏳ Weitere Seiten mit Socket.IO erweitern
-6. ⏳ Tests schreiben
+3. ✅ Lokalisierung hinzugefügt (de.json, en.json)
+4. ✅ In CompetitionStatusManagement integriert
+5. ✅ In SquadStatusManagement integriert
+6. ✅ In Results integriert
+7. ✅ In ScoreCapture integriert
+8. ⏳ Tests schreiben
 
 ## Verwandte Dateien
 
 - `client/src/components/LiveUpdateIndicator.tsx` - Component
 - `client/src/components/LiveScoreUpdates.tsx` - Verwendungsbeispiel
-- `client/src/pages/CompetitionStatusManagement.tsx` - Socket.IO Integration
+- `client/src/pages/CompetitionStatusManagement.tsx` - Socket.IO Integration ✅
+- `client/src/pages/SquadStatusManagement.tsx` - Socket.IO Integration ✅
+- `client/src/pages/Results.tsx` - Socket.IO Integration ✅
+- `client/src/pages/ScoreCapture.tsx` - Socket.IO Integration ✅
 - `client/src/utils/socket.ts` - Socket.IO Utility
 - `newWebBased/LIVE_UPDATE_INDICATOR.md` - Diese Dokumentation
