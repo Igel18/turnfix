@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEvent } from '../contexts/EventContext'
 import { TrophyIcon } from '@heroicons/react/24/outline'
-import UnifiedPageHeader from '@/components/UnifiedPageHeader'
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import { useMedals, MedalStanding } from '../hooks/useMedals'
 import { 
   addPDFHeaderFooter, 
@@ -18,7 +18,6 @@ import getSocket from '@/utils/socket'
 export default function Medallienspiegel() {
   const { t } = useTranslation()
   const { selectedEvent } = useEvent()
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   
   const { medalData, loading, error, refetch } = useMedals(
     selectedEvent ? selectedEvent.int_eventid : null
@@ -246,34 +245,32 @@ export default function Medallienspiegel() {
 
   if (!selectedEvent) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <UnifiedPageHeader
-          title={t('medallienspiegel.title')}
-          subtitle={t('medallienspiegel.subtitle')}
-          icon={TrophyIcon}
-          showEventContext={true}
-        />
-        <div className="text-center">
+      <EventManagementTemplate
+        title={t('medallienspiegel.title')}
+        subtitle={t('medallienspiegel.subtitle')}
+        icon={TrophyIcon}
+        showEventContext={true}
+      >
+        <div className="text-center p-8">
           <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noEventTitle')}</h3>
           <p className="mt-1 text-sm text-gray-500">
             {t('medallienspiegel.noEventMessage')}
           </p>
         </div>
-      </div>
+      </EventManagementTemplate>
     )
   }
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <UnifiedPageHeader
-          title={t('medallienspiegel.title')}
-          subtitle={t('medallienspiegel.subtitle')}
-          icon={TrophyIcon}
-          showEventContext={true}
-        />
-        <div className="text-center">
+      <EventManagementTemplate
+        title={t('medallienspiegel.title')}
+        subtitle={t('medallienspiegel.subtitle')}
+        icon={TrophyIcon}
+        showEventContext={true}
+      >
+        <div className="p-8">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <div className="flex">
               <div className="ml-3">
@@ -293,51 +290,54 @@ export default function Medallienspiegel() {
             </div>
           </div>
         </div>
-      </div>
+      </EventManagementTemplate>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <UnifiedPageHeader
-        title={t('medallienspiegel.title')}
-        subtitle={t('medallienspiegel.subtitleWithEvent', { eventName: selectedEvent.var_eventname })}
-        icon={TrophyIcon}
-        showEventContext={true}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        showViewToggle={true}
-        onExportPDF={handleExportPDF}
-        showExportPDF={true}
-        totalCount={medalData?.standings.length || 0}
-      />
-
-        {loading ? (
-          <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {t('medallienspiegel.loading')}
+    <EventManagementTemplate
+      title={t('medallienspiegel.title')}
+      subtitle={t('medallienspiegel.subtitleWithEvent', { eventName: selectedEvent.var_eventname })}
+      icon={TrophyIcon}
+      showEventContext={true}
+      viewStorageKey="medallienspiegel-view"
+      defaultView="table"
+      showViewToggle={true}
+      onExportPDF={handleExportPDF}
+      showExportPDF={true}
+      totalCount={medalData?.standings.length || 0}
+      loading={loading}
+    >
+      {(viewMode) => (
+        <>
+          {loading ? (
+            <div className="text-center p-8">
+              <div className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {t('medallienspiegel.loading')}
+              </div>
             </div>
-          </div>
-        ) : medalData && medalData.standings.length > 0 ? (
-          viewMode === 'table' ? (
-            <MedalTable standings={medalData.standings} />
+          ) : medalData && medalData.standings.length > 0 ? (
+            viewMode === 'table' ? (
+              <MedalTable standings={medalData.standings} />
+            ) : (
+              <MedalGrid standings={medalData.standings} />
+            )
           ) : (
-            <MedalGrid standings={medalData.standings} />
-          )
-        ) : (
-          <div className="text-center">
-            <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noMedalsTitle')}</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {t('medallienspiegel.noMedalsMessage')}
-            </p>
-          </div>
-        )}
-    </div>
+            <div className="text-center p-8">
+              <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">{t('medallienspiegel.noMedalsTitle')}</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {t('medallienspiegel.noMedalsMessage')}
+              </p>
+            </div>
+          )}
+        </>
+      )}
+    </EventManagementTemplate>
   )
 }
 
