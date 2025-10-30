@@ -23,6 +23,7 @@ const StatusUnified: React.FC = () => {
   // Filter states
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [colorTypeFilter, setColorTypeFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Help panel state
   const [showHelpPanel, setShowHelpPanel] = useState(false);
@@ -473,7 +474,8 @@ const StatusUnified: React.FC = () => {
         renderCard={renderCard}
         filterOptions={filterOptions}
         onClearAllFilters={handleClearAllFilters}
-        showFilters={true}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
         showHelpPanel={showHelpPanel}
         onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
         helpContent={helpContent}
