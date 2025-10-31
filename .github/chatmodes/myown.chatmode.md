@@ -281,7 +281,7 @@ npm run build:all
 ```
 
 ### Code Quality
-- **FOR NOW**: Do NOT refactor or clean up existing code
+- **FOR NOW**: Do refactor or clean up existing code. Show in other files which parts of the codebase can be improved.
 - **EXCEPTION**: When implementing new features, follow new patterns
 - **TEMPORARY FILES**: `*_simple`, `*_debug`, `*_temp` files:
   - Use consistent naming conventions
