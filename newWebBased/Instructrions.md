@@ -3170,6 +3170,7 @@ http://localhost:3001/time-planning?eventId=59&squadName=mBlau
 Durchgänge UI: 
 - Auf der Seite müssen noch Editierbuttons (Einheitliche Vorgabe beachten) Um die Startzeiten zu ändern 
 - Die Position zum "Durchgang hinzufügen" Button ist nicht wie sonst überall im header. 
+- Das Auswahlmenü "Durchgänge, Zeitstrahl, Gantt, Rotation" muss genauso angeordnet werden wie in anderen UIs die Auswahl "Liste, Card, Matrix" 
 
 110. Wettkampfstatus 
 Der Filter - Button wird in der UI auch nicht angezeigt. 
@@ -3179,3 +3180,28 @@ http://localhost:3001/competition-status?eventId=59&squadName=mBlau
 Im Filter u.A. bei 
 http://localhost:3001/event-participants?eventId=59&squadName=mBlau
 ist die Lokalisierung weg. 
+
+112. Wettkampfverwaltung 
+In der Wettkampfverwaltung gibt es keinen Button um Wettkämpfe hinzuzufügen. 
+http://localhost:3001/competitions?eventId=59&squadName=mBlau
+
+113. Header nicht einheitlich: muss noch genau definiert werden! 
+-> Allgemein gilt: Buttons welche UI-Elemente Ein-/Ausblenden sind wo anders als welche, die DB-Abfragen durchführen z.B. Import Export Add Delete usw. Das Bedeutet, dass die DB-Buttons ein einer Zeile sein sollten. 
+Mein Vorschlag wäre folgender: 
+Die Buttons und andere UI-Elemente sollen immer gleich aussehen und die gleiche position haben. 
+- Verwaltungszentrale -> Passt 
+- Hinzufügen-Button muss immer ein + enthalten und danach die Beschriftung "Neu ***" z.B. Neue Riege; Die Hintergrundfarbe muss einheitlich sein; Der Button befindet sich an der Linken Kante unterhalb der Verwaltungszentrale (wie z.B. Riegenverwaltung)
+- Button "Export PDF" muss immer verfügbar sein. Einheitliche Hintergrundfarbe. auf gleicher Zeile mit dem Hinzufügen. 
+- 
+
+114. Startzeit / Einturnzeit 
+a) Die Einturnzeit muss immer vor der Startzeit stehen. 
+In der UI und im Edit hier
+http://localhost:3001/time-planning?eventId=59&squadName=mBlau
+
+IN der Edit UI hier
+http://localhost:3001/competitions?eventId=59&squadName=mBlau
+
+habe ich das gefunden. 
+
+b) Ist in der DB auch das Date gespeichert? dann sollte das auch visualisiert werden und editierbar sein. voreingestellt immer das Date von der veranstaltung "von" 

@@ -316,7 +316,8 @@ async function startServer() {
         // Check port availability (auto-kill blocking process in development)
         const autoKill = process.env.NODE_ENV !== 'production';
         console.log(`🔍 Checking if port ${PORT_NUMBER} is available...`);
-        const portAvailable = await (0, portChecker_1.ensurePortAvailable)(PORT_NUMBER, autoKill, false);
+        // In development, always force kill blocking processes
+        const portAvailable = await (0, portChecker_1.ensurePortAvailable)(PORT_NUMBER, autoKill, autoKill);
         if (!portAvailable) {
             console.error(`❌ Port ${PORT_NUMBER} is not available. Please free the port and try again.`);
             console.log(`💡 You can manually kill the blocking process or run: npm run check-port ${PORT_NUMBER} --kill`);

@@ -126,8 +126,12 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 // Additional competition settings
                 round: comp.int_durchgang || 1,
                 track: comp.int_bahn || 1,
-                startTime: comp.tim_startzeit ? comp.tim_startzeit.toISOString().split('T')[1].substring(0, 5) : null,
-                warmupTime: comp.tim_einturnen ? comp.tim_einturnen.toISOString().split('T')[1].substring(0, 5) : null,
+                startTime: comp.tim_startzeit
+                    ? `${String(comp.tim_startzeit.getHours()).padStart(2, '0')}:${String(comp.tim_startzeit.getMinutes()).padStart(2, '0')}`
+                    : null,
+                warmupTime: comp.tim_einturnen
+                    ? `${String(comp.tim_einturnen.getHours()).padStart(2, '0')}:${String(comp.tim_einturnen.getMinutes()).padStart(2, '0')}`
+                    : null,
                 qualifiers: comp.int_qualifikation || 0,
                 evaluations: comp.int_wertungen || 1,
                 dropWorstScore: comp.bol_streichwertung || false,
@@ -599,11 +603,15 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         if (validatedData.startTime !== undefined) {
             if (validatedData.startTime) {
-                // Append seconds if not provided (HH:MM -> HH:MM:00)
+                // Parse time string (HH:MM format)
                 const timeStr = validatedData.startTime.includes(':') && validatedData.startTime.split(':').length === 2
                     ? `${validatedData.startTime}:00`
                     : validatedData.startTime;
-                updateData.tim_startzeit = new Date(`1970-01-01T${timeStr}Z`);
+                // Create Date in LOCAL timezone (not UTC) for TIME column
+                // PostgreSQL TIME columns store wall-clock time without timezone
+                const [hours, minutes, seconds = '00'] = timeStr.split(':');
+                const date = new Date(1970, 0, 1, parseInt(hours), parseInt(minutes), parseInt(seconds || '0'));
+                updateData.tim_startzeit = date;
             }
             else {
                 updateData.tim_startzeit = null;
@@ -611,11 +619,14 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         if (validatedData.warmupTime !== undefined) {
             if (validatedData.warmupTime) {
-                // Append seconds if not provided (HH:MM -> HH:MM:00)
+                // Parse time string (HH:MM format)
                 const timeStr = validatedData.warmupTime.includes(':') && validatedData.warmupTime.split(':').length === 2
                     ? `${validatedData.warmupTime}:00`
                     : validatedData.warmupTime;
-                updateData.tim_einturnen = new Date(`1970-01-01T${timeStr}Z`);
+                // Create Date in LOCAL timezone (not UTC) for TIME column
+                const [hours, minutes, seconds = '00'] = timeStr.split(':');
+                const date = new Date(1970, 0, 1, parseInt(hours), parseInt(minutes), parseInt(seconds || '0'));
+                updateData.tim_einturnen = date;
             }
             else {
                 updateData.tim_einturnen = null;
@@ -727,9 +738,13 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             round: validatedData.round !== undefined ? validatedData.round : updatedCompetition.int_durchgang || 1,
             track: validatedData.track !== undefined ? validatedData.track : updatedCompetition.int_bahn || 1,
             startTime: validatedData.startTime !== undefined ? validatedData.startTime :
-                (updatedCompetition.tim_startzeit ? updatedCompetition.tim_startzeit.toISOString().split('T')[1].substring(0, 5) : null),
+                (updatedCompetition.tim_startzeit
+                    ? `${String(updatedCompetition.tim_startzeit.getHours()).padStart(2, '0')}:${String(updatedCompetition.tim_startzeit.getMinutes()).padStart(2, '0')}`
+                    : null),
             warmupTime: validatedData.warmupTime !== undefined ? validatedData.warmupTime :
-                (updatedCompetition.tim_einturnen ? updatedCompetition.tim_einturnen.toISOString().split('T')[1].substring(0, 5) : null),
+                (updatedCompetition.tim_einturnen
+                    ? `${String(updatedCompetition.tim_einturnen.getHours()).padStart(2, '0')}:${String(updatedCompetition.tim_einturnen.getMinutes()).padStart(2, '0')}`
+                    : null),
             qualifiers: validatedData.qualifiers !== undefined ? validatedData.qualifiers : updatedCompetition.int_qualifikation || 0,
             evaluations: validatedData.evaluations !== undefined ? validatedData.evaluations : updatedCompetition.int_wertungen || 1,
             dropWorstScore: validatedData.dropWorstScore !== undefined ? validatedData.dropWorstScore : updatedCompetition.bol_streichwertung || false,

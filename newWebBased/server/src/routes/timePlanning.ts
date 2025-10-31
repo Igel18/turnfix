@@ -164,8 +164,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         try {
           const timeValue = comp.tim_startzeit as any;
           if (timeValue instanceof Date) {
-            const hours = timeValue.getHours().toString().padStart(2, '0');
-            const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+            // Use local time to match how we save times (local timezone)
+            const hours = String(timeValue.getHours()).padStart(2, '0');
+            const minutes = String(timeValue.getMinutes()).padStart(2, '0');
             startTime = `${hours}:${minutes}`;
           } else {
             const timeStr = String(timeValue);
@@ -187,8 +188,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         try {
           const timeValue = comp.tim_einturnen as any;
           if (timeValue instanceof Date) {
-            const hours = timeValue.getHours().toString().padStart(2, '0');
-            const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+            // Use local time to match how we save times (local timezone)
+            const hours = String(timeValue.getHours()).padStart(2, '0');
+            const minutes = String(timeValue.getMinutes()).padStart(2, '0');
             warmupTime = `${hours}:${minutes}`;
           } else {
             const timeStr = String(timeValue);

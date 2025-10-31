@@ -27,7 +27,8 @@ import {
   ArrowPathIcon,
   DocumentChartBarIcon,
   ChevronUpIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import { useEvent } from '../contexts/EventContext'
@@ -108,6 +109,8 @@ export default function TimePlanning() {
   const [selectedSession, setSelectedSession] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline' | 'rotation'>('sessions')
   const [showTimeSettings, setShowTimeSettings] = useState(false)
+  const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   // Gantt chart time range
   const [ganttStartTime, setGanttStartTime] = useState('07:00')
@@ -411,6 +414,32 @@ export default function TimePlanning() {
     }
   };
 
+  // Edit competition times
+  const handleEditCompetition = (competition: Competition) => {
+    setEditingCompetition(competition);
+    setShowEditModal(true);
+  };
+
+  const handleSaveCompetitionTimes = async () => {
+    if (!editingCompetition) return;
+    
+    try {
+      await apiPut(`/competitions/${editingCompetition.id}`, {
+        startTime: editingCompetition.startTime,
+        warmupTime: editingCompetition.warmupTime
+      });
+      
+      // Invalidate both caches to ensure data refresh
+      invalidateCache('/competitions');
+      invalidateCache('/time-planning');
+      await refetch();
+      setShowEditModal(false);
+      setEditingCompetition(null);
+    } catch (error) {
+      console.error('Failed to update competition times:', error);
+    }
+  };
+
   // Drag & drop logic
   const { handleDragStart, handleDragOver, handleDrop } = useDragDrop({
     onDrop: async (compId, newRound) => {
@@ -422,14 +451,6 @@ export default function TimePlanning() {
 
   const renderSessionOverview = () => (
     <div className="space-y-6">
-      <div className="flex justify-end mb-2">
-        <button
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
-          onClick={handleAddRound}
-        >
-          {t('timePlanning.addRound', 'Add Round')}
-        </button>
-      </div>
       {sessionGroups.map(group => (
         <div
           key={group.session}
@@ -483,11 +504,23 @@ export default function TimePlanning() {
                   {group.competitions.map(comp => (
                     <div
                       key={comp.id}
-                      className="bg-gray-50 p-4 rounded-lg"
+                      className="bg-gray-50 p-4 rounded-lg relative"
                       draggable
                       onDragStart={() => handleDragStart(comp.id)}
                     >
-                      <div className="flex items-start justify-between">
+                      {/* Edit Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditCompetition(comp);
+                        }}
+                        className="absolute top-2 right-2 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title={t('common.edit')}
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      
+                      <div className="flex items-start justify-between pr-8">
                         <div>
                           <h5 className="font-medium text-gray-900">{comp.name}</h5>
                           <p className="text-sm text-gray-600">Nr. {comp.number}</p>
@@ -847,79 +880,86 @@ export default function TimePlanning() {
       icon={ClockIcon}
       showEventContext={true}
       showViewToggle={false}
+      showAddButton={true}
+      onAdd={handleAddRound}
+      addButtonText={t('timePlanning.addRound', 'Add Round')}
       loading={loading}
-      customActions={
-        <div className="flex items-center space-x-3">
-          {/* View Mode Toggle */}
-          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('sessions')}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                viewMode === 'sessions'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t('timePlanning.viewMode.sessions')}
-            </button>
-            <button
-              onClick={() => setViewMode('timeline')}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                viewMode === 'timeline'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t('timePlanning.viewMode.timeline')}
-            </button>
-            <button
-              onClick={() => setViewMode('gantt')}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                viewMode === 'gantt'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t('timePlanning.viewMode.gantt')}
-            </button>
-            <button
-              onClick={() => setViewMode('rotation')}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                viewMode === 'rotation'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t('timePlanning.viewMode.rotation') || 'Rotation'}
-            </button>
-          </div>
+      customActions={[
+        // View Mode Toggle - standardized like other pages
+        <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
+          <button
+            type="button"
+            onClick={() => setViewMode('sessions')}
+            className={`px-3 py-2 text-sm font-medium border ${
+              viewMode === 'sessions'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } rounded-l-md`}
+          >
+            {t('timePlanning.viewMode.sessions')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('timeline')}
+            className={`px-3 py-2 text-sm font-medium border-t border-b ${
+              viewMode === 'timeline'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } -ml-px`}
+          >
+            {t('timePlanning.viewMode.timeline')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('gantt')}
+            className={`px-3 py-2 text-sm font-medium border-t border-b ${
+              viewMode === 'gantt'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } -ml-px`}
+          >
+            {t('timePlanning.viewMode.gantt')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('rotation')}
+            className={`px-3 py-2 text-sm font-medium border ${
+              viewMode === 'rotation'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } rounded-r-md -ml-px`}
+          >
+            {t('timePlanning.viewMode.rotation') || 'Rotation'}
+          </button>
+        </div>,
+        
+        <button
+          key="settings"
+          onClick={() => setShowTimeSettings(true)}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+        >
+          <Cog6ToothIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.settings')}
+        </button>,
+        
+        <button
+          key="generate"
+          onClick={generateAutomaticSchedule}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+        >
+          <ArrowPathIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.generateSchedule')}
+        </button>,
 
-          {/* Action Buttons */}
-          <button
-            onClick={() => setShowTimeSettings(true)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <Cog6ToothIcon className="h-4 w-4 mr-2" />
-            {t('timePlanning.settings')}
-          </button>
-          
-          <button
-            onClick={generateAutomaticSchedule}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <ArrowPathIcon className="h-4 w-4 mr-2" />
-            {t('timePlanning.generateSchedule')}
-          </button>
-
-          <button
-            onClick={exportTimeplan}
-            className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
-          >
-            <DocumentChartBarIcon className="h-4 w-4 mr-2" />
-            {t('timePlanning.export')}
-          </button>
-        </div>
-      }
+        <button
+          key="export"
+          onClick={exportTimeplan}
+          className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
+        >
+          <DocumentChartBarIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.export')}
+        </button>
+      ]}
     >
       {/* Content based on loading state and view mode */}
       {loading ? (
@@ -994,6 +1034,61 @@ export default function TimePlanning() {
         showFooter={false}
       >
         {renderTimeSettings()}
+      </UnifiedModal>
+
+      {/* Edit Competition Times Modal */}
+      <UnifiedModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingCompetition(null);
+        }}
+        title={t('timePlanning.editTimes', 'Zeiten bearbeiten')}
+        size="md"
+        showFooter={true}
+        onSave={handleSaveCompetitionTimes}
+        saveLabel={t('common.save', 'Speichern')}
+        showCancel={true}
+        cancelLabel={t('common.cancel', 'Abbrechen')}
+      >
+        {editingCompetition && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">{editingCompetition.name}</h4>
+              <p className="text-sm text-gray-600">Nr. {editingCompetition.number}</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('timePlanning.startTime')}
+              </label>
+              <input
+                type="time"
+                value={editingCompetition.startTime || ''}
+                onChange={(e) => setEditingCompetition({
+                  ...editingCompetition,
+                  startTime: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('timePlanning.warmupTime')}
+              </label>
+              <input
+                type="time"
+                value={editingCompetition.warmupTime || ''}
+                onChange={(e) => setEditingCompetition({
+                  ...editingCompetition,
+                  warmupTime: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        )}
       </UnifiedModal>
     </EventManagementTemplate>
   )
