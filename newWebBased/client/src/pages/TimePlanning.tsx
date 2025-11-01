@@ -47,7 +47,9 @@ interface Competition {
   number: string
   round: number // session/durchgang
   startTime: string | null // HH:MM format
+  startDate: string | null // YYYY-MM-DD format
   warmupTime: string | null // HH:MM format
+  warmupDate: string | null // YYYY-MM-DD format
   disciplineCount: number
   participantCount: number
 }
@@ -72,6 +74,7 @@ interface SessionGroup {
   session: number
   competitions: Competition[]
   startTime: string | null
+  startDate: string | null
   squads: Squad[]
 }
 
@@ -216,10 +219,18 @@ export default function TimePlanning() {
         .map(c => c.startTime)
         .filter(t => t !== null)
         .sort()
+      
+      // Find earliest start date for this session
+      const startDates = competitions
+        .map(c => c.startDate)
+        .filter(d => d !== null)
+        .sort()
+      
       return {
         session,
         competitions,
         startTime: startTimes.length > 0 ? startTimes[0] : null,
+        startDate: startDates.length > 0 ? startDates[0] : null,
         squads: squads.filter(squad => 
           squad.competitions.some(compName => 
             competitions.some(comp => comp.name === compName)
@@ -423,11 +434,14 @@ export default function TimePlanning() {
   const handleSaveCompetitionTimes = async () => {
     if (!editingCompetition) return;
     
+    // Only send times, not dates (dates always come from event)
+    const payload = {
+      startTime: editingCompetition.startTime,
+      warmupTime: editingCompetition.warmupTime
+    };
+    
     try {
-      await apiPut(`/competitions/${editingCompetition.id}`, {
-        startTime: editingCompetition.startTime,
-        warmupTime: editingCompetition.warmupTime
-      });
+      await apiPut(`/competitions/${editingCompetition.id}`, payload);
       
       // Invalidate both caches to ensure data refresh
       invalidateCache('/competitions');
@@ -473,10 +487,20 @@ export default function TimePlanning() {
                     {t('timePlanning.session')} {group.session}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {group.startTime && (
+                    {(group.startTime || group.startDate) && (
                       <span className="flex items-center">
                         <ClockIcon className="h-4 w-4 mr-1" />
-                        {t('timePlanning.startsAt', { time: group.startTime })}
+                        {group.startDate && (
+                          <span>
+                            {new Date(group.startDate).toLocaleDateString('de-DE', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              year: 'numeric' 
+                            })}
+                            {group.startTime && ', '}
+                          </span>
+                        )}
+                        {group.startTime && t('timePlanning.startsAt', { time: group.startTime })}
                       </span>
                     )}
                   </p>
@@ -1058,24 +1082,31 @@ export default function TimePlanning() {
               <p className="text-sm text-gray-600">Nr. {editingCompetition.number}</p>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('timePlanning.startTime')}
-              </label>
-              <input
-                type="time"
-                value={editingCompetition.startTime || ''}
-                onChange={(e) => setEditingCompetition({
-                  ...editingCompetition,
-                  startTime: e.target.value
-                })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+            {/* Event Date (read-only, shown once at top) */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-blue-900">
+                  📅 {t('timePlanning.eventDate', 'Veranstaltungsdatum')}:
+                </span>
+                <span className="text-sm text-blue-700">
+                  {selectedEvent?.dat_eventstartdate 
+                    ? new Date(selectedEvent.dat_eventstartdate).toLocaleDateString('de-DE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })
+                    : '-'}
+                </span>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">
+                {t('timePlanning.dateInfo', 'Das Datum wird vom Veranstaltungsdatum übernommen. Nur die Uhrzeit kann individuell eingestellt werden.')}
+              </p>
             </div>
             
+            {/* Warmup Time */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('timePlanning.warmupTime')}
+                {t('timePlanning.warmupTime', 'Einturnzeit')}
               </label>
               <input
                 type="time"
@@ -1083,6 +1114,22 @@ export default function TimePlanning() {
                 onChange={(e) => setEditingCompetition({
                   ...editingCompetition,
                   warmupTime: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            {/* Start Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('timePlanning.startTime', 'Startzeit')}
+              </label>
+              <input
+                type="time"
+                value={editingCompetition.startTime || ''}
+                onChange={(e) => setEditingCompetition({
+                  ...editingCompetition,
+                  startTime: e.target.value
                 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />

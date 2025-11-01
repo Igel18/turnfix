@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   BuildingOfficeIcon,
   MapPinIcon,
@@ -25,6 +26,7 @@ interface FormData {
 }
 
 const LocationsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -123,12 +125,12 @@ const LocationsUnified: React.FC = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving location:', error);
-      alert('Failed to save location');
+      alert(t('venues.messages.createError'));
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this location?')) return;
+    if (!confirm(t('venues.messages.confirmDelete'))) return;
     
     try {
       const response = await fetch(`/api/venues/${id}`, {
@@ -142,7 +144,7 @@ const LocationsUnified: React.FC = () => {
       await fetchLocations();
     } catch (error) {
       console.error('Error deleting location:', error);
-      alert('Failed to delete location');
+      alert(t('venues.messages.deleteError'));
     }
   };
 
@@ -183,11 +185,11 @@ const LocationsUnified: React.FC = () => {
   const getFilterOptions = () => [
     {
       value: 'city',
-      label: 'City',
+      label: t('venues.filters.city'),
       selectedValue: cityFilter,
       onChange: setCityFilter,
       options: [
-        { value: '', label: 'All Cities' },
+        { value: '', label: t('venues.filters.allCities') },
         ...uniqueCities.map(city => ({
           value: city!,
           label: city!
@@ -200,27 +202,27 @@ const LocationsUnified: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <SortableTableHeader
-        label="Location Name"
+        label={t('venues.table.name')}
         sortKey="var_name"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label="Address"
+        label={t('venues.table.address')}
         sortKey="var_adresse"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label="City"
+        label={t('venues.table.city')}
         sortKey="var_ort"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
-      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.actions')}</th>
     </tr>
   );
 
@@ -234,7 +236,7 @@ const LocationsUnified: React.FC = () => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-900">
-          {location.var_adresse || 'No address'}
+          {location.var_adresse || t('venues.noAddress')}
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -243,7 +245,7 @@ const LocationsUnified: React.FC = () => {
           <div className="text-sm text-gray-900">
             {location.var_plz && location.var_ort 
               ? `${location.var_plz} ${location.var_ort}`
-              : location.var_ort || 'No city'
+              : location.var_ort || t('venues.noCity')
             }
           </div>
         </div>
@@ -253,14 +255,14 @@ const LocationsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(location)}
             className="text-blue-600 hover:text-blue-800"
-            title="Edit Location"
+            title={t('venues.editLocation')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(location.int_wettkampforteid)}
             className="text-red-600 hover:text-red-800"
-            title="Delete Location"
+            title={t('venues.deleteLocation')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -302,14 +304,14 @@ const LocationsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(location)}
             className="text-blue-600 hover:text-blue-800"
-            title="Edit Location"
+            title={t('venues.editLocation')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(location.int_wettkampforteid)}
             className="text-red-600 hover:text-red-800"
-            title="Delete Location"
+            title={t('venues.deleteLocation')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -321,18 +323,18 @@ const LocationsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Location Management"
-        subtitle={`Manage competition venues and locations (${locations.length} locations loaded)`}
+        title={t('venues.title')}
+        subtitle={t('venues.subtitle') + ` (${locations.length} ${t('venues.locationsLoaded')})`}
         icon={BuildingOfficeIcon}
         data={filteredData}
         isLoading={isLoading}
         searchTerm={searchFilter}
         onSearchChange={setSearchFilter}
-        searchPlaceholder="Search locations by name, address, or city..."
+        searchPlaceholder={t('venues.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Add Location"
+        addLabel={t('venues.addLocation')}
         onEdit={handleEdit}
         onDelete={(location) => handleDelete(location.int_wettkampforteid)}
         viewStorageKey="locations-view"

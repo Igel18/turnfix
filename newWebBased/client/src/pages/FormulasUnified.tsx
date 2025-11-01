@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CalculatorIcon,
   PencilIcon,
@@ -25,6 +26,7 @@ interface FormData {
 }
 
 const FormulasUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [formulas, setFormulas] = useState<Formula[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +99,7 @@ const FormulasUnified: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.var_name.trim()) {
-      alert('Please enter a formula name');
+      alert(t('formulas.messages.nameRequired'));
       return;
     }
 
@@ -137,7 +139,7 @@ const FormulasUnified: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this formula? This action cannot be undone.')) {
+    if (!confirm(t('formulas.messages.confirmDelete'))) {
       return;
     }
 
@@ -401,19 +403,19 @@ const FormulasUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Formulas Management"
-        subtitle={`Manage calculation formulas used by disciplines (${formulas.length} formulas loaded)`}
+        title={t('formulas.title')}
+        subtitle={t('formulas.subtitle') + ` (${formulas.length} ${t('formulas.formulasLoaded')})`}
         icon={CalculatorIcon}
         data={filteredData}
         isLoading={isLoading}
         error={error}
         searchTerm={searchFilter}
         onSearchChange={setSearchFilter}
-        searchPlaceholder="Search formulas by name or code..."
+        searchPlaceholder={t('formulas.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Add Formula"
+        addLabel={t('formulas.addFormula')}
         onEdit={handleEdit}
         onDelete={(formula) => handleDelete(formula.int_formelid)}
         viewStorageKey="formulas-view"

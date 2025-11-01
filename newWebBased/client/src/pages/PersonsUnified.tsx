@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   UserIcon,
   EnvelopeIcon,
@@ -34,6 +35,7 @@ interface FormData {
 }
 
 const PersonsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [persons, setPersons] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -142,12 +144,12 @@ const PersonsUnified: React.FC = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving person:', error);
-      alert('Failed to save person');
+      alert(t('persons.messages.createError'));
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this person?')) return;
+    if (!confirm(t('persons.messages.confirmDelete'))) return;
     
     try {
       const response = await fetch(`/api/persons/${id}`, {
@@ -161,7 +163,7 @@ const PersonsUnified: React.FC = () => {
       await fetchPersons();
     } catch (error) {
       console.error('Error deleting person:', error);
-      alert('Failed to delete person');
+      alert(t('persons.messages.deleteError'));
     }
   };
 
@@ -204,11 +206,11 @@ const PersonsUnified: React.FC = () => {
   const getFilterOptions = () => [
     {
       value: 'city',
-      label: 'City',
+      label: t('persons.filters.city'),
       selectedValue: cityFilter,
       onChange: setCityFilter,
       options: [
-        { value: '', label: 'All Cities' },
+        { value: '', label: t('persons.filters.allCities') },
         ...uniqueCities.map(city => ({
           value: city!,
           label: city!
@@ -217,13 +219,13 @@ const PersonsUnified: React.FC = () => {
     },
     {
       value: 'status',
-      label: 'Profile Status',
+      label: t('persons.filters.profileStatus'),
       selectedValue: statusFilter,
       onChange: setStatusFilter,
       options: [
-        { value: '', label: 'All Profiles' },
-        { value: 'complete', label: 'Complete Profiles' },
-        { value: 'incomplete', label: 'Incomplete Profiles' }
+        { value: '', label: t('persons.filters.allProfiles') },
+        { value: 'complete', label: t('persons.filters.complete') },
+        { value: 'incomplete', label: t('persons.filters.incomplete') }
       ]
     }
   ];
@@ -231,10 +233,10 @@ const PersonsUnified: React.FC = () => {
   // Table render functions
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('persons.table.name')}</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('persons.table.contact')}</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('persons.table.city')}</th>
+      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.actions')}</th>
     </tr>
   );
 
@@ -285,14 +287,14 @@ const PersonsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(person)}
             className="text-blue-600 hover:text-blue-800"
-            title="Edit Person"
+            title={t('persons.editPerson')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(person.int_personenid)}
             className="text-red-600 hover:text-red-800"
-            title="Delete Person"
+            title={t('persons.deletePerson')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -350,14 +352,14 @@ const PersonsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(person)}
             className="text-blue-600 hover:text-blue-800"
-            title="Edit Person"
+            title={t('persons.editPerson')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(person.int_personenid)}
             className="text-red-600 hover:text-red-800"
-            title="Delete Person"
+            title={t('persons.deletePerson')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -369,18 +371,18 @@ const PersonsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Person Management"
-        subtitle={`Manage people and contacts (${persons.length} persons loaded)`}
+        title={t('persons.title')}
+        subtitle={t('persons.subtitle') + ` (${persons.length} ${t('persons.personsLoaded')})`}
         icon={UserIcon}
         data={filteredData}
         isLoading={isLoading}
         searchTerm={searchFilter}
         onSearchChange={setSearchFilter}
-        searchPlaceholder="Search persons by name, email, or city..."
+        searchPlaceholder={t('persons.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Add Person"
+        addLabel={t('persons.addPerson')}
         onEdit={handleEdit}
         onDelete={(person) => handleDelete(person.int_personenid)}
         viewStorageKey="persons-view"

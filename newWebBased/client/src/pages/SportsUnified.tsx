@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   BeakerIcon,
   PencilIcon,
@@ -26,6 +27,7 @@ interface FormData {
 }
 
 const SportsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [sports, setSports] = useState<Sport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -113,7 +115,7 @@ const SportsUnified: React.FC = () => {
     e.preventDefault();
     
     if (!formData.var_name.trim()) {
-      alert('Please enter a sport name');
+      alert(t('sports.messages.nameRequired'));
       return;
     }
 
@@ -143,14 +145,14 @@ const SportsUnified: React.FC = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving sport:', error);
-      alert('Failed to save sport');
+      alert(t('sports.messages.createError'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this sport? This action cannot be undone.')) return;
+    if (!confirm(t('sports.messages.confirmDelete'))) return;
     
     try {
       const response = await fetch(`/api/sports/${id}`, {
@@ -164,7 +166,7 @@ const SportsUnified: React.FC = () => {
       await fetchSports();
     } catch (error) {
       console.error('Error deleting sport:', error);
-      alert('Failed to delete sport');
+      alert(t('sports.messages.deleteError'));
     }
   };
 
@@ -319,18 +321,18 @@ const SportsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Sports Management"
-        subtitle={`Manage sports categories and types (${sports.length} sports loaded)`}
+        title={t('sports.title')}
+        subtitle={t('sports.subtitle') + ` (${sports.length} ${t('sports.sportsLoaded')})`}
         icon={BeakerIcon}
         data={filteredData}
         isLoading={isLoading}
         searchTerm={searchFilter}
         onSearchChange={setSearchFilter}
-        searchPlaceholder="Search sports by name..."
+        searchPlaceholder={t('sports.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Add Sport"
+        addLabel={t('sports.addSport')}
         onEdit={handleEdit}
         onDelete={(sport) => handleDelete(sport.int_sportid)}
         viewStorageKey="sports-view"

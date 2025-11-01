@@ -534,18 +534,6 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      🕐 {t('competitionForm.scheduling.startTime.label')}
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.startTime || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.startTime.description')}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       🏃‍♂️ {t('competitionForm.scheduling.warmupTime.label')}
                     </label>
                     <input
@@ -555,6 +543,18 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.warmupTime.description')}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      🕐 {t('competitionForm.scheduling.startTime.label')}
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.startTime || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.startTime.description')}</p>
                   </div>
                 </div>
               </div>

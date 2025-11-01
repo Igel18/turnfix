@@ -121,6 +121,11 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         int_durchgang: true,
         tim_startzeit: true,
         tim_einturnen: true,
+        tfx_veranstaltungen: {
+          select: {
+            dat_von: true
+          }
+        },
         _count: {
           select: {
             tfx_wertungen: true
@@ -151,7 +156,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       number: string;
       round: number;
       startTime: string | null;
+      startDate: string | null;
       warmupTime: string | null;
+      warmupDate: string | null;
       disciplineCount: number;
       participantCount: number;
     }> = [];
@@ -207,6 +214,14 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         }
       }
 
+      // Extract dates - always use event date (TIME fields don't store dates)
+      // Date comes from tfx_veranstaltungen.dat_von
+      const eventDate = comp.tfx_veranstaltungen?.dat_von 
+        ? comp.tfx_veranstaltungen.dat_von.toISOString().split('T')[0] 
+        : null;
+      const startDate = eventDate;
+      const warmupDate = eventDate;
+
       // If both times exist, ensure warmup is before start time
       if (startTime && warmupTime) {
         try {
@@ -237,7 +252,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         number: comp.var_nummer || '',
         round: comp.int_durchgang || 1,
         startTime,
+        startDate,
         warmupTime,
+        warmupDate,
         disciplineCount,
         participantCount: comp._count.tfx_wertungen
       });

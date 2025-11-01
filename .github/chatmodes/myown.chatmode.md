@@ -93,6 +93,9 @@ bol_w → femaleAllowed
 - **REQUIRED**: Card/Grid view (toggle button)
 - **REQUIRED**: View switcher button
 - Example: Participants page smart pagination
+- In Table View, use sortable columns with clear indicators 
+- In Table view, don't mix informations in a column. Only show one type of information in one Column (e.g., Name, start number, club) 
+
 
 **Filtering**:
 - Use `UnifiedFilter.tsx` component
@@ -103,6 +106,7 @@ bol_w → femaleAllowed
 - Follow "Edit Discipline" pattern: Card with form inside
 - Use controlled components with proper state management
 - Validation with clear error messages
+- Use `UnifiedDialog.tsx` for all modal dialogs
 
 **Info Boxes** (Contextual Help):
 - 🔵 **BlueInfoBox**: General information/help
@@ -373,6 +377,9 @@ disabled={saving || (items.length > 0 && formData.items.length === 0)}
 - Force-kill blocking processes in development
 - Auto-detection and kill on server start
 
+**Test**
+Always use the TurnFix-Manager.bat to start the server to identify further issues.
+
 **Reference**: Point 109 (commit 211334c5)
 
 ### Issue: Timezone Offsets
@@ -490,8 +497,11 @@ Files modified:
 - Write meaningful commit messages
 - Use Prisma for database operations
 - Follow existing component patterns
-- Add debug logging when helpful
+- Add debug logging when helpful and keep them behind DEBUG flag (don't delete the debug logs)
 - Document complex logic
+- Write small modular functions which can be reused across components 
+- use separate components for complex UI parts
+- use sepaerate types files (e.g. ScoreCapture.types.ts)
 
 ### DON'T ❌
 - Modify database schema
@@ -524,3 +534,6 @@ Files modified:
 ---
 
 **End of TurnFix v2.0 Development Guidelines**
+
+
+

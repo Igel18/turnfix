@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TagIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import DisciplineGroupFormModal from '@/components/DisciplineGroupFormModal';
@@ -26,6 +27,7 @@ interface DisciplineGroupsResponse {
 }
 
 const DisciplineGroupsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [disciplineGroups, setDisciplineGroups] = useState<DisciplineGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +104,7 @@ const DisciplineGroupsUnified: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this discipline group? This action cannot be undone.')) {
+    if (!confirm(t('disciplineGroups.messages.confirmDelete'))) {
       return;
     }
 
@@ -113,12 +115,12 @@ const DisciplineGroupsUnified: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to delete discipline group');
+        throw new Error(errorData.error || t('disciplineGroups.messages.deleteError'));
       }
 
       await fetchDisciplineGroups();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'An error occurred');
+      alert(err instanceof Error ? err.message : t('disciplineGroups.messages.deleteError'));
     }
   };
 
@@ -126,25 +128,25 @@ const DisciplineGroupsUnified: React.FC = () => {
   const filterOptions = [
     {
       value: 'hasComment',
-      label: 'Comment Status',
+      label: t('disciplineGroups.filters.commentStatus'),
       selectedValue: hasCommentFilter,
       onChange: setHasCommentFilter,
       options: [
-        { value: 'all', label: 'All Groups' },
-        { value: 'with-comment', label: 'With Comment' },
-        { value: 'no-comment', label: 'No Comment' },
+        { value: 'all', label: t('disciplineGroups.filters.allGroups') },
+        { value: 'with-comment', label: t('disciplineGroups.filters.withComment') },
+        { value: 'no-comment', label: t('disciplineGroups.filters.noComment') },
       ]
     },
     {
       value: 'disciplineCount',
-      label: 'Discipline Count',
+      label: t('disciplineGroups.filters.disciplineCount'),
       selectedValue: disciplineCountFilter,
       onChange: setDisciplineCountFilter,
       options: [
-        { value: 'all', label: 'All Counts' },
-        { value: 'empty', label: 'No Disciplines (0)' },
-        { value: 'few', label: 'Few Disciplines (1-5)' },
-        { value: 'many', label: 'Many Disciplines (6+)' },
+        { value: 'all', label: t('disciplineGroups.filters.allCounts') },
+        { value: 'empty', label: t('disciplineGroups.filters.noDisciplines') },
+        { value: 'few', label: t('disciplineGroups.filters.fewDisciplines') },
+        { value: 'many', label: t('disciplineGroups.filters.manyDisciplines') },
       ]
     }
   ];
@@ -198,7 +200,7 @@ const DisciplineGroupsUnified: React.FC = () => {
       <td className="px-6 py-4">
         <div className="text-sm text-gray-900 max-w-xs truncate">
           {group.txt_comment || (
-            <span className="text-gray-400 italic">No comment</span>
+            <span className="text-gray-400 italic">{t('disciplineGroups.noComment')}</span>
           )}
         </div>
       </td>
@@ -212,14 +214,14 @@ const DisciplineGroupsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(group)}
             className="p-1 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded transition-colors"
-            title="Edit discipline group"
+            title={t('disciplineGroups.editGroup')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(group.int_disziplinen_gruppenid)}
             className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
-            title="Delete discipline group"
+            title={t('disciplineGroups.deleteGroup')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -243,14 +245,14 @@ const DisciplineGroupsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(group)}
             className="p-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-colors"
-            title="Edit discipline group"
+            title={t('disciplineGroups.editGroup')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(group.int_disziplinen_gruppenid)}
             className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete discipline group"
+            title={t('disciplineGroups.deleteGroup')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -304,28 +306,28 @@ const DisciplineGroupsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Discipline Groups Management"
-        subtitle={`Manage groups of related disciplines for organization and competition (${disciplineGroups.length} groups loaded)`}
+        title={t('disciplineGroups.title')}
+        subtitle={`${t('disciplineGroups.subtitle')} (${disciplineGroups.length} ${t('disciplineGroups.groupsLoaded')})`}
         icon={TagIcon}
         data={filteredData}
         isLoading={loading}
         error={error}
         searchTerm={searchFilter}
         onSearchChange={setSearchFilter}
-        searchPlaceholder="Search discipline groups..."
+        searchPlaceholder={t('disciplineGroups.searchPlaceholder')}
         filterOptions={filterOptions}
         onClearAllFilters={resetFilters}
         onAdd={handleCreate}
-        addLabel="Add Group"
+        addLabel={t('disciplineGroups.addGroup')}
         viewStorageKey="discipline-groups-view"
         itemsPerPage={50}
         renderTableHeaders={() => (
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group Name</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comment</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disciplines</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('disciplineGroups.table.id')}</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('disciplineGroups.table.groupName')}</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('disciplineGroups.table.comment')}</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('disciplineGroups.table.disciplines')}</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.actions')}</th>
           </tr>
         )}
         renderTableRow={renderTableRow}

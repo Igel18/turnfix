@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
@@ -27,6 +28,7 @@ interface AssociationForm {
 }
 
 const Associations: React.FC = () => {
+  const { t } = useTranslation();
   const [associations, setAssociations] = useState<Association[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ const Associations: React.FC = () => {
   // Get filter options
   const getFilterOptions = () => [
     {
-      label: 'Country',
+      label: t('associations.table.country'),
       value: '',
       selectedValue: selectedCountry.toString(),
       options: [
@@ -122,7 +124,7 @@ const Associations: React.FC = () => {
 
   const handleDelete = async (associationId: number) => {
     const association = associations.find(a => a.int_verbaendeid === associationId);
-    if (!association || !window.confirm(`Are you sure you want to delete "${association.var_name}"?`)) {
+    if (!association || !window.confirm(t('associations.messages.confirmDelete'))) {
       return;
     }
 
@@ -183,11 +185,11 @@ const Associations: React.FC = () => {
   const handleExportCSV = () => {
     exportToCSV({
       filename: 'associations.csv',
-      headers: ['Association Name', 'Abbreviation', 'Country'],
+      headers: [t('associations.table.name'), t('associations.table.abbreviation'), t('associations.table.country')],
       data: filteredAssociations.map(association => ({
-        'Association Name': association.var_name,
-        'Abbreviation': association.var_kuerzel || '',
-        'Country': association.country_name || 'No Country'
+        [t('associations.table.name')]: association.var_name,
+        [t('associations.table.abbreviation')]: association.var_kuerzel || '',
+        [t('associations.table.country')]: association.country_name || t('associations.noCountry')
       }))
     });
   };
@@ -206,17 +208,17 @@ const Associations: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-2">{association.var_name}</h3>
             <div className="space-y-2">
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 w-20">Code:</span>
+                <span className="text-sm text-gray-500 w-20">{t('associations.table.abbreviation')}:</span>
                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
                   {association.var_kuerzel || 'N/A'}
                 </span>
               </div>
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 w-20">Country:</span>
+                <span className="text-sm text-gray-500 w-20">{t('associations.table.country')}:</span>
                 <span className={`px-2 py-1 text-xs font-medium rounded ${
                   association.country_name ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
                 }`}>
-                  {association.country_name || 'No Country'}
+                  {association.country_name || t('associations.noCountry')}
                 </span>
               </div>
             </div>
@@ -225,14 +227,14 @@ const Associations: React.FC = () => {
             <button
               onClick={() => handleEdit(association)}
               className="p-1 text-blue-600 hover:text-blue-900"
-              title="Edit association"
+              title={t('associations.editAssociation')}
             >
               <PencilIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => handleDelete(association.int_verbaendeid)}
               className="p-1 text-red-600 hover:text-red-900"
-              title="Delete association"
+              title={t('associations.deleteAssociation')}
             >
               <TrashIcon className="h-4 w-4" />
             </button>
@@ -245,46 +247,46 @@ const Associations: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Association Management"
-        subtitle={`Manage gymnastics associations and federations (${associations.length} associations loaded)`}
+        title={t('associations.title')}
+        subtitle={t('associations.subtitle') + ` (${associations.length} ${t('common.loaded')})`}
         icon={BuildingOffice2Icon}
         data={filteredAssociations}
         isLoading={loading}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search associations..."
+        searchPlaceholder={t('associations.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExportCSV}
         onAdd={handleCreate}
-        addLabel="Add Association"
+        addLabel={t('associations.addAssociation')}
         viewStorageKey="associations-view"
         itemsPerPage={20}
         renderTableHeaders={() => (
           <tr>
             <SortableTableHeader
-              label="Association Name"
+              label={t('associations.table.name')}
               sortKey="var_name"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <SortableTableHeader
-              label="Abbreviation"
+              label={t('associations.table.abbreviation')}
               sortKey="var_kuerzel"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <SortableTableHeader
-              label="Country"
+              label={t('associations.table.country')}
               sortKey="country_name"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
+              {t('common.actions')}
             </th>
           </tr>
         )}
@@ -302,7 +304,7 @@ const Associations: React.FC = () => {
               <span className={`px-2 py-1 text-xs font-medium rounded ${
                 association.country_name ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
               }`}>
-                {association.country_name || 'No Country'}
+                {association.country_name || t('associations.noCountry')}
                 {association.country_kuerzel && (
                   <span className="text-gray-400 ml-1">({association.country_kuerzel})</span>
                 )}
@@ -313,14 +315,14 @@ const Associations: React.FC = () => {
                 <button
                   onClick={() => handleEdit(association)}
                   className="p-1 text-blue-600 hover:text-blue-900"
-                  title="Edit association"
+                  title={t('associations.editAssociation')}
                 >
                   <PencilIcon className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(association.int_verbaendeid)}
                   className="p-1 text-red-600 hover:text-red-900"
-                  title="Delete association"
+                  title={t('associations.deleteAssociation')}
                 >
                   <TrashIcon className="h-4 w-4" />
                 </button>
@@ -335,50 +337,50 @@ const Associations: React.FC = () => {
       <UnifiedModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingAssociation ? 'Edit Association' : 'Add New Association'}
+        title={editingAssociation ? t('associations.editAssociation') : t('associations.addAssociation')}
         onSave={handleSave}
-        saveLabel={editingAssociation ? 'Update' : 'Create'}
+        saveLabel={editingAssociation ? t('common.update') : t('common.create')}
         size="md"
       >
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Association Name *
+              {t('associations.form.name')} *
             </label>
             <input
               type="text"
               value={formData.var_name}
               onChange={(e) => setFormData({...formData, var_name: e.target.value})}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
-              placeholder="Enter association name"
+              placeholder={t('associations.form.namePlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Abbreviation
+              {t('associations.form.abbreviation')}
             </label>
             <input
               type="text"
               value={formData.var_kuerzel}
               onChange={(e) => setFormData({...formData, var_kuerzel: e.target.value})}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
-              placeholder="Enter abbreviation"
+              placeholder={t('associations.form.abbreviationPlaceholder')}
               maxLength={8}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Country
+              {t('associations.form.country')}
             </label>
             <select
               value={formData.int_laenderid || ''}
               onChange={(e) => setFormData({...formData, int_laenderid: e.target.value === '' ? null : parseInt(e.target.value)})}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-              <option value="">No Country</option>
+              <option value="">{t('associations.noCountry')}</option>
               {countries.map(country => (
                 <option key={country.int_laenderid} value={country.int_laenderid}>
                   {country.var_name}

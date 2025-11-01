@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PencilIcon, TrashIcon, SwatchIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate';
 import StatusFormModal from '../components/StatusFormModal';
@@ -13,6 +14,7 @@ interface Status {
 }
 
 const StatusUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -51,7 +53,7 @@ const StatusUnified: React.FC = () => {
 
   const handleCreate = () => {
     if (loading) {
-      alert('Please wait for data to load before creating a status.');
+      alert(t('status.waitForData'));
       return;
     }
     setEditingStatus(null);
@@ -66,7 +68,7 @@ const StatusUnified: React.FC = () => {
   };
 
   const handleDelete = async (status: Status) => {
-    if (window.confirm(`Are you sure you want to delete the status "${status.var_name}"? This action cannot be undone.`)) {
+    if (window.confirm(t('status.messages.confirmDelete'))) {
       try {
         const response = await fetch(`/api/statuses/${status.int_statusid}`, {
           method: 'DELETE',

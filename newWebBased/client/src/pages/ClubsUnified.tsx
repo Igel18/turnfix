@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   BuildingOfficeIcon,
   UserGroupIcon,
@@ -50,6 +51,7 @@ interface FormData {
 }
 
 const ClubsUnified: React.FC = () => {
+  const { t } = useTranslation();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -191,12 +193,12 @@ const ClubsUnified: React.FC = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving club:', error);
-      alert('Failed to save club');
+      alert(t('clubs.messages.createError'));
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this club?')) return;
+    if (!confirm(t('clubs.messages.confirmDelete'))) return;
     
     try {
       const response = await fetch(`/api/clubs/${id}`, {
@@ -210,7 +212,7 @@ const ClubsUnified: React.FC = () => {
       await fetchClubs();
     } catch (error) {
       console.error('Error deleting club:', error);
-      alert('Failed to delete club');
+      alert(t('clubs.messages.deleteError'));
     }
   };
 
@@ -253,11 +255,11 @@ const ClubsUnified: React.FC = () => {
   const getFilterOptions = () => [
     {
       value: 'region',
-      label: 'Region',
+      label: t('clubs.filters.region'),
       selectedValue: regionFilter,
       onChange: setRegionFilter,
       options: [
-        { value: '', label: 'All Regions' },
+        { value: '', label: t('clubs.filters.allRegions') },
         ...regions
           .filter(region => region && region.id && region.name)
           .map(region => ({
@@ -268,15 +270,15 @@ const ClubsUnified: React.FC = () => {
     },
     {
       value: 'status',
-      label: 'Status',
+      label: t('clubs.filters.status'),
       selectedValue: statusFilter,
       onChange: setStatusFilter,
       options: [
-        { value: '', label: 'All Clubs' },
-        { value: 'active', label: 'Active (with athletes)' },
-        { value: 'inactive', label: 'Inactive (no athletes)' },
-        { value: 'with_contact', label: 'With contact info' },
-        { value: 'without_contact', label: 'Without contact info' }
+        { value: '', label: t('clubs.filters.allClubs') },
+        { value: 'active', label: t('clubs.filters.active') },
+        { value: 'inactive', label: t('clubs.filters.inactive') },
+        { value: 'with_contact', label: t('clubs.filters.withContact') },
+        { value: 'without_contact', label: t('clubs.filters.withoutContact') }
       ]
     }
   ];
@@ -285,35 +287,35 @@ const ClubsUnified: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <SortableTableHeader
-        label="Club Name"
+        label={t('clubs.table.name')}
         sortKey="var_name"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label="Region"
+        label={t('clubs.table.region')}
         sortKey="gaue_name"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label="Contact"
+        label={t('clubs.table.contact')}
         sortKey="var_email"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label="Athletes"
+        label={t('clubs.table.athletes')}
         sortKey="athlete_count"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
         className="text-center"
       />
-      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.actions')}</th>
     </tr>
   );
 
@@ -337,7 +339,7 @@ const ClubsUnified: React.FC = () => {
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <MapPinIcon className="h-4 w-4 text-gray-400 mr-2" />
-          <span>{club.gaue_name || 'No region'}</span>
+          <span>{club.gaue_name || t('clubs.noRegion')}</span>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -361,7 +363,7 @@ const ClubsUnified: React.FC = () => {
             </div>
           )}
           {!club.var_vorname && !club.var_nachname && !club.var_email && !club.var_telefon && (
-            <span className="text-sm text-gray-400">No contact info</span>
+            <span className="text-sm text-gray-400">{t('clubs.noContact')}</span>
           )}
         </div>
       </td>
@@ -379,14 +381,14 @@ const ClubsUnified: React.FC = () => {
           <button
             onClick={() => handleEdit(club)}
             className="text-blue-600 hover:text-blue-800"
-            title="Edit Club"
+            title={t('clubs.editClub')}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDelete(club.int_vereineid)}
             className="text-red-600 hover:text-red-800"
-            title="Delete Club"
+            title={t('clubs.deleteClub')}
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -407,7 +409,7 @@ const ClubsUnified: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center text-sm text-gray-600">
               <MapPinIcon className="h-4 w-4 mr-2" />
-              <span>{club.gaue_name || 'No region'}</span>
+              <span>{club.gaue_name || t('clubs.noRegion')}</span>
             </div>
             
             {club.var_vorname && club.var_nachname && (
@@ -447,20 +449,20 @@ const ClubsUnified: React.FC = () => {
               ? 'bg-green-100 text-green-800' 
               : 'bg-gray-100 text-gray-800'
           }`}>
-            {club.athlete_count} athletes
+            {club.athlete_count} {t('clubs.athletes')}
           </div>
           <div className="flex space-x-2">
             <button
               onClick={() => handleEdit(club)}
               className="text-blue-600 hover:text-blue-800"
-              title="Edit Club"
+              title={t('clubs.editClub')}
             >
               <PencilIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => handleDelete(club.int_vereineid)}
               className="text-red-600 hover:text-red-800"
-              title="Delete Club"
+              title={t('clubs.deleteClub')}
             >
               <TrashIcon className="h-4 w-4" />
             </button>
@@ -473,18 +475,18 @@ const ClubsUnified: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Clubs Management"
-        subtitle={`Manage sports clubs and their information (${clubs.length} clubs loaded)`}
+        title={t('clubs.title')}
+        subtitle={t('clubs.subtitle') + ` (${clubs.length} ${t('clubs.clubsLoaded')})`}
         icon={BuildingOfficeIcon}
         data={filteredData}
         isLoading={isLoading}
         searchTerm={searchFilter}
         onSearchChange={setSearchFilter}
-        searchPlaceholder="Search clubs by name, region, or contact..."
+        searchPlaceholder={t('clubs.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel="Add Club"
+        addLabel={t('clubs.addClub')}
         onEdit={handleEdit}
         onDelete={(club) => handleDelete(club.int_vereineid)}
         viewStorageKey="clubs-view"

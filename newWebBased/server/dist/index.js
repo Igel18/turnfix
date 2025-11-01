@@ -313,15 +313,38 @@ console.log('🔧 About to start server on port', PORT);
 // Check if port is available before starting server
 async function startServer() {
     try {
-        // Check port availability (auto-kill blocking process in development)
-        const autoKill = process.env.NODE_ENV !== 'production';
+        // Check port availability
+        // Always auto-kill in PM2 environment to handle restarts gracefully
+        const isPM2 = process.env.PM2_HOME !== undefined || process.env.pm_id !== undefined;
+        const autoKill = isPM2 || process.env.NODE_ENV !== 'production';
         console.log(`🔍 Checking if port ${PORT_NUMBER} is available...`);
-        // In development, always force kill blocking processes
+        if (autoKill) {
+            console.log(`🔨 Auto-kill enabled (${isPM2 ? 'PM2 mode' : 'Development mode'})`);
+        }
+        // Force kill blocking processes
         const portAvailable = await (0, portChecker_1.ensurePortAvailable)(PORT_NUMBER, autoKill, autoKill);
         if (!portAvailable) {
-            console.error(`❌ Port ${PORT_NUMBER} is not available. Please free the port and try again.`);
-            console.log(`💡 You can manually kill the blocking process or run: npm run check-port ${PORT_NUMBER} --kill`);
-            process.exit(1);
+            console.error(`❌ Port ${PORT_NUMBER} is not available after waiting.`);
+            if (isPM2) {
+                // In PM2 mode, wait longer before giving up to avoid restart loops
+                console.log(`⏳ PM2 detected: Waiting additional 30 seconds before retry...`);
+                console.log(`   This helps break restart loops caused by Windows TIME_WAIT state.`);
+                await new Promise(resolve => setTimeout(resolve, 30000));
+                // One final check
+                const finalCheck = await (0, portChecker_1.ensurePortAvailable)(PORT_NUMBER, false, false);
+                if (!finalCheck) {
+                    console.error(`❌ Port ${PORT_NUMBER} still not available after 60 seconds total wait time.`);
+                    console.error(`⚠️  This indicates a serious port conflict. Exiting to prevent restart loop.`);
+                    process.exit(1);
+                }
+                else {
+                    console.log(`✅ Port ${PORT_NUMBER} is finally available!`);
+                }
+            }
+            else {
+                console.log(`💡 You can manually kill the blocking process or run: npm run check-port ${PORT_NUMBER} --kill`);
+                process.exit(1);
+            }
         }
         // Check database connection before starting
         const isConnected = await (0, connection_1.checkDatabaseConnection)();

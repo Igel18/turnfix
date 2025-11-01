@@ -864,8 +864,25 @@
     "deleteClub": "Verein löschen",
     "noClubs": "Keine Vereine gefunden",
     "loadingClubs": "Lade Vereine...",
+    "clubsLoaded": "Vereine geladen",
+    "noRegion": "Keine Region",
+    "noContact": "Keine Kontaktinformationen",
+    "athletes": "Athleten",
+    "filters": {
+      "region": "Region",
+      "allRegions": "Alle Regionen",
+      "status": "Status",
+      "allClubs": "Alle Vereine",
+      "active": "Aktiv (mit Athleten)",
+      "inactive": "Inaktiv (keine Athleten)",
+      "withContact": "Mit Kontaktinformationen",
+      "withoutContact": "Ohne Kontaktinformationen"
+    },
     "table": {
       "name": "Vereinsname",
+      "region": "Region",
+      "contact": "Kontakt",
+      "athletes": "Athleten",
       "location": "Ort",
       "association": "Verband",
       "participants": "Teilnehmer",
@@ -891,6 +908,192 @@
       "loadError": "Fehler beim Laden der Vereine",
       "confirmDelete": "Sind Sie sicher, dass Sie diesen Verein löschen möchten?",
       "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  },
+  "venues": {
+    "title": "Austragungsorte",
+    "subtitle": "Wettkampfstätten und Austragungsorte verwalten",
+    "searchPlaceholder": "Austragungsorte suchen...",
+    "addLocation": "Austragungsort hinzufügen",
+    "editLocation": "Austragungsort bearbeiten",
+    "deleteLocation": "Austragungsort löschen",
+    "noLocations": "Keine Austragungsorte gefunden",
+    "loadingLocations": "Lade Austragungsorte...",
+    "locationsLoaded": "Austragungsorte geladen",
+    "noAddress": "Keine Adresse",
+    "noCity": "Keine Stadt",
+    "filters": {
+      "city": "Stadt",
+      "allCities": "Alle Städte"
+    },
+    "table": {
+      "name": "Austragungsort",
+      "address": "Adresse",
+      "city": "Stadt",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Austragungsort",
+      "namePlaceholder": "Name eingeben",
+      "address": "Adresse",
+      "addressPlaceholder": "Adresse eingeben",
+      "zipCode": "PLZ",
+      "zipCodePlaceholder": "PLZ eingeben",
+      "city": "Stadt",
+      "cityPlaceholder": "Stadt eingeben",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Austragungsort erfolgreich erstellt",
+      "updateSuccess": "Austragungsort erfolgreich aktualisiert",
+      "deleteSuccess": "Austragungsort erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen des Austragungsorts",
+      "updateError": "Fehler beim Aktualisieren des Austragungsorts",
+      "deleteError": "Fehler beim Löschen des Austragungsorts",
+      "loadError": "Fehler beim Laden der Austragungsorte",
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Austragungsort löschen möchten?"
+    }
+  },
+  "persons": {
+    "title": "Personenverwaltung",
+    "subtitle": "Kontaktpersonen verwalten",
+    "searchPlaceholder": "Personen suchen...",
+    "addPerson": "Person hinzufügen",
+    "editPerson": "Person bearbeiten",
+    "deletePerson": "Person löschen",
+    "noPersons": "Keine Personen gefunden",
+    "loadingPersons": "Lade Personen...",
+    "personsLoaded": "Personen geladen",
+    "filters": {
+      "city": "Stadt",
+      "allCities": "Alle Städte",
+      "profileStatus": "Profilstatus",
+      "allProfiles": "Alle Profile",
+      "complete": "Vollständige Profile",
+      "incomplete": "Unvollständige Profile"
+    },
+    "table": {
+      "name": "Name",
+      "contact": "Kontakt",
+      "city": "Stadt",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "firstName": "Vorname",
+      "firstNamePlaceholder": "Vorname eingeben",
+      "lastName": "Nachname",
+      "lastNamePlaceholder": "Nachname eingeben",
+      "email": "E-Mail",
+      "emailPlaceholder": "E-Mail eingeben",
+      "phone": "Telefon",
+      "phonePlaceholder": "Telefon eingeben",
+      "fax": "Fax",
+      "faxPlaceholder": "Fax eingeben",
+      "address": "Adresse",
+      "addressPlaceholder": "Adresse eingeben",
+      "zipCode": "PLZ",
+      "zipCodePlaceholder": "PLZ eingeben",
+      "city": "Stadt",
+      "cityPlaceholder": "Stadt eingeben",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "messages": {
+      "createSuccess": "Person erfolgreich erstellt",
+      "updateSuccess": "Person erfolgreich aktualisiert",
+      "deleteSuccess": "Person erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Person",
+      "updateError": "Fehler beim Aktualisieren der Person",
+      "deleteError": "Fehler beim Löschen der Person",
+      "loadError": "Fehler beim Laden der Personen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Person löschen möchten?"
+    }
+  },
+  "sports": {
+    "title": "Sportartenverwaltung",
+    "subtitle": "Sportarten verwalten",
+    "searchPlaceholder": "Sportarten suchen...",
+    "addSport": "Sportart hinzufügen",
+    "editSport": "Sportart bearbeiten",
+    "deleteSport": "Sportart löschen",
+    "sportsLoaded": "Sportarten geladen",
+    "table": {
+      "name": "Name",
+      "actions": "Aktionen"
+    },
+    "messages": {
+      "nameRequired": "Bitte geben Sie einen Sportartnamen ein",
+      "createError": "Fehler beim Speichern der Sportart",
+      "deleteError": "Fehler beim Löschen der Sportart",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Sportart löschen möchten?"
+    }
+  },
+  "formulas": {
+    "title": "Formelverwaltung",
+    "subtitle": "Bewertungsformeln verwalten",
+    "searchPlaceholder": "Formeln suchen...",
+    "addFormula": "Formel hinzufügen",
+    "editFormula": "Formel bearbeiten",
+    "deleteFormula": "Formel löschen",
+    "formulasLoaded": "Formeln geladen",
+    "table": {
+      "name": "Name",
+      "formula": "Formel",
+      "actions": "Aktionen"
+    },
+    "messages": {
+      "nameRequired": "Bitte geben Sie einen Formelnamen ein",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Formel löschen möchten?"
+    }
+  },
+  "disciplineGroups": {
+    "title": "Disziplingruppen",
+    "subtitle": "Disziplingruppen verwalten",
+    "searchPlaceholder": "Disziplingruppen suchen...",
+    "addGroup": "Gruppe hinzufügen",
+    "editGroup": "Gruppe bearbeiten",
+    "deleteGroup": "Gruppe löschen",
+    "groupsLoaded": "Gruppen geladen",
+    "noComment": "Kein Kommentar",
+    "filters": {
+      "commentStatus": "Kommentarstatus",
+      "allGroups": "Alle Gruppen",
+      "withComment": "Mit Kommentar",
+      "noComment": "Ohne Kommentar",
+      "disciplineCount": "Anzahl Disziplinen",
+      "allCounts": "Alle Anzahlen",
+      "noDisciplines": "Keine Disziplinen (0)",
+      "fewDisciplines": "Wenige Disziplinen (1-5)",
+      "manyDisciplines": "Viele Disziplinen (6+)"
+    },
+    "table": {
+      "id": "ID",
+      "groupName": "Gruppenname",
+      "comment": "Kommentar",
+      "disciplines": "Disziplinen",
+      "actions": "Aktionen"
+    },
+    "messages": {
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleteError": "Fehler beim Löschen der Gruppe"
+    }
+  },
+  "status": {
+    "title": "Statusverwaltung",
+    "subtitle": "Status verwalten",
+    "searchPlaceholder": "Status suchen...",
+    "addStatus": "Status hinzufügen",
+    "editStatus": "Status bearbeiten",
+    "deleteStatus": "Status löschen",
+    "statusLoaded": "Status geladen",
+    "waitForData": "Bitte warten Sie, bis die Daten geladen sind, bevor Sie einen Status erstellen.",
+    "table": {
+      "name": "Name",
+      "actions": "Aktionen"
+    },
+    "messages": {
+      "confirmDelete": "Sind Sie sicher, dass Sie diesen Status löschen möchten?"
     }
   },
   "disciplines": {
@@ -1188,8 +1391,11 @@
     "deleteAssociation": "Verband löschen",
     "noAssociations": "Keine Verbände gefunden",
     "loadingAssociations": "Lade Verbände...",
+    "noCountry": "Kein Land",
     "table": {
       "name": "Verbandsname",
+      "abbreviation": "Kürzel",
+      "country": "Land",
       "region": "Region",
       "clubs": "Vereine",
       "actions": "Aktionen"
@@ -1197,6 +1403,9 @@
     "form": {
       "name": "Verbandsname",
       "namePlaceholder": "Verbandsname eingeben",
+      "abbreviation": "Kürzel",
+      "abbreviationPlaceholder": "Kürzel eingeben",
+      "country": "Land",
       "region": "Region",
       "regionPlaceholder": "Region auswählen",
       "save": "Speichern",
@@ -1484,6 +1693,8 @@
     "loadingData": "Daten werden geladen...",
     "warmupTime": "Einturnen",
     "startTime": "Startzeit",
+    "eventDate": "Veranstaltungsdatum",
+    "dateInfo": "Das Datum wird vom Veranstaltungsdatum übernommen. Nur die Uhrzeit kann individuell eingestellt werden.",
     "endTime": "Endzeit",
     "duration": "Dauer",
     "rotationMatrix": "Rotationsmatrix",
@@ -1510,6 +1721,7 @@
     "pdfError": "Fehler beim Erstellen der PDF-Datei. Bitte versuchen Sie es erneut.",
     "filters": {
       "gender": "Geschlecht",
+      "all": "Alle",
       "male": "Männlich",
       "female": "Weiblich",
       "mixed": "Gemischt"
@@ -1661,7 +1873,7 @@
   "results": {
     "title": "Wettkampfergebnisse",
     "subtitle": "Ranglisten für {{eventName}}",
-    "searchPlaceholder": "Teilnehmer, Vereine, Startpass-Nummern suchen...",
+    "searchPlaceholder": "Teilnehmer, Vereine, Startnummern suchen...",
     "noEventTitle": "Keine Veranstaltung ausgewählt",
     "noEventMessage": "Bitte wählen Sie eine Veranstaltung aus, um Wettkampfergebnisse anzuzeigen.",
     "loading": "Ergebnisse werden geladen...",
@@ -1676,6 +1888,8 @@
     "filters": {
       "competition": "Wettkampf",
       "gender": "Geschlecht",
+      "all": "Alle",
+      "allCompetitions": "Alle Wettkämpfe",
       "male": "Männlich",
       "female": "Weiblich",
       "both": "Gemischt",
@@ -1836,7 +2050,7 @@
   "eventParticipants": {
     "title": "Veranstaltungsteilnehmer",
     "subtitle": "Teilnehmer zur Veranstaltung hinzufügen, entfernen und Wettkämpfen zuordnen",
-    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startpass-Nummer suchen...",
+    "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startnummer suchen...",
     "addParticipant": "Teilnehmer hinzufügen",
     "noEventSelected": "Keine Veranstaltung ausgewählt",
     "selectEventPrompt": "Bitte wählen Sie eine Veranstaltung aus, um Teilnehmer zu verwalten.",
@@ -1871,6 +2085,7 @@
       "gender": "Geschlecht",
       "club": "Verein",
       "ageGroup": "Altersgruppe",
+      "all": "Alle",
       "ageGroups": {
         "6-8": "6-8 Jahre",
         "9-10": "9-10 Jahre",
@@ -1903,7 +2118,7 @@
       "gender": "Geschlecht",
       "club": "Verein",
       "squad": "Riege",
-      "startNumber": "Startpass-Nummer",
+      "startNumber": "Startnummer",
       "competitions": "Wettkämpfe",
       "actions": "Aktionen",
       "registrationDate": "Anmeldedatum",
@@ -1915,8 +2130,8 @@
       "squad": "Riege",
       "noSquad": "Keine Riege",
       "noCompetitions": "Keine Wettkämpfe",
-      "startNumber": "Startpass-Nummer",
-      "noStartNumber": "Keine Startpass-Nummer"
+      "startNumber": "Startnummer",
+      "noStartNumber": "Keine Startnummer"
     },
     "empty": {
       "title": "Keine Teilnehmer gefunden",
@@ -1969,6 +2184,7 @@
       "gender": "Geschlecht",
       "competition": "Wettkampf",
       "club": "Verein",
+      "all": "Alle",
       "male": "Männlich",
       "female": "Weiblich"
     },

@@ -2773,6 +2773,7 @@ http://localhost:3001/competitions?eventId=77&squadName=m
 http://localhost:3001/event-participants?eventId=77&squadName=m
 
 94. Lokalisierung:
+Die Lokalisierung war schon mal drin, ist vermutlich aber wegen dem Refactoring verloren gegangen. Dh. es könnten schon die lokalisierten Texte existieren. 
 http://localhost:3001/associations
 http://localhost:3001/clubs 
 http://localhost:3001/locations
@@ -3192,16 +3193,98 @@ Die Buttons und andere UI-Elemente sollen immer gleich aussehen und die gleiche 
 - Verwaltungszentrale -> Passt 
 - Hinzufügen-Button muss immer ein + enthalten und danach die Beschriftung "Neu ***" z.B. Neue Riege; Die Hintergrundfarbe muss einheitlich sein; Der Button befindet sich an der Linken Kante unterhalb der Verwaltungszentrale (wie z.B. Riegenverwaltung)
 - Button "Export PDF" muss immer verfügbar sein. Einheitliche Hintergrundfarbe. auf gleicher Zeile mit dem Hinzufügen. 
-- 
 
-114. Startzeit / Einturnzeit 
-a) Die Einturnzeit muss immer vor der Startzeit stehen. 
-In der UI und im Edit hier
-http://localhost:3001/time-planning?eventId=59&squadName=mBlau
+114. ~~Startzeit / Einturnzeit~~ ✅
+~~a) Die Einturnzeit muss immer vor der Startzeit stehen.~~ 
+~~In der UI und im Edit hier~~
+~~http://localhost:3001/time-planning?eventId=59&squadName=mBlau~~
 
-IN der Edit UI hier
-http://localhost:3001/competitions?eventId=59&squadName=mBlau
+~~IN der Edit UI hier~~
+~~http://localhost:3001/competitions?eventId=59&squadName=mBlau~~
 
-habe ich das gefunden. 
+~~habe ich das gefunden.~~ 
 
 b) Ist in der DB auch das Date gespeichert? dann sollte das auch visualisiert werden und editierbar sein. voreingestellt immer das Date von der veranstaltung "von" 
+    **Status 114a**: ✅ Abgeschlossen - Reihenfolge Einturnzeit/Startzeit korrigiert
+    **Problem**: Einturnzeit (warmupTime) wurde NACH Startzeit angezeigt, sollte aber logischerweise VOR der Startzeit sein
+    **Lösung**: 
+    - TimePlanning.tsx: Reihenfolge getauscht - Einturnzeit jetzt VOR Startzeit
+    - CompetitionFormModal.tsx: Reihenfolge getauscht - Einturnzeit jetzt VOR Startzeit
+    **Betroffene UIs**:
+    - Zeitplanung (Time Planning) - Edit-Dialog
+    - Wettkampfverwaltung (Competitions) - Edit-Dialog
+    **Dateien**: 
+    - `client/src/pages/TimePlanning.tsx` (Zeilen 1060-1092)
+    - `client/src/components/CompetitionFormModal.tsx` (Zeilen 530-562)
+    **Build Status**: ✓ 6.18s, keine Fehler
+    
+    **Status 114b**: ⏳ OFFEN - Datum-Unterstützung für Start-/Einturnzeit
+    **Analyse**: In der Datenbank sind `tim_startzeit` und `tim_einturnen` als DateTime-Typ gespeichert (haben `.getHours()`, `.getMinutes()` Methoden)
+    **Aktuelle Implementierung**: Nur Zeit wird angezeigt/editiert (HH:MM format)
+    **Anforderung**: 
+    - Datum sollte auch visualisiert und editierbar sein
+    - Voreinstellung: Datum von Veranstaltung "von" (`dat_von`)
+    - UI benötigt zusätzliches Datums-Feld (type="date") neben Zeit-Feld (type="time")
+    **Backend**: Server extrahiert aktuell nur Stunden/Minuten aus DateTime, Datum geht verloren
+    **Nächste Schritte**:
+    1. UI erweitern um Datumsfeld (voreingestellt auf Event-Start-Datum)
+    2. Backend anpassen: DateTime mit Datum speichern (nicht nur Zeit)
+    3. API-Antworten: Datum und Zeit getrennt zurückgeben oder vollständiges DateTime
+
+115. Bei der Zeitplanung 
+http://localhost:3001/time-planning?eventId=59&squadName=mBlau
+a) in der UI Rotation 
+kann man Bahnen hinzufügen. 
+- Diese werden aber irgendwie nicht gespeichert. 
+- Die Durchgänge werden in der UI der Rotation  nicht dargestellt
+- Der Button um eine Bahn hinzuzufügen müsste in den Header. 
+
+b) - Olympische Reihenfolge. 
+Diese sollte als Hinweis bei der Rotation angezeigt werden können. 
+Es gibt beim Turnen eine festgelegte Reihenfolge der Geräte, die als "Olympische Reihenfolge" bekannt ist. Diese Reihenfolge wird sowohl im Männer- als auch im Frauenwettbewerb verwendet, wobei die spezifischen Geräte je nach Geschlecht variieren.
+Es ist wichtig, diese Reihenfolge bei der Planung und Durchführung von Wettkämpfen zu beachten, um einen reibungslosen Ablauf zu gewährleisten.
+Die Reihenfolge der Geräte ist wie folgt:
+- Männer:
+  1. Boden
+  2. Pauschenpferd
+  3. Ringe
+  4. Sprung
+  5. Barren
+  6. Reck   
+
+- Frauen:
+    1. Sprung
+    2. Stufenbarren
+    3. Schwebebalken
+    4. Boden
+
+c) Weiterer Hinweis / Hilfetext muss hinzugefügt werden, wie die Zeitplanung funktioniert, und was unter Durchgang und Bahn zu verstehen ist. 
+
+116. ~~Startnummer vs. Startpassnummer.~~ ✅
+~~Von einer Startnummer spricht man im Kontext eines Wettkampfes / Events / Veranstaltung.~~ 
+~~Hier wurde die Startnummer als Startpassnummer in der Tabelle benannt was nicht korrekt ist.~~ 
+~~http://localhost:3001/event-participants?eventId=59&squadName=mBlau~~
+
+~~In der UI http://localhost:3001/participants ist es richtig benannt.~~ 
+    **Status**: ✅ Abgeschlossen - Startnummer vs. Startpassnummer Terminologie korrigiert
+    **Problem**: In Event-Kontext wurde fälschlicherweise "Startpassnummer" (dauerhafte Athleten-ID) statt "Startnummer" (Event-spezifisch) verwendet
+    **Lösung**: 
+    - `eventParticipants.table.startNumber`: "Startpass-Nummer" → "Startnummer" (DE), "License Number" → "Start Number" (EN)
+    - `eventParticipants.card.startNumber`: "Startpass-Nummer" → "Startnummer" (DE), "License Number" → "Start Number" (EN)
+    - `eventParticipants.card.noStartNumber`: "Keine Startpass-Nummer" → "Keine Startnummer" (DE), "No License Number" → "No Start Number" (EN)
+    - `eventParticipants.searchPlaceholder`: "Startpass-Nummer" → "Startnummer" (DE), "license number" → "start number" (EN)
+    - `results.searchPlaceholder`: "Startpass-Nummern" → "Startnummern" (DE), "license numbers" → "start numbers" (EN)
+    **Betroffene Seiten**: EventParticipants, Results (Wettkampfergebnisse)
+    **Konvention**: 
+    - **Startnummer**: Event-/Wettkampf-spezifische Nummer (EventParticipants, Results, Competitions)
+    - **Startpassnummer**: Dauerhafte Athleten-ID (ParticipantsUnified - korrekt)
+    **Dateien**: 
+    - `client/src/i18n/locales/de.json` (5 Änderungen)
+    - `client/src/i18n/locales/en.json` (5 Änderungen)
+    **Build Status**: ✓ 5.53s, keine Fehler
+
+
+
+117. Doku 
+Im Ordner documantation ist eine gitbook doku. 
+Diese muss um die neue WebUI erweitert werden. Wir haben ja schon sehr viel in die *.md Files geschrieben. Dies soll jetzt strukturiert hier dokumentier werden. 

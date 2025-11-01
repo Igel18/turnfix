@@ -53,6 +53,11 @@ export async function getPortBlocker(port: number): Promise<PortBlocker | null> 
     if (process.platform === 'win32') {
       // Windows: Get PID from netstat
       const { stdout } = await execAsync(`netstat -ano | findstr :${port}`);
+      
+      if (!stdout || stdout.trim().length === 0) {
+        return null;
+      }
+      
       const lines = stdout.trim().split('\n');
       
       for (const line of lines) {
@@ -62,10 +67,22 @@ export async function getPortBlocker(port: number): Promise<PortBlocker | null> 
           const parts = line.trim().split(/\s+/);
           const pid = parseInt(parts[parts.length - 1]);
           
-          if (!isNaN(pid)) {
+          if (!isNaN(pid) && pid > 0) {
             // Get process name using tasklist
             try {
               const { stdout: taskOutput } = await execAsync(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`);
+              
+              if (!taskOutput || taskOutput.trim().length === 0) {
+                console.log(`   ⚠️ No task info found for PID ${pid}`);
+                // Return basic info even if tasklist fails
+                return {
+                  port,
+                  pid,
+                  processName: 'Unknown',
+                  commandLine: undefined
+                };
+              }
+              
               const taskParts = taskOutput.trim().split(',');
               const processName = taskParts[0]?.replace(/"/g, '') || 'Unknown';
               
@@ -86,7 +103,14 @@ export async function getPortBlocker(port: number): Promise<PortBlocker | null> 
                 commandLine
               };
             } catch (error) {
-              console.error(`Failed to get process info for PID ${pid}:`, error);
+              console.error(`   ⚠️ Failed to get process info for PID ${pid}:`, error);
+              // Return basic info even if we can't get full details
+              return {
+                port,
+                pid,
+                processName: 'Unknown',
+                commandLine: undefined
+              };
             }
           }
         }
@@ -134,16 +158,24 @@ export async function getPortBlocker(port: number): Promise<PortBlocker | null> 
 export async function killProcess(pid: number, force: boolean = false): Promise<boolean> {
   try {
     if (process.platform === 'win32') {
-      // Windows: Use taskkill
+      // Windows: Use taskkill with /F flag for force kill
       const forceFlag = force ? '/F' : '';
-      await execAsync(`taskkill /PID ${pid} ${forceFlag}`);
+      const command = `taskkill /PID ${pid} ${forceFlag}`.trim();
+      console.log(`   Executing: ${command}`);
+      await execAsync(command);
       console.log(`✅ Process ${pid} killed successfully`);
+      
+      // Wait a bit longer for Windows to release the port
+      await new Promise(resolve => setTimeout(resolve, 2000));
       return true;
     } else {
       // Linux/Mac: Use kill
       const signal = force ? '-9' : '-15';
       await execAsync(`kill ${signal} ${pid}`);
       console.log(`✅ Process ${pid} killed successfully`);
+      
+      // Wait for process to die
+      await new Promise(resolve => setTimeout(resolve, 1000));
       return true;
     }
   } catch (error: any) {
@@ -187,18 +219,27 @@ export async function ensurePortAvailable(
       const killed = await killProcess(blocker.pid, force);
       
       if (killed) {
-        // Wait a moment for port to be released
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for port to be released (increased wait time)
+        console.log(`⏳ Waiting for port ${port} to be released...`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
-        // Check if port is now available
-        const stillInUse = await isPortInUse(port);
-        if (!stillInUse) {
-          console.log(`✅ Port ${port} is now available`);
-          return true;
-        } else {
-          console.log(`❌ Port ${port} is still in use after killing process`);
-          return false;
+        // Check if port is now available (retry up to 3 times)
+        for (let i = 0; i < 3; i++) {
+          const stillInUse = await isPortInUse(port);
+          if (!stillInUse) {
+            console.log(`✅ Port ${port} is now available`);
+            return true;
+          }
+          
+          if (i < 2) {
+            console.log(`   Retry ${i + 1}/2 - Port still blocked, waiting...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
         }
+        
+        console.log(`❌ Port ${port} is still in use after killing process`);
+        console.log(`💡 Try manually: taskkill /PID ${blocker.pid} /F`);
+        return false;
       }
       
       return false;
@@ -212,7 +253,34 @@ export async function ensurePortAvailable(
       return false;
     }
   } else {
-    console.log(`❌ Could not determine which process is using port ${port}`);
+    console.log(`⚠️  Port ${port} appears in use, but no process found`);
+    console.log(`   This might be a timing issue - port may be freeing up (Windows TIME_WAIT)`);
+    
+    if (autoKill) {
+      // In PM2 restart scenarios, the port might be in TIME_WAIT state
+      // We need to wait longer for Windows to release it
+      console.log(`⏳ Waiting for port ${port} to be released (up to 30 seconds)...`);
+      
+      // Try up to 10 times with 3 second intervals (30 seconds total)
+      for (let attempt = 1; attempt <= 10; attempt++) {
+        console.log(`   Attempt ${attempt}/10 - Checking port availability...`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        const stillInUse = await isPortInUse(port);
+        if (!stillInUse) {
+          console.log(`✅ Port ${port} is now available (freed after ${attempt * 3} seconds)`);
+          return true;
+        }
+      }
+      
+      console.log(`❌ Port ${port} is still in use after 30 seconds - cannot identify blocking process`);
+      console.log(`💡 Possible causes:`);
+      console.log(`   - Windows TIME_WAIT state (may need up to 60 seconds)`);
+      console.log(`   - Another instance is starting simultaneously`);
+      console.log(`   - Port is held by a system service`);
+      return false;
+    }
+    
     return false;
   }
 }

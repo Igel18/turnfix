@@ -864,8 +864,25 @@
     "deleteClub": "Delete Club",
     "noClubs": "No clubs found",
     "loadingClubs": "Loading clubs...",
+    "clubsLoaded": "clubs loaded",
+    "noRegion": "No region",
+    "noContact": "No contact info",
+    "athletes": "athletes",
+    "filters": {
+      "region": "Region",
+      "allRegions": "All Regions",
+      "status": "Status",
+      "allClubs": "All Clubs",
+      "active": "Active (with athletes)",
+      "inactive": "Inactive (no athletes)",
+      "withContact": "With contact info",
+      "withoutContact": "Without contact info"
+    },
     "table": {
       "name": "Club Name",
+      "region": "Region",
+      "contact": "Contact",
+      "athletes": "Athletes",
       "location": "Location",
       "association": "Association",
       "participants": "Participants",
@@ -891,6 +908,192 @@
       "loadError": "Error loading clubs",
       "confirmDelete": "Are you sure you want to delete this club?",
       "deleteWarning": "This action cannot be undone."
+    }
+  },
+  "venues": {
+    "title": "Venues",
+    "subtitle": "Manage competition venues and locations",
+    "searchPlaceholder": "Search venues...",
+    "addLocation": "Add Location",
+    "editLocation": "Edit Location",
+    "deleteLocation": "Delete Location",
+    "noLocations": "No locations found",
+    "loadingLocations": "Loading locations...",
+    "locationsLoaded": "locations loaded",
+    "noAddress": "No address",
+    "noCity": "No city",
+    "filters": {
+      "city": "City",
+      "allCities": "All Cities"
+    },
+    "table": {
+      "name": "Location Name",
+      "address": "Address",
+      "city": "City",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Location Name",
+      "namePlaceholder": "Enter location name",
+      "address": "Address",
+      "addressPlaceholder": "Enter address",
+      "zipCode": "ZIP Code",
+      "zipCodePlaceholder": "Enter ZIP code",
+      "city": "City",
+      "cityPlaceholder": "Enter city",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "createSuccess": "Location created successfully",
+      "updateSuccess": "Location updated successfully",
+      "deleteSuccess": "Location deleted successfully",
+      "createError": "Error creating location",
+      "updateError": "Error updating location",
+      "deleteError": "Error deleting location",
+      "loadError": "Error loading locations",
+      "confirmDelete": "Are you sure you want to delete this location?"
+    }
+  },
+  "persons": {
+    "title": "Person Management",
+    "subtitle": "Manage contact persons",
+    "searchPlaceholder": "Search persons...",
+    "addPerson": "Add Person",
+    "editPerson": "Edit Person",
+    "deletePerson": "Delete Person",
+    "noPersons": "No persons found",
+    "loadingPersons": "Loading persons...",
+    "personsLoaded": "persons loaded",
+    "filters": {
+      "city": "City",
+      "allCities": "All Cities",
+      "profileStatus": "Profile Status",
+      "allProfiles": "All Profiles",
+      "complete": "Complete Profiles",
+      "incomplete": "Incomplete Profiles"
+    },
+    "table": {
+      "name": "Name",
+      "contact": "Contact",
+      "city": "City",
+      "actions": "Actions"
+    },
+    "form": {
+      "firstName": "First Name",
+      "firstNamePlaceholder": "Enter first name",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Enter last name",
+      "email": "Email",
+      "emailPlaceholder": "Enter email",
+      "phone": "Phone",
+      "phonePlaceholder": "Enter phone",
+      "fax": "Fax",
+      "faxPlaceholder": "Enter fax",
+      "address": "Address",
+      "addressPlaceholder": "Enter address",
+      "zipCode": "ZIP Code",
+      "zipCodePlaceholder": "Enter ZIP code",
+      "city": "City",
+      "cityPlaceholder": "Enter city",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "createSuccess": "Person created successfully",
+      "updateSuccess": "Person updated successfully",
+      "deleteSuccess": "Person deleted successfully",
+      "createError": "Error creating person",
+      "updateError": "Error updating person",
+      "deleteError": "Error deleting person",
+      "loadError": "Error loading persons",
+      "confirmDelete": "Are you sure you want to delete this person?"
+    }
+  },
+  "sports": {
+    "title": "Sports Management",
+    "subtitle": "Manage sports",
+    "searchPlaceholder": "Search sports...",
+    "addSport": "Add Sport",
+    "editSport": "Edit Sport",
+    "deleteSport": "Delete Sport",
+    "sportsLoaded": "sports loaded",
+    "table": {
+      "name": "Name",
+      "actions": "Actions"
+    },
+    "messages": {
+      "nameRequired": "Please enter a sport name",
+      "createError": "Failed to save sport",
+      "deleteError": "Failed to delete sport",
+      "confirmDelete": "Are you sure you want to delete this sport?"
+    }
+  },
+  "formulas": {
+    "title": "Formula Management",
+    "subtitle": "Manage scoring formulas",
+    "searchPlaceholder": "Search formulas...",
+    "addFormula": "Add Formula",
+    "editFormula": "Edit Formula",
+    "deleteFormula": "Delete Formula",
+    "formulasLoaded": "formulas loaded",
+    "table": {
+      "name": "Name",
+      "formula": "Formula",
+      "actions": "Actions"
+    },
+    "messages": {
+      "nameRequired": "Please enter a formula name",
+      "confirmDelete": "Are you sure you want to delete this formula?"
+    }
+  },
+  "disciplineGroups": {
+    "title": "Discipline Groups",
+    "subtitle": "Manage discipline groups",
+    "searchPlaceholder": "Search discipline groups...",
+    "addGroup": "Add Group",
+    "editGroup": "Edit Group",
+    "deleteGroup": "Delete Group",
+    "groupsLoaded": "groups loaded",
+    "noComment": "No comment",
+    "filters": {
+      "commentStatus": "Comment Status",
+      "allGroups": "All Groups",
+      "withComment": "With Comment",
+      "noComment": "No Comment",
+      "disciplineCount": "Discipline Count",
+      "allCounts": "All Counts",
+      "noDisciplines": "No Disciplines (0)",
+      "fewDisciplines": "Few Disciplines (1-5)",
+      "manyDisciplines": "Many Disciplines (6+)"
+    },
+    "table": {
+      "id": "ID",
+      "groupName": "Group Name",
+      "comment": "Comment",
+      "disciplines": "Disciplines",
+      "actions": "Actions"
+    },
+    "messages": {
+      "confirmDelete": "Are you sure you want to delete this discipline group? This action cannot be undone.",
+      "deleteError": "Failed to delete discipline group"
+    }
+  },
+  "status": {
+    "title": "Status Management",
+    "subtitle": "Manage status",
+    "searchPlaceholder": "Search status...",
+    "addStatus": "Add Status",
+    "editStatus": "Edit Status",
+    "deleteStatus": "Delete Status",
+    "statusLoaded": "status loaded",
+    "waitForData": "Please wait for data to load before creating a status.",
+    "table": {
+      "name": "Name",
+      "actions": "Actions"
+    },
+    "messages": {
+      "confirmDelete": "Are you sure you want to delete this status?"
     }
   },
   "disciplines": {
@@ -1192,8 +1395,11 @@
     "deleteAssociation": "Delete Association",
     "noAssociations": "No associations found",
     "loadingAssociations": "Loading associations...",
+    "noCountry": "No Country",
     "table": {
       "name": "Association Name",
+      "abbreviation": "Abbreviation",
+      "country": "Country",
       "region": "Region",
       "clubs": "Clubs",
       "actions": "Actions"
@@ -1201,6 +1407,9 @@
     "form": {
       "name": "Association Name",
       "namePlaceholder": "Enter association name",
+      "abbreviation": "Abbreviation",
+      "abbreviationPlaceholder": "Enter abbreviation",
+      "country": "Country",
       "region": "Region",
       "regionPlaceholder": "Select region",
       "save": "Save",
@@ -1487,6 +1696,8 @@
     "loadingData": "Loading data...",
     "warmupTime": "Warm-up",
     "startTime": "Start Time",
+    "eventDate": "Event Date",
+    "dateInfo": "The date is taken from the event date. Only the time can be set individually.",
     "endTime": "End Time",
     "duration": "Duration",
     "rotationMatrix": "Rotation Matrix",
@@ -1513,6 +1724,7 @@
     "pdfError": "Error creating PDF file. Please try again.",
     "filters": {
       "gender": "Gender",
+      "all": "All",
       "male": "Male",
       "female": "Female",
       "mixed": "Mixed"
@@ -1664,7 +1876,7 @@
   "results": {
     "title": "Competition Results",
     "subtitle": "Rankings for {{eventName}}",
-    "searchPlaceholder": "Search participants, clubs, license numbers...",
+    "searchPlaceholder": "Search participants, clubs, start numbers...",
     "noEventTitle": "No Event Selected",
     "noEventMessage": "Please select an event to view competition results.",
     "loading": "Loading results...",
@@ -1679,6 +1891,8 @@
     "filters": {
       "competition": "Competition",
       "gender": "Gender",
+      "all": "All",
+      "allCompetitions": "All Competitions",
       "male": "Male",
       "female": "Female",
       "both": "Mixed",
@@ -1839,7 +2053,7 @@
   "eventParticipants": {
     "title": "Event Participants",
     "subtitle": "Add, remove and assign participants to competitions within the selected event",
-    "searchPlaceholder": "Search participants by name, club or license number...",
+    "searchPlaceholder": "Search participants by name, club or start number...",
     "addParticipant": "Add Participant",
     "noEventSelected": "No Event Selected",
     "selectEventPrompt": "Please select an event to manage participants.",
@@ -1871,6 +2085,7 @@
       "gender": "Gender",
       "club": "Club",
       "ageGroup": "Age Group",
+      "all": "All",
       "ageGroups": {
         "6-8": "6-8 years",
         "9-10": "9-10 years",
@@ -1903,7 +2118,7 @@
       "gender": "Gender",
       "club": "Club",
       "squad": "Squad",
-      "startNumber": "License Number",
+      "startNumber": "Start Number",
       "competitions": "Competitions",
       "actions": "Actions",
       "registrationDate": "Registration Date",
@@ -1915,8 +2130,8 @@
       "squad": "Squad",
       "noSquad": "No Squad",
       "noCompetitions": "No Competitions",
-      "startNumber": "License Number",
-      "noStartNumber": "No License Number"
+      "startNumber": "Start Number",
+      "noStartNumber": "No Start Number"
     },
     "empty": {
       "title": "No participants found",
@@ -1969,6 +2184,7 @@
       "gender": "Gender",
       "competition": "Competition",
       "club": "Club",
+      "all": "All",
       "male": "Male",
       "female": "Female"
     },
