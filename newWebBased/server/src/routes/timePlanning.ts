@@ -4,6 +4,20 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 
 import { z } from 'zod';
 
+// Competition interface for time planning
+interface Competition {
+  id: number;
+  name: string;
+  number: string;
+  round: number;
+  int_bahn: number | null;
+  startTime: string | null;
+  startDate: string | null;
+  warmupTime: string | null;
+  warmupDate: string | null;
+  disciplineCount: number;
+  participantCount: number;
+}
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -37,17 +51,37 @@ router.get('/bahnen', authenticateToken, async (req: AuthRequest, res) => {
 router.put('/competition/:competitionId/bahn', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const competitionId = Number(req.params.competitionId);
+    console.log('[BAHN-UPDATE] Request received:', { competitionId, body: req.body });
+    
     const schema = z.object({
       bahn: z.number().min(1)
     });
     const { bahn } = schema.parse(req.body);
+    
+    console.log('[BAHN-UPDATE] Parsed data:', { competitionId, bahn });
+    
+    // Check if competition exists first
+    const existing = await prisma.tfx_wettkaempfe.findUnique({
+      where: { int_wettkaempfeid: competitionId }
+    });
+    
+    if (!existing) {
+      console.error('[BAHN-UPDATE] Competition not found:', competitionId);
+      return res.status(404).json({ error: 'Competition not found' });
+    }
+    
+    console.log('[BAHN-UPDATE] Current int_bahn:', existing.int_bahn, '-> New:', bahn);
+    
     const updated = await prisma.tfx_wettkaempfe.update({
       where: { int_wettkaempfeid: competitionId },
       data: { int_bahn: bahn }
     });
+    
+    console.log('[BAHN-UPDATE] ✅ Successfully updated to Bahn:', updated.int_bahn);
+    
     res.json({ competition: updated });
   } catch (error) {
-    console.error('Error updating competition Bahn:', error);
+    console.error('[BAHN-UPDATE] ❌ Error updating competition Bahn:', error);
     res.status(500).json({ error: 'Failed to update competition Bahn' });
   }
 });
@@ -119,6 +153,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         var_name: true,
         var_nummer: true,
         int_durchgang: true,
+        int_bahn: true, // ✅ Include Bahn assignment
         tim_startzeit: true,
         tim_einturnen: true,
         tfx_veranstaltungen: {
@@ -155,6 +190,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       name: string;
       number: string;
       round: number;
+      int_bahn: number | null;
       startTime: string | null;
       startDate: string | null;
       warmupTime: string | null;
@@ -251,6 +287,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         name: comp.var_name || '',
         number: comp.var_nummer || '',
         round: comp.int_durchgang || 1,
+        int_bahn: comp.int_bahn, // ✅ Include Bahn assignment
         startTime,
         startDate,
         warmupTime,

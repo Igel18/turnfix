@@ -45,7 +45,7 @@ function generateRoundRobinSchedule(squads: Squad[], devices: Device[]): Rotatio
 interface Competition {
   id: number;
   name: string;
-  round: number;
+  round: number; // session/durchgang
   participantCount: number;
   int_bahn?: number | null;
 }
@@ -57,12 +57,28 @@ interface TimePlanningRotationProps {
   competitions: Competition[];
 }
 
-
-
 interface Bahn {
   bahnNumber: number;
   squads: Squad[];
 }
+
+// Olympic apparatus order for reference
+const OLYMPIC_ORDER = {
+  male: [
+    { name: 'Boden', icon: '🤸' },
+    { name: 'Pauschenpferd', icon: '🐎' },
+    { name: 'Ringe', icon: '⭕' },
+    { name: 'Sprung', icon: '🏃' },
+    { name: 'Barren', icon: '📏' },
+    { name: 'Reck', icon: '🏗️' }
+  ],
+  female: [
+    { name: 'Sprung', icon: '🏃' },
+    { name: 'Stufenbarren', icon: '📐' },
+    { name: 'Schwebebalken', icon: '⚖️' },
+    { name: 'Boden', icon: '🤸' }
+  ]
+};
 
 
 
@@ -72,11 +88,40 @@ const TimePlanningRotation: React.FC<TimePlanningRotationProps> = ({ eventId: _e
   const [bahnen, setBahnen] = useState<Bahn[]>([]);
   const [draggedSquad, setDraggedSquad] = useState<{ squad: Squad; fromBahn: number } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showOlympicOrder, setShowOlympicOrder] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('male');
+  const [selectedRound, setSelectedRound] = useState<number>(1); // Currently selected Durchgang
 
-  // Map squads to their current Bahn using competitions
+  // Group competitions by round (Durchgang)
+  const competitionsByRound = useMemo(() => {
+    const grouped = new Map<number, Competition[]>();
+    competitions.forEach(comp => {
+      const round = comp.round || 1;
+      if (!grouped.has(round)) {
+        grouped.set(round, []);
+      }
+      grouped.get(round)!.push(comp);
+    });
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([round, comps]) => ({ round, competitions: comps }));
+  }, [competitions]);
+
+  // Get competitions for the currently selected round only
+  const currentRoundCompetitions = useMemo(() => {
+    return competitions.filter(comp => (comp.round || 1) === selectedRound);
+  }, [competitions, selectedRound]);
+
+  // Get squads for the currently selected round only
+  const currentRoundSquads = useMemo(() => {
+    const compIds = new Set(currentRoundCompetitions.map(c => c.id));
+    return squads.filter(s => compIds.has(s.competitionId));
+  }, [squads, currentRoundCompetitions]);
+
+  // Map squads to their current Bahn using competitions (only for selected round)
   useEffect(() => {
-    const comps = Array.isArray(competitions) ? competitions : [];
-    const sqs = Array.isArray(squads) ? squads : [];
+    const comps = currentRoundCompetitions;
+    const sqs = currentRoundSquads;
     if (!comps.length && !sqs.length) {
       setBahnen([]);
       return;
@@ -104,7 +149,7 @@ const TimePlanningRotation: React.FC<TimePlanningRotationProps> = ({ eventId: _e
     // Sort by bahnNumber
     bahnenArr.sort((a, b) => a.bahnNumber - b.bahnNumber);
     setBahnen(bahnenArr);
-  }, [competitions, squads]);
+  }, [currentRoundCompetitions, currentRoundSquads]);
 
   // Add a new Bahn (just adds a new Bahn number, not persisted until a squad is assigned)
   const handleAddBahn = () => {
@@ -175,76 +220,174 @@ const TimePlanningRotation: React.FC<TimePlanningRotationProps> = ({ eventId: _e
 
   // Render Bahnen with squads (drag-and-drop)
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-xl font-bold mb-4">Rotation & Bahn-Zuordnung</h2>
-      {loading && <div className="text-blue-600 mb-2">Speichern...</div>}
-      <div className="flex gap-6 mb-6">
-  {bahnen.length === 0 && <div className="text-gray-400 italic">Keine Bahnen vorhanden.</div>}
-  {bahnen.map(bahn => (
+    <div className="max-w-7xl mx-auto p-6">
+      {/* Header with Actions */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Rotation & Bahn-Zuordnung</h2>
+          <p className="text-sm text-gray-600 mt-1">Riegen per Drag & Drop zwischen Bahnen verschieben</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm"
+            onClick={handleAddBahn}
+            title="Neue Bahn hinzufügen"
+          >
+            <span className="text-xl">+</span>
+            Neue Bahn
+          </button>
+          <button
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 font-medium"
+            onClick={() => setShowOlympicOrder(!showOlympicOrder)}
+          >
+            {showOlympicOrder ? '🔼' : '🔽'} Olympische Reihenfolge
+          </button>
+        </div>
+      </div>
+
+      {/* Durchgang Selection Tabs */}
+      {competitionsByRound.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium text-gray-700">Durchgang auswählen:</span>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {competitionsByRound.map(({ round, competitions: roundComps }) => (
+              <button
+                key={round}
+                onClick={() => setSelectedRound(round)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedRound === round
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Durchgang {round}
+                <span className="ml-2 text-xs opacity-75">
+                  ({roundComps.length} {roundComps.length === 1 ? 'Wettkampf' : 'Wettkämpfe'})
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Olympic Order Reference (collapsible) */}
+      {showOlympicOrder && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-blue-900">📘 Olympische Gerätereihenfolge</h3>
+            <div className="flex gap-2">
+              <button
+                className={`px-3 py-1 rounded ${selectedGender === 'male' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
+                onClick={() => setSelectedGender('male')}
+              >
+                Männer
+              </button>
+              <button
+                className={`px-3 py-1 rounded ${selectedGender === 'female' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
+                onClick={() => setSelectedGender('female')}
+              >
+                Frauen
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {OLYMPIC_ORDER[selectedGender].map((apparatus, idx) => (
+              <div key={apparatus.name} className="flex items-center gap-2">
+                <span className="text-2xl">{apparatus.icon}</span>
+                <div>
+                  <div className="text-sm font-medium text-gray-900">{idx + 1}. {apparatus.name}</div>
+                </div>
+                {idx < OLYMPIC_ORDER[selectedGender].length - 1 && (
+                  <span className="text-gray-400 ml-2">→</span>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-blue-700 mt-3">
+            Diese Reihenfolge sollte bei der Planung und Durchführung von Wettkämpfen beachtet werden, um einen reibungslosen Ablauf zu gewährleisten.
+          </p>
+        </div>
+      )}
+
+      {loading && <div className="text-blue-600 mb-4 font-medium">💾 Speichern...</div>}
+      
+      {/* Current Round Info */}
+      <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-blue-900">Aktiver Durchgang:</span>
+          <span className="text-blue-700">Durchgang {selectedRound}</span>
+          <span className="text-xs text-blue-600">
+            ({currentRoundSquads.length} {currentRoundSquads.length === 1 ? 'Riege' : 'Riegen'})
+          </span>
+        </div>
+      </div>
+
+      {/* Bahnen with Drag & Drop */}
+      <div className="flex gap-6 mb-6 overflow-x-auto pb-2">
+        {bahnen.length === 0 && <div className="text-gray-400 italic">Keine Bahnen vorhanden. Klicke "Neue Bahn" um zu starten.</div>}
+        {bahnen.map(bahn => (
           <div
             key={bahn.bahnNumber}
-            className="flex-1 bg-gray-50 border rounded-lg p-4 min-w-[220px]"
+            className="flex-shrink-0 w-64 bg-gray-50 border-2 border-gray-200 rounded-lg p-4"
             onDragOver={e => e.preventDefault()}
             onDrop={() => handleDrop(bahn.bahnNumber)}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-blue-700">Bahn {bahn.bahnNumber}</span>
-              <span className="text-xs text-gray-400">{bahn.squads.length} Riegen</span>
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-blue-700 text-lg">Bahn {bahn.bahnNumber}</span>
+              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{bahn.squads.length} Riegen</span>
             </div>
-            <div className="space-y-2 min-h-[40px]">
+            <div className="space-y-2 min-h-[60px]">
               {bahn.squads.filter(squad => squad.name !== 'Bahn').map(squad => (
                 <div
                   key={squad.name}
-                  className="bg-white border rounded px-3 py-2 shadow-sm cursor-move hover:bg-blue-50"
+                  className="bg-white border-2 border-gray-300 rounded-lg px-3 py-2 shadow-sm cursor-move hover:bg-blue-50 hover:border-blue-400 transition-all"
                   draggable
                   onDragStart={() => handleDragStart(squad, bahn.bahnNumber)}
                 >
-                  {squad.name} <span className="text-xs text-gray-500">({squad.participantCount} TN)</span>
+                  <div className="font-medium text-gray-900">{squad.name}</div>
+                  <div className="text-xs text-gray-500">{squad.participantCount} Teilnehmer</div>
                 </div>
               ))}
               {bahn.squads.filter(squad => squad.name !== 'Bahn').length === 0 && (
-                <div className="text-xs text-gray-400 italic">Keine Riegen</div>
+                <div className="text-xs text-gray-400 italic text-center py-4">Keine Riegen<br/>Ziehe Riegen hierher</div>
               )}
             </div>
           </div>
         ))}
-        <button
-          className="h-12 w-12 flex items-center justify-center bg-blue-100 border-2 border-blue-400 rounded-lg text-blue-700 text-2xl font-bold hover:bg-blue-200"
-          onClick={handleAddBahn}
-          title="Neue Bahn hinzufügen"
-          draggable={false}
-          onDragStart={e => e.preventDefault()}
-          onDrop={e => e.preventDefault()}
-        >
-          +
-        </button>
       </div>
 
+      {/* Rotation Overview Table (Round Robin) */}
       <div className="overflow-x-auto mt-8">
-        <h3 className="text-lg font-semibold mb-2">Rotation Übersicht (Round Robin)</h3>
-        <table className="min-w-full border text-center">
-          <thead>
+        <h3 className="text-lg font-semibold mb-3 text-gray-900">🔄 Rotation Übersicht (Round Robin)</h3>
+        <table className="min-w-full border border-gray-300 text-center bg-white shadow-sm rounded-lg overflow-hidden">
+          <thead className="bg-gray-100">
             <tr>
-              <th className="border px-4 py-2">Rotation</th>
+              <th className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">Rotation</th>
               {squads.map((squad) => (
-                <th key={squad.name} className="border px-4 py-2">{squad.name}</th>
+                <th key={squad.name} className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{squad.name}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {useMemo(() => generateRoundRobinSchedule(squads, devices), [squads, devices]).map((round, idx) => (
-              <tr key={idx}>
-                <td className="border px-4 py-2 font-semibold">{round[0]?.rotation}</td>
+              <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="border border-gray-300 px-4 py-3 font-semibold text-blue-700">Rotation {round[0]?.rotation}</td>
                 {round.map((entry) => (
-                  <td key={entry.squad} className="border px-4 py-2">{entry.device}</td>
+                  <td key={entry.squad} className="border border-gray-300 px-4 py-3 text-gray-900">{entry.device}</td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="mt-4 text-gray-500 text-sm">
-        <p>Jede Riege startet an einem anderen Gerät und rotiert nach jeder Runde weiter. Riegen können per Drag & Drop zwischen Bahnen verschoben werden.</p>
+      
+      <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p className="text-sm text-yellow-800">
+          <strong>💡 Hinweis:</strong> Jede Riege startet an einem anderen Gerät und rotiert nach jeder Runde weiter. 
+          Riegen können per Drag & Drop zwischen Bahnen verschoben werden. Änderungen werden automatisch gespeichert.
+        </p>
       </div>
     </div>
   );

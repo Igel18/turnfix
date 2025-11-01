@@ -42,8 +42,9 @@ app.use(cors({
 
 app.use(express.json());
 
-// Serve static files from the jury portal build
-app.use(express.static(path.join(__dirname, '../../jury-portal/dist')));
+// Serve static files from the jury portal build under /jury path
+const juryDistPath = path.join(__dirname, '../../jury-portal/dist');
+app.use('/jury', express.static(juryDistPath));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -79,8 +80,14 @@ app.use('/api', async (req, res) => {
   }
 });
 
-// Catch all handler: send back the jury portal index.html file
-app.get('*', (req, res) => {
+// Root redirect to /jury
+app.get('/', (req, res) => {
+  res.redirect('/jury');
+});
+
+// Catch all handler for /jury routes: send back the jury portal index.html file
+// This must come AFTER static file serving to allow assets to load
+app.get('/jury/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../../jury-portal/dist/index.html'));
 });
 

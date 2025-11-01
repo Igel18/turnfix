@@ -3167,7 +3167,7 @@ import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 **Commit**: a9d46322
 
 109. Zeit Planung 
-http://localhost:3001/time-planning?eventId=59&squadName=mBlau 
+http://localhost:3001/time-panning?eventId=59&squadName=mBlau 
 Durchgänge UI: 
 - Auf der Seite müssen noch Editierbuttons (Einheitliche Vorgabe beachten) Um die Startzeiten zu ändern 
 - Die Position zum "Durchgang hinzufügen" Button ist nicht wie sonst überall im header. 
@@ -3193,6 +3193,7 @@ Die Buttons und andere UI-Elemente sollen immer gleich aussehen und die gleiche 
 - Verwaltungszentrale -> Passt 
 - Hinzufügen-Button muss immer ein + enthalten und danach die Beschriftung "Neu ***" z.B. Neue Riege; Die Hintergrundfarbe muss einheitlich sein; Der Button befindet sich an der Linken Kante unterhalb der Verwaltungszentrale (wie z.B. Riegenverwaltung)
 - Button "Export PDF" muss immer verfügbar sein. Einheitliche Hintergrundfarbe. auf gleicher Zeile mit dem Hinzufügen. 
+- Button "Hilfe" muss immer im Header verfügbar sein. (Siehe Urkunden Layouts http://localhost:3001/certificate-layouts -> "Layout-Hilfe"). 
 
 114. ~~Startzeit / Einturnzeit~~ ✅
 ~~a) Die Einturnzeit muss immer vor der Startzeit stehen.~~ 
@@ -3288,3 +3289,12 @@ c) Weiterer Hinweis / Hilfetext muss hinzugefügt werden, wie die Zeitplanung fu
 117. Doku 
 Im Ordner documantation ist eine gitbook doku. 
 Diese muss um die neue WebUI erweitert werden. Wir haben ja schon sehr viel in die *.md Files geschrieben. Dies soll jetzt strukturiert hier dokumentier werden. 
+
+118. Nach UI Styleguide 
+http://localhost:3001/time-planning?eventId=59&squadName=mBlau
+Die Infos Olympische Reihenfolge und der Hinweis "Hinweis: Jede Riege..." muss wie auch bei den Urkunden Layouts über einen Button im Header zum Ein-/Ausblenden sein. 
+Auch sollte in der UI das Template verwendet werden. 
+
+119. Bei den Urkunden Layouts fehlt der Filter-Button
+
+120. pm2 bietet ja ein integrirtes Dashboard welches über http://localhost:9615 erreichbar sein müsste. ist das auch bereits installiert? Sollten wir turnfix-server und jury-server mittels diesem dashboard überwachen, statt mit der console? 

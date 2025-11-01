@@ -46,6 +46,7 @@ interface Competition {
   name: string
   number: string
   round: number // session/durchgang
+  int_bahn?: number | null // ✅ Bahn assignment
   startTime: string | null // HH:MM format
   startDate: string | null // YYYY-MM-DD format
   warmupTime: string | null // HH:MM format

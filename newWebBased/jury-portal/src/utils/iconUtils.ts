@@ -3,6 +3,9 @@
  * Converts discipline icon paths from database to web-accessible URLs
  */
 
+// Get base URL from Vite config (will be '/jury/' in production)
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
 /**
  * Converts Qt resource icon path to web-accessible URL
  * @param iconPath - Qt resource path like ":/icons/100.png"
@@ -14,8 +17,8 @@ export function getIconUrl(iconPath?: string): string | null {
   // Handle Qt resource paths that start with ":/"
   if (iconPath.startsWith(':/')) {
     const filename = iconPath.replace(':/icons/', ''); // Remove ":/icons/" prefix
-    // Use relative path - Vite proxy will forward to backend server
-    return `/assets/icons/${filename}`;
+    // Use BASE_URL for proper path resolution
+    return `${BASE_URL}assets/icons/${filename}`;
   }
   
   // Handle already formatted paths
@@ -24,7 +27,7 @@ export function getIconUrl(iconPath?: string): string | null {
   }
   
   // Default handling - assume it's a filename in the icons directory
-  return `/assets/icons/${iconPath}`;
+  return `${BASE_URL}assets/icons/${iconPath}`;
 }
 
 /**
@@ -79,22 +82,22 @@ export function getDisciplineIcon(disciplineName: string, iconPath?: string): st
     return getIconUrl(iconPath);
   }
   
-  // Fallback mapping based on discipline name - use relative paths (Vite proxy)
+  // Fallback mapping based on discipline name - use BASE_URL for proper path resolution
   const nameToIcon: Record<string, string> = {
-    'Balken': '/assets/icons/balken.png',
-    'Schwebebalken': '/assets/icons/balken.png',
-    'Boden': '/assets/icons/boden.png',
-    'Sprung': '/assets/icons/sprung.png',
-    'Stufenbarren': '/assets/icons/barren.png',
-    'Barren': '/assets/icons/barren.png',
-    'Reck': '/assets/icons/reck.png',
-    'Pferd': '/assets/icons/seitpferd.png',
-    'Seitpferd': '/assets/icons/seitpferd.png',
-    'Pauschenpferd': '/assets/icons/seitpferd.png',
-    'Ringe': '/assets/icons/ringe.png',
-    'Minitrampolin': '/assets/icons/minitrampolin.png',
-    'Gerätebahn A': '/assets/icons/geraetebahn.png',
-    'Gerätebahn B': '/assets/icons/geraetebahn.png',
+    'Balken': `${BASE_URL}assets/icons/balken.png`,
+    'Schwebebalken': `${BASE_URL}assets/icons/balken.png`,
+    'Boden': `${BASE_URL}assets/icons/boden.png`,
+    'Sprung': `${BASE_URL}assets/icons/sprung.png`,
+    'Stufenbarren': `${BASE_URL}assets/icons/barren.png`,
+    'Barren': `${BASE_URL}assets/icons/barren.png`,
+    'Reck': `${BASE_URL}assets/icons/reck.png`,
+    'Pferd': `${BASE_URL}assets/icons/seitpferd.png`,
+    'Seitpferd': `${BASE_URL}assets/icons/seitpferd.png`,
+    'Pauschenpferd': `${BASE_URL}assets/icons/seitpferd.png`,
+    'Ringe': `${BASE_URL}assets/icons/ringe.png`,
+    'Minitrampolin': `${BASE_URL}assets/icons/minitrampolin.png`,
+    'Gerätebahn A': `${BASE_URL}assets/icons/geraetebahn.png`,
+    'Gerätebahn B': `${BASE_URL}assets/icons/geraetebahn.png`,
   };
   
   return nameToIcon[disciplineName] || null;
