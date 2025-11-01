@@ -14,6 +14,7 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
 }
 import { useTranslation } from 'react-i18next'
 import UnifiedModal from '../components/UnifiedModal'
+import { BlueInfoBox, YellowInfoBox } from '@/components/InfoBoxes'
 import TimePlanningRotation from './TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
@@ -28,7 +29,8 @@ import {
   DocumentChartBarIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-  PencilIcon
+  PencilIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import { useEvent } from '../contexts/EventContext'
@@ -115,6 +117,7 @@ export default function TimePlanning() {
   const [showTimeSettings, setShowTimeSettings] = useState(false)
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showHelp, setShowHelp] = useState(false) // Point 118: Toggle for info boxes
 
   // Gantt chart time range
   const [ganttStartTime, setGanttStartTime] = useState('07:00')
@@ -975,6 +978,19 @@ export default function TimePlanning() {
           <ArrowPathIcon className="h-4 w-4 mr-2" />
           {t('timePlanning.generateSchedule')}
         </button>,
+        
+        <button
+          key="help"
+          onClick={() => setShowHelp(!showHelp)}
+          className={`inline-flex items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-lg ${
+            showHelp
+              ? 'bg-blue-600 text-white border-blue-600'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <InformationCircleIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.help', 'Hilfe')}
+        </button>,
 
         <button
           key="export"
@@ -986,6 +1002,64 @@ export default function TimePlanning() {
         </button>
       ]}
     >
+      {/* Info Boxes - Point 118: Toggleable via Help button */}
+      {showHelp && (
+        <div className="space-y-4 mb-6">
+          {/* Olympische Reihenfolge */}
+          <BlueInfoBox title="📘 Olympische Gerätereihenfolge">
+            <p className="mb-3">
+              Bei der Turnen gibt es eine festgelegte Reihenfolge der Geräte, die als "Olympische Reihenfolge" bekannt ist.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-semibold text-blue-900 mb-2">Männer:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                  <li>Boden 🤸</li>
+                  <li>Pauschenpferd 🐎</li>
+                  <li>Ringe ⭕</li>
+                  <li>Sprung 🦘</li>
+                  <li>Barren 🏋️</li>
+                  <li>Reck 🤸‍♂️</li>
+                </ol>
+              </div>
+              <div>
+                <h4 className="font-semibold text-blue-900 mb-2">Frauen:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                  <li>Sprung 🦘</li>
+                  <li>Stufenbarren 🤸‍♀️</li>
+                  <li>Schwebebalken ⚖️</li>
+                  <li>Boden 🤸</li>
+                </ol>
+              </div>
+            </div>
+            <p className="text-xs text-blue-700 mt-3 italic">
+              Diese Reihenfolge sollte bei der Planung und Durchführung von Wettkämpfen beachtet werden, um einen reibungslosen Ablauf zu gewährleisten.
+            </p>
+          </BlueInfoBox>
+
+          {/* Workflow-Hinweis */}
+          <YellowInfoBox title="💡 Hinweis zur Zeitplanung">
+            <div className="space-y-2">
+              <p>
+                <strong>Durchgang (Session):</strong> Ein Durchgang ist ein zeitlicher Abschnitt, in dem mehrere Wettkämpfe parallel stattfinden.
+                Jeder Durchgang hat eine eigene Startzeit.
+              </p>
+              <p>
+                <strong>Bahn (Track):</strong> Eine Bahn ist ein physischer Bereich in der Halle, in dem eine Riege ihre Übungen durchführt.
+                Mehrere Bahnen können parallel genutzt werden.
+              </p>
+              <p>
+                <strong>Rotation:</strong> Jede Riege wechselt nach Ablauf der festgelegten Zeit zum nächsten Gerät in der vorgesehenen Reihenfolge.
+                Die Rotation sorgt dafür, dass alle Riegen alle Geräte durchlaufen.
+              </p>
+              <p className="text-xs italic mt-2">
+                Nutzen Sie die verschiedenen Ansichten (Durchgänge, Zeitstrahl, Gantt, Rotation), um die Zeitplanung optimal zu gestalten.
+              </p>
+            </div>
+          </YellowInfoBox>
+        </div>
+      )}
+
       {/* Content based on loading state and view mode */}
       {loading ? (
         <div className="text-center py-8">
