@@ -64,6 +64,7 @@ import configurationRoutes from './routes/configuration';
 import timePlanningRoutes from './routes/timePlanning';
 import firewallRoutes from './routes/firewall';
 import appSettingsRoutes from './routes/appSettings';
+import clientErrorRoutes from './routes/clientErrors';
 
 const app = express();
 const server = createServer(app);
@@ -234,6 +235,7 @@ app.use('/api/configuration', configurationRoutes);
 app.use('/api/time-planning', timePlanningRoutes);
 app.use('/api/firewall', firewallRoutes);
 app.use('/api/app-settings', appSettingsRoutes);
+app.use('/api/client-errors', clientErrorRoutes);
 
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {

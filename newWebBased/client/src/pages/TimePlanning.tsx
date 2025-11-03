@@ -15,7 +15,7 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
 import { useTranslation } from 'react-i18next'
 import UnifiedModal from '../components/UnifiedModal'
 import { BlueInfoBox, YellowInfoBox } from '@/components/InfoBoxes'
-import TimePlanningRotation from './TimePlanningRotation'
+import TimePlanningRotation, { TimePlanningRotationRef } from './TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
   ClockIcon,
@@ -118,6 +118,7 @@ export default function TimePlanning() {
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showHelp, setShowHelp] = useState(false) // Point 118: Toggle for info boxes
+  const rotationRef = useRef<TimePlanningRotationRef>(null) // Point 121: Ref to call addBahn from child
 
   // Gantt chart time range
   const [ganttStartTime, setGanttStartTime] = useState('07:00')
@@ -913,6 +914,18 @@ export default function TimePlanning() {
       addButtonText={t('timePlanning.addRound', 'Add Round')}
       loading={loading}
       customActions={[
+        // "Neue Bahn" Button - Point 121: Only visible in rotation view, positioned next to "Add Round"
+        viewMode === 'rotation' && (
+          <button
+            key="add-bahn"
+            onClick={() => rotationRef.current?.addBahn()}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <span className="text-xl mr-2">+</span>
+            {t('timePlanning.addBahn', 'Neue Bahn')}
+          </button>
+        ),
+        
         // View Mode Toggle - standardized like other pages
         <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
           <button
@@ -1088,6 +1101,7 @@ export default function TimePlanning() {
           {viewMode === 'rotation' && (
             <div className="bg-white border rounded-lg p-6">
               <TimePlanningRotation
+                ref={rotationRef}
                 eventId={eventId || ''}
                 squads={squads.map(s => {
                   let competitionId = -1;

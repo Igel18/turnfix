@@ -3290,11 +3290,28 @@ c) Weiterer Hinweis / Hilfetext muss hinzugefügt werden, wie die Zeitplanung fu
 Im Ordner documantation ist eine gitbook doku. 
 Diese muss um die neue WebUI erweitert werden. Wir haben ja schon sehr viel in die *.md Files geschrieben. Dies soll jetzt strukturiert hier dokumentier werden. 
 
-118. Nach UI Styleguide 
-http://localhost:3001/time-planning?eventId=59&squadName=mBlau
-Die Infos Olympische Reihenfolge und der Hinweis "Hinweis: Jede Riege..." muss wie auch bei den Urkunden Layouts über einen Button im Header zum Ein-/Ausblenden sein. 
-Auch sollte in der UI das Template verwendet werden. 
+118. ~~Nach UI Styleguide~~ ✅
+~~http://localhost:3001/time-planning?eventId=59&squadName=mBlau~~
+~~Die Infos Olympische Reihenfolge und der Hinweis "Hinweis: Jede Riege..." muss wie auch bei den Urkunden Layouts über einen Button im Header zum Ein-/Ausblenden sein.~~ 
+~~Auch sollte in der UI das Template verwendet werden.~~
+    **Status**: ✅ Abgeschlossen - Info-Boxen mit Toggle-Button implementiert
+    **Implementierung**:
+    - "Hilfe" Toggle-Button im Header hinzugefügt (InformationCircleIcon)
+    - Button wechselt Farbe (blau wenn aktiv, weiß wenn inaktiv)
+    - Zwei Info-Boxen implementiert:
+      * BlueInfoBox: "Olympische Gerätereihenfolge" (Männer/Frauen mit Emojis)
+      * YellowInfoBox: "Hinweis zur Zeitplanung" (Durchgang, Bahn, Rotation Erklärungen)
+    - Info-Boxen standardmäßig ausgeblendet, toggle via Button
+    - EventManagementTemplate wird verwendet
+    - Konsistentes Design wie Certificate Layouts
+    **Dateien**: client/src/pages/TimePlanning.tsx
 
 119. Bei den Urkunden Layouts fehlt der Filter-Button
 
 120. pm2 bietet ja ein integrirtes Dashboard welches über http://localhost:9615 erreichbar sein müsste. ist das auch bereits installiert? Sollten wir turnfix-server und jury-server mittels diesem dashboard überwachen, statt mit der console? 
+
+121. die "Rotation Übersicht (Round Robin)" muss für jede Bahn separat erstellt werden.  
+Der Button "neue Bahn"  muss in der UI neben dem Button "neuer Durchgang" angeordnet sein. 
+
+122. Refactoring: SoC - Separation of Concerns
+Da die Files z.T. Sehr groß sind wäre das sinnvoll. Bitte Zeig mir wie groß die Dateien dann wären, wenn ich das Einführe am Beispiel http://localhost:3001/event-participants?eventId=59
