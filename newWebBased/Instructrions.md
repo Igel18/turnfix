@@ -3351,6 +3351,52 @@ pages/EventParticipants/
 Wenn das gut ist, sollten wir das in dem Chatmode (myown.chatmode.md) aufnehmen und auch dokumentieren. 
 
 123. bezüglich SoC sollten wir das für alle Client Seiten-Dateien (client/src/pages) umsetzen. 
+**Status: ~25% COMPLETE**
+
+### Refactoring Progress:
+
+#### ✅ EventParticipants.tsx (1.936 Zeilen → 10 Dateien à ~150 Zeilen)
+- **Vollständig abgeschlossen** - Voll funktionsfähig
+- Hooks: useParticipants, useParticipantValidation
+- Components: EditParticipantForm, ParticipantTable, ParticipantCardView, ParticipantFilters
+- Haupt-Index: Orchestrierung mit EventManagementTemplate
+
+#### 🚧 ScoreCapture.tsx (1.917 Zeilen) - TEILWEISE ERLEDIGT (~40%)
+**Erstellt:**
+- ✅ `hooks/useScoreData.ts` (267 Zeilen) - Data loading & management
+- ✅ `hooks/useScoreMatrix.ts` (210 Zeilen) - Score matrix state & initialization  
+- ✅ `hooks/useFormulaCalculation.ts` (123 Zeilen) - Formula parsing & evaluation
+- ✅ `hooks/useScoreValidation.ts` (153 Zeilen) - Validation & filtering
+- ✅ `hooks/index.ts` - Barrel exports
+- ✅ `ScoreCapture.types.ts` - Component prop interfaces
+- ✅ `components/HelpPanel.tsx` (60 Zeilen) - Help text display
+- ✅ `index.tsx` - Transitional re-export (temporary)
+
+**Noch zu erstellen:**
+- ⏳ `components/ScoreTable.tsx` (~400 Zeilen) - Main score input table
+- ⏳ `components/ParticipantRow.tsx` (~200 Zeilen) - Individual participant row
+- ⏳ `components/ScoreFilters.tsx` (~150 Zeilen) - Search & filter UI
+- ⏳ `components/SquadStatusSelector.tsx` (~120 Zeilen) - Squad/discipline/status selectors
+- ⏳ `components/index.ts` - Component barrel exports
+- ⏳ `index.tsx` (final) (~300 Zeilen) - Main orchestration using all hooks & components
+
+**Nächste Schritte:**
+1. Komponenten extrahieren (ScoreTable, ParticipantRow, etc.)
+2. Finale index.tsx mit vollständiger Integration erstellen
+3. Alte ScoreCapture.tsx in `_archive/` verschieben
+4. Testen auf http://localhost:3001/score-capture?eventId=59
+
+#### 📋 Ausstehende Refactorings (nach Priorität):
+1. 🔥 **Results.tsx** - 1.698 Zeilen (kritisch)
+2. 🚨 **TimePlanning.tsx** - 1.173 Zeilen (sehr hoch)
+3. 🚨 **SquadManagement.tsx** - 1.023 Zeilen
+4. 🚨 **EventManagement.tsx** - 896 Zeilen
+5. 🚨 **Events.tsx** - 853 Zeilen
+6. 🚨 **Configuration.tsx** - 851 Zeilen
+7. 🚨 **ManagementCenter.tsx** - 828 Zeilen
+8. 🚨 **CompetitionStatusManagement.tsx** - 806 Zeilen
+9. ⚠️ **SquadStatusManagement.tsx** - 797 Zeilen
+10. ⚠️ **CompetitionsFixed.tsx** - 764 Zeilen
 
 124. Auf der Seite Zeitplanung 
 http://localhost:3001/time-planning?eventId=59 
@@ -3358,4 +3404,4 @@ a) Der Button "Neue Bahn" sollte entweder neben "Durchgang hinzufügen" oder je 
 b) Wir haben einen Button Hilfe im Header. Das ist gut so. Aber wir haben noch einen überflüssigen Button "Olympische Reihenfolge". Der muss raus. 
 c) in dem Durchgang 2 sind 2 Bahnen verfügbar. Aber anscheinend sich nicht alle Riegen visualisiert sonder nur 3 stück. 
 
-125. Ist SoC auch für den Server möglich? 
+125. Ist SoC auch für den Server möglich (z.B. Route-Datei, Controller-Datei, Service-Datei)? Dann sollten wir das umsetzen und dokumentieren und auch in der myown mit aufnehmen. 
