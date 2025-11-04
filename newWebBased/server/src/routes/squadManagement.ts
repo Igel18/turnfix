@@ -137,7 +137,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           id: squad.squad_name, // Use squad name as ID since it's unique per event
           name: squad.squad_name,
           eventId: parseInt(eventId),
-          participantCount: Number(squad.participant_count),
+          participant_count: Number(squad.participant_count), // snake_case for frontend compatibility
+          participantCount: Number(squad.participant_count), // Keep camelCase for backward compatibility
           competitions: squad.competition_names ? squad.competition_names.split(', ') : [],
           participants: (participants as any[]).map(p => ({
             id: Number(p.int_teilnehmerid),

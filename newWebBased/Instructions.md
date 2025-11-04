@@ -4466,3 +4466,9 @@ pages/ScoreCapture/ScoreCapture.types.ts → imports + extends
 **Implementiert**: Point 123 Refactoring hat diese Architektur korrekt umgesetzt
 
 --- 
+
+130. In Einigen Tabellen gibt es mehrere Inhalte in einer Spalte 
+http://localhost:3001/score-capture?eventId=77&squadName=w
+Teilnehmer
+Alter/Geschlecht 
+Diese infos müssen in separaten Spalten dargestellt werden. 

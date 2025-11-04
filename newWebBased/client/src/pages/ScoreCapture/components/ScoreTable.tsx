@@ -140,8 +140,13 @@ export const ScoreTable = ({
                   const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${disciplineIndex}` || disciplineIndex
                   const enabledFields = getDisciplineFields(disciplineId)
                   
-                  if (enabledFields.length === 0) {
-                    // Fallback: single input field (old behavior)
+                  // TEMPORARY FIX: Always use simple mode (single input field)
+                  // Multi-field mode is not yet implemented (placeholder at line 227-236)
+                  // TODO: Implement multi-field mode properly in Point 130+
+                  const useSimpleMode = true; // Always true for now
+                  
+                  if (enabledFields.length === 0 || useSimpleMode) {
+                    // Fallback: single input field (simple mode)
                     const key = `${participant.id}-${disciplineId}`
                     const score = scoreMatrix[key] ?? ''
                     const validation = getScoreValidation(disciplineId, score)
@@ -155,12 +160,18 @@ export const ScoreTable = ({
                             value={score}
                             onChange={(e) => handleScoreChange(participant.id, disciplineId, e.target.value)}
                             onBlur={(e) => {
+                              console.log('🟡 onBlur FIRED for participant:', participant.id, 'discipline:', disciplineId);
+                              console.log('🟡 saveScore type:', typeof saveScore, 'is function:', typeof saveScore === 'function');
+                              
                               // Normalize score to show all decimal places
                               const normalized = normalizeScoreInput(e.target.value, discipline.int_berechnung || 2)
                               if (normalized !== e.target.value) {
                                 handleScoreChange(participant.id, disciplineId, normalized)
                               }
+                              
+                              console.log('🟡 About to call saveScore with:', participant.id, disciplineId);
                               saveScore(participant.id, disciplineId)
+                              console.log('🟡 saveScore call completed');
                             }}
                             onKeyDown={(e) => {
                               const currentRow = filteredParticipants.findIndex(p => p.id === participant.id)

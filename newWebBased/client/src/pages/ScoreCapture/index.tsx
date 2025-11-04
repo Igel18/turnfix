@@ -17,6 +17,7 @@ import { ClipboardDocumentListIcon, ExclamationTriangleIcon } from '@heroicons/r
 import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { BlueInfoBox } from '@/components/InfoBoxes';
+import { SquadDisciplineSelector } from '@/components/scoreCapture/SquadDisciplineSelector';
 
 // All 8 hooks
 import {
@@ -30,11 +31,9 @@ import {
   useScoreHandlers
 } from './hooks';
 
-// All 4 components
+// All 4 components (ScoreFilters not used - replaced by SquadDisciplineSelector)
 import {
-  ScoreFilters,
   ScoreTable,
-  SquadStatusSelector,
   HelpPanel
 } from './components';
 
@@ -117,6 +116,22 @@ export default function ScoreCapture() {
     activeDiscipline,
     searchTerm
   });
+
+  // Debug logging (moved here after filteredParticipants is defined)
+  useEffect(() => {
+    console.log('🔍 ScoreCapture DEBUG:', {
+      eventId,
+      participants: participants.length,
+      disciplines: disciplines.length,
+      squads: squads.length,
+      competitions: competitions.length,
+      activeSquad,
+      activeDiscipline,
+      filteredParticipants: filteredParticipants.length,
+      loading,
+      isInitializing
+    });
+  }, [eventId, participants.length, disciplines.length, squads.length, competitions.length, activeSquad, activeDiscipline, filteredParticipants.length, loading, isInitializing]);
 
   // Hook 5: Actions (Save/Update)
   const { saveScore, saveFieldScore } = useScoreActions({
@@ -207,10 +222,16 @@ export default function ScoreCapture() {
 
   // Initialize score matrix when data is ready
   useEffect(() => {
-    if (participants.length > 0 && disciplines.length > 0 && !isInitializing) {
+    if (participants.length > 0 && disciplines.length > 0 && existingScores.length > 0 && !isInitializing) {
+      console.log('🎯 Triggering initializeScoreMatrix with:', {
+        participants: participants.length,
+        disciplines: disciplines.length,
+        existingScores: existingScores.length,
+        isInitializing
+      });
       initializeScoreMatrix(participants, disciplines, existingScores);
     }
-  }, [participants.length, disciplines.length, existingScores.length, showJuryScores]);
+  }, [participants.length, disciplines.length, existingScores.length, isInitializing, showJuryScores]);
 
   // Helper: Get discipline fields (filtered by showJuryScores)
   const getDisciplineFields = (disciplineId: number | string) => {
@@ -218,6 +239,94 @@ export default function ScoreCapture() {
       .filter(field => field.disciplineId === disciplineId && field.enabled)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return showJuryScores ? allFields : allFields.filter(field => field.isFinalScore === true);
+  };
+
+  // Helper: Get filtered squads (all available squads)
+  const getFilteredSquads = () => {
+    return squads || [];
+  };
+
+  // Helper: Get filtered disciplines (only show disciplines for selected squad)
+  const getFilteredDisciplines = () => {
+    if (!activeSquad) {
+      console.log('🔍 getFilteredDisciplines: No active squad selected');
+      return []; // Don't show any disciplines until squad is selected
+    }
+    
+    console.log('🔍 getFilteredDisciplines: Active squad:', activeSquad);
+    console.log('🔍 getFilteredDisciplines: All participants:', participants.length);
+    
+    // Get participants in the selected squad
+    const squadParticipants = participants.filter(p => p.squad_name === activeSquad);
+    
+    console.log('🔍 getFilteredDisciplines: Squad participants:', squadParticipants.length);
+    console.log('🔍 getFilteredDisciplines: First participant:', squadParticipants[0]);
+    
+    if (squadParticipants.length === 0) {
+      console.log('🔍 getFilteredDisciplines: No participants in squad');
+      return []; // No participants in squad
+    }
+    
+    // Get all competition IDs from squad participants
+    const participantCompetitionIds = new Set<number>();
+    squadParticipants.forEach(participant => {
+      if (participant.assignedCompetitions && Array.isArray(participant.assignedCompetitions)) {
+        participant.assignedCompetitions.forEach((competitionId: number) => {
+          participantCompetitionIds.add(competitionId);
+        });
+      }
+    });
+    
+    console.log('🔍 getFilteredDisciplines: Competition IDs from participants:', Array.from(participantCompetitionIds));
+    console.log('🔍 getFilteredDisciplines: Available competitions:', competitions.length);
+    
+    // Get all disciplines from those competitions
+    const availableDisciplines = new Set<number>();
+    competitions
+      .filter(comp => participantCompetitionIds.has(comp.id))
+      .forEach(comp => {
+        console.log('🔍 getFilteredDisciplines: Processing competition:', comp.id, comp.name, 'disciplines:', comp.disciplines?.length);
+        if (comp.disciplines && Array.isArray(comp.disciplines)) {
+          comp.disciplines.forEach((disc: any) => {
+            // Competition disciplines have 'disciplineId' property, not 'int_disziplinid'
+            const discId = disc.disciplineId || disc.int_disziplinid;
+            console.log('🔍 getFilteredDisciplines: Adding discipline:', discId, disc.name || disc.var_name);
+            if (discId) {
+              availableDisciplines.add(discId);
+            }
+          });
+        }
+      });
+    
+    console.log('🔍 getFilteredDisciplines: Available discipline IDs:', Array.from(availableDisciplines));
+    console.log('🔍 getFilteredDisciplines: All disciplines:', disciplines.map(d => ({ id: d.int_disziplinid, name: d.var_name })));
+    
+    // Filter disciplines by available ones
+    const filtered = disciplines.filter(d => availableDisciplines.has(d.int_disziplinid));
+    console.log('🔍 getFilteredDisciplines: Filtered result:', filtered.map(d => ({ id: d.int_disziplinid, name: d.var_name })));
+    
+    return filtered;
+  };
+
+  // Helper: Get status color based on status ID
+  const getStatusColor = (statusId: number): string => {
+    const status = statuses.find(s => s.int_statusid === statusId);
+    if (!status || !status.ary_colorcode) {
+      return 'bg-gray-100 text-gray-800';
+    }
+    
+    const colorCode = status.ary_colorcode;
+    if (colorCode.includes('255,0,0') || colorCode.includes('#ff0000') || colorCode.includes('red')) {
+      return 'bg-red-100 text-red-800';
+    } else if (colorCode.includes('0,255,0') || colorCode.includes('#00ff00') || colorCode.includes('green')) {
+      return 'bg-green-100 text-green-800';
+    } else if (colorCode.includes('255,255,0') || colorCode.includes('#ffff00') || colorCode.includes('yellow')) {
+      return 'bg-yellow-100 text-yellow-800';
+    } else if (colorCode.includes('0,0,255') || colorCode.includes('#0000ff') || colorCode.includes('blue')) {
+      return 'bg-blue-100 text-blue-800';
+    }
+    
+    return 'bg-gray-100 text-gray-800';
   };
 
   // Helper: Get filtered disciplines (by activeDiscipline)
@@ -257,46 +366,66 @@ export default function ScoreCapture() {
     <EventManagementTemplate
       title={t('scoreCapture.title')}
       icon={ClipboardDocumentListIcon}
-      showFilters={true}
-      filterSection={
-        <div className="space-y-4">
-          <SquadStatusSelector
-            activeSquad={activeSquad}
-            activeDiscipline={activeDiscipline}
-            statuses={statuses}
-            squadStatus={squadStatus}
-            onStatusChange={handleSquadStatusChange}
-            getStatusColor={() => 'gray'}
-          />
-          <ScoreFilters
-            squads={squads}
-            activeSquad={activeSquad}
-            onSquadChange={(squad: string) => {
-              setActiveSquad(squad);
-              handleSquadChange(squad);
-            }}
-            disciplines={disciplines}
-            activeDiscipline={activeDiscipline}
-            onDisciplineChange={(discipline: number | string) => {
-              setActiveDiscipline(discipline);
-              handleDisciplineChange(discipline);
-            }}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            showJuryScores={showJuryScores}
-            onShowJuryScoresChange={(checked) => {
-              setShowJuryScores(checked);
-              handleShowJuryScoresChange(checked);
-            }}
-          />
-        </div>
-      }
+      showFilters={false}
       showHelpPanel={showHelpPanel}
       onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
       helpContent={<HelpPanel showJuryScores={showJuryScores} />}
       onExportCSV={handleExportCSV}
       showExportCSV={true}
     >
+      {/* Squad and Discipline Selector with visual icons */}
+      <SquadDisciplineSelector
+        squads={squads}
+        activeSquad={activeSquad}
+        onSquadChange={handleSquadChange}
+        getFilteredSquads={getFilteredSquads}
+        disciplines={disciplines}
+        activeDiscipline={activeDiscipline}
+        onDisciplineChange={handleDisciplineChange}
+        getFilteredDisciplines={getFilteredDisciplines}
+        statuses={statuses}
+        squadStatus={squadStatus}
+        onSquadStatusChange={handleSquadStatusChange}
+        getStatusColor={getStatusColor}
+        loading={loading}
+      />
+
+      {/* Search and Jury Scores Toggle */}
+      <div className="bg-white p-4 rounded-lg border mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Search Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('scoreCapture.filters.search')}
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('scoreCapture.filters.searchPlaceholder')}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Show Jury Scores Toggle */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="showJuryScores"
+              checked={showJuryScores}
+              onChange={(e) => {
+                setShowJuryScores(e.target.checked);
+                handleShowJuryScoresChange(e.target.checked);
+              }}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="showJuryScores" className="text-sm font-medium text-gray-700">
+              {t('scoreCapture.filters.showJuryScores')}
+            </label>
+          </div>
+        </div>
+      </div>
+
       {participants.length === 0 ? (
         <BlueInfoBox>
           <p>{t('scoreCapture.noParticipants')}</p>

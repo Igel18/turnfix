@@ -319,6 +319,9 @@ pages/
         ├── usePageFilters.ts
         └── usePageValidation.ts
 ```
+**When refactoring large files**: 
+Use the previous code snipet because it works well to separate concerns.
+
 
 **When to Split**:
 1. **Types**: Always extract when > 5 interfaces

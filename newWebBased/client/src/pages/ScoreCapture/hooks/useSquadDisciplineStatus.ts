@@ -33,33 +33,11 @@ export function useSquadDisciplineStatus({
   const [squadDisciplineStatuses, setSquadDisciplineStatuses] = useState<{ [key: string]: number }>({});
 
   // Load squad-discipline statuses from API
+  // NOTE: This is now handled in useScoreData hook, so we skip the duplicate load here
+  // to avoid 404 errors on the old /squad-discipline-status endpoint
   useEffect(() => {
-    const loadSquadDisciplineStatuses = async () => {
-      if (!eventId) return;
-
-      try {
-        const response = await fetch(`/api/squad-discipline-status?eventId=${eventId}`);
-        const data = await response.json();
-
-        const statusMap: { [key: string]: number } = {};
-        data.forEach((item: any) => {
-          const key = `${item.squad_name}-${item.discipline_id}`;
-          statusMap[key] = item.status_id;
-        });
-
-        setSquadDisciplineStatuses(statusMap);
-
-        // Set current squad status if available
-        if (activeSquad && activeDiscipline) {
-          const key = `${activeSquad}-${activeDiscipline}`;
-          setSquadStatus(statusMap[key] || null);
-        }
-      } catch (error) {
-        console.error('Failed to load squad-discipline statuses:', error);
-      }
-    };
-
-    loadSquadDisciplineStatuses();
+    // Skip - data is loaded via useScoreData hook
+    // The squadDisciplineStatuses prop is passed from parent component
   }, [eventId, activeSquad, activeDiscipline]);
 
   // Update squad status when selection changes
@@ -85,13 +63,12 @@ export function useSquadDisciplineStatus({
       [key]: numericStatusId
     }));
 
-    // Save to API
+    // Save to API using the correct endpoint
     try {
-      await apiPost('/squad-discipline-status', {
+      await apiPost('/squad-disciplines', {
         eventId: Number(eventId),
         squadName: activeSquad,
         disciplineId: typeof activeDiscipline === 'number' ? activeDiscipline : null,
-        disciplineName: typeof activeDiscipline === 'string' ? activeDiscipline : null,
         statusId: numericStatusId
       });
     } catch (error) {

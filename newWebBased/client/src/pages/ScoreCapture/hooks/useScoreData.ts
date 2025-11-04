@@ -134,6 +134,10 @@ export function useScoreData({
         return acc;
       }, []);
 
+      console.log('🔍 All disciplines before dedup:', allDisciplines.length);
+      console.log('🔍 Unique disciplines after dedup:', uniqueDisciplines.length);
+      console.log('🔍 Unique disciplines:', uniqueDisciplines.map(d => ({ id: d.int_disziplinid, name: d.var_name })));
+
       // Enhance disciplines with detailed information including formulas
       const enhancedDisciplines = await Promise.all(
         uniqueDisciplines.map(async (discipline) => {
@@ -158,7 +162,10 @@ export function useScoreData({
         })
       );
       
+      console.log('🔍 About to set disciplines. Enhanced disciplines count:', enhancedDisciplines.length);
+      console.log('🔍 Enhanced disciplines:', enhancedDisciplines);
       setDisciplines(enhancedDisciplines);
+      console.log('🔍 setDisciplines called with', enhancedDisciplines.length, 'disciplines');
       console.log('All loaded disciplines (before dedup):', allDisciplines);
       console.log('Unique disciplines (after dedup):', uniqueDisciplines);
       console.log('Enhanced disciplines (with formulas):', enhancedDisciplines);
