@@ -1865,6 +1865,20 @@
     "noEventMessage": "Bitte wählen Sie eine Veranstaltung aus dem Dashboard aus, um Wertungen zu erfassen.",
     "calculateAndSave": "Berechnen & beide speichern",
     "showJuryScores": "Jury-Wertungen erfassen",
+    "noParticipants": "Keine Teilnehmer gefunden für diese Auswahl",
+    "filters": {
+      "squad": "Riege",
+      "allSquads": "Alle Riegen",
+      "discipline": "Disziplin",
+      "allDisciplines": "Alle Disziplinen",
+      "search": "Suche",
+      "searchPlaceholder": "Teilnehmer suchen...",
+      "showJuryScores": "Jury-Wertungen anzeigen"
+    },
+    "status": {
+      "label": "Status",
+      "noStatus": "Kein Status"
+    },
     "table": {
       "participant": "Teilnehmer",
       "club": "Verein",

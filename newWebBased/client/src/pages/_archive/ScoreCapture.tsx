@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BlueInfoBox } from '../components/InfoBoxes';
+import { BlueInfoBox } from '../../components/InfoBoxes';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom'
 import { 
@@ -7,12 +7,12 @@ import {
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
-import { useEvent } from '../contexts/EventContext'
+import { useEvent } from '../../contexts/EventContext'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import { GenderBadge } from '@/components/GenderBadge'
-import { apiGet, apiPost } from '../utils/api'
+import { apiGet, apiPost } from '../../utils/api'
 import { normalizeScoreInput, getScorePlaceholder } from '@/utils/scoreFormatter'
-import getSocket from '../utils/socket'
+import getSocket from '../../utils/socket'
 import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import { SquadDisciplineSelector } from '@/components/scoreCapture'
 import type { 

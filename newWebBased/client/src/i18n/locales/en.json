@@ -1868,6 +1868,20 @@
     "noEventMessage": "Please select an event from the dashboard to capture scores.",
     "calculateAndSave": "Calculate & Save Both",
     "showJuryScores": "Capture Jury Scores",
+    "noParticipants": "No participants found for this selection",
+    "filters": {
+      "squad": "Squad",
+      "allSquads": "All Squads",
+      "discipline": "Discipline",
+      "allDisciplines": "All Disciplines",
+      "search": "Search",
+      "searchPlaceholder": "Search participants...",
+      "showJuryScores": "Show Jury Scores"
+    },
+    "status": {
+      "label": "Status",
+      "noStatus": "No Status"
+    },
     "table": {
       "participant": "Participant",
       "club": "Club",

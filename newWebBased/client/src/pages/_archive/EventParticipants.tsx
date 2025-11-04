@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import UnifiedModal from '../components/UnifiedModal';
+import UnifiedModal from '../../components/UnifiedModal';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -19,12 +19,12 @@ import { SortableTableHeader, useTableSort } from '@/components/SortableTableHea
 import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
-import { apiGet, apiPost, apiDelete, apiPut } from '../utils/api';
+import { apiGet, apiPost, apiDelete, apiPut } from '../../utils/api';
 import { 
   setupPDFWithHeaderFooter, 
   addPDFHeaderFooter, 
   getUnifiedTableStyles
-} from '../utils/pdfUtils';
+} from '../../utils/pdfUtils';
 import SmartPagination from '@/components/SmartPagination';
 import { usePagination } from '@/hooks/usePagination';
 import useViewToggle from '@/hooks/useViewToggle';
