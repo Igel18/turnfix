@@ -8,12 +8,12 @@ _Generiert am: 2025-11-04 14:19_
 
 | Status | Anzahl | Prozent |
 |--------|--------|---------|
-| ✅ Erledigt | 85 | 38.5% |
+| ✅ Erledigt | 86 | 38.9% |
 | 🚧 In Arbeit | 0 | 0.0% |
-| ⏳ Offen | 128 | 57.9% |
+| ⏳ Offen | 127 | 57.5% |
 | ❌ Abgebrochen | 8 | 3.6% |
 
-Fortschrittsbalken: ████████████░░░░░░░░░░░░░░░░ 38.5%
+Fortschrittsbalken: ████████████░░░░░░░░░░░░░░░░ 38.9%
 
 ## Legende
 - ✅ **Erledigt** - Punkt ist vollständig implementiert
@@ -242,7 +242,7 @@ Fortschrittsbalken: ████████████░░░░░░░░
 ⏳ [1. TimePlanning vollständiges Refactoring (Components + Hooks)](#punkt-1)
 ⏳ [2. Andere große Datei aus HIGH-Liste (SquadManagement, EventManagement)](#punkt-2)
 ⏳ [3. MEDIUM-Dateien refactoren (< 800 Zeilen)](#punkt-3)
-⏳ [129. es gibt eine src/types/ScoreCaptur.types.ts ist diese obsolete, da es auch eine im ordner pages/ScoreCapture gibt.](#punkt-129)
+✅ [129. es gibt eine src/types/ScoreCaptur.types.ts ist diese obsolete, da es auch eine im ordner pages/ScoreCapture gibt.](#punkt-129)
 
 ---
 
@@ -4335,4 +4335,134 @@ Point 125: (wird noch definiert)
 
 ---
 
-129. es gibt eine src/types/ScoreCaptur.types.ts ist diese obsolete, da es auch eine im ordner pages/ScoreCapture gibt. 
+129. es gibt eine src/types/ScoreCaptur.types.ts ist diese obsolete, da es auch eine im ordner pages/ScoreCapture gibt. ✅
+
+**Status**: ✅ ANALYZED (2025-11-04)
+
+**Frage**: Ist die globale `src/types/ScoreCapture.types.ts` obsolet, da es auch eine lokale im Ordner `pages/ScoreCapture` gibt?
+
+**Antwort**: ❌ NEIN - Beide Dateien sind notwendig und folgen TypeScript Best Practices!
+
+#### 📂 Architektur-Analyse
+
+**Zwei verschiedene Dateien mit unterschiedlichen Zwecken**:
+
+1. **`src/types/ScoreCapture.types.ts`** (Globale Base Types)
+   - **Größe**: 84 Zeilen
+   - **Zweck**: Zentrale Datenmodell-Definitionen (Data Layer)
+   - **Inhalt**: 9 Base Interfaces
+     ```typescript
+     export interface Participant { id, firstname, lastname, club, gender, age, ... }
+     export interface Discipline { int_disziplinid, var_name, apparatus, attempts, ... }
+     export interface DisciplineField { id, disciplineId, name, sortOrder, ... }
+     export interface Squad { name, participant_count }
+     export interface Score { participantId, disciplineId, competitionId, score, ... }
+     export interface Status { int_statusid, var_name, ary_colorcode, ... }
+     export interface Competition { id, name, event_id, disciplines }
+     export interface ScoreValidation { isValid, message, maxScore }
+     ```
+   - **Verwendung**: Importiert von **15 Dateien** im gesamten Codebase:
+     * 8 Hooks (useScoreData, useScoreMatrix, useScoreActions, useScoreValidation, ...)
+     * 4 ScoreCapture Page Components
+     * 3 Globale ScoreCapture Components
+     * 1 Local Types File (siehe unten)
+
+2. **`src/pages/ScoreCapture/ScoreCapture.types.ts`** (Component Props)
+   - **Größe**: 68 Zeilen
+   - **Zweck**: React Component Prop Definitionen (UI Layer)
+   - **Inhalt**: Component-spezifische Interfaces
+     ```typescript
+     import { Participant, Discipline, ... } from '@/types/ScoreCapture.types';
+     
+     export interface ScoreTableProps { filteredParticipants, displayDisciplines, ... }
+     export interface HelpPanelProps { showJuryScores }
+     export interface SquadStatusSelectorProps { activeSquad, activeDiscipline, ... }
+     export interface ScoreFilterProps { searchTerm, showJuryScores, handlers, ... }
+     ```
+   - **Dependency**: ✅ Importiert BASE TYPES aus globalem File
+   - **Verwendung**: Nur von ScoreCapture Page Components verwendet
+
+#### 🏗️ TypeScript Best Practice Pattern
+
+**Architektur-Muster**: Separation of Data Types from Component Props
+
+```
+┌─────────────────────────────────────────┐
+│ src/types/ScoreCapture.types.ts         │ ← FOUNDATION (Data Models)
+│ - Participant, Discipline, Score, ...   │
+└──────────────────┬──────────────────────┘
+                   │ imported by 15 files
+                   ├─────────────────────────────────┐
+                   │                                 │
+         ┌─────────▼─────────┐          ┌───────────▼──────────┐
+         │ 8 Hooks            │          │ 7 Components         │
+         │ - useScoreData     │          │ - ScoreTable         │
+         │ - useScoreMatrix   │          │ - ScoreFilters       │
+         │ - useScoreActions  │          │ - SquadStatusSelector│
+         └────────────────────┘          └──────────────────────┘
+                   │
+         ┌─────────▼─────────────────────────────────┐
+         │ pages/ScoreCapture/ScoreCapture.types.ts  │ ← EXTENSION (UI Props)
+         │ - imports global types                    │
+         │ - extends for component props             │
+         └───────────────────────────────────────────┘
+```
+
+**Vorteile dieser Architektur**:
+- ✅ **Reusability**: Data Models können überall verwendet werden
+- ✅ **Single Source of Truth**: Ein Ort für Datenstruktur-Definitionen
+- ✅ **Separation of Concerns**: Data Layer ≠ UI Layer
+- ✅ **Type Safety**: Components importieren exakte Data Types
+- ✅ **Maintainability**: Änderungen an Datenmodellen zentral
+- ✅ **Scalability**: Neue Components können gleiche Base Types nutzen
+
+#### 📊 Grep-Analyse Ergebnisse
+
+**15 aktive Imports der globalen Datei**:
+
+```typescript
+// Hooks (8)
+pages/ScoreCapture/hooks/useFormulaCalculation.ts
+pages/ScoreCapture/hooks/useScoreHandlers.ts
+pages/ScoreCapture/hooks/useScoreValidation.ts
+pages/ScoreCapture/hooks/useScoreMatrix.ts
+pages/ScoreCapture/hooks/useScoreLiveUpdates.ts
+pages/ScoreCapture/hooks/useScoreData.ts
+pages/ScoreCapture/hooks/useScoreActions.ts
+pages/ScoreCapture/hooks/useSquadData.ts
+
+// Page Components (4)
+pages/ScoreCapture/components/ScoreFilters.tsx
+pages/ScoreCapture/components/SquadStatusSelector.tsx
+pages/ScoreCapture/components/ScoreTable.tsx
+pages/ScoreCapture/components/HelpPanel.tsx
+
+// Global Components (3)
+components/scoreCapture/ScoreCard.tsx
+components/scoreCapture/ScoreBadge.tsx
+components/scoreCapture/StatusIndicator.tsx
+
+// Local Types (1)
+pages/ScoreCapture/ScoreCapture.types.ts → imports + extends
+```
+
+#### ✅ Empfehlung
+
+**BEIDE Dateien behalten!**
+
+**Begründung**:
+1. ✅ Globale Datei ist Foundation für 15 andere Dateien
+2. ✅ Lokale Datei nutzt globale Types und erweitert für UI
+3. ✅ Pattern entspricht TypeScript Best Practices
+4. ✅ Keine Duplikation - komplett verschiedene Zwecke
+5. ✅ Architektur ermöglicht Wiederverwendung und Wartbarkeit
+
+**Lessons Learned**:
+- Ähnliche Dateinamen ≠ Duplikation
+- Dependency-Analyse mit Grep zeigt tatsächliche Nutzung
+- TypeScript Best Practice: Data Models zentral, Component Props lokal
+- Separation of Concerns gilt auch für Type Definitions
+
+**Implementiert**: Point 123 Refactoring hat diese Architektur korrekt umgesetzt
+
+--- 
