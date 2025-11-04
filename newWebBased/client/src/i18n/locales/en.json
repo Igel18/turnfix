@@ -1883,9 +1883,12 @@
       "noStatus": "No Status"
     },
     "table": {
+      "startNumber": "Start #",
       "participant": "Participant",
       "club": "Club",
-      "ageGender": "Age/Gender"
+      "competition": "Competition",
+      "age": "Age",
+      "gender": "Gender"
     }
   },
   "results": {

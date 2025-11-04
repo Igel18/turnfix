@@ -79,13 +79,22 @@ export const ScoreTable = ({
         <thead className="bg-gray-50 sticky top-0 z-20">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-30">
+              {t('scoreCapture.table.startNumber')}
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               {t('scoreCapture.table.participant')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               {t('scoreCapture.table.club')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('scoreCapture.table.ageGender')}
+              {t('scoreCapture.table.competition')}
+            </th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {t('scoreCapture.table.age')}
+            </th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {t('scoreCapture.table.gender')}
             </th>
             {displayDisciplines.map((discipline, index) => (
               <th 
@@ -101,28 +110,22 @@ export const ScoreTable = ({
           {filteredParticipants.map(participant => {
             return (
               <tr key={participant.id} className="hover:bg-gray-50">
-                {/* Participant Name */}
+                {/* Start Number */}
                 <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white z-10">
+                  {participant.startNumber ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {participant.startNumber}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-xs">-</span>
+                  )}
+                </td>
+                
+                {/* Participant Name */}
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {participant.startNumber && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                        StNr.: {participant.startNumber}
-                      </span>
-                    )}
                     {participant.firstname} {participant.lastname}
                   </div>
-                  {getParticipantCompetitions(participant).length > 0 ? (
-                    <div className="text-xs text-gray-500">
-                      {getParticipantCompetitions(participant).length === 1 ? 
-                        `Competition: ${getParticipantCompetitions(participant)[0]}` :
-                        `Competitions: ${getParticipantCompetitions(participant).join(', ')}`
-                      }
-                    </div>
-                  ) : (
-                    <div className="text-xs text-red-500">
-                      No competition assigned
-                    </div>
-                  )}
                 </td>
                 
                 {/* Club */}
@@ -130,9 +133,27 @@ export const ScoreTable = ({
                   {participant.club}
                 </td>
                 
-                {/* Age & Gender */}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {participant.age} • <GenderBadge value={participant.gender} />
+                {/* Competition */}
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  {getParticipantCompetitions(participant).length > 0 ? (
+                    <div className="text-gray-700">
+                      {getParticipantCompetitions(participant).join(', ')}
+                    </div>
+                  ) : (
+                    <div className="text-red-500 text-xs">
+                      No competition
+                    </div>
+                  )}
+                </td>
+                
+                {/* Age */}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                  {participant.age}
+                </td>
+                
+                {/* Gender */}
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <GenderBadge value={participant.gender} />
                 </td>
                 
                 {/* Discipline Score Cells */}

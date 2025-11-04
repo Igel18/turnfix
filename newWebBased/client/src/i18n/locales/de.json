@@ -1880,9 +1880,12 @@
       "noStatus": "Kein Status"
     },
     "table": {
+      "startNumber": "StNr.",
       "participant": "Teilnehmer",
       "club": "Verein",
-      "ageGender": "Alter/Geschlecht"
+      "competition": "Wettkampf",
+      "age": "Alter",
+      "gender": "Geschlecht"
     }
   },
   "results": {
