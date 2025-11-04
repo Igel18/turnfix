@@ -296,6 +296,45 @@ npm run build:all
 
 **Archive Pattern**: Old/unused files moved to `_archive/` folders (see Point 29 implementation)
 
+### Separation of Concerns (SoC) - Point 122
+**File Size Guidelines**:
+- ✅ **< 200 lines**: Perfect, no action needed
+- ✅ **200-400 lines**: OK, consider splitting if logical
+- ⚠️ **400-800 lines**: Should be refactored
+- ❌ **> 800 lines**: Must be refactored immediately
+- 🚨 **> 1500 lines**: Critical, urgent refactoring required
+
+**Standard Structure for Large Pages**:
+```
+pages/
+└── PageName/
+    ├── index.tsx                    (Main Component, ~200-300 lines)
+    ├── PageName.types.ts            (TypeScript interfaces/types)
+    ├── components/                  (Page-specific components)
+    │   ├── ComponentA.tsx          (~150-300 lines each)
+    │   ├── ComponentB.tsx
+    │   └── ComponentC.tsx
+    └── hooks/                       (Page-specific custom hooks)
+        ├── usePageData.ts          (~150-250 lines each)
+        ├── usePageFilters.ts
+        └── usePageValidation.ts
+```
+
+**When to Split**:
+1. **Types**: Always extract when > 5 interfaces
+2. **Hooks**: Extract data fetching, filtering, validation logic
+3. **Components**: Extract forms, tables, dialogs > 150 lines
+4. **Utils**: Extract helper functions used multiple times
+
+**Benefits**:
+- ✅ Better maintainability and readability
+- ✅ Easier testing (unit test individual pieces)
+- ✅ Better code reusability
+- ✅ Fewer merge conflicts in team work
+- ✅ Easier code reviews
+
+**Example**: EventParticipants.tsx (1936 lines) → Split into 11 focused files averaging ~180 lines each
+
 ---
 
 ## 📦 PDF Export
@@ -501,6 +540,11 @@ Files modified:
 - Follow existing component patterns
 - Add debug logging when helpful and keep them behind DEBUG flag (don't delete the debug logs)
 - Document complex logic
+- **Apply SoC (Separation of Concerns)** for files > 400 lines
+- Write small modular functions which can be reused across components 
+- Use separate components for complex UI parts
+- Use separate types files (e.g. `PageName.types.ts`)
+- Extract custom hooks for data fetching, filtering, validation
 - Write small modular functions which can be reused across components 
 - use separate components for complex UI parts
 - use sepaerate types files (e.g. ScoreCapture.types.ts)

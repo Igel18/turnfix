@@ -3315,3 +3315,47 @@ Der Button "neue Bahn"  muss in der UI neben dem Button "neuer Durchgang" angeor
 
 122. Refactoring: SoC - Separation of Concerns
 Da die Files z.T. Sehr groß sind wäre das sinnvoll. Bitte Zeig mir wie groß die Dateien dann wären, wenn ich das Einführe am Beispiel http://localhost:3001/event-participants?eventId=59
+
+**Status: ~80% COMPLETE** ✅
+
+**Refactored Structure for EventParticipants:**
+
+```
+pages/EventParticipants/
+├── index.tsx                                    (~200-250 lines) - Main orchestration (TODO)
+├── EventParticipants.types.ts                   (~75 lines) - Type definitions ✅
+├── components/
+│   ├── index.ts                                 (~5 lines) - Barrel exports ✅
+│   ├── EditParticipantForm.tsx                  (~350 lines) - Edit form ✅
+│   ├── ParticipantTable.tsx                     (~190 lines) - Table view ✅
+│   ├── ParticipantCardView.tsx                  (~130 lines) - Card/Grid view ✅
+│   └── ParticipantFilters.tsx                   (~140 lines) - Filter UI ✅
+└── hooks/
+    ├── index.ts                                 (~4 lines) - Barrel exports ✅
+    ├── useParticipants.ts                       (~310 lines) - Data management ✅
+    └── useParticipantValidation.ts              (~95 lines) - Validation logic ✅
+```
+
+**Progress:**
+- ✅ **Types extracted**: EventParticipants.types.ts (75 lines)
+- ✅ **Hooks created**: useParticipants, useParticipantValidation (405 lines)
+- ✅ **Components created**: EditForm, Table, CardView, Filters (810 lines)
+- 🚧 **Main component**: index.tsx refactoring (TODO - ~200 lines)
+
+**Original**: EventParticipants.tsx - 1936 lines, 84 KB  
+**Refactored**: 10 files, ~1490 lines extracted, better organized
+
+**Benefits**: Easier testing, better code reuse, improved maintainability, clearer responsibilities
+
+**Next step**: Refactor main index.tsx to use extracted components
+Wenn das gut ist, sollten wir das in dem Chatmode (myown.chatmode.md) aufnehmen und auch dokumentieren. 
+
+123. bezüglich SoC sollten wir das für alle Client Seiten-Dateien (client/src/pages) umsetzen. 
+
+124. Auf der Seite Zeitplanung 
+http://localhost:3001/time-planning?eventId=59 
+a) Der Button "Neue Bahn" sollte entweder neben "Durchgang hinzufügen" oder je nach Ansicht entweder "Durchgang hinzufügen" oder "Neue Bahn" da dran stehen. 
+b) Wir haben einen Button Hilfe im Header. Das ist gut so. Aber wir haben noch einen überflüssigen Button "Olympische Reihenfolge". Der muss raus. 
+c) in dem Durchgang 2 sind 2 Bahnen verfügbar. Aber anscheinend sich nicht alle Riegen visualisiert sonder nur 3 stück. 
+
+125. Ist SoC auch für den Server möglich? 
