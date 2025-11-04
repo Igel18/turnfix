@@ -96,13 +96,20 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     requestCache.set(cacheKey, requestPromise);
     cacheExpiry.set(cacheKey, Date.now() + CACHE_DURATION);
 
-    // Clean up cache entry after completion (whether success or failure)
-    requestPromise.finally(() => {
-      setTimeout(() => {
+    // Clean up cache entry after completion
+    requestPromise
+      .then(() => {
+        // Success - keep in cache for CACHE_DURATION
+        setTimeout(() => {
+          requestCache.delete(cacheKey);
+          cacheExpiry.delete(cacheKey);
+        }, CACHE_DURATION);
+      })
+      .catch(() => {
+        // Error - remove from cache immediately (don't cache errors)
         requestCache.delete(cacheKey);
         cacheExpiry.delete(cacheKey);
-      }, CACHE_DURATION);
-    });
+      });
   }
 
   return requestPromise;

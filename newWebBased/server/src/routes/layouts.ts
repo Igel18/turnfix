@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
+import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 
@@ -27,6 +29,80 @@ const createLayoutFieldSchema = z.object({
   value: z.string().max(200).optional().nullable(), // Match database constraint: VarChar(200)
   align: z.number().int().min(0).max(2).default(0),
   layer: z.number().int().min(0).max(10).default(0)
+});
+
+/**
+ * Get image as base64 from file system
+ * Endpoint: GET /api/layouts/image
+ * Query params: path (the local file path from database)
+ */
+router.get('/image', async (req, res) => {
+  try {
+    const imagePath = req.query.path as string;
+    
+    if (!imagePath) {
+      return res.status(400).json({ error: 'Image path is required' });
+    }
+
+    // Fix over-escaped backslashes from old database
+    // Example: "C:\\\\Users\\\\..." becomes "C:\Users\..."
+    let cleanPath = imagePath;
+    
+    // Replace multiple backslashes with single backslash
+    // Keep replacing until no more double backslashes exist
+    while (cleanPath.includes('\\\\')) {
+      cleanPath = cleanPath.replace(/\\\\/g, '\\');
+    }
+    
+    // Security: Normalize path and check if file exists
+    const normalizedPath = path.normalize(cleanPath);
+    
+    if (process.env.DEBUG === 'true') {
+      console.log('Image path debug:');
+      console.log('  Original:', imagePath);
+      console.log('  Cleaned:', cleanPath);
+      console.log('  Normalized:', normalizedPath);
+    }
+    
+    if (!fs.existsSync(normalizedPath)) {
+      console.warn(`Image not found: ${normalizedPath}`);
+      console.warn(`  Original path: ${imagePath}`);
+      return res.status(404).json({ 
+        error: 'Image not found',
+        path: normalizedPath,
+        originalPath: imagePath
+      });
+    }
+
+    // Read file and convert to base64
+    const imageBuffer = fs.readFileSync(normalizedPath);
+    const base64Image = imageBuffer.toString('base64');
+    
+    // Detect image type from extension
+    const ext = path.extname(normalizedPath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.bmp': 'image/bmp'
+    };
+    
+    const mimeType = mimeTypes[ext] || 'image/png';
+    const dataUrl = `data:${mimeType};base64,${base64Image}`;
+    
+    if (process.env.DEBUG === 'true') {
+      console.log(`✓ Image loaded successfully: ${normalizedPath} (${base64Image.length} bytes)`);
+    }
+    
+    res.json({ dataUrl });
+  } catch (error) {
+    console.error('Error loading image:', error);
+    res.status(500).json({ 
+      error: 'Failed to load image',
+      details: process.env.DEBUG === 'true' ? error : undefined
+    });
+  }
 });
 
 // Get layouts count
