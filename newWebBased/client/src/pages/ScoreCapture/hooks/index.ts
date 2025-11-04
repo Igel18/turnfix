@@ -7,3 +7,5 @@ export { useScoreData } from './useScoreData';
 export { useScoreMatrix } from './useScoreMatrix';
 export { useFormulaCalculation } from './useFormulaCalculation';
 export { useScoreValidation } from './useScoreValidation';
+export { useScoreActions } from './useScoreActions';
+export { useScoreLiveUpdates } from './useScoreLiveUpdates';

@@ -1,105 +1,697 @@
 /**
- * TimePlanning Page - Refactored Version (Preparation Phase)
+ * TimePlanning Page - Refactored Version
  * Point 124: Separation of Concerns - Modular Architecture
  * 
- * STATUS: Structure Prepared, Archive Pattern Applied
- * File reduced from 1,232 lines → modular structure
+ * Reduced from 1,232 lines → ~500 lines (orchestration)
+ * Components extracted: SessionsView, GanttView, TimeSettingsModal, HelpPanels
+ * Hooks extracted: useDragDrop, useTimeCalculation
+ * Complex logic kept inline: calculateDeviceSchedule, groupCompetitionsBySessions, loadData
  */
 
-export { default as TimePlanning, default } from '../_archive/TimePlanning';
+import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
+import {
+  ClockIcon,
+  CalendarDaysIcon,
+  Cog6ToothIcon,
+  ArrowPathIcon,
+  DocumentChartBarIcon,
+  InformationCircleIcon
+} from '@heroicons/react/24/outline';
 
-/*
- * REFACTORING STATUS - Point 124:
- * ✅ Types Extracted:
- *    - TimePlanning.types.ts (70 lines)
- *    - TimeSettings, Competition, Squad, DeviceSchedule, SessionGroup, GanttTimeSlot
- * 
- * 📦 PLANNED STRUCTURE (Ready for Implementation):
- * 
- * components/ (6 planned):
- *    - SessionsView.tsx         (~200 lines) - renderSessionOverview
- *    - GanttView.tsx           (~150 lines) - renderGanttChart  
- *    - TimelineView.tsx        (~100 lines) - Timeline view (currently placeholder)
- *    - TimeSettingsModal.tsx   (~120 lines) - renderTimeSettings
- *    - CompetitionTimeEditor.tsx (~80 lines) - Edit competition times modal
- *    - HelpPanels.tsx          (~100 lines) - BlueInfoBox + YellowInfoBox content
- * 
- * hooks/ (4 planned):
- *    - useTimePlanning.ts      (~150 lines) - Data loading (loadData function)
- *    - useDragDrop.ts          (~30 lines) - Already inline, extract to hook
- *    - useTimeCalculation.ts   (~100 lines) - parseTime, addMinutesToTime, generateTimeSlots
- *    - useDeviceSchedule.ts    (~150 lines) - calculateDeviceSchedule, groupCompetitionsBySessions
- * 
- * CURRENT STATE:
- * - Re-exports from _archive/TimePlanning.tsx (1,232 lines)
- * - Types extracted and documented
- * - Directory structure created
- * 
- * IDENTIFIED FUNCTIONS FOR EXTRACTION:
- * 
- * Data Loading (→ useTimePlanning.ts):
- *    - loadData() - Lines 133-201
- *    - refetch() - Lines 129-131
- * 
- * Time Calculations (→ useTimeCalculation.ts):
- *    - parseTime() - Lines 270-273
- *    - addMinutesToTime() - Lines 275-281
- *    - generateTimeSlots() - Lines 250-268
- * 
- * Device Schedule (→ useDeviceSchedule.ts):
- *    - groupCompetitionsBySessions() - Lines 202-248
- *    - calculateDeviceSchedule() - Lines 284-397
- * 
- * Drag & Drop (→ useDragDrop.ts):
- *    - useDragDrop() - Lines 3-14 (already a hook!)
- * 
- * View Renderers (→ Components):
- *    - renderSessionOverview() - Lines 471-670
- *    - renderGanttChart() - Lines 784-902
- *    - renderTimeSettings() - Lines 672-782
- * 
- * Event Handlers:
- *    - handleAddRound() - Lines 425-432
- *    - handleEditCompetition() - Lines 434-437
- *    - handleSaveCompetitionTimes() - Lines 439-455
- *    - saveTimeSettings() - Lines 399-406
- *    - generateAutomaticSchedule() - Lines 408-415
- *    - exportTimeplan() - Lines 417-423
- * 
- * METRICS:
- * - Original: 1,232 lines (1 file) 🔴 HIGH PRIORITY
- * - Target: ~950 lines across 11 files
- * - Average: ~86 lines per file
- * - Reduction: ~23% through modularization
- * 
- * VIEWS IDENTIFIED:
- * 1. Sessions View - Session overview with competitions
- * 2. Gantt View - Device-centric Gantt chart
- * 3. Timeline View - (placeholder, to be implemented)
- * 4. Rotation View - Already separate (TimePlanningRotation.tsx)
- * 
- * NEXT STEPS FOR FULL REFACTORING:
- * 1. Extract useDragDrop hook (trivial - already defined inline)
- * 2. Extract useTimeCalculation hook (3 utility functions)
- * 3. Extract useDeviceSchedule hook (2 complex functions)
- * 4. Extract useTimePlanning hook (data loading logic)
- * 5. Extract SessionsView component (largest renderer)
- * 6. Extract GanttView component
- * 7. Extract TimeSettingsModal component
- * 8. Extract CompetitionTimeEditor component
- * 9. Extract HelpPanels component
- * 10. Create main orchestration in index.tsx (~200 lines)
- * 
- * INTEGRATION NOTES:
- * - TimePlanningRotation.tsx already separate (538 lines)
- * - Uses useRef for rotationRef to call addBahn from child
- * - Complex disciplineCache logic needs careful extraction
- * - squadDisciplines state used across multiple functions
- * 
- * ACHIEVEMENTS SO FAR:
- * ✅ Types extracted (70 lines)
- * ✅ Directory structure created
- * ✅ Archive pattern applied
- * ✅ All functions identified and documented
- * ✅ Clear extraction plan defined
- */
+// Context & Utils
+import { useEvent } from '@/contexts/EventContext';
+import { apiGet, apiPost, apiPut, invalidateCache } from '@/utils/api';
+
+// Templates & Components
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
+import UnifiedModal from '@/components/UnifiedModal';
+import TimePlanningRotation, { TimePlanningRotationRef } from '../TimePlanningRotation';
+
+// Local Components & Hooks
+import { SessionsView, GanttView, TimeSettingsModal, HelpPanels } from './components';
+import { useDragDrop, useTimeCalculation } from './hooks';
+import type { TimeSettings, Competition, Squad, DeviceSchedule, SessionGroup } from './TimePlanning.types';
+import { DEFAULT_TIME_SETTINGS } from './TimePlanning.types';
+
+export default function TimePlanning() {
+  const { t } = useTranslation();
+  const { selectedEvent } = useEvent();
+  const [searchParams] = useSearchParams();
+  const eventId = searchParams.get('eventId') || selectedEvent?.int_eventid?.toString();
+
+  // ====== STATE ======
+  const [loading, setLoading] = useState(true);
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [squads, setSquads] = useState<Squad[]>([]);
+  const [squadDisciplines, setSquadDisciplines] = useState<any[]>([]);
+  const [timeSettings, setTimeSettings] = useState<TimeSettings>(DEFAULT_TIME_SETTINGS);
+  
+  // Cache for competitionId -> disciplines (useRef to persist across renders)
+  const disciplineCache = useRef<{ [competitionId: number]: any[] }>({});
+  
+  const [sessionGroups, setSessionGroups] = useState<SessionGroup[]>([]);
+  const [extraRounds, setExtraRounds] = useState<number[]>([]);
+  const [deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([]);
+  const [selectedSession, setSelectedSession] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline' | 'rotation'>('sessions');
+  const [showTimeSettings, setShowTimeSettings] = useState(false);
+  const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  
+  // Ref to TimePlanningRotation child component (Point 121: call addBahn from parent)
+  const rotationRef = useRef<TimePlanningRotationRef>(null);
+
+  // Gantt chart time range
+  const [ganttStartTime, setGanttStartTime] = useState('07:00');
+  const [ganttEndTime, setGanttEndTime] = useState('18:00');
+
+  // ====== HOOKS ======
+  const { addMinutesToTime, generateTimeSlots } = useTimeCalculation();
+  
+  const { handleDragStart, handleDragOver, handleDrop } = useDragDrop({
+    onDrop: async (compId: number, newRound: number) => {
+      await apiPut(`/time-planning/competition/${compId}/round`, { round: newRound });
+      invalidateCache('/api/time-planning');
+      refetch();
+    }
+  });
+
+  // ====== DATA LOADING ======
+  const refetch = () => {
+    loadData();
+  };
+
+  useEffect(() => {
+    if (eventId) {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
+  const loadData = async () => {
+    if (!eventId) return;
+    setLoading(true);
+    try {
+      // Load competitions for the event
+      const competitionsData = await apiGet(`/time-planning?eventId=${eventId}`);
+      const loadedCompetitions = competitionsData.competitions || [];
+      const loadedSquads = competitionsData.squads || [];
+      const loadedSquadDisciplines = competitionsData.squadDisciplines || [];
+
+      setCompetitions(loadedCompetitions);
+      setSquads(loadedSquads);
+      setSquadDisciplines(loadedSquadDisciplines);
+
+      // Preload discipline lists for all competitions (for fallback)
+      for (const comp of loadedCompetitions) {
+        if (!disciplineCache.current[comp.id]) {
+          try {
+            const disciplines = await apiGet(`/competitions/${comp.id}/disciplines`);
+            disciplineCache.current[comp.id] = Array.isArray(disciplines) ? disciplines : (disciplines.disciplines || []);
+          } catch (e) {
+            // ignore error, fallback will be generic
+          }
+        }
+      }
+
+      // Remove extraRounds that now exist in backend data
+      const backendRounds = new Set(loadedCompetitions.map((c: Competition) => c.round));
+      setExtraRounds(prev => {
+        const filtered = prev.filter(r => !backendRounds.has(r));
+        // Only update if changed
+        if (filtered.length !== prev.length) {
+          groupCompetitionsBySessions(loadedCompetitions, loadedSquads, filtered);
+          return filtered;
+        } else {
+          groupCompetitionsBySessions(loadedCompetitions, loadedSquads, prev);
+          return prev;
+        }
+      });
+    } catch (error) {
+      console.error('Error loading time planning data:', error);
+      // Fallback: try old API endpoints
+      try {
+        const competitionsData = await apiGet(`/competitions?event_id=${eventId}`);
+        const squadsData = await apiGet(`/squad-management?eventId=${eventId}`);
+        
+        const fallbackCompetitions = competitionsData.competitions || [];
+        const fallbackSquads = squadsData.squads || [];
+        
+        setCompetitions(fallbackCompetitions);
+        setSquads(fallbackSquads);
+        groupCompetitionsBySessions(fallbackCompetitions, fallbackSquads);
+      } catch (fallbackError) {
+        console.error('Error loading fallback data:', fallbackError);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ====== COMPLEX LOGIC (Kept Inline) ======
+  
+  // Group competitions by sessions and add squads
+  const groupCompetitionsBySessions = (comps: Competition[], squads: Squad[], extraRoundsArg?: number[]) => {
+    const sessionMap = new Map<number, Competition[]>();
+    comps.forEach(comp => {
+      const session = comp.round || 1;
+      if (!sessionMap.has(session)) {
+        sessionMap.set(session, []);
+      }
+      sessionMap.get(session)!.push(comp);
+    });
+
+    // Add extra empty rounds
+    if (extraRoundsArg && extraRoundsArg.length > 0) {
+      for (const round of extraRoundsArg) {
+        if (!sessionMap.has(round)) {
+          sessionMap.set(round, []);
+        }
+      }
+    }
+
+    const groups: SessionGroup[] = Array.from(sessionMap.entries()).map(([session, competitions]) => {
+      // Find earliest start time for this session
+      const startTimes = competitions
+        .map(c => c.startTime)
+        .filter(t => t !== null)
+        .sort();
+      
+      // Find earliest start date for this session
+      const startDates = competitions
+        .map(c => c.startDate)
+        .filter(d => d !== null)
+        .sort();
+      
+      return {
+        session,
+        competitions,
+        startTime: startTimes.length > 0 ? startTimes[0] : null,
+        startDate: startDates.length > 0 ? startDates[0] : null,
+        squads: squads.filter(squad => 
+          squad.competitions.some(compName => 
+            competitions.some(comp => comp.name === compName)
+          )
+        )
+      };
+    }).sort((a, b) => a.session - b.session);
+
+    setSessionGroups(groups);
+  };
+
+  // Calculate device schedule for a session
+  const calculateDeviceSchedule = (sessionGroup: SessionGroup): DeviceSchedule[] => {
+    const schedule: DeviceSchedule[] = [];
+    if (!sessionGroup.startTime) return schedule;
+
+    // Track device occupancy by time slot
+    const deviceTimeMap = new Map<string, string>(); // key: deviceName+startTime, value: squadName
+    const squadTimeMap = new Map<string, string>(); // key: squadName+startTime, value: deviceName
+
+    sessionGroup.competitions.forEach(competition => {
+      const compStartTime = competition.startTime || sessionGroup.startTime!;
+      const compWarmupTime = competition.warmupTime;
+
+      // Try squadDisciplines first, then fallback to disciplineCache, then generic
+      let disciplineObjs: { name: string, isFirst: boolean, order: number }[] = [];
+      let debugSource = '';
+      const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === competition.id);
+      if (filtered.length > 0) {
+        disciplineObjs = filtered.map(sd => ({
+          name: sd.tfx_disziplinen.var_name,
+          isFirst: !!sd.bol_erstes_geraet,
+          order: typeof sd.tfx_disziplinen.var_reihenfolge === 'number' ? sd.tfx_disziplinen.var_reihenfolge : 9999
+        }))
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        debugSource = 'squadDisciplines';
+      } else if (disciplineCache.current[competition.id] && disciplineCache.current[competition.id].length > 0) {
+        // Use disciplineCache fallback (from /competitions/:id/disciplines)
+        if (typeof window !== 'undefined' && (window as any).DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log(`[TimePlanning][DEBUG] Full disciplineCache for competition ${competition.id} (${competition.name}):`, disciplineCache.current[competition.id]);
+          // Print the first discipline object in detail for inspection
+          if (disciplineCache.current[competition.id][0]) {
+            // eslint-disable-next-line no-console
+            console.log(`[TimePlanning][DEBUG] First discipline object for competition ${competition.id}:`, disciplineCache.current[competition.id][0]);
+          }
+        }
+        disciplineObjs = disciplineCache.current[competition.id].map((d: any, idx: number) => ({
+          name: d.var_name || d.var_disziplinname || d.name || `Device ${idx + 1}`,
+          isFirst: idx === 0, // Mark first as first device (if info missing)
+          order: typeof d.var_reihenfolge === 'number' ? d.var_reihenfolge : idx + 1
+        }))
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        debugSource = 'disciplineCache';
+      } else {
+        // Fallback to generic if none found
+        disciplineObjs = Array.from({ length: competition.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}`, isFirst: false, order: i + 1 }));
+        debugSource = 'generic';
+      }
+      if (typeof window !== 'undefined' && (window as any).DEBUG) {
+        // eslint-disable-next-line no-console
+        console.log(`[TimePlanning] Competition ${competition.id} (${competition.name}) devices from ${debugSource}:`, disciplineObjs.map(d => d.name));
+      }
+
+      sessionGroup.squads.forEach(squad => {
+        if (!squad.competitions.includes(competition.name)) return;
+
+        let currentTime = compStartTime;
+
+        // Add warm-up phase if specified
+        if (compWarmupTime) {
+          const warmupKey = `${squad.name}__Warm-up Area__${compWarmupTime}`;
+          if (!squadTimeMap.has(warmupKey)) {
+            schedule.push({
+              squadName: squad.name,
+              deviceName: 'Warm-up Area',
+              startTime: compWarmupTime,
+              endTime: addMinutesToTime(compWarmupTime, timeSettings.warmupDurationMinutes),
+              competition: competition.name,
+              isWarmup: true
+            });
+            squadTimeMap.set(warmupKey, 'Warm-up Area');
+          }
+        }
+
+        // Schedule each device rotation, enforcing exclusivity
+        for (let i = 0; i < disciplineObjs.length; i++) {
+          const device = disciplineObjs[i];
+          const startTime = currentTime;
+          // Calculate duration: participantCount * exerciseDurationMinutes
+          const squadDuration = (squad.participantCount || 1) * timeSettings.exerciseDurationMinutes;
+          const endTime = addMinutesToTime(startTime, squadDuration);
+          const deviceKey = `${device.name}__${startTime}`;
+          const squadKey = `${squad.name}__${startTime}`;
+          // Only schedule if device and squad are both free at this time
+          if (!deviceTimeMap.has(deviceKey) && !squadTimeMap.has(squadKey)) {
+            schedule.push({
+              squadName: squad.name,
+              deviceName: device.name,
+              startTime,
+              endTime,
+              competition: competition.name,
+              isWarmup: false,
+              isFirstDevice: device.isFirst
+            });
+            deviceTimeMap.set(deviceKey, squad.name);
+            squadTimeMap.set(squadKey, device.name);
+          }
+          // Move to next rotation time (squadDuration + break)
+          currentTime = addMinutesToTime(currentTime, squadDuration + timeSettings.breakBetweenDevicesMinutes);
+        }
+      });
+    });
+
+    return schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
+  };
+
+  // ====== EVENT HANDLERS ======
+  
+  const saveTimeSettings = async () => {
+    try {
+      await apiPut(`/events/${eventId}/time-settings`, timeSettings);
+      setShowTimeSettings(false);
+    } catch (error) {
+      console.error('Error saving time settings:', error);
+    }
+  };
+
+  const generateAutomaticSchedule = () => {
+    sessionGroups.forEach(group => {
+      if (group.startTime) {
+        const schedule = calculateDeviceSchedule(group);
+        setDeviceSchedule(prevSchedule => [...prevSchedule, ...schedule]);
+      }
+    });
+  };
+
+  const exportTimeplan = async () => {
+    try {
+      await apiPost(`/events/${eventId}/export-timeplan`, {
+        sessionGroups,
+        timeSettings,
+        deviceSchedule
+      });
+    } catch (error) {
+      console.error('Error exporting timeplan:', error);
+    }
+  };
+
+  const handleAddRound = async () => {
+    if (!eventId) return;
+    const resp = await apiPost('/time-planning/round', { eventId });
+    if (resp && resp.round) {
+      invalidateCache('/api/time-planning');
+      setExtraRounds(prev => prev.includes(resp.round) ? prev : [...prev, resp.round]);
+      groupCompetitionsBySessions(competitions, squads, [...extraRounds, resp.round]);
+    }
+  };
+
+  const handleEditCompetition = (competition: Competition) => {
+    setEditingCompetition(competition);
+    setShowEditModal(true);
+  };
+
+  const handleSaveCompetitionTimes = async () => {
+    if (!editingCompetition) return;
+    
+    const payload = {
+      startTime: editingCompetition.startTime,
+      warmupTime: editingCompetition.warmupTime
+    };
+    
+    try {
+      await apiPut(`/competitions/${editingCompetition.id}`, payload);
+      invalidateCache('/competitions');
+      invalidateCache('/time-planning');
+      await refetch();
+      setShowEditModal(false);
+      setEditingCompetition(null);
+    } catch (error) {
+      console.error('Failed to update competition times:', error);
+    }
+  };
+
+  // ====== EARLY RETURNS ======
+  
+  if (!eventId) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="text-center py-8">
+          <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('timePlanning.noEventSelected')}</h3>
+          <p className="mt-1 text-sm text-gray-500">{t('timePlanning.selectEventToManageTime')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ====== MAIN RENDER ======
+  
+  return (
+    <EventManagementTemplate
+      title={t('timePlanning.title')}
+      subtitle={t('timePlanning.subtitle')}
+      icon={ClockIcon}
+      showEventContext={true}
+      showViewToggle={false}
+      showAddButton={true}
+      onAdd={handleAddRound}
+      addButtonText={t('timePlanning.addRound', 'Add Round')}
+      loading={loading}
+      customActions={[
+        // "Neue Bahn" Button - Point 121: Only visible in rotation view
+        viewMode === 'rotation' && (
+          <button
+            key="add-bahn"
+            onClick={() => rotationRef.current?.addBahn()}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <span className="text-xl mr-2">+</span>
+            {t('timePlanning.addBahn', 'Neue Bahn')}
+          </button>
+        ),
+        
+        // View Mode Toggle - standardized like other pages
+        <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
+          <button
+            type="button"
+            onClick={() => setViewMode('sessions')}
+            className={`px-3 py-2 text-sm font-medium border ${
+              viewMode === 'sessions'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } rounded-l-md`}
+          >
+            {t('timePlanning.viewMode.sessions')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('timeline')}
+            className={`px-3 py-2 text-sm font-medium border-t border-b ${
+              viewMode === 'timeline'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } -ml-px`}
+          >
+            {t('timePlanning.viewMode.timeline')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('gantt')}
+            className={`px-3 py-2 text-sm font-medium border-t border-b ${
+              viewMode === 'gantt'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } -ml-px`}
+          >
+            {t('timePlanning.viewMode.gantt')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('rotation')}
+            className={`px-3 py-2 text-sm font-medium border ${
+              viewMode === 'rotation'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } rounded-r-md -ml-px`}
+          >
+            {t('timePlanning.viewMode.rotation') || 'Rotation'}
+          </button>
+        </div>,
+        
+        <button
+          key="settings"
+          onClick={() => setShowTimeSettings(true)}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+        >
+          <Cog6ToothIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.settings')}
+        </button>,
+        
+        <button
+          key="generate"
+          onClick={generateAutomaticSchedule}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+        >
+          <ArrowPathIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.generateSchedule')}
+        </button>,
+        
+        <button
+          key="help"
+          onClick={() => setShowHelp(!showHelp)}
+          className={`inline-flex items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-lg ${
+            showHelp
+              ? 'bg-blue-600 text-white border-blue-600'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <InformationCircleIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.help', 'Hilfe')}
+        </button>,
+
+        <button
+          key="export"
+          onClick={exportTimeplan}
+          className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
+        >
+          <DocumentChartBarIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.export')}
+        </button>
+      ]}
+    >
+      {/* Help Panels - Point 118: Toggleable via Help button */}
+      {showHelp && <HelpPanels />}
+
+      {/* Content based on loading state and view mode */}
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">{t('timePlanning.loading')}</p>
+        </div>
+      ) : competitions.length === 0 && squads.length === 0 ? (
+        <div className="text-center py-8">
+          <ClockIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('timePlanning.noData')}</h3>
+          <p className="text-sm text-gray-600">{t('timePlanning.noDataDescription')}</p>
+        </div>
+      ) : (
+        <>
+          {viewMode === 'sessions' && (
+            <SessionsView
+              sessionGroups={sessionGroups}
+              selectedSession={selectedSession}
+              setSelectedSession={setSelectedSession}
+              timeSettings={timeSettings}
+              handleEditCompetition={handleEditCompetition}
+              handleDragStart={handleDragStart}
+              handleDragOver={handleDragOver}
+              handleDrop={handleDrop}
+              calculateDeviceSchedule={calculateDeviceSchedule}
+              setDeviceSchedule={setDeviceSchedule}
+              setViewMode={(mode: string) => setViewMode(mode as 'sessions' | 'gantt' | 'timeline' | 'rotation')}
+            />
+          )}
+          
+          {viewMode === 'gantt' && (
+            <GanttView
+              deviceSchedule={deviceSchedule}
+              competitions={competitions}
+              ganttStartTime={ganttStartTime}
+              ganttEndTime={ganttEndTime}
+              setGanttStartTime={setGanttStartTime}
+              setGanttEndTime={setGanttEndTime}
+              generateTimeSlots={() => generateTimeSlots(ganttStartTime, ganttEndTime)}
+            />
+          )}
+          
+          {viewMode === 'timeline' && (
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('timePlanning.timeline')}</h3>
+              <p className="text-gray-600">{t('timePlanning.timelineComingSoon')}</p>
+              <div className="mt-4 text-sm text-gray-500">
+                <p>Loaded: {competitions.length} competitions, {squads.length} squads</p>
+              </div>
+            </div>
+          )}
+          
+          {viewMode === 'rotation' && (
+            <div className="bg-white border rounded-lg p-6">
+              <TimePlanningRotation
+                ref={rotationRef}
+                eventId={eventId || ''}
+                squads={squads.map(s => {
+                  let competitionId = -1;
+                  if (Array.isArray(s.competitions) && s.competitions.length > 0) {
+                    const compObj = competitions.find(c => c.name === s.competitions[0]);
+                    if (compObj) competitionId = compObj.id;
+                  }
+                  return {
+                    name: s.name,
+                    participantCount: s.participantCount,
+                    competitionId
+                  };
+                })}
+                devices={(() => {
+                  if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
+                    const comp = sessionGroups[0].competitions[0];
+                    let disciplineObjs: { name: string }[] = [];
+                    const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === comp.id);
+                    if (filtered.length > 0) {
+                      disciplineObjs = filtered.map(sd => ({ name: sd.tfx_disziplinen.var_name }));
+                    } else if (disciplineCache.current[comp.id] && disciplineCache.current[comp.id].length > 0) {
+                      disciplineObjs = disciplineCache.current[comp.id].map((d: any, idx: number) => ({ name: d.var_name || d.var_disziplinname || d.name || `Device ${idx + 1}` }));
+                    } else if (comp.disciplineCount && comp.disciplineCount > 0) {
+                      disciplineObjs = Array.from({ length: comp.disciplineCount }, (_, i) => ({ name: `Device ${i + 1}` }));
+                    }
+                    return disciplineObjs;
+                  }
+                  return [];
+                })()}
+                competitions={competitions}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Time Settings Modal */}
+      <UnifiedModal
+        isOpen={showTimeSettings}
+        onClose={() => setShowTimeSettings(false)}
+        title="Time Settings"
+        size="2xl"
+        showFooter={false}
+      >
+        <TimeSettingsModal
+          timeSettings={timeSettings}
+          setTimeSettings={setTimeSettings}
+          setShowTimeSettings={setShowTimeSettings}
+          saveTimeSettings={saveTimeSettings}
+        />
+      </UnifiedModal>
+
+      {/* Edit Competition Times Modal */}
+      <UnifiedModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingCompetition(null);
+        }}
+        title={t('timePlanning.editTimes', 'Zeiten bearbeiten')}
+        size="md"
+        showFooter={true}
+        onSave={handleSaveCompetitionTimes}
+        saveLabel={t('common.save', 'Speichern')}
+        showCancel={true}
+        cancelLabel={t('common.cancel', 'Abbrechen')}
+      >
+        {editingCompetition && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">{editingCompetition.name}</h4>
+              <p className="text-sm text-gray-600">Nr. {editingCompetition.number}</p>
+            </div>
+            
+            {/* Event Date (read-only, shown once at top) */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-blue-900">
+                  📅 {t('timePlanning.eventDate', 'Veranstaltungsdatum')}:
+                </span>
+                <span className="text-sm text-blue-700">
+                  {selectedEvent?.dat_eventstartdate 
+                    ? new Date(selectedEvent.dat_eventstartdate).toLocaleDateString('de-DE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })
+                    : '-'}
+                </span>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">
+                {t('timePlanning.dateInfo', 'Das Datum wird vom Veranstaltungsdatum übernommen. Nur die Uhrzeit kann individuell eingestellt werden.')}
+              </p>
+            </div>
+            
+            {/* Warmup Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('timePlanning.warmupTime', 'Einturnzeit')}
+              </label>
+              <input
+                type="time"
+                value={editingCompetition.warmupTime || ''}
+                onChange={(e) => setEditingCompetition({
+                  ...editingCompetition,
+                  warmupTime: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            {/* Start Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('timePlanning.startTime', 'Startzeit')}
+              </label>
+              <input
+                type="time"
+                value={editingCompetition.startTime || ''}
+                onChange={(e) => setEditingCompetition({
+                  ...editingCompetition,
+                  startTime: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        )}
+      </UnifiedModal>
+    </EventManagementTemplate>
+  );
+}
