@@ -4068,3 +4068,5 @@ Point 125: (wird noch definiert)
 3. MEDIUM-Dateien refactoren (< 800 Zeilen)
 
 ---
+
+129. es gibt eine src/types/ScoreCaptur.types.ts ist diese obsolete, da es auch eine im ordner pages/ScoreCapture gibt. 

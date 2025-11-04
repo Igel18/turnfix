@@ -9,3 +9,5 @@ export { useFormulaCalculation } from './useFormulaCalculation';
 export { useScoreValidation } from './useScoreValidation';
 export { useScoreActions } from './useScoreActions';
 export { useScoreLiveUpdates } from './useScoreLiveUpdates';
+export { useSquadDisciplineStatus } from './useSquadDisciplineStatus';
+export { useScoreHandlers } from './useScoreHandlers';
