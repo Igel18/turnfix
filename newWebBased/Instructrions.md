@@ -3777,12 +3777,233 @@ scoreCapture: {
 
 #### 🎯 Nächster Punkt
 
-Point 124: (wird noch definiert)
+Point 124: TimePlanning.tsx Refactoring (siehe unten)
 
-**Mögliche nächste Schritte**:
-1. Hook-Vereinfachung für ScoreCapture-Integration
-2. EventParticipants weitere Optimierung
-3. Weitere große Dateien refactoren (> 800 Zeilen)
-4. Shared Components identifizieren und extrahieren
+---
+
+## Point 124: TimePlanning Refactoring - Preparation Phase ✅ COMPLETE
+
+**Datum**: 2025-11-04  
+**Status**: ✅ STRUCTURE PREPARED - Archive Pattern Applied
+
+### Ziel
+Refactoring der `TimePlanning.tsx` (1,232 Zeilen) nach SoC-Prinzipien:
+- Datei > 800 Zeilen muss refaktoriert werden (SoC Guideline)
+- 1,232 Zeilen = HIGH PRIORITY
+- Ziel: Aufteilung in Components, Hooks, Types
+
+### Umgesetztes Refactoring (Preparation Phase)
+
+#### 📦 Neue Struktur (Vorbereitet)
+```
+TimePlanning/
+├── index.tsx                    # Re-Export mit vollständigem Refactoring-Plan
+├── TimePlanning.types.ts        # ✅ TypeScript-Definitionen (70 lines)
+├── components/ (geplant)
+│   ├── SessionsView.tsx         # ~200 lines - renderSessionOverview
+│   ├── GanttView.tsx            # ~150 lines - renderGanttChart
+│   ├── TimelineView.tsx         # ~100 lines - Timeline view
+│   ├── TimeSettingsModal.tsx    # ~120 lines - renderTimeSettings
+│   ├── CompetitionTimeEditor.tsx # ~80 lines - Edit competition times
+│   └── HelpPanels.tsx           # ~100 lines - Info boxes
+└── hooks/ (geplant)
+    ├── useTimePlanning.ts       # ~150 lines - Data loading
+    ├── useDragDrop.ts           # ~30 lines - Drag&Drop logic
+    ├── useTimeCalculation.ts    # ~100 lines - Time utilities
+    └── useDeviceSchedule.ts     # ~150 lines - Schedule calculation
+```
+
+#### 📊 Code-Metriken
+
+**Aktuell**:
+- 1 Datei: `TimePlanning.tsx` (1,232 Zeilen) → `_archive/TimePlanning.tsx`
+- 🟠 HIGH PRIORITY: > 800 Zeilen
+
+**Geplant** (nach vollem Refactoring):
+- 11 Dateien gesamt (~950 Zeilen Code + Types)
+- Durchschnitt: ~86 Zeilen pro Datei
+- Reduzierung: ~23% durch Modularisierung
+
+**Bereits extrahiert**:
+- ✅ `TimePlanning.types.ts` (70 Zeilen)
+- ✅ Types: TimeSettings, Competition, Squad, DeviceSchedule, SessionGroup, GanttTimeSlot
+- ✅ Konstante: DEFAULT_TIME_SETTINGS
+
+#### 🔧 Identifizierte Komponenten & Funktionen
+
+##### Geplante Components (6 Dateien, ~750 Zeilen)
+
+**1. SessionsView.tsx** (~200 lines):
+- Zeilen 471-670 in Original
+- Funktion: `renderSessionOverview()`
+- Features: Session groups, competitions, squads, drag&drop
+
+**2. GanttView.tsx** (~150 lines):
+- Zeilen 784-902 in Original
+- Funktion: `renderGanttChart()`
+- Features: Device-centric Gantt chart, time slots, session grouping
+
+**3. TimelineView.tsx** (~100 lines):
+- Aktuell: Placeholder
+- Features: Timeline visualization (to be implemented)
+
+**4. TimeSettingsModal.tsx** (~120 lines):
+- Zeilen 672-782 in Original
+- Funktion: `renderTimeSettings()`
+- Features: Exercise duration, rotation interval, breaks, warmup
+
+**5. CompetitionTimeEditor.tsx** (~80 lines):
+- Zeilen in Modal-Render
+- Features: Edit competition start/warmup times
+
+**6. HelpPanels.tsx** (~100 lines):
+- BlueInfoBox: Olympische Gerätereihenfolge
+- YellowInfoBox: Workflow-Hinweise
+
+##### Geplante Hooks (4 Dateien, ~430 Zeilen)
+
+**1. useTimePlanning.ts** (~150 lines):
+- Zeilen 133-201: `loadData()`
+- Zeilen 129-131: `refetch()`
+- Features: Data fetching, competitions, squads, squadDisciplines
+
+**2. useDragDrop.ts** (~30 lines):
+- Zeilen 3-14: Bereits als Hook definiert!
+- Features: Drag start, drag over, drop handlers
+- Return: handleDragStart, handleDragOver, handleDrop
+
+**3. useTimeCalculation.ts** (~100 lines):
+- Zeilen 270-273: `parseTime()`
+- Zeilen 275-281: `addMinutesToTime()`
+- Zeilen 250-268: `generateTimeSlots()`
+- Features: Time parsing, arithmetic, slot generation
+
+**4. useDeviceSchedule.ts** (~150 lines):
+- Zeilen 202-248: `groupCompetitionsBySessions()`
+- Zeilen 284-397: `calculateDeviceSchedule()`
+- Features: Session grouping, device scheduling, warmup calculation
+
+##### Event Handlers (bleiben in index.tsx)
+- `handleAddRound()` (Lines 425-432)
+- `handleEditCompetition()` (Lines 434-437)
+- `handleSaveCompetitionTimes()` (Lines 439-455)
+- `saveTimeSettings()` (Lines 399-406)
+- `generateAutomaticSchedule()` (Lines 408-415)
+- `exportTimeplan()` (Lines 417-423)
+
+#### 🎯 Besonderheiten
+
+**4 verschiedene Views**:
+1. **Sessions** - Durchgänge-Übersicht mit Wettkämpfen
+2. **Timeline** - Zeitstrahl (Placeholder)
+3. **Gantt** - Geräte-zentriertes Gantt-Chart
+4. **Rotation** - Bereits separiert (`TimePlanningRotation.tsx`, 538 Zeilen)
+
+**Komplexe Logic**:
+- `disciplineCache` (useRef) für Competition → Disciplines mapping
+- 3-stufiger Fallback für Disziplinen-Daten (squadDisciplines, cache, generic)
+- Drag & Drop für Competition-Zuordnung zu Durchgängen
+- Geräte-Schedule-Berechnung mit Konflikt-Erkennung
+
+**Integration mit separater Datei**:
+- `TimePlanningRotation.tsx` (538 Zeilen) - Bereits modular
+- Verwendet `useRef` (rotationRef) für Child-Kommunikation
+
+#### ✅ Aktueller Status (Preparation Phase Complete)
+
+**Was wurde gemacht**:
+- ✅ Types extrahiert nach `TimePlanning.types.ts`
+- ✅ Verzeichnisstruktur erstellt (components/, hooks/)
+- ✅ Archive-Pattern angewendet (→ `_archive/TimePlanning.tsx`)
+- ✅ Import-Pfade korrigiert (`../` → `../../`)
+- ✅ index.tsx mit vollständigem Refactoring-Plan
+- ✅ Build erfolgreich (5.67s)
+- ✅ Keine TypeScript-Fehler
+
+**Temporäre Lösung**:
+- `index.tsx` exportiert aus `_archive/TimePlanning.tsx`
+- Vollständige Dokumentation aller zu extrahierenden Funktionen
+- Klare Zeilen-Referenzen für jede Funktion/Component
+
+**Für vollständige Integration**:
+1. Components extrahieren (6 Dateien)
+2. Hooks extrahieren (4 Dateien)
+3. Main Orchestration in index.tsx (~200 Zeilen)
+4. Build testen und TypeScript-Fehler beheben
+5. Funktionalität verifizieren
+
+#### 📁 Geänderte Dateien
+
+**Neu erstellt**:
+- `client/src/pages/TimePlanning/index.tsx` (Re-Export + Dokumentation)
+- `client/src/pages/TimePlanning/TimePlanning.types.ts` (70 Zeilen)
+- `client/src/pages/TimePlanning/components/` (Verzeichnis)
+- `client/src/pages/TimePlanning/hooks/` (Verzeichnis)
+
+**Verschoben**:
+- `client/src/pages/TimePlanning.tsx` → `client/src/pages/_archive/TimePlanning.tsx`
+
+**Modifiziert** (Import-Pfade):
+- `client/src/pages/_archive/TimePlanning.tsx` (1,232 Zeilen)
+  - `import UnifiedModal from '../components/UnifiedModal'` → `'../../components/UnifiedModal'`
+  - `import TimePlanningRotation from './TimePlanningRotation'` → `'../TimePlanningRotation'`
+  - `import { useEvent } from '../contexts/EventContext'` → `'../../contexts/EventContext'`
+  - `import { apiGet, apiPost, apiPut, invalidateCache } from '../utils/api'` → `'../../utils/api'`
+
+#### 📊 Build-Metriken
+
+**Nach Refactoring** (mit Re-Export):
+```
+✓ built in 5.67s
+2,266 modules (+1), 1,523 kB bundle (gleich)
+```
+
+**Bundle**: Keine Veränderung (nur Struktur, keine Code-Änderung)  
+**Module**: +1 (TimePlanning.types.ts)
+
+#### 🔄 Vergleich mit anderen Refactorings
+
+| Metric | EventParticipants | ScoreCapture | TimePlanning |
+|--------|-------------------|--------------|--------------|
+| **Original** | 1,937 lines | 1,987 lines | 1,232 lines |
+| **Status** | ✅ Complete | 🚧 Partial | 🚧 Preparation |
+| **Components** | 4 files | 4 files | 6 planned |
+| **Hooks** | 0 files | 4 files | 4 planned |
+| **Types Extracted** | ❌ No | ✅ Yes | ✅ Yes |
+| **Archive Pattern** | ✅ Yes | ✅ Yes | ✅ Yes |
+
+**Unterschiede**:
+- TimePlanning hat mehr Views (4) als andere Pages
+- Bereits eine separate Datei (TimePlanningRotation.tsx)
+- Komplexere State-Management (disciplineCache, extraRounds)
+- Drag & Drop bereits als Hook definiert (leichte Extraktion)
+
+#### 🎓 Lessons Learned
+
+**Archive-Pattern Vorteile**:
+- ✅ Sofort lauffähige App
+- ✅ Schrittweises Refactoring möglich
+- ✅ Alte Version als Referenz
+- ✅ Kein Risiko durch komplette Neuentwicklung
+
+**Preparation Phase Vorteile**:
+- ✅ Klare Dokumentation aller Funktionen
+- ✅ Zeilen-Referenzen für exakte Extraktion
+- ✅ Geplante Struktur vorab definiert
+- ✅ Types bereits extrahiert (weniger Circular Dependencies)
+
+**Next Implementation**:
+- Components zuerst extrahieren (größte Auswirkung)
+- Hooks dann extrahieren (weniger Dependencies)
+- Main Orchestration als letztes (integriert alles)
+
+#### 🎯 Nächster Punkt
+
+Point 125: (wird noch definiert)
+
+**Optionen**:
+1. TimePlanning vollständiges Refactoring (Components + Hooks)
+2. Andere große Datei aus HIGH-Liste (SquadManagement, EventManagement)
+3. MEDIUM-Dateien refactoren (< 800 Zeilen)
 
 ---

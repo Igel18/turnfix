@@ -13,9 +13,9 @@ function useDragDrop({ onDrop }: { onDrop: (compId: number, newRound: number) =>
   return { handleDragStart, handleDragOver, handleDrop };
 }
 import { useTranslation } from 'react-i18next'
-import UnifiedModal from '../components/UnifiedModal'
+import UnifiedModal from '../../components/UnifiedModal'
 import { BlueInfoBox, YellowInfoBox } from '@/components/InfoBoxes'
-import TimePlanningRotation, { TimePlanningRotationRef } from './TimePlanningRotation'
+import TimePlanningRotation, { TimePlanningRotationRef } from '../TimePlanningRotation'
 import { useSearchParams } from 'react-router-dom'
 import { 
   ClockIcon,
@@ -33,8 +33,8 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
-import { useEvent } from '../contexts/EventContext'
-import { apiGet, apiPost, apiPut, invalidateCache } from '../utils/api'
+import { useEvent } from '../../contexts/EventContext'
+import { apiGet, apiPost, apiPut, invalidateCache } from '../../utils/api'
 
 interface TimeSettings {
   exerciseDurationMinutes: number // How long an exercise takes at a device
