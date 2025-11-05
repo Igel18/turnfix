@@ -4497,3 +4497,5 @@ Hier gibt es einen Unterordner für die Neue Webbasierte version von TurnFix. Ic
 133. Infos zu "Bahn"
 Eine Bahn ist idr. eine Gerätebahn bzw. ein Kampfgericht. Ein Wettkampf sollte von einem Kampfgericht gewertet werden, damit alle Turner in diesem Wettkampf einheitliche Wertungen erhalten. Somit kann man auch nur die Wettkämpfe den Bahnen zuweisen und nicht die Riegen. 
 Das sollte in der Doku mit aufgenommen werden. 
+
+134. der part mit den Riegen und Wettkampfzuordnung von der Rotation View scheint ja mindestens 2x programmiert zu sein. kann man das refactoren (soc)? 

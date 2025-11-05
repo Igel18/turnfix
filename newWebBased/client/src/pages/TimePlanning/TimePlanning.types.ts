@@ -29,7 +29,8 @@ export interface Competition {
 export interface Squad {
   name: string
   participantCount: number
-  competitions: string[] // Competition names this squad participates in
+  competitions: string[] // Competition names this squad participates in (legacy)
+  competitionIds?: number[] // Competition IDs (new, preferred)
 }
 
 export interface DeviceSchedule {

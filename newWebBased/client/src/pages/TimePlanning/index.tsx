@@ -31,6 +31,7 @@ import TimePlanningRotation, { TimePlanningRotationRef } from '../TimePlanningRo
 
 // Local Components & Hooks
 import { SessionsView, GanttView, TimeSettingsModal, HelpPanels } from './components';
+import SquadStartDeviceEditor from './components/SquadStartDeviceEditor';
 import { useDragDrop, useTimeCalculation } from './hooks';
 import type { TimeSettings, Competition, Squad, DeviceSchedule, SessionGroup } from './TimePlanning.types';
 import { DEFAULT_TIME_SETTINGS } from './TimePlanning.types';
@@ -60,6 +61,11 @@ export default function TimePlanning() {
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [editingStartDevices, setEditingStartDevices] = useState<{ 
+    competitionId: number; 
+    competitionName: string; 
+    round: number 
+  } | null>(null);
   
   // Ref to TimePlanningRotation child component (Point 121: call addBahn from parent)
   const rotationRef = useRef<TimePlanningRotationRef>(null);
@@ -104,6 +110,12 @@ export default function TimePlanning() {
       setCompetitions(loadedCompetitions);
       setSquads(loadedSquads);
       setSquadDisciplines(loadedSquadDisciplines);
+
+      // Debug: Check if competitionIds are present
+      if (typeof window !== 'undefined' && (window as any).DEBUG) {
+        console.log('[TimePlanning] Loaded squads:', loadedSquads);
+        console.log('[TimePlanning] First squad competitionIds:', loadedSquads[0]?.competitionIds);
+      }
 
       // Preload discipline lists for all competitions (for fallback)
       for (const comp of loadedCompetitions) {
@@ -191,11 +203,18 @@ export default function TimePlanning() {
         competitions,
         startTime: startTimes.length > 0 ? startTimes[0] : null,
         startDate: startDates.length > 0 ? startDates[0] : null,
-        squads: squads.filter(squad => 
-          squad.competitions.some(compName => 
-            competitions.some(comp => comp.name === compName)
-          )
-        )
+        squads: squads.filter(squad => {
+          const hasIds = squad.competitionIds && competitions.some(comp => 
+            squad.competitionIds!.includes(comp.id)
+          );
+          // ALWAYS log for debugging (temporarily)
+          console.log(`[TimePlanning] Session ${session}, Squad "${squad.name}":`, {
+            competitionIds: squad.competitionIds,
+            sessionCompetitionIds: competitions.map(c => c.id),
+            included: hasIds
+          });
+          return hasIds;
+        })
       };
     }).sort((a, b) => a.session - b.session);
 
@@ -255,8 +274,17 @@ export default function TimePlanning() {
         console.log(`[TimePlanning] Competition ${competition.id} (${competition.name}) devices from ${debugSource}:`, disciplineObjs.map(d => d.name));
       }
 
-      sessionGroup.squads.forEach(squad => {
-        if (!squad.competitions.includes(competition.name)) return;
+      sessionGroup.squads.forEach((squad, squadIndex) => {
+        // Check if squad is assigned to this competition (use IDs for accuracy)
+        const isAssigned = squad.competitionIds && squad.competitionIds.includes(competition.id);
+        console.log(`[calculateDeviceSchedule] Competition "${competition.name}" (${competition.id}), Squad "${squad.name}":`, {
+          competitionId: competition.id,
+          squadCompetitionIds: squad.competitionIds,
+          isAssigned,
+          startTime: compStartTime,
+          disciplines: disciplineObjs.length
+        });
+        if (!isAssigned) return;
 
         let currentTime = compStartTime;
 
@@ -276,17 +304,31 @@ export default function TimePlanning() {
           }
         }
 
-        // Schedule each device rotation, enforcing exclusivity
+        // Find starting device (where isFirst = true), or distribute squads across devices
+        const startDeviceIndex = disciplineObjs.findIndex(d => d.isFirst);
+        // If no start device is defined, automatically distribute squads across available devices
+        // This ensures squads start at different devices and don't block each other
+        const effectiveStartIndex = startDeviceIndex >= 0 ? startDeviceIndex : (squadIndex % disciplineObjs.length);
+        
+        console.log(`[calculateDeviceSchedule] Squad "${squad.name}" (index ${squadIndex}) starts at device index ${effectiveStartIndex} (${disciplineObjs[effectiveStartIndex]?.name})`);
+
+        // Schedule each device rotation, starting from the squad's start device
         for (let i = 0; i < disciplineObjs.length; i++) {
-          const device = disciplineObjs[i];
+          // Rotate through devices starting from the squad's start device
+          const deviceIndex = (effectiveStartIndex + i) % disciplineObjs.length;
+          const device = disciplineObjs[deviceIndex];
           const startTime = currentTime;
           // Calculate duration: participantCount * exerciseDurationMinutes
           const squadDuration = (squad.participantCount || 1) * timeSettings.exerciseDurationMinutes;
           const endTime = addMinutesToTime(startTime, squadDuration);
           const deviceKey = `${device.name}__${startTime}`;
           const squadKey = `${squad.name}__${startTime}`;
+          
+          const deviceOccupied = deviceTimeMap.has(deviceKey);
+          const squadOccupied = squadTimeMap.has(squadKey);
+          
           // Only schedule if device and squad are both free at this time
-          if (!deviceTimeMap.has(deviceKey) && !squadTimeMap.has(squadKey)) {
+          if (!deviceOccupied && !squadOccupied) {
             schedule.push({
               squadName: squad.name,
               deviceName: device.name,
@@ -298,12 +340,26 @@ export default function TimePlanning() {
             });
             deviceTimeMap.set(deviceKey, squad.name);
             squadTimeMap.set(squadKey, device.name);
+          } else {
+            console.log(`[calculateDeviceSchedule] SKIPPED: Squad "${squad.name}" on "${device.name}" at ${startTime}`, {
+              deviceOccupied,
+              squadOccupied,
+              deviceOccupiedBy: deviceOccupied ? deviceTimeMap.get(deviceKey) : null,
+              squadOccupiedOn: squadOccupied ? squadTimeMap.get(squadKey) : null
+            });
           }
           // Move to next rotation time (squadDuration + break)
           currentTime = addMinutesToTime(currentTime, squadDuration + timeSettings.breakBetweenDevicesMinutes);
         }
       });
     });
+
+    console.log(`[calculateDeviceSchedule] Generated ${schedule.length} schedule entries:`, schedule.map(s => ({
+      squad: s.squadName,
+      device: s.deviceName,
+      competition: s.competition,
+      time: `${s.startTime}-${s.endTime}`
+    })));
 
     return schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
@@ -329,14 +385,91 @@ export default function TimePlanning() {
   };
 
   const exportTimeplan = async () => {
+    if (!selectedEvent || !eventId) {
+      alert(t('timePlanning.selectEventFirst'));
+      return;
+    }
+
     try {
-      await apiPost(`/events/${eventId}/export-timeplan`, {
-        sessionGroups,
-        timeSettings,
-        deviceSchedule
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      const { setupPDFWithHeaderFooter, addPDFHeaderFooter, getUnifiedTableStyles } = await import('../../utils/pdfUtils');
+
+      const doc = new jsPDF('landscape', 'mm', 'a4');
+      
+      // Setup PDF with header/footer
+      setupPDFWithHeaderFooter(doc, selectedEvent, t('timePlanning.title'));
+
+      let startY = 40;
+
+      // Group by sessions (Durchgänge)
+      sessionGroups.forEach((sessionGroup) => {
+        // Check if we need a new page
+        if (startY > 160) {
+          doc.addPage();
+          startY = 20;
+        }
+
+        // Session header
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(
+          `${t('timePlanning.round')} ${sessionGroup.session}` +
+          (sessionGroup.startTime ? ` - ${t('timePlanning.startTime')}: ${sessionGroup.startTime}` : ''),
+          14,
+          startY
+        );
+        startY += 8;
+
+        // Prepare table data
+        const tableData = sessionGroup.competitions.map((comp) => {
+          // Find squads for this competition
+          const compSquads = squads.filter((s: any) => 
+            s.competitionIds && s.competitionIds.includes(comp.id)
+          );
+          
+          const squadNames = compSquads.map((s: any) => s.name).join(', ') || '-';
+          const participantCount = compSquads.reduce((sum: number, s: any) => sum + (s.participantCount || 0), 0);
+
+          return [
+            comp.number || '-',
+            comp.name,
+            comp.int_bahn?.toString() || '-',
+            squadNames,
+            participantCount.toString(),
+            comp.warmupTime || '-',
+            comp.startTime || '-',
+          ];
+        });
+
+        autoTable(doc, {
+          head: [[
+            t('timePlanning.number'),
+            t('common.competition'),
+            'Bahn',
+            t('timePlanning.squads'),
+            t('timePlanning.participants'),
+            t('timePlanning.warmupTime'),
+            t('timePlanning.startTime'),
+          ]],
+          body: tableData,
+          ...getUnifiedTableStyles(),
+          startY,
+          margin: { left: 14, right: 14 },
+        });
+
+        startY = (doc as any).lastAutoTable.finalY + 12;
       });
+
+      // Add header and footer
+      addPDFHeaderFooter({ doc, event: selectedEvent, documentTitle: t('timePlanning.title') });
+      
+      // Save PDF
+      doc.save(`zeitplan-${eventId}-${new Date().toISOString().split('T')[0]}.pdf`);
+      
     } catch (error) {
       console.error('Error exporting timeplan:', error);
+      alert(t('common.error') + ': ' + (error as Error).message);
     }
   };
 
@@ -509,7 +642,7 @@ export default function TimePlanning() {
           className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
         >
           <DocumentChartBarIcon className="h-4 w-4 mr-2" />
-          {t('timePlanning.export')}
+          {t('timePlanning.exportPDF')}
         </button>
       ]}
     >
@@ -537,6 +670,13 @@ export default function TimePlanning() {
               setSelectedSession={setSelectedSession}
               timeSettings={timeSettings}
               handleEditCompetition={handleEditCompetition}
+              handleEditStartDevices={(comp) => {
+                setEditingStartDevices({
+                  competitionId: comp.id,
+                  competitionName: comp.name,
+                  round: comp.round
+                });
+              }}
               handleDragStart={handleDragStart}
               handleDragOver={handleDragOver}
               handleDrop={handleDrop}
@@ -546,17 +686,33 @@ export default function TimePlanning() {
             />
           )}
           
-          {viewMode === 'gantt' && (
-            <GanttView
-              deviceSchedule={deviceSchedule}
-              competitions={competitions}
-              ganttStartTime={ganttStartTime}
-              ganttEndTime={ganttEndTime}
-              setGanttStartTime={setGanttStartTime}
-              setGanttEndTime={setGanttEndTime}
-              generateTimeSlots={() => generateTimeSlots(ganttStartTime, ganttEndTime)}
-            />
-          )}
+          {viewMode === 'gantt' && (() => {
+            // Auto-calculate device schedule if empty
+            if (deviceSchedule.length === 0) {
+              const allSchedules: DeviceSchedule[] = [];
+              sessionGroups.forEach(group => {
+                if (group.startTime) {
+                  const schedule = calculateDeviceSchedule(group);
+                  allSchedules.push(...schedule);
+                }
+              });
+              if (allSchedules.length > 0) {
+                setDeviceSchedule(allSchedules);
+              }
+            }
+            
+            return (
+              <GanttView
+                deviceSchedule={deviceSchedule}
+                competitions={competitions}
+                ganttStartTime={ganttStartTime}
+                ganttEndTime={ganttEndTime}
+                setGanttStartTime={setGanttStartTime}
+                setGanttEndTime={setGanttEndTime}
+                generateTimeSlots={() => generateTimeSlots(ganttStartTime, ganttEndTime)}
+              />
+            );
+          })()}
           
           {viewMode === 'timeline' && (
             <div className="bg-white border rounded-lg p-6">
@@ -717,6 +873,21 @@ export default function TimePlanning() {
           </div>
         )}
       </UnifiedModal>
+
+      {/* Squad Start Device Editor Dialog */}
+      {editingStartDevices && eventId && (
+        <SquadStartDeviceEditor
+          eventId={Number(eventId)}
+          competitionId={editingStartDevices.competitionId}
+          competitionName={editingStartDevices.competitionName}
+          round={editingStartDevices.round}
+          onClose={() => setEditingStartDevices(null)}
+          onSave={() => {
+            refetch();
+            setDeviceSchedule([]); // Clear device schedule to force recalculation
+          }}
+        />
+      )}
     </EventManagementTemplate>
   );
 }

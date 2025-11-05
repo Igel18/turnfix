@@ -28,6 +28,7 @@ interface SessionsViewProps {
   setSelectedSession: (session: number | null) => void;
   timeSettings: TimeSettings;
   handleEditCompetition: (comp: Competition) => void;
+  handleEditStartDevices: (comp: Competition) => void;
   handleDragStart: (compId: number) => void;
   handleDragOver: (e: React.DragEvent) => void;
   handleDrop: (session: number) => void;
@@ -42,6 +43,7 @@ export function SessionsView({
   setSelectedSession,
   timeSettings,
   handleEditCompetition,
+  handleEditStartDevices,
   handleDragStart,
   handleDragOver,
   handleDrop,
@@ -120,19 +122,31 @@ export function SessionsView({
                       draggable
                       onDragStart={() => handleDragStart(comp.id)}
                     >
-                      {/* Edit Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditCompetition(comp);
-                        }}
-                        className="absolute top-2 right-2 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title={t('common.edit')}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
+                      {/* Edit Buttons */}
+                      <div className="absolute top-2 right-2 flex gap-1 z-10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditStartDevices(comp);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors shadow-sm bg-white border border-gray-200"
+                          title={t('timePlanning.editStartDevices')}
+                        >
+                          <PlayIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditCompetition(comp);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shadow-sm bg-white border border-gray-200"
+                          title={t('common.edit')}
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                      </div>
                       
-                      <div className="flex items-start justify-between pr-8">
+                      <div className="flex items-start justify-between pr-20">
                         <div>
                           <h5 className="font-medium text-gray-900">{comp.name}</h5>
                           <p className="text-sm text-gray-600">Nr. {comp.number}</p>

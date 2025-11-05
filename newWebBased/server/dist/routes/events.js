@@ -2636,5 +2636,37 @@ router.post('/import-test', upload.single('xmlFile'), async (req, res) => {
         });
     }
 });
+// Export timeplan (placeholder for now)
+router.post('/:id/export-timeplan', authBypass_1.authenticateToken, async (req, res) => {
+    try {
+        const eventId = parseInt(req.params.id);
+        if (isNaN(eventId)) {
+            return res.status(400).json({ error: 'Invalid event ID' });
+        }
+        const { sessionGroups, timeSettings, deviceSchedule } = req.body;
+        console.log('[EXPORT-TIMEPLAN] Export requested for event:', eventId);
+        console.log('[EXPORT-TIMEPLAN] Session groups:', sessionGroups?.length || 0);
+        console.log('[EXPORT-TIMEPLAN] Time settings:', timeSettings);
+        console.log('[EXPORT-TIMEPLAN] Device schedule items:', deviceSchedule?.length || 0);
+        // TODO: Implement actual export logic (PDF, Excel, etc.)
+        // For now, just return success
+        res.json({
+            success: true,
+            message: 'Timeplan export functionality coming soon',
+            data: {
+                eventId,
+                sessionGroupsCount: sessionGroups?.length || 0,
+                deviceScheduleCount: deviceSchedule?.length || 0
+            }
+        });
+    }
+    catch (error) {
+        console.error('❌ Export timeplan error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
 exports.default = router;
 //# sourceMappingURL=events.js.map

@@ -1671,6 +1671,7 @@
     "settings": "Einstellungen",
     "generateSchedule": "Plan generieren",
     "export": "Exportieren",
+    "exportPDF": "Zeitplan (PDF)",
     "noData": "Keine Daten verfügbar",
     "noDataDescription": "Keine Wettkämpfe oder Riegen für diese Veranstaltung gefunden.",
     "viewMode": {
@@ -1713,7 +1714,13 @@
     "firstDevice": "Erstes Gerät",
     "exerciseDuration": "Übungsdauer",
     "selectEventFirst": "Bitte wählen Sie zuerst eine Veranstaltung aus",
-    "overview": "Übersicht"
+    "overview": "Übersicht",
+    "startDevices": "Startgeräte festlegen",
+    "editStartDevices": "Startgeräte bearbeiten",
+    "startDeviceInfo": "Startgerät auswählen",
+    "startDeviceDescription": "Wählen Sie für jede Riege das Gerät aus, an dem sie ihre Rotation beginnen soll. Dies verhindert Konflikte, wenn mehrere Riegen gleichzeitig starten.",
+    "noSquadsFound": "Keine Riegen für diesen Wettkampf gefunden",
+    "noStartDeviceSelected": "Kein Startgerät ausgewählt"
   },
   "meldematrix": {
     "title": "Meldematrix",

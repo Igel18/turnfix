@@ -35,6 +35,9 @@ export function GanttView({
 }: GanttViewProps) {
   const { t } = useTranslation();
   
+  console.log('[GanttView] Received deviceSchedule:', deviceSchedule.length, 'entries');
+  console.log('[GanttView] Squads in schedule:', [...new Set(deviceSchedule.map(s => s.squadName))]);
+  
   const timeSlots = generateTimeSlots();
   
   // Group deviceSchedule by session (competition round)

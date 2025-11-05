@@ -466,9 +466,25 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         name: squads[0].name,
         participantCount: squads[0].participantCount,
         competitionsCount: squads[0].competitions.length,
-        firstCompetition: squads[0].competitions[0]
+        firstCompetition: squads[0].competitions[0],
+        competitionIds: squads[0].competitionIds
       } : null
     });
+    
+    // Debug: Log competitions by round (EXPANDED)
+    const competitionsByRound = competitions.reduce((acc: any, comp) => {
+      if (!acc[comp.round]) acc[comp.round] = [];
+      acc[comp.round].push({ id: comp.id, name: comp.name, number: comp.number });
+      return acc;
+    }, {});
+    console.log('[TIME_PLANNING] Competitions by round:', JSON.stringify(competitionsByRound, null, 2));
+    
+    // Debug: Show all squads with their competition IDs
+    console.log('[TIME_PLANNING] Squad mappings:', squads.map(s => ({
+      name: s.name,
+      competitionIds: s.competitionIds,
+      participantCount: s.participantCount
+    })));
 
     res.json({
       competitions,
@@ -480,6 +496,64 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error fetching time planning data:', error);
     res.status(500).json({ error: 'Failed to fetch time planning data' });
+  }
+});
+
+// Update squad start device (bol_erstes_geraet)
+router.put('/squad-start-device', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { eventId, squadName, round, disciplineId } = req.body;
+    
+    if (!eventId || !squadName || round === undefined || !disciplineId) {
+      return res.status(400).json({ 
+        error: 'Event ID, squad name, round, and discipline ID are required' 
+      });
+    }
+
+    const eventIdNum = Number(eventId);
+    const roundNum = Number(round);
+    const disciplineIdNum = Number(disciplineId);
+
+    // First, set all bol_erstes_geraet to false for this squad in this round
+    await prisma.tfx_riegen_x_disziplinen.updateMany({
+      where: {
+        int_veranstaltungenid: eventIdNum,
+        var_riege: squadName,
+        int_runde: roundNum
+      },
+      data: {
+        bol_erstes_geraet: false
+      }
+    });
+
+    // Then, set the selected discipline to true
+    const updated = await prisma.tfx_riegen_x_disziplinen.updateMany({
+      where: {
+        int_veranstaltungenid: eventIdNum,
+        var_riege: squadName,
+        int_runde: roundNum,
+        int_disziplinenid: disciplineIdNum
+      },
+      data: {
+        bol_erstes_geraet: true
+      }
+    });
+
+    if (updated.count === 0) {
+      return res.status(404).json({ 
+        error: 'Squad-discipline combination not found' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Start device updated for squad ${squadName}`,
+      updated: updated.count
+    });
+
+  } catch (error) {
+    console.error('Error updating squad start device:', error);
+    res.status(500).json({ error: 'Failed to update squad start device' });
   }
 });
 

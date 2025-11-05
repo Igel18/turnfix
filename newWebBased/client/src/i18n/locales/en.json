@@ -1675,6 +1675,7 @@
     "settings": "Settings",
     "generateSchedule": "Generate Schedule",
     "export": "Export",
+    "exportPDF": "Schedule (PDF)",
     "noData": "No Data Available",
     "noDataDescription": "No competitions or squads found for this event.",
     "viewMode": {
@@ -1716,7 +1717,13 @@
     "firstDevice": "First Apparatus",
     "exerciseDuration": "Exercise Duration",
     "selectEventFirst": "Please select an event first",
-    "overview": "Overview"
+    "overview": "Overview",
+    "startDevices": "Set Start Apparatus",
+    "editStartDevices": "Edit Start Apparatus",
+    "startDeviceInfo": "Select Start Apparatus",
+    "startDeviceDescription": "Select the apparatus where each squad should start their rotation. This prevents conflicts when multiple squads start simultaneously.",
+    "noSquadsFound": "No squads found for this competition",
+    "noStartDeviceSelected": "No start apparatus selected"
   },
   "meldematrix": {
     "title": "Registration Matrix",
