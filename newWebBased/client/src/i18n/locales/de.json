@@ -1676,7 +1676,8 @@
     "viewMode": {
       "sessions": "Durchgänge",
       "timeline": "Zeitstrahl",
-      "gantt": "Gantt"
+      "gantt": "Gantt",
+      "rotation": "Rotation"
     },
     "addRound": "Durchgang hinzufügen",
     "timeRange": {

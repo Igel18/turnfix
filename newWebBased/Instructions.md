@@ -3685,8 +3685,8 @@ Wenn das gut ist, sollten wir das in dem Chatmode (myown.chatmode.md) aufnehmen 
 
 124. Auf der Seite Zeitplanung 
 http://localhost:3001/time-planning?eventId=59 
-a) Der Button "Neue Bahn" sollte entweder neben "Durchgang hinzufügen" oder je nach Ansicht entweder "Durchgang hinzufügen" oder "Neue Bahn" da dran stehen. 
-b) Wir haben einen Button Hilfe im Header. Das ist gut so. Aber wir haben noch einen überflüssigen Button "Olympische Reihenfolge". Der muss raus. 
+a) Der Button "Neue Bahn" sollte entweder neben "Durchgang hinzufügen" oder je nach Ansicht entweder "Durchgang hinzufügen" oder "Neue Bahn" da dran stehen. ✅
+b) Wir haben einen Button Hilfe im Header. Das ist gut so. Aber wir haben noch einen überflüssigen Button "Olympische Reihenfolge". Der muss raus. ✅
 c) in dem Durchgang 2 sind 2 Bahnen verfügbar. Aber anscheinend sich nicht alle Riegen visualisiert sonder nur 3 stück. 
 
 125. Ist SoC auch für den Server möglich (z.B. Route-Datei, Controller-Datei, Service-Datei)? Dann sollten wir das umsetzen und dokumentieren und auch in der myown mit aufnehmen. 
@@ -3722,7 +3722,7 @@ c) Das sollte doch allgemeingültig sein irgendwo in einer Util oder so:
     }
   }
 
-127. auf der Seite 
+127. auf der Seite ✅
 http://localhost:3001/results?eventId=77
 wir im header Rangliste für Event 77 angezeigt. 
 Es reicht hier wenn ein hard kodierter Text als Beschreibung steht ohne zahlen / Ids die niemandem etwas sagen.
@@ -4488,3 +4488,12 @@ http://localhost:3001/event-participants?eventId=77&squadName=w
 - client/src/i18n/locales/de.json (+ printLabels, + pageTitle)
 - client/src/i18n/locales/en.json (+ printLabels, + pageTitle)
 **Note**: Add Participant Modal noch nicht vollständig implementiert (TODO) 
+
+132. Dokumentation 
+es gibt einen Ordner mit vorhandener Dokumentattion für Turnfix 
+turnfix/documentation/
+Hier gibt es einen Unterordner für die Neue Webbasierte version von TurnFix. Ich habe schon einige UI-Screenshots erstellt. Bitte Erstelle anhand der fortlaufend erstellten dokumentations md files eine sauber strukturiert doku in diesem ordner mit den Funktionen, Workflow, und integriere die Screenshots. 
+
+133. Infos zu "Bahn"
+Eine Bahn ist idr. eine Gerätebahn bzw. ein Kampfgericht. Ein Wettkampf sollte von einem Kampfgericht gewertet werden, damit alle Turner in diesem Wettkampf einheitliche Wertungen erhalten. Somit kann man auch nur die Wettkämpfe den Bahnen zuweisen und nicht die Riegen. 
+Das sollte in der Doku mit aufgenommen werden. 

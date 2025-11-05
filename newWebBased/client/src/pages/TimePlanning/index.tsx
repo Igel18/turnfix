@@ -398,23 +398,32 @@ export default function TimePlanning() {
       icon={ClockIcon}
       showEventContext={true}
       showViewToggle={false}
-      showAddButton={true}
-      onAdd={handleAddRound}
-      addButtonText={t('timePlanning.addRound', 'Add Round')}
+      showAddButton={false}
       loading={loading}
-      customActions={[
-        // "Neue Bahn" Button - Point 121: Only visible in rotation view
-        viewMode === 'rotation' && (
+      customBelowActions={
+        // Point 124a: "Durchgang hinzufügen" and "Neue Bahn" side by side
+        <div className="flex space-x-2">
           <button
-            key="add-bahn"
-            onClick={() => rotationRef.current?.addBahn()}
+            onClick={handleAddRound}
             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
           >
             <span className="text-xl mr-2">+</span>
-            {t('timePlanning.addBahn', 'Neue Bahn')}
+            {t('timePlanning.addRound', 'Durchgang hinzufügen')}
           </button>
-        ),
-        
+          
+          {/* "Neue Bahn" Button - Only visible in rotation view */}
+          {viewMode === 'rotation' && (
+            <button
+              onClick={() => rotationRef.current?.addBahn()}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <span className="text-xl mr-2">+</span>
+              {t('timePlanning.addBahn', 'Neue Bahn')}
+            </button>
+          )}
+        </div>
+      }
+      customActions={[
         // View Mode Toggle - standardized like other pages
         <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
           <button
@@ -564,12 +573,28 @@ export default function TimePlanning() {
               <TimePlanningRotation
                 ref={rotationRef}
                 eventId={eventId || ''}
+                onDataChange={refetch}
                 squads={squads.map(s => {
                   let competitionId = -1;
-                  if (Array.isArray(s.competitions) && s.competitions.length > 0) {
-                    const compObj = competitions.find(c => c.name === s.competitions[0]);
-                    if (compObj) competitionId = compObj.id;
+                  
+                  // Try to get competitionId from competitionIds array (preferred)
+                  if (Array.isArray((s as any).competitionIds) && (s as any).competitionIds.length > 0) {
+                    competitionId = (s as any).competitionIds[0];
+                    console.log('✅ Squad mapped via competitionIds:', s.name, '→', competitionId);
                   }
+                  // Fallback: try to find by name
+                  else if (Array.isArray(s.competitions) && s.competitions.length > 0) {
+                    const compObj = competitions.find(c => c.name === s.competitions[0]);
+                    if (compObj) {
+                      competitionId = compObj.id;
+                      console.log('✅ Squad mapped via name:', s.name, '→', competitionId);
+                    } else {
+                      console.warn('⚠️ Competition not found for squad:', s.name, 'competition name:', s.competitions[0]);
+                    }
+                  } else {
+                    console.warn('⚠️ Squad has no competitions:', s.name);
+                  }
+                  
                   return {
                     name: s.name,
                     participantCount: s.participantCount,

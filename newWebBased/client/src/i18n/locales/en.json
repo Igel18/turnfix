@@ -1680,7 +1680,8 @@
     "viewMode": {
       "sessions": "Sessions",
       "timeline": "Timeline",
-      "gantt": "Gantt"
+      "gantt": "Gantt",
+      "rotation": "Rotation"
     },
     "timeRange": {
       "from": "From",

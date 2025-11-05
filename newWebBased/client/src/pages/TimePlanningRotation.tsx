@@ -5,7 +5,7 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { apiPut } from "../utils/api";
+import { apiPut, invalidateCache } from "../utils/api";
 
 export interface Squad {
   name: string;
@@ -21,6 +21,11 @@ interface RotationEntry {
   squad: string;
   device: string;
   rotation: number;
+}
+
+interface CompetitionWithSquads {
+  competition: Competition;
+  squads: Squad[];
 }
 
 function generateRoundRobinSchedule(
@@ -70,30 +75,13 @@ interface TimePlanningRotationProps {
   squads: Squad[];
   devices: Device[];
   competitions: Competition[];
+  onDataChange?: () => void; // Callback to refetch data after Bahn assignment
 }
 
 interface Bahn {
   bahnNumber: number;
-  squads: Squad[];
+  competitions: CompetitionWithSquads[]; // Changed from squads to competitions with their squads
 }
-
-// Olympic apparatus order for reference
-const OLYMPIC_ORDER = {
-  male: [
-    { name: "Boden", icon: "🤸" },
-    { name: "Pauschenpferd", icon: "🐎" },
-    { name: "Ringe", icon: "⭕" },
-    { name: "Sprung", icon: "🏃" },
-    { name: "Barren", icon: "📏" },
-    { name: "Reck", icon: "🏗️" },
-  ],
-  female: [
-    { name: "Sprung", icon: "🏃" },
-    { name: "Stufenbarren", icon: "📐" },
-    { name: "Schwebebalken", icon: "⚖️" },
-    { name: "Boden", icon: "🤸" },
-  ],
-};
 
 // Ref interface for parent component to call functions
 export interface TimePlanningRotationRef {
@@ -103,17 +91,13 @@ export interface TimePlanningRotationRef {
 const TimePlanningRotation = forwardRef<
   TimePlanningRotationRef,
   TimePlanningRotationProps
->(({ eventId: _eventId, squads, devices, competitions }, ref) => {
+>(({ eventId: _eventId, squads, devices, competitions, onDataChange }, ref) => {
   const [bahnen, setBahnen] = useState<Bahn[]>([]);
-  const [draggedSquad, setDraggedSquad] = useState<{
-    squad: Squad;
+  const [draggedCompetition, setDraggedCompetition] = useState<{
+    competitionWithSquads: CompetitionWithSquads;
     fromBahn: number;
   } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showOlympicOrder, setShowOlympicOrder] = useState(false);
-  const [selectedGender, setSelectedGender] = useState<"male" | "female">(
-    "male",
-  );
   const [selectedRound, setSelectedRound] = useState<number>(1); // Currently selected Durchgang
 
   // Group competitions by round (Durchgang)
@@ -136,55 +120,87 @@ const TimePlanningRotation = forwardRef<
     return competitions.filter((comp) => (comp.round || 1) === selectedRound);
   }, [competitions, selectedRound]);
 
-  // Get squads for the currently selected round only
+  // Get squads for the currently selected round
+  // A squad belongs to a round if its competition belongs to that round
   const currentRoundSquads = useMemo(() => {
     const compIds = new Set(currentRoundCompetitions.map((c) => c.id));
+    // Include squads that have a competition in this round
     return squads.filter((s) => compIds.has(s.competitionId));
   }, [squads, currentRoundCompetitions]);
 
-  // Map squads to their current Bahn using competitions (only for selected round)
+  // Map competitions to their current Bahn (only for selected round)
   useEffect(() => {
     const comps = currentRoundCompetitions;
     const sqs = currentRoundSquads;
-    if (!comps.length && !sqs.length) {
+    
+    console.log('🔍 TimePlanningRotation DEBUG:', {
+      selectedRound,
+      totalCompetitions: competitions.length,
+      currentRoundCompetitions: comps.length,
+      totalSquads: squads.length,
+      currentRoundSquads: sqs.length,
+      competitionsWithBahn: comps.filter(c => c.int_bahn).length,
+      squadsWithCompetition: sqs.filter(s => s.competitionId).length,
+      squadsWithValidCompetition: sqs.filter(s => s.competitionId > 0).length,
+      squadsWithNoCompetition: sqs.filter(s => s.competitionId === -1).length,
+      squadNames: sqs.map(s => s.name),
+      competitionNames: comps.map(c => c.name),
+      squadCompetitionMapping: sqs.map(s => ({ squad: s.name, competitionId: s.competitionId, participants: s.participantCount }))
+    });
+    
+    if (!comps.length) {
       setBahnen([]);
       return;
     }
-    // Group squads by their competition's int_bahn using competitionId
-    const bahnMap = new Map<number, Squad[]>();
+    
+    // Group competitions by their int_bahn
+    const bahnMap = new Map<number, CompetitionWithSquads[]>();
+    
     comps.forEach((comp) => {
       const bahn = comp.int_bahn || 1;
-      const squad = sqs.find((s) => s.competitionId === comp.id);
-      if (squad) {
-        if (!bahnMap.has(bahn)) bahnMap.set(bahn, []);
-        bahnMap.get(bahn)!.push(squad);
+      
+      // Find ALL squads for this competition
+      const squadsForComp = sqs.filter((s) => s.competitionId === comp.id);
+      
+      console.log(`🔍 Competition ${comp.id} "${comp.name}":`, {
+        bahn,
+        squadsFound: squadsForComp.length,
+        squads: squadsForComp.map(s => ({ name: s.name, participants: s.participantCount, competitionId: s.competitionId }))
+      });
+      
+      // Only add competitions that have at least one squad with participants
+      if (squadsForComp.length === 0 || squadsForComp.every(s => s.participantCount === 0)) {
+        console.log('⚠️ Skipping competition without squads or participants:', comp.id, comp.name);
+        return; // Skip this competition
       }
-    });
-    // If a squad is not assigned, put it in Bahn 1 by default
-    sqs.forEach((squad) => {
-      const assigned = Array.from(bahnMap.values()).some((list) =>
-        list.some((s) => s.competitionId === squad.competitionId),
-      );
-      if (!assigned) {
-        if (!bahnMap.has(1)) bahnMap.set(1, []);
-        bahnMap.get(1)!.push(squad);
+      
+      const competitionWithSquads: CompetitionWithSquads = {
+        competition: comp,
+        squads: squadsForComp
+      };
+      
+      if (!bahnMap.has(bahn)) {
+        bahnMap.set(bahn, []);
       }
+      bahnMap.get(bahn)!.push(competitionWithSquads);
     });
+    
     // Build Bahn array
     const bahnenArr: Bahn[] = Array.from(bahnMap.entries()).map(
-      ([bahnNumber, squads]) => ({ bahnNumber, squads }),
+      ([bahnNumber, competitions]) => ({ bahnNumber, competitions }),
     );
+    
     // Sort by bahnNumber
     bahnenArr.sort((a, b) => a.bahnNumber - b.bahnNumber);
     setBahnen(bahnenArr);
   }, [currentRoundCompetitions, currentRoundSquads]);
 
-  // Add a new Bahn (just adds a new Bahn number, not persisted until a squad is assigned)
+  // Add a new Bahn (just adds a new Bahn number, not persisted until a competition is assigned)
   const handleAddBahn = () => {
     setBahnen((prev) => {
       const maxBahn =
         prev.length > 0 ? Math.max(...prev.map((b) => b.bahnNumber)) : 1;
-      return [...prev, { bahnNumber: maxBahn + 1, squads: [] }];
+      return [...prev, { bahnNumber: maxBahn + 1, competitions: [] }];
     });
   };
 
@@ -194,84 +210,46 @@ const TimePlanningRotation = forwardRef<
   }));
 
   // Drag handlers
-  const handleDragStart = (squad: Squad, fromBahn: number) => {
-    setDraggedSquad({ squad, fromBahn });
+  const handleDragStart = (competitionWithSquads: CompetitionWithSquads, fromBahn: number) => {
+    setDraggedCompetition({ competitionWithSquads, fromBahn });
   };
+  
   const handleDrop = async (toBahn: number) => {
-    if (!draggedSquad) return;
-    if (!Array.isArray(competitions)) {
-      // eslint-disable-next-line no-console
-      console.error(
-        "[Bahn-Assignment] competitions is undefined or not an array:",
-        competitions,
-      );
-      alert("Fehler: Wettbewerbsdaten (competitions) fehlen!");
-      setDraggedSquad(null);
-      setLoading(false);
-      return;
-    }
+    if (!draggedCompetition) return;
+    
     setLoading(true);
     try {
-      // Find the competition for this squad using competitionId
-      const comp = competitions.find(
-        (c) => c.id === draggedSquad.squad.competitionId,
-      );
-      if (!comp) {
-        // Debug log if not found
-        // eslint-disable-next-line no-console
-        console.error(
-          "[Bahn-Assignment] No competition found for squad",
-          draggedSquad.squad.name,
-          {
-            squad: draggedSquad.squad,
-            squadCompetitionId: draggedSquad.squad.competitionId,
-            allCompetitionIds: competitions.map((c) => c.id),
-            allCompetitionNames: competitions.map((c) => c.name),
-          },
-        );
-        alert("Keine Competition für diese Riege gefunden!");
-        return;
-      }
-      // Debug log API payload
-      // eslint-disable-next-line no-console
+      const comp = draggedCompetition.competitionWithSquads.competition;
+      
       console.log(
-        "[Bahn-Assignment] Assigning squad",
-        draggedSquad.squad.name,
-        "to Bahn",
-        toBahn,
-        "for competition",
-        comp,
+        "[Bahn-Assignment] Assigning competition",
+        comp.name,
+        "with",
+        draggedCompetition.competitionWithSquads.squads.length,
+        "squads to Bahn",
+        toBahn
       );
+      
       await apiPut(`/time-planning/competition/${comp.id}/bahn`, {
         bahn: toBahn,
       });
-      // Update UI state optimistically
-      setBahnen((prev) =>
-        prev.map((bahn) => {
-          // Remove from old Bahn
-          if (bahn.bahnNumber === draggedSquad.fromBahn) {
-            return {
-              ...bahn,
-              squads: bahn.squads.filter(
-                (s) => s.name !== draggedSquad.squad.name,
-              ),
-            };
-          }
-          // Add to new Bahn
-          if (bahn.bahnNumber === toBahn) {
-            if (!bahn.squads.some((s) => s.name === draggedSquad.squad.name)) {
-              return { ...bahn, squads: [...bahn.squads, draggedSquad.squad] };
-            }
-          }
-          return bahn;
-        }),
-      );
+      
+      console.log('✅ Bahn assignment saved successfully');
+      
+      // Invalidate cache to force fresh data load
+      invalidateCache('/time-planning');
+      
+      // Trigger data reload in parent component
+      // The useEffect will then rebuild bahnen based on fresh data
+      if (onDataChange) {
+        await onDataChange(); // Wait for data to reload
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[Bahn-Assignment] Error during API call:", e);
       alert("Fehler beim Speichern der Bahn-Zuordnung!");
     } finally {
-      setDraggedSquad(null);
+      setDraggedCompetition(null);
       setLoading(false);
     }
   };
@@ -286,16 +264,8 @@ const TimePlanningRotation = forwardRef<
             Rotation & Bahn-Zuordnung
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Riegen per Drag & Drop zwischen Bahnen verschieben
+            Wettkämpfe per Drag & Drop zwischen Bahnen verschieben
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 font-medium"
-            onClick={() => setShowOlympicOrder(!showOlympicOrder)}
-          >
-            {showOlympicOrder ? "🔼" : "🔽"} Olympische Reihenfolge
-          </button>
         </div>
       </div>
 
@@ -329,51 +299,6 @@ const TimePlanningRotation = forwardRef<
         </div>
       )}
 
-      {/* Olympic Order Reference (collapsible) */}
-      {showOlympicOrder && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-blue-900">
-              📘 Olympische Gerätereihenfolge
-            </h3>
-            <div className="flex gap-2">
-              <button
-                className={`px-3 py-1 rounded ${selectedGender === "male" ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}
-                onClick={() => setSelectedGender("male")}
-              >
-                Männer
-              </button>
-              <button
-                className={`px-3 py-1 rounded ${selectedGender === "female" ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}
-                onClick={() => setSelectedGender("female")}
-              >
-                Frauen
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            {OLYMPIC_ORDER[selectedGender].map((apparatus, idx) => (
-              <div key={apparatus.name} className="flex items-center gap-2">
-                <span className="text-2xl">{apparatus.icon}</span>
-                <div>
-                  <div className="text-sm font-medium text-gray-900">
-                    {idx + 1}. {apparatus.name}
-                  </div>
-                </div>
-                {idx < OLYMPIC_ORDER[selectedGender].length - 1 && (
-                  <span className="text-gray-400 ml-2">→</span>
-                )}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-blue-700 mt-3">
-            Diese Reihenfolge sollte bei der Planung und Durchführung von
-            Wettkämpfen beachtet werden, um einen reibungslosen Ablauf zu
-            gewährleisten.
-          </p>
-        </div>
-      )}
-
       {loading && (
         <div className="text-blue-600 mb-4 font-medium">💾 Speichern...</div>
       )}
@@ -392,7 +317,7 @@ const TimePlanningRotation = forwardRef<
         </div>
       </div>
 
-      {/* Bahnen with Drag & Drop */}
+      {/* Bahnen with Drag & Drop - Competition-based */}
       <div className="flex gap-6 mb-6 overflow-x-auto pb-2">
         {bahnen.length === 0 && (
           <div className="text-gray-400 italic">
@@ -402,7 +327,7 @@ const TimePlanningRotation = forwardRef<
         {bahnen.map((bahn) => (
           <div
             key={bahn.bahnNumber}
-            className="flex-shrink-0 w-64 bg-gray-50 border-2 border-gray-200 rounded-lg p-4"
+            className="flex-shrink-0 w-80 bg-gray-50 border-2 border-gray-200 rounded-lg p-4"
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => handleDrop(bahn.bahnNumber)}
           >
@@ -411,33 +336,53 @@ const TimePlanningRotation = forwardRef<
                 Bahn {bahn.bahnNumber}
               </span>
               <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                {bahn.squads.length} Riegen
+                {bahn.competitions.length} {bahn.competitions.length === 1 ? 'Wettkampf' : 'Wettkämpfe'}
               </span>
             </div>
-            <div className="space-y-2 min-h-[60px]">
-              {bahn.squads
-                .filter((squad) => squad.name !== "Bahn")
-                .map((squad) => (
-                  <div
-                    key={squad.name}
-                    className="bg-white border-2 border-gray-300 rounded-lg px-3 py-2 shadow-sm cursor-move hover:bg-blue-50 hover:border-blue-400 transition-all"
-                    draggable
-                    onDragStart={() => handleDragStart(squad, bahn.bahnNumber)}
-                  >
-                    <div className="font-medium text-gray-900">
-                      {squad.name}
+            <div className="space-y-3 min-h-[60px]">
+              {bahn.competitions.map((compWithSquads) => (
+                <div
+                  key={compWithSquads.competition.id}
+                  className="bg-white border-2 border-blue-300 rounded-lg shadow-sm cursor-move hover:bg-blue-50 hover:border-blue-500 hover:shadow-md transition-all"
+                  draggable
+                  onDragStart={() => handleDragStart(compWithSquads, bahn.bahnNumber)}
+                >
+                  {/* Competition Header */}
+                  <div className="bg-blue-100 px-3 py-2 rounded-t-lg border-b border-blue-200">
+                    <div className="font-semibold text-blue-900 text-sm">
+                      📋 {compWithSquads.competition.name}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {squad.participantCount} Teilnehmer
+                    <div className="text-xs text-blue-600 mt-1">
+                      {compWithSquads.squads.length} {compWithSquads.squads.length === 1 ? 'Riege' : 'Riegen'}
                     </div>
                   </div>
-                ))}
-              {bahn.squads.filter((squad) => squad.name !== "Bahn").length ===
-                0 && (
+                  
+                  {/* Squads List */}
+                  <div className="px-3 py-2 space-y-1">
+                    {compWithSquads.squads.map((squad) => (
+                      <div
+                        key={squad.name}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="text-gray-700">🏃 {squad.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {squad.participantCount} TN
+                        </span>
+                      </div>
+                    ))}
+                    {compWithSquads.squads.length === 0 && (
+                      <div className="text-xs text-gray-400 italic text-center py-1">
+                        Keine Riegen zugeordnet
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {bahn.competitions.length === 0 && (
                 <div className="text-xs text-gray-400 italic text-center py-4">
-                  Keine Riegen
+                  Keine Wettkämpfe
                   <br />
-                  Ziehe Riegen hierher
+                  Ziehe Wettkämpfe hierher
                 </div>
               )}
             </div>
@@ -457,11 +402,13 @@ const TimePlanningRotation = forwardRef<
           </div>
         ) : (
           bahnen.map((bahn) => {
-            const bahnSquads = bahn.squads.filter(
-              (squad) => squad.name !== "Bahn",
-            );
+            // Collect all squads from all competitions on this Bahn
+            const allSquadsOnBahn: Squad[] = [];
+            bahn.competitions.forEach((compWithSquads) => {
+              allSquadsOnBahn.push(...compWithSquads.squads);
+            });
 
-            if (bahnSquads.length === 0) {
+            if (allSquadsOnBahn.length === 0) {
               return (
                 <div
                   key={bahn.bahnNumber}
@@ -471,7 +418,7 @@ const TimePlanningRotation = forwardRef<
                     Bahn {bahn.bahnNumber}
                   </h4>
                   <p className="text-sm text-gray-500 italic">
-                    Keine Riegen zugeordnet. Ziehe Riegen per Drag & Drop auf
+                    Keine Wettkämpfe zugeordnet. Ziehe Wettkämpfe per Drag & Drop auf
                     diese Bahn.
                   </p>
                 </div>
@@ -481,7 +428,7 @@ const TimePlanningRotation = forwardRef<
             // Generate schedule outside of JSX to avoid hooks issues
             const schedule = (!devices || !Array.isArray(devices) || devices.length === 0)
               ? []
-              : generateRoundRobinSchedule(bahnSquads, devices);
+              : generateRoundRobinSchedule(allSquadsOnBahn, devices);
 
             return (
               <div
@@ -492,8 +439,10 @@ const TimePlanningRotation = forwardRef<
                   <h4 className="text-lg font-semibold text-white">
                     Bahn {bahn.bahnNumber}
                     <span className="ml-3 text-sm font-normal text-blue-100">
-                      ({bahnSquads.length}{" "}
-                      {bahnSquads.length === 1 ? "Riege" : "Riegen"})
+                      ({bahn.competitions.length}{" "}
+                      {bahn.competitions.length === 1 ? "Wettkampf" : "Wettkämpfe"},{" "}
+                      {allSquadsOnBahn.length}{" "}
+                      {allSquadsOnBahn.length === 1 ? "Riege" : "Riegen"})
                     </span>
                   </h4>
                 </div>
@@ -504,7 +453,7 @@ const TimePlanningRotation = forwardRef<
                         <th className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">
                           Rotation
                         </th>
-                        {bahnSquads.map((squad) => (
+                        {allSquadsOnBahn.map((squad) => (
                           <th
                             key={squad.name}
                             className="border border-gray-300 px-4 py-3 font-semibold text-gray-700"
@@ -518,7 +467,7 @@ const TimePlanningRotation = forwardRef<
                       {schedule.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={bahnSquads.length + 1}
+                            colSpan={allSquadsOnBahn.length + 1}
                             className="border border-gray-300 px-4 py-3 text-center text-gray-500 italic"
                           >
                             Keine Geräte verfügbar. Bitte wähle einen
@@ -556,10 +505,9 @@ const TimePlanningRotation = forwardRef<
 
       <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <p className="text-sm text-yellow-800">
-          <strong>💡 Hinweis:</strong> Jede Riege startet an einem anderen Gerät
-          und rotiert nach jeder Runde weiter. Riegen können per Drag & Drop
-          zwischen Bahnen verschoben werden. Änderungen werden automatisch
-          gespeichert.
+          <strong>💡 Hinweis:</strong> Wettkämpfe werden per Drag & Drop zwischen Bahnen verschoben. 
+          Alle Riegen eines Wettkampfs werden zusammen verschoben, da die Bahn-Zuordnung pro Wettkampf gespeichert wird.
+          Änderungen werden automatisch gespeichert.
         </p>
       </div>
     </div>

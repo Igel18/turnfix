@@ -441,7 +441,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       return {
         name: squad.name,
         participantCount: squad.participantCount,
-        competitions: squadCompetitions.map(c => c.name)
+        competitions: squadCompetitions.map(c => c.name),
+        competitionIds: Array.from(squad.competitions) // ADD: Direct IDs for mapping
       };
     });
 

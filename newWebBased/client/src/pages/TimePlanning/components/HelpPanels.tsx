@@ -3,47 +3,14 @@
  * Point 124: Separation of Concerns - Help Information
  * 
  * Displays context-sensitive help for time planning
- * - Olympische Gerätereihenfolge (Blue Info Box)
  * - Workflow-Hinweise (Yellow Info Box)
  */
 
-import { BlueInfoBox, YellowInfoBox } from '@/components/InfoBoxes';
+import { YellowInfoBox } from '@/components/InfoBoxes';
 
 export function HelpPanels() {
   return (
     <div className="space-y-4 mb-6">
-      {/* Olympische Reihenfolge */}
-      <BlueInfoBox title="📘 Olympische Gerätereihenfolge">
-        <p className="mb-3">
-          Bei der Turnen gibt es eine festgelegte Reihenfolge der Geräte, die als "Olympische Reihenfolge" bekannt ist.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="font-semibold text-blue-900 mb-2">Männer:</h4>
-            <ol className="list-decimal list-inside space-y-1 text-blue-800">
-              <li>Boden 🤸</li>
-              <li>Pauschenpferd 🐎</li>
-              <li>Ringe ⭕</li>
-              <li>Sprung 🦘</li>
-              <li>Barren 🏋️</li>
-              <li>Reck 🤸‍♂️</li>
-            </ol>
-          </div>
-          <div>
-            <h4 className="font-semibold text-blue-900 mb-2">Frauen:</h4>
-            <ol className="list-decimal list-inside space-y-1 text-blue-800">
-              <li>Sprung 🦘</li>
-              <li>Stufenbarren 🤸‍♀️</li>
-              <li>Schwebebalken ⚖️</li>
-              <li>Boden 🤸</li>
-            </ol>
-          </div>
-        </div>
-        <p className="text-xs text-blue-700 mt-3 italic">
-          Diese Reihenfolge sollte bei der Planung und Durchführung von Wettkämpfen beachtet werden, um einen reibungslosen Ablauf zu gewährleisten.
-        </p>
-      </BlueInfoBox>
-
       {/* Workflow-Hinweis */}
       <YellowInfoBox title="💡 Hinweis zur Zeitplanung">
         <div className="space-y-2">
