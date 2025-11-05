@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { XMarkIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import useViewToggle from '@/hooks/useViewToggle';
 import UnifiedPageHeader from '../UnifiedPageHeader';
 
@@ -256,27 +255,6 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
               </button>
             </div>
             {filterSection}
-          </div>
-        )}
-        
-        {/* Help Panel (if visible - UnifiedPageHeader just has toggle) */}
-        {showHelpPanel && helpContent && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-medium text-blue-900 flex items-center">
-                <QuestionMarkCircleIcon className="h-5 w-5 mr-2" />
-                {helpLabel || t('common.help')}
-              </h3>
-              <button
-                onClick={onToggleHelpPanel}
-                className="text-blue-400 hover:text-blue-600"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="text-sm text-blue-800">
-              {helpContent}
-            </div>
           </div>
         )}
 

@@ -365,6 +365,7 @@ export default function ScoreCapture() {
   return (
     <EventManagementTemplate
       title={t('scoreCapture.title')}
+      subtitle={t('scoreCapture.subtitle')}
       icon={ClipboardDocumentListIcon}
       showFilters={false}
       showHelpPanel={showHelpPanel}

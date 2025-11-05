@@ -3691,7 +3691,7 @@ c) in dem Durchgang 2 sind 2 Bahnen verfügbar. Aber anscheinend sich nicht alle
 
 125. Ist SoC auch für den Server möglich (z.B. Route-Datei, Controller-Datei, Service-Datei)? Dann sollten wir das umsetzen und dokumentieren und auch in der myown mit aufnehmen. 
 
-126. Refactoring durchführen und dokumentieren: 
+126. Refactoring durchführen (z.B. in den Util bereich) und dokumentieren: 
 a) Das sollte doch allgemeingültig sein irgendwo in einer Util oder so: 
   const getMedalEmoji = (rank: number) => {
     switch (rank) {
@@ -3727,9 +3727,9 @@ http://localhost:3001/results?eventId=77
 wir im header Rangliste für Event 77 angezeigt. 
 Es reicht hier wenn ein hard kodierter Text als Beschreibung steht ohne zahlen / Ids die niemandem etwas sagen.
 
-128. Auf der Seite 
+128. Auf der Seite ✅
 http://localhost:3001/score-capture?eventId=77&squadName=w 
-wird das Geschlecht nicht richtig visualisiert. (bei Weiblich)
+wird das Geschlecht nicht richtig visualisiert. (bei Weiblich) 
 
 ---
 

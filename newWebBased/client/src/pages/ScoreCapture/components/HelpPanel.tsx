@@ -5,7 +5,6 @@
  * Displays context-sensitive help for score capture
  */
 
-import { BlueInfoBox } from '@/components/InfoBoxes';
 import { useTranslation } from 'react-i18next';
 import type { HelpPanelProps } from '../ScoreCapture.types';
 
@@ -53,11 +52,5 @@ export function HelpPanel({ showJuryScores }: HelpPanelProps) {
     </div>
   );
 
-  return (
-    <div className="mb-6">
-      <BlueInfoBox>
-        {showJuryScores ? juryScoresHelp : simpleScoresHelp}
-      </BlueInfoBox>
-    </div>
-  );
+  return showJuryScores ? juryScoresHelp : simpleScoresHelp;
 }

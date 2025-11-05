@@ -1889,6 +1889,31 @@
       "competition": "Competition",
       "age": "Age",
       "gender": "Gender"
+    },
+    "help": {
+      "juryScores": {
+        "title": "Score Capture with Jury Scores",
+        "step1": "Select squad and choose apparatus/discipline",
+        "step2": "Enter individual jury scores for each participant (e.g. D-score, E-score)",
+        "step3": "Click 'Calculate' to automatically determine the final score",
+        "step4": "The score is saved automatically"
+      },
+      "simpleScores": {
+        "title": "Simple Score Capture",
+        "step1": "Select squad and choose apparatus/discipline",
+        "step2": "Enter only the final score for each participant",
+        "step3": "The score is saved automatically"
+      },
+      "navigation": {
+        "title": "Keyboard Navigation",
+        "enter": "Enter: Next field / Save",
+        "arrows": "Arrow keys: Navigate between fields"
+      },
+      "tips": {
+        "title": "Tips",
+        "validation": "Invalid values are marked in red",
+        "autosave": "Changes are saved automatically"
+      }
     }
   },
   "results": {

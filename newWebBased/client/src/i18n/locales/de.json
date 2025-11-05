@@ -1886,6 +1886,31 @@
       "competition": "Wettkampf",
       "age": "Alter",
       "gender": "Geschlecht"
+    },
+    "help": {
+      "juryScores": {
+        "title": "Wertungserfassung mit Jury-Wertungen",
+        "step1": "Riege auswählen und Gerät/Disziplin wählen",
+        "step2": "Für jeden Teilnehmer die einzelnen Jury-Wertungen (z.B. D-Note, E-Note) eingeben",
+        "step3": "Klicken Sie auf 'Berechnen' um den Endwert automatisch zu ermitteln",
+        "step4": "Die Wertung wird automatisch gespeichert"
+      },
+      "simpleScores": {
+        "title": "Einfache Wertungserfassung",
+        "step1": "Riege auswählen und Gerät/Disziplin wählen",
+        "step2": "Nur den Endwert für jeden Teilnehmer eingeben",
+        "step3": "Die Wertung wird automatisch gespeichert"
+      },
+      "navigation": {
+        "title": "Tastaturnavigation",
+        "enter": "Enter: Nächstes Feld / Speichern",
+        "arrows": "Pfeiltasten: Zwischen Feldern navigieren"
+      },
+      "tips": {
+        "title": "Tipps",
+        "validation": "Ungültige Werte werden rot markiert",
+        "autosave": "Änderungen werden automatisch gespeichert"
+      }
     }
   },
   "results": {
