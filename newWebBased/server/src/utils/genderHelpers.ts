@@ -7,17 +7,31 @@
  *    0: Unknown/Not set
  *    1: Male
  *    2: Female
+ * 
+ * API returns German values by default for legacy compatibility:
+ *   'männlich', 'weiblich', 'unbekannt'
  */
 
 export type GenderValue = 'male' | 'female' | 'unknown';
+export type GenderValueDE = 'männlich' | 'weiblich' | 'unbekannt';
 
 /**
- * Convert database int_geschlecht value to standardized string
+ * Convert database int_geschlecht value to standardized string (English)
  */
 export function mapDatabaseGenderToString(intGeschlecht: number | null | undefined): GenderValue {
   if (intGeschlecht === 1) return 'male';
   if (intGeschlecht === 2) return 'female';
   return 'unknown';
+}
+
+/**
+ * Convert database int_geschlecht value to German string
+ * Use this for API responses to maintain legacy compatibility
+ */
+export function mapDatabaseGenderToGerman(intGeschlecht: number | null | undefined): GenderValueDE {
+  if (intGeschlecht === 1) return 'männlich';
+  if (intGeschlecht === 2) return 'weiblich';
+  return 'unbekannt';
 }
 
 /**
@@ -30,7 +44,7 @@ export function mapStringGenderToDatabase(gender: string): number {
 }
 
 /**
- * Get SQL CASE statement for gender name mapping
+ * Get SQL CASE statement for gender name mapping (English)
  * Use this in raw SQL queries for consistent gender name generation
  */
 export function getGenderNameCaseStatement(columnAlias: string = 'geschlecht_name'): string {
@@ -39,6 +53,20 @@ export function getGenderNameCaseStatement(columnAlias: string = 'geschlecht_nam
       WHEN t.int_geschlecht = 1 THEN 'male'
       WHEN t.int_geschlecht = 2 THEN 'female'
       ELSE 'unknown'
+    END as ${columnAlias}
+  `.trim();
+}
+
+/**
+ * Get SQL CASE statement for German gender name mapping
+ * Use this in raw SQL queries for API responses
+ */
+export function getGermanGenderCaseStatement(tableAlias: string = 't', columnAlias: string = 'gender'): string {
+  return `
+    CASE 
+      WHEN ${tableAlias}.int_geschlecht = 1 THEN 'männlich'
+      WHEN ${tableAlias}.int_geschlecht = 2 THEN 'weiblich'
+      ELSE 'unbekannt'
     END as ${columnAlias}
   `.trim();
 }

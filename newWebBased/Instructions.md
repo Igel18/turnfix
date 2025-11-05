@@ -3723,7 +3723,7 @@ c) Das sollte doch allgemeingültig sein irgendwo in einer Util oder so:
 127. auf der Seite 
 http://localhost:3001/results?eventId=77
 wir im header Rangliste für Event 77 angezeigt. 
-Es reicht hier wenn ein hard kodierter Text als beschreibung steht ohne kryptische zahlen. 
+Es reicht hier wenn ein hard kodierter Text als Beschreibung steht ohne zahlen / Ids die niemandem etwas sagen.
 
 128. Auf der Seite 
 http://localhost:3001/score-capture?eventId=77&squadName=w 
@@ -4472,3 +4472,10 @@ http://localhost:3001/score-capture?eventId=77&squadName=w
 Teilnehmer
 Alter/Geschlecht 
 Diese infos müssen in separaten Spalten dargestellt werden. 
+
+131. Es fehlen Buttons. Früher waren diese verfügbar. Schau noch mal im alten code vor dem Refactoring nach. 
+http://localhost:3001/event-participants?eventId=77&squadName=w
+- Add Participatn 
+- Print Label gab es früher mal.  
+- CSV Export
+und es fehlen Lokalisierungen 

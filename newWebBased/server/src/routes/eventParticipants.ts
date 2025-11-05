@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
+import { mapDatabaseGenderToGerman, getGermanGenderCaseStatement } from '../utils/genderHelpers';
 
 const router = Router();
 
@@ -51,11 +52,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         w.bol_startet_nicht,
         w.int_startnummer,
         w.int_wertungenid,
-        CASE 
-          WHEN t.int_geschlecht = 1 THEN 'männlich'
-          WHEN t.int_geschlecht = 2 THEN 'weiblich'
-          ELSE 'unbekannt'
-        END as gender,
+        ${getGermanGenderCaseStatement('t', 'gender')},
+        t.int_geschlecht as raw_gender_value,
         CASE 
           WHEN t.dat_geburtstag IS NOT NULL THEN 
             EXTRACT(YEAR FROM AGE(t.dat_geburtstag))
@@ -115,7 +113,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           lastname: participant.var_nachname,
           club: participant.tfx_vereine?.var_name || 'Unknown Club',
           clubId: participant.int_vereineid || 0,
-          gender: participant.int_geschlecht === 1 ? 'männlich' : participant.int_geschlecht === 2 ? 'weiblich' : 'unbekannt',
+          gender: mapDatabaseGenderToGerman(participant.int_geschlecht),
+          rawGenderValue: participant.int_geschlecht,  // For debugging
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.dat_geburtstag ? 
             new Date().getFullYear() - new Date(participant.dat_geburtstag).getFullYear() : null,
@@ -167,6 +166,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           club: participant.verein_name || 'Unknown Club',
           clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
           gender: participant.gender as 'männlich' | 'weiblich' | 'unbekannt',
+          rawGenderValue: participant.raw_gender_value,  // For debugging
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.age ? Number(participant.age) : null,
           squad_name: participant.squad_name || null,
@@ -195,11 +195,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           t.dat_geburtstag,
           t.int_startpassnummer,
           v.var_name as verein_name,
-          CASE 
-            WHEN t.int_geschlecht = 1 THEN 'männlich'
-            WHEN t.int_geschlecht = 2 THEN 'weiblich'
-            ELSE 'unbekannt'
-          END as gender,
+          ${getGermanGenderCaseStatement('t', 'gender')},
+          t.int_geschlecht as raw_gender_value,
           CASE 
             WHEN t.dat_geburtstag IS NOT NULL THEN 
               EXTRACT(YEAR FROM AGE(t.dat_geburtstag))
@@ -224,6 +221,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         club: participant.verein_name || 'Unknown Club',
         clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
         gender: participant.gender as 'männlich' | 'weiblich' | 'unbekannt',
+        rawGenderValue: participant.raw_gender_value,  // For debugging
         birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
         age: participant.age ? Number(participant.age) : null,
         squad_name: null, // Available participants don't have squads assigned

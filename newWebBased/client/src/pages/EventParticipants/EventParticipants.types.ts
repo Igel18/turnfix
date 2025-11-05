@@ -3,6 +3,8 @@
  * Point 122: Separation of Concerns - Extracted from EventParticipants.tsx
  */
 
+import type { GenderValue } from '@/utils/genderHelpers';
+
 // Participant data structure
 export interface Participant {
   id: number;
@@ -10,7 +12,7 @@ export interface Participant {
   lastname: string;
   club: string;
   clubId: number;
-  gender: 'male' | 'female';
+  gender: GenderValue;
   birthYear: number;
   age: number;
   squad_name?: string;
@@ -43,7 +45,7 @@ export interface EditParticipantData {
   lastname: string;
   clubId: number;
   birthday: string;
-  gender: 'male' | 'female';
+  gender: GenderValue;
   squad_name: string;
   startet_nicht: boolean;
   bol_ak: boolean;

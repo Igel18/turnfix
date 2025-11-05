@@ -77,6 +77,18 @@ export function useScoreData({
       await delay(100);
       
       const participantsData = participantsResponse?.participants || [];
+      console.log('🔍 Loaded participants:', participantsData.length);
+      if (participantsData.length > 0) {
+        console.log('🔍 First participant sample:', participantsData[0]);
+        console.log('🔍 First participant gender:', participantsData[0].gender, 'type:', typeof participantsData[0].gender);
+        console.log('🔍 First participant rawGenderValue:', participantsData[0].rawGenderValue);
+        // Find a female participant for testing
+        const femaleParticipant = participantsData.find((p: any) => p.gender === 'weiblich' || p.rawGenderValue === 2);
+        if (femaleParticipant) {
+          console.log('🔍 Female participant found:', femaleParticipant.firstname, femaleParticipant.lastname);
+          console.log('🔍 Female gender:', femaleParticipant.gender, 'rawGenderValue:', femaleParticipant.rawGenderValue);
+        }
+      }
       setParticipants(participantsData);
       
       // Load squads for the event

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { normalizeGender, type GenderValue } from '@/utils/genderHelpers';
 
 /**
  * Unified Gender Badge Component
@@ -13,9 +14,9 @@ import { useTranslation } from 'react-i18next';
  * <GenderBadge value="female" />
  * <GenderBadge value="both" />
  * <GenderBadge value="unknown" />
+ * 
+ * Note: normalizeGender() is now imported from @/utils/genderHelpers
  */
-
-export type GenderValue = 'male' | 'female' | 'both' | 'unknown';
 
 interface GenderBadgeProps {
   value: GenderValue | string | boolean | number;
@@ -24,73 +25,23 @@ interface GenderBadgeProps {
 }
 
 /**
- * Normalizes various gender representations to standard values
- * Handles: male, female, both, männlich, weiblich, m, w, 1, 2, true, false, etc.
- */
-export function normalizeGender(value: any): GenderValue {
-  if (value === null || value === undefined || value === '') {
-    return 'unknown';
-  }
-
-  // Convert to string and normalize
-  const str = String(value).toLowerCase().trim();
-
-  // Male variations
-  if (
-    str === 'male' ||
-    str === 'm' ||
-    str === 'männlich' ||
-    str === '1' ||
-    str === 'true'
-  ) {
-    return 'male';
-  }
-
-  // Female variations
-  if (
-    str === 'female' ||
-    str === 'f' ||
-    str === 'w' ||
-    str === 'weiblich' ||
-    str === '2' ||
-    str === 'false'
-  ) {
-    return 'female';
-  }
-
-  // Both/Mixed variations
-  if (
-    str === 'both' ||
-    str === 'mixed' ||
-    str === 'alle' ||
-    str === 'all' ||
-    str === 'gemischt'
-  ) {
-    return 'both';
-  }
-
-  // Unknown/Undefined variations
-  if (
-    str === 'unknown' ||
-    str === 'unbekannt' ||
-    str === 'undefined' ||
-    str === 'null' ||
-    str === '-'
-  ) {
-    return 'unknown';
-  }
-
-  // Default to unknown if not recognized
-  return 'unknown';
-}
-
-/**
  * Gender Badge Component
  * Displays a color-coded badge for gender with localized text
  */
 export function GenderBadge({ value, className = '', showIcon = false }: GenderBadgeProps) {
   const { t } = useTranslation();
+  
+  // Debug logging
+  if (process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && (window as any).DEBUG)) {
+    console.log('🔍 GenderBadge received value:', value, 'type:', typeof value);
+  }
+  
   const normalizedValue = normalizeGender(value);
+  
+  // Debug logging
+  if (process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && (window as any).DEBUG)) {
+    console.log('🔍 GenderBadge normalized to:', normalizedValue);
+  }
 
   // Define color schemes for each gender
   const colorSchemes = {

@@ -541,7 +541,7 @@ Files modified:
 - Write meaningful commit messages
 - Use Prisma for database operations
 - Follow existing component patterns
-- Add debug logging when helpful and keep them behind DEBUG flag (don't delete the debug logs)
+- Add debug logging when helpful and keep them behind DEBUG flag (don't delete the debug logs) do not use process.env.NODE_ENV. Use debug.ts instead. 
 - Document complex logic
 - **Apply SoC (Separation of Concerns)** for files > 400 lines
 - Write small modular functions which can be reused across components 

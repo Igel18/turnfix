@@ -4,6 +4,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
+import { mapEnglishGenderToGerman, type GenderValue } from '@/utils/genderHelpers';
 import type { Competition, CompetitionValidation } from '../EventParticipants.types';
 
 export function useParticipantValidation() {
@@ -30,13 +31,13 @@ export function useParticipantValidation() {
    * Validate if participant fits competition requirements
    * @param competition - Competition to validate against
    * @param birthday - Participant's birthday
-   * @param gender - Participant's gender ('male' | 'female')
+   * @param gender - Participant's gender (GenderValue: 'male' | 'female' | 'both' | 'unknown')
    * @returns Validation result with reasons for invalidity
    */
   const validateCompetition = (
     competition: Competition,
     birthday: string,
-    gender: 'male' | 'female'
+    gender: GenderValue
   ): CompetitionValidation => {
     const reasons: string[] = [];
     const age = calculateAge(birthday);
@@ -54,38 +55,41 @@ export function useParticipantValidation() {
 
     // Gender validation
     // Convert participant gender to German format (database uses German)
-    const participantGender = gender === 'male' ? 'männlich' : 'weiblich';
+    // Only validate if gender is male or female (skip both/unknown)
+    if (gender === 'male' || gender === 'female') {
+      const participantGender = mapEnglishGenderToGerman(gender);
 
-    if (process.env.DEBUG === 'true') {
-      console.log('🔍 Gender Validation:', {
-        formDataGender: gender,
-        participantGender,
-        competitionGender: competition.gender,
-        competitionName: competition.name,
-        isGemischt: competition.gender === 'gemischt',
-        gendersMatch: competition.gender === participantGender,
-        shouldWarn:
-          competition.gender !== 'gemischt' &&
-          competition.gender !== participantGender,
-      });
-    }
+      if (process.env.DEBUG === 'true') {
+        console.log('🔍 Gender Validation:', {
+          formDataGender: gender,
+          participantGender,
+          competitionGender: competition.gender,
+          competitionName: competition.name,
+          isGemischt: competition.gender === 'gemischt',
+          gendersMatch: competition.gender === participantGender,
+          shouldWarn:
+            competition.gender !== 'gemischt' &&
+            competition.gender !== participantGender,
+        });
+      }
 
-    // Only warn if competition is NOT mixed AND genders don't match
-    if (
-      competition.gender !== 'gemischt' &&
-      competition.gender !== participantGender
-    ) {
-      const localizedParticipantGender = t(`common.gender.${gender}`);
-      const localizedCompetitionGender = t(
-        `common.gender.${competition.gender === 'männlich' ? 'male' : 'female'}`
-      );
+      // Only warn if competition is NOT mixed AND genders don't match
+      if (
+        competition.gender !== 'gemischt' &&
+        competition.gender !== participantGender
+      ) {
+        const localizedParticipantGender = t(`common.gender.${gender}`);
+        const localizedCompetitionGender = t(
+          `common.gender.${competition.gender === 'männlich' ? 'male' : 'female'}`
+        );
 
-      reasons.push(
-        t('eventParticipants.editParticipant.genderWarning', {
-          participantGender: localizedParticipantGender,
-          competitionGender: localizedCompetitionGender,
-        })
-      );
+        reasons.push(
+          t('eventParticipants.editParticipant.genderWarning', {
+            participantGender: localizedParticipantGender,
+            competitionGender: localizedCompetitionGender,
+          })
+        );
+      }
     }
 
     return { valid: reasons.length === 0, reasons };

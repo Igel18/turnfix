@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/utils/api';
+import { normalizeGender } from '@/utils/genderHelpers';
 import type {
   Participant,
   Competition,
@@ -51,40 +52,6 @@ export function useParticipants({ eventId }: UseParticipantsProps): UseParticipa
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [totalInEvent, setTotalInEvent] = useState<number>(0);
-
-  /**
-   * Normalize gender value from various formats to 'male' | 'female'
-   */
-  const normalizeGender = (genderValue: any): 'male' | 'female' => {
-    if (!genderValue) return 'male';
-
-    const genderStr = String(genderValue).toLowerCase();
-
-    if (
-      genderStr === 'weiblich' ||
-      genderStr === 'female' ||
-      genderStr === 'w' ||
-      genderStr === '2' ||
-      genderValue === 2
-    ) {
-      return 'female';
-    }
-
-    if (
-      genderStr === 'männlich' ||
-      genderStr === 'male' ||
-      genderStr === 'm' ||
-      genderStr === '1' ||
-      genderValue === 1
-    ) {
-      return 'male';
-    }
-
-    if (process.env.DEBUG === 'true') {
-      console.warn('⚠️ Unknown gender value, defaulting to male:', genderValue);
-    }
-    return 'male';
-  };
 
   /**
    * Load participants already in the event

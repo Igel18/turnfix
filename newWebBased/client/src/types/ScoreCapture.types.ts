@@ -1,12 +1,14 @@
 // ScoreCapture Type Definitions
 
+import type { GenderValue } from '@/utils/genderHelpers';
+
 export interface Participant {
   id: number;
   firstname: string;
   lastname: string;
   club: string;
   clubId: number;
-  gender: 'male' | 'female';
+  gender: GenderValue;
   age: number | null;
   birthYear: number | null;
   assignedCompetitions: number[];
