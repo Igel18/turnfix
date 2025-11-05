@@ -2084,6 +2084,7 @@
     }
   },
   "eventParticipants": {
+    "pageTitle": "Event Participants",
     "title": "Event Participants",
     "subtitle": "Add, remove and assign participants to competitions within the selected event",
     "searchPlaceholder": "Search participants by name, club or start number...",
@@ -2115,6 +2116,8 @@
       "genderWarning": "Gender {{participantGender}} does not match competition ({{competitionGender}})"
     },
     "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Name, club or start number...",
       "gender": "Gender",
       "club": "Club",
       "ageGroup": "Age Group",
@@ -2131,6 +2134,7 @@
     "actions": {
       "exportParticipantsList": "Participants List (PDF)",
       "exportParticipantsLabels": "Participant Labels (PDF)",
+      "printLabels": "Print Labels",
       "addToEvent": "Add to Event",
       "removeFromEvent": "Remove from Event",
       "editParticipant": "Edit"
@@ -2153,6 +2157,7 @@
       "squad": "Squad",
       "startNumber": "Start Number",
       "competitions": "Competitions",
+      "competitionsCount": "Competitions",
       "actions": "Actions",
       "registrationDate": "Registration Date",
       "status": "Status"
@@ -2188,12 +2193,14 @@
       "title": "Label Configuration",
       "rows": "Rows",
       "columns": "Columns",
-      "labelWidth": "Label Width (mm)",
-      "labelHeight": "Label Height (mm)",
-      "marginTop": "Top Margin (mm)",
-      "marginBottom": "Bottom Margin (mm)",
-      "marginLeft": "Left Margin (mm)",
-      "marginRight": "Right Margin (mm)",
+      "labelWidth": "Label Width",
+      "labelHeight": "Label Height",
+      "width": "Width",
+      "height": "Height",
+      "marginTop": "Top Margin",
+      "marginBottom": "Bottom Margin",
+      "marginLeft": "Left Margin",
+      "marginRight": "Right Margin",
       "showBorders": "Show label borders (for alignment)",
       "previewInfo": "Preview Info",
       "layout": "Layout",
@@ -2202,7 +2209,8 @@
       "totalLabelsPerPage": "Total labels per page",
       "pagesNeeded": "Pages needed",
       "cancel": "Cancel",
-      "exportLabels": "Export Labels PDF"
+      "exportLabels": "Export Labels PDF",
+      "generatePDF": "Generate Labels PDF"
     },
     "status": {
       "active": "Active",

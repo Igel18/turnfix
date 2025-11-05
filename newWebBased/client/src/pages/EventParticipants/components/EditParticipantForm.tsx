@@ -11,6 +11,7 @@ import type {
   Competition,
 } from '../EventParticipants.types';
 import { useParticipantValidation } from '../hooks/useParticipantValidation';
+import { normalizeGender } from '@/utils/genderHelpers';
 
 export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
   participant,
@@ -22,12 +23,15 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
   const { t } = useTranslation();
   const { calculateAge, validateCompetition } = useParticipantValidation();
 
+  // Normalize gender on initial load
+  const normalizedGender = normalizeGender(participant.gender);
+
   const [formData, setFormData] = useState<EditParticipantData>({
     firstname: participant.firstname,
     lastname: participant.lastname,
     clubId: participant.clubId,
     birthday: participant.birthYear ? `${participant.birthYear}-01-01` : '',
-    gender: participant.gender,
+    gender: normalizedGender,
     squad_name: participant.squad_name || '',
     startet_nicht: participant.startet_nicht,
     bol_ak: participant.bol_ak || false,
@@ -62,11 +66,7 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg border">
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
-        {t('eventParticipants.editParticipant.title')}
-      </h4>
-
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
@@ -154,16 +154,19 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
             onChange={(e) =>
               setFormData({
                 ...formData,
-                gender: e.target.value as 'male' | 'female',
+                gender: e.target.value as 'male' | 'female' | 'unknown',
               })
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="male">
-              {t('eventParticipants.editParticipant.male')}
+              {t('common.gender.male')}
             </option>
             <option value="female">
-              {t('eventParticipants.editParticipant.female')}
+              {t('common.gender.female')}
+            </option>
+            <option value="unknown">
+              {t('common.gender.unknown')}
             </option>
           </select>
         </div>

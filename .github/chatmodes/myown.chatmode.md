@@ -328,6 +328,9 @@ Use the previous code snipet because it works well to separate concerns.
 2. **Hooks**: Extract data fetching, filtering, validation logic
 3. **Components**: Extract forms, tables, dialogs > 150 lines
 4. **Utils**: Extract helper functions used multiple times
+In folder turnfix/newWebbased/cliend/src/utils for client 
+in folder turnfix/newWebbased/server/src/utils for Server 
+And use them as well. 
 
 **Benefits**:
 - ✅ Better maintainability and readability
@@ -461,6 +464,11 @@ const mapped = {
 ---
 
 ## 📚 Documentation References
+
+### General Guides
+- documentations must be located in the `turnfix/documentation/newWebbased` folder
+- pictures of the UI are located in `turnfix/documentation/newWebbased/images/ui-screenshots`
+
 
 ### Implementation Guides
 - `FRONTEND_SERVING_IMPLEMENTATION.md` - Production deployment

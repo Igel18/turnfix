@@ -2081,6 +2081,7 @@
     }
   },
   "eventParticipants": {
+    "pageTitle": "Veranstaltungsteilnehmer",
     "title": "Veranstaltungsteilnehmer",
     "subtitle": "Teilnehmer zur Veranstaltung hinzufügen, entfernen und Wettkämpfen zuordnen",
     "searchPlaceholder": "Teilnehmer nach Name, Verein oder Startnummer suchen...",
@@ -2115,6 +2116,8 @@
       "genderWarning": "Geschlecht {{participantGender}} passt nicht zum Wettkampf ({{competitionGender}})"
     },
     "filters": {
+      "search": "Suchen",
+      "searchPlaceholder": "Name, Verein oder Startnummer...",
       "gender": "Geschlecht",
       "club": "Verein",
       "ageGroup": "Altersgruppe",
@@ -2131,6 +2134,7 @@
     "actions": {
       "exportParticipantsList": "Teilnehmerliste (PDF)",
       "exportParticipantsLabels": "Teilnehmer-Etiketten (PDF)",
+      "printLabels": "Etiketten drucken",
       "addToEvent": "Zur Veranstaltung hinzufügen",
       "removeFromEvent": "Aus Veranstaltung entfernen",
       "editParticipant": "Bearbeiten"
@@ -2153,6 +2157,7 @@
       "squad": "Riege",
       "startNumber": "Startnummer",
       "competitions": "Wettkämpfe",
+      "competitionsCount": "Wettkämpfe",
       "actions": "Aktionen",
       "registrationDate": "Anmeldedatum",
       "status": "Status"
@@ -2188,12 +2193,14 @@
       "title": "Etiketten-Konfiguration",
       "rows": "Zeilen",
       "columns": "Spalten",
-      "labelWidth": "Etikettenbreite (mm)",
-      "labelHeight": "Etikettenhöhe (mm)",
-      "marginTop": "Oberer Rand (mm)",
-      "marginBottom": "Unterer Rand (mm)",
-      "marginLeft": "Linker Rand (mm)",
-      "marginRight": "Rechter Rand (mm)",
+      "labelWidth": "Etikettenbreite",
+      "labelHeight": "Etikettenhöhe",
+      "width": "Breite",
+      "height": "Höhe",
+      "marginTop": "Oberer Rand",
+      "marginBottom": "Unterer Rand",
+      "marginLeft": "Linker Rand",
+      "marginRight": "Rechter Rand",
       "showBorders": "Etikettenrahmen anzeigen (zur Ausrichtung)",
       "previewInfo": "Vorschau-Info",
       "layout": "Layout",
@@ -2202,7 +2209,8 @@
       "totalLabelsPerPage": "Etiketten gesamt pro Seite",
       "pagesNeeded": "Benötigte Seiten",
       "cancel": "Abbrechen",
-      "exportLabels": "Etiketten-PDF exportieren"
+      "exportLabels": "Etiketten-PDF exportieren",
+      "generatePDF": "Etiketten-PDF generieren"
     },
     "status": {
       "active": "Aktiv",

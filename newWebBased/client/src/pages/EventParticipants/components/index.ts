@@ -7,3 +7,5 @@ export { EditParticipantForm } from './EditParticipantForm';
 export { ParticipantTable } from './ParticipantTable';
 export { ParticipantCardView } from './ParticipantCardView';
 export { ParticipantFilters } from './ParticipantFilters';
+export { AddParticipantModal } from './AddParticipantModal';
+export { LabelConfigModal } from './LabelConfigModal';

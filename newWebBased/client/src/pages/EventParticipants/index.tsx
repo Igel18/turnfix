@@ -10,6 +10,7 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
+import { TagIcon } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
 
 // Context & Hooks
@@ -18,7 +19,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { useTableSort } from '@/components/SortableTableHeader';
 
 // Local Hooks & Types
-import { useParticipants } from './hooks';
+import { useParticipants, useLabelPrinting } from './hooks';
 import type { Participant, EditParticipantData } from './EventParticipants.types';
 
 // Components
@@ -29,6 +30,8 @@ import {
   ParticipantTable,
   ParticipantFilters,
   EditParticipantForm,
+  AddParticipantModal,
+  LabelConfigModal,
 } from './components';
 
 // Utilities
@@ -67,6 +70,8 @@ export default function EventParticipants() {
   // UI States
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showLabelModal, setShowLabelModal] = useState(false);
 
   // Pagination Hook
   const pagination = usePagination({
@@ -118,6 +123,13 @@ export default function EventParticipants() {
   const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
   const endIndex = startIndex + pagination.itemsPerPage;
   const paginatedParticipants = sortedParticipants.slice(startIndex, endIndex);
+
+  // Label Printing Hook
+  const { generateLabelsPDF } = useLabelPrinting({
+    participants: filteredParticipants,
+    competitions,
+    eventId: eventId || '',
+  });
 
   // Handlers
   const handleResetFilters = () => {
@@ -186,31 +198,99 @@ export default function EventParticipants() {
     doc.save(`participants-${eventId}-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
+  // CSV Export Function
+  const exportParticipantsCSV = () => {
+    if (!selectedEvent || filteredParticipants.length === 0) {
+      alert(t('eventParticipants.messages.noParticipantsToExport'));
+      return;
+    }
+
+    // CSV Header
+    const headers = [
+      t('eventParticipants.table.name'),
+      t('eventParticipants.table.startNumber'),
+      t('eventParticipants.table.club'),
+      t('eventParticipants.table.age'),
+      t('eventParticipants.table.gender'),
+      t('eventParticipants.table.squad'),
+      t('eventParticipants.table.status'),
+    ].join(',');
+
+    // CSV Rows
+    const rows = filteredParticipants.map((p) => [
+      `"${p.firstname} ${p.lastname}"`,
+      p.startNumber || '',
+      `"${p.club}"`,
+      p.age,
+      t(`common.gender.${p.gender}`),
+      `"${p.squad_name || '-'}"`,
+      p.startet_nicht ? t('eventParticipants.status.notStarting') : t('eventParticipants.status.active'),
+    ].join(','));
+
+    // Combine headers and rows
+    const csvContent = [headers, ...rows].join('\n');
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `participants-${eventId}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Handlers for modals
+  const handleParticipantAdded = () => {
+    // Reload participants after adding new one
+    window.location.reload();
+  };
+
   // Render
   return (
     <EventManagementTemplate
       title={t('eventParticipants.pageTitle')}
+      subtitle={t('eventParticipants.subtitle')}
       icon={Users}
       showFilters={showFilters}
       onToggleFilters={() => setShowFilters(!showFilters)}
       filterSection={
-        showFilters && (
-          <ParticipantFilters
-            participants={allParticipants}
-            searchTerm={searchTerm}
-            genderFilter={genderFilter}
-            clubFilter={clubFilter}
-            ageFilter={ageFilter}
-            onSearchChange={setSearchTerm}
-            onGenderChange={setGenderFilter}
-            onClubChange={setClubFilter}
-            onAgeChange={setAgeFilter}
-            onReset={handleResetFilters}
-          />
-        )
+        <ParticipantFilters
+          participants={allParticipants}
+          searchTerm={searchTerm}
+          genderFilter={genderFilter}
+          clubFilter={clubFilter}
+          ageFilter={ageFilter}
+          onSearchChange={setSearchTerm}
+          onGenderChange={setGenderFilter}
+          onClubChange={setClubFilter}
+          onAgeChange={setAgeFilter}
+          onReset={handleResetFilters}
+        />
       }
       showExportPDF={filteredParticipants.length > 0}
       onExportPDF={exportParticipantsListPDF}
+      showExportCSV={filteredParticipants.length > 0}
+      onExportCSV={exportParticipantsCSV}
+      showAddButton={true}
+      addButtonText={t('eventParticipants.addParticipant')}
+      onAdd={() => setShowAddModal(true)}
+      customActions={
+        filteredParticipants.length > 0
+          ? [
+              <button
+                key="print-labels"
+                onClick={() => setShowLabelModal(true)}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <TagIcon className="h-4 w-4 mr-2" />
+                {t('eventParticipants.actions.printLabels')}
+              </button>,
+            ]
+          : []
+      }
       viewStorageKey="eventParticipants-view"
       showViewToggle={true}
     >
@@ -278,6 +358,7 @@ export default function EventParticipants() {
               }}
               title={t('eventParticipants.editParticipant.title')}
               size="xl"
+              showFooter={false}
             >
               <EditParticipantForm
                 participant={selectedParticipant}
@@ -292,6 +373,21 @@ export default function EventParticipants() {
               />
             </UnifiedModal>
           )}
+
+          {/* Add Participant Modal */}
+          <AddParticipantModal
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            eventId={eventId || ''}
+            onParticipantAdded={handleParticipantAdded}
+          />
+
+          {/* Label Configuration Modal */}
+          <LabelConfigModal
+            isOpen={showLabelModal}
+            onClose={() => setShowLabelModal(false)}
+            onPrint={generateLabelsPDF}
+          />
         </div>
       )}
     </EventManagementTemplate>

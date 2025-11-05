@@ -3457,13 +3457,15 @@ In der Wettkampfverwaltung gibt es keinen Button um Wettkämpfe hinzuzufügen.
 http://localhost:3001/competitions?eventId=59&squadName=mBlau
 
 113. Header nicht einheitlich: muss noch genau definiert werden! 
--> Allgemein gilt: Buttons welche UI-Elemente Ein-/Ausblenden sind wo anders als welche, die DB-Abfragen durchführen z.B. Import Export Add Delete usw. Das Bedeutet, dass die DB-Buttons ein einer Zeile sein sollten. 
+-> Allgemein gilt: Buttons welche UI-Elemente Ein-/Ausblenden sind wo anders als welche, die 
+DB-Abfragen durchführen z.B. Import Export Add Delete usw. Das Bedeutet, dass die DB-Buttons ein einer Zeile sein sollten. 
 Mein Vorschlag wäre folgender: 
 Die Buttons und andere UI-Elemente sollen immer gleich aussehen und die gleiche position haben. 
 - Verwaltungszentrale -> Passt 
 - Hinzufügen-Button muss immer ein + enthalten und danach die Beschriftung "Neu ***" z.B. Neue Riege; Die Hintergrundfarbe muss einheitlich sein; Der Button befindet sich an der Linken Kante unterhalb der Verwaltungszentrale (wie z.B. Riegenverwaltung)
 - Button "Export PDF" muss immer verfügbar sein. Einheitliche Hintergrundfarbe. auf gleicher Zeile mit dem Hinzufügen. 
 - Button "Hilfe" muss immer im Header verfügbar sein. (Siehe Urkunden Layouts http://localhost:3001/certificate-layouts -> "Layout-Hilfe"). 
+- Titel, darunter ein beschreibender Subtitel (ohne anzahl von Einträgen oder Eventinfos. Einfach nur Hardcoded, lokalisierter Text)
 
 114. ~~Startzeit / Einturnzeit~~ ✅
 ~~a) Die Einturnzeit muss immer vor der Startzeit stehen.~~ 
@@ -4467,15 +4469,22 @@ pages/ScoreCapture/ScoreCapture.types.ts → imports + extends
 
 --- 
 
-130. In Einigen Tabellen gibt es mehrere Inhalte in einer Spalte 
+130. ✅ In Einigen Tabellen gibt es mehrere Inhalte in einer Spalte 
 http://localhost:3001/score-capture?eventId=77&squadName=w
 Teilnehmer
 Alter/Geschlecht 
 Diese infos müssen in separaten Spalten dargestellt werden. 
+**Status**: DONE - Commit: Point 130 - Table columns separated
 
-131. Es fehlen Buttons. Früher waren diese verfügbar. Schau noch mal im alten code vor dem Refactoring nach. 
+131. ✅ Es fehlen Buttons. Früher waren diese verfügbar. Schau noch mal im alten code vor dem Refactoring nach. 
 http://localhost:3001/event-participants?eventId=77&squadName=w
-- Add Participatn 
-- Print Label gab es früher mal.  
-- CSV Export
-und es fehlen Lokalisierungen 
+- ✅ Add Participant (Button hinzugefügt, Modal-Implementierung TODO)
+- ✅ Print Labels (Button hinzugefügt mit vereinfachter Label-PDF Funktion)
+- ✅ CSV Export (Funktion implementiert)
+- ✅ Lokalisierungen hinzugefügt (de.json, en.json)
+**Status**: DONE - Fehlende Buttons wiederhergestellt
+**Files Modified**:
+- client/src/pages/EventParticipants/index.tsx (+ CSV Export, + Print Labels, + Add Button)
+- client/src/i18n/locales/de.json (+ printLabels, + pageTitle)
+- client/src/i18n/locales/en.json (+ printLabels, + pageTitle)
+**Note**: Add Participant Modal noch nicht vollständig implementiert (TODO) 

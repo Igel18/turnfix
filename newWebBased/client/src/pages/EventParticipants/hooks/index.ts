@@ -5,3 +5,4 @@
 
 export { useParticipants } from './useParticipants';
 export { useParticipantValidation } from './useParticipantValidation';
+export { useLabelPrinting } from './useLabelPrinting';
