@@ -1915,7 +1915,7 @@
   },
   "results": {
     "title": "Wettkampfergebnisse",
-    "subtitle": "Ranglisten für {{eventName}}",
+    "subtitle": "Ranglisten und Platzierungen",
     "searchPlaceholder": "Teilnehmer, Vereine, Startnummern suchen...",
     "noEventTitle": "Keine Veranstaltung ausgewählt",
     "noEventMessage": "Bitte wählen Sie eine Veranstaltung aus, um Wettkampfergebnisse anzuzeigen.",

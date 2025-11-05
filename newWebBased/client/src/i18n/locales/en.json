@@ -1918,7 +1918,7 @@
   },
   "results": {
     "title": "Competition Results",
-    "subtitle": "Rankings for {{eventName}}",
+    "subtitle": "Rankings and Placements",
     "searchPlaceholder": "Search participants, clubs, start numbers...",
     "noEventTitle": "No Event Selected",
     "noEventMessage": "Please select an event to view competition results.",

@@ -222,7 +222,7 @@ const Results = () => {
   return (
     <EventManagementTemplate
       title={t('results.title')}
-      subtitle={eventName}
+      subtitle={t('results.subtitle')}
       icon={TrophyIcon}
       searchPlaceholder={t('results.searchPlaceholder')}
       onSearchChange={setSearchTerm}
