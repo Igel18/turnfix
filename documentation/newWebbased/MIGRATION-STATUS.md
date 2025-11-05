@@ -1,19 +1,19 @@
 # 📚 TurnFix v2.0 - GitBook Dokumentation
 
-**Status**: ✅ GitBook-Struktur initialisiert | 37 Dokumente migriert
+**Status**: ✅ GitBook-Struktur initialisiert | **57 Dokumente** migriert (37 newWebBased + 20 Root)
 
 ## 📊 Migration Status
 
 | Kategorie | Dateien | Status |
 |-----------|---------|--------|
-| **Getting Started** | 1 | ✅ Migriert |
-| **Deployment** | 4 | ✅ Migriert |
-| **Developer Features** | 20 | ✅ Migriert |
-| **Architecture** | 4 | ✅ Migriert |
+| **Getting Started** | 2 | ✅ Migriert |
+| **Deployment** | 11 | ✅ Migriert |
+| **Developer Features** | 26 | ✅ Migriert |
+| **Architecture** | 6 | ✅ Migriert |
 | **Best Practices** | 3 | ✅ Migriert |
 | **Testing** | 3 | ✅ Migriert |
-| **Reference** | 2 | ✅ Migriert |
-| **TOTAL** | **37** | **✅ 100%** |
+| **Reference** | 6 | ✅ Migriert |
+| **TOTAL** | **57** | **✅ 100%** |
 
 ## 🗂️ Dokumentations-Struktur
 

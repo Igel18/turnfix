@@ -7,7 +7,6 @@
 * [Installation](getting-started/installation.md)
 * [Schnellstart](getting-started/quickstart.md)
 * [Systemanforderungen](getting-started/requirements.md)
-* [Netzwerk-Setup](getting-started/network-setup.md)
 
 ## 👥 Benutzerhandbuch
 
@@ -64,6 +63,8 @@
 * [Frontend-Struktur](developer-guide/architecture/frontend.md)
 * [Datenbank-Schema](developer-guide/architecture/database.md)
 * [Real-time Updates](developer-guide/architecture/socket-io.md)
+* [Gender Helpers System](developer-guide/architecture/gender-helpers.md)
+* [Groups & Teams Analysis](developer-guide/architecture/groups-teams.md)
 
 ### API-Referenz
 
@@ -86,7 +87,19 @@
 * [Point 135: Startgeräte-Verwaltung](developer-guide/features/point-135-start-devices.md)
 * [Point 133: Bahn-Konzept](developer-guide/features/point-133-bahn.md)
 * [Gender-Unification](developer-guide/features/gender-unification.md)
-* [PDF-System](developer-guide/features/pdf-system.md)
+### Features & Implementation
+
+* [Point 135: Startgeräte-Verwaltung](developer-guide/features/point-135-start-devices.md)
+* [Point 133: Bahn-Konzept](developer-guide/features/point-133-bahn.md)
+* [Point 131: Modal Integration](developer-guide/features/point-131-modal.md)
+* [Point 114B: Date Support](developer-guide/features/point-114b-date-support.md)
+* [Gender-Unification](developer-guide/features/gender-unification.md)
+* [PDF-Export-System](developer-guide/features/pdf-system.md)
+* [GymNet XML-Import](developer-guide/features/gymnet-import.md)
+* [API Route Fixes](developer-guide/features/api-route-fixes.md)
+* [Discipline Validation Fix](developer-guide/features/discipline-validation-fix.md)
+* [Start Numbers Localization](developer-guide/features/start-numbers-fix.md)
+* [Dynamic Field Mapping](developer-guide/architecture/field-mapping.md)
 * [GymNet Import](developer-guide/features/gymnet-import.md)
 
 ### Best Practices
@@ -115,16 +128,24 @@
 * [Produktiv-Deployment](deployment/production.md)
 * [Netzwerk-Konfiguration](deployment/network.md)
 * [PM2 Setup](deployment/pm2.md)
-* [Firewall-Konfiguration](deployment/firewall.md)
+* [Frontend Serving](deployment/frontend-serving.md)
+* [Firewall-Konfiguration](deployment/firewall-platform.md)
+* [Firewall GUI](deployment/firewall-gui.md)
+* [Admin Rights Detection](deployment/admin-rights.md)
+* [Jury Portal Access](deployment/jury-portal-access.md)
 * [Backup & Recovery](deployment/backup.md)
 * [Monitoring](deployment/monitoring.md)
 * [Troubleshooting](deployment/troubleshooting.md)
+  * [Node Modules Fix](deployment/troubleshooting/node-modules-fix.md)
+  * [Hard Refresh](deployment/troubleshooting/hard-refresh.md)
 
 ## 📚 Referenz
 
 * [Entwicklungsstatus](reference/development-status.md)
 * [Feature-Liste](reference/features.md)
 * [Changelog](reference/changelog.md)
+* [Project README](reference/project-readme.md)
+* [Update v2.0](reference/update-v2.md)
 * [FAQ](reference/faq.md)
 * [Glossar](reference/glossary.md)
 
