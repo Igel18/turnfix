@@ -4489,10 +4489,12 @@ http://localhost:3001/event-participants?eventId=77&squadName=w
 - client/src/i18n/locales/en.json (+ printLabels, + pageTitle)
 **Note**: Add Participant Modal noch nicht vollständig implementiert (TODO) 
 
-132. Dokumentation 
+132. Dokumentation (Anwender / Entwickler) 
 es gibt einen Ordner mit vorhandener Dokumentattion für Turnfix 
 turnfix/documentation/
-Hier gibt es einen Unterordner für die Neue Webbasierte version von TurnFix. Ich habe schon einige UI-Screenshots erstellt. Bitte Erstelle anhand der fortlaufend erstellten dokumentations md files eine sauber strukturiert doku in diesem ordner mit den Funktionen, Workflow, und integriere die Screenshots. 
+Hier gibt es einen Unterordner für die Neue Webbasierte version von TurnFix. Ich habe schon einige UI-Screenshots erstellt. Bitte Erstelle anhand der fortlaufend erstellten dokumentations markdown files eine sauber strukturiert doku in diesem ordner mit den Funktionen, Workflow, und integriere die Screenshots. 
+Auch die Doku hier in instructions beachten.
+Bitte auch differenzieren zwischen Anwender und Entwicklerdokumentation.  
 
 133. Infos zu "Bahn"
 Eine Bahn ist idr. eine Gerätebahn bzw. ein Kampfgericht. Ein Wettkampf sollte von einem Kampfgericht gewertet werden, damit alle Turner in diesem Wettkampf einheitliche Wertungen erhalten. Somit kann man auch nur die Wettkämpfe den Bahnen zuweisen und nicht die Riegen. 
