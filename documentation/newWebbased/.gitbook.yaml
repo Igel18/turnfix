@@ -1,0 +1,10 @@
+root: ./
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
+
+redirects:
+  # Legacy-Redirects (falls alte Links existieren)
+  old/setup: getting-started/installation.md
+  old/api: developer-guide/api/overview.md

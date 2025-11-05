@@ -4500,4 +4500,321 @@ Bitte auch differenzieren zwischen Anwender und Entwicklerdokumentation.
 Eine Bahn ist idr. eine Gerätebahn bzw. ein Kampfgericht. Ein Wettkampf sollte von einem Kampfgericht gewertet werden, damit alle Turner in diesem Wettkampf einheitliche Wertungen erhalten. Somit kann man auch nur die Wettkämpfe den Bahnen zuweisen und nicht die Riegen. 
 Das sollte in der Doku mit aufgenommen werden. 
 
-134. der part mit den Riegen und Wettkampfzuordnung von der Rotation View scheint ja mindestens 2x programmiert zu sein. kann man das refactoren (soc)? 
+134. der part mit den Riegen und Wettkampfzuordnung von der Rotation View scheint ja mindestens 2x programmiert zu sein. kann man das refactoren (soc)?
+
+135. ✅ **Startgeräte-Verwaltung & Gantt-Verbesserungen** 
+**Datum**: 2025-11-05  
+**Status**: ✅ COMPLETE - Squad Start Device Editor & Automatic Distribution Implemented
+
+#### Problem & Root Cause
+
+**Symptome**: 
+- Gantt-Chart zeigt nicht alle Riegen (z.B. "mGrün" fehlt)
+- Console-Logs zeigen: Alle Riegen starten am gleichen Gerät
+- SKIPPED-Meldungen in Console bei gleichzeitigem Start
+
+**Root Cause**: Alle Riegen starteten am gleichen Gerät (Index 0)
+```typescript
+// VORHER (FALSCH): Alle Riegen am selben Gerät
+const effectiveStartIndex = startDeviceIndex >= 0 ? startDeviceIndex : 0;
+
+// NACHHER (KORREKT): Automatische Verteilung
+const effectiveStartIndex = startDeviceIndex >= 0 
+  ? startDeviceIndex 
+  : (squadIndex % disciplineObjs.length); // Verteilt über alle Geräte
+```
+
+**Resultat**: Bei gleichzeitigem Start (z.B. alle um 08:30) blockierten sich Riegen gegenseitig → manche Riegen wurden nicht angezeigt.
+
+#### Datenbank-Struktur
+
+**Tabelle**: `tfx_riegen_x_disziplinen`
+
+| Feld | Typ | Beschreibung |
+|------|-----|--------------|
+| `int_veranstaltungenid` | INT | Event ID |
+| `var_riege` | VARCHAR(5) | Riegen-Name (z.B. "mGrün") |
+| `int_disziplinenid` | INT | Disziplin ID (z.B. 31 = Barren) |
+| `int_runde` | SMALLINT | Durchgang (z.B. 1) |
+| `bol_erstes_geraet` | BOOLEAN | **TRUE = Startgerät** |
+
+**Wichtig**: Startgeräte werden **pro Riege UND pro Disziplin** gespeichert, NICHT am Wettkampf!
+
+**Beispiel für Riege "mGrün" im 6-Kampf**:
+```sql
+var_riege | int_disziplinenid | var_name (JOIN) | bol_erstes_geraet
+----------|-------------------|------------------|------------------
+mGrün     | 72                | Barren           | TRUE    ← Startet hier
+mGrün     | 46                | Reck             | FALSE
+mGrün     | 74                | Boden            | FALSE
+mGrün     | 31                | Pferd            | FALSE
+mGrün     | 50                | Ringe            | FALSE
+mGrün     | 71                | Sprung           | FALSE
+```
+
+#### Backend-API
+
+**Neue Route**: `PUT /api/time-planning/squad-start-device`
+
+**Request Body**:
+```json
+{
+  "eventId": 59,
+  "squadName": "mGrün",
+  "round": 1,
+  "disciplineId": 72
+}
+```
+
+**Logik** (Zwei-Schritte-Pattern):
+```typescript
+// 1. Setze alle Geräte dieser Riege auf FALSE
+await prisma.tfx_riegen_x_disziplinen.updateMany({
+  where: { int_veranstaltungenid, var_riege, int_runde },
+  data: { bol_erstes_geraet: false }
+});
+
+// 2. Setze ausgewähltes Gerät auf TRUE
+await prisma.tfx_riegen_x_disziplinen.updateMany({
+  where: { ...filters, int_disziplinenid },
+  data: { bol_erstes_geraet: true }
+});
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Start device updated for squad mGrün",
+  "updated": 1
+}
+```
+
+#### Frontend: SquadStartDeviceEditor
+
+**Neue Komponente**: `client/src/pages/TimePlanning/components/SquadStartDeviceEditor.tsx` (249 Zeilen)
+
+**Features**:
+- ✅ Tabellen-Layout (standardkonform)
+- ✅ Dropdown-Auswahl für Geräte
+- ✅ BlueInfoBox mit Erklärung
+- ✅ ESC-Taste schließt Dialog
+- ✅ Vollständige DE/EN-Lokalisierung
+- ✅ Bestätigung unter Dropdown ("✓ Barren")
+
+**UI-Darstellung**:
+```
+┌────────────────────────────────────────────────────┐
+│ Startgeräte festlegen                         [✕]  │
+│ Gerätsechskampf m (7-8 Jahre) - Runde 1           │
+├────────────────────────────────────────────────────┤
+│ ℹ️ Startgerät auswählen                            │
+│ Wählen Sie für jede Riege das Gerät aus, an dem   │
+│ sie ihre Rotation beginnen soll.                  │
+├────────────────────────────────────────────────────┤
+│ Riege    │ Erstes Gerät                           │
+├──────────┼────────────────────────────────────────┤
+│ mBlau    │ [Dropdown: Barren ▼]                   │
+│ 6 Geräte │ ✓ Barren                               │
+├──────────┼────────────────────────────────────────┤
+│ mGrün    │ [Dropdown: Sprung ▼]                   │
+│ 6 Geräte │ ✓ Sprung                               │
+└────────────────────────────────────────────────────┘
+```
+
+**Button-Position**: Grünes Play-Icon (▶️) in Wettkampf-Karte
+
+```tsx
+// SessionsView.tsx - Button neben Edit-Button
+<div className="absolute top-2 right-2 flex gap-1 z-10">
+  <button onClick={() => handleEditStartDevices(comp)}
+    className="p-1.5 text-gray-400 hover:text-green-600 
+               hover:bg-green-50 rounded-lg transition-colors 
+               shadow-sm bg-white border border-gray-200"
+    title={t('timePlanning.editStartDevices')}>
+    <PlayIcon className="h-4 w-4" />
+  </button>
+  <button onClick={() => handleEditCompetition(comp)}>
+    <PencilIcon className="h-4 w-4" />
+  </button>
+</div>
+```
+
+#### Automatische Geräteverteilung
+
+**Algorithmus** (Fallback bei fehlenden DB-Werten):
+
+```typescript
+// TimePlanning/index.tsx (Lines 285-311)
+sessionGroup.squads.forEach((squad, squadIndex) => {
+  // 1. Suche Startgerät aus Datenbank
+  const startDeviceIndex = disciplineObjs.findIndex(d => d.isFirst);
+  
+  // 2. Fallback: Automatische Verteilung über Geräte
+  const effectiveStartIndex = startDeviceIndex >= 0 
+    ? startDeviceIndex                      // DB-Wert verwenden
+    : (squadIndex % disciplineObjs.length); // Automatisch verteilen
+  
+  // 3. Rotation durch alle Geräte
+  for (let i = 0; i < disciplineObjs.length; i++) {
+    const deviceIndex = (effectiveStartIndex + i) % disciplineObjs.length;
+    const device = disciplineObjs[deviceIndex];
+    
+    // Konflikt-Prüfung mit Maps
+    const deviceKey = `${device.name}__${startTime}`;
+    const squadKey = `${squad.name}__${startTime}`;
+    
+    if (!deviceTimeMap.has(deviceKey) && !squadTimeMap.has(squadKey)) {
+      schedule.push({ squadName, deviceName, startTime, endTime, ... });
+      deviceTimeMap.set(deviceKey, squad.name);
+      squadTimeMap.set(squadKey, device.name);
+    }
+  }
+});
+```
+
+**Beispiel bei 6 Geräten (ohne DB-Werte)**:
+```
+Riege    | squadIndex | effectiveStartIndex | Rotation
+---------|------------|---------------------|--------------------
+mBlau    | 0          | 0 % 6 = 0          | 0→1→2→3→4→5
+mGrün    | 1          | 1 % 6 = 1          | 1→2→3→4→5→0
+mRot     | 2          | 2 % 6 = 2          | 2→3→4→5→0→1
+mGelb    | 3          | 3 % 6 = 3          | 3→4→5→0→1→2
+```
+
+**Vorteil**: Keine Konflikte, auch wenn Startgeräte nicht in DB gesetzt sind!
+
+#### Bezug zu Point 133: Bahn-Konzept
+
+**Wichtige Unterscheidung**: **Bahn** ≠ **Startgerät**
+
+| Konzept | Zweck | Zuordnung | Datenbank |
+|---------|-------|-----------|-----------|
+| **Bahn** (Point 133) | Kampfgericht-Zuweisung | Wettkampf → Bahn | `tfx_wettkaempfe.int_bahn` |
+| **Startgerät** (Point 135) | Rotations-Startpunkt | Riege → Gerät | `tfx_riegen_x_disziplinen.bol_erstes_geraet` |
+
+**Bahn (Kampfgericht)**:
+- **Definition**: Eine Bahn ist eine Gerätebahn bzw. ein Kampfgericht
+- **Regel**: Ein Wettkampf sollte von **einem Kampfgericht** gewertet werden
+- **Zweck**: Einheitliche Wertungen für alle Turner im Wettkampf
+- **Zuordnung**: **Wettkämpfe** werden Bahnen zugewiesen (NICHT Riegen!)
+
+**Startgerät (Rotations-Startpunkt)**:
+- **Definition**: Das Gerät, an dem eine Riege ihre Rotation **beginnt**
+- **Zweck**: Verhindert Konflikte, wenn mehrere Riegen gleichzeitig starten
+- **Zuordnung**: **Riegen** haben ein Startgerät pro Wettkampf/Runde
+
+**Beispiel**:
+```
+Wettkampf: "Gerätsechskampf m (13-14 Jahre)" → int_bahn = 1
+  ↓ Kampfgericht 1 wertet ALLE Turner dieses Wettkampfs
+
+Riegen in diesem Wettkampf:
+- mBlau  startet am Barren  (bol_erstes_geraet = TRUE bei Barren)
+- mGrün  startet am Sprung  (bol_erstes_geraet = TRUE bei Sprung)
+- mRot   startet am Reck    (bol_erstes_geraet = TRUE bei Reck)
+  ↓ Jede startet an anderem Gerät → keine Konflikte
+```
+
+**UI-Zuordnung**:
+- **Bahn zuweisen**: Wettkampf-Editor (Blauer Stift / PencilIcon)
+- **Startgerät festlegen**: SquadStartDeviceEditor (Grünes Play / PlayIcon)
+
+#### Workflow & Verwendung
+
+**Startgeräte festlegen (Admin)**:
+1. Zeitplanung öffnen (`/time-planning?eventId=X`)
+2. Durchgang aufklappen (z.B. "Durchgang 1")
+3. Grünes Play-Icon (▶️) bei Wettkampf klicken
+4. Dialog öffnet sich mit allen Riegen
+5. Gerät auswählen für jede Riege
+6. Speichern → Datenbank wird aktualisiert
+7. Gantt-Ansicht neu laden → Riegen starten an gewählten Geräten
+
+**Gantt-Chart verwenden**:
+1. Zeitplanung öffnen
+2. "Gantt"-Button klicken
+3. Auto-Berechnung:
+   - Lädt Startgeräte aus Datenbank
+   - Fallback auf automatische Verteilung (wenn nicht gesetzt)
+   - Zeigt alle Riegen an korrekten Geräten
+4. Konflikt-Prävention:
+   - `deviceTimeMap`: Verhindert doppelte Gerätebelegung
+   - `squadTimeMap`: Verhindert dass Riege an zwei Orten gleichzeitig ist
+
+#### Übersetzungen
+
+**Deutsche Übersetzungen** (`de.json`):
+```json
+"timePlanning": {
+  "startDevices": "Startgeräte festlegen",
+  "editStartDevices": "Startgeräte bearbeiten",
+  "startDeviceInfo": "Startgerät auswählen",
+  "startDeviceDescription": "Wählen Sie für jede Riege das Gerät aus...",
+  "noSquadsFound": "Keine Riegen für diesen Wettkampf gefunden",
+  "noStartDeviceSelected": "Kein Startgerät ausgewählt"
+}
+```
+
+**Englische Übersetzungen** (`en.json`):
+```json
+"timePlanning": {
+  "startDevices": "Set Start Apparatus",
+  "editStartDevices": "Edit Start Apparatus",
+  "startDeviceInfo": "Select Start Apparatus",
+  "startDeviceDescription": "Select the apparatus where each squad...",
+  "noSquadsFound": "No squads found for this competition",
+  "noStartDeviceSelected": "No start apparatus selected"
+}
+```
+
+#### Geänderte/Neue Dateien
+
+**Backend**:
+- ✅ `server/src/routes/timePlanning.ts` (+65 Zeilen)
+  - Route: `PUT /squad-start-device` (Lines 490-560)
+
+**Frontend**:
+- ✅ `client/src/pages/TimePlanning/components/SquadStartDeviceEditor.tsx` (NEW, 249 Zeilen)
+  - Tabellen-Layout, Dropdown, ESC-Key, Lokalisierung
+- ✅ `client/src/pages/TimePlanning/components/SessionsView.tsx` (+20 Zeilen)
+  - Grünes Play-Icon Button (Lines 123-145)
+- ✅ `client/src/pages/TimePlanning/index.tsx` (+35 Zeilen)
+  - State: `editingStartDevices`
+  - Automatische Geräteverteilung (Lines 285-311)
+  - Dialog-Rendering (Lines 873-888)
+- ✅ `client/src/i18n/locales/de.json` (+6 Zeilen)
+- ✅ `client/src/i18n/locales/en.json` (+6 Zeilen)
+
+**Build-Metriken**:
+```
+✓ built in 7.46s
+dist/assets/index-CruaHZeJ.js  1,542.76 kB │ gzip: 414.89 kB
+```
+
+#### Lessons Learned
+
+**Problem-Solving**:
+1. ✅ **Extensive Logging** auf jedem Level zeigt exakt, wo Daten verloren gehen
+2. ✅ **Root Cause Analysis** statt Symptom-Bekämpfung
+3. ✅ **User-Insight wertvoll** - Hinweis auf `bol_erstes_geraet` war Durchbruch
+
+**API-Design**:
+1. ✅ URL-Paths: `apiGet/apiPut` fügen `/api` automatisch hinzu
+2. ✅ Filtern: Flexible Filter > starre IDs (round statt competitionId)
+3. ✅ Batch-Updates: Zwei-Schritte-Pattern (alle FALSE → ausgewähltes TRUE)
+
+**UI-Design**:
+1. ✅ Tabellen > Karten für Daten-Management
+2. ✅ Standard-Patterns nutzen (BlueInfoBox, ESC-Key, Bestätigung)
+3. ✅ Button-Visibility: `z-10`, `bg-white`, `border`, `shadow-sm`
+
+**Code-Quality**:
+1. ✅ TypeScript-Interfaces: Separate für Backend vs. UI
+2. ✅ Debug-Logging: `[ComponentName] Message: data` (hinter DEBUG-Flag)
+3. ✅ Lokalisierung: ALLE UI-Texte übersetzen
+
+**Status**: ✅ COMPLETE  
+**Dokumentation**: ✅ Migriert zu `documentation/newWebbased/developer-guide/features/point-135-start-devices.md`  
+**Ergebnis**: Alle Riegen werden korrekt im Gantt angezeigt, keine Konflikte mehr! 
