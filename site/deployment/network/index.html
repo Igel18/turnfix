@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/deployment/network/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>🌐 TurnFix Network Configuration Guide - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83c\udf10 TurnFix Network Configuration Guide";
+        var mkdocs_page_input_path = "deployment\\network.md";
+        var mkdocs_page_url = "/deployment/network/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">🌐 TurnFix Network Configuration Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">📋 Prerequisites</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-steps">🔧 Configuration Steps</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-configure-development-servers-for-network-access">1. Configure Development Servers for Network Access</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-windows-firewall-configuration">2. Windows Firewall Configuration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-find-your-ip-address">3. Find Your IP Address</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-update-frontend-configuration-for-network-access">4. Update Frontend Configuration for Network Access</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#5-start-the-servers">5. Start the Servers</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#6-access-from-other-pcs">6. Access from Other PCs</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">🔍 Troubleshooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#check-if-ports-are-open">Check if Ports are Open</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#common-issues">Common Issues</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#verify-configuration">Verify Configuration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#production-deployment">🚀 Production Deployment</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-reference">📝 Quick Reference</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Deployment</li>
+      <li class="breadcrumb-item active">🌐 TurnFix Network Configuration Guide</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/deployment/network.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="turnfix-network-configuration-guide">🌐 TurnFix Network Configuration Guide<a class="headerlink" href="#turnfix-network-configuration-guide" title="Permanent link">&para;</a></h1>
+<p>This guide explains how to configure your Windows machine and TurnFix application to allow other PCs on the network to access the web interface.</p>
+<h2 id="prerequisites">📋 Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>TurnFix server running on your Windows machine</li>
+<li>Other PCs on the same network (LAN/WiFi)</li>
+<li>Administrator privileges on the Windows machine</li>
+</ul>
+<h2 id="configuration-steps">🔧 Configuration Steps<a class="headerlink" href="#configuration-steps" title="Permanent link">&para;</a></h2>
+<h3 id="1-configure-development-servers-for-network-access">1. Configure Development Servers for Network Access<a class="headerlink" href="#1-configure-development-servers-for-network-access" title="Permanent link">&para;</a></h3>
+<h4 id="a-frontend-vite-configuration">A. Frontend (Vite) Configuration<a class="headerlink" href="#a-frontend-vite-configuration" title="Permanent link">&para;</a></h4>
+<p>The client needs to bind to all network interfaces instead of just localhost.</p>
+<p><strong>Update the client start command:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Navigate to client directory</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd </span><span class="s2">&quot;c:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\client&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c"># Start with host binding to all interfaces</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">npm</span> <span class="n">run</span> <span class="n">dev</span> <span class="p">--</span> <span class="p">-</span><span class="n">-host</span> <span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span>
+</code></pre></div>
+<p><strong>Or permanently update <code>vite.config.ts</code>:</strong></p>
+<p>Add <code>host: '0.0.0.0'</code> to the server configuration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">server</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">port</span><span class="o">:</span><span class="w"> </span><span class="kt">5173</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">host</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Add this line</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">proxy</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="s1">&#39;/api&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001&#39;</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nx">changeOrigin</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="s1">&#39;/uploads&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001&#39;</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nx">changeOrigin</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="p">}</span>
+</code></pre></div>
+<h4 id="b-backend-express-configuration">B. Backend (Express) Configuration<a class="headerlink" href="#b-backend-express-configuration" title="Permanent link">&para;</a></h4>
+<p>The Express server already listens on all interfaces (0.0.0.0) by default when no host is specified.</p>
+<p>Current configuration is correct:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">server</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">PORT</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`🚀 Server running on port </span><span class="si">${</span><span class="nx">PORT</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">});</span>
+</code></pre></div></p>
+<h3 id="2-windows-firewall-configuration">2. Windows Firewall Configuration<a class="headerlink" href="#2-windows-firewall-configuration" title="Permanent link">&para;</a></h3>
+<h4 id="option-a-quick-setup-recommended-for-development">Option A: Quick Setup (Recommended for Development)<a class="headerlink" href="#option-a-quick-setup-recommended-for-development" title="Permanent link">&para;</a></h4>
+<p><strong>Allow specific ports through Windows Firewall:</strong></p>
+<ol>
+<li><strong>Open Windows Firewall with Advanced Security:</strong></li>
+<li>
+<p>Press <code>Win + R</code>, type <code>wf.msc</code>, press Enter</p>
+</li>
+<li>
+<p><strong>Create Inbound Rules for TurnFix ports:</strong></p>
+</li>
+</ol>
+<p><strong>For Frontend (Port 5173):</strong>
+   - Right-click "Inbound Rules" → "New Rule"
+   - Select "Port" → Next
+   - Select "TCP" → "Specific local ports" → Enter <code>5173</code>
+   - Select "Allow the connection" → Next
+   - Check all profiles (Domain, Private, Public) → Next
+   - Name: "TurnFix Frontend" → Finish</p>
+<p><strong>For Backend (Port 3001):</strong>
+   - Repeat above steps with port <code>3001</code>
+   - Name: "TurnFix Backend"</p>
+<h4 id="option-b-powershell-commands-administrator-required">Option B: PowerShell Commands (Administrator required)<a class="headerlink" href="#option-b-powershell-commands-administrator-required" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c"># Open PowerShell as Administrator</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c"># Allow frontend port 5173</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">New-NetFirewallRule</span> <span class="n">-DisplayName</span> <span class="s2">&quot;TurnFix Frontend&quot;</span> <span class="n">-Direction</span> <span class="n">Inbound</span> <span class="n">-Port</span> <span class="n">5173</span> <span class="n">-Protocol</span> <span class="n">TCP</span> <span class="n">-Action</span> <span class="n">Allow</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c"># Allow backend port 3001</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nb">New-NetFirewallRule</span> <span class="n">-DisplayName</span> <span class="s2">&quot;TurnFix Backend&quot;</span> <span class="n">-Direction</span> <span class="n">Inbound</span> <span class="n">-Port</span> <span class="n">3001</span> <span class="n">-Protocol</span> <span class="n">TCP</span> <span class="n">-Action</span> <span class="n">Allow</span>
+</code></pre></div>
+<h4 id="option-c-temporary-disable-not-recommended-for-production">Option C: Temporary Disable (NOT RECOMMENDED for production)<a class="headerlink" href="#option-c-temporary-disable-not-recommended-for-production" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c"># Disable Windows Firewall (Administrator required)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">Set-NetFirewallProfile</span> <span class="n">-Profile</span> <span class="n">Domain</span><span class="p">,</span><span class="n">Public</span><span class="p">,</span><span class="n">Private</span> <span class="n">-Enabled</span> <span class="n">False</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c"># To re-enable later:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nb">Set-NetFirewallProfile</span> <span class="n">-Profile</span> <span class="n">Domain</span><span class="p">,</span><span class="n">Public</span><span class="p">,</span><span class="n">Private</span> <span class="n">-Enabled</span> <span class="n">True</span>
+</code></pre></div>
+<h3 id="3-find-your-ip-address">3. Find Your IP Address<a class="headerlink" href="#3-find-your-ip-address" title="Permanent link">&para;</a></h3>
+<p><strong>Get your Windows machine's IP address:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Find your local IP address</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">ipconfig</span> <span class="p">|</span> <span class="n">findstr</span> <span class="s2">&quot;IPv4&quot;</span>
+</code></pre></div>
+<p>Common IP ranges:
+- <code>192.168.1.x</code> (Home networks)
+- <code>192.168.0.x</code> (Home networks)
+- <code>10.x.x.x</code> (Corporate networks)</p>
+<h3 id="4-update-frontend-configuration-for-network-access">4. Update Frontend Configuration for Network Access<a class="headerlink" href="#4-update-frontend-configuration-for-network-access" title="Permanent link">&para;</a></h3>
+<p><strong>Update <code>vite.config.ts</code> proxy settings:</strong></p>
+<p>Replace <code>localhost</code> with your actual IP address or make it dynamic:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">server</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">port</span><span class="o">:</span><span class="w"> </span><span class="kt">5173</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">host</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">proxy</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="s1">&#39;/api&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">      </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="kt">process.env.VITE_API_URL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001&#39;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">      </span><span class="nx">changeOrigin</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="s1">&#39;/uploads&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">      </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="kt">process.env.VITE_API_URL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001&#39;</span><span class="p">,</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="nx">changeOrigin</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Create <code>.env</code> file in client directory:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>VITE_API_URL=http://YOUR_IP_ADDRESS:3001
+</code></pre></div>
+<p>Replace <code>YOUR_IP_ADDRESS</code> with your actual IP (e.g., <code>192.168.1.100</code>).</p>
+<h3 id="5-start-the-servers">5. Start the Servers<a class="headerlink" href="#5-start-the-servers" title="Permanent link">&para;</a></h3>
+<p><strong>Start Backend:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">cd </span><span class="s2">&quot;c:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\server&quot;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">npm</span> <span class="n">run</span> <span class="n">dev</span>
+</code></pre></div></p>
+<p><strong>Start Frontend (with network access):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd </span><span class="s2">&quot;c:\Users\Dominik Prudlo\Documents\GitHub\turnfix\newWebBased\client&quot;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">npm</span> <span class="n">run</span> <span class="n">dev</span> <span class="p">--</span> <span class="p">-</span><span class="n">-host</span> <span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span>
+</code></pre></div></p>
+<h3 id="6-access-from-other-pcs">6. Access from Other PCs<a class="headerlink" href="#6-access-from-other-pcs" title="Permanent link">&para;</a></h3>
+<p><strong>From other computers on the network, open a web browser and navigate to:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>http://YOUR_IP_ADDRESS:5173
+</code></pre></div>
+<p>Example: <code>http://192.168.1.100:5173</code></p>
+<h2 id="troubleshooting">🔍 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="check-if-ports-are-open">Check if Ports are Open<a class="headerlink" href="#check-if-ports-are-open" title="Permanent link">&para;</a></h3>
+<p><strong>Test port accessibility from another PC:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c"># From another PC, test if ports are reachable</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">Test-NetConnection</span> <span class="n">-ComputerName</span> <span class="n">YOUR_IP_ADDRESS</span> <span class="n">-Port</span> <span class="n">5173</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nb">Test-NetConnection</span> <span class="n">-ComputerName</span> <span class="n">YOUR_IP_ADDRESS</span> <span class="n">-Port</span> <span class="n">3001</span>
+</code></pre></div>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Connection Refused:</strong></li>
+<li>Check Windows Firewall rules</li>
+<li>Verify servers are running with <code>--host 0.0.0.0</code></li>
+<li>
+<p>Confirm IP address is correct</p>
+</li>
+<li>
+<p><strong>API Calls Failing:</strong></p>
+</li>
+<li>Update proxy configuration in <code>vite.config.ts</code></li>
+<li>
+<p>Check backend server is accessible on port 3001</p>
+</li>
+<li>
+<p><strong>Network Discovery:</strong></p>
+</li>
+<li>Ensure all PCs are on the same network</li>
+<li>Check router settings for device isolation</li>
+</ol>
+<h3 id="verify-configuration">Verify Configuration<a class="headerlink" href="#verify-configuration" title="Permanent link">&para;</a></h3>
+<p><strong>Check if services are listening on all interfaces:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c"># Check what&#39;s listening on your ports</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">netstat</span> <span class="n">-an</span> <span class="p">|</span> <span class="n">findstr</span> <span class="s2">&quot;:5173&quot;</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">netstat</span> <span class="n">-an</span> <span class="p">|</span> <span class="n">findstr</span> <span class="s2">&quot;:3001&quot;</span>
+</code></pre></div>
+<p>Should show <code>0.0.0.0:5173</code> and <code>0.0.0.0:3001</code> instead of <code>127.0.0.1</code>.</p>
+<h2 id="production-deployment">🚀 Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h2>
+<p>For production deployment, consider:</p>
+<ol>
+<li><strong>Use a reverse proxy (nginx/IIS)</strong></li>
+<li><strong>Configure proper SSL certificates</strong></li>
+<li><strong>Set up domain names instead of IP addresses</strong></li>
+<li><strong>Implement proper security measures</strong></li>
+<li><strong>Configure production firewall rules</strong></li>
+</ol>
+<h2 id="quick-reference">📝 Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<p><strong>Your TurnFix URLs:</strong>
+- Frontend: <code>http://YOUR_IP:5173</code>
+- Backend API: <code>http://YOUR_IP:3001/api</code>
+- Database Config: Access through frontend</p>
+<p><strong>Firewall Ports to Open:</strong>
+- <code>5173/TCP</code> (Frontend)
+- <code>3001/TCP</code> (Backend API)</p>
+<p><strong>Start Commands:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c"># Backend</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">cd </span><span class="n">server</span> <span class="p">&amp;&amp;</span> <span class="n">npm</span> <span class="n">run</span> <span class="n">dev</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c"># Frontend with network access</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nb">cd </span><span class="n">client</span> <span class="p">&amp;&amp;</span> <span class="n">npm</span> <span class="n">run</span> <span class="n">dev</span> <span class="p">--</span> <span class="p">-</span><span class="n">-host</span> <span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span>
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../network-fixes/" class="btn btn-neutral float-left" title="Network Access Fixes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../production/" class="btn btn-neutral float-right" title="🚀 TurnFix Production Deployment Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../network-fixes/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../production/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

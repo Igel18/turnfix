@@ -1,16 +1,111 @@
-site_name: Basic MkDocs Example Project
+site_name: TurnFix Documentation
+site_description: Comprehensive gymnastics competition management system
+site_author: TurnFix Team
+site_url: https://turnfix.readthedocs.io
+
+# Repository
+repo_name: Igel18/turnfix
+repo_url: https://github.com/Igel18/turnfix
+edit_uri: edit/WebInterface/documentation/newwebbased/
+
+# Documentation directory
+docs_dir: documentation/newwebbased
+
+# Theme configuration
 theme:
   name: readthedocs
   highlightjs: true
+  hljs_languages:
+    - typescript
+    - javascript
+    - bash
+    - sql
+    - yaml
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+
+# Plugins
 plugins:
-  - search
+  - search:
+      lang: 
+        - en
+        - de
   - mkdocstrings:
       handlers:
-        # See: https://mkdocstrings.github.io/python/usage/
         python:
           options:
             docstring_style: sphinx
+
+# Extensions
 markdown_extensions:
   - markdown_include.include:
-      base_path: .
+      base_path: documentation/newwebbased
   - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation - Only existing files (auto-expand from here)
+# Note: Files listed here must exist in documentation/newwebbased/
+# nav:
+#   - Auto-generated navigation from file structure
+
+# Extra
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Igel18/turnfix
+  analytics:
+    feedback:
+      title: War diese Seite hilfreich?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: Diese Seite war hilfreich
+          data: 1
+          note: Danke für Ihr Feedback!
+        - icon: material/emoticon-sad-outline
+          name: Diese Seite könnte verbessert werden
+          data: 0
+          note: Danke für Ihr Feedback! Bitte erstellen Sie ein Issue auf GitHub.
+
+# Copyright
+copyright: Copyright &copy; 2024-2025 TurnFix Team

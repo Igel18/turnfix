@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/reference/scripts/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>TurnFix Development Scripts - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "TurnFix Development Scripts";
+        var mkdocs_page_input_path = "reference\\scripts.md";
+        var mkdocs_page_url = "/reference/scripts/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">TurnFix Development Scripts</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#verfugbare-skripte">📋 Verfügbare Skripte</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-start-devbat">1. start-dev.bat</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-stop-devbat">2. stop-dev.bat</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-status-checkbat">3. status-check.bat</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#typische-workflows">🎯 Typische Workflows</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#normaler-start">Normaler Start</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nach-code-anderungen">Nach Code-Änderungen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bei-problemen">Bei Problemen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#vor-dem-commit">Vor dem Commit</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#netzwerkzugriff">🌐 Netzwerkzugriff</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#lokaler-zugriff-auf-dem-entwicklungs-pc">Lokaler Zugriff (auf dem Entwicklungs-PC)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#netzwerkzugriff-von-anderen-geraten">Netzwerkzugriff (von anderen Geräten)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fenster-farben">🎨 Fenster-Farben</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fehlerbehebung">🐛 Fehlerbehebung</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#port-already-in-use">"Port already in use"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cannot-find-module">"Cannot find module"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#services-starten-nicht">Services starten nicht</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#jury-portal-startet-nicht">Jury Portal startet nicht</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#hinweise">📝 Hinweise</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#weitere-dokumentation">🔗 Weitere Dokumentation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schnellreferenz">⚡ Schnellreferenz</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Reference</li>
+      <li class="breadcrumb-item active">TurnFix Development Scripts</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/reference/scripts.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="turnfix-development-scripts">TurnFix Development Scripts<a class="headerlink" href="#turnfix-development-scripts" title="Permanent link">&para;</a></h1>
+<p>Dieses Verzeichnis enthält Entwicklungs-Skripte für Windows, die das Starten, Stoppen und Überwachen der TurnFix-Anwendung vereinfachen.</p>
+<h2 id="verfugbare-skripte">📋 Verfügbare Skripte<a class="headerlink" href="#verfugbare-skripte" title="Permanent link">&para;</a></h2>
+<h3 id="1-start-devbat">1. start-dev.bat<a class="headerlink" href="#1-start-devbat" title="Permanent link">&para;</a></h3>
+<p><strong>Hauptskript zum Starten aller Services</strong></p>
+<p><strong>Features:</strong>
+- ✅ Automatisches Beenden bereits laufender Prozesse
+- ✅ Startet alle 3 Services in separaten Fenstern:
+  - Backend Server (Port 3001) - Blaues Fenster
+  - Frontend Client (Port 5173) - Gelbes Fenster
+  - Jury Portal (Port 5174) - Lila Fenster
+- ✅ Erstellt automatisch Test-User
+- ✅ Farbcodierte, detaillierte Logs
+- ✅ Zeigt alle Zugriffs-URLs an
+- ✅ Netzwerkzugriff automatisch konfiguriert</p>
+<p><strong>Verwendung:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>start-dev.bat
+</code></pre></div></p>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>========================================
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>   TurnFix Web Application Startup
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>========================================
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>[INFO] Current directory: C:\...\newWebBased
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>========================================
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>   Step 1: Stopping existing processes
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>========================================
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>[INFO] Checking for processes on ports 3001, 3002, 5173, 5174...
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>[SUCCESS] All ports cleared
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>========================================
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>   Step 2: Starting Backend Server
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>========================================
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>[SUCCESS] Backend server starting...
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>... (weitere Schritte)
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>========================================
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>   TurnFix Application Started!
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>========================================
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>Access URLs:
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>&gt; http://localhost:5173  (Frontend)
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>&gt; http://localhost:5174  (Jury Portal)
+</code></pre></div></p>
+<h3 id="2-stop-devbat">2. stop-dev.bat<a class="headerlink" href="#2-stop-devbat" title="Permanent link">&para;</a></h3>
+<p><strong>Stoppt alle laufenden TurnFix Services</strong></p>
+<p><strong>Features:</strong>
+- ✅ Stoppt Prozesse auf allen TurnFix-Ports
+- ✅ Schließt Fenster nach Titel
+- ✅ Zeigt Anzahl gestoppter Prozesse
+- ✅ Fehlerbehandlung für bereits gestoppte Services</p>
+<p><strong>Verwendung:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>stop-dev.bat
+</code></pre></div></p>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>========================================
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>   TurnFix Application Shutdown
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>========================================
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>[ACTION] Stopping process 12345 on port 3001
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>[SUCCESS] Process 12345 stopped
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>[SUCCESS] Stopped 3 process(es)
+</code></pre></div></p>
+<h3 id="3-status-checkbat">3. status-check.bat<a class="headerlink" href="#3-status-checkbat" title="Permanent link">&para;</a></h3>
+<p><strong>Überprüft den Status aller Services</strong></p>
+<p><strong>Features:</strong>
+- ✅ Zeigt Status aller Ports
+- ✅ Listet Process-IDs
+- ✅ Zusammenfassung laufender Services
+- ✅ Zeigt alle Node.js-Prozesse
+- ✅ Gibt Handlungsempfehlungen</p>
+<p><strong>Verwendung:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>status-check.bat
+</code></pre></div></p>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>========================================
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>   TurnFix Service Status Check
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>========================================
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>[CHECK] Backend Server (Port 3001)...
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>[RUNNING] Backend is running on port 3001
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>[INFO] Process ID: 12345
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>[CHECK] Frontend Client (Port 5173)...
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>[RUNNING] Frontend is running on port 5173
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>[INFO] Process ID: 12346
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>[CHECK] Jury Portal (Port 5174)...
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>[RUNNING] Jury Portal is running on port 5174
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>[INFO] Process ID: 12347
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>========================================
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>   Summary
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>========================================
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>Services running: 3 / 3
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>[SUCCESS] All services are running!
+</code></pre></div></p>
+<h2 id="typische-workflows">🎯 Typische Workflows<a class="headerlink" href="#typische-workflows" title="Permanent link">&para;</a></h2>
+<h3 id="normaler-start">Normaler Start<a class="headerlink" href="#normaler-start" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># 1. Alle Services starten
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>start-dev.bat
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a># 2. Warten bis alle Services laufen (ca. 10-20 Sekunden)
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a># 3. Browser öffnen: http://localhost:5173
+</code></pre></div>
+<h3 id="nach-code-anderungen">Nach Code-Änderungen<a class="headerlink" href="#nach-code-anderungen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a># Services laufen weiter und reloaden automatisch (Hot Reload)
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a># Kein Neustart nötig!
+</code></pre></div>
+<h3 id="bei-problemen">Bei Problemen<a class="headerlink" href="#bei-problemen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a># 1. Status prüfen
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>status-check.bat
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a># 2. Alle Services stoppen
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>stop-dev.bat
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a># 3. Neu starten
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>start-dev.bat
+</code></pre></div>
+<h3 id="vor-dem-commit">Vor dem Commit<a class="headerlink" href="#vor-dem-commit" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># 1. Services stoppen
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>stop-dev.bat
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a># 2. Git operations durchführen
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>git add .
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>git commit -m &quot;...&quot;
+</code></pre></div>
+<h2 id="netzwerkzugriff">🌐 Netzwerkzugriff<a class="headerlink" href="#netzwerkzugriff" title="Permanent link">&para;</a></h2>
+<h3 id="lokaler-zugriff-auf-dem-entwicklungs-pc">Lokaler Zugriff (auf dem Entwicklungs-PC)<a class="headerlink" href="#lokaler-zugriff-auf-dem-entwicklungs-pc" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Frontend: http://localhost:5173</li>
+<li>Backend API: http://localhost:3001/api</li>
+<li>Jury Portal: http://localhost:5174</li>
+</ul>
+<h3 id="netzwerkzugriff-von-anderen-geraten">Netzwerkzugriff (von anderen Geräten)<a class="headerlink" href="#netzwerkzugriff-von-anderen-geraten" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p>IP-Adresse herausfinden:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ipconfig
+</code></pre></div></p>
+</li>
+<li>
+<p>Von anderen Geräten zugreifen:</p>
+</li>
+<li>Frontend: http://192.168.1.X:5173</li>
+<li>
+<p>Jury Portal: http://192.168.1.X:5174</p>
+</li>
+<li>
+<p>Firewall konfigurieren (siehe <a href="FIREWALL_SETUP.md">FIREWALL_SETUP.md</a>)</p>
+</li>
+</ol>
+<h2 id="fenster-farben">🎨 Fenster-Farben<a class="headerlink" href="#fenster-farben" title="Permanent link">&para;</a></h2>
+<p>Die Services laufen in separaten Fenstern mit Farbcodierung:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Farbe</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend</td>
+<td>🔵 Blau</td>
+<td>3001</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>🟡 Gelb</td>
+<td>5173</td>
+</tr>
+<tr>
+<td>Jury Portal</td>
+<td>🟣 Lila</td>
+<td>5174</td>
+</tr>
+<tr>
+<td>Start-Script</td>
+<td>🟢 Grün</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Stop-Script</td>
+<td>🔴 Rot</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Status-Script</td>
+<td>🔵 Blau</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h2 id="fehlerbehebung">🐛 Fehlerbehebung<a class="headerlink" href="#fehlerbehebung" title="Permanent link">&para;</a></h2>
+<h3 id="port-already-in-use">"Port already in use"<a class="headerlink" href="#port-already-in-use" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Lösung: Services stoppen und neu starten
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>stop-dev.bat
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>start-dev.bat
+</code></pre></div>
+<h3 id="cannot-find-module">"Cannot find module"<a class="headerlink" href="#cannot-find-module" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a># Lösung: Dependencies neu installieren
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>cd server
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>npm install
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>cd ../client
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>npm install
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>cd ../jury-portal
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>npm install
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>cd ..
+</code></pre></div>
+<h3 id="services-starten-nicht">Services starten nicht<a class="headerlink" href="#services-starten-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a># 1. Status prüfen
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>status-check.bat
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a># 2. Manuell alle Node-Prozesse beenden
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>taskkill /F /IM node.exe
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a># 3. Neu starten
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>start-dev.bat
+</code></pre></div>
+<h3 id="jury-portal-startet-nicht">Jury Portal startet nicht<a class="headerlink" href="#jury-portal-startet-nicht" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a># Prüfen ob package.json existiert
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>cd jury-portal
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>if exist package.json (echo Exists) else (echo Missing!)
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a># Falls fehlend: Dependencies installieren
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>npm install
+</code></pre></div>
+<h2 id="hinweise">📝 Hinweise<a class="headerlink" href="#hinweise" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Fenster nicht schließen</strong>: Die Service-Fenster zeigen Live-Logs. Bei Problemen hier nachsehen!</li>
+<li><strong>Auto-Reload</strong>: Frontend und Jury Portal unterstützen Hot Module Replacement (HMR)</li>
+<li><strong>Backend</strong>: Verwendet nodemon für automatisches Neuladen bei Code-Änderungen</li>
+<li><strong>Test-User</strong>: Wird automatisch beim Start erstellt (falls nicht vorhanden)</li>
+<li><strong>Netzwerk-Binding</strong>: Frontend und Jury Portal binden auf 0.0.0.0 für Netzwerkzugriff</li>
+</ul>
+<h2 id="weitere-dokumentation">🔗 Weitere Dokumentation<a class="headerlink" href="#weitere-dokumentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="FIREWALL_SETUP.md">FIREWALL_SETUP.md</a> - Windows Firewall Konfiguration für Netzwerkzugriff</li>
+<li><a href="GETTING_STARTED.md">GETTING_STARTED.md</a> - Erste Schritte und Setup-Anleitung</li>
+<li><a href="README.md">README.md</a> - Haupt-Dokumentation</li>
+</ul>
+<h2 id="schnellreferenz">⚡ Schnellreferenz<a class="headerlink" href="#schnellreferenz" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a># Starten
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>start-dev.bat
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a># Status
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>status-check.bat
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a># Stoppen
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>stop-dev.bat
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a># IP finden
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>ipconfig
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a># Logs ansehen
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a># → Siehe separate Fenster (Blau/Gelb/Lila)
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../project-readme/" class="btn btn-neutral float-left" title="TurnFix - Gymnastics Competition Management System"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../update-v2/" class="btn btn-neutral float-right" title="🎉 TurnFix v2.0 - Production-Modus Update">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../project-readme/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../update-v2/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

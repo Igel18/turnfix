@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/gender-unification/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Point 30: Gender Unification Implementation - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Point 30: Gender Unification Implementation";
+        var mkdocs_page_input_path = "developer-guide\\features\\gender-unification.md";
+        var mkdocs_page_url = "/developer-guide/features/gender-unification/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Point 30: Gender Unification Implementation</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-statement">Problem Statement</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution">Solution</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-created-unified-gender-component">1. Created Unified Gender Component</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-added-translation-keys">2. Added Translation Keys</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-display-gender-badge">1. Display Gender Badge</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-gender-filter-dropdown">2. Gender Filter Dropdown</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-column-header">3. Column Header</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#4-normalize-gender-values">4. Normalize Gender Values</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementation-plan">Implementation Plan</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-1-core-pages-completed">Phase 1: Core Pages (Completed)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-2-related-pages">Phase 2: Related Pages</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-3-form-modals">Phase 3: Form Modals</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#benefits">Benefits</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#migration-guide">Migration Guide</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#before">Before</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#after">After</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing-checklist">Testing Checklist</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#files-modified">Files Modified</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#new-files">New Files</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#modified-files">Modified Files</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#future-enhancements">Future Enhancements</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Point 30: Gender Unification Implementation</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/gender-unification.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="point-30-gender-unification-implementation">Point 30: Gender Unification Implementation<a class="headerlink" href="#point-30-gender-unification-implementation" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Unified gender representation across all UIs to ensure consistency in naming, appearance, column headers, and dropdown options.</p>
+<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">&para;</a></h2>
+<p>Gender values were displayed inconsistently across different pages:
+- Different naming: "male" vs "m" vs "männlich"
+- Inconsistent appearance: sometimes text, sometimes badges, different colors
+- Different column headers: "Gender" vs "Geschlecht" vs "Sex"
+- Different dropdown options: different value formats</p>
+<h2 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">&para;</a></h2>
+<h3 id="1-created-unified-gender-component">1. Created Unified Gender Component<a class="headerlink" href="#1-created-unified-gender-component" title="Permanent link">&para;</a></h3>
+<p><strong>File</strong>: <code>client/src/components/GenderBadge.tsx</code></p>
+<h4 id="features">Features:<a class="headerlink" href="#features" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>GenderBadge Component</strong>: Visual badge with consistent colors</li>
+<li>Male: Blue (<code>bg-blue-100 text-blue-800</code>)</li>
+<li>Female: Pink (<code>bg-pink-100 text-pink-800</code>)</li>
+<li>Both: Purple (<code>bg-purple-100 text-purple-800</code>)</li>
+<li>
+<p>Unknown: Gray (<code>bg-gray-100 text-gray-600</code>)</p>
+</li>
+<li>
+<p><strong>normalizeGender Function</strong>: Converts all variations to standard values</p>
+</li>
+<li>Handles: male, female, both, männlich, weiblich, m, w, f, 1, 2, true, false, etc.</li>
+<li>
+<p>Returns: 'male' | 'female' | 'both' | 'unknown'</p>
+</li>
+<li>
+<p><strong>Helper Functions</strong>:</p>
+</li>
+<li><code>getGenderFilterOptions(t)</code>: Consistent dropdown options</li>
+<li><code>getGenderColumnHeader(t)</code>: Consistent column header</li>
+<li><code>getGenderText(value, t)</code>: Text-only display without badge</li>
+</ul>
+<h3 id="2-added-translation-keys">2. Added Translation Keys<a class="headerlink" href="#2-added-translation-keys" title="Permanent link">&para;</a></h3>
+<p><strong>Files</strong>: <code>client/src/i18n/locales/de.json</code> and <code>en.json</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&quot;common&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Geschlecht / Gender&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&quot;male&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Männlich / Male&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&quot;female&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Weiblich / Female&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">&quot;both&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Beide / Both&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">&quot;unknown&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Unbekannt / Unknown&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">&quot;all&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alle Geschlechter / All Genders&quot;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<h3 id="1-display-gender-badge">1. Display Gender Badge<a class="headerlink" href="#1-display-gender-badge" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">GenderBadge</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../components/GenderBadge&#39;</span><span class="p">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">// In table cell</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">&lt;</span><span class="nt">td</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;px-6 py-4&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">GenderBadge</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">gender</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1">// With icon</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">&lt;</span><span class="nt">GenderBadge</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="s">&quot;male&quot;</span><span class="w"> </span><span class="na">showIcon</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h3 id="2-gender-filter-dropdown">2. Gender Filter Dropdown<a class="headerlink" href="#2-gender-filter-dropdown" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getGenderFilterOptions</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../components/GenderBadge&#39;</span><span class="p">;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useTranslation</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react-i18next&#39;</span><span class="p">;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useTranslation</span><span class="p">();</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">genderOptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getGenderFilterOptions</span><span class="p">(</span><span class="nx">t</span><span class="p">);</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">&lt;</span><span class="nt">select</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">genderFilter</span><span class="p">}</span><span class="w"> </span><span class="na">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setGenderFilter</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)}&gt;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="p">{</span><span class="nx">genderOptions</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">option</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">option</span><span class="w"> </span><span class="na">key</span><span class="o">=</span><span class="p">{</span><span class="nx">option</span><span class="p">.</span><span class="nx">value</span><span class="p">}</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">option</span><span class="p">.</span><span class="nx">value</span><span class="p">}&gt;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">      </span><span class="p">{</span><span class="nx">option</span><span class="p">.</span><span class="nx">label</span><span class="p">}</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">option</span><span class="p">&gt;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="p">))}</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">&lt;/</span><span class="nt">select</span><span class="p">&gt;</span>
+</code></pre></div>
+<h3 id="3-column-header">3. Column Header<a class="headerlink" href="#3-column-header" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getGenderColumnHeader</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../components/GenderBadge&#39;</span><span class="p">;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">&lt;</span><span class="nt">th</span><span class="p">&gt;{</span><span class="nx">getGenderColumnHeader</span><span class="p">(</span><span class="nx">t</span><span class="p">)}&lt;/</span><span class="nt">th</span><span class="p">&gt;</span>
+</code></pre></div>
+<h3 id="4-normalize-gender-values">4. Normalize Gender Values<a class="headerlink" href="#4-normalize-gender-values" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../components/GenderBadge&#39;</span><span class="p">;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">standardGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="nx">dbValue</span><span class="p">);</span><span class="w"> </span><span class="c1">// &#39;male&#39;, &#39;female&#39;, &#39;both&#39;, or &#39;unknown&#39;</span>
+</code></pre></div>
+<h2 id="implementation-plan">Implementation Plan<a class="headerlink" href="#implementation-plan" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-core-pages-completed">Phase 1: Core Pages (Completed)<a class="headerlink" href="#phase-1-core-pages-completed" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>DisciplinesUnified.tsx</strong></li>
+<li>Replace gender display in table</li>
+<li>Update filter dropdown</li>
+<li>
+<p>Update column header</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>ParticipantsUnified.tsx</strong></p>
+</li>
+<li>Replace gender display in table</li>
+<li>Update filter dropdown</li>
+<li>
+<p>Update column header</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>EventParticipants.tsx</strong></p>
+</li>
+<li>Replace gender display in table</li>
+<li>Update filter dropdown</li>
+<li>
+<p>Update column header</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>CompetitionsFixed.tsx</strong></p>
+</li>
+<li>Replace gender display in table</li>
+<li>Update filter dropdown</li>
+<li>Update column header</li>
+</ul>
+<h3 id="phase-2-related-pages">Phase 2: Related Pages<a class="headerlink" href="#phase-2-related-pages" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SquadManagement.tsx</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Meldematrix.tsx</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ScoreCapture.tsx</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> EventManagement.tsx</li>
+</ul>
+<h3 id="phase-3-form-modals">Phase 3: Form Modals<a class="headerlink" href="#phase-3-form-modals" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> DisciplineFormModal.tsx</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ParticipantFormModal.tsx</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> CompetitionFormModal.tsx</li>
+</ul>
+<h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Consistency</strong>: All pages use the same gender representation</li>
+<li><strong>Localization</strong>: All gender text is translated</li>
+<li><strong>Flexibility</strong>: Easy to add new gender options in the future</li>
+<li><strong>Maintainability</strong>: Single source of truth for gender logic</li>
+<li><strong>Visual Clarity</strong>: Color-coded badges improve readability</li>
+<li><strong>Data Normalization</strong>: Handles various input formats automatically</li>
+</ol>
+<h2 id="migration-guide">Migration Guide<a class="headerlink" href="#migration-guide" title="Permanent link">&para;</a></h2>
+<h3 id="before">Before<a class="headerlink" href="#before" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// Inconsistent displays</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">gender</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s1">&#39;M&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;F&#39;</span><span class="p">}</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">geschlecht</span><span class="p">}</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">&lt;</span><span class="nt">span</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-blue-600&quot;</span><span class="p">&gt;{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">gender</span><span class="p">}&lt;/</span><span class="nt">span</span><span class="p">&gt;</span>
+</code></pre></div>
+<h3 id="after">After<a class="headerlink" href="#after" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// Unified display</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="p">&lt;</span><span class="nt">GenderBadge</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">gender</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h2 id="testing-checklist">Testing Checklist<a class="headerlink" href="#testing-checklist" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Male gender displays as blue badge "Männlich"/"Male"</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Female gender displays as pink badge "Weiblich"/"Female"</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Both gender displays as purple badge "Beide"/"Both"</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Unknown/null displays as gray badge "Unbekannt"/"Unknown"</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Filter dropdowns have consistent options</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Column headers are localized</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> normalizeGender handles all variations correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Works in both German and English</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Visual appearance is consistent across all pages</li>
+</ul>
+<h2 id="files-modified">Files Modified<a class="headerlink" href="#files-modified" title="Permanent link">&para;</a></h2>
+<h3 id="new-files">New Files<a class="headerlink" href="#new-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>client/src/components/GenderBadge.tsx</code> - Main component and utilities</li>
+</ul>
+<h3 id="modified-files">Modified Files<a class="headerlink" href="#modified-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>client/src/i18n/locales/de.json</code> - German translations</li>
+<li><code>client/src/i18n/locales/en.json</code> - English translations</li>
+<li>(To be modified in next steps: various page components)</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Add additional gender options if needed (non-binary, prefer not to say, etc.)</li>
+<li>Add gender icons/symbols option</li>
+<li>Create gender statistics utilities</li>
+<li>Add gender-based filtering utilities</li>
+<li>Create gender distribution charts</li>
+</ol>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The component handles null/undefined values gracefully</li>
+<li>All database values are normalized before display</li>
+<li>The component is fully compatible with existing code</li>
+<li>No database changes required</li>
+<li>Backward compatible with existing gender values</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../events-localization/" class="btn btn-neutral float-left" title="Point 49 - Events Page Localization"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../gymnet-hotfix/" class="btn btn-neutral float-right" title="Point 38 - HOTFIX: Age Conversion Logic Korrektur">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../events-localization/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../gymnet-hotfix/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

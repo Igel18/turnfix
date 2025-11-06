@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Entwicklerhandbuch - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Entwicklerhandbuch";
+        var mkdocs_page_input_path = "developer-guide\\README.md";
+        var mkdocs_page_url = "/developer-guide/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Entwicklerhandbuch</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#ubersicht">📋 Übersicht</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#technologie-stack">Technologie-Stack</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dokumentations-struktur">🗂️ Dokumentations-Struktur</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#architektur">Architektur</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#features-implementation">Features &amp; Implementation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#api-referenz">API-Referenz</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start-fur-entwickler">🚀 Quick Start für Entwickler</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-repository-klonen">1. Repository klonen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-dependencies-installieren">2. Dependencies installieren</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-datenbank-einrichten">3. Datenbank einrichten</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-development-server-starten">4. Development Server starten</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#architektur-prinzipien">📐 Architektur-Prinzipien</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#backend-architektur">Backend-Architektur</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#frontend-architektur">Frontend-Architektur</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#development-guidelines">🎯 Development Guidelines</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#core-rules">Core Rules</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#code-standards">Code-Standards</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#component-system">🧩 Component-System</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#standard-templates">Standard-Templates</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#point-based-development">🔄 Point-Based Development</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tools-utilities">🛠️ Tools &amp; Utilities</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#entwicklungs-tools">Entwicklungs-Tools</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#debugging">Debugging</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#database-guidelines">📊 Database Guidelines</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#prisma-best-practices">Prisma Best Practices</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#legacy-kompatibilitat">Legacy-Kompatibilität</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#lokalisierung">🌍 Lokalisierung</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#contributing">🤝 Contributing</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#pull-request-workflow">Pull Request Workflow</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#commit-message-format">Commit-Message Format</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#weitere-ressourcen">📚 Weitere Ressourcen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">🐛 Troubleshooting</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#support-fur-entwickler">📞 Support für Entwickler</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+      <li class="breadcrumb-item active">Entwicklerhandbuch</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/README.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="entwicklerhandbuch">Entwicklerhandbuch<a class="headerlink" href="#entwicklerhandbuch" title="Permanent link">&para;</a></h1>
+<p>Willkommen zum TurnFix v2.0 Entwicklerhandbuch! Diese Dokumentation richtet sich an Entwickler, die an TurnFix beitragen oder das System erweitern möchten.</p>
+<h2 id="ubersicht">📋 Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>TurnFix v2.0 ist eine moderne Full-Stack-Webanwendung, die die Legacy Qt/C++-Desktop-Anwendung ersetzt.</p>
+<h3 id="technologie-stack">Technologie-Stack<a class="headerlink" href="#technologie-stack" title="Permanent link">&para;</a></h3>
+<p><strong>Backend</strong>:
+- Node.js 18+
+- Express.js
+- TypeScript 5+
+- Prisma ORM
+- PostgreSQL</p>
+<p><strong>Frontend</strong>:
+- React 18
+- TypeScript 5+
+- Tailwind CSS 3
+- Vite 5
+- Socket.IO Client</p>
+<p><strong>Infrastructure</strong>:
+- PM2 (Process Manager)
+- Socket.IO (Real-time)
+- Windows Server (primary)</p>
+<h2 id="dokumentations-struktur">🗂️ Dokumentations-Struktur<a class="headerlink" href="#dokumentations-struktur" title="Permanent link">&para;</a></h2>
+<h3 id="architektur">Architektur<a class="headerlink" href="#architektur" title="Permanent link">&para;</a></h3>
+<p>Verstehen Sie die System-Architektur:</p>
+<ul>
+<li><a href="architecture/overview.md">System-Übersicht</a></li>
+<li><a href="architecture/backend.md">Backend-Struktur</a></li>
+<li><a href="architecture/frontend.md">Frontend-Struktur</a></li>
+<li><a href="architecture/database.md">Datenbank-Schema</a></li>
+<li><a href="architecture/live-updates/">Real-time Updates (Socket.IO)</a></li>
+</ul>
+<h3 id="features-implementation">Features &amp; Implementation<a class="headerlink" href="#features-implementation" title="Permanent link">&para;</a></h3>
+<p>Detaillierte Feature-Dokumentationen:</p>
+<ul>
+<li><a href="features/point-135-start-devices/"><strong>Point 135</strong>: Startgeräte-Verwaltung</a> ⭐ NEU</li>
+<li><a href="features/point-133-bahn.md"><strong>Point 133</strong>: Bahn-Konzept</a></li>
+<li><a href="features/gender-unification/">Gender-Unification</a></li>
+<li><a href="features/pdf-system/">PDF-Export-System</a></li>
+<li><a href="features/gymnet-import/">GymNet XML-Import</a></li>
+<li><a href="architecture/field-mapping/">Dynamic Field Mapping</a></li>
+</ul>
+<h3 id="api-referenz">API-Referenz<a class="headerlink" href="#api-referenz" title="Permanent link">&para;</a></h3>
+<p>REST API Endpoints:</p>
+<ul>
+<li><a href="api/overview.md">API-Übersicht</a></li>
+<li><a href="api/events.md">Events API</a></li>
+<li><a href="api/participants.md">Participants API</a></li>
+<li><a href="api/competitions.md">Competitions API</a></li>
+<li><a href="api/scores.md">Scores API</a></li>
+<li><a href="api/time-planning.md">Time Planning API</a></li>
+</ul>
+<h3 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h3>
+<p>Code-Standards und Patterns:</p>
+<ul>
+<li><a href="best-practices/code-standards.md">Code-Standards</a></li>
+<li><a href="best-practices/typescript/">TypeScript-Guidelines</a></li>
+<li><a href="best-practices/react-patterns.md">React-Patterns</a></li>
+<li><a href="best-practices/database/">Database-Queries</a></li>
+<li><a href="best-practices/templates/">Template-System</a></li>
+</ul>
+<h3 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h3>
+<p>Test-Strategie und Guidelines:</p>
+<ul>
+<li><a href="testing/strategy/">Test-Strategie</a></li>
+<li><a href="testing/setup/">Setup &amp; Configuration</a></li>
+<li><a href="testing/gymnet-test-cases/">Test-Cases (GymNet)</a></li>
+</ul>
+<h2 id="quick-start-fur-entwickler">🚀 Quick Start für Entwickler<a class="headerlink" href="#quick-start-fur-entwickler" title="Permanent link">&para;</a></h2>
+<h3 id="1-repository-klonen">1. Repository klonen<a class="headerlink" href="#1-repository-klonen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Igel18/turnfix.git
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>turnfix/newWebBased
+</code></pre></div>
+<h3 id="2-dependencies-installieren">2. Dependencies installieren<a class="headerlink" href="#2-dependencies-installieren" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Server</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>server
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>npm<span class="w"> </span>install
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Client</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nb">cd</span><span class="w"> </span>../client
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>npm<span class="w"> </span>install
+</code></pre></div>
+<h3 id="3-datenbank-einrichten">3. Datenbank einrichten<a class="headerlink" href="#3-datenbank-einrichten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>server
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>npx<span class="w"> </span>prisma<span class="w"> </span>generate
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>npx<span class="w"> </span>prisma<span class="w"> </span>db<span class="w"> </span>push
+</code></pre></div>
+<h3 id="4-development-server-starten">4. Development Server starten<a class="headerlink" href="#4-development-server-starten" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Server (Port 3001)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>server
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>npm<span class="w"> </span>run<span class="w"> </span>dev
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Client (Port 5173)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nb">cd</span><span class="w"> </span>client
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
+<p>→ Detaillierte Anleitung: <a href="features/setup-automation/">Setup-Automation</a></p>
+<h2 id="architektur-prinzipien">📐 Architektur-Prinzipien<a class="headerlink" href="#architektur-prinzipien" title="Permanent link">&para;</a></h2>
+<h3 id="backend-architektur">Backend-Architektur<a class="headerlink" href="#backend-architektur" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>server/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── src/
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>│   ├── routes/          # REST API Endpoints
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>│   ├── middleware/      # Express Middleware
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│   ├── utils/           # Helper Functions
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│   ├── db/              # Prisma Client
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>│   └── index.ts         # Server Entry Point
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>├── prisma/
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>│   └── schema.prisma    # Database Schema (READONLY!)
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>└── ecosystem.config.js  # PM2 Configuration
+</code></pre></div>
+<p><strong>Wichtig</strong>: Datenbank-Schema NIEMALS ändern! (Legacy-Kompatibilität)</p>
+<h3 id="frontend-architektur">Frontend-Architektur<a class="headerlink" href="#frontend-architektur" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>client/
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── src/
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│   ├── pages/           # Route Components
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│   ├── components/      # Reusable UI Components
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│   ├── utils/           # Helper Functions
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│   ├── i18n/            # Translations (DE/EN)
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>│   └── types/           # TypeScript Types
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>└── index.html
+</code></pre></div>
+<p><strong>Pattern</strong>: EventManagementTemplate für konsistente UIs</p>
+<h2 id="development-guidelines">🎯 Development Guidelines<a class="headerlink" href="#development-guidelines" title="Permanent link">&para;</a></h2>
+<h3 id="core-rules">Core Rules<a class="headerlink" href="#core-rules" title="Permanent link">&para;</a></h3>
+<ol>
+<li>✅ <strong>NIEMALS</strong> Datenbank-Schema ändern</li>
+<li>✅ <strong>IMMER</strong> Feld-Mapping (camelCase ↔ snake_case)</li>
+<li>✅ <strong>ALLE</strong> UI-Texte lokalisieren (DE/EN)</li>
+<li>✅ <strong>ALLE</strong> Components mit TypeScript</li>
+<li>✅ <strong>TESTS</strong> schreiben für neue Features</li>
+</ol>
+<h3 id="code-standards">Code-Standards<a class="headerlink" href="#code-standards" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// ✅ RICHTIG: Field Mapping</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">mapped</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">row.int_disziplinenid</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">row.var_name</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nx">maleAllowed</span><span class="o">:</span><span class="w"> </span><span class="kt">row.bol_m</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">};</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1">// ❌ FALSCH: DB-Felder direkt im Client</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="o">&lt;</span><span class="nx">td</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">row</span><span class="p">.</span><span class="nx">int_disziplinenid</span><span class="p">}</span><span class="o">&lt;</span><span class="err">/td&gt;</span>
+</code></pre></div>
+<p>→ Vollständige Standards: <a href="best-practices/code-standards.md">Code-Standards</a></p>
+<h2 id="component-system">🧩 Component-System<a class="headerlink" href="#component-system" title="Permanent link">&para;</a></h2>
+<h3 id="standard-templates">Standard-Templates<a class="headerlink" href="#standard-templates" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>EventManagementTemplate</strong> - Basis für Event-Seiten</li>
+<li><strong>UnifiedPageHeader</strong> - Konsistente Header</li>
+<li><strong>UnifiedDataView</strong> - Table/Card/Grid Views</li>
+<li><strong>UnifiedFilter</strong> - Standardisierte Filter</li>
+<li><strong>UnifiedDialog</strong> - Modale Dialoge</li>
+</ul>
+<p>→ Details: <a href="best-practices/templates/">Template-System</a></p>
+<h2 id="point-based-development">🔄 Point-Based Development<a class="headerlink" href="#point-based-development" title="Permanent link">&para;</a></h2>
+<p>TurnFix nutzt ein <strong>Point-System</strong> für Feature-Tracking:</p>
+<ul>
+<li><strong>Point 1-100</strong>: Basis-Features (✅ größtenteils erledigt)</li>
+<li><strong>Point 101-135</strong>: Erweiterte Features (🚧 in Arbeit)</li>
+<li><strong>Point 136+</strong>: Zukünftige Features (⏳ geplant)</li>
+</ul>
+<p>Aktueller Stand: <strong>135 Points</strong> (86 erledigt, 38.9%)</p>
+<p>→ Vollständiger Status: <a href="../reference/development-status.md">Development Status</a></p>
+<h2 id="tools-utilities">🛠️ Tools &amp; Utilities<a class="headerlink" href="#tools-utilities" title="Permanent link">&para;</a></h2>
+<h3 id="entwicklungs-tools">Entwicklungs-Tools<a class="headerlink" href="#entwicklungs-tools" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># TypeScript Kompilierung prüfen</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>npm<span class="w"> </span>run<span class="w"> </span>build
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Linting</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>npm<span class="w"> </span>run<span class="w"> </span>lint
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Tests ausführen</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>npm<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># PM2 Management</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>pm2<span class="w"> </span>status
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>pm2<span class="w"> </span>logs<span class="w"> </span>turnfix-server
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>pm2<span class="w"> </span>restart<span class="w"> </span>turnfix-server
+</code></pre></div>
+<h3 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Server mit Debug-Logs</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">DEBUG</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>dev
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Client mit Source Maps</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
+<p>→ Mehr Scripts: <a href="../reference/scripts/">Development Scripts</a></p>
+<h2 id="database-guidelines">📊 Database Guidelines<a class="headerlink" href="#database-guidelines" title="Permanent link">&para;</a></h2>
+<h3 id="prisma-best-practices">Prisma Best Practices<a class="headerlink" href="#prisma-best-practices" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// ✅ RICHTIG: Singleton Pattern</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">import</span><span class="w"> </span><span class="nx">prisma</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../lib/prisma&#39;</span><span class="p">;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1">// ❌ FALSCH: Neue Instanz</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">PrismaClient</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@prisma/client&#39;</span><span class="p">;</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="kd">const</span><span class="w"> </span><span class="nx">prisma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">PrismaClient</span><span class="p">();</span>
+</code></pre></div>
+<p>→ Details: <a href="best-practices/database/">Database Best Practices</a></p>
+<h3 id="legacy-kompatibilitat">Legacy-Kompatibilität<a class="headerlink" href="#legacy-kompatibilitat" title="Permanent link">&para;</a></h3>
+<p><strong>Regel</strong>: Datenbank-Struktur NICHT ändern!</p>
+<ul>
+<li>Felder behalten: <code>int_id</code>, <code>var_name</code>, <code>bol_flag</code></li>
+<li>Alte Qt/C++-App muss weiterhin funktionieren</li>
+<li>Nur neue Felder hinzufügen (wenn unbedingt nötig)</li>
+</ul>
+<h2 id="lokalisierung">🌍 Lokalisierung<a class="headerlink" href="#lokalisierung" title="Permanent link">&para;</a></h2>
+<p>Alle UI-Texte müssen übersetzt werden:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// ✅ RICHTIG</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useTranslation</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react-i18next&#39;</span><span class="p">;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useTranslation</span><span class="p">();</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="o">&lt;</span><span class="nx">button</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;common.save&#39;</span><span class="p">)}</span><span class="o">&lt;</span><span class="err">/button&gt;</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1">// ❌ FALSCH</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="o">&lt;</span><span class="nx">button</span><span class="o">&gt;</span><span class="nx">Save</span><span class="o">&lt;</span><span class="err">/button&gt;</span>
+</code></pre></div>
+<p>Translation-Files:
+- <code>client/src/i18n/locales/de.json</code>
+- <code>client/src/i18n/locales/en.json</code></p>
+<h2 id="contributing">🤝 Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<p>Möchten Sie zu TurnFix beitragen?</p>
+<p>→ <a href="contributing.md">Contribution Guide</a></p>
+<h3 id="pull-request-workflow">Pull Request Workflow<a class="headerlink" href="#pull-request-workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Feature Branch</strong> erstellen (<code>feature/point-XXX</code>)</li>
+<li><strong>Changes</strong> implementieren</li>
+<li><strong>Tests</strong> schreiben</li>
+<li><strong>Build</strong> erfolgreich (<code>npm run build</code>)</li>
+<li><strong>Commit</strong> mit Point-Nummer</li>
+<li><strong>PR</strong> erstellen mit Beschreibung</li>
+</ol>
+<h3 id="commit-message-format">Commit-Message Format<a class="headerlink" href="#commit-message-format" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>[Action] Point XXX: Brief description
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Detailed description:
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>- Change 1
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>- Change 2
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>Files modified:
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>- file1.ts
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>- file2.tsx
+</code></pre></div>
+<p>→ Details: <a href="commit-guidelines.md">Commit Guidelines</a></p>
+<h2 id="weitere-ressourcen">📚 Weitere Ressourcen<a class="headerlink" href="#weitere-ressourcen" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="architecture/overview.md">Architektur-Übersicht</a></li>
+<li><a href="api/overview.md">API-Referenz</a></li>
+<li><a href="best-practices/code-standards.md">Best Practices</a></li>
+<li><a href="testing/strategy/">Testing-Guide</a></li>
+</ul>
+<h2 id="troubleshooting">🐛 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<p>Häufige Entwickler-Probleme:</p>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Lösung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Port 3001 belegt</td>
+<td><code>taskkill /F /PID &lt;pid&gt;</code> oder PM2 restart</td>
+</tr>
+<tr>
+<td>TypeScript Fehler</td>
+<td><code>npm run build</code> im entsprechenden Ordner</td>
+</tr>
+<tr>
+<td>Prisma Schema Fehler</td>
+<td>NIEMALS Schema ändern! Nur via Prisma CLI</td>
+</tr>
+<tr>
+<td>Socket.IO nicht verbunden</td>
+<td>Server neu starten, Client Cache leeren</td>
+</tr>
+</tbody>
+</table>
+<p>→ Vollständige Liste: <a href="../deployment/troubleshooting.md">Troubleshooting</a></p>
+<h2 id="support-fur-entwickler">📞 Support für Entwickler<a class="headerlink" href="#support-fur-entwickler" title="Permanent link">&para;</a></h2>
+<ul>
+<li>💬 <strong>Discussions</strong>: <a href="https://github.com/Igel18/turnfix/discussions">GitHub Discussions</a></li>
+<li>🐛 <strong>Issues</strong>: <a href="https://github.com/Igel18/turnfix/issues">GitHub Issues</a></li>
+<li>📧 <strong>Direct Contact</strong>: [Maintainer kontaktieren]</li>
+</ul>
+<hr />
+<p><strong>Happy Coding! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../deployment/troubleshooting/node-modules-fix/" class="btn btn-neutral float-left" title="Node_modules Korruption beheben"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="architecture/field-mapping/" class="btn btn-neutral float-right" title="Dynamisches Feld-Mapping für Formeln">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../deployment/troubleshooting/node-modules-fix/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="architecture/field-mapping/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

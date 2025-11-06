@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/deployment/firewall-gui/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Firewall Management GUI - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Firewall Management GUI";
+        var mkdocs_page_input_path = "deployment\\firewall-gui.md";
+        var mkdocs_page_url = "/deployment/firewall-gui/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Firewall Management GUI</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#features">Features</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-administrator-rights-detection">1. Administrator Rights Detection</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-service-management">2. Service Management</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-visual-status-indicators">3. Visual Status Indicators</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-one-click-enabledisable">4. One-Click Enable/Disable</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#5-network-information-display">5. Network Information Display</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#6-security-features">6. Security Features</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ui-preview">UI Preview</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#with-administrator-rights">With Administrator Rights</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#without-administrator-rights">Without Administrator Rights</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#accessing-the-firewall-manager">Accessing the Firewall Manager</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#enabling-network-access">Enabling Network Access</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#disabling-network-access">Disabling Network Access</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#finding-access-urls">Finding Access URLs</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#technical-details">Technical Details</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#backend-api-endpoints">Backend API Endpoints</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#firewall-rules-created">Firewall Rules Created</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#command-used-windows">Command Used (Windows)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#administrator-privileges">Administrator Privileges</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#why-administrator-access-is-required">Why Administrator Access is Required</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-grant-access">How to Grant Access</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#what-happens-without-admin-rights">What Happens Without Admin Rights</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#security-considerations">Security Considerations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#network-exposure">Network Exposure</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#recommended-practices">Recommended Practices</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#firewall-rule-scope">Firewall Rule Scope</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#permission-denied-error">"Permission Denied" Error</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cannot-find-rule-error">"Cannot Find Rule" Error</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#network-urls-not-working">Network URLs Not Working</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ip-address-not-shown">IP Address Not Shown</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#multiple-ip-addresses-shown">Multiple IP Addresses Shown</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#alternative-manual-configuration">Alternative: Manual Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#localization">Localization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#files-involved">Files Involved</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#backend">Backend</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#frontend">Frontend</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#translations">Translations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#future-enhancements">Future Enhancements</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Deployment</li>
+      <li class="breadcrumb-item active">Firewall Management GUI</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/deployment/firewall-gui.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="firewall-management-gui">Firewall Management GUI<a class="headerlink" href="#firewall-management-gui" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The TurnFix application now includes a graphical user interface for managing Windows Firewall rules, allowing network access to be enabled/disabled for each service independently.</p>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<h3 id="1-administrator-rights-detection">1. Administrator Rights Detection<a class="headerlink" href="#1-administrator-rights-detection" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Automatic detection</strong> - Checks on page load if application has admin privileges</li>
+<li><strong>Visual indicators</strong> - Green checkmark (has rights) or amber warning (needs rights)</li>
+<li><strong>Smart UI</strong> - Buttons automatically enabled/disabled based on privileges</li>
+<li><strong>Clear messaging</strong> - Explains what's needed and why</li>
+</ul>
+<h3 id="2-service-management">2. Service Management<a class="headerlink" href="#2-service-management" title="Permanent link">&para;</a></h3>
+<p>Three services can be controlled independently:
+- <strong>Backend Server</strong> (Port 3001) - API endpoints
+- <strong>Frontend Client</strong> (Port 5173) - Main application UI
+- <strong>Jury Portal</strong> (Port 5174) - Separate jury interface</p>
+<h3 id="3-visual-status-indicators">3. Visual Status Indicators<a class="headerlink" href="#3-visual-status-indicators" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Green checkmark</strong> - Service is accessible from network</li>
+<li>❌ <strong>Gray X</strong> - Service is blocked by firewall</li>
+<li>🔄 <strong>Spinning icon</strong> - Status being checked</li>
+</ul>
+<h3 id="4-one-click-enabledisable">4. One-Click Enable/Disable<a class="headerlink" href="#4-one-click-enabledisable" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Each service has its own enable/disable button</li>
+<li>Changes take effect immediately</li>
+<li>Success/error messages provide feedback</li>
+</ul>
+<h3 id="5-network-information-display">5. Network Information Display<a class="headerlink" href="#5-network-information-display" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Shows all local IP addresses</li>
+<li>Provides access URLs for each service on each network interface</li>
+<li>Copy-to-clipboard functionality for easy sharing</li>
+</ul>
+<h3 id="6-security-features">6. Security Features<a class="headerlink" href="#6-security-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Requires administrator privileges to modify firewall rules</li>
+<li>Clear warning when admin rights are needed</li>
+<li>Automatic detection of admin status on page load</li>
+<li>Security reminder about network exposure</li>
+</ul>
+<h2 id="ui-preview">UI Preview<a class="headerlink" href="#ui-preview" title="Permanent link">&para;</a></h2>
+<h3 id="with-administrator-rights">With Administrator Rights<a class="headerlink" href="#with-administrator-rights" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ 🛡️ Firewall &amp; Network                                       │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│ Manage Windows Firewall rules for network access           │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│ ℹ️ Windows-specific Feature: This feature uses Windows     │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│ Firewall (netsh &amp; PowerShell) and works on Windows only.   │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│ ✓ Administrator mode active                          [🔄]   │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│ You can manage firewall rules because the application      │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│ is running with administrator privileges.                   │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│ │ Backend      │ │ Frontend     │ │ Jury Portal  │        │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│ │ Port 3001    │ │ Port 5173    │ │ Port 5174    │        │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│ │              │ │              │ │              │        │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│ │ ✅ Enabled   │ │ ❌ Disabled  │ │ ❌ Disabled  │        │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│ │ [Disable]    │ │ [Enable]     │ │ [Enable]     │        │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│ └──────────────┘ └──────────────┘ └──────────────┘        │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│ ℹ️ Platform: This uses Windows Firewall (netsh/PowerShell) │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│ ⚠️ Security: Only enable rules on trusted networks         │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="without-administrator-rights">Without Administrator Rights<a class="headerlink" href="#without-administrator-rights" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>┌─────────────────────────────────────────────────────────────┐
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│ 🛡️ Firewall &amp; Network                                       │
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>│ Manage Windows Firewall rules for network access           │
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│ ℹ️ Windows-specific Feature: This feature uses Windows     │
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│ Firewall (netsh &amp; PowerShell) and works on Windows only.   │
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│ ⚠️ Administrator privileges required                 [🔄]   │
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│ This feature requires administrator privileges. Run the    │
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│ application as administrator to manage firewall rules.     │
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│ │ Backend      │ │ Frontend     │ │ Jury Portal  │        │
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│ │ Port 3001    │ │ Port 5173    │ │ Port 5174    │        │
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│ │              │ │              │ │              │        │
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│ │ ❌ Disabled  │ │ ❌ Disabled  │ │ ❌ Disabled  │        │
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│ │ [Disabled]   │ │ [Disabled]   │ │ [Disabled]   │        │
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│ └──────────────┘ └──────────────┘ └──────────────┘        │
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>│ ℹ️ Platform: This uses Windows Firewall (netsh/PowerShell) │
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>│ ⚠️ Security: Only enable rules on trusted networks         │
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="accessing-the-firewall-manager">Accessing the Firewall Manager<a class="headerlink" href="#accessing-the-firewall-manager" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Open TurnFix application</li>
+<li>Navigate to <strong>Configuration</strong> (Einstellungen)</li>
+<li>Click on <strong>Network &amp; Firewall</strong> section in the left sidebar</li>
+</ol>
+<h3 id="enabling-network-access">Enabling Network Access<a class="headerlink" href="#enabling-network-access" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click the <strong>Enable</strong> button on the desired service card</li>
+<li>Grant administrator privileges if prompted</li>
+<li>Wait for confirmation message</li>
+<li>Share the provided access URL with network users</li>
+</ol>
+<h3 id="disabling-network-access">Disabling Network Access<a class="headerlink" href="#disabling-network-access" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click the <strong>Disable</strong> button on the desired service card</li>
+<li>Grant administrator privileges if prompted</li>
+<li>Wait for confirmation message</li>
+</ol>
+<h3 id="finding-access-urls">Finding Access URLs<a class="headerlink" href="#finding-access-urls" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Look at the "Network Information" section (blue box)</li>
+<li>Your local IP addresses are shown (e.g., 192.168.1.100)</li>
+<li>Access URLs are provided for each service</li>
+<li>Click the clipboard icon to copy a URL</li>
+</ol>
+<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="backend-api-endpoints">Backend API Endpoints<a class="headerlink" href="#backend-api-endpoints" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>GET /api/firewall/status</code> - Check which services are accessible</li>
+<li><code>POST /api/firewall/enable/:service</code> - Enable network access</li>
+<li><code>POST /api/firewall/disable/:service</code> - Disable network access</li>
+<li><code>GET /api/firewall/network-info</code> - Get IP addresses and URLs</li>
+</ul>
+<h3 id="firewall-rules-created">Firewall Rules Created<a class="headerlink" href="#firewall-rules-created" title="Permanent link">&para;</a></h3>
+<p>Windows Firewall rules are created with the following names:
+- "TurnFix Backend Server" (Port 3001, TCP)
+- "TurnFix Frontend Client" (Port 5173, TCP)
+- "TurnFix Jury Portal" (Port 5174, TCP)</p>
+<h3 id="command-used-windows">Command Used (Windows)<a class="headerlink" href="#command-used-windows" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c"># Enable</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">add</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Backend Server&quot;</span> <span class="n">dir</span><span class="p">=</span><span class="k">in</span> <span class="n">action</span><span class="p">=</span><span class="n">allow</span> <span class="n">protocol</span><span class="p">=</span><span class="n">TCP</span> <span class="n">localport</span><span class="p">=</span><span class="n">3001</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c"># Disable</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">delete</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Backend Server&quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c"># Check status</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">show</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Backend Server&quot;</span>
+</code></pre></div>
+<h2 id="administrator-privileges">Administrator Privileges<a class="headerlink" href="#administrator-privileges" title="Permanent link">&para;</a></h2>
+<h3 id="why-administrator-access-is-required">Why Administrator Access is Required<a class="headerlink" href="#why-administrator-access-is-required" title="Permanent link">&para;</a></h3>
+<p>Modifying Windows Firewall rules requires elevated privileges for security reasons.</p>
+<h3 id="how-to-grant-access">How to Grant Access<a class="headerlink" href="#how-to-grant-access" title="Permanent link">&para;</a></h3>
+<p><strong>Option 1: Run VS Code as Administrator</strong>
+1. Right-click on VS Code icon
+2. Select "Run as administrator"
+3. Open the TurnFix project
+4. Changes will work without prompts</p>
+<p><strong>Option 2: Grant Permission When Prompted</strong>
+1. Click enable/disable in the UI
+2. Accept the User Account Control (UAC) prompt
+3. Changes will be applied immediately</p>
+<h3 id="what-happens-without-admin-rights">What Happens Without Admin Rights<a class="headerlink" href="#what-happens-without-admin-rights" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A yellow warning banner appears</li>
+<li>Enable/disable buttons are disabled</li>
+<li>An error message explains the issue</li>
+<li>Status checking still works (read-only)</li>
+</ul>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="network-exposure">Network Exposure<a class="headerlink" href="#network-exposure" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Enabling firewall rules allows <strong>ANY device on your network</strong> to access the service</li>
+<li>Only enable access when needed for multi-device scenarios</li>
+<li>Disable access when not required (e.g., single-user testing)</li>
+</ul>
+<h3 id="recommended-practices">Recommended Practices<a class="headerlink" href="#recommended-practices" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Enable only required services</strong></li>
+<li>Backend only: For API testing from other devices</li>
+<li>Frontend + Backend: For full application access</li>
+<li>
+<p>Jury Portal: Only when jury members need separate interface</p>
+</li>
+<li>
+<p><strong>Use trusted networks</strong></p>
+</li>
+<li>Home networks: Generally safe</li>
+<li>Office networks: Check with IT department</li>
+<li>
+<p>Public WiFi: Avoid enabling access</p>
+</li>
+<li>
+<p><strong>Disable when done</strong></p>
+</li>
+<li>Close firewall access after competitions</li>
+<li>Disable during development if not needed</li>
+<li>Regular security review</li>
+</ol>
+<h3 id="firewall-rule-scope">Firewall Rule Scope<a class="headerlink" href="#firewall-rule-scope" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Rules apply to <strong>ALL networks</strong> (private, public, domain)</li>
+<li>Rules persist until manually disabled</li>
+<li>Application restart does not affect rules</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="permission-denied-error">"Permission Denied" Error<a class="headerlink" href="#permission-denied-error" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom</strong>: Yellow warning, buttons disabled
+<strong>Solution</strong>: Run application as administrator (see above)</p>
+<h3 id="cannot-find-rule-error">"Cannot Find Rule" Error<a class="headerlink" href="#cannot-find-rule-error" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom</strong>: Status shows disabled but cannot enable
+<strong>Solution</strong>: 
+1. Click "Refresh" button to reload status
+2. Try disabling and re-enabling
+3. Check Windows Firewall manually</p>
+<h3 id="network-urls-not-working">Network URLs Not Working<a class="headerlink" href="#network-urls-not-working" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom</strong>: URL shown but cannot connect from other device
+<strong>Solution</strong>:
+1. Check firewall status shows "Enabled" (green)
+2. Verify device is on same network
+3. Test with IP address instead of hostname
+4. Check if Windows Firewall is running
+5. Ensure application server is running</p>
+<h3 id="ip-address-not-shown">IP Address Not Shown<a class="headerlink" href="#ip-address-not-shown" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom</strong>: Network information section empty
+<strong>Solution</strong>:
+1. Check network adapter is connected
+2. Verify IP address assigned (check Windows network settings)
+3. Try disabling/re-enabling network adapter</p>
+<h3 id="multiple-ip-addresses-shown">Multiple IP Addresses Shown<a class="headerlink" href="#multiple-ip-addresses-shown" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom</strong>: Several IP addresses listed
+<strong>Explanation</strong>: Normal if computer has multiple network interfaces:
+- WiFi and Ethernet adapters
+- VPN connections
+- Virtual machine adapters
+<strong>Action</strong>: Use the IP that matches your target network</p>
+<h2 id="alternative-manual-configuration">Alternative: Manual Configuration<a class="headerlink" href="#alternative-manual-configuration" title="Permanent link">&para;</a></h2>
+<p>If the GUI doesn't work, you can still use the PowerShell script:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">.\</span><span class="n">setup-network</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div></p>
+<p>Or configure manually (requires admin PowerShell):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c"># Enable all services</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">add</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Backend Server&quot;</span> <span class="n">dir</span><span class="p">=</span><span class="k">in</span> <span class="n">action</span><span class="p">=</span><span class="n">allow</span> <span class="n">protocol</span><span class="p">=</span><span class="n">TCP</span> <span class="n">localport</span><span class="p">=</span><span class="n">3001</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">add</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Frontend Client&quot;</span> <span class="n">dir</span><span class="p">=</span><span class="k">in</span> <span class="n">action</span><span class="p">=</span><span class="n">allow</span> <span class="n">protocol</span><span class="p">=</span><span class="n">TCP</span> <span class="n">localport</span><span class="p">=</span><span class="n">5173</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">add</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Jury Portal&quot;</span> <span class="n">dir</span><span class="p">=</span><span class="k">in</span> <span class="n">action</span><span class="p">=</span><span class="n">allow</span> <span class="n">protocol</span><span class="p">=</span><span class="n">TCP</span> <span class="n">localport</span><span class="p">=</span><span class="n">5174</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c"># Disable all services</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">delete</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Backend Server&quot;</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">delete</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Frontend Client&quot;</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">netsh</span> <span class="n">advfirewall</span> <span class="n">firewall</span> <span class="n">delete</span> <span class="n">rule</span> <span class="n">name</span><span class="p">=</span><span class="s2">&quot;TurnFix Jury Portal&quot;</span>
+</code></pre></div></p>
+<h2 id="localization">Localization<a class="headerlink" href="#localization" title="Permanent link">&para;</a></h2>
+<p>The firewall management UI is fully localized:
+- <strong>German</strong> (Deutsch): Default language
+- <strong>English</strong>: Available</p>
+<p>Translation keys are in:
+- <code>client/src/locales/de.json</code> (German)
+- <code>client/src/locales/en.json</code> (English)</p>
+<p>Section: <code>configuration.firewall.*</code></p>
+<h2 id="files-involved">Files Involved<a class="headerlink" href="#files-involved" title="Permanent link">&para;</a></h2>
+<h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>server/src/routes/firewall.ts</code> - API endpoints</li>
+<li><code>server/src/index.ts</code> - Route registration</li>
+</ul>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>client/src/components/FirewallManagement.tsx</code> - Main UI component</li>
+<li><code>client/src/pages/Configuration.tsx</code> - Integration into settings</li>
+</ul>
+<h3 id="translations">Translations<a class="headerlink" href="#translations" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>client/src/locales/de.json</code> - German translations</li>
+<li><code>client/src/locales/en.json</code> - English translations</li>
+</ul>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>FIREWALL_SETUP.md</code> - Manual setup instructions</li>
+<li><code>FIREWALL_GUI.md</code> - This file</li>
+<li><code>NETWORK_SETUP.md</code> - Network configuration guide</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<p>Possible improvements for future versions:
+- [ ] Test connectivity from UI (ping service from frontend)
+- [ ] Show connected clients/devices
+- [ ] Temporary access (auto-disable after time period)
+- [ ] Network scope selection (only allow specific IP ranges)
+- [ ] QR code generation for easy mobile access
+- [ ] Service health monitoring when network-enabled</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../admin-rights/" class="btn btn-neutral float-left" title="Admin Rights Detection for Firewall Management"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../firewall-platform/" class="btn btn-neutral float-right" title="Firewall Management - Platform Information Enhancement">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../admin-rights/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../firewall-platform/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

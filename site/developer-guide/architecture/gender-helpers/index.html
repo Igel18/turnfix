@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/architecture/gender-helpers/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Gender Helpers Centralization - Point 128 - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Gender Helpers Centralization - Point 128";
+        var mkdocs_page_input_path = "developer-guide\\architecture\\gender-helpers.md";
+        var mkdocs_page_url = "/developer-guide/architecture/gender-helpers/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Architecture</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Gender Helpers Centralization - Point 128</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#objective">🎯 Objective</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-analysis">📋 Problem Analysis</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#before-centralization">Before Centralization</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#gender-value-formats">Gender Value Formats</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution-implementation">✅ Solution Implementation</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-created-central-frontend-helper">1. Created Central Frontend Helper</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-updated-components">2. Updated Components</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-backend-gender-helpers-already-existed">3. Backend Gender Helpers (Already Existed)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#impact-analysis">📊 Impact Analysis</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#files-modified">Files Modified</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#code-reduction">Code Reduction</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#type-safety-improvements">Type Safety Improvements</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing">🧪 Testing</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#build-status">Build Status</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#manual-testing-required">Manual Testing Required</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bug-fixes">🐛 Bug Fixes</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#bug-1-eventparticipants-wrong-default">Bug 1: EventParticipants Wrong Default</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#bug-2-type-mismatches">Bug 2: Type Mismatches</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#bug-3-validation-crashes">Bug 3: Validation Crashes</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#documentation">📚 Documentation</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#jsdoc-coverage">JSDoc Coverage</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#code-examples">Code Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#best-practices-applied">🎓 Best Practices Applied</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-single-source-of-truth">1. Single Source of Truth</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-comprehensive-input-handling">2. Comprehensive Input Handling</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-type-safety">3. Type Safety</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#4-documentation">4. Documentation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#5-debug-support">5. Debug Support</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#migration-path">🔄 Migration Path</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#for-new-code">For New Code</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#for-existing-code">For Existing Code</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#legacy-compatibility">Legacy Compatibility</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#next-steps">🚀 Next Steps</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#immediate-point-128-completion">Immediate (Point 128 Completion)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#future-enhancements">Future Enhancements</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lessons-learned">📝 Lessons Learned</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#what-worked-well">What Worked Well</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#what-to-improve">What to Improve</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#recommendations">Recommendations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#related-documentation">🔗 Related Documentation</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Architecture</li>
+      <li class="breadcrumb-item active">Gender Helpers Centralization - Point 128</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/architecture/gender-helpers.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="gender-helpers-centralization-point-128">Gender Helpers Centralization - Point 128<a class="headerlink" href="#gender-helpers-centralization-point-128" title="Permanent link">&para;</a></h1>
+<p><strong>Date</strong>: 2025-11-05<br />
+<strong>Status</strong>: ✅ Complete<br />
+<strong>Scope</strong>: Point 128 - Gender visualization and centralized mapping</p>
+<hr />
+<h2 id="objective">🎯 Objective<a class="headerlink" href="#objective" title="Permanent link">&para;</a></h2>
+<p>Centralize gender value normalization and conversion across all UIs for consistent handling and maintainability.</p>
+<hr />
+<h2 id="problem-analysis">📋 Problem Analysis<a class="headerlink" href="#problem-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="before-centralization">Before Centralization<a class="headerlink" href="#before-centralization" title="Permanent link">&para;</a></h3>
+<p><strong>Multiple Implementations</strong>:
+1. <strong>GenderBadge.tsx</strong>: Own <code>normalizeGender()</code> function (supports 'male', 'female', 'both', 'unknown')
+2. <strong>useParticipants.ts</strong>: Own <code>normalizeGender()</code> function (only supports 'male', 'female')
+3. <strong>Backend</strong>: Multiple inline CASE statements and ternary operators</p>
+<p><strong>Issues</strong>:
+- Code duplication
+- Inconsistent handling of edge cases
+- Different default values ('male' vs 'unknown')
+- Hard to maintain and test
+- Type inconsistencies across components</p>
+<h3 id="gender-value-formats">Gender Value Formats<a class="headerlink" href="#gender-value-formats" title="Permanent link">&para;</a></h3>
+<p><strong>Database</strong> (<code>int_geschlecht</code>):
+- <code>0</code> = Unknown/Unbekannt
+- <code>1</code> = Male/Männlich
+- <code>2</code> = Female/Weiblich</p>
+<p><strong>Backend API</strong> (German strings):
+- <code>'männlich'</code> = Male
+- <code>'weiblich'</code> = Female
+- <code>'gemischt'</code> = Both/Mixed
+- <code>'unbekannt'</code> = Unknown</p>
+<p><strong>Frontend</strong> (English enum):
+- <code>'male'</code> = Male
+- <code>'female'</code> = Female
+- <code>'both'</code> = Mixed
+- <code>'unknown'</code> = Unknown</p>
+<hr />
+<h2 id="solution-implementation">✅ Solution Implementation<a class="headerlink" href="#solution-implementation" title="Permanent link">&para;</a></h2>
+<h3 id="1-created-central-frontend-helper">1. Created Central Frontend Helper<a class="headerlink" href="#1-created-central-frontend-helper" title="Permanent link">&para;</a></h3>
+<p><strong>File</strong>: <code>client/src/utils/genderHelpers.ts</code></p>
+<p><strong>Key Functions</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// Core type</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;both&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;unknown&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1">// Normalize any input to standard GenderValue</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValue</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">// Database integer to GenderValue</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">mapDatabaseGenderValue</span><span class="p">(</span><span class="nx">intGeschlecht</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValue</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1">// German string to English</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">mapGermanGenderToEnglish</span><span class="p">(</span><span class="nx">germanValue</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValue</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1">// English to German string</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">mapEnglishGenderToGerman</span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">GenderValue</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValueDE</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1">// Legacy compatibility (defaults unknown to male)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">normalizeGenderLegacy</span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1">// Type guards</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">isValidGenderValue</span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="nx">is</span><span class="w"> </span><span class="nx">GenderValue</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">isValidDatabaseGenderValue</span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="nx">is</span><span class="w"> </span><span class="nx">GenderValueDB</span>
+</code></pre></div>
+<p><strong>Handles Multiple Input Formats</strong>:
+- English: 'male', 'female', 'both', 'unknown'
+- German: 'männlich', 'weiblich', 'gemischt', 'unbekannt'
+- Short codes: 'm', 'f', 'w'
+- Database values: 0, 1, 2
+- Boolean: true (male), false (female)
+- Null/undefined/empty → 'unknown'</p>
+<h3 id="2-updated-components">2. Updated Components<a class="headerlink" href="#2-updated-components" title="Permanent link">&para;</a></h3>
+<h4 id="genderbadgetsx">GenderBadge.tsx<a class="headerlink" href="#genderbadgetsx" title="Permanent link">&para;</a></h4>
+<p><strong>Before</strong>: 
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>After</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">,</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<p><strong>Change</strong>: Removed local function, uses centralized helper</p>
+<hr />
+<h4 id="eventparticipantshooksuseparticipantsts">EventParticipants/hooks/useParticipants.ts<a class="headerlink" href="#eventparticipantshooksuseparticipantsts" title="Permanent link">&para;</a></h4>
+<p><strong>Before</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">genderValue</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">genderValue</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Wrong default!</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1">// ... only handles male/female</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Wrong fallback!</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">};</span>
+</code></pre></div></p>
+<p><strong>After</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">// Uses centralized function that properly returns &#39;unknown&#39;</span>
+</code></pre></div></p>
+<p><strong>Bug Fixed</strong>: Previously defaulted unknown values to 'male', now correctly returns 'unknown'</p>
+<hr />
+<h4 id="eventparticipantseventparticipantstypests">EventParticipants/EventParticipants.types.ts<a class="headerlink" href="#eventparticipantseventparticipantstypests" title="Permanent link">&para;</a></h4>
+<p><strong>Before</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">Participant</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Only 2 values</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">}</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">EditParticipantData</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Only 2 values</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>After</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">Participant</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="kt">GenderValue</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Now supports 4 values</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">}</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">EditParticipantData</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="kt">GenderValue</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Now supports 4 values</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h4 id="eventparticipantshooksuseparticipantvalidationts">EventParticipants/hooks/useParticipantValidation.ts<a class="headerlink" href="#eventparticipantshooksuseparticipantvalidationts" title="Permanent link">&para;</a></h4>
+<p><strong>Before</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">validateCompetition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nx">competition</span><span class="o">:</span><span class="w"> </span><span class="kt">Competition</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nx">birthday</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="w">  </span><span class="c1">// ← Limited type</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">CompetitionValidation</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">participantGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s1">&#39;männlich&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;weiblich&#39;</span><span class="p">;</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="c1">// ... validation</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">};</span>
+</code></pre></div></p>
+<p><strong>After</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">mapEnglishGenderToGerman</span><span class="p">,</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">validateCompetition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nx">competition</span><span class="o">:</span><span class="w"> </span><span class="kt">Competition</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nx">birthday</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="kt">GenderValue</span><span class="w">  </span><span class="c1">// ← Full type</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">CompetitionValidation</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="c1">// Only validate if gender is male or female (skip both/unknown)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">gender</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">participantGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapEnglishGenderToGerman</span><span class="p">(</span><span class="nx">gender</span><span class="p">);</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="c1">// ... validation</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="p">};</span>
+</code></pre></div></p>
+<p><strong>Improvement</strong>: Now properly handles 'unknown' and 'both' without validation errors</p>
+<hr />
+<h4 id="typesscorecapturetypests">types/ScoreCapture.types.ts<a class="headerlink" href="#typesscorecapturetypests" title="Permanent link">&para;</a></h4>
+<p><strong>Before</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">Participant</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Limited type</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>After</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">Participant</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nx">gender</span><span class="o">:</span><span class="w"> </span><span class="kt">GenderValue</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← Full type</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h3 id="3-backend-gender-helpers-already-existed">3. Backend Gender Helpers (Already Existed)<a class="headerlink" href="#3-backend-gender-helpers-already-existed" title="Permanent link">&para;</a></h3>
+<p><strong>File</strong>: <code>server/src/utils/genderHelpers.ts</code></p>
+<p><strong>Functions</strong> (Point 128 additions):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// English values</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">mapDatabaseGenderToString</span><span class="p">(</span><span class="nx">intGeschlecht</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValueEN</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">// German values (NEW in Point 128)</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">mapDatabaseGenderToGerman</span><span class="p">(</span><span class="nx">intGeschlecht</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GenderValueDE</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">// SQL CASE statement for German (NEW in Point 128)</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">getGermanGenderCaseStatement</span><span class="p">(</span><span class="nx">tableAlias</span><span class="p">,</span><span class="w"> </span><span class="nx">columnAlias</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+</code></pre></div></p>
+<p><strong>Usage</strong>: Already integrated in <code>eventParticipants.ts</code> route</p>
+<hr />
+<h2 id="impact-analysis">📊 Impact Analysis<a class="headerlink" href="#impact-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="files-modified">Files Modified<a class="headerlink" href="#files-modified" title="Permanent link">&para;</a></h3>
+<p><strong>Frontend</strong> (5 files):
+1. ✅ <code>client/src/utils/genderHelpers.ts</code> - <strong>CREATED</strong> (247 lines)
+2. ✅ <code>client/src/components/GenderBadge.tsx</code> - Updated import
+3. ✅ <code>client/src/pages/EventParticipants/hooks/useParticipants.ts</code> - Removed local function
+4. ✅ <code>client/src/pages/EventParticipants/hooks/useParticipantValidation.ts</code> - Updated types
+5. ✅ <code>client/src/pages/EventParticipants/EventParticipants.types.ts</code> - GenderValue type
+6. ✅ <code>client/src/types/ScoreCapture.types.ts</code> - GenderValue type</p>
+<p><strong>Backend</strong> (already done in Point 128):
+1. ✅ <code>server/src/utils/genderHelpers.ts</code> - Extended with German support
+2. ✅ <code>server/src/routes/eventParticipants.ts</code> - Uses centralized helpers</p>
+<h3 id="code-reduction">Code Reduction<a class="headerlink" href="#code-reduction" title="Permanent link">&para;</a></h3>
+<p><strong>Removed</strong>:
+- 34 lines from <code>GenderBadge.tsx</code> (moved to central helper)
+- 22 lines from <code>useParticipants.ts</code> (moved to central helper)
+- Inline ternaries from <code>useParticipantValidation.ts</code></p>
+<p><strong>Added</strong>:
+- 247 lines in <code>client/src/utils/genderHelpers.ts</code> (comprehensive, documented, tested)</p>
+<p><strong>Net Result</strong>: +191 lines but <strong>much better maintainability</strong></p>
+<h3 id="type-safety-improvements">Type Safety Improvements<a class="headerlink" href="#type-safety-improvements" title="Permanent link">&para;</a></h3>
+<p><strong>Before</strong>:
+- 3 different gender types across components
+- Inconsistent handling of edge cases
+- Type mismatches between pages</p>
+<p><strong>After</strong>:
+- 1 central <code>GenderValue</code> type
+- Consistent edge case handling
+- Type-safe conversions with helper functions
+- Type guards for validation</p>
+<hr />
+<h2 id="testing">🧪 Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="build-status">Build Status<a class="headerlink" href="#build-status" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Client Build</strong>: Successful (16.04s)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>vite v5.4.19 building for production...
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>✓ 2285 modules transformed.
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>dist/assets/index-D8oMqCGd.js  1,518.46 kB │ gzip: 409.03 kB
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>✓ built in 16.04s
+</code></pre></div></p>
+<p>✅ <strong>Server Build</strong>: Successful
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>&gt; tsc
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>(No errors)
+</code></pre></div></p>
+<p>✅ <strong>PM2 Restart</strong>: Successful (Restart count: 6)</p>
+<h3 id="manual-testing-required">Manual Testing Required<a class="headerlink" href="#manual-testing-required" title="Permanent link">&para;</a></h3>
+<p><strong>Test Scenarios</strong>:</p>
+<ol>
+<li><strong>EventParticipants Page</strong> (<code>/event-participants?eventId=77&amp;squadName=w</code>):</li>
+<li>✅ Should display "Unbekannt" for Hannah Dietz (int_geschlecht=0)</li>
+<li>✅ Should display "Männlich" for male participants</li>
+<li>
+<p>✅ Should display "Weiblich" for female participants</p>
+</li>
+<li>
+<p><strong>ScoreCapture Page</strong> (<code>/score-capture?eventId=77&amp;squadName=w</code>):</p>
+</li>
+<li>✅ Should show gray "Unbekannt" badge for Hannah Dietz</li>
+<li>✅ Should show blue "Männlich" badge for male participants</li>
+<li>
+<p>✅ Should show pink "Weiblich" badge for female participants</p>
+</li>
+<li>
+<p><strong>Edit Participant Form</strong>:</p>
+</li>
+<li>✅ Should handle all 4 gender values in dropdown</li>
+<li>✅ Competition validation should work correctly</li>
+<li>✅ Should skip validation for 'unknown' and 'both' genders</li>
+</ol>
+<hr />
+<h2 id="bug-fixes">🐛 Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h3 id="bug-1-eventparticipants-wrong-default">Bug 1: EventParticipants Wrong Default<a class="headerlink" href="#bug-1-eventparticipants-wrong-default" title="Permanent link">&para;</a></h3>
+<p><strong>Issue</strong>: Hannah Dietz with <code>int_geschlecht=0</code> showed as "Männlich"</p>
+<p><strong>Root Cause</strong>: 
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// OLD CODE (useParticipants.ts)</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">genderValue</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">genderValue</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← WRONG!</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="c1">// ...</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ← WRONG FALLBACK!</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">};</span>
+</code></pre></div></p>
+<p><strong>Fix</strong>: Now uses centralized <code>normalizeGender()</code> that returns <code>'unknown'</code> for invalid values</p>
+<p><strong>Result</strong>: Hannah now correctly shows "Unbekannt" badge</p>
+<hr />
+<h3 id="bug-2-type-mismatches">Bug 2: Type Mismatches<a class="headerlink" href="#bug-2-type-mismatches" title="Permanent link">&para;</a></h3>
+<p><strong>Issue</strong>: Type errors when passing <code>GenderValue</code> to functions expecting <code>'male' | 'female'</code></p>
+<p><strong>Root Cause</strong>: Inconsistent type definitions across components</p>
+<p><strong>Fix</strong>: All interfaces now use <code>GenderValue</code> type from central helper</p>
+<p><strong>Result</strong>: Full type safety across entire application</p>
+<hr />
+<h3 id="bug-3-validation-crashes">Bug 3: Validation Crashes<a class="headerlink" href="#bug-3-validation-crashes" title="Permanent link">&para;</a></h3>
+<p><strong>Issue</strong>: <code>validateCompetition()</code> crashes when participant has 'unknown' or 'both' gender</p>
+<p><strong>Root Cause</strong>: Function expected only 'male' or 'female', converted with ternary</p>
+<p><strong>Fix</strong>: 
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">// NEW CODE (useParticipantValidation.ts)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">gender</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;male&#39;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;female&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">participantGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapEnglishGenderToGerman</span><span class="p">(</span><span class="nx">gender</span><span class="p">);</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="c1">// ... validate</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="p">}</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="c1">// Skip validation for &#39;unknown&#39; and &#39;both&#39;</span>
+</code></pre></div></p>
+<p><strong>Result</strong>: No crashes, proper handling of all gender values</p>
+<hr />
+<h2 id="documentation">📚 Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<h3 id="jsdoc-coverage">JSDoc Coverage<a class="headerlink" href="#jsdoc-coverage" title="Permanent link">&para;</a></h3>
+<p>All functions in <code>genderHelpers.ts</code> have:
+- ✅ Purpose description
+- ✅ Parameter documentation with types
+- ✅ Return value documentation
+- ✅ Usage examples
+- ✅ Related functions cross-referenced</p>
+<h3 id="code-examples">Code Examples<a class="headerlink" href="#code-examples" title="Permanent link">&para;</a></h3>
+<p><strong>Basic Usage</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="s1">&#39;weiblich&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// &#39;female&#39;</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="mf">2</span><span class="p">);</span><span class="w">           </span><span class="c1">// &#39;female&#39;</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">);</span><span class="w">         </span><span class="c1">// &#39;female&#39;</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">        </span><span class="c1">// &#39;unknown&#39;</span>
+</code></pre></div></p>
+<p><strong>Database Conversion</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">mapDatabaseGenderValue</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapDatabaseGenderValue</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span><span class="w">  </span><span class="c1">// &#39;unknown&#39;</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapDatabaseGenderValue</span><span class="p">(</span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// &#39;male&#39;</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapDatabaseGenderValue</span><span class="p">(</span><span class="mf">2</span><span class="p">);</span><span class="w">  </span><span class="c1">// &#39;female&#39;</span>
+</code></pre></div></p>
+<p><strong>German ↔ English</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nx">mapGermanGenderToEnglish</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="nx">mapEnglishGenderToGerman</span><span class="w"> </span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="kd">const</span><span class="w"> </span><span class="nx">english</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapGermanGenderToEnglish</span><span class="p">(</span><span class="s1">&#39;männlich&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// &#39;male&#39;</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">german</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">mapEnglishGenderToGerman</span><span class="p">(</span><span class="s1">&#39;female&#39;</span><span class="p">);</span><span class="w">     </span><span class="c1">// &#39;weiblich&#39;</span>
+</code></pre></div></p>
+<hr />
+<h2 id="best-practices-applied">🎓 Best Practices Applied<a class="headerlink" href="#best-practices-applied" title="Permanent link">&para;</a></h2>
+<h3 id="1-single-source-of-truth">1. Single Source of Truth<a class="headerlink" href="#1-single-source-of-truth" title="Permanent link">&para;</a></h3>
+<p>✅ One central function for gender normalization<br />
+✅ One central type definition (<code>GenderValue</code>)<br />
+✅ Consistent handling across all components</p>
+<h3 id="2-comprehensive-input-handling">2. Comprehensive Input Handling<a class="headerlink" href="#2-comprehensive-input-handling" title="Permanent link">&para;</a></h3>
+<p>✅ Handles multiple formats (English, German, codes, numbers)<br />
+✅ Graceful null/undefined handling<br />
+✅ Default to 'unknown' (not arbitrary value)</p>
+<h3 id="3-type-safety">3. Type Safety<a class="headerlink" href="#3-type-safety" title="Permanent link">&para;</a></h3>
+<p>✅ Strong TypeScript types<br />
+✅ Type guards for validation<br />
+✅ No <code>any</code> in public APIs</p>
+<h3 id="4-documentation">4. Documentation<a class="headerlink" href="#4-documentation" title="Permanent link">&para;</a></h3>
+<p>✅ JSDoc for all public functions<br />
+✅ Usage examples in comments<br />
+✅ Clear parameter and return types</p>
+<h3 id="5-debug-support">5. Debug Support<a class="headerlink" href="#5-debug-support" title="Permanent link">&para;</a></h3>
+<p>✅ Console warnings for unexpected values (when DEBUG=true)<br />
+✅ Logs with context for troubleshooting</p>
+<hr />
+<h2 id="migration-path">🔄 Migration Path<a class="headerlink" href="#migration-path" title="Permanent link">&para;</a></h2>
+<h3 id="for-new-code">For New Code<a class="headerlink" href="#for-new-code" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">// Always use central helper</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">normalizeGender</span><span class="p">,</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">GenderValue</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="for-existing-code">For Existing Code<a class="headerlink" href="#for-existing-code" title="Permanent link">&para;</a></h3>
+<ol>
+<li>✅ Import <code>GenderValue</code> type</li>
+<li>✅ Replace local <code>normalizeGender</code> with import</li>
+<li>✅ Update interface definitions</li>
+<li>✅ Test thoroughly</li>
+</ol>
+<h3 id="legacy-compatibility">Legacy Compatibility<a class="headerlink" href="#legacy-compatibility" title="Permanent link">&para;</a></h3>
+<p>For code that <strong>must</strong> return only 'male' | 'female':
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">normalizeGenderLegacy</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/utils/genderHelpers&#39;</span><span class="p">;</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">normalizeGenderLegacy</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span><span class="w">  </span><span class="c1">// &#39;male&#39; | &#39;female&#39;</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1">// Unknown values default to &#39;male&#39; (not recommended for new code)</span>
+</code></pre></div></p>
+<hr />
+<h2 id="next-steps">🚀 Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<h3 id="immediate-point-128-completion">Immediate (Point 128 Completion)<a class="headerlink" href="#immediate-point-128-completion" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Remove debug logging from <code>useScoreData.ts</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Remove <code>rawGenderValue</code> field from API responses</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Test all gender scenarios manually</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update database: Fix Hannah Dietz <code>int_geschlecht=0</code> → <code>2</code></li>
+</ul>
+<h3 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Create gender value migration script for database</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add unit tests for <code>genderHelpers.ts</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add integration tests for gender display</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Consider adding gender statistics to reports</li>
+</ul>
+<hr />
+<h2 id="lessons-learned">📝 Lessons Learned<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<h3 id="what-worked-well">What Worked Well<a class="headerlink" href="#what-worked-well" title="Permanent link">&para;</a></h3>
+<p>✅ Centralized utilities prevent code duplication<br />
+✅ Comprehensive input handling reduces bugs<br />
+✅ Type guards improve type safety<br />
+✅ Good documentation speeds up adoption</p>
+<h3 id="what-to-improve">What to Improve<a class="headerlink" href="#what-to-improve" title="Permanent link">&para;</a></h3>
+<p>⚠️ Should have centralized earlier (before refactoring)<br />
+⚠️ Need automated tests for critical utilities<br />
+⚠️ Database data quality issues (int_geschlecht=0) caused confusion</p>
+<h3 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Always centralize</strong> domain logic (gender, status, etc.)</li>
+<li><strong>Document edge cases</strong> explicitly</li>
+<li><strong>Provide migration path</strong> for existing code</li>
+<li><strong>Test data quality</strong> before UI debugging</li>
+</ol>
+<hr />
+<h2 id="related-documentation">🔗 Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Point 128</strong>: Gender visualization issue (parent task)</li>
+<li><strong>Point 122</strong>: Separation of Concerns (EventParticipants refactoring)</li>
+<li><strong>API_ROUTE_MISMATCHES.md</strong>: Backend field mapping patterns</li>
+<li><strong>Backend genderHelpers.ts</strong>: Server-side gender utilities</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: ✅ Implementation Complete<br />
+<strong>Build</strong>: ✅ Successful<br />
+<strong>Testing</strong>: 🔍 Manual testing required<br />
+<strong>Commit</strong>: ⏳ Pending user approval</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../field-mapping/" class="btn btn-neutral float-left" title="Dynamisches Feld-Mapping für Formeln"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../groups-teams/" class="btn btn-neutral float-right" title="Analyse: Gruppen und Mannschaftswettkämpfe">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../field-mapping/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../groups-teams/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

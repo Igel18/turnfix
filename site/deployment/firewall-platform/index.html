@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/deployment/firewall-platform/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Firewall Management - Platform Information Enhancement - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Firewall Management - Platform Information Enhancement";
+        var mkdocs_page_input_path = "deployment\\firewall-platform.md";
+        var mkdocs_page_url = "/deployment/firewall-platform/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Firewall Management - Platform Information Enhancement</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#update-summary">Update Summary</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#changes-made">Changes Made</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-new-platform-information-banner">1. New Platform Information Banner</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-enhanced-help-section">2. Enhanced Help Section</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-updated-documentation">3. Updated Documentation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-these-changes">Why These Changes?</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#user-benefits">User Benefits</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#support-benefits">Support Benefits</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-benefits">Developer Benefits</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#technical-details">Technical Details</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#technologies-mentioned-in-ui">Technologies Mentioned in UI</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-show-this-information">Why Show This Information?</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#translation-keys-added">Translation Keys Added</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#german-dejson">German (de.json)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#english-enjson">English (en.json)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ui-component-changes">UI Component Changes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#firewallmanagementtsx">FirewallManagement.tsx</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#visual-hierarchy">Visual Hierarchy</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#testing-checklist">Testing Checklist</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#visual-testing">Visual Testing</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#translation-testing">Translation Testing</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#responsive-testing">Responsive Testing</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#user-feedback-considerations">User Feedback Considerations</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#future-considerations">Future Considerations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#potential-enhancements">Potential Enhancements</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cross-platform-future">Cross-Platform Future</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#related-documentation">Related Documentation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#conclusion">Conclusion</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Deployment</li>
+      <li class="breadcrumb-item active">Firewall Management - Platform Information Enhancement</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/deployment/firewall-platform.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="firewall-management-platform-information-enhancement">Firewall Management - Platform Information Enhancement<a class="headerlink" href="#firewall-management-platform-information-enhancement" title="Permanent link">&para;</a></h1>
+<h2 id="update-summary">Update Summary<a class="headerlink" href="#update-summary" title="Permanent link">&para;</a></h2>
+<p>Enhanced the Firewall Management UI to clearly communicate Windows-specific requirements and technical implementation details.</p>
+<h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">&para;</a></h2>
+<h3 id="1-new-platform-information-banner">1. New Platform Information Banner<a class="headerlink" href="#1-new-platform-information-banner" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: Directly under the page header
+<strong>Purpose</strong>: Inform users about Windows dependency upfront
+<strong>Design</strong>: Blue information box with icon</p>
+<p><strong>Content (German)</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ℹ️ Windows-spezifische Funktion
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Diese Funktion nutzt Windows Firewall (netsh &amp; PowerShell) und funktioniert 
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>nur auf Windows-Systemen. Firewall-Regeln werden für alle Netzwerkprofile 
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>(Public, Private, Domain) erstellt.
+</code></pre></div></p>
+<p><strong>Content (English)</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ℹ️ Windows-specific Feature
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>This feature uses Windows Firewall (netsh &amp; PowerShell) and only works on 
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Windows systems. Firewall rules are created for all network profiles 
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>(Public, Private, Domain).
+</code></pre></div></p>
+<h3 id="2-enhanced-help-section">2. Enhanced Help Section<a class="headerlink" href="#2-enhanced-help-section" title="Permanent link">&para;</a></h3>
+<p><strong>Added</strong>: Platform-specific information at the bottom of the page
+<strong>Design</strong>: Blue info icon with explanatory text</p>
+<p><strong>Content (German)</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ℹ️ Plattform: Diese Funktion verwendet Windows Firewall (netsh/PowerShell) 
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>und ist nur auf Windows-Systemen verfügbar.
+</code></pre></div></p>
+<p><strong>Content (English)</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ℹ️ Platform: This feature uses Windows Firewall (netsh/PowerShell) and is 
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>only available on Windows systems.
+</code></pre></div></p>
+<h3 id="3-updated-documentation">3. Updated Documentation<a class="headerlink" href="#3-updated-documentation" title="Permanent link">&para;</a></h3>
+<p><strong>File</strong>: <code>FIREWALL_GUI.md</code>
+- Updated UI mockups to show platform info banner
+- Both admin and non-admin scenarios now display platform information
+- Better visual representation of the complete UI flow</p>
+<h2 id="why-these-changes">Why These Changes?<a class="headerlink" href="#why-these-changes" title="Permanent link">&para;</a></h2>
+<h3 id="user-benefits">User Benefits<a class="headerlink" href="#user-benefits" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Clarity</strong>: Users immediately understand this is a Windows-only feature
+✅ <strong>Expectations</strong>: No confusion about cross-platform compatibility
+✅ <strong>Technical Understanding</strong>: Clear explanation of underlying technology (netsh/PowerShell)
+✅ <strong>Scope Awareness</strong>: Users know rules apply to all network profiles</p>
+<h3 id="support-benefits">Support Benefits<a class="headerlink" href="#support-benefits" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Reduced Questions</strong>: Fewer "Does this work on Mac/Linux?" inquiries
+✅ <strong>Self-Service</strong>: Users can verify Windows requirement themselves
+✅ <strong>Technical Context</strong>: Support teams can reference specific technologies used</p>
+<h3 id="developer-benefits">Developer Benefits<a class="headerlink" href="#developer-benefits" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Documentation</strong>: UI itself documents implementation choices
+✅ <strong>Future-Proofing</strong>: Clear indication if cross-platform support is added later
+✅ <strong>Transparency</strong>: Users understand why admin rights are needed (Windows Firewall API)</p>
+<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="technologies-mentioned-in-ui">Technologies Mentioned in UI<a class="headerlink" href="#technologies-mentioned-in-ui" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>netsh</strong>: Windows command-line tool for network configuration</li>
+<li>Used for: Creating, modifying, deleting firewall rules</li>
+<li>
+<p>Requires: Administrator privileges</p>
+</li>
+<li>
+<p><strong>PowerShell</strong>: Windows automation framework</p>
+</li>
+<li>Used for: Checking firewall rule status, listing rules</li>
+<li>
+<p>Benefits: More reliable parsing than netsh output</p>
+</li>
+<li>
+<p><strong>Network Profiles</strong>: Windows Firewall profiles</p>
+</li>
+<li><strong>Public</strong>: Untrusted networks (coffee shops, airports)</li>
+<li><strong>Private</strong>: Home/work networks</li>
+<li><strong>Domain</strong>: Corporate domain-joined networks</li>
+<li><strong>Implementation</strong>: Rules created for ALL profiles simultaneously</li>
+</ol>
+<h3 id="why-show-this-information">Why Show This Information?<a class="headerlink" href="#why-show-this-information" title="Permanent link">&para;</a></h3>
+<p><strong>Transparency</strong>: Users understand:
+- Why this feature exists (Windows Firewall integration)
+- What technology stack is used (netsh, PowerShell)
+- Scope of changes (all network profiles affected)
+- Platform limitations (Windows-only)</p>
+<p><strong>Education</strong>: Power users learn:
+- They can manually verify rules using netsh/PowerShell
+- Rules persist across all network types
+- Alternative: manual PowerShell script (documented separately)</p>
+<h2 id="translation-keys-added">Translation Keys Added<a class="headerlink" href="#translation-keys-added" title="Permanent link">&para;</a></h2>
+<h3 id="german-dejson">German (de.json)<a class="headerlink" href="#german-dejson" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">&quot;platformInfo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Windows-spezifische Funktion&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Diese Funktion nutzt Windows Firewall (netsh &amp; PowerShell)...&quot;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">},</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nt">&quot;help&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="err">...</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Plattform: Diese Funktion verwendet Windows Firewall...&quot;</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="english-enjson">English (en.json)<a class="headerlink" href="#english-enjson" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&quot;platformInfo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Windows-specific Feature&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This feature uses Windows Firewall (netsh &amp; PowerShell)...&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">},</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">&quot;help&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="err">...</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Platform: This feature uses Windows Firewall...&quot;</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="ui-component-changes">UI Component Changes<a class="headerlink" href="#ui-component-changes" title="Permanent link">&para;</a></h2>
+<h3 id="firewallmanagementtsx">FirewallManagement.tsx<a class="headerlink" href="#firewallmanagementtsx" title="Permanent link">&para;</a></h3>
+<p><strong>Added Elements</strong>:
+1. Platform info banner (blue box) after header
+2. Additional help text item with platform details
+3. InformationCircleIcon for visual consistency</p>
+<p><strong>Code Structure</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span><span class="cm">/* Platform Info */</span><span class="p">}</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;bg-blue-50 border border-blue-200 rounded-lg p-3&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">InformationCircleIcon</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;h-5 w-5 text-blue-600&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">strong</span><span class="p">&gt;{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;configuration.firewall.platformInfo.title&#39;</span><span class="p">)}</span><span class="o">:</span><span class="p">&lt;/</span><span class="nt">strong</span><span class="p">&gt;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;configuration.firewall.platformInfo.description&#39;</span><span class="p">)}</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<h2 id="visual-hierarchy">Visual Hierarchy<a class="headerlink" href="#visual-hierarchy" title="Permanent link">&para;</a></h2>
+<p>The information is presented in three places for different user needs:</p>
+<ol>
+<li><strong>Top Banner</strong> (Platform Info)</li>
+<li><strong>When</strong>: Always visible on page load</li>
+<li><strong>Purpose</strong>: Set expectations immediately</li>
+<li>
+<p><strong>Audience</strong>: All users, especially first-time visitors</p>
+</li>
+<li>
+<p><strong>Status Messages</strong> (Admin Rights)</p>
+</li>
+<li><strong>When</strong>: Dynamic based on permissions</li>
+<li><strong>Purpose</strong>: Action-oriented guidance</li>
+<li>
+<p><strong>Audience</strong>: Users trying to make changes</p>
+</li>
+<li>
+<p><strong>Bottom Help Section</strong> (Platform Details)</p>
+</li>
+<li><strong>When</strong>: Always visible, bottom of page</li>
+<li><strong>Purpose</strong>: Technical reference and security notes</li>
+<li><strong>Audience</strong>: Power users and troubleshooters</li>
+</ol>
+<h2 id="testing-checklist">Testing Checklist<a class="headerlink" href="#testing-checklist" title="Permanent link">&para;</a></h2>
+<h3 id="visual-testing">Visual Testing<a class="headerlink" href="#visual-testing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Platform info banner appears under header</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Blue color scheme matches information intent</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Icon displays correctly (InformationCircleIcon)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Text is readable and properly formatted</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Help section shows platform note</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> No layout issues or overflow</li>
+</ul>
+<h3 id="translation-testing">Translation Testing<a class="headerlink" href="#translation-testing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> German translation loads correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> English translation loads correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> All text keys resolve (no missing translations)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Text length works in both languages</li>
+</ul>
+<h3 id="responsive-testing">Responsive Testing<a class="headerlink" href="#responsive-testing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Mobile view: Info banner stacks properly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Tablet view: Text remains readable</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Desktop view: Optimal spacing and layout</li>
+</ul>
+<h2 id="user-feedback-considerations">User Feedback Considerations<a class="headerlink" href="#user-feedback-considerations" title="Permanent link">&para;</a></h2>
+<p>Based on the original request ("hinweise auf powershell bzw. windows"):</p>
+<p><strong>What Users Wanted</strong>:
+- Clear indication this is Windows-specific
+- Technical context (netsh, PowerShell)
+- Understanding of scope (all network profiles)</p>
+<p><strong>What We Provided</strong>:
+✅ Prominent platform info banner
+✅ Explicit mention of netsh and PowerShell
+✅ Explanation of network profile handling
+✅ Multiple touchpoints (banner + help text)
+✅ Professional, informative tone</p>
+<p><strong>Result</strong>: Users now have complete transparency about:
+- Platform requirements (Windows only)
+- Technologies used (netsh, PowerShell)
+- Scope of changes (all profiles)
+- Why admin rights are needed (Windows Firewall API)</p>
+<h2 id="future-considerations">Future Considerations<a class="headerlink" href="#future-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="potential-enhancements">Potential Enhancements<a class="headerlink" href="#potential-enhancements" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Detect OS and show warning if not Windows</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Link to alternative solutions for Mac/Linux</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Show PowerShell commands for manual execution</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add "Copy PowerShell command" button</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Version detection (Windows 10/11 compatibility)</li>
+</ul>
+<h3 id="cross-platform-future">Cross-Platform Future<a class="headerlink" href="#cross-platform-future" title="Permanent link">&para;</a></h3>
+<p>If TurnFix adds Linux/Mac support in the future:
+- Platform detection logic already in place
+- Can conditionally show different instructions
+- UI structure supports multiple platform guides
+- Translation structure allows per-platform text</p>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>FIREWALL_GUI.md</code> - Complete user guide with updated UI mockups</li>
+<li><code>ADMIN_RIGHTS_DETECTION.md</code> - Technical details on admin checking</li>
+<li><code>FIREWALL_SETUP.md</code> - Manual setup instructions</li>
+<li>Backend: <code>server/src/routes/firewall.ts</code> - Implementation with netsh/PowerShell</li>
+</ul>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>The firewall management UI now clearly communicates its Windows-specific nature and underlying technologies. Users have full transparency about:
+- What platform is supported (Windows)
+- What tools are used (netsh, PowerShell)
+- What scope changes have (all network profiles)
+- Why permissions are needed (Windows Firewall API)</p>
+<p>This reduces confusion, sets proper expectations, and provides the technical context power users appreciate.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../firewall-gui/" class="btn btn-neutral float-left" title="Firewall Management GUI"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../firewall/" class="btn btn-neutral float-right" title="Firewall Setup für Jury Portal">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../firewall-gui/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../firewall/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

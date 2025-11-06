@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/architecture/jury-comparison/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Jury Portal Comparison &amp; Consolidation Analysis - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Jury Portal Comparison \u0026amp; Consolidation Analysis";
+        var mkdocs_page_input_path = "developer-guide\\architecture\\jury-comparison.md";
+        var mkdocs_page_url = "/developer-guide/architecture/jury-comparison/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Architecture</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Jury Portal Comparison &amp; Consolidation Analysis</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#executive-summary">Executive Summary</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#detaillierter-vergleich">Detaillierter Vergleich</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-standalone-jury-portal-jury-portal">1. Standalone Jury Portal (jury-portal/)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-client-integriertes-jury-portal-client">2. Client-integriertes Jury Portal (client/)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#code-vergleich">Code-Vergleich</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#gemeinsamkeiten">Gemeinsamkeiten:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#unterschiede">Unterschiede:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#architektur-ubersicht">Architektur-Übersicht</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#empfehlung-client-jury-portal-eliminieren">Empfehlung: Client Jury Portal eliminieren</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#grunde-fur-elimination">Gründe für Elimination:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#vorteile-der-konsolidierung">Vorteile der Konsolidierung:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#migrations-plan">Migrations-Plan</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-1-analyse-erledigt">Phase 1: Analyse ✅ (ERLEDIGT)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-2-feature-paritat-sicherstellen">Phase 2: Feature-Parität sicherstellen</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-3-client-portal-deprecaten">Phase 3: Client-Portal deprecaten</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-4-client-portal-entfernen-optional">Phase 4: Client-Portal entfernen (optional)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#alternative-code-sharing">Alternative: Code-Sharing</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#shared-component-erstellen">Shared Component erstellen:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#konkrete-empfehlung">Konkrete Empfehlung</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#option-1-client-portal-eliminieren-empfohlen">✅ Option 1: Client-Portal eliminieren (EMPFOHLEN)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#option-2-beide-behalten-mit-redirect">⚠️ Option 2: Beide behalten mit Redirect</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#option-3-standalone-eliminieren-nicht-empfohlen">❌ Option 3: Standalone eliminieren (NICHT EMPFOHLEN)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nachste-schritte">Nächste Schritte</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#sofort-umsetzbar">Sofort umsetzbar:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementierungs-status">Implementierungs-Status</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#abgeschlossen-2025-01-14">✅ Abgeschlossen (2025-01-14)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#entfernte-dateien">Entfernte Dateien:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#geanderte-dateien">Geänderte Dateien:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#verbleibende-implementierung">Verbleibende Implementierung:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#fazit">Fazit</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Architecture</li>
+      <li class="breadcrumb-item active">Jury Portal Comparison &amp; Consolidation Analysis</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/architecture/jury-comparison.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="jury-portal-comparison-consolidation-analysis">Jury Portal Comparison &amp; Consolidation Analysis<a class="headerlink" href="#jury-portal-comparison-consolidation-analysis" title="Permanent link">&para;</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>ABGESCHLOSSEN</strong>: Das TurnFix-System verwendet jetzt <strong>NUR NOCH</strong> das Standalone Jury Portal.</p>
+<p><strong>Status</strong>: ✅ <strong>Client Jury Portal wurde entfernt</strong> (2025-01-14)</p>
+<p>Es gab <strong>ZWEI separate Jury Portal Implementierungen</strong> im TurnFix-System:</p>
+<ol>
+<li><strong>Standalone Jury Portal</strong> (<code>jury-portal/</code>) - Port 5174 ✅ <strong>AKTIV</strong></li>
+<li><del><strong>Client-integriertes Jury Portal</strong></del> (<code>client/src/pages/JuryPortal.tsx</code>) - Route <code>/jury</code> ❌ <strong>ENTFERNT</strong></li>
+</ol>
+<p><strong>Entscheidung</strong>: Das Client Jury Portal wurde eliminiert. Der Standalone-Portal bietet alle notwendigen Funktionen und ist besser für den Competition-Day-Einsatz geeignet.</p>
+<hr />
+<h2 id="detaillierter-vergleich">Detaillierter Vergleich<a class="headerlink" href="#detaillierter-vergleich" title="Permanent link">&para;</a></h2>
+<h3 id="1-standalone-jury-portal-jury-portal">1. Standalone Jury Portal (<code>jury-portal/</code>)<a class="headerlink" href="#1-standalone-jury-portal-jury-portal" title="Permanent link">&para;</a></h3>
+<h4 id="technische-details">Technische Details:<a class="headerlink" href="#technische-details" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Location</strong>: <code>newWebBased/jury-portal/</code></li>
+<li><strong>Port</strong>: 5174 (dediziert)</li>
+<li><strong>Entry Point</strong>: <code>src/main.tsx</code></li>
+<li><strong>Component</strong>: <code>src/components/JuryPortal.tsx</code></li>
+<li><strong>Build</strong>: Separate Vite-App mit eigenem <code>package.json</code></li>
+<li><strong>Dependencies</strong>: Minimal (React, Lucide-React, Tailwind)</li>
+</ul>
+<h4 id="vorteile">Vorteile:<a class="headerlink" href="#vorteile" title="Permanent link">&para;</a></h4>
+<p>✅ <strong>Dedizierter Port</strong>: Kein Konflikt mit Haupt-Dashboard
+✅ <strong>Unabhängige App</strong>: Kann separat deployed werden
+✅ <strong>Leichtgewichtig</strong>: Minimale Dependencies (~885 Zeilen Code)
+✅ <strong>Fokussiert</strong>: Nur Jury-Funktionen, keine Admin-Features
+✅ <strong>Netzwerk-freundlich</strong>: Kann auf separatem Gerät laufen
+✅ <strong>QR-Code tauglich</strong>: Einfacher Zugang via QR-Code möglich
+✅ <strong>Keine Navigation-Ablenkung</strong>: Jury sieht keine Management-Features
+✅ <strong>Separate Logs</strong>: Einfacheres Debugging
+✅ <strong>Performance</strong>: Schneller Start (weniger Code zu laden)</p>
+<h4 id="features">Features:<a class="headerlink" href="#features" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Event Selection</li>
+<li>Squad Selection  </li>
+<li>Device/Discipline Selection (mit Icons ✅)</li>
+<li>Scoring Interface mit Previous/Current/Next Navigation</li>
+<li>Device Complete Funktion</li>
+<li>Echtzeit-API-Integration</li>
+<li>Mobile-optimiert</li>
+<li>Touch-friendly</li>
+</ul>
+<h4 id="url-httplocalhost5174">URL: <code>http://localhost:5174/</code><a class="headerlink" href="#url-httplocalhost5174" title="Permanent link">&para;</a></h4>
+<hr />
+<h3 id="2-client-integriertes-jury-portal-client">2. Client-integriertes Jury Portal (<code>client/</code>)<a class="headerlink" href="#2-client-integriertes-jury-portal-client" title="Permanent link">&para;</a></h3>
+<h4 id="technische-details_1">Technische Details:<a class="headerlink" href="#technische-details_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Location</strong>: <code>client/src/pages/JuryPortal.tsx</code></li>
+<li><strong>Port</strong>: 5173 (geteilt mit Haupt-Dashboard)</li>
+<li><strong>Route</strong>: <code>/jury</code></li>
+<li><strong>Component</strong>: Teil der Haupt-React-App</li>
+<li><strong>Build</strong>: Teil des Client-Builds</li>
+<li><strong>Dependencies</strong>: Shared mit gesamter Client-App</li>
+</ul>
+<h4 id="vorteile_1">Vorteile:<a class="headerlink" href="#vorteile_1" title="Permanent link">&para;</a></h4>
+<p>✅ <strong>Keine separate Installation</strong>: Teil der Haupt-App
+✅ <strong>Shared State</strong>: Kann EventContext nutzen
+✅ <strong>Konsistentes Styling</strong>: Nutzt gleiche Theme-Variablen</p>
+<h4 id="nachteile">Nachteile:<a class="headerlink" href="#nachteile" title="Permanent link">&para;</a></h4>
+<p>❌ <strong>Port-Konflikt</strong>: Teilt sich Port mit Admin-Dashboard
+❌ <strong>Navigation-Confusion</strong>: Jury könnte zu Admin-Seiten navigieren
+❌ <strong>Größere Bundle-Size</strong>: Lädt gesamte Client-App
+❌ <strong>Overhead</strong>: Mehr Code als nötig für Jury-Funktion
+❌ <strong>Deployment-Komplexität</strong>: Kann nicht unabhängig deployed werden
+❌ <strong>Sicherheitsbedenken</strong>: Jury hat Zugriff auf Admin-Routes (wenn nicht explizit gesperrt)</p>
+<h4 id="features_1">Features:<a class="headerlink" href="#features_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Gleiche Funktionalität wie Standalone</li>
+<li>Event Selection</li>
+<li>Squad Selection</li>
+<li>Device Selection (mit Icons ✅)</li>
+<li>Scoring Interface</li>
+<li>Nutzt <code>getIconUrl()</code> aus shared utils</li>
+</ul>
+<h4 id="url-httplocalhost5173jury">URL: <code>http://localhost:5173/jury</code><a class="headerlink" href="#url-httplocalhost5173jury" title="Permanent link">&para;</a></h4>
+<hr />
+<h2 id="code-vergleich">Code-Vergleich<a class="headerlink" href="#code-vergleich" title="Permanent link">&para;</a></h2>
+<h3 id="gemeinsamkeiten">Gemeinsamkeiten:<a class="headerlink" href="#gemeinsamkeiten" title="Permanent link">&para;</a></h3>
+<p>Beide Implementierungen haben <strong>nahezu identische Funktionalität</strong>:</p>
+<ol>
+<li><strong>Gleicher Workflow</strong>: Event → Squad → Device → Scoring</li>
+<li><strong>Gleiche API-Calls</strong>: Beide nutzen <code>/api/events</code>, <code>/api/squad-management</code>, etc.</li>
+<li><strong>Gleiche State-Struktur</strong>: 
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="o">-</span><span class="w"> </span><span class="nx">selectedEvent</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="o">-</span><span class="w"> </span><span class="nx">selectedSquad</span><span class="w">  </span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="o">-</span><span class="w"> </span><span class="nx">selectedDevice</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="o">-</span><span class="w"> </span><span class="nx">currentParticipantIndex</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="o">-</span><span class="w"> </span><span class="nx">score</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="o">-</span><span class="w"> </span><span class="nx">step</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;event&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;squad&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;device&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;scoring&#39;</span><span class="p">)</span>
+</code></pre></div></li>
+<li><strong>Gleiche UI-Komponenten</strong>: Beide nutzen Lucide-React Icons</li>
+<li><strong>Gleiche Styling-Approach</strong>: TailwindCSS</li>
+<li><strong>Gleiche Icon-Integration</strong>: Beide zeigen Disziplin-Icons (seit Punkt 18 &amp; 19)</li>
+</ol>
+<h3 id="unterschiede">Unterschiede:<a class="headerlink" href="#unterschiede" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspekt</th>
+<th>Standalone (<code>jury-portal/</code>)</th>
+<th>Client (<code>client/</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code-Zeilen</strong></td>
+<td>~885 Zeilen</td>
+<td>~652 Zeilen</td>
+</tr>
+<tr>
+<td><strong>Imports</strong></td>
+<td>Lucide-React, eigene iconUtils</td>
+<td>Lucide-React, shared iconUtils</td>
+</tr>
+<tr>
+<td><strong>Icon-Handling</strong></td>
+<td><code>getFallbackDeviceEmoji()</code></td>
+<td><code>Trophy</code> Fallback-Icon</td>
+</tr>
+<tr>
+<td><strong>API Base URL</strong></td>
+<td><code>/api</code> (Vite Proxy)</td>
+<td><code>http://localhost:3001/api</code></td>
+</tr>
+<tr>
+<td><strong>Error Handling</strong></td>
+<td>Console-basiert</td>
+<td>Console-basiert</td>
+</tr>
+<tr>
+<td><strong>Localization</strong></td>
+<td>❌ Nicht lokalisiert (DE hardcoded)</td>
+<td>❌ Nicht lokalisiert (DE hardcoded)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="architektur-ubersicht">Architektur-Übersicht<a class="headerlink" href="#architektur-ubersicht" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>TurnFix System
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├── Main Dashboard (Port 5173)
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│   ├── Event Management
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│   ├── Competitions
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│   ├── Participants
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│   ├── Athletes
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│   ├── Configuration
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│   └── /jury Route ← **Client Jury Portal** (kann eliminiert werden)
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>├── Standalone Jury Portal (Port 5174) ← **EMPFOHLEN**
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│   └── Dedizierte App nur für Jury-Funktionen
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>└── Backend API (Port 3001)
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    └── Shared von allen Clients
+</code></pre></div>
+<hr />
+<h2 id="empfehlung-client-jury-portal-eliminieren">Empfehlung: Client Jury Portal eliminieren<a class="headerlink" href="#empfehlung-client-jury-portal-eliminieren" title="Permanent link">&para;</a></h2>
+<h3 id="grunde-fur-elimination">Gründe für Elimination:<a class="headerlink" href="#grunde-fur-elimination" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Redundanz</strong>: </li>
+<li>Beide Portale bieten gleiche Funktionalität</li>
+<li>Doppelte Code-Maintenance erforderlich</li>
+<li>
+<p>Verwirrt Benutzer ("Welches Portal soll ich nutzen?")</p>
+</li>
+<li>
+<p><strong>Sicherheit</strong>:</p>
+</li>
+<li>Client-Portal auf gleichem Port wie Admin-Dashboard</li>
+<li>Jury könnte versehentlich zu Admin-Bereichen navigieren</li>
+<li>
+<p>Keine klare Trennung zwischen Rollen</p>
+</li>
+<li>
+<p><strong>Performance</strong>:</p>
+</li>
+<li>Client-Portal lädt gesamte Dashboard-App</li>
+<li>Standalone-Portal ist leichtgewichtiger</li>
+<li>
+<p>Schnellerer Start für Competition-Day</p>
+</li>
+<li>
+<p><strong>Deployment</strong>:</p>
+</li>
+<li>Standalone kann auf separatem Tablet/PC laufen</li>
+<li>Unabhängig von Dashboard-Updates</li>
+<li>
+<p>Besser für Netzwerk-Setup (separate Geräte)</p>
+</li>
+<li>
+<p><strong>User Experience</strong>:</p>
+</li>
+<li>Standalone hat keine ablenkenden Navigation-Elemente</li>
+<li>Klarere Fokussierung auf Scoring-Task</li>
+<li>Keine versehentlichen Klicks auf Admin-Features</li>
+</ol>
+<h3 id="vorteile-der-konsolidierung">Vorteile der Konsolidierung:<a class="headerlink" href="#vorteile-der-konsolidierung" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Wartbarkeit</strong>: Nur eine Codebase zu pflegen
+✅ <strong>Konsistenz</strong>: Keine Diskrepanzen zwischen zwei Implementierungen
+✅ <strong>Klarheit</strong>: Ein Portal = eine Funktion
+✅ <strong>Weniger Bugs</strong>: Weniger Code = weniger Fehlerquellen
+✅ <strong>Einfacheres Testing</strong>: Nur ein Portal zu testen
+✅ <strong>Dokumentation</strong>: Nur ein System zu dokumentieren</p>
+<hr />
+<h2 id="migrations-plan">Migrations-Plan<a class="headerlink" href="#migrations-plan" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-analyse-erledigt">Phase 1: Analyse ✅ (ERLEDIGT)<a class="headerlink" href="#phase-1-analyse-erledigt" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Beide Implementierungen verglichen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Funktionalitäts-Parität bestätigt</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Unterschiede dokumentiert</li>
+</ul>
+<h3 id="phase-2-feature-paritat-sicherstellen">Phase 2: Feature-Parität sicherstellen<a class="headerlink" href="#phase-2-feature-paritat-sicherstellen" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Localization in Standalone-Portal hinzufügen (falls gewünscht)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Event-Context-Integration prüfen (falls benötigt)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Alle Features aus Client-Portal in Standalone übertragen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Testing der Standalone-Version</li>
+</ul>
+<h3 id="phase-3-client-portal-deprecaten">Phase 3: Client-Portal deprecaten<a class="headerlink" href="#phase-3-client-portal-deprecaten" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Route <code>/jury</code> auf Redirect zu <code>http://localhost:5174</code> ändern</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Hinweis-Banner: "Bitte Standalone Jury Portal verwenden"</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Dokumentation aktualisieren</li>
+</ul>
+<h3 id="phase-4-client-portal-entfernen-optional">Phase 4: Client-Portal entfernen (optional)<a class="headerlink" href="#phase-4-client-portal-entfernen-optional" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>client/src/pages/JuryPortal.tsx</code> löschen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Route aus <code>App.tsx</code> entfernen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Home-Page Verweis anpassen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Tests aktualisieren</li>
+</ul>
+<hr />
+<h2 id="alternative-code-sharing">Alternative: Code-Sharing<a class="headerlink" href="#alternative-code-sharing" title="Permanent link">&para;</a></h2>
+<p>Falls beide Portale behalten werden sollen:</p>
+<h3 id="shared-component-erstellen">Shared Component erstellen:<a class="headerlink" href="#shared-component-erstellen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>newWebBased/
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── shared/
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>│   └── components/
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│       └── JuryPortalCore.tsx  ← Gemeinsamer Code
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>├── client/
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│   └── src/pages/
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│       └── JuryPortal.tsx      ← Wrapper für JuryPortalCore
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>│
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>└── jury-portal/
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    └── src/components/
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>        └── JuryPortal.tsx      ← Wrapper für JuryPortalCore
+</code></pre></div>
+<p><strong>Aber</strong>: Dies erhöht Komplexität ohne klaren Mehrwert. Die Standalone-Lösung ist besser.</p>
+<hr />
+<h2 id="konkrete-empfehlung">Konkrete Empfehlung<a class="headerlink" href="#konkrete-empfehlung" title="Permanent link">&para;</a></h2>
+<h3 id="option-1-client-portal-eliminieren-empfohlen">✅ <strong>Option 1: Client-Portal eliminieren</strong> (EMPFOHLEN)<a class="headerlink" href="#option-1-client-portal-eliminieren-empfohlen" title="Permanent link">&para;</a></h3>
+<p><strong>Vorgehen</strong>:
+1. Standalone Jury Portal als <strong>offizielles</strong> Jury-Interface deklarieren
+2. Route <code>/jury</code> umleiten auf <code>http://localhost:5174</code>
+3. Dokumentation aktualisieren
+4. Nach Bestätigung: Client-Code entfernen</p>
+<p><strong>Vorteile</strong>:
+- Weniger Wartungsaufwand
+- Klarere Architektur
+- Bessere Separation of Concerns
+- Performance-Vorteil</p>
+<p><strong>Timeline</strong>: 1-2 Stunden Arbeit</p>
+<hr />
+<h3 id="option-2-beide-behalten-mit-redirect">⚠️ Option 2: Beide behalten mit Redirect<a class="headerlink" href="#option-2-beide-behalten-mit-redirect" title="Permanent link">&para;</a></h3>
+<p><strong>Vorgehen</strong>:
+1. Client-Route <code>/jury</code> zeigt Hinweis:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>&quot;Bitte nutzen Sie das dedizierte Jury Portal unter http://localhost:5174&quot;
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>[Weiterleiten] Button
+</code></pre></div>
+2. Beide Implementierungen parallel weiterführen</p>
+<p><strong>Nachteile</strong>:
+- Doppelte Wartung
+- Verwirrung für Benutzer
+- Höherer Aufwand bei Änderungen</p>
+<hr />
+<h3 id="option-3-standalone-eliminieren-nicht-empfohlen">❌ Option 3: Standalone eliminieren (NICHT EMPFOHLEN)<a class="headerlink" href="#option-3-standalone-eliminieren-nicht-empfohlen" title="Permanent link">&para;</a></h3>
+<p><strong>Gründe dagegen</strong>:
+- Standalone-Portal ist besser für Competition-Day geeignet
+- Dedicated Port ist Vorteil, kein Nachteil
+- Trennung von Admin und Jury ist Best Practice
+- Performance-Vorteile gehen verloren</p>
+<hr />
+<h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<h3 id="sofort-umsetzbar">Sofort umsetzbar:<a class="headerlink" href="#sofort-umsetzbar" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Redirect einbauen</strong> in <code>client/src/pages/JuryPortal.tsx</code>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">JuryPortal</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;min-h-screen bg-gray-50 flex items-center justify-center p-6&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;bg-white rounded-lg shadow-lg p-8 max-w-md&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="p">&lt;</span><span class="nt">h1</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-2xl font-bold mb-4&quot;</span><span class="p">&gt;</span><span class="nx">Jury</span><span class="w"> </span><span class="nx">Portal</span><span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">        </span><span class="p">&lt;</span><span class="nt">p</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;text-gray-600 mb-6&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">          </span><span class="nx">Das</span><span class="w"> </span><span class="nx">Jury</span><span class="w"> </span><span class="nx">Portal</span><span class="w"> </span><span class="nx">wurde</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">eine</span><span class="w"> </span><span class="nx">dedizierte</span><span class="w"> </span><span class="nx">Anwendung</span><span class="w"> </span><span class="nx">verschoben</span><span class="p">.</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">        </span><span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="p">&lt;</span><span class="nt">a</span><span class="w"> </span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">          </span><span class="na">href</span><span class="o">=</span><span class="s">&quot;http://localhost:5174&quot;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">          </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700&quot;</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="p">&gt;</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">          </span><span class="nx">Zum</span><span class="w"> </span><span class="nx">Jury</span><span class="w"> </span><span class="nx">Portal</span><span class="w"> </span><span class="err">→</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">        </span><span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">      </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="p">);</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">}</span>
+</code></pre></div></li>
+</ol>
+<hr />
+<h2 id="implementierungs-status">Implementierungs-Status<a class="headerlink" href="#implementierungs-status" title="Permanent link">&para;</a></h2>
+<h3 id="abgeschlossen-2025-01-14">✅ Abgeschlossen (2025-01-14)<a class="headerlink" href="#abgeschlossen-2025-01-14" title="Permanent link">&para;</a></h3>
+<p>Das Client Jury Portal wurde erfolgreich entfernt. Folgende Schritte wurden durchgeführt:</p>
+<ol>
+<li><strong>✅ Route aus App.tsx entfernen</strong>: Import und Route für JuryPortal entfernt</li>
+<li><strong>✅ JuryPortal.tsx Datei löschen</strong>: Haupt-Komponente gelöscht (~652 Zeilen)</li>
+<li><strong>✅ Home-Page Link anpassen</strong>: Link zeigt bereits korrekt auf <code>http://localhost:5174</code></li>
+<li><strong>✅ jury-main.tsx prüfen</strong>: Entry-Point-Datei gelöscht (war nur für Client Portal)</li>
+<li><strong>✅ index-jury.html prüfen</strong>: HTML-Entry gelöscht (war nur für Client Portal)</li>
+<li><strong>✅ Test-Dateien aufräumen</strong>: Keine Änderungen nötig (Translation-Keys sind für Home-Page)</li>
+<li><strong>✅ Fehler-Check</strong>: App.tsx und Home.tsx kompilieren ohne Fehler</li>
+<li><strong>✅ Dokumentation aktualisieren</strong>: Dieser Abschnitt</li>
+</ol>
+<h3 id="entfernte-dateien">Entfernte Dateien:<a class="headerlink" href="#entfernte-dateien" title="Permanent link">&para;</a></h3>
+<ul>
+<li>❌ <code>client/src/pages/JuryPortal.tsx</code></li>
+<li>❌ <code>client/src/jury-main.tsx</code></li>
+<li>❌ <code>client/index-jury.html</code></li>
+</ul>
+<h3 id="geanderte-dateien">Geänderte Dateien:<a class="headerlink" href="#geanderte-dateien" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✏️ <code>client/src/App.tsx</code> (Import + Route entfernt)</li>
+</ul>
+<h3 id="verbleibende-implementierung">Verbleibende Implementierung:<a class="headerlink" href="#verbleibende-implementierung" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>jury-portal/</code> (Standalone auf Port 5174)</li>
+</ul>
+<hr />
+<h2 id="fazit">Fazit<a class="headerlink" href="#fazit" title="Permanent link">&para;</a></h2>
+<p><strong>Die beiden Jury Portale waren funktional identisch.</strong></p>
+<p>Der einzige signifikante Unterschied war die <strong>Deployment-Architektur</strong>:
+- Standalone = dedizierter Port, separate App ✅ <strong>AKTIV</strong>
+- Client = integrierte Route, Teil der Haupt-App ❌ <strong>ENTFERNT</strong></p>
+<p><strong>Für Competition-Day-Einsatz ist das Standalone-Portal eindeutig besser geeignet.</strong></p>
+<p><strong>Ergebnis</strong>: ✅ Client Jury Portal erfolgreich eliminiert, nur Standalone bleibt.</p>
+<p><strong>Aufwand</strong>: ~30 Minuten für saubere Entfernung inkl. Dokumentation.</p>
+<p><strong>Risiko</strong>: Minimal (Home-Page verlinkt korrekt auf Standalone, API unverändert).</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../groups-teams/" class="btn btn-neutral float-left" title="Analyse: Gruppen und Mannschaftswettkämpfe"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../jury-portal/" class="btn btn-neutral float-right" title="Jury Portal - Simplified Competition Day Interface">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../groups-teams/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../jury-portal/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

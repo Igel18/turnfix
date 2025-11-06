@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/architecture/jury-portal/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Jury Portal - Simplified Competition Day Interface - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Jury Portal - Simplified Competition Day Interface";
+        var mkdocs_page_input_path = "developer-guide\\architecture\\jury-portal.md";
+        var mkdocs_page_url = "/developer-guide/architecture/jury-portal/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Architecture</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Jury Portal - Simplified Competition Day Interface</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#concept-overview">Concept Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#key-design-principles">Key Design Principles</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-simplified-workflow">1. Simplified Workflow</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-competition-day-focus">2. Competition Day Focus</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-multi-device-support">3. Multi-Device Support</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interface-structure">Interface Structure</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#step-1-event-selection">Step 1: Event Selection</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#step-2-squad-selection">Step 2: Squad Selection</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#step-3-device-selection">Step 3: Device Selection</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#step-4-scoring-interface">Step 4: Scoring Interface</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#features">Features</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#accessibility">Accessibility</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#error-prevention">Error Prevention</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#progress-tracking">Progress Tracking</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#device-completion">Device Completion</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#technical-implementation">Technical Implementation</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#route-jury">Route: /jury</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#state-management">State Management</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#api-integration">API Integration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#advantages-for-competition-day">Advantages for Competition Day</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#for-jury-members">For Jury Members</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#for-competition-organizers">For Competition Organizers</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#for-technical-support">For Technical Support</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#future-enhancements">Future Enhancements</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage-instructions">Usage Instructions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#for-competition-day-setup">For Competition Day Setup</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#during-competition">During Competition</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#device-change">Device Change</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deployment">Deployment</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Architecture</li>
+      <li class="breadcrumb-item active">Jury Portal - Simplified Competition Day Interface</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/architecture/jury-portal.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="jury-portal-simplified-competition-day-interface">Jury Portal - Simplified Competition Day Interface<a class="headerlink" href="#jury-portal-simplified-competition-day-interface" title="Permanent link">&para;</a></h1>
+<h2 id="concept-overview">Concept Overview<a class="headerlink" href="#concept-overview" title="Permanent link">&para;</a></h2>
+<p>The Jury Portal is a streamlined, dedicated interface designed specifically for jury members during competition day. It eliminates the complexity of the full dashboard and focuses solely on score entry workflow.</p>
+<h2 id="key-design-principles">Key Design Principles<a class="headerlink" href="#key-design-principles" title="Permanent link">&para;</a></h2>
+<h3 id="1-simplified-workflow">1. <strong>Simplified Workflow</strong><a class="headerlink" href="#1-simplified-workflow" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Linear Navigation</strong>: Event → Squad → Device → Scoring</li>
+<li><strong>No Dashboard Confusion</strong>: Jury members don't see administrative functions</li>
+<li><strong>Clear Context</strong>: Always show where they are in the process</li>
+</ul>
+<h3 id="2-competition-day-focus">2. <strong>Competition Day Focus</strong><a class="headerlink" href="#2-competition-day-focus" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Previous | Current | Next</strong> participant display</li>
+<li><strong>Large, Touch-Friendly Controls</strong> for mobile devices</li>
+<li><strong>Minimal Clicks</strong> to enter scores</li>
+<li><strong>Visual Progress Indicators</strong></li>
+</ul>
+<h3 id="3-multi-device-support">3. <strong>Multi-Device Support</strong><a class="headerlink" href="#3-multi-device-support" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Responsive Design</strong>: Works on Windows PC, iPad, Smartphone</li>
+<li><strong>Touch Optimized</strong>: Large buttons and input fields</li>
+<li><strong>Mobile-First Approach</strong>: Optimized for smaller screens</li>
+</ul>
+<h2 id="interface-structure">Interface Structure<a class="headerlink" href="#interface-structure" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-event-selection"><strong>Step 1: Event Selection</strong><a class="headerlink" href="#step-1-event-selection" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Simple dropdown with available events</li>
+<li>Clean, focused interface</li>
+<li>Large "Continue" button</li>
+</ul>
+<h3 id="step-2-squad-selection"><strong>Step 2: Squad Selection</strong><a class="headerlink" href="#step-2-squad-selection" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Card-based layout showing squads</li>
+<li>Participant count and preview</li>
+<li>Easy selection via large touch areas</li>
+</ul>
+<h3 id="step-3-device-selection"><strong>Step 3: Device Selection</strong><a class="headerlink" href="#step-3-device-selection" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Visual device cards with icons</li>
+<li>Clear device names (Boden, Reck, etc.)</li>
+<li>One-tap selection</li>
+</ul>
+<h3 id="step-4-scoring-interface"><strong>Step 4: Scoring Interface</strong><a class="headerlink" href="#step-4-scoring-interface" title="Permanent link">&para;</a></h3>
+<p>The main scoring interface provides:</p>
+<h4 id="participant-navigation"><strong>Participant Navigation</strong><a class="headerlink" href="#participant-navigation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[Previous]     [CURRENT]     [Next]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> Completed      Active       Pending
+</code></pre></div>
+<h4 id="score-entry"><strong>Score Entry</strong><a class="headerlink" href="#score-entry" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Large number input field</li>
+<li>Decimal support (0.1 steps)</li>
+<li>"Save Score" button</li>
+<li>Automatic progression to next participant</li>
+</ul>
+<h4 id="context-information"><strong>Context Information</strong><a class="headerlink" href="#context-information" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Current device clearly displayed</li>
+<li>Squad name in header</li>
+<li>Progress bar showing completion status</li>
+</ul>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<h3 id="accessibility"><strong>Accessibility</strong><a class="headerlink" href="#accessibility" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Large touch targets (minimum 44px)</li>
+<li>High contrast colors</li>
+<li>Clear typography</li>
+<li>Simplified navigation</li>
+</ul>
+<h3 id="error-prevention"><strong>Error Prevention</strong><a class="headerlink" href="#error-prevention" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Input validation for scores</li>
+<li>Clear visual feedback</li>
+<li>Confirmation before saving</li>
+<li>Undo capability (future enhancement)</li>
+</ul>
+<h3 id="progress-tracking"><strong>Progress Tracking</strong><a class="headerlink" href="#progress-tracking" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Visual progress bar</li>
+<li>Participant counter (e.g., "3 of 12")</li>
+<li>Clear indication of completed/pending participants</li>
+</ul>
+<h3 id="device-completion"><strong>Device Completion</strong><a class="headerlink" href="#device-completion" title="Permanent link">&para;</a></h3>
+<ul>
+<li>"Device Complete" button</li>
+<li>Returns to device selection</li>
+<li>Allows switching between devices easily</li>
+</ul>
+<h2 id="technical-implementation">Technical Implementation<a class="headerlink" href="#technical-implementation" title="Permanent link">&para;</a></h2>
+<h3 id="route-jury"><strong>Route</strong>: <code>/jury</code><a class="headerlink" href="#route-jury" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Dedicated route separate from main dashboard</li>
+<li>Can be bookmarked for quick access</li>
+<li>Optional: QR code generation for easy mobile access</li>
+</ul>
+<h3 id="state-management"><strong>State Management</strong><a class="headerlink" href="#state-management" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Local state for current session</li>
+<li>Persistent storage for device/squad selection</li>
+<li>Real-time score submission to backend</li>
+</ul>
+<h3 id="api-integration"><strong>API Integration</strong><a class="headerlink" href="#api-integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Uses existing score capture API</li>
+<li>Leverages fixed foreign key constraint issue</li>
+<li>Real-time updates for multi-jury scenarios</li>
+</ul>
+<h2 id="advantages-for-competition-day">Advantages for Competition Day<a class="headerlink" href="#advantages-for-competition-day" title="Permanent link">&para;</a></h2>
+<h3 id="for-jury-members"><strong>For Jury Members</strong><a class="headerlink" href="#for-jury-members" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>No Confusion</strong>: Only sees what they need</li>
+<li>✅ <strong>Fast Entry</strong>: Minimal clicks to enter scores</li>
+<li>✅ <strong>Mobile Friendly</strong>: Works on any device</li>
+<li>✅ <strong>Clear Context</strong>: Always know current participant</li>
+<li>✅ <strong>Progress Tracking</strong>: See completion status</li>
+</ul>
+<h3 id="for-competition-organizers"><strong>For Competition Organizers</strong><a class="headerlink" href="#for-competition-organizers" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Reduced Training</strong>: Simple interface requires minimal instruction</li>
+<li>✅ <strong>Error Reduction</strong>: Focused workflow prevents mistakes</li>
+<li>✅ <strong>Device Flexibility</strong>: Jury can use any available device</li>
+<li>✅ <strong>Backup Solution</strong>: If one device fails, easy to switch</li>
+</ul>
+<h3 id="for-technical-support"><strong>For Technical Support</strong><a class="headerlink" href="#for-technical-support" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Simplified Troubleshooting</strong>: Fewer features to debug</li>
+<li>✅ <strong>Clear User Path</strong>: Easy to guide users through process</li>
+<li>✅ <strong>Mobile Support</strong>: Can help via smartphone if needed</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>QR Code Access</strong>: Generate QR codes for easy mobile access</li>
+<li><strong>Offline Mode</strong>: Continue working without internet connection</li>
+<li><strong>Multi-Language</strong>: Support for different languages</li>
+<li><strong>Voice Input</strong>: Speech-to-text for scores</li>
+<li><strong>Gesture Support</strong>: Swipe navigation on mobile</li>
+<li><strong>Real-time Sync</strong>: Multiple jury members on same device</li>
+<li><strong>Score Validation</strong>: Automatic plausibility checks</li>
+</ol>
+<h2 id="usage-instructions">Usage Instructions<a class="headerlink" href="#usage-instructions" title="Permanent link">&para;</a></h2>
+<h3 id="for-competition-day-setup"><strong>For Competition Day Setup</strong><a class="headerlink" href="#for-competition-day-setup" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Access</strong>: Navigate to <code>/jury</code> on any device</li>
+<li><strong>Event Selection</strong>: Choose the active competition event</li>
+<li><strong>Squad Assignment</strong>: Select the squad the jury is responsible for</li>
+<li><strong>Device Selection</strong>: Choose the gymnastics apparatus</li>
+<li><strong>Start Scoring</strong>: Begin entering scores for participants</li>
+</ol>
+<h3 id="during-competition"><strong>During Competition</strong><a class="headerlink" href="#during-competition" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Current Participant</strong>: Clearly highlighted in center</li>
+<li><strong>Score Entry</strong>: Enter score in large input field</li>
+<li><strong>Save</strong>: Click "Save Score" to submit and advance</li>
+<li><strong>Navigation</strong>: Previous/Next participants always visible</li>
+<li><strong>Progress</strong>: Progress bar shows completion status</li>
+</ol>
+<h3 id="device-change"><strong>Device Change</strong><a class="headerlink" href="#device-change" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Complete Device</strong>: Click "Device Complete" when finished</li>
+<li><strong>New Device</strong>: Select next apparatus</li>
+<li><strong>Continue</strong>: Resume with same squad on new device</li>
+</ol>
+<h2 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
+<p>The Jury Portal is integrated into the existing TurnFix application:
+- <strong>URL</strong>: <code>http://localhost:5173/jury</code> (or network IP for remote access)
+- <strong>Authentication</strong>: Uses existing login system
+- <strong>API</strong>: Connects to same backend as main application
+- <strong>Database</strong>: Uses same database with proper foreign key handling</p>
+<p>This creates a professional, focused tool specifically designed for the high-pressure environment of competition day, where simplicity and reliability are paramount.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../jury-comparison/" class="btn btn-neutral float-left" title="Jury Portal Comparison &amp; Consolidation Analysis"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../live-updates/" class="btn btn-neutral float-right" title="Live-Update UI-Element - Dokumentation">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../jury-comparison/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../live-updates/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

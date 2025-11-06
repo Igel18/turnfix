@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/MIGRATION-STATUS/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>📚 TurnFix v2.0 - GitBook Dokumentation - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83d\udcda TurnFix v2.0 - GitBook Dokumentation";
+        var mkdocs_page_input_path = "MIGRATION-STATUS.md";
+        var mkdocs_page_url = "/MIGRATION-STATUS/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#migration-status">📊 Migration Status</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dokumentations-struktur">🗂️ Dokumentations-Struktur</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#abgeschlossene-migrationen">✅ Abgeschlossene Migrationen</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#getting-started-14">Getting Started (&frac14;)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deployment-47">Deployment (4/7)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-guide-features-2020">Developer Guide - Features (20/20)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-guide-architecture-44">Developer Guide - Architecture (4/4)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-guide-best-practices-33">Developer Guide - Best Practices (3/3)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-guide-testing-33">Developer Guide - Testing (3/3)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#reference-26">Reference (2/6)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#noch-zu-erstellende-seiten">⏳ Noch zu erstellende Seiten</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#user-guide-komplett-neu">User Guide (komplett neu)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-guide-api-neu">Developer Guide - API (neu)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deployment-3-fehlend">Deployment (3 fehlend)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#reference-4-fehlend">Reference (4 fehlend)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#appendix-3-neu">Appendix (3 neu)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#gitbook-setup">🚀 GitBook Setup</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#lokale-vorschau">Lokale Vorschau</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#online-publishing">Online-Publishing</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dokumentations-todos">📝 Dokumentations-ToDos</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#prioritat-1-kritisch">Priorität 1 (Kritisch)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#prioritat-2-wichtig">Priorität 2 (Wichtig)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#prioritat-3-nice-to-have">Priorität 3 (Nice-to-Have)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#gitbook-konfiguration">🔧 GitBook-Konfiguration</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#gitbookyaml-optional">.gitbook.yaml (optional)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bookjson-optional">book.json (optional)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#nachste-schritte">📊 Nächste Schritte</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fragen">📞 Fragen?</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">📚 TurnFix v2.0 - GitBook Dokumentation</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/MIGRATION-STATUS.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="turnfix-v20-gitbook-dokumentation">📚 TurnFix v2.0 - GitBook Dokumentation<a class="headerlink" href="#turnfix-v20-gitbook-dokumentation" title="Permanent link">&para;</a></h1>
+<p><strong>Status</strong>: ✅ GitBook-Struktur initialisiert | <strong>57 Dokumente</strong> migriert (37 newWebBased + 20 Root)</p>
+<h2 id="migration-status">📊 Migration Status<a class="headerlink" href="#migration-status" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Kategorie</th>
+<th>Dateien</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Getting Started</strong></td>
+<td>2</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>Deployment</strong></td>
+<td>11</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>Developer Features</strong></td>
+<td>26</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>6</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>Best Practices</strong></td>
+<td>3</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>3</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td>6</td>
+<td>✅ Migriert</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td><strong>57</strong></td>
+<td><strong>✅ 100%</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="dokumentations-struktur">🗂️ Dokumentations-Struktur<a class="headerlink" href="#dokumentations-struktur" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>documentation/newWebbased/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── 📄 README.md                     # GitBook Landing Page
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── 📄 SUMMARY.md                    # GitBook Navigation (ToC)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── 📄 DOCS-STRUCTURE.md            # Diese Datei
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── 🚀 getting-started/
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── README.md                    # Übersicht
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── quickstart.md               # ✅ GETTING_STARTED.md
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── installation.md             # ⏳ TODO
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   ├── requirements.md             # ⏳ TODO
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   └── network-setup.md            # ⏳ TODO
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── 👥 user-guide/
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   ├── README.md                    # ⏳ TODO
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   ├── event-management/           # ⏳ TODO
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   ├── time-planning/              # ⏳ TODO
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   ├── score-capture/              # ⏳ TODO
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   ├── results/                    # ⏳ TODO
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   ├── master-data/                # ⏳ TODO
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   └── workflows/                  # ⏳ TODO
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>├── 👨‍💻 developer-guide/
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│   ├── README.md                    # ✅ Entwickler-Übersicht
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   │
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   ├── features/                   # ✅ 20 Feature-Docs migriert
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   │   ├── point-135-start-devices.md      # ⭐ NEU (5. Nov 2025)
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   │   ├── gender-unification.md
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   │   ├── pdf-system.md
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   │   ├── gymnet-import.md
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   │   ├── setup-automation.md
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   │   ├── table-localization.md
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   │   ├── table-scrolling.md
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   │   ├── table-sorting.md
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│   │   ├── default-views.md
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   │   ├── jury-icons.md
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│   │   ├── gymnet-localization.md
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│   │   ├── events-localization.md
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│   │   ├── header-unification.md
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│   │   ├── configuration-localization.md
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│   │   ├── management-localization.md
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│   │   ├── participants-localization.md
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│   │   ├── discipline-icons.md
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│   │   ├── jury-scores.md
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│   │   ├── gymnet-hotfix.md
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│   │   └── jury-production.md
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│   │
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│   ├── architecture/               # ✅ 4 Architektur-Docs
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│   │   ├── field-mapping.md
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│   │   ├── jury-portal.md
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│   │   ├── jury-comparison.md
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│   │   └── live-updates.md
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│   │
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│   ├── best-practices/             # ✅ 3 Best-Practice-Docs
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│   │   ├── templates.md
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│   │   ├── database.md
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│   │   └── typescript.md
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│   │
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│   ├── testing/                    # ✅ 3 Testing-Docs
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│   │   ├── strategy.md
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│   │   ├── setup.md
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│   │   └── gymnet-test-cases.md
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>│   │
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│   ├── api/                        # ⏳ TODO (API-Referenz)
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│   └── ui-components/              # ⏳ TODO (Component Library)
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>├── 🚀 deployment/
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│   ├── production.md               # ✅ PRODUCTION_DEPLOYMENT.md
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>│   ├── network.md                  # ✅ NETWORK_SETUP.md
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>│   ├── network-fixes.md            # ✅ NETWORK_ACCESS_FIXES.md
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>│   ├── firewall.md                 # ✅ FIREWALL_SETUP.md
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>│   ├── pm2.md                      # ⏳ TODO
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>│   ├── backup.md                   # ⏳ TODO
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>│   └── troubleshooting.md          # ⏳ TODO
+<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>│
+<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>├── 📚 reference/
+<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>│   ├── changelog.md                # ✅ PRIORITY_FIXES_LOG.md
+<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>│   ├── scripts.md                  # ✅ DEVELOPMENT_SCRIPTS.md
+<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>│   ├── development-status.md       # ⏳ TODO (aus Instructions.md)
+<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>│   ├── features.md                 # ⏳ TODO
+<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>│   ├── faq.md                      # ⏳ TODO
+<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>│   └── glossary.md                 # ⏳ TODO
+<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>│
+<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>├── 📎 appendix/
+<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>│   ├── migration-guide.md          # ⏳ TODO (Qt → Web)
+<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>│   ├── legacy-compatibility.md     # ⏳ TODO
+<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>│   └── screenshots.md              # ⏳ TODO
+<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>│
+<a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>└── 🖼️ images/
+<a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>    └── ui-screenshots/             # ✅ Existiert bereits
+</code></pre></div>
+<h2 id="abgeschlossene-migrationen">✅ Abgeschlossene Migrationen<a class="headerlink" href="#abgeschlossene-migrationen" title="Permanent link">&para;</a></h2>
+<h3 id="getting-started-14">Getting Started (&frac14;)<a class="headerlink" href="#getting-started-14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>GETTING_STARTED.md</code> → <code>quickstart.md</code></li>
+</ul>
+<h3 id="deployment-47">Deployment (4/7)<a class="headerlink" href="#deployment-47" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>PRODUCTION_DEPLOYMENT.md</code> → <code>production.md</code></li>
+<li>✅ <code>NETWORK_SETUP.md</code> → <code>network.md</code></li>
+<li>✅ <code>NETWORK_ACCESS_FIXES.md</code> → <code>network-fixes.md</code></li>
+<li>✅ <code>FIREWALL_SETUP.md</code> → <code>firewall.md</code></li>
+</ul>
+<h3 id="developer-guide-features-2020">Developer Guide - Features (20/20)<a class="headerlink" href="#developer-guide-features-2020" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>POINT_135_DOCUMENTATION.md</code> → <code>point-135-start-devices.md</code> ⭐</li>
+<li>✅ <code>POINT-30-GENDER-UNIFICATION.md</code> → <code>gender-unification.md</code></li>
+<li>✅ <code>POINT-34-PDF-UNIFICATION.md</code> → <code>pdf-system.md</code></li>
+<li>✅ <code>POINT-38-IMPLEMENTATION-SUMMARY.md</code> → <code>gymnet-import.md</code></li>
+<li>✅ <code>POINT-11-IMPLEMENTATION.md</code> → <code>setup-automation.md</code></li>
+<li>✅ <code>POINT-31-LOCALIZATION.md</code> → <code>table-localization.md</code></li>
+<li>✅ <code>POINT-32-HORIZONTAL-SCROLLING.md</code> → <code>table-scrolling.md</code></li>
+<li>✅ <code>POINT-33-SORTABLE-TABLES.md</code> → <code>table-sorting.md</code></li>
+<li>✅ <code>POINT-40-DEFAULT-TABLE-VIEW.md</code> → <code>default-views.md</code></li>
+<li>✅ <code>POINT-46-JURY-PORTAL-ICONS.md</code> → <code>jury-icons.md</code></li>
+<li>✅ <code>POINT-47-GYMNET-IMPORT-LOCALIZATION.md</code> → <code>gymnet-localization.md</code></li>
+<li>✅ <code>POINT-49-EVENTS-LOCALIZATION.md</code> → <code>events-localization.md</code></li>
+<li>✅ <code>POINT-51-UNIFIED-HEADER-CLEANUP.md</code> → <code>header-unification.md</code></li>
+<li>✅ <code>CONFIGURATION_LOCALIZATION_STATUS.md</code> → <code>configuration-localization.md</code></li>
+<li>✅ <code>MANAGEMENT_CENTER_COMPLETE_LOCALIZATION.md</code> → <code>management-localization.md</code></li>
+<li>✅ <code>PARTICIPANTS_LOCALIZATION_STATUS.md</code> → <code>participants-localization.md</code></li>
+<li>✅ <code>DISCIPLINE_ICONS_IMPLEMENTATION.md</code> → <code>discipline-icons.md</code></li>
+<li>✅ <code>JURY_SCORES_FEATURE.md</code> → <code>jury-scores.md</code></li>
+<li>✅ <code>POINT-38-HOTFIX.md</code> → <code>gymnet-hotfix.md</code></li>
+<li>✅ <code>POINT-46-PRODUCTION-SOLUTION.md</code> → <code>jury-production.md</code></li>
+</ul>
+<h3 id="developer-guide-architecture-44">Developer Guide - Architecture (4/4)<a class="headerlink" href="#developer-guide-architecture-44" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>DYNAMIC_FIELD_MAPPING.md</code> → <code>field-mapping.md</code></li>
+<li>✅ <code>JURY_PORTAL_CONCEPT.md</code> → <code>jury-portal.md</code></li>
+<li>✅ <code>JURY_PORTAL_COMPARISON.md</code> → <code>jury-comparison.md</code></li>
+<li>✅ <code>LIVE_UPDATE_INDICATOR.md</code> → <code>live-updates.md</code></li>
+</ul>
+<h3 id="developer-guide-best-practices-33">Developer Guide - Best Practices (3/3)<a class="headerlink" href="#developer-guide-best-practices-33" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>TEMPLATE-UNIFICATION.md</code> → <code>templates.md</code></li>
+<li>✅ <code>PRISMA_SINGLETON_FIX.md</code> → <code>database.md</code></li>
+<li>✅ <code>TYPESCRIPT_BUILD_FIXES.md</code> → <code>typescript.md</code></li>
+</ul>
+<h3 id="developer-guide-testing-33">Developer Guide - Testing (3/3)<a class="headerlink" href="#developer-guide-testing-33" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>TESTING.md</code> → <code>strategy.md</code></li>
+<li>✅ <code>TESTING_SETUP_SUMMARY.md</code> → <code>setup.md</code></li>
+<li>✅ <code>POINT-38-TEST-CASES.md</code> → <code>gymnet-test-cases.md</code></li>
+</ul>
+<h3 id="reference-26">Reference (2/6)<a class="headerlink" href="#reference-26" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>PRIORITY_FIXES_LOG.md</code> → <code>changelog.md</code></li>
+<li>✅ <code>DEVELOPMENT_SCRIPTS.md</code> → <code>scripts.md</code></li>
+</ul>
+<h2 id="noch-zu-erstellende-seiten">⏳ Noch zu erstellende Seiten<a class="headerlink" href="#noch-zu-erstellende-seiten" title="Permanent link">&para;</a></h2>
+<h3 id="user-guide-komplett-neu">User Guide (komplett neu)<a class="headerlink" href="#user-guide-komplett-neu" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>user-guide/README.md</code> - Übersicht</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Event Management Seiten (5-7 Seiten)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Time Planning Seiten (4 Seiten)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Score Capture Seiten (3 Seiten)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Results &amp; Export (4 Seiten)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Master Data (3 Seiten)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Workflows (3 Seiten)</li>
+</ul>
+<h3 id="developer-guide-api-neu">Developer Guide - API (neu)<a class="headerlink" href="#developer-guide-api-neu" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>api/overview.md</code> - REST API Übersicht</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>api/events.md</code> - Events Endpoints</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>api/participants.md</code> - Participants Endpoints</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>api/competitions.md</code> - Competitions Endpoints</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>api/scores.md</code> - Scores Endpoints</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>api/time-planning.md</code> - Time Planning Endpoints</li>
+</ul>
+<h3 id="deployment-3-fehlend">Deployment (3 fehlend)<a class="headerlink" href="#deployment-3-fehlend" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>pm2.md</code> - PM2 Setup &amp; Management</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>backup.md</code> - Backup &amp; Recovery</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>troubleshooting.md</code> - Fehlerbehandlung</li>
+</ul>
+<h3 id="reference-4-fehlend">Reference (4 fehlend)<a class="headerlink" href="#reference-4-fehlend" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>development-status.md</code> - Aus Instructions.md extrahieren</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>features.md</code> - Vollständige Feature-Liste</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>faq.md</code> - Häufige Fragen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>glossary.md</code> - Begriffserklärungen</li>
+</ul>
+<h3 id="appendix-3-neu">Appendix (3 neu)<a class="headerlink" href="#appendix-3-neu" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>migration-guide.md</code> - Qt → Web Migration</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>legacy-compatibility.md</code> - Legacy-System-Infos</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>screenshots.md</code> - UI-Screenshot-Übersicht</li>
+</ul>
+<h2 id="gitbook-setup">🚀 GitBook Setup<a class="headerlink" href="#gitbook-setup" title="Permanent link">&para;</a></h2>
+<h3 id="lokale-vorschau">Lokale Vorschau<a class="headerlink" href="#lokale-vorschau" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># GitBook CLI installieren</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>gitbook-cli
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># In docs-Verzeichnis wechseln</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">cd</span><span class="w"> </span>c:<span class="se">\U</span>sers<span class="se">\D</span>ominik<span class="w"> </span>Prudlo<span class="se">\D</span>ocuments<span class="se">\G</span>itHub<span class="se">\t</span>urnfix<span class="se">\d</span>ocumentation<span class="se">\n</span>ewWebbased
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># GitBook initialisieren (einmalig)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>gitbook<span class="w"> </span>init
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Lokalen Server starten</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>gitbook<span class="w"> </span>serve
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># → http://localhost:4000</span>
+</code></pre></div>
+<h3 id="online-publishing">Online-Publishing<a class="headerlink" href="#online-publishing" title="Permanent link">&para;</a></h3>
+<p><strong>Option 1: GitBook.com</strong>
+1. Account erstellen auf <a href="https://www.gitbook.com">gitbook.com</a>
+2. Repository verbinden
+3. Auto-Sync aktivieren</p>
+<p><strong>Option 2: GitHub Pages</strong>
+1. GitBook Build: <code>gitbook build</code>
+2. Output nach <code>docs/</code> committen
+3. GitHub Pages aktivieren</p>
+<h2 id="dokumentations-todos">📝 Dokumentations-ToDos<a class="headerlink" href="#dokumentations-todos" title="Permanent link">&para;</a></h2>
+<h3 id="prioritat-1-kritisch">Priorität 1 (Kritisch)<a class="headerlink" href="#prioritat-1-kritisch" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> User Guide - Event Management schreiben</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> User Guide - Workflows (Complete Event)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> API-Referenz erstellen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Screenshots aktualisieren und einfügen</li>
+</ul>
+<h3 id="prioritat-2-wichtig">Priorität 2 (Wichtig)<a class="headerlink" href="#prioritat-2-wichtig" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Development Status aus Instructions.md extrahieren</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> FAQ-Seite erstellen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Troubleshooting erweitern</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Glossar erstellen</li>
+</ul>
+<h3 id="prioritat-3-nice-to-have">Priorität 3 (Nice-to-Have)<a class="headerlink" href="#prioritat-3-nice-to-have" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Video-Tutorials einbetten</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Interaktive Diagramme (Mermaid)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Code-Playground (CodeSandbox)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Suchfunktion optimieren</li>
+</ul>
+<h2 id="gitbook-konfiguration">🔧 GitBook-Konfiguration<a class="headerlink" href="#gitbook-konfiguration" title="Permanent link">&para;</a></h2>
+<h3 id="gitbookyaml-optional">.gitbook.yaml (optional)<a class="headerlink" href="#gitbookyaml-optional" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">structure</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">readme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">README.md</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SUMMARY.md</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nt">redirects</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">previous/page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new-folder/page.md</span>
+</code></pre></div>
+<h3 id="bookjson-optional">book.json (optional)<a class="headerlink" href="#bookjson-optional" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TurnFix v2.0 Dokumentation&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Webbasierte Wettkampfverwaltung für Turnvereine&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;language&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;de&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;plugins&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="s2">&quot;search&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="s2">&quot;ga&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="s2">&quot;theme-comscore&quot;</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nt">&quot;pluginsConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nt">&quot;ga&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;UA-XXXXXXXX-X&quot;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="nachste-schritte">📊 Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<ol>
+<li>✅ <strong>GitBook-Struktur erstellt</strong> (README, SUMMARY, Ordner)</li>
+<li>✅ <strong>37 Dokumente migriert</strong> (automatisiert)</li>
+<li>✅ <strong>Basis-Übersichtsseiten</strong> erstellt</li>
+<li>🔄 <strong>User Guide</strong> schreiben (in Arbeit)</li>
+<li>⏳ <strong>API-Referenz</strong> generieren</li>
+<li>⏳ <strong>Screenshots</strong> aktualisieren</li>
+<li>⏳ <strong>GitBook lokal testen</strong></li>
+<li>⏳ <strong>Online publizieren</strong></li>
+</ol>
+<h2 id="fragen">📞 Fragen?<a class="headerlink" href="#fragen" title="Permanent link">&para;</a></h2>
+<p>Bei Fragen zur Dokumentations-Struktur:
+- <strong>GitBook Docs</strong>: https://docs.gitbook.com
+- <strong>Markdown Guide</strong>: https://www.markdownguide.org
+- <strong>Mermaid Diagrams</strong>: https://mermaid-js.github.io</p>
+<hr />
+<p><strong>Stand</strong>: 5. November 2025 | <strong>Version</strong>: 1.0 | <strong>Autor</strong>: TurnFix Team</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../DOCS-STRUCTURE/" class="btn btn-neutral float-left" title="GitBook-Konfiguration für TurnFix v2.0 Dokumentation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../REORGANIZATION-COMPLETE/" class="btn btn-neutral float-right" title="📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../DOCS-STRUCTURE/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../REORGANIZATION-COMPLETE/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

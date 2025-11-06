@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/deployment/admin-rights/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Admin Rights Detection for Firewall Management - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Admin Rights Detection for Firewall Management";
+        var mkdocs_page_input_path = "deployment\\admin-rights.md";
+        var mkdocs_page_url = "/deployment/admin-rights/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Admin Rights Detection for Firewall Management</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementation">Implementation</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#backend-changes">Backend Changes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#frontend-changes">Frontend Changes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#translation-keys">Translation Keys</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#user-experience">User Experience</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#scenario-1-running-with-admin-rights">Scenario 1: Running with Admin Rights</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scenario-2-running-without-admin-rights">Scenario 2: Running without Admin Rights</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scenario-3-permission-error-during-operation">Scenario 3: Permission Error During Operation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#technical-details">Technical Details</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#admin-detection-method">Admin Detection Method</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-net-session">Why "net session"?</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#alternative-detection-methods-considered">Alternative Detection Methods Considered</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#benefits">Benefits</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#for-users">For Users</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#for-developers">For Developers</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#for-itsupport">For IT/Support</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#backend-error-scenarios">Backend Error Scenarios</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#frontend-error-scenarios">Frontend Error Scenarios</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#manual-testing-steps">Manual Testing Steps</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#automated-testing">Automated Testing</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#issue-always-shows-no-admin-rights">Issue: Always Shows "No Admin Rights"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#issue-admin-status-not-updating">Issue: Admin Status Not Updating</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#issue-shows-admin-rights-but-cant-enable-rules">Issue: Shows Admin Rights But Can't Enable Rules</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#future-enhancements">Future Enhancements</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#security-considerations">Security Considerations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#safe-practices">Safe Practices</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#what-not-to-do">What NOT to Do</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#related-files">Related Files</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#backend">Backend</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#frontend">Frontend</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Deployment</li>
+      <li class="breadcrumb-item active">Admin Rights Detection for Firewall Management</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/deployment/admin-rights.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="admin-rights-detection-for-firewall-management">Admin Rights Detection for Firewall Management<a class="headerlink" href="#admin-rights-detection-for-firewall-management" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The firewall management UI now automatically detects whether the application is running with administrator privileges and displays an appropriate status message.</p>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<h3 id="backend-changes">Backend Changes<a class="headerlink" href="#backend-changes" title="Permanent link">&para;</a></h3>
+<p><strong>File</strong>: <code>server/src/routes/firewall.ts</code></p>
+<ol>
+<li><strong>New Function</strong>: <code>checkAdminRights()</code></li>
+<li>Uses <code>net session</code> command to check for admin privileges</li>
+<li>Returns <code>true</code> if application has admin rights</li>
+<li>
+<p>Returns <code>false</code> if access is denied</p>
+</li>
+<li>
+<p><strong>Enhanced Status Endpoint</strong>: <code>GET /api/firewall/status</code></p>
+</li>
+<li>Now includes <code>hasAdminRights: boolean</code> in response</li>
+<li>Automatically checks admin status on each request</li>
+<li>Example response:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;frontend&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&quot;juryPortal&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">&quot;ports&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3001</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">&quot;frontend&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5173</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">&quot;juryPortal&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5174</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">&quot;hasAdminRights&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
+</code></pre></div></li>
+</ol>
+<h3 id="frontend-changes">Frontend Changes<a class="headerlink" href="#frontend-changes" title="Permanent link">&para;</a></h3>
+<p><strong>File</strong>: <code>client/src/components/FirewallManagement.tsx</code></p>
+<ol>
+<li><strong>New State</strong>: <code>hasAdminRights</code></li>
+<li>Tracks whether application has admin privileges</li>
+<li>Updated automatically when status is loaded</li>
+<li>
+<p>Controls UI display</p>
+</li>
+<li>
+<p><strong>Visual Indicators</strong>:</p>
+</li>
+<li>
+<p><strong>Green Box with Checkmark</strong> (✓ Administrator-Modus aktiv)</p>
+<ul>
+<li>Shown when <code>hasAdminRights === true</code></li>
+<li>Confirms user can manage firewall rules</li>
+<li>Buttons are enabled</li>
+</ul>
+</li>
+<li>
+<p><strong>Amber Box with Warning</strong> (⚠️ Administratorrechte erforderlich)</p>
+<ul>
+<li>Shown when <code>hasAdminRights === false</code></li>
+<li>Explains why buttons are disabled</li>
+<li>Provides instructions to run as admin</li>
+</ul>
+</li>
+<li>
+<p><strong>Smart UI Behavior</strong>:</p>
+</li>
+<li>Status check happens on component mount</li>
+<li>Admin status shown immediately after loading</li>
+<li>Buttons automatically disabled if no admin rights</li>
+<li>Clear messaging guides user to solution</li>
+</ol>
+<h3 id="translation-keys">Translation Keys<a class="headerlink" href="#translation-keys" title="Permanent link">&para;</a></h3>
+<p><strong>Files</strong>: <code>client/src/i18n/locales/de.json</code>, <code>en.json</code></p>
+<p>New translation keys added:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&quot;configuration.firewall.adminRights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;available&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;✓ Administrator-Modus aktiv&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sie können Firewall-Regeln verwalten, da die Anwendung mit Administratorrechten läuft.&quot;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p>English version:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&quot;configuration.firewall.adminRights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;available&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;✓ Administrator mode active&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;You can manage firewall rules because the application is running with administrator privileges.&quot;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<h2 id="user-experience">User Experience<a class="headerlink" href="#user-experience" title="Permanent link">&para;</a></h2>
+<h3 id="scenario-1-running-with-admin-rights">Scenario 1: Running with Admin Rights<a class="headerlink" href="#scenario-1-running-with-admin-rights" title="Permanent link">&para;</a></h3>
+<ol>
+<li>User opens Configuration → Firewall section</li>
+<li>Green box appears: "✓ Administrator-Modus aktiv"</li>
+<li>Description confirms: "Sie können Firewall-Regeln verwalten..."</li>
+<li>All enable/disable buttons are active</li>
+<li>User can freely manage firewall rules</li>
+</ol>
+<h3 id="scenario-2-running-without-admin-rights">Scenario 2: Running without Admin Rights<a class="headerlink" href="#scenario-2-running-without-admin-rights" title="Permanent link">&para;</a></h3>
+<ol>
+<li>User opens Configuration → Firewall section</li>
+<li>Amber box appears: "⚠️ Administratorrechte erforderlich"</li>
+<li>Description explains: "Diese Funktion erfordert Administratorrechte..."</li>
+<li>All enable/disable buttons are disabled (grayed out)</li>
+<li>User knows to restart application as administrator</li>
+</ol>
+<h3 id="scenario-3-permission-error-during-operation">Scenario 3: Permission Error During Operation<a class="headerlink" href="#scenario-3-permission-error-during-operation" title="Permanent link">&para;</a></h3>
+<ol>
+<li>User attempts to enable a rule</li>
+<li>Backend detects missing permissions</li>
+<li>Amber warning box appears immediately</li>
+<li>Error message provides guidance</li>
+<li>Buttons become disabled</li>
+</ol>
+<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="admin-detection-method">Admin Detection Method<a class="headerlink" href="#admin-detection-method" title="Permanent link">&para;</a></h3>
+<p>The <code>net session</code> command is used to check for admin privileges:
+- <strong>Success</strong>: Command returns session info → Has admin rights
+- <strong>Error "Access is denied"</strong>: No admin rights
+- <strong>Other errors</strong>: Assumed no admin rights (safe default)</p>
+<h3 id="why-net-session">Why "net session"?<a class="headerlink" href="#why-net-session" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Reliable Windows command available on all versions</li>
+<li>Returns clear error codes</li>
+<li>Fast execution</li>
+<li>Minimal overhead</li>
+</ul>
+<h3 id="alternative-detection-methods-considered">Alternative Detection Methods Considered<a class="headerlink" href="#alternative-detection-methods-considered" title="Permanent link">&para;</a></h3>
+<ol>
+<li>❌ <strong>Check file permissions</strong>: Unreliable, depends on folder structure</li>
+<li>❌ <strong>Registry access</strong>: Too invasive, not always accurate</li>
+<li>❌ <strong>Firewall command</strong>: Would show error on every check</li>
+<li>✅ <strong>net session</strong>: Clean, reliable, standard Windows command</li>
+</ol>
+<h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">&para;</a></h2>
+<h3 id="for-users">For Users<a class="headerlink" href="#for-users" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Immediate feedback</strong> - Know admin status before attempting changes</li>
+<li>✅ <strong>Clear guidance</strong> - Understands why buttons are disabled</li>
+<li>✅ <strong>No frustration</strong> - Doesn't discover missing rights after clicking</li>
+<li>✅ <strong>Better UX</strong> - Proactive rather than reactive error handling</li>
+</ul>
+<h3 id="for-developers">For Developers<a class="headerlink" href="#for-developers" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Automatic detection</strong> - No manual configuration needed</li>
+<li>✅ <strong>Real-time updates</strong> - Status checked on each load</li>
+<li>✅ <strong>Consistent behavior</strong> - Same logic across all services</li>
+<li>✅ <strong>Easy debugging</strong> - Clear status indicators in UI</li>
+</ul>
+<h3 id="for-itsupport">For IT/Support<a class="headerlink" href="#for-itsupport" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Self-explanatory</strong> - Users can self-diagnose the issue</li>
+<li>✅ <strong>Reduced support tickets</strong> - Clear instructions provided</li>
+<li>✅ <strong>Easy verification</strong> - Visual confirmation of admin mode</li>
+<li>✅ <strong>Documentation</strong> - Built-in help text in UI</li>
+</ul>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
+<h3 id="backend-error-scenarios">Backend Error Scenarios<a class="headerlink" href="#backend-error-scenarios" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Command execution fails</strong>: Returns <code>hasAdminRights: false</code></li>
+<li><strong>Access denied</strong>: Returns <code>hasAdminRights: false</code></li>
+<li><strong>Timeout</strong>: Returns <code>hasAdminRights: false</code></li>
+<li><strong>Unknown error</strong>: Returns <code>hasAdminRights: false</code></li>
+</ol>
+<p>Safe default: Always assume no admin rights unless explicitly confirmed.</p>
+<h3 id="frontend-error-scenarios">Frontend Error Scenarios<a class="headerlink" href="#frontend-error-scenarios" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>API call fails</strong>: Shows fallback warning box</li>
+<li><strong>Null/undefined status</strong>: No admin box shown, buttons stay enabled</li>
+<li><strong>Network error</strong>: Retry mechanism kicks in</li>
+<li><strong>Invalid response</strong>: Fallback to error state</li>
+</ol>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="manual-testing-steps">Manual Testing Steps<a class="headerlink" href="#manual-testing-steps" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Test with Admin Rights</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c"># Right-click VS Code → &quot;Run as administrator&quot;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c"># Open TurnFix, navigate to Configuration → Firewall</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c"># Verify: Green box with ✓ appears</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c"># Verify: All buttons are enabled</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c"># Test: Click enable/disable - should work</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Test without Admin Rights</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c"># Start VS Code normally (not as admin)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c"># Open TurnFix, navigate to Configuration → Firewall</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c"># Verify: Amber box with ⚠️ appears</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c"># Verify: All buttons are disabled</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c"># Test: Hover buttons - should show disabled state</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Test Status Refresh</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Open without admin rights (amber box)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c"># Close application</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c"># Restart VS Code as administrator</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c"># Open TurnFix again</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c"># Verify: Box changes to green</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c"># Verify: Buttons become enabled</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h3 id="automated-testing">Automated Testing<a class="headerlink" href="#automated-testing" title="Permanent link">&para;</a></h3>
+<p>Backend test (to be implemented):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;Admin Rights Detection&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">it</span><span class="p">(</span><span class="s1">&#39;should detect admin rights correctly&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">request</span><span class="p">(</span><span class="nx">app</span><span class="p">).</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/api/firewall/status&#39;</span><span class="p">);</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nx">expect</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">).</span><span class="nx">toHaveProperty</span><span class="p">(</span><span class="s1">&#39;hasAdminRights&#39;</span><span class="p">);</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nx">expect</span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">hasAdminRights</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="s1">&#39;boolean&#39;</span><span class="p">);</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="p">});</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="p">});</span>
+</code></pre></div></p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="issue-always-shows-no-admin-rights">Issue: Always Shows "No Admin Rights"<a class="headerlink" href="#issue-always-shows-no-admin-rights" title="Permanent link">&para;</a></h3>
+<p><strong>Possible Causes</strong>:
+- VS Code not running as administrator
+- Windows User Account Control (UAC) is blocking elevation
+- Command execution is being blocked by antivirus</p>
+<p><strong>Solutions</strong>:
+1. Right-click VS Code → "Run as administrator"
+2. Check Windows UAC settings
+3. Add exception in antivirus software</p>
+<h3 id="issue-admin-status-not-updating">Issue: Admin Status Not Updating<a class="headerlink" href="#issue-admin-status-not-updating" title="Permanent link">&para;</a></h3>
+<p><strong>Possible Causes</strong>:
+- Status cached in browser
+- API not responding
+- Network connectivity issue</p>
+<p><strong>Solutions</strong>:
+1. Click "Refresh" button in UI
+2. Hard refresh browser (Ctrl+Shift+R)
+3. Check network tab for API errors
+4. Restart development server</p>
+<h3 id="issue-shows-admin-rights-but-cant-enable-rules">Issue: Shows Admin Rights But Can't Enable Rules<a class="headerlink" href="#issue-shows-admin-rights-but-cant-enable-rules" title="Permanent link">&para;</a></h3>
+<p><strong>Possible Causes</strong>:
+- Backend running without admin rights
+- Windows Firewall service disabled
+- Group Policy blocking changes</p>
+<p><strong>Solutions</strong>:
+1. Restart backend server as administrator
+2. Check Windows Firewall service status
+3. Contact IT department about Group Policy</p>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<p>Potential improvements:
+- [ ] Add "Run as Administrator" button in UI (launches elevated process)
+- [ ] Show more detailed permission information
+- [ ] Cache admin status to reduce checks
+- [ ] Add telemetry for admin detection failures
+- [ ] Provide alternative configuration methods for non-admin users
+- [ ] Add "Request Admin Rights" prompt (UAC elevation)</p>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="safe-practices">Safe Practices<a class="headerlink" href="#safe-practices" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Read-only check</strong>: Admin detection only reads status, doesn't modify system
+✅ <strong>No credential storage</strong>: No passwords or tokens involved
+✅ <strong>Minimal permissions</strong>: Uses least privileged command available
+✅ <strong>No security bypass</strong>: Detection doesn't grant rights, only checks them</p>
+<h3 id="what-not-to-do">What NOT to Do<a class="headerlink" href="#what-not-to-do" title="Permanent link">&para;</a></h3>
+<p>❌ <strong>Don't auto-elevate</strong>: Never automatically request admin rights
+❌ <strong>Don't store tokens</strong>: Don't cache admin credentials
+❌ <strong>Don't bypass checks</strong>: Always verify rights before operations
+❌ <strong>Don't expose details</strong>: Don't show system internals in error messages</p>
+<h2 id="related-files">Related Files<a class="headerlink" href="#related-files" title="Permanent link">&para;</a></h2>
+<h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>server/src/routes/firewall.ts</code> - Main firewall logic with admin check</li>
+</ul>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>client/src/components/FirewallManagement.tsx</code> - UI component with status display</li>
+<li><code>client/src/i18n/locales/de.json</code> - German translations</li>
+<li><code>client/src/i18n/locales/en.json</code> - English translations</li>
+</ul>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>FIREWALL_GUI.md</code> - General firewall management guide</li>
+<li><code>FIREWALL_SETUP.md</code> - Manual firewall configuration</li>
+<li><code>ADMIN_RIGHTS_DETECTION.md</code> - This file</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../SUMMARY/" class="btn btn-neutral float-left" title="Summary"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../firewall-gui/" class="btn btn-neutral float-right" title="Firewall Management GUI">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../../SUMMARY/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../firewall-gui/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

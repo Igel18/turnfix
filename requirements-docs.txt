@@ -1,0 +1,16 @@
+# Documentation build requirements for Read the Docs
+
+# Core MkDocs
+mkdocs>=1.5.0
+
+# Theme
+mkdocs-material>=9.4.0
+
+# Plugins
+mkdocs-minify-plugin>=0.7.0
+mkdocstrings>=0.24.0
+mkdocstrings-python>=1.7.0
+
+# Extensions
+pymdown-extensions>=10.4
+markdown-include>=0.8.1

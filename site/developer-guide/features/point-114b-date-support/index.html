@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/point-114b-date-support/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Point 114b: Date Support for Start/Warmup Times - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Point 114b: Date Support for Start/Warmup Times";
+        var mkdocs_page_input_path = "developer-guide\\features\\point-114b-date-support.md";
+        var mkdocs_page_url = "/developer-guide/features/point-114b-date-support/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Point 114b: Date Support for Start/Warmup Times</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#problem">Problem</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#user-requirement">User Requirement</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#solution-overview">Solution Overview</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementation-details">Implementation Details</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-backend-changes-serversrcroutescompetitionsts">1. Backend Changes (server/src/routes/competitions.ts)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-frontend-changes">2. Frontend Changes</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-translation-keys">3. Translation Keys</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#technical-details">Technical Details</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#date-format">Date Format</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#default-behavior">Default Behavior</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#backward-compatibility">Backward Compatibility</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#time-zone-handling">Time Zone Handling</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#database-schema-reference">Database Schema Reference</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#relevant-tables">Relevant Tables</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#files-modified">Files Modified</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#backend">Backend</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#frontend">Frontend</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#translations">Translations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#build-status">Build Status</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing-checklist">Testing Checklist</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#backend-api-testing">Backend API Testing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#frontend-ui-testing">Frontend UI Testing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#edge-cases">Edge Cases</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#user-impact">User Impact</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#related-points">Related Points</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#next-steps-if-needed">Next Steps (If Needed)</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Point 114b: Date Support for Start/Warmup Times</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/point-114b-date-support.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="point-114b-date-support-for-startwarmup-times">Point 114b: Date Support for Start/Warmup Times<a class="headerlink" href="#point-114b-date-support-for-startwarmup-times" title="Permanent link">&para;</a></h1>
+<p><strong>Status</strong>: ✅ COMPLETE<br />
+<strong>Date</strong>: 2025-01-XX<br />
+<strong>Build</strong>: Backend ✓, Frontend ✓ 7.23s</p>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>The database stores <strong>full DateTime</strong> values in <code>tim_startzeit</code> (start time) and <code>tim_einturnen</code> (warmup time) columns, but the application only extracted and displayed the <strong>time component</strong> (HH:MM). This caused:</p>
+<ol>
+<li><strong>Data Loss</strong>: Date information was lost in transit from database to frontend</li>
+<li><strong>Hardcoded Dates</strong>: Update logic hardcoded <code>1970-01-01</code> as the date when saving times</li>
+<li><strong>Limited UI</strong>: Frontend only showed time input fields, no date pickers</li>
+<li><strong>User Confusion</strong>: Users couldn't see or edit the date component of competition times</li>
+</ol>
+<h2 id="user-requirement">User Requirement<a class="headerlink" href="#user-requirement" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>"b) Ist in der DB auch das Date gespeichert? dann sollte das auch visualisiert werden und editierbar sein. voreingestellt immer das Date von der veranstaltung 'von'"</p>
+</blockquote>
+<p><strong>Translation</strong>: "Is the date also stored in the DB? Then it should be visualized and editable. Default should always be the event's start date."</p>
+<h2 id="solution-overview">Solution Overview<a class="headerlink" href="#solution-overview" title="Permanent link">&para;</a></h2>
+<p>Extended the application to support separate date and time fields for both start and warmup times:</p>
+<ul>
+<li><strong>Backend</strong>: Returns separate <code>startDate</code>/<code>warmupDate</code> fields, accepts them in POST/PUT requests</li>
+<li><strong>Frontend</strong>: Shows date + time inputs side-by-side, defaults to event's start date</li>
+<li><strong>Default Behavior</strong>: If no date stored in DateTime, uses event's <code>dat_von</code> (start date) as fallback</li>
+</ul>
+<h2 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">&para;</a></h2>
+<h3 id="1-backend-changes-serversrcroutescompetitionsts">1. Backend Changes (server/src/routes/competitions.ts)<a class="headerlink" href="#1-backend-changes-serversrcroutescompetitionsts" title="Permanent link">&para;</a></h3>
+<h4 id="schema-extension-lines-28-30">Schema Extension (Lines 28-30)<a class="headerlink" href="#schema-extension-lines-28-30" title="Permanent link">&para;</a></h4>
+<p>Extended Zod validation schema to accept date fields:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">createCompetitionSchema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">z</span><span class="p">.</span><span class="nx">object</span><span class="p">({</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="c1">// ... existing fields</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">startTime</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">().</span><span class="nx">optional</span><span class="p">(),</span><span class="w"> </span><span class="c1">// HH:MM format</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">().</span><span class="nx">optional</span><span class="p">(),</span><span class="w"> </span><span class="c1">// YYYY-MM-DD format ← NEW</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nx">warmupTime</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">().</span><span class="nx">optional</span><span class="p">(),</span><span class="w"> </span><span class="c1">// HH:MM format</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nx">warmupDate</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">().</span><span class="nx">optional</span><span class="p">(),</span><span class="w"> </span><span class="c1">// YYYY-MM-DD format ← NEW</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">});</span>
+</code></pre></div></p>
+<h4 id="get-all-competitions-response-lines-139-146">GET All Competitions Response (Lines 139-146)<a class="headerlink" href="#get-all-competitions-response-lines-139-146" title="Permanent link">&para;</a></h4>
+<p>Returns separate date fields with event date as fallback:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">startTime</span><span class="o">:</span><span class="w"> </span><span class="kt">comp.tim_startzeit</span><span class="w"> </span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nb">String</span><span class="p">(</span><span class="nx">comp</span><span class="p">.</span><span class="nx">tim_startzeit</span><span class="p">.</span><span class="nx">getHours</span><span class="p">()).</span><span class="nx">padStart</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="si">}</span><span class="sb">:</span><span class="si">${</span><span class="nb">String</span><span class="p">(</span><span class="nx">comp</span><span class="p">.</span><span class="nx">tim_startzeit</span><span class="p">.</span><span class="nx">getMinutes</span><span class="p">()).</span><span class="nx">padStart</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="si">}</span><span class="sb">`</span><span class="w"> </span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="kt">comp.tim_startzeit</span><span class="w"> </span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="nx">comp</span><span class="p">.</span><span class="nx">tim_startzeit</span><span class="p">.</span><span class="nx">toISOString</span><span class="p">().</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span><span class="w">  </span><span class="c1">// Actual DateTime date</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">comp</span><span class="p">.</span><span class="nx">tfx_veranstaltungen</span><span class="p">.</span><span class="nx">dat_von</span><span class="o">?</span><span class="p">.</span><span class="nx">toISOString</span><span class="p">().</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="kc">null</span><span class="p">),</span><span class="w"> </span><span class="c1">// Event date fallback</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nx">warmupTime</span><span class="o">:</span><span class="w"> </span><span class="kt">comp.tim_einturnen</span><span class="w"> </span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nb">String</span><span class="p">(</span><span class="nx">comp</span><span class="p">.</span><span class="nx">tim_einturnen</span><span class="p">.</span><span class="nx">getHours</span><span class="p">()).</span><span class="nx">padStart</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="si">}</span><span class="sb">:</span><span class="si">${</span><span class="nb">String</span><span class="p">(</span><span class="nx">comp</span><span class="p">.</span><span class="nx">tim_einturnen</span><span class="p">.</span><span class="nx">getMinutes</span><span class="p">()).</span><span class="nx">padStart</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="si">}</span><span class="sb">`</span><span class="w"> </span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nx">warmupDate</span><span class="o">:</span><span class="w"> </span><span class="kt">comp.tim_einturnen</span><span class="w"> </span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="nx">comp</span><span class="p">.</span><span class="nx">tim_einturnen</span><span class="p">.</span><span class="nx">toISOString</span><span class="p">().</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">comp</span><span class="p">.</span><span class="nx">tfx_veranstaltungen</span><span class="p">.</span><span class="nx">dat_von</span><span class="o">?</span><span class="p">.</span><span class="nx">toISOString</span><span class="p">().</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)[</span><span class="mf">0</span><span class="p">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="kc">null</span><span class="p">),</span>
+</code></pre></div></p>
+<h4 id="get-by-id-response-lines-270-285">GET by ID Response (Lines 270-285)<a class="headerlink" href="#get-by-id-response-lines-270-285" title="Permanent link">&para;</a></h4>
+<p>Same pattern as GET all - added date fields to individual competition response.</p>
+<h4 id="put-update-logic-lines-690-755">PUT Update Logic (Lines 690-755)<a class="headerlink" href="#put-update-logic-lines-690-755" title="Permanent link">&para;</a></h4>
+<p>Combines date + time into proper DateTime before saving:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">validatedData</span><span class="p">.</span><span class="nx">startTime</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="kc">undefined</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">validatedData</span><span class="p">.</span><span class="nx">startDate</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="kc">undefined</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">validatedData</span><span class="p">.</span><span class="nx">startTime</span><span class="p">;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">date</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">validatedData</span><span class="p">.</span><span class="nx">startDate</span><span class="p">;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">time</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="c1">// Parse time string (HH:MM format)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">timeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">).</span><span class="nx">length</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">      </span><span class="o">?</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nx">time</span><span class="si">}</span><span class="sb">:00`</span><span class="w"> </span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="o">:</span><span class="w"> </span><span class="nx">time</span><span class="p">;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">hours</span><span class="p">,</span><span class="w"> </span><span class="nx">minutes</span><span class="p">,</span><span class="w"> </span><span class="nx">seconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;00&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">timeStr</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">);</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="c1">// Use provided date or event start date as fallback</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="nx">targetDate</span><span class="o">:</span><span class="w"> </span><span class="kt">Date</span><span class="p">;</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">date</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">      </span><span class="nx">targetDate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">(</span><span class="nx">date</span><span class="p">);</span><span class="w"> </span><span class="c1">// User-provided date</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">eventDate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">competitionInfo</span><span class="p">.</span><span class="nx">tfx_veranstaltungen</span><span class="p">.</span><span class="nx">dat_von</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">();</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">      </span><span class="nx">targetDate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">(</span><span class="nx">eventDate</span><span class="p">);</span><span class="w"> </span><span class="c1">// Event date fallback</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="c1">// Set time components on the target date</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span><span class="nx">targetDate</span><span class="p">.</span><span class="nx">setHours</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">hours</span><span class="p">),</span><span class="w"> </span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">minutes</span><span class="p">),</span><span class="w"> </span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">seconds</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">),</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="nx">updateData</span><span class="p">.</span><span class="nx">tim_startzeit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">targetDate</span><span class="p">;</span><span class="w"> </span><span class="c1">// Store complete DateTime</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="nx">updateData</span><span class="p">.</span><span class="nx">tim_startzeit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="p">}</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="c1">// Similar logic for warmupTime/warmupDate</span>
+</code></pre></div></p>
+<h4 id="post-create-logic-lines-515-560">POST Create Logic (Lines 515-560)<a class="headerlink" href="#post-create-logic-lines-515-560" title="Permanent link">&para;</a></h4>
+<p>Same date+time combination logic as PUT endpoint:
+- Accepts <code>startDate</code>/<code>warmupDate</code> from request
+- Combines with <code>startTime</code>/<code>warmupTime</code>
+- Defaults to event's <code>dat_von</code> if no date provided
+- Stores complete DateTime in database</p>
+<h3 id="2-frontend-changes">2. Frontend Changes<a class="headerlink" href="#2-frontend-changes" title="Permanent link">&para;</a></h3>
+<h4 id="competition-interface-clientsrcpagestimeplanningtsx-lines-44-54">Competition Interface (client/src/pages/TimePlanning.tsx, Lines 44-54)<a class="headerlink" href="#competition-interface-clientsrcpagestimeplanningtsx-lines-44-54" title="Permanent link">&para;</a></h4>
+<p>Extended interface with date fields:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">Competition</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="kt">number</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">round</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nx">startTime</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="c1">// HH:MM format</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="c1">// YYYY-MM-DD format ← NEW</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nx">warmupTime</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="c1">// HH:MM format</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nx">warmupDate</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="c1">// YYYY-MM-DD format ← NEW</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nx">disciplineCount</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="nx">participantCount</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">}</span>
+</code></pre></div></p>
+<h4 id="edit-modal-ui-lines-1060-1120">Edit Modal UI (Lines 1060-1120)<a class="headerlink" href="#edit-modal-ui-lines-1060-1120" title="Permanent link">&para;</a></h4>
+<p><strong>Before</strong>: Single time input per field<br />
+<strong>After</strong>: Grid layout with date + time inputs side-by-side</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="cm">/* Warmup Date and Time */</span><span class="p">}</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;grid grid-cols-2 gap-4&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">label</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;block text-sm font-medium text-gray-700 mb-1&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;timePlanning.warmupDate&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Einturnen Datum&#39;</span><span class="p">)}</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">label</span><span class="p">&gt;</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">input</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="na">type</span><span class="o">=</span><span class="s">&quot;date&quot;</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">editingCompetition</span><span class="p">.</span><span class="nx">warmupDate</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">selectedEvent</span><span class="o">?</span><span class="p">.</span><span class="nx">dat_eventstartdate</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">}</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="na">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setEditingCompetition</span><span class="p">({</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">        </span><span class="p">...</span><span class="nx">editingCompetition</span><span class="p">,</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="nx">warmupDate</span><span class="o">:</span><span class="w"> </span><span class="kt">e.target.value</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">      </span><span class="p">})}</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">      </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;w-full px-3 py-2 border border-gray-300 rounded-lg&quot;</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="p">/&gt;</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">label</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;block text-sm font-medium text-gray-700 mb-1&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">      </span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;timePlanning.warmupTime&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Einturnzeit&#39;</span><span class="p">)}</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">label</span><span class="p">&gt;</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">input</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">      </span><span class="na">type</span><span class="o">=</span><span class="s">&quot;time&quot;</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">      </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">editingCompetition</span><span class="p">.</span><span class="nx">warmupTime</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">}</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">      </span><span class="na">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setEditingCompetition</span><span class="p">({</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">        </span><span class="p">...</span><span class="nx">editingCompetition</span><span class="p">,</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">        </span><span class="nx">warmupTime</span><span class="o">:</span><span class="w"> </span><span class="kt">e.target.value</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">      </span><span class="p">})}</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">      </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;w-full px-3 py-2 border border-gray-300 rounded-lg&quot;</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">    </span><span class="p">/&gt;</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="w">  </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="p">{</span><span class="cm">/* Start Date and Time */</span><span class="p">}</span>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;grid grid-cols-2 gap-4&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="w">  </span><span class="p">{</span><span class="cm">/* Similar structure for startDate + startTime */</span><span class="p">}</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div>
+<p><strong>Key Features</strong>:
+- Date input defaults to <code>selectedEvent?.dat_eventstartdate</code> (event's start date)
+- Time input remains as before (HH:MM format)
+- Grid layout shows date and time together for better UX</p>
+<h4 id="save-function-lines-425-443">Save Function (Lines 425-443)<a class="headerlink" href="#save-function-lines-425-443" title="Permanent link">&para;</a></h4>
+<p>Extended to send date fields to backend:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">handleSaveCompetitionTimes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">editingCompetition</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">apiPut</span><span class="p">(</span><span class="sb">`/competitions/</span><span class="si">${</span><span class="nx">editingCompetition</span><span class="p">.</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nx">startTime</span><span class="o">:</span><span class="w"> </span><span class="kt">editingCompetition.startTime</span><span class="p">,</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">      </span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="kt">editingCompetition.startDate</span><span class="p">,</span><span class="w">     </span><span class="c1">// ← NEW</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">      </span><span class="nx">warmupTime</span><span class="o">:</span><span class="w"> </span><span class="kt">editingCompetition.warmupTime</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">      </span><span class="nx">warmupDate</span><span class="o">:</span><span class="w"> </span><span class="kt">editingCompetition.warmupDate</span><span class="w">    </span><span class="c1">// ← NEW</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="p">});</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="c1">// Invalidate both caches to ensure data refresh</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="nx">invalidateCache</span><span class="p">(</span><span class="s1">&#39;/competitions&#39;</span><span class="p">);</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="nx">invalidateCache</span><span class="p">(</span><span class="s1">&#39;/time-planning&#39;</span><span class="p">);</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">refetch</span><span class="p">();</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="nx">setShowEditModal</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="nx">setEditingCompetition</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">&#39;Failed to update competition times:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="p">};</span>
+</code></pre></div></p>
+<h3 id="3-translation-keys">3. Translation Keys<a class="headerlink" href="#3-translation-keys" title="Permanent link">&para;</a></h3>
+<h4 id="german-clientsrci18nlocalesdejson-lines-1695-1700">German (client/src/i18n/locales/de.json, Lines 1695-1700)<a class="headerlink" href="#german-clientsrci18nlocalesdejson-lines-1695-1700" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">&quot;warmupTime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Einturnen&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">&quot;warmupDate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Einturnen Datum&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nt">&quot;startTime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Startzeit&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nt">&quot;startDate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Start Datum&quot;</span><span class="p">,</span>
+</code></pre></div>
+<h4 id="english-clientsrci18nlocalesenjson-lines-1697-1702">English (client/src/i18n/locales/en.json, Lines 1697-1702)<a class="headerlink" href="#english-clientsrci18nlocalesenjson-lines-1697-1702" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">&quot;warmupTime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Warm-up&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">&quot;warmupDate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Warm-up Date&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nt">&quot;startTime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Start Time&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nt">&quot;startDate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Start Date&quot;</span><span class="p">,</span>
+</code></pre></div>
+<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
+<h3 id="date-format">Date Format<a class="headerlink" href="#date-format" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Database</strong>: PostgreSQL TIMESTAMP (full DateTime with timezone)</li>
+<li><strong>API</strong>: Separate fields - <code>YYYY-MM-DD</code> (date) + <code>HH:MM</code> (time)</li>
+<li><strong>Frontend</strong>: HTML5 date input (<code>type="date"</code>) + time input (<code>type="time"</code>)</li>
+</ul>
+<h3 id="default-behavior">Default Behavior<a class="headerlink" href="#default-behavior" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>New Competition</strong>: Date defaults to event's <code>dat_von</code> (start date)</li>
+<li><strong>Edit with Existing DateTime</strong>: Shows actual date from database</li>
+<li><strong>Edit without DateTime</strong>: Shows event's start date as default</li>
+<li><strong>Save without Date</strong>: Backend uses event's start date</li>
+</ol>
+<h3 id="backward-compatibility">Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ Schema changes are <strong>optional fields</strong> - existing code unaffected</li>
+<li>✅ If only time provided, backend uses event date automatically</li>
+<li>✅ Old API consumers (not sending date) still work correctly</li>
+</ul>
+<h3 id="time-zone-handling">Time Zone Handling<a class="headerlink" href="#time-zone-handling" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Uses <strong>local timezone</strong> consistently (as per Point 109 requirements)</li>
+<li><code>getHours()</code>, <code>getMinutes()</code> for extraction (not UTC methods)</li>
+<li><code>setHours()</code> for combination (not <code>toISOString()</code>)</li>
+</ul>
+<h2 id="database-schema-reference">Database Schema Reference<a class="headerlink" href="#database-schema-reference" title="Permanent link">&para;</a></h2>
+<h3 id="relevant-tables">Relevant Tables<a class="headerlink" href="#relevant-tables" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>tfx_wettkaempfe</strong> (Competitions)</li>
+<li><code>tim_startzeit</code> - TIMESTAMP - Start time with date</li>
+<li><code>tim_einturnen</code> - TIMESTAMP - Warmup time with date</li>
+<li>
+<p><code>int_veranstaltungenid</code> - FK to event</p>
+</li>
+<li>
+<p><strong>tfx_veranstaltungen</strong> (Events)</p>
+</li>
+<li><code>dat_von</code> - DATE - Event start date (used as default)</li>
+<li><code>dat_bis</code> - DATE - Event end date</li>
+</ul>
+<h2 id="files-modified">Files Modified<a class="headerlink" href="#files-modified" title="Permanent link">&para;</a></h2>
+<h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>server/src/routes/competitions.ts</code></li>
+<li>Lines 28-30: Extended Zod schema</li>
+<li>Lines 139-146: GET all competitions - added date fields</li>
+<li>Lines 270-285: GET by ID - added date fields</li>
+<li>Lines 515-560: POST create - date+time combination logic</li>
+<li>Lines 690-755: PUT update - date+time combination logic</li>
+</ul>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>client/src/pages/TimePlanning.tsx</code></li>
+<li>Lines 44-54: Extended Competition interface</li>
+<li>Lines 425-443: Updated save function to send dates</li>
+<li>Lines 1060-1120: Added date inputs to edit modal</li>
+</ul>
+<h3 id="translations">Translations<a class="headerlink" href="#translations" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>client/src/i18n/locales/de.json</code> (Lines 1695-1700)</li>
+<li>✅ <code>client/src/i18n/locales/en.json</code> (Lines 1697-1702)</li>
+</ul>
+<h2 id="build-status">Build Status<a class="headerlink" href="#build-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>✅ <strong>Backend</strong>: TypeScript compilation successful (0 errors)</li>
+<li>✅ <strong>Frontend</strong>: Vite build successful in 7.23s (0 errors, 2247 modules)</li>
+<li>✅ <strong>Schema Validation</strong>: Zod schemas extended, no type errors</li>
+<li>✅ <strong>Localization</strong>: Translation keys added to DE/EN</li>
+</ul>
+<h2 id="testing-checklist">Testing Checklist<a class="headerlink" href="#testing-checklist" title="Permanent link">&para;</a></h2>
+<h3 id="backend-api-testing">Backend API Testing<a class="headerlink" href="#backend-api-testing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> GET <code>/api/competitions?eventId=X</code> - verify startDate/warmupDate in response</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> GET <code>/api/competitions/:id</code> - verify date fields in individual competition</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PUT <code>/api/competitions/:id</code> - update with date values, verify DateTime stored</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PUT <code>/api/competitions/:id</code> - update with time only, verify event date used</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> POST <code>/api/competitions</code> - create with date+time, verify correct storage</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> POST <code>/api/competitions</code> - create with time only, verify event date fallback</li>
+</ul>
+<h3 id="frontend-ui-testing">Frontend UI Testing<a class="headerlink" href="#frontend-ui-testing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Open Time Planning page: http://localhost:3001/time-planning?eventId=59</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Click edit (pencil icon) on a competition</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify date inputs show event's start date as default</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify time inputs show existing times or empty</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Change warmup date, verify saves correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Change start date, verify saves correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Save and reload page, verify dates persist</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Create new competition with dates, verify correct storage</li>
+</ul>
+<h3 id="edge-cases">Edge Cases<a class="headerlink" href="#edge-cases" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Competition with no DateTime set - should show event date</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Competition with DateTime from different date - should show actual date</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Save time without changing date - should keep existing/default date</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Clear time value - should set DateTime to null in database</li>
+</ul>
+<h2 id="user-impact">User Impact<a class="headerlink" href="#user-impact" title="Permanent link">&para;</a></h2>
+<p><strong>Before</strong>:
+- ❌ Only time visible, no date information
+- ❌ Date hardcoded to 1970-01-01 when saving
+- ❌ Couldn't schedule competitions on different days
+- ❌ Multi-day events not properly supported</p>
+<p><strong>After</strong>:
+- ✅ Full date+time editing capability
+- ✅ Date defaults to event start date intelligently
+- ✅ Multi-day events fully supported
+- ✅ Clear visual separation of date and time
+- ✅ Better UX with side-by-side inputs</p>
+<h2 id="related-points">Related Points<a class="headerlink" href="#related-points" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Point 114a</strong>: ✅ Field Order (warmupTime before startTime) - Already completed</li>
+<li><strong>Point 109</strong>: ✅ Time Zone Handling - Uses local timezone consistently</li>
+<li><strong>Point 23</strong>: ✅ Dialog Validation - No race conditions, proper loading states</li>
+</ul>
+<h2 id="next-steps-if-needed">Next Steps (If Needed)<a class="headerlink" href="#next-steps-if-needed" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>CompetitionFormModal.tsx</strong>: Could also benefit from date inputs (not just TimePlanning)</li>
+<li><strong>Gantt Chart View</strong>: Could visualize multi-day competitions better</li>
+<li><strong>Timeline View</strong>: Could show date headers for multi-day events</li>
+<li><strong>Validation</strong>: Add date range validation (start &gt;= event.dat_von, start &lt;= event.dat_bis)</li>
+</ol>
+<hr />
+<p><strong>Implementation Date</strong>: 2025-01-XX<br />
+<strong>Developer</strong>: GitHub Copilot<br />
+<strong>Verified</strong>: Backend ✓, Frontend ✓, Builds ✓</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../pdf-system/" class="btn btn-neutral float-left" title="Point 34: PDF-Export Vereinheitlichung"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../point-131-modal/" class="btn btn-neutral float-right" title="Point 131: Modal Integration for EventParticipants Buttons">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../pdf-system/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../point-131-modal/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

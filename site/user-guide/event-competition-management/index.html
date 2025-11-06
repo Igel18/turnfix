@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/user-guide/event-competition-management/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Wettkämpfe erstellen und verwalten - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Wettk\u00e4mpfe erstellen und verwalten";
+        var mkdocs_page_input_path = "user-guide\\event-competition-management.md";
+        var mkdocs_page_url = "/user-guide/event-competition-management/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Wettkämpfe erstellen und verwalten</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#ubersicht">📋 Übersicht</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#was-ist-der-unterschied-zwischen-event-und-wettkampf">🎯 Was ist der Unterschied zwischen Event und Wettkampf?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#voraussetzungen">✅ Voraussetzungen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schritt-1-event-veranstaltung-erstellen">🚀 Schritt 1: Event (Veranstaltung) erstellen</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#11-event-ubersicht-offnen">1.1 Event-Übersicht öffnen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#12-neues-event-anlegen">1.2 Neues Event anlegen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#13-event-speichern">1.3 Event speichern</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schritt-2-wettkampf-erstellen">🏆 Schritt 2: Wettkampf erstellen</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#21-event-auswahlen">2.1 Event auswählen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#22-neuer-wettkampf">2.2 Neuer Wettkampf</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#23-wettkampf-grunddaten">2.3 Wettkampf-Grunddaten</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#24-disziplinen-zuweisen">2.4 Disziplinen zuweisen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#25-wettkampfeinstellungen-erweitert">2.5 Wettkampfeinstellungen (Erweitert)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#26-wettkampf-speichern">2.6 Wettkampf speichern</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schritt-3-teilnehmer-zuweisen">👥 Schritt 3: Teilnehmer zuweisen</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#31-teilnehmer-ansicht-offnen">3.1 Teilnehmer-Ansicht öffnen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#32-teilnehmer-hinzufugen">3.2 Teilnehmer hinzufügen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#33-teilnehmer-details-prufen">3.3 Teilnehmer-Details prüfen</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schritt-4-wettkampf-ubersicht">📊 Schritt 4: Wettkampf-Übersicht</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#41-wettkampf-status">4.1 Wettkampf-Status</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#42-filter-und-suche">4.2 Filter und Suche</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#43-aktionen">4.3 Aktionen</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schritt-5-zeitplanung-optional">⏰ Schritt 5: Zeitplanung (Optional)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tipps-best-practices">🎯 Tipps &amp; Best Practices</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#dos">✅ Do's</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#donts">❌ Don'ts</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#haufige-probleme-losungen">❓ Häufige Probleme &amp; Lösungen</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-1-teilnehmer-wird-nicht-angezeigt">Problem 1: "Teilnehmer wird nicht angezeigt"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-2-disziplin-fehlt-in-auswahl">Problem 2: "Disziplin fehlt in Auswahl"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-3-wettkampf-kann-nicht-geloscht-werden">Problem 3: "Wettkampf kann nicht gelöscht werden"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-4-startnummern-durcheinander">Problem 4: "Startnummern durcheinander"</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#daten-aus-gymnet-importieren">🔄 Daten aus GymNet importieren</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#nachste-schritte">📈 Nächste Schritte</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#verwandte-dokumentation">🔗 Verwandte Dokumentation</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#benutzer-guides">Benutzer-Guides</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#developer-guides">Developer-Guides</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stammdaten">Stammdaten</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#support">📞 Support</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">User guide</li>
+      <li class="breadcrumb-item active">Wettkämpfe erstellen und verwalten</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/user-guide/event-competition-management.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="wettkampfe-erstellen-und-verwalten">Wettkämpfe erstellen und verwalten<a class="headerlink" href="#wettkampfe-erstellen-und-verwalten" title="Permanent link">&para;</a></h1>
+<p><strong>Zielgruppe</strong>: Turnverein-Mitarbeiter, Event-Manager, Wettkampfleiter<br />
+<strong>Schwierigkeit</strong>: ⭐⭐ Mittel<br />
+<strong>Zeitaufwand</strong>: 10-15 Minuten pro Wettkampf</p>
+<hr />
+<h2 id="ubersicht">📋 Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Dieser Guide zeigt Ihnen Schritt für Schritt, wie Sie:
+- <strong>Veranstaltungen</strong> (Events) erstellen und konfigurieren
+- <strong>Wettkämpfe</strong> innerhalb einer Veranstaltung anlegen
+- <strong>Disziplinen</strong> zuweisen und Höchstwertungen festlegen
+- <strong>Wettkampfeinstellungen</strong> wie Durchgänge, Startzeiten und Bahnen konfigurieren
+- <strong>Teilnehmer</strong> einem Wettkampf zuordnen</p>
+<hr />
+<h2 id="was-ist-der-unterschied-zwischen-event-und-wettkampf">🎯 Was ist der Unterschied zwischen Event und Wettkampf?<a class="headerlink" href="#was-ist-der-unterschied-zwischen-event-und-wettkampf" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Begriff</th>
+<th>Bedeutung</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Event (Veranstaltung)</strong></td>
+<td>Übergeordnete Veranstaltung mit Datum, Ort, Organisator</td>
+<td>"Landesmeisterschaften Baden-Württemberg 2025"</td>
+</tr>
+<tr>
+<td><strong>Wettkampf (Competition)</strong></td>
+<td>Spezifische Alters-/Geschlechtsklasse innerhalb eines Events</td>
+<td>"Männlich AK 12-13", "Weiblich AK 14-15"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ein Event kann mehrere Wettkämpfe enthalten.</strong></p>
+<hr />
+<h2 id="voraussetzungen">✅ Voraussetzungen<a class="headerlink" href="#voraussetzungen" title="Permanent link">&para;</a></h2>
+<p>Bevor Sie einen Wettkampf erstellen, stellen Sie sicher, dass:</p>
+<ul>
+<li>✅ <strong>Stammdaten angelegt sind</strong>:</li>
+<li><a href="../../images/ui-screenshots/Region%20Management.png">Regionen</a> (Verbände, Gaue)</li>
+<li><a href="../images/ui-screenshots/Vereine.png">Vereine</a></li>
+<li>
+<p><a href="../images/ui-screenshots/LocationsDebug.png">Wettkampforte</a></p>
+</li>
+<li>
+<p>✅ <strong>Disziplinen konfiguriert sind</strong>:</p>
+</li>
+<li>
+<p>Siehe <a href="../../images/ui-screenshots/Disciplines.png">Disziplinen verwalten</a></p>
+</li>
+<li>
+<p>✅ <strong>Teilnehmer/Athleten erfasst sind</strong>:</p>
+</li>
+<li>Siehe <a href="../participant-management/">Teilnehmer-Verwaltung</a></li>
+</ul>
+<hr />
+<h2 id="schritt-1-event-veranstaltung-erstellen">🚀 Schritt 1: Event (Veranstaltung) erstellen<a class="headerlink" href="#schritt-1-event-veranstaltung-erstellen" title="Permanent link">&para;</a></h2>
+<h3 id="11-event-ubersicht-offnen">1.1 Event-Übersicht öffnen<a class="headerlink" href="#11-event-ubersicht-offnen" title="Permanent link">&para;</a></h3>
+<p><img alt="Events Übersicht" src="../images/ui-screenshots/events.png" /></p>
+<ol>
+<li>Navigieren Sie im Hauptmenü zu <strong>"Veranstaltungen"</strong></li>
+<li>Sie sehen die Liste aller Events mit:</li>
+<li><strong>Name der Veranstaltung</strong></li>
+<li><strong>Start- und Enddatum</strong></li>
+<li><strong>Wettkampfort</strong></li>
+<li><strong>Status</strong> (Upcoming/Active/Completed)</li>
+<li><strong>Teilnehmerzahl</strong></li>
+</ol>
+<h3 id="12-neues-event-anlegen">1.2 Neues Event anlegen<a class="headerlink" href="#12-neues-event-anlegen" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie oben rechts auf <strong>"+ Neue Veranstaltung"</strong></p>
+<p><strong>Pflichtfelder</strong>:
+- <strong>Eventname</strong>: z.B. "Bezirksmeisterschaften 2025"
+- <strong>Startdatum</strong>: Erster Tag der Veranstaltung
+- <strong>Enddatum</strong>: Letzter Tag der Veranstaltung
+- <strong>Wettkampfort</strong>: Wählen Sie aus der Dropdown-Liste (vorher in Stammdaten angelegt)</p>
+<p><strong>Optionale Felder</strong>:
+- <strong>Beschreibung</strong>: Zusätzliche Informationen
+- <strong>Meldeschluss</strong>: Deadline für Anmeldungen
+- <strong>Veranstalter</strong>: Name des organisierenden Vereins
+- <strong>Ansprechpartner</strong>: Kontaktperson für Fragen
+- <strong>Hinweise</strong>: Wichtige Informationen für Teilnehmer</p>
+<h3 id="13-event-speichern">1.3 Event speichern<a class="headerlink" href="#13-event-speichern" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"Speichern"</strong> - das Event erscheint nun in der Übersicht.</p>
+<hr />
+<h2 id="schritt-2-wettkampf-erstellen">🏆 Schritt 2: Wettkampf erstellen<a class="headerlink" href="#schritt-2-wettkampf-erstellen" title="Permanent link">&para;</a></h2>
+<h3 id="21-event-auswahlen">2.1 Event auswählen<a class="headerlink" href="#21-event-auswahlen" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Klicken Sie in der Event-Liste auf das gewünschte Event</li>
+<li>Sie gelangen zur <strong>Event-Management-Ansicht</strong></li>
+</ol>
+<p><img alt="Event Management" src="../../images/ui-screenshots/competitions.png" /></p>
+<h3 id="22-neuer-wettkampf">2.2 Neuer Wettkampf<a class="headerlink" href="#22-neuer-wettkampf" title="Permanent link">&para;</a></h3>
+<p>Klicken Sie auf <strong>"+ Neuer Wettkampf"</strong></p>
+<h3 id="23-wettkampf-grunddaten">2.3 Wettkampf-Grunddaten<a class="headerlink" href="#23-wettkampf-grunddaten" title="Permanent link">&para;</a></h3>
+<p><img alt="Wettkampf bearbeiten" src="../../images/ui-screenshots/competitions_edit.png" /></p>
+<p><strong>Tab 1: Grunddaten</strong></p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Beschreibung</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Wettkampf-Nr.</strong></td>
+<td>Eindeutige Nummer (optional)</td>
+<td>"1a", "2b"</td>
+</tr>
+<tr>
+<td><strong>Bezeichnung</strong></td>
+<td>Name des Wettkampfs</td>
+<td>"Männlich AK 12-13"</td>
+</tr>
+<tr>
+<td><strong>Beschreibung</strong></td>
+<td>Zusätzliche Details</td>
+<td>"P-Stufen 5-6"</td>
+</tr>
+<tr>
+<td><strong>Geschlecht</strong></td>
+<td>Männlich/Weiblich/Gemischt</td>
+<td>Männlich</td>
+</tr>
+<tr>
+<td><strong>Alter von</strong></td>
+<td>Untere Altersgrenze</td>
+<td>12</td>
+</tr>
+<tr>
+<td><strong>Alter bis</strong></td>
+<td>Obere Altersgrenze</td>
+<td>13</td>
+</tr>
+</tbody>
+</table>
+<p><strong>💡 Tipp</strong>: Die Altersgruppen werden automatisch aus dem Geburtsdatum der Teilnehmer berechnet.</p>
+<h3 id="24-disziplinen-zuweisen">2.4 Disziplinen zuweisen<a class="headerlink" href="#24-disziplinen-zuweisen" title="Permanent link">&para;</a></h3>
+<p><strong>Tab 2: Disziplinen</strong></p>
+<ol>
+<li>Wählen Sie die <strong>Disziplinen</strong> für diesen Wettkampf:</li>
+<li>Für Männer: Boden, Pferd, Ringe, Sprung, Barren, Reck</li>
+<li>Für Frauen: Sprung, Stufenbarren, Schwebebalken, Boden</li>
+<li>
+<p>Sonderwettbewerbe: Minitrampolin, Gerätebahnen</p>
+</li>
+<li>
+<p>Legen Sie für jede Disziplin die <strong>Höchstwertung</strong> fest:</p>
+</li>
+<li>Standard: 10.0 oder 20.0 Punkte</li>
+<li><strong>Massenänderung</strong>: Alle Disziplinen gleichzeitig ändern mit dem Feld "Maximalpunktzahl für alle"</li>
+</ol>
+<p><img alt="Disziplinen auswählen" src="../../images/ui-screenshots/Disciplines.png" /></p>
+<p><strong>Code-Hintergrund</strong> (für Interessierte):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// Die Disziplin-Zuordnung wird im Backend gespeichert in:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">// tfx_wettkampfdisziplinen</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">CompetitionDiscipline</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nx">disciplineId</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w">     </span><span class="c1">// Verknüpfung zur Disziplin</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nx">maxScore</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w">         </span><span class="c1">// Höchstwertung (z.B. 10.0)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<h3 id="25-wettkampfeinstellungen-erweitert">2.5 Wettkampfeinstellungen (Erweitert)<a class="headerlink" href="#25-wettkampfeinstellungen-erweitert" title="Permanent link">&para;</a></h3>
+<p><strong>Tab 3: Einstellungen</strong></p>
+<table>
+<thead>
+<tr>
+<th>Einstellung</th>
+<th>Bedeutung</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Durchgang</strong></td>
+<td>Wettkampfrunde/Session</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Bahn</strong></td>
+<td>Start-Bahn-Nummer</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Startzeit</strong></td>
+<td>Beginn des Wettkampfs</td>
+<td>08:30</td>
+</tr>
+<tr>
+<td><strong>Einturnzeit</strong></td>
+<td>Beginn Aufwärmen</td>
+<td>08:00</td>
+</tr>
+<tr>
+<td><strong>Qualifikanten</strong></td>
+<td>Anzahl für Finale</td>
+<td>0 (keins)</td>
+</tr>
+<tr>
+<td><strong>Wertungen</strong></td>
+<td>Anzahl Kampfrichter-Wertungen</td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>Streichwertung</strong></td>
+<td>Schlechteste Note streichen</td>
+<td>☐ Nein</td>
+</tr>
+<tr>
+<td><strong>AK anzeigen</strong></td>
+<td>Altersklasse in Ergebnissen zeigen</td>
+<td>☐ Nein</td>
+</tr>
+<tr>
+<td><strong>Wahlwettkampf</strong></td>
+<td>Optionale Teilnahme</td>
+<td>☐ Nein</td>
+</tr>
+<tr>
+<td><strong>Anz. Streich</strong></td>
+<td>Anzahl zu streichender Disziplinen</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>💡 Wichtig</strong>: 
+- <strong>Durchgang</strong>: Wenn mehrere Wettkämpfe parallel laufen, nummerieren Sie die Durchgänge (1, 2, 3...)
+- <strong>Bahn</strong>: Wichtig für die <a href="../time-planning/">Zeitplanung</a> und Rotationsplan</p>
+<p><strong>Code-Referenz</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// Diese Felder werden gespeichert in: tfx_wettkampf</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">competitionSettings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">int_durchgang</span><span class="o">:</span><span class="w"> </span><span class="kt">1</span><span class="p">,</span><span class="w">        </span><span class="c1">// Durchgang/Runde</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">int_bahn</span><span class="o">:</span><span class="w"> </span><span class="kt">1</span><span class="p">,</span><span class="w">             </span><span class="c1">// Bahn-Nummer</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">tim_startzeit</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;08:30&#39;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Startzeit (HH:MM)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">tim_einturnen</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;08:00&#39;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Aufwärmzeit (HH:MM)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nx">int_wertungen</span><span class="o">:</span><span class="w"> </span><span class="kt">3</span><span class="p">,</span><span class="w">        </span><span class="c1">// Anzahl Wertungen</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nx">bol_streichwertung</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="w"> </span><span class="c1">// Streichwertung ja/nein</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">}</span>
+</code></pre></div></p>
+<h3 id="26-wettkampf-speichern">2.6 Wettkampf speichern<a class="headerlink" href="#26-wettkampf-speichern" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Klicken Sie auf <strong>"Speichern"</strong></li>
+<li>Der Wettkampf erscheint in der Wettkampfliste des Events</li>
+</ol>
+<hr />
+<h2 id="schritt-3-teilnehmer-zuweisen">👥 Schritt 3: Teilnehmer zuweisen<a class="headerlink" href="#schritt-3-teilnehmer-zuweisen" title="Permanent link">&para;</a></h2>
+<h3 id="31-teilnehmer-ansicht-offnen">3.1 Teilnehmer-Ansicht öffnen<a class="headerlink" href="#31-teilnehmer-ansicht-offnen" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Wählen Sie den Wettkampf in der Liste</li>
+<li>Klicken Sie auf <strong>"Teilnehmer verwalten"</strong></li>
+</ol>
+<p><img alt="Teilnehmer verwalten" src="../../images/ui-screenshots/participants.png" /></p>
+<h3 id="32-teilnehmer-hinzufugen">3.2 Teilnehmer hinzufügen<a class="headerlink" href="#32-teilnehmer-hinzufugen" title="Permanent link">&para;</a></h3>
+<p><strong>Option A: Einzeln hinzufügen</strong>
+1. Klicken Sie auf <strong>"+ Teilnehmer hinzufügen"</strong>
+2. Wählen Sie Athlet aus der Liste
+3. Vergeben Sie eine <strong>Startnummer</strong> (optional, kann auch automatisch generiert werden)
+4. Speichern</p>
+<p><strong>Option B: Automatische Startnummern generieren</strong>
+1. Gehen Sie zur Event-Management-Ansicht
+2. Klicken Sie auf <strong>"Startnummern generieren"</strong>
+3. Das System vergibt automatisch aufsteigende Nummern für alle Teilnehmer</p>
+<p><strong>Code-Hintergrund</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// API-Endpunkt für automatische Startnummern-Generierung</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nx">PUT</span><span class="w"> </span><span class="o">/</span><span class="nx">api</span><span class="o">/</span><span class="nx">events</span><span class="o">/</span><span class="p">{</span><span class="nx">eventId</span><span class="p">}</span><span class="o">/</span><span class="nx">generate</span><span class="o">-</span><span class="nx">start</span><span class="o">-</span><span class="nx">numbers</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">// Logik im Backend:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1">// 1. Alle Teilnehmer des Events laden</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1">// 2. Nach Wettkampf und Name sortieren</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">// 3. Fortlaufende Startnummern vergeben (1, 2, 3, ...)</span>
+</code></pre></div></p>
+<p><img alt="Teilnehmer bearbeiten" src="../../images/ui-screenshots/participants_Edit.png" /></p>
+<h3 id="33-teilnehmer-details-prufen">3.3 Teilnehmer-Details prüfen<a class="headerlink" href="#33-teilnehmer-details-prufen" title="Permanent link">&para;</a></h3>
+<p>Für jeden Teilnehmer sehen Sie:
+- <strong>Name</strong> und <strong>Vorname</strong>
+- <strong>Verein</strong> (mit Badge)
+- <strong>Geschlecht</strong>
+- <strong>Alter</strong> (automatisch berechnet)
+- <strong>Startnummer</strong>
+- <strong>Status</strong> (aktiv/inaktiv)</p>
+<hr />
+<h2 id="schritt-4-wettkampf-ubersicht">📊 Schritt 4: Wettkampf-Übersicht<a class="headerlink" href="#schritt-4-wettkampf-ubersicht" title="Permanent link">&para;</a></h2>
+<h3 id="41-wettkampf-status">4.1 Wettkampf-Status<a class="headerlink" href="#41-wettkampf-status" title="Permanent link">&para;</a></h3>
+<p>In der Wettkampfliste sehen Sie:</p>
+<table>
+<thead>
+<tr>
+<th>Spalte</th>
+<th>Information</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nr.</strong></td>
+<td>Wettkampf-Nummer</td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>Wettkampf-Bezeichnung</td>
+</tr>
+<tr>
+<td><strong>Geschlecht</strong></td>
+<td>Badge mit Farbe (🔵 Männlich, 🔴 Weiblich, 🟣 Gemischt)</td>
+</tr>
+<tr>
+<td><strong>Altersklasse</strong></td>
+<td>"12-13 Jahre"</td>
+</tr>
+<tr>
+<td><strong>Disziplinen</strong></td>
+<td>Anzahl der Disziplinen (z.B. "6 Disziplinen")</td>
+</tr>
+<tr>
+<td><strong>Teilnehmer</strong></td>
+<td>Anzahl angemeldeter Teilnehmer</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>Upcoming/Active/Completed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-filter-und-suche">4.2 Filter und Suche<a class="headerlink" href="#42-filter-und-suche" title="Permanent link">&para;</a></h3>
+<p><strong>Suchfeld</strong>: Name oder Wettkampf-Nummer eingeben</p>
+<p><strong>Filter</strong>:
+- <strong>Geschlecht</strong>: Männlich, Weiblich, Gemischt
+- <strong>Status</strong>: Upcoming, Active, Completed
+- <strong>Altersgruppe</strong>: Nach AK filtern</p>
+<p><strong>Ansichten</strong>:
+- 📋 <strong>Tabelle</strong> (Standard): Übersichtliche Liste
+- 📱 <strong>Karten</strong>: Kachel-Ansicht mit mehr Details
+- 🔲 <strong>Grid</strong>: Kompakte Raster-Ansicht</p>
+<h3 id="43-aktionen">4.3 Aktionen<a class="headerlink" href="#43-aktionen" title="Permanent link">&para;</a></h3>
+<p>Für jeden Wettkampf verfügbar:</p>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Symbol</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bearbeiten</strong></td>
+<td>✏️</td>
+<td>Wettkampf-Daten ändern</td>
+</tr>
+<tr>
+<td><strong>Löschen</strong></td>
+<td>🗑️</td>
+<td>Wettkampf entfernen (nur wenn keine Wertungen)</td>
+</tr>
+<tr>
+<td><strong>Teilnehmer</strong></td>
+<td>👥</td>
+<td>Teilnehmer-Verwaltung öffnen</td>
+</tr>
+<tr>
+<td><strong>Wertungen</strong></td>
+<td>🏆</td>
+<td>Zur Wertungserfassung wechseln</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="schritt-5-zeitplanung-optional">⏰ Schritt 5: Zeitplanung (Optional)<a class="headerlink" href="#schritt-5-zeitplanung-optional" title="Permanent link">&para;</a></h2>
+<p>Nach dem Anlegen des Wettkampfs können Sie die Zeitplanung verfeinern:</p>
+<ol>
+<li>Navigieren Sie zu <strong>"Zeitplanung"</strong> im Hauptmenü</li>
+<li>Wählen Sie das Event</li>
+<li>Siehe detaillierten Guide: <a href="../time-planning/">Zeitplanung für Wettkämpfe</a></li>
+</ol>
+<p><strong>Wichtige Konzepte</strong>:
+- <strong>Durchgang</strong>: Zeitblock für einen oder mehrere Wettkämpfe
+- <strong>Startgerät</strong>: Das Gerät, an dem ein Wettkampf beginnt (z.B. "Boden")
+- <strong>Rotation</strong>: Automatischer Wechsel zwischen Disziplinen</p>
+<hr />
+<h2 id="tipps-best-practices">🎯 Tipps &amp; Best Practices<a class="headerlink" href="#tipps-best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="dos">✅ Do's<a class="headerlink" href="#dos" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Eindeutige Namen</strong>: Verwenden Sie klare Wettkampf-Bezeichnungen</li>
+<li>✅ "Männlich AK 12-13 P-Stufe 5"</li>
+<li>
+<p>❌ "Wettkampf 1"</p>
+</li>
+<li>
+<p><strong>Durchgänge planen</strong>: Wenn mehrere Wettkämpfe parallel laufen, vergeben Sie unterschiedliche Durchgangs-Nummern</p>
+</li>
+<li>
+<p><strong>Startnummern prüfen</strong>: Nach automatischer Generierung einmal kontrollieren</p>
+</li>
+<li>
+<p><strong>Höchstwertungen</strong>: Für alle Disziplinen gleich setzen (z.B. alle 10.0 oder alle 20.0)</p>
+</li>
+<li>
+<p><strong>Altersgruppen</strong>: Orientieren Sie sich an den offiziellen Wettkampfausschreibungen Ihres Verbandes</p>
+</li>
+</ol>
+<h3 id="donts">❌ Don'ts<a class="headerlink" href="#donts" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Wettkampf nicht löschen</strong>, wenn bereits Wertungen erfasst wurden</li>
+<li>System verhindert dies automatisch</li>
+<li>
+<p>Alternative: Wettkampf als "completed" markieren</p>
+</li>
+<li>
+<p><strong>Keine unrealistischen Altersgruppen</strong> (z.B. "1-99 Jahre")</p>
+</li>
+<li>
+<p>Besser: Mehrere Wettkämpfe für unterschiedliche AKs</p>
+</li>
+<li>
+<p><strong>Durchgänge nicht durcheinander bringen</strong></p>
+</li>
+<li>Durchgang 1 sollte vor Durchgang 2 starten</li>
+<li>
+<p>Nutzen Sie die Zeitplanung für Übersicht</p>
+</li>
+<li>
+<p><strong>Geschlecht beachten</strong>: Männer können nicht zu Frauen-Wettkämpfen angemeldet werden</p>
+</li>
+<li>System warnt automatisch bei Fehler</li>
+</ol>
+<hr />
+<h2 id="haufige-probleme-losungen">❓ Häufige Probleme &amp; Lösungen<a class="headerlink" href="#haufige-probleme-losungen" title="Permanent link">&para;</a></h2>
+<h3 id="problem-1-teilnehmer-wird-nicht-angezeigt">Problem 1: "Teilnehmer wird nicht angezeigt"<a class="headerlink" href="#problem-1-teilnehmer-wird-nicht-angezeigt" title="Permanent link">&para;</a></h3>
+<p><strong>Ursachen</strong>:
+- Geschlecht passt nicht (Mann im Frauen-Wettkampf)
+- Alter außerhalb der Altersgruppe
+- Teilnehmer hat keinen aktiven Status</p>
+<p><strong>Lösung</strong>:
+1. Überprüfen Sie Teilnehmer-Daten (Geburtsdatum, Geschlecht)
+2. Passen Sie Wettkampf-Altersgruppen an
+3. Aktivieren Sie den Teilnehmer in der Teilnehmer-Verwaltung</p>
+<h3 id="problem-2-disziplin-fehlt-in-auswahl">Problem 2: "Disziplin fehlt in Auswahl"<a class="headerlink" href="#problem-2-disziplin-fehlt-in-auswahl" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Disziplin nicht für Geschlecht freigegeben</p>
+<p><strong>Lösung</strong>:
+1. Gehen Sie zu <strong>"Disziplinen"</strong> in Stammdaten
+2. Bearbeiten Sie die Disziplin
+3. Aktivieren Sie "Männlich erlaubt" oder "Weiblich erlaubt"</p>
+<p><img alt="Disziplin bearbeiten" src="../images/ui-screenshots/disciplines_edit.png" /></p>
+<h3 id="problem-3-wettkampf-kann-nicht-geloscht-werden">Problem 3: "Wettkampf kann nicht gelöscht werden"<a class="headerlink" href="#problem-3-wettkampf-kann-nicht-geloscht-werden" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Wettkampf hat bereits Wertungen oder Teilnehmer</p>
+<p><strong>Lösung</strong>:
+1. <strong>Option A</strong>: Löschen Sie zuerst alle Wertungen (Achtung: Datenverlust!)
+2. <strong>Option B</strong>: Markieren Sie Wettkampf als "abgeschlossen" statt zu löschen</p>
+<h3 id="problem-4-startnummern-durcheinander">Problem 4: "Startnummern durcheinander"<a class="headerlink" href="#problem-4-startnummern-durcheinander" title="Permanent link">&para;</a></h3>
+<p><strong>Ursache</strong>: Manuell vergebene Nummern oder mehrfache Generierung</p>
+<p><strong>Lösung</strong>:
+1. Klicken Sie auf <strong>"Startnummern neu generieren"</strong>
+2. System überschreibt alle Nummern
+3. Prüfen Sie die Reihenfolge in der Teilnehmer-Liste</p>
+<hr />
+<h2 id="daten-aus-gymnet-importieren">🔄 Daten aus GymNet importieren<a class="headerlink" href="#daten-aus-gymnet-importieren" title="Permanent link">&para;</a></h2>
+<p>Wenn Sie bereits Wettkämpfe in <strong>GymNet</strong> angelegt haben:</p>
+<ol>
+<li>Exportieren Sie die XML-Datei aus GymNet</li>
+<li>Gehen Sie zu <strong>"Events"</strong> → <strong>"Importieren"</strong></li>
+<li>Wählen Sie die XML-Datei</li>
+<li>System importiert automatisch:</li>
+<li>Event-Daten</li>
+<li>Wettkämpfe mit Disziplinen</li>
+<li>Teilnehmer mit Startnummern</li>
+<li>Vereine und Regionen</li>
+</ol>
+<p><strong>Siehe detaillierter Guide</strong>: <a href="../../developer-guide/features/gymnet-import/">GymNet Import</a></p>
+<p><strong>Mapping-Tabelle</strong> (automatisch):</p>
+<table>
+<thead>
+<tr>
+<th>GymNet</th>
+<th>TurnFix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>waBezeichnung</code></td>
+<td>Wettkampf-Name</td>
+</tr>
+<tr>
+<td><code>waGeschlecht=1</code></td>
+<td>Männlich</td>
+</tr>
+<tr>
+<td><code>waGeschlecht=2</code></td>
+<td>Weiblich</td>
+</tr>
+<tr>
+<td><code>waAlterVon</code></td>
+<td>Alter von</td>
+</tr>
+<tr>
+<td><code>waAlterBis</code></td>
+<td>Alter bis</td>
+</tr>
+<tr>
+<td><code>&lt;Discipline gymnetid="200"&gt;</code></td>
+<td>Boden (ID 74)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="nachste-schritte">📈 Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<p>Nach dem Erstellen des Wettkampfs:</p>
+<ol>
+<li><strong><a href="../time-planning/">Zeitplanung konfigurieren</a></strong></li>
+<li>Durchgänge anlegen</li>
+<li>Startgeräte zuweisen</li>
+<li>
+<p>Rotation planen</p>
+</li>
+<li>
+<p><strong><a href="../score-capture/">Wertungserfassung vorbereiten</a></strong></p>
+</li>
+<li>Kampfrichter-Zugänge erstellen</li>
+<li>Geräte-Zuordnung prüfen</li>
+<li>
+<p>Test-Wertungen durchführen</p>
+</li>
+<li>
+<p><strong><a href="../certificate-creation/">Urkunden vorbereiten</a></strong></p>
+</li>
+<li>Layout auswählen</li>
+<li>Vorlagen anpassen</li>
+<li>
+<p>Test-Druck durchführen</p>
+</li>
+<li>
+<p><strong><a href="./results-export.md">Ergebnisse veröffentlichen</a></strong></p>
+</li>
+<li>Live-Ergebnisse aktivieren</li>
+<li>Export-Formate wählen</li>
+<li>Medaillenspiegel erstellen</li>
+</ol>
+<hr />
+<h2 id="verwandte-dokumentation">🔗 Verwandte Dokumentation<a class="headerlink" href="#verwandte-dokumentation" title="Permanent link">&para;</a></h2>
+<h3 id="benutzer-guides">Benutzer-Guides<a class="headerlink" href="#benutzer-guides" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="../participant-management/">Teilnehmer verwalten</a></li>
+<li><a href="../time-planning/">Zeitplanung</a></li>
+<li><a href="../score-capture/">Wertungserfassung</a></li>
+<li><a href="../certificate-creation/">Urkunden erstellen</a></li>
+</ul>
+<h3 id="developer-guides">Developer-Guides<a class="headerlink" href="#developer-guides" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="../developer-guide/architecture/event-management-api.md">Event Management API</a></li>
+<li><a href="../developer-guide/architecture/database-schema.md">Competition Data Model</a></li>
+<li><a href="../../developer-guide/features/gymnet-import/">GymNet Import Implementation</a></li>
+</ul>
+<h3 id="stammdaten">Stammdaten<a class="headerlink" href="#stammdaten" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="../reference/disciplines.md">Disziplinen verwalten</a></li>
+<li><a href="../reference/clubs.md">Vereine anlegen</a></li>
+<li><a href="../reference/venues.md">Wettkampforte konfigurieren</a></li>
+</ul>
+<hr />
+<h2 id="support">📞 Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p><strong>Probleme oder Fragen?</strong></p>
+<ol>
+<li><strong>Dokumentation durchsuchen</strong>: <a href="../../">TurnFix Docs</a></li>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/Igel18/turnfix/issues">github.com/Igel18/turnfix/issues</a></li>
+<li><strong>Community</strong>: TurnFix Discord/Forum (falls vorhanden)</li>
+</ol>
+<hr />
+<p><strong>Version</strong>: 2.0<br />
+<strong>Letzte Aktualisierung</strong>: 05.11.2025<br />
+<strong>Autor</strong>: TurnFix Team<br />
+<strong>Feedback</strong>: Gerne als GitHub Issue einreichen!</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../certificate-creation/" class="btn btn-neutral float-left" title="Urkunden erstellen &amp; Drucken"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../participant-management/" class="btn btn-neutral float-right" title="Teilnehmer verwalten">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../certificate-creation/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../participant-management/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

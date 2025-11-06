@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/default-views/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Point 40: Default Table-View Verification - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Point 40: Default Table-View Verification";
+        var mkdocs_page_input_path = "developer-guide\\features\\default-views.md";
+        var mkdocs_page_url = "/developer-guide/features/default-views/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Point 40: Default Table-View Verification</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#zusammenfassung">Zusammenfassung</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#databasemanagementtemplate-default-konfiguration">DatabaseManagementTemplate Default-Konfiguration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#seiten-mit-databasemanagementtemplate-16-seiten">Seiten mit DatabaseManagementTemplate (16 Seiten)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#hauptseiten-database-management">Hauptseiten (Database Management)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#supporting-pages">Supporting Pages</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ausnahmen-spezielle-konfiguration">Ausnahmen / Spezielle Konfiguration</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#competitionsfixedtsx">CompetitionsFixed.tsx</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#view-persistence">View Persistence</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementierungsdetails">Implementierungsdetails</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#template-props">Template Props</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#verwendung-in-pages">Verwendung in Pages</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#vorteile-dieser-architektur">Vorteile dieser Architektur</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#verifizierung">Verifizierung</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#related-points">Related Points</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#fazit">Fazit</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Point 40: Default Table-View Verification</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/default-views.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="point-40-default-table-view-verification">Point 40: Default Table-View Verification<a class="headerlink" href="#point-40-default-table-view-verification" title="Permanent link">&para;</a></h1>
+<p><strong>Status</strong>: ✅ Verifiziert und dokumentiert
+<strong>Datum</strong>: 2025-10-17</p>
+<h2 id="zusammenfassung">Zusammenfassung<a class="headerlink" href="#zusammenfassung" title="Permanent link">&para;</a></h2>
+<p>Alle Seiten, die das <code>DatabaseManagementTemplate</code> verwenden, haben bereits <strong>Table-View als Standard</strong>, da das Template <code>defaultView='table'</code> als Default-Wert hat.</p>
+<h2 id="databasemanagementtemplate-default-konfiguration">DatabaseManagementTemplate Default-Konfiguration<a class="headerlink" href="#databasemanagementtemplate-default-konfiguration" title="Permanent link">&para;</a></h2>
+<p><strong>Datei</strong>: <code>client/src/components/DatabaseManagementTemplate.tsx</code>
+<strong>Zeile 97</strong>: <code>defaultView = 'table'</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">DatabaseManagementTemplate</span><span class="o">:</span><span class="w"> </span><span class="kt">React.FC</span><span class="o">&lt;</span><span class="nx">DatabaseManagementTemplateProps</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">({</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="c1">// ... andere Props</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">defaultView</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;table&#39;</span><span class="p">,</span><span class="w">  </span><span class="c1">// ← DEFAULT WERT</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c1">// ... weitere Props</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</code></pre></div>
+<h2 id="seiten-mit-databasemanagementtemplate-16-seiten">Seiten mit DatabaseManagementTemplate (16 Seiten)<a class="headerlink" href="#seiten-mit-databasemanagementtemplate-16-seiten" title="Permanent link">&para;</a></h2>
+<p>Alle folgenden Seiten verwenden das Template und haben daher automatisch Table-View als Standard:</p>
+<h3 id="hauptseiten-database-management">Hauptseiten (Database Management)<a class="headerlink" href="#hauptseiten-database-management" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>ParticipantsUnified.tsx</strong> - Teilnehmerverwaltung</li>
+<li><code>viewStorageKey="participants-view"</code></li>
+<li>
+<p>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></p>
+</li>
+<li>
+<p><strong>DisciplinesUnified.tsx</strong> - Disziplinenverwaltung</p>
+</li>
+<li><code>viewStorageKey="disciplines-view"</code></li>
+<li>
+<p>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></p>
+</li>
+<li>
+<p><strong>ClubsUnified.tsx</strong> - Vereinsverwaltung</p>
+</li>
+<li><code>viewStorageKey="clubs-view"</code></li>
+<li>
+<p>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></p>
+</li>
+<li>
+<p><strong>Events.tsx</strong> - Veranstaltungsverwaltung</p>
+</li>
+<li><code>viewStorageKey="events-view"</code></li>
+<li>
+<p>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></p>
+</li>
+<li>
+<p><strong>DisciplineFieldsUnified.tsx</strong> - Disziplinfelder</p>
+</li>
+<li><code>viewStorageKey="discipline-fields-view"</code></li>
+<li>
+<p>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></p>
+</li>
+<li>
+<p><strong>FormulasUnified.tsx</strong> - Formelverwaltung</p>
+</li>
+<li><code>viewStorageKey="formulas-view"</code></li>
+<li>
+<p>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></p>
+</li>
+<li>
+<p><strong>CertificateLayouts.tsx</strong> - Urkunden-Layouts</p>
+</li>
+<li><code>viewStorageKey="certificate-layouts-view"</code></li>
+<li>Kein explizites <code>defaultView</code> → verwendet Template-Default <code>'table'</code></li>
+</ol>
+<h3 id="supporting-pages">Supporting Pages<a class="headerlink" href="#supporting-pages" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Associations.tsx</strong> - Verbände</li>
+<li><strong>Regions.tsx</strong> - Regionen</li>
+<li><strong>SportsUnified.tsx</strong> - Sportarten</li>
+<li><strong>LocationsUnified.tsx</strong> - Veranstaltungsorte</li>
+<li><strong>PersonsUnified.tsx</strong> - Personen</li>
+<li><strong>StatusUnified.tsx</strong> - Status-Verwaltung</li>
+<li><strong>DisciplineGroupsUnified.tsx</strong> - Disziplingruppen</li>
+</ol>
+<h2 id="ausnahmen-spezielle-konfiguration">Ausnahmen / Spezielle Konfiguration<a class="headerlink" href="#ausnahmen-spezielle-konfiguration" title="Permanent link">&para;</a></h2>
+<h3 id="competitionsfixedtsx">CompetitionsFixed.tsx<a class="headerlink" href="#competitionsfixedtsx" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ✅ Manuell korrigiert in Point 35d</p>
+<p>Diese Seite verwendet <strong>nicht</strong> das <code>DatabaseManagementTemplate</code>, sondern eine eigene Implementierung mit:
+- <code>const [viewMode, setViewMode] = useState&lt;'table' | 'grid'&gt;('table');</code>
+- <strong>Vor Point 35d</strong>: War auf <code>'grid'</code> gesetzt
+- <strong>Nach Point 35d</strong>: Geändert zu <code>'table'</code> (Zeile 104)</p>
+<h2 id="view-persistence">View Persistence<a class="headerlink" href="#view-persistence" title="Permanent link">&para;</a></h2>
+<p>Das Template verwendet <code>useViewToggle</code> Hook mit localStorage:
+- Speichert User-Präferenz unter <code>viewStorageKey</code>
+- Default wird nur beim ersten Besuch verwendet
+- Danach wird die letzte Auswahl des Users gespeichert und wiederhergestellt</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">viewType</span><span class="p">,</span><span class="w"> </span><span class="nx">handleViewTypeChange</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useViewToggle</span><span class="p">({</span><span class="w"> </span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="kt">viewStorageKey</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">defaultView</span><span class="w"> </span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">});</span>
+</code></pre></div>
+<h2 id="implementierungsdetails">Implementierungsdetails<a class="headerlink" href="#implementierungsdetails" title="Permanent link">&para;</a></h2>
+<h3 id="template-props">Template Props<a class="headerlink" href="#template-props" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">DatabaseManagementTemplateProps</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1">// ... andere Props</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">viewStorageKey</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">      </span><span class="c1">// REQUIRED - Key für localStorage</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">defaultView</span><span class="o">?:</span><span class="w"> </span><span class="s1">&#39;table&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cards&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// OPTIONAL - Default: &#39;table&#39;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="c1">// ... weitere Props</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="verwendung-in-pages">Verwendung in Pages<a class="headerlink" href="#verwendung-in-pages" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="o">&lt;</span><span class="nx">DatabaseManagementTemplate</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">title</span><span class="o">=</span><span class="s2">&quot;Participants&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1">// ... andere Props</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">viewStorageKey</span><span class="o">=</span><span class="s2">&quot;participants-view&quot;</span><span class="w">  </span><span class="c1">// Nur Storage-Key angeben</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c1">// defaultView wird NICHT angegeben → verwendet Template-Default &#39;table&#39;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="c1">// ... weitere Props</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="err">/&gt;</span>
+</code></pre></div>
+<h2 id="vorteile-dieser-architektur">Vorteile dieser Architektur<a class="headerlink" href="#vorteile-dieser-architektur" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Zentrale Konfiguration</strong>: Ein Ort, um den Default zu ändern (Template)</li>
+<li><strong>Konsistenz</strong>: Alle Seiten haben automatisch den gleichen Default</li>
+<li><strong>User Preferences</strong>: Gespeichert und wiederhergestellt pro Seite</li>
+<li><strong>Flexibilität</strong>: Seiten können bei Bedarf eigenen Default setzen</li>
+</ol>
+<h2 id="verifizierung">Verifizierung<a class="headerlink" href="#verifizierung" title="Permanent link">&para;</a></h2>
+<p><strong>Durchgeführt</strong>: 2025-10-17
+<strong>Methode</strong>: grep_search auf alle Pages
+<strong>Ergebnis</strong>: 
+- 16 Seiten verwenden DatabaseManagementTemplate
+- Keine expliziten <code>defaultView='cards'</code> oder <code>'grid'</code> gefunden
+- Alle verwenden nur <code>viewStorageKey</code> → Template-Default <code>'table'</code></p>
+<h2 id="related-points">Related Points<a class="headerlink" href="#related-points" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Point 35d</strong>: CompetitionsFixed.tsx manuell auf Table-View umgestellt</li>
+<li><strong>Point 35</strong>: UI Unification (vollständig abgeschlossen)</li>
+</ul>
+<h2 id="fazit">Fazit<a class="headerlink" href="#fazit" title="Permanent link">&para;</a></h2>
+<p>✅ <strong>Keine Aktion erforderlich</strong></p>
+<p>Alle Seiten mit <code>DatabaseManagementTemplate</code> haben bereits Table-View als Standard. Point 40 ist eine <strong>Dokumentation/Bestätigung</strong> dieser Tatsache, keine neue Implementierung.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../configuration-localization/" class="btn btn-neutral float-left" title="Configuration Page Lokalisierung - Status"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../discipline-icons/" class="btn btn-neutral float-right" title="Discipline Icons Implementation - Point 18">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../configuration-localization/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../discipline-icons/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

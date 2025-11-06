@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/jury-icons/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Point 46 - Jury Portal Icons Fix - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Point 46 - Jury Portal Icons Fix";
+        var mkdocs_page_input_path = "developer-guide\\features\\jury-icons.md";
+        var mkdocs_page_url = "/developer-guide/features/jury-icons/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Point 46 - Jury Portal Icons Fix</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#problem">Problem</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#root-cause-analysis">Root Cause Analysis</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#losung">Lösung</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-backend-server-konfiguriert-als-asset-server">1. Backend-Server konfiguriert als Asset-Server</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-icon-urls-auf-backend-server-aktualisiert">2. Icon-URLs auf Backend-Server aktualisiert</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#architektur">Architektur</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#vorteile-der-losung">Vorteile der Lösung</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#verfugbare-icons">Verfügbare Icons</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#fallback-mechanismus">Fallback-Mechanismus</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#manuelle-tests-erforderlich">Manuelle Tests erforderlich:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#browser-console-prufen">Browser Console prüfen:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#build-status">Build Status</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nachste-schritte">Nächste Schritte</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#production-problem">🚨 Production Problem</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#development-vs-production">Development vs Production</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#production-losung-icons-kopieren">Production-Lösung: Icons kopieren</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#alternative-environment-basierte-urls">Alternative: Environment-basierte URLs</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#dateien-geandert">Dateien geändert</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#dokumentation">Dokumentation</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Point 46 - Jury Portal Icons Fix</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/jury-icons.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="point-46-jury-portal-icons-fix">Point 46 - Jury Portal Icons Fix<a class="headerlink" href="#point-46-jury-portal-icons-fix" title="Permanent link">&para;</a></h1>
+<p><strong>Status</strong>: ✅ Abgeschlossen
+<strong>Datum</strong>: 2025-10-19</p>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>Icons im Kampfrichter-Portal wurden nicht als Bilder angezeigt. Stattdessen:
+- Qt-Resource-Pfade wurden als Text angezeigt (z.B. <code>:/icons/boden.png</code>)
+- Nach erstem Fix: Fallback-Emojis wurden angezeigt statt der richtigen Icon-Bilder
+- Root Cause: Icons waren im Jury-Portal nicht verfügbar</p>
+<h2 id="root-cause-analysis">Root Cause Analysis<a class="headerlink" href="#root-cause-analysis" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Jury-Portal hat kein eigenes public/assets Verzeichnis</strong></li>
+<li>Client hat Icons in <code>client/public/assets/icons/</code></li>
+<li>Jury-Portal läuft auf separatem Port (5174)</li>
+<li>
+<p>Kann nicht auf Client-Assets zugreifen</p>
+</li>
+<li>
+<p><strong>Icon-Pfade zeigten auf falschen Server</strong></p>
+</li>
+<li>Erste Implementierung: <code>/assets/icons/</code> (relative Pfade)</li>
+<li>Jury-Portal hat diese Dateien nicht lokal</li>
+<li>Icons konnten nicht geladen werden → Fallback zu Emojis</li>
+</ol>
+<h2 id="losung">Lösung<a class="headerlink" href="#losung" title="Permanent link">&para;</a></h2>
+<h3 id="1-backend-server-konfiguriert-als-asset-server">1. Backend-Server konfiguriert als Asset-Server<a class="headerlink" href="#1-backend-server-konfiguriert-als-asset-server" title="Permanent link">&para;</a></h3>
+<p><strong>Datei</strong>: <code>server/src/index.ts</code></p>
+<p>Neue Route hinzugefügt:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// Serve assets (icons, images) from client public directory for Jury Portal</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">import</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;path&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">clientPublicPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;../../client/public&#39;</span><span class="p">);</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s1">&#39;/assets&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">express</span><span class="p">.</span><span class="k">static</span><span class="p">(</span><span class="nx">clientPublicPath</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nx">setHeaders</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">stat</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nx">res</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;Cross-Origin-Resource-Policy&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;cross-origin&#39;</span><span class="p">);</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nx">res</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;*&#39;</span><span class="p">);</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}));</span>
+</code></pre></div></p>
+<p><strong>Warum?</strong>
+- Backend-Server läuft auf Port 3001 (immer verfügbar)
+- Jury-Portal kommuniziert bereits mit Backend
+- Zentrale Quelle für alle Assets (Client + Jury-Portal)</p>
+<h3 id="2-icon-urls-auf-backend-server-aktualisiert">2. Icon-URLs auf Backend-Server aktualisiert<a class="headerlink" href="#2-icon-urls-auf-backend-server-aktualisiert" title="Permanent link">&para;</a></h3>
+<p><strong>Datei</strong>: <code>jury-portal/src/utils/iconUtils.ts</code></p>
+<p><strong>getIconUrl()</strong> - Qt-Pfade zu Backend-URLs:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">iconPath</span><span class="p">.</span><span class="nx">startsWith</span><span class="p">(</span><span class="s1">&#39;:/&#39;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">iconPath</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;:/icons/&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="sb">`http://localhost:3001/assets/icons/</span><span class="si">${</span><span class="nx">filename</span><span class="si">}</span><span class="sb">`</span><span class="p">;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>getDisciplineIcon()</strong> - Fallback-Mapping zu Backend-URLs:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">nameToIcon</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="s1">&#39;Boden&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001/assets/icons/boden.png&#39;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="s1">&#39;Sprung&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001/assets/icons/sprung.png&#39;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="s1">&#39;Barren&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;http://localhost:3001/assets/icons/barren.png&#39;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="c1">// ... etc.</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">};</span>
+</code></pre></div></p>
+<h2 id="architektur">Architektur<a class="headerlink" href="#architektur" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>┌─────────────────────────────────────────────────────────────┐
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│                    Backend Server (Port 3001)                │
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│                                                               │
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│  ┌────────────────────────────────────────────────────────┐ │
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│  │ /assets/* → client/public/                             │ │
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│  │   ├── /assets/icons/boden.png                          │ │
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│  │   ├── /assets/icons/sprung.png                         │ │
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│  │   └── ... (alle Icons aus client/public/assets/)       │ │
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│  └────────────────────────────────────────────────────────┘ │
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>└─────────────────────────────────────────────────────────────┘
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>                              ▲
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>                              │
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>                ┌─────────────┴─────────────┐
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>                │                           │
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    ┌───────────┴────────────┐  ┌──────────┴───────────┐
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    │  Client (Port 5173)    │  │ Jury Portal (5174)   │
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    │  - Lokale Icons in     │  │ - KEINE lokalen Icons│
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    │    public/assets/      │  │ - Lädt von Backend   │
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    │  - Kann sie direkt     │  │   http://localhost:  │
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    │    verwenden           │  │   3001/assets/...    │
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>    └────────────────────────┘  └──────────────────────┘
+</code></pre></div>
+<h2 id="vorteile-der-losung">Vorteile der Lösung<a class="headerlink" href="#vorteile-der-losung" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Zentrale Asset-Verwaltung</strong></li>
+<li>Nur ein Ort für Icons (client/public/assets/)</li>
+<li>Keine Duplikation im Jury-Portal</li>
+<li>
+<p>Einfaches Update durch Austausch einer Datei</p>
+</li>
+<li>
+<p><strong>Konsistenz</strong></p>
+</li>
+<li>Client und Jury-Portal verwenden exakt gleiche Icons</li>
+<li>
+<p>Kein Risiko von Version-Unterschieden</p>
+</li>
+<li>
+<p><strong>Performance</strong></p>
+</li>
+<li>Backend-Server cached statische Assets</li>
+<li>CORS-Header korrekt gesetzt</li>
+<li>
+<p>Cross-Origin-Resource-Policy erlaubt Zugriff</p>
+</li>
+<li>
+<p><strong>Wartbarkeit</strong></p>
+</li>
+<li>Neue Icons nur im Client-Verzeichnis hinzufügen</li>
+<li>Automatisch für Jury-Portal verfügbar</li>
+</ol>
+<h2 id="verfugbare-icons">Verfügbare Icons<a class="headerlink" href="#verfugbare-icons" title="Permanent link">&para;</a></h2>
+<p>Icons in <code>client/public/assets/icons/</code>:
+- <code>boden.png</code> - Boden (männlich/weiblich)
+- <code>sprung.png</code> - Sprung
+- <code>barren.png</code> - Barren / Stufenbarren
+- <code>reck.png</code> - Reck
+- <code>seitpferd.png</code> - Seitpferd / Pauschenpferd
+- <code>ringe.png</code> - Ringe
+- <code>balken.png</code> - Schwebebalken
+- <code>minitrampolin.png</code> - Minitrampolin
+- <code>geraetebahn.png</code> - Gerätebahn A/B</p>
+<h2 id="fallback-mechanismus">Fallback-Mechanismus<a class="headerlink" href="#fallback-mechanismus" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Primär</strong>: Icon aus Datenbank (<code>var_icon</code> Feld)</li>
+<li>
+<p>Qt-Pfad (<code>:/icons/xxx.png</code>) wird zu <code>http://localhost:3001/assets/icons/xxx.png</code></p>
+</li>
+<li>
+<p><strong>Sekundär</strong>: Name-basiertes Mapping</p>
+</li>
+<li>Disziplin-Name → Icon-Pfad Lookup</li>
+<li>
+<p>Beispiel: "Boden" → <code>http://localhost:3001/assets/icons/boden.png</code></p>
+</li>
+<li>
+<p><strong>Tertier</strong>: Emoji-Fallback</p>
+</li>
+<li>Wenn Icon-Bild nicht lädt (onError)</li>
+<li>Beispiel: "Boden" → 🤸</li>
+</ol>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="manuelle-tests-erforderlich">Manuelle Tests erforderlich:<a class="headerlink" href="#manuelle-tests-erforderlich" title="Permanent link">&para;</a></h3>
+<ol>
+<li>✅ Backend-Server neu starten</li>
+<li>✅ Jury-Portal neu starten (Port 5174)</li>
+<li>✅ Event auswählen</li>
+<li>✅ Riege auswählen</li>
+<li>✅ Geräte-Auswahl-Seite öffnen</li>
+<li>✅ Verifizieren: Icons werden als Bilder angezeigt (nicht Emojis)</li>
+<li>✅ Verifizieren: Icon im Header beim Scoring sichtbar</li>
+</ol>
+<h3 id="browser-console-prufen">Browser Console prüfen:<a class="headerlink" href="#browser-console-prufen" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Keine 404-Fehler für Icon-Requests</li>
+<li>Requests gehen an <code>http://localhost:3001/assets/icons/...</code></li>
+<li>Bilder laden erfolgreich</li>
+</ul>
+<h2 id="build-status">Build Status<a class="headerlink" href="#build-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>✅ Server kompiliert ohne Fehler (tsc)</li>
+<li>✅ Jury-Portal kompiliert ohne Fehler (vite build 2.62s)</li>
+</ul>
+<h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Server neu starten: <code>cd server &amp;&amp; npm run dev</code></li>
+<li>Jury-Portal neu starten: <code>cd jury-portal &amp;&amp; npm run dev</code></li>
+<li>Im Browser testen: http://localhost:5174</li>
+</ol>
+<h2 id="production-problem">🚨 Production Problem<a class="headerlink" href="#production-problem" title="Permanent link">&para;</a></h2>
+<p><strong>Kritisch</strong>: Die aktuelle Lösung (Vite Proxy) funktioniert <strong>nur in Development</strong>!</p>
+<h3 id="development-vs-production">Development vs Production<a class="headerlink" href="#development-vs-production" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Modus</th>
+<th>Status</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Development</strong> (<code>npm run dev</code>)</td>
+<td>✅</td>
+<td>Vite Proxy leitet <code>/assets</code> → Backend weiter</td>
+</tr>
+<tr>
+<td><strong>Production</strong> (<code>npm run build</code>)</td>
+<td>❌</td>
+<td>Proxy existiert nicht → Icons laden nicht</td>
+</tr>
+</tbody>
+</table>
+<h3 id="production-losung-icons-kopieren">Production-Lösung: Icons kopieren<a class="headerlink" href="#production-losung-icons-kopieren" title="Permanent link">&para;</a></h3>
+<p><strong>Empfohlene Lösung</strong>: Icons ins Jury-Portal Public-Verzeichnis kopieren</p>
+<h4 id="option-1-manuelles-kopieren">Option 1: Manuelles Kopieren<a class="headerlink" href="#option-1-manuelles-kopieren" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c"># Icons von Client zu Jury-Portal kopieren</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">Copy-Item</span> <span class="n">-Path</span> <span class="s2">&quot;client/public/assets/icons&quot;</span> <span class="n">-Destination</span> <span class="s2">&quot;jury-portal/public/assets/&quot;</span> <span class="n">-Recurse</span> <span class="n">-Force</span>
+</code></pre></div>
+<h4 id="option-2-automatisches-build-script-empfohlen">Option 2: Automatisches Build-Script (EMPFOHLEN)<a class="headerlink" href="#option-2-automatisches-build-script-empfohlen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// jury-portal/package.json</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">&quot;scripts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;prebuild&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;powershell -Command \&quot;Copy-Item -Path &#39;../client/public/assets/icons&#39; -Destination &#39;public/assets/&#39; -Recurse -Force\&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">&quot;build&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tsc &amp;&amp; vite build&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Nach dem Kopieren</strong>: 
+- Icons sind lokal im Jury-Portal verfügbar
+- Relative URLs (<code>/assets/icons/...</code>) funktionieren
+- Keine Backend-Abhängigkeit im Production-Build</p>
+<h3 id="alternative-environment-basierte-urls">Alternative: Environment-basierte URLs<a class="headerlink" href="#alternative-environment-basierte-urls" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// jury-portal/.env.development</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nx">VITE_ASSETS_BASE_URL</span><span class="o">=</span><span class="err">/assets</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1">// jury-portal/.env.production  </span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nx">VITE_ASSETS_BASE_URL</span><span class="o">=</span><span class="nx">http</span><span class="o">:</span><span class="c1">//your-backend-domain.com/assets</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// iconUtils.ts</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ASSETS_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VITE_ASSETS_BASE_URL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;/assets&#39;</span><span class="p">;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">return</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nx">ASSETS_BASE_URL</span><span class="si">}</span><span class="sb">/icons/</span><span class="si">${</span><span class="nx">filename</span><span class="si">}</span><span class="sb">`</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>Nachteil</strong>: Backend-Server muss in Production laufen und CORS konfiguriert sein</p>
+<h2 id="dateien-geandert">Dateien geändert<a class="headerlink" href="#dateien-geandert" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>server/src/index.ts</code> - Neue /assets Route hinzugefügt</li>
+<li><code>jury-portal/src/utils/iconUtils.ts</code> - URLs auf Backend-Server aktualisiert</li>
+<li><code>jury-portal/src/components/JuryPortal.tsx</code> - getDisciplineIcon() verwendet</li>
+</ol>
+<h2 id="dokumentation">Dokumentation<a class="headerlink" href="#dokumentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Neue Datei: <code>POINT-46-JURY-PORTAL-ICONS.md</code></li>
+<li>Architektur-Diagramm inkludiert</li>
+<li>Vollständige Testing-Anleitung</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../header-unification/" class="btn btn-neutral float-left" title="Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../jury-production/" class="btn btn-neutral float-right" title="Point 46 - Production Build Solution">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../header-unification/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../jury-production/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

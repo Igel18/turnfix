@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/user-guide/ui-overview/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "TurnFix v2.0 - UI Screenshots \u0026amp; Feature-\u00dcbersicht";
+        var mkdocs_page_input_path = "user-guide\\ui-overview.md";
+        var mkdocs_page_url = "/user-guide/ui-overview/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#stammdaten-verwaltung">📊 Stammdaten-Verwaltung</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#regionen-verbande">Regionen &amp; Verbände</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#vereine-personen">Vereine &amp; Personen</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#teilnehmer-athleten">👤 Teilnehmer &amp; Athleten</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#athleten-datenbank">Athleten-Datenbank</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#event-teilnehmer">Event-Teilnehmer</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#wettkampf-verwaltung">🏆 Wettkampf-Verwaltung</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#veranstaltungen">Veranstaltungen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#wettkampfe">Wettkämpfe</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#riegen">Riegen</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#disziplinen-konfiguration">📋 Disziplinen &amp; Konfiguration</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#disziplinen">Disziplinen</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#urkunden-layouts">🎖️ Urkunden &amp; Layouts</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#wertungserfassung-ergebnisse">📊 Wertungserfassung &amp; Ergebnisse</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#score-capture">Score Capture</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ergebnisse">Ergebnisse</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#kampfrichter-portal-jury-portal">⚖️ Kampfrichter-Portal (Jury Portal)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#hauptansicht">Hauptansicht</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#wertungseingabe">Wertungseingabe</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#feature-highlights">🎯 Feature-Highlights</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#einheitliches-ui-design">Einheitliches UI-Design</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lokalisierung">Lokalisierung</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#export-druck">Export &amp; Druck</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#real-time-features">Real-time Features</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#daten-management">Daten-Management</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#von-legacy-zu-modern">🔄 Von Legacy zu Modern</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#verbesserungen">Verbesserungen</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#legacy-kompatibilitat">Legacy-Kompatibilität</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#weitere-informationen">📖 Weitere Informationen</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">User guide</li>
+      <li class="breadcrumb-item active">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/user-guide/ui-overview.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="turnfix-v20-ui-screenshots-feature-ubersicht">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht<a class="headerlink" href="#turnfix-v20-ui-screenshots-feature-ubersicht" title="Permanent link">&para;</a></h1>
+<p><strong>Aktualisiert</strong>: 5. November 2025<br />
+<strong>Screenshots</strong>: 26 Bilder</p>
+<p>Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshots.</p>
+<hr />
+<h2 id="stammdaten-verwaltung">📊 Stammdaten-Verwaltung<a class="headerlink" href="#stammdaten-verwaltung" title="Permanent link">&para;</a></h2>
+<h3 id="regionen-verbande">Regionen &amp; Verbände<a class="headerlink" href="#regionen-verbande" title="Permanent link">&para;</a></h3>
+<p><img alt="Regionen Management" src="../../images/ui-screenshots/Region%20Management.png" />
+<strong>Regionen-Verwaltung</strong>
+- Übersicht aller Regionen (Bereiche)
+- CRUD-Operationen (Erstellen, Bearbeiten, Löschen)
+- Zuordnung zu Verbänden
+- Suchfunktion</p>
+<p><img alt="Verbände" src="../../images/ui-screenshots/Associations.png" />
+<strong>Verbände-Verwaltung</strong>
+- Liste aller Verbände
+- Detaillierte Verbandsinformationen
+- Kontaktverwaltung</p>
+<h3 id="vereine-personen">Vereine &amp; Personen<a class="headerlink" href="#vereine-personen" title="Permanent link">&para;</a></h3>
+<p><img alt="Vereinsverwaltung" src="../../images/ui-screenshots/Clubs.png" />
+<strong>Vereinsverwaltung</strong>
+- Umfassende Vereinsdatenbank
+- Adressverwaltung
+- Kontaktpersonen
+- Statistiken pro Verein
+- Export-Funktionen</p>
+<p><img alt="Standorte" src="../../images/ui-screenshots/Locations.png" />
+<strong>Wettkampforte/Standorte</strong>
+- Verwaltung von Veranstaltungsorten
+- Adressdaten und Kontaktinformationen
+- Zuordnung zu Events</p>
+<hr />
+<h2 id="teilnehmer-athleten">👤 Teilnehmer &amp; Athleten<a class="headerlink" href="#teilnehmer-athleten" title="Permanent link">&para;</a></h2>
+<h3 id="athleten-datenbank">Athleten-Datenbank<a class="headerlink" href="#athleten-datenbank" title="Permanent link">&para;</a></h3>
+<p><img alt="Athletenverwaltung" src="../../images/ui-screenshots/Athletes.png" />
+<strong>Athleten-Verwaltung</strong>
+- Zentrale Athleten-Datenbank
+- Geburtsdaten, Geschlecht
+- Vereinszuordnung
+- Suchfunktion mit Filtern
+- Table/Card View Toggle</p>
+<h3 id="event-teilnehmer">Event-Teilnehmer<a class="headerlink" href="#event-teilnehmer" title="Permanent link">&para;</a></h3>
+<p><img alt="Teilnehmerverwaltung" src="../../images/ui-screenshots/participants.png" />
+<strong>Event-Teilnehmer</strong>
+- Event-spezifische Teilnehmerliste
+- Startnummern-Verwaltung
+- Riegen-Zuordnung
+- Wettkampf-Zuordnungen
+- Massenoperationen</p>
+<p><img alt="Teilnehmer bearbeiten" src="../../images/ui-screenshots/participants_Edit.png" />
+<strong>Teilnehmer-Details bearbeiten</strong>
+- Detailansicht einzelner Teilnehmer
+- Wettkampf-Zuordnung
+- Startnummer
+- Status-Verwaltung
+- Außer-Konkurrenz-Kennzeichnung</p>
+<p><img alt="Teilnehmer-Etiketten" src="../../images/ui-screenshots/participants_Labels.png" />
+<strong>Teilnehmer-Etiketten</strong>
+- PDF-Generierung für Namensschilder
+- Sortierung nach Gender/Riege/Verein
+- Druckbare Etiketten-Vorlagen
+- Konfigurierbare Layouts</p>
+<hr />
+<h2 id="wettkampf-verwaltung">🏆 Wettkampf-Verwaltung<a class="headerlink" href="#wettkampf-verwaltung" title="Permanent link">&para;</a></h2>
+<h3 id="veranstaltungen">Veranstaltungen<a class="headerlink" href="#veranstaltungen" title="Permanent link">&para;</a></h3>
+<p><img alt="Events" src="../../images/ui-screenshots/Events.png" />
+<strong>Veranstaltungsverwaltung</strong>
+- Übersicht aller Events
+- Event-Status tracking
+- Veranstaltungsorte
+- Zeiträume
+- Schnellzugriff auf Event-Funktionen</p>
+<p><img alt="Management Center" src="../../images/ui-screenshots/Management.png" />
+<strong>Management Center</strong>
+- Event-Auswahl
+- Zentrale Steuerung
+- Navigation zu Event-Funktionen
+- Event-Context für alle Operationen</p>
+<h3 id="wettkampfe">Wettkämpfe<a class="headerlink" href="#wettkampfe" title="Permanent link">&para;</a></h3>
+<p><img alt="Wettkämpfe" src="../../images/ui-screenshots/competitions.png" />
+<strong>Wettkampf-Übersicht</strong>
+- Alle Wettkämpfe eines Events
+- Altersgruppen
+- Disziplinen
+- Teilnehmerzahlen
+- Status-Übersicht</p>
+<p><img alt="Wettkampf bearbeiten" src="../../images/ui-screenshots/competitions_edit.png" />
+<strong>Wettkampf-Editor</strong>
+- Detaillierte Wettkampf-Konfiguration
+- Disziplinen-Auswahl
+- Altersgruppen-Definition
+- Geschlechter-Zuordnung
+- Formel-Konfiguration</p>
+<h3 id="riegen">Riegen<a class="headerlink" href="#riegen" title="Permanent link">&para;</a></h3>
+<p><img alt="Riegenverwaltung" src="../../images/ui-screenshots/Squads.png" />
+<strong>Riegen-Management</strong>
+- Riegen-Übersicht
+- Wettkampf-Zuordnung
+- Teilnehmer pro Riege
+- Drag &amp; Drop Zuordnung
+- Automatische Riegen-Generierung</p>
+<hr />
+<h2 id="disziplinen-konfiguration">📋 Disziplinen &amp; Konfiguration<a class="headerlink" href="#disziplinen-konfiguration" title="Permanent link">&para;</a></h2>
+<h3 id="disziplinen">Disziplinen<a class="headerlink" href="#disziplinen" title="Permanent link">&para;</a></h3>
+<p><img alt="Disziplinen" src="../../images/ui-screenshots/Disciplines.png" />
+<strong>Disziplinen-Verwaltung</strong>
+- Alle Disziplinen/Geräte
+- Icons für Geräte
+- Geschlechter-Zuordnung (m/w/beide)
+- Kategorie-Zuordnung
+- Feldkonfiguration</p>
+<p><img alt="Disziplin bearbeiten" src="../../images/ui-screenshots/Disciplines_Edit.png" />
+<strong>Disziplin-Editor</strong>
+- Detaillierte Disziplin-Konfiguration
+- Feld-Zuordnung (A-Note, B-Note, etc.)
+- Formel-Definition
+- Icon-Auswahl
+- Geschlechter-Einstellungen</p>
+<hr />
+<h2 id="urkunden-layouts">🎖️ Urkunden &amp; Layouts<a class="headerlink" href="#urkunden-layouts" title="Permanent link">&para;</a></h2>
+<p><img alt="Urkunden-Layouts" src="../../images/ui-screenshots/CertificateLayouts.png" />
+<strong>Urkunden-Layout-Verwaltung</strong>
+- Vordefinierte Layouts
+- Layout-Vorschau
+- Layout-Auswahl pro Event
+- Bearbeitung</p>
+<p><img alt="Layout-Editor" src="../../images/ui-screenshots/CertificateLayouts_Editor.png" />
+<strong>Layout-Designer</strong>
+- Visual Layout-Editor
+- Feld-Zuordnung
+- Textblöcke positionieren
+- Schriftarten &amp; Größen
+- Vorschau-Funktion</p>
+<hr />
+<h2 id="wertungserfassung-ergebnisse">📊 Wertungserfassung &amp; Ergebnisse<a class="headerlink" href="#wertungserfassung-ergebnisse" title="Permanent link">&para;</a></h2>
+<h3 id="score-capture">Score Capture<a class="headerlink" href="#score-capture" title="Permanent link">&para;</a></h3>
+<p><img alt="Wertungserfassung" src="../../images/ui-screenshots/score-capture.png" />
+<strong>Score Capture - Hauptansicht</strong>
+- Dynamisches Scoring-System
+- Generische Formel-Engine
+- Automatische Berechnungen
+- Live-Updates
+- Filter nach Riege/Wettkampf/Gerät</p>
+<p><img alt="Live Scores" src="../../images/ui-screenshots/live-scores.png" />
+<strong>Live-Scoring Ansicht</strong>
+- Echtzeit-Wertungsanzeige
+- Aktueller Stand
+- Rangliste
+- Socket.IO Live-Updates</p>
+<h3 id="ergebnisse">Ergebnisse<a class="headerlink" href="#ergebnisse" title="Permanent link">&para;</a></h3>
+<p><img alt="Ergebnisse" src="../../images/ui-screenshots/results.png" />
+<strong>Ergebnis-Übersicht</strong>
+- Vollständige Ergebnislisten
+- Ranglisten
+- Gesamt- und Einzelwertungen
+- Export-Funktionen
+- Filterung nach Wettkampf/Riege</p>
+<p><img alt="Urkunden" src="../../images/ui-screenshots/results_certificates.png" />
+<strong>Urkunden-Druck</strong>
+- PDF-Generierung
+- Layout-Auswahl
+- Batch-Druck
+- Vorschau
+- Filter nach Platzierung</p>
+<p><img alt="Medaillenspiegel" src="../../images/ui-screenshots/medallienspiegel.png" />
+<strong>Medaillenspiegel</strong>
+- Vereinswertung
+- Gold/Silber/Bronze Zählung
+- Gesamtübersicht
+- Sortierung
+- Export-Möglichkeit</p>
+<hr />
+<h2 id="kampfrichter-portal-jury-portal">⚖️ Kampfrichter-Portal (Jury Portal)<a class="headerlink" href="#kampfrichter-portal-jury-portal" title="Permanent link">&para;</a></h2>
+<h3 id="hauptansicht">Hauptansicht<a class="headerlink" href="#hauptansicht" title="Permanent link">&para;</a></h3>
+<p><img alt="Jury Portal Übersicht" src="../../images/ui-screenshots/jury0.png" />
+<strong>Jury Portal - Landing Page</strong>
+- Wettkampf-Auswahl
+- Riegen-Auswahl
+- Geräte-Navigation
+- Eigenständiges Interface</p>
+<h3 id="wertungseingabe">Wertungseingabe<a class="headerlink" href="#wertungseingabe" title="Permanent link">&para;</a></h3>
+<p><img alt="Jury - Gerät-Auswahl" src="../../images/ui-screenshots/jury1.png" />
+<strong>Gerät-Auswahl</strong>
+- Visuelle Geräte-Icons
+- Schnellzugriff
+- Farbcodierung</p>
+<p><img alt="Jury - Teilnehmer-Liste" src="../../images/ui-screenshots/jury2.png" />
+<strong>Teilnehmer-Übersicht</strong>
+- Alle Turner der Riege
+- Startnummern
+- Wertungs-Status
+- Schnellnavigation</p>
+<p><img alt="Jury - Wertungseingabe" src="../../images/ui-screenshots/jury3.png" />
+<strong>Wertungs-Erfassung</strong>
+- Gerätespezifische Felder
+- Dynamische Formular-Generierung
+- Automatische Berechnungen
+- Speichern-Funktion
+- Validierung</p>
+<hr />
+<h2 id="feature-highlights">🎯 Feature-Highlights<a class="headerlink" href="#feature-highlights" title="Permanent link">&para;</a></h2>
+<h3 id="einheitliches-ui-design">Einheitliches UI-Design<a class="headerlink" href="#einheitliches-ui-design" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Unified Header System</strong> - Konsistente Navigation</li>
+<li>✅ <strong>Table/Card View Toggle</strong> - Flexible Daten-Ansicht</li>
+<li>✅ <strong>Responsive Design</strong> - Mobile-freundlich</li>
+<li>✅ <strong>Dark Mode Ready</strong> - Moderne Oberfläche</li>
+</ul>
+<h3 id="lokalisierung">Lokalisierung<a class="headerlink" href="#lokalisierung" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Deutsch &amp; Englisch</strong> - Vollständige Übersetzung</li>
+<li>✅ <strong>Gender-Unification</strong> - Einheitliche Darstellung (m/w/gemischt)</li>
+<li>✅ <strong>Format-Konsistenz</strong> - Datum, Zeit, Zahlen</li>
+</ul>
+<h3 id="export-druck">Export &amp; Druck<a class="headerlink" href="#export-druck" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>PDF-Generation</strong> - Urkunden, Reports, Etiketten</li>
+<li>✅ <strong>CSV-Export</strong> - Alle Stammdaten</li>
+<li>✅ <strong>Batch-Operations</strong> - Massenexport</li>
+</ul>
+<h3 id="real-time-features">Real-time Features<a class="headerlink" href="#real-time-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>Socket.IO</strong> - Live-Updates</li>
+<li>✅ <strong>Live Scoring</strong> - Echtzeit-Synchronisation</li>
+<li>✅ <strong>Multi-User</strong> - Gleichzeitige Nutzung</li>
+</ul>
+<h3 id="daten-management">Daten-Management<a class="headerlink" href="#daten-management" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <strong>CRUD-Complete</strong> - Alle Entitäten verwaltbar</li>
+<li>✅ <strong>Search &amp; Filter</strong> - Erweiterte Suchfunktionen</li>
+<li>✅ <strong>Pagination</strong> - Performance-optimiert</li>
+<li>✅ <strong>Validation</strong> - Umfassende Validierung</li>
+</ul>
+<hr />
+<h2 id="von-legacy-zu-modern">🔄 Von Legacy zu Modern<a class="headerlink" href="#von-legacy-zu-modern" title="Permanent link">&para;</a></h2>
+<p>Diese Screenshots zeigen den Fortschritt vom alten Qt/C++-Desktop zu einer modernen Webanwendung:</p>
+<h3 id="verbesserungen">Verbesserungen<a class="headerlink" href="#verbesserungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Zugänglichkeit</strong>: Browser statt Desktop-Installation</li>
+<li><strong>Multi-Device</strong>: PC, Tablet, Smartphone</li>
+<li><strong>Kollaboration</strong>: Mehrere Nutzer gleichzeitig</li>
+<li><strong>Updates</strong>: Automatische Updates ohne Neuinstallation</li>
+<li><strong>Plattformunabhängig</strong>: Windows, Mac, Linux</li>
+</ul>
+<h3 id="legacy-kompatibilitat">Legacy-Kompatibilität<a class="headerlink" href="#legacy-kompatibilitat" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Datenbank</strong>: Gleiche PostgreSQL-DB</li>
+<li><strong>Alt + Neu</strong>: Beide Versionen parallel nutzbar</li>
+<li><strong>Migration</strong>: Nahtloser Übergang</li>
+</ul>
+<hr />
+<h2 id="weitere-informationen">📖 Weitere Informationen<a class="headerlink" href="#weitere-informationen" title="Permanent link">&para;</a></h2>
+<p>Für detaillierte Anleitungen siehe:
+- <a href="../user-guide/README.md">Benutzerhandbuch</a>
+- <a href="../../developer-guide/">Entwicklerhandbuch</a>
+- <a href="../../deployment/production/">Deployment Guide</a></p>
+<hr />
+<p><strong>Letzte Aktualisierung</strong>: 5. November 2025<br />
+<strong>Screenshots</strong>: 26 Bilder<br />
+<strong>Version</strong>: TurnFix v2.0</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../time-planning/" class="btn btn-neutral float-left" title="Zeitplanung für Wettkämpfe"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../time-planning/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

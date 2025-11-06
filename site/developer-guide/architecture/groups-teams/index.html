@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/architecture/groups-teams/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Analyse: Gruppen und Mannschaftswettkämpfe - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Analyse: Gruppen und Mannschaftswettk\u00e4mpfe";
+        var mkdocs_page_input_path = "developer-guide\\architecture\\groups-teams.md";
+        var mkdocs_page_url = "/developer-guide/architecture/groups-teams/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Architecture</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#87-prio-9-gruppen-und-mannschaftswettkampfe">87. Prio 9 - Gruppen und Mannschaftswettkämpfe</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#zusammenfassung">Zusammenfassung</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#datenbank-schema-bereits-vorhanden-in-prisma">Datenbank-Schema (bereits vorhanden in Prisma)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-tfx_gruppen-gruppen">1. tfx_gruppen (Gruppen)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-tfx_gruppen_x_teilnehmer-gruppenmitgliedschaft">2. tfx_gruppen_x_teilnehmer (Gruppenmitgliedschaft)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-tfx_mannschaften-teamsmannschaften">3. tfx_mannschaften (Teams/Mannschaften)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#4-tfx_mannschaften_abzug-team-strafenabzuge">4. tfx_mannschaften_abzug (Team-Strafen/Abzüge)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#5-tfx_man_x_man_ab-team-strafen-zuordnung">5. tfx_man_x_man_ab (Team-Strafen-Zuordnung)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#6-tfx_wertungen-wertungen-kern-tabelle">6. tfx_wertungen (Wertungen - Kern-Tabelle)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#funktionalitat-in-der-qt-anwendung">Funktionalität in der QT-Anwendung</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-anzeige-logik-name-display">1. Anzeige-Logik (Name-Display)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-verein-zuordnung-club-assignment">2. Verein-Zuordnung (Club Assignment)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-team-wertung-mannschaftswertung">3. Team-Wertung (Mannschaftswertung)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#4-riegen-zuordnung-squad-assignment">4. Riegen-Zuordnung (Squad Assignment)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#5-startlisten-starting-order">5. Startlisten (Starting Order)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#6-gruppenwertung-vs-einzelwertung">6. Gruppenwertung vs. Einzelwertung</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#7-team-dialog-ui-teamdialogcpp">7. Team-Dialog UI (teamdialog.cpp)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#web-ui-fehlende-funktionalitat">Web-UI: Fehlende Funktionalität</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#bereits-vorhanden-in-web-ui">✅ Bereits vorhanden in Web-UI</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#fehlt-in-web-ui">❌ Fehlt in Web-UI</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#todo-liste-fur-web-ui">TODO-Liste für Web-UI</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-1-backend-grundstruktur-prio-hoch">Phase 1: Backend - Grundstruktur (Prio: HOCH)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-2-frontend-gruppen-prio-hoch">Phase 2: Frontend - Gruppen (Prio: HOCH)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-3-frontend-teamsmannschaften-prio-mittel">Phase 3: Frontend - Teams/Mannschaften (Prio: MITTEL)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-4-ergebnis-berechnung-prio-hoch">Phase 4: Ergebnis-Berechnung (Prio: HOCH)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-5-startlisten-listen-prio-mittel">Phase 5: Startlisten &amp; Listen (Prio: MITTEL)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-6-pdf-exporte-prio-niedrig">Phase 6: PDF-Exporte (Prio: NIEDRIG)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#phase-7-uiux-prio-niedrig">Phase 7: UI/UX (Prio: NIEDRIG)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#technische-hinweise">Technische Hinweise</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#backend-patterns">Backend-Patterns</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#frontend-patterns">Frontend-Patterns</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#geschatzte-aufwande">Geschätzte Aufwände</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nachste-schritte">Nächste Schritte</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#offene-fragen">Offene Fragen</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Architecture</li>
+      <li class="breadcrumb-item active">Analyse: Gruppen und Mannschaftswettkämpfe</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/architecture/groups-teams.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="analyse-gruppen-und-mannschaftswettkampfe">Analyse: Gruppen und Mannschaftswettkämpfe<a class="headerlink" href="#analyse-gruppen-und-mannschaftswettkampfe" title="Permanent link">&para;</a></h1>
+<h2 id="87-prio-9-gruppen-und-mannschaftswettkampfe">87. Prio 9 - Gruppen und Mannschaftswettkämpfe<a class="headerlink" href="#87-prio-9-gruppen-und-mannschaftswettkampfe" title="Permanent link">&para;</a></h2>
+<h3 id="zusammenfassung">Zusammenfassung<a class="headerlink" href="#zusammenfassung" title="Permanent link">&para;</a></h3>
+<p>Die alte QT-Anwendung unterstützt zwei Arten von Wettkampf-Teilnehmern:
+1. <strong>Einzelteilnehmer</strong> (Standard): Eine Person nimmt individuell am Wettkampf teil
+2. <strong>Gruppen</strong>: Mehrere Personen treten als Gruppe auf (z.B. Synchronturnen)
+3. <strong>Mannschaften/Teams</strong>: Vereine können mehrere Teams in einem Wettkampf anmelden, die aus Einzelteilnehmern oder Gruppen bestehen</p>
+<hr />
+<h2 id="datenbank-schema-bereits-vorhanden-in-prisma">Datenbank-Schema (bereits vorhanden in Prisma)<a class="headerlink" href="#datenbank-schema-bereits-vorhanden-in-prisma" title="Permanent link">&para;</a></h2>
+<h3 id="1-tfx_gruppen-gruppen">1. tfx_gruppen (Gruppen)<a class="headerlink" href="#1-tfx_gruppen-gruppen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>model tfx_gruppen {
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  int_gruppenid            Int                        @id @default(autoincrement())
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  int_vereineid            Int                        // Zugehöriger Verein
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  var_name                 String?                    // Gruppenname (z.B. &quot;Synchrongruppe 1&quot;)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  tfx_gruppen_x_teilnehmer tfx_gruppen_x_teilnehmer[] // Gruppenmitglieder
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  tfx_wertungen            tfx_wertungen[]            // Wertungen der Gruppe
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>}
+</code></pre></div>
+<h3 id="2-tfx_gruppen_x_teilnehmer-gruppenmitgliedschaft">2. tfx_gruppen_x_teilnehmer (Gruppenmitgliedschaft)<a class="headerlink" href="#2-tfx_gruppen_x_teilnehmer-gruppenmitgliedschaft" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>model tfx_gruppen_x_teilnehmer {
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  int_gruppen_x_teilnehmerid Int       @id @default(autoincrement())
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  int_gruppenid              Int       // Gruppe
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  int_teilnehmerid           Int       // Teilnehmer
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  tfx_gruppen                tfx_gruppen    @relation(...)
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  tfx_teilnehmer             tfx_teilnehmer @relation(...)
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>}
+</code></pre></div>
+<h3 id="3-tfx_mannschaften-teamsmannschaften">3. tfx_mannschaften (Teams/Mannschaften)<a class="headerlink" href="#3-tfx_mannschaften-teamsmannschaften" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>model tfx_mannschaften {
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  int_mannschaftenid   Int                    @id @default(autoincrement())
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  int_wettkaempfeid    Int                    // Wettkampf
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  int_vereineid        Int                    // Verein
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  int_nummer           Int?                   // Team-Nummer (1., 2., 3. Mannschaft)
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  var_riege            String?                // Riegen-Zuordnung
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>  int_startnummer      Int?                   // Start-Nummer
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  tfx_man_x_man_ab     tfx_man_x_man_ab[]    // Team-Abzüge/Strafen
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  tfx_man_x_teilnehmer tfx_man_x_teilnehmer[] // Team-Mitglieder (veraltet)
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>  tfx_wertungen        tfx_wertungen[]        // Wertungen der Team-Mitglieder
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>}
+</code></pre></div>
+<h3 id="4-tfx_mannschaften_abzug-team-strafenabzuge">4. tfx_mannschaften_abzug (Team-Strafen/Abzüge)<a class="headerlink" href="#4-tfx_mannschaften_abzug-team-strafenabzuge" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>model tfx_mannschaften_abzug {
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  int_mannschaften_abzugid Int     @id @default(autoincrement())
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  var_name                 String? // Name der Strafe
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  rel_abzug                Float?  // Abzugswert
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>}
+</code></pre></div>
+<h3 id="5-tfx_man_x_man_ab-team-strafen-zuordnung">5. tfx_man_x_man_ab (Team-Strafen-Zuordnung)<a class="headerlink" href="#5-tfx_man_x_man_ab-team-strafen-zuordnung" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>model tfx_man_x_man_ab {
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  int_man_x_man_abid       Int       @id @default(autoincrement())
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  int_mannschaftenid       Int       // Team
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  int_mannschaften_abzugid Int       // Strafe
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>}
+</code></pre></div>
+<h3 id="6-tfx_wertungen-wertungen-kern-tabelle">6. tfx_wertungen (Wertungen - Kern-Tabelle)<a class="headerlink" href="#6-tfx_wertungen-wertungen-kern-tabelle" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>model tfx_wertungen {
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  int_wertungenid    Int      @id @default(autoincrement())
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  int_wettkaempfeid  Int      // Wettkampf
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  int_teilnehmerid   Int?     // ENTWEDER Einzelteilnehmer
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  int_gruppenid      Int?     // ODER Gruppe
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  int_mannschaftenid Int?     // Optional: Team-Zugehörigkeit
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  int_statusid       Int      // Status (angemeldet, gestartet, etc.)
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  int_runde          Int?     // Runde
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  int_startnummer    Int?     // Startnummer
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  bol_ak             Boolean? // Außer Konkurrenz
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  bol_startet_nicht  Boolean? // Nimmt nicht teil
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  var_riege          String?  // Riegen-Zuordnung
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  var_comment        String?  // Kommentar
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>}
+</code></pre></div>
+<p><strong>Wichtig</strong>: <code>tfx_wertungen</code> ist die zentrale Tabelle. Ein Datensatz kann ENTWEDER:
+- <code>int_teilnehmerid</code> (Einzelperson) ODER
+- <code>int_gruppenid</code> (Gruppe)
+enthalten, NICHT beides gleichzeitig!</p>
+<p>Optional kann <code>int_mannschaftenid</code> gesetzt sein, wenn der Teilnehmer/Gruppe zu einem Team gehört.</p>
+<hr />
+<h2 id="funktionalitat-in-der-qt-anwendung">Funktionalität in der QT-Anwendung<a class="headerlink" href="#funktionalitat-in-der-qt-anwendung" title="Permanent link">&para;</a></h2>
+<h3 id="1-anzeige-logik-name-display">1. Anzeige-Logik (Name-Display)<a class="headerlink" href="#1-anzeige-logik-name-display" title="Permanent link">&para;</a></h3>
+<p><strong>Pattern in allen Queries:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">THEN</span><span class="w"> </span><span class="n">var_vorname</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">var_nachname</span><span class="w"> </span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="k">ELSE</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">var_name</span><span class="w"> </span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">END</span>
+</code></pre></div></p>
+<p><strong>Bedeutung</strong>: 
+- Wenn <code>int_gruppenid</code> NULL → zeige Personenname (Vorname + Nachname)
+- Wenn <code>int_gruppenid</code> gesetzt → zeige Gruppenname</p>
+<p><strong>Verwendet in:</strong>
+- Startlisten (<code>startingorderwidget.cpp</code>)
+- Status-Übersicht (<code>statuswidget.cpp</code>)
+- Ergebnislisten (<code>result_calc.cpp</code>)
+- Riegen-Zuordnung (<code>assignmenttablemodel.cpp</code>)</p>
+<h3 id="2-verein-zuordnung-club-assignment">2. Verein-Zuordnung (Club Assignment)<a class="headerlink" href="#2-verein-zuordnung-club-assignment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">INNER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">tfx_vereine</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">tfx_vereine</span><span class="p">.</span><span class="n">int_vereineid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tfx_teilnehmer</span><span class="p">.</span><span class="n">int_vereineid</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">tfx_vereine</span><span class="p">.</span><span class="n">int_vereineid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_vereineid</span>
+</code></pre></div>
+<p><strong>Bedeutung</strong>: Verein kann entweder über Teilnehmer ODER über Gruppe zugeordnet sein.</p>
+<h3 id="3-team-wertung-mannschaftswertung">3. Team-Wertung (Mannschaftswertung)<a class="headerlink" href="#3-team-wertung-mannschaftswertung" title="Permanent link">&para;</a></h3>
+<p><strong>Abfrage aller Teams eines Wettkampfs:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">int_mannschaftenid</span><span class="p">,</span><span class="w"> </span><span class="n">tfx_vereine</span><span class="p">.</span><span class="n">var_name</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">       </span><span class="n">tfx_mannschaften</span><span class="p">.</span><span class="n">int_nummer</span><span class="w"> </span><span class="o">||</span><span class="s1">&#39;. Mannschaft&#39;</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">       </span><span class="n">int_mannschaftenid</span><span class="w"> </span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">FROM</span><span class="w"> </span><span class="n">tfx_mannschaften</span><span class="w"> </span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="k">INNER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">tfx_vereine</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="p">(</span><span class="n">int_vereineid</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">int_veranstaltungenid</span><span class="o">=?</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">tfx_wettkaempfe</span><span class="p">.</span><span class="n">var_nummer</span><span class="o">=?</span>
+</code></pre></div></p>
+<p><strong>Logik</strong> (<code>result_calc.cpp</code>, Lines 149-180):
+1. Hole alle Teams für einen Wettkampf
+2. Für jedes Team:
+   - Hole alle Wertungen mit <code>int_mannschaftenid</code>
+   - Berechne Geräte-Ergebnisse für alle Team-Mitglieder
+   - Sortiere Ergebnisse (beste N Wertungen zählen)
+   - Ziehe Streichresultate ab (konfigurierbar)
+   - Addiere Team-Strafen (<code>tfx_mannschaften_abzug</code>)
+   - Berechne Team-Gesamtsumme</p>
+<p><strong>Streichresultate</strong>: 
+- Pro Gerät: Die X schlechtesten Wertungen werden gestrichen
+- Konfiguriert im Wettkampf (<code>wk.value(6).toInt()</code>)</p>
+<p><strong>Team-Strafen</strong>:
+- Können mehrere pro Team sein
+- Werden vom Team-Ergebnis abgezogen
+- Beispiele: "Verspätete Meldung -0.5 Pkt.", "Unvollständige Mannschaft -1.0 Pkt."</p>
+<h3 id="4-riegen-zuordnung-squad-assignment">4. Riegen-Zuordnung (Squad Assignment)<a class="headerlink" href="#4-riegen-zuordnung-squad-assignment" title="Permanent link">&para;</a></h3>
+<p><strong>Wichtig</strong>: Sowohl Einzelpersonen als auch ganze Teams können Riegen zugeordnet werden!</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">-- Bei Team-Zuordnung: Alle Team-Mitglieder bekommen die gleiche Riege</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">UPDATE</span><span class="w"> </span><span class="n">tfx_mannschaften</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">var_riege</span><span class="o">=?</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">int_mannschaftenid</span><span class="o">=?</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">UPDATE</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">var_riege</span><span class="o">=?</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">int_mannschaftenid</span><span class="o">=?</span>
+</code></pre></div>
+<p><strong>Code</strong> (<code>assignmenttablemodel.cpp</code>, Lines 86-168, aktuell auskommentiert):
+- Wenn ein Team einer Riege zugeordnet wird, werden automatisch alle Wertungen dieses Teams aktualisiert
+- So starten alle Team-Mitglieder in der gleichen Riege</p>
+<h3 id="5-startlisten-starting-order">5. Startlisten (Starting Order)<a class="headerlink" href="#5-startlisten-starting-order" title="Permanent link">&para;</a></h3>
+<p><strong>Query</strong> (<code>startingorderwidget.cpp</code>, Lines 87-110):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">         </span><span class="k">THEN</span><span class="w"> </span><span class="n">var_vorname</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">var_nachname</span><span class="w"> </span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">         </span><span class="k">ELSE</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">var_name</span><span class="w"> </span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">       </span><span class="k">END</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">       </span><span class="n">tfx_vereine</span><span class="p">.</span><span class="n">var_name</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">       </span><span class="n">tfx_wertungen</span><span class="p">.</span><span class="n">int_wertungenid</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">       </span><span class="n">int_pos</span><span class="w"> </span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="k">FROM</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="w"> </span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">tfx_teilnehmer</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">tfx_teilnehmer</span><span class="p">.</span><span class="n">int_teilnehmerid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="p">.</span><span class="n">int_teilnehmerid</span><span class="w"> </span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="w"> </span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">tfx_mannschaften</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">tfx_mannschaften</span><span class="p">.</span><span class="n">int_mannschaftenid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="p">.</span><span class="n">int_mannschaftenid</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">...</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">int_pos</span><span class="p">,</span><span class="w"> </span><span class="n">tfx_wettkaempfe</span><span class="p">.</span><span class="n">var_nummer</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">         </span><span class="n">tfx_mannschaften</span><span class="p">.</span><span class="n">int_nummer</span><span class="p">,</span><span class="w"> </span><span class="n">tfx_mannschaften</span><span class="p">.</span><span class="n">int_mannschaftenid</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">         </span><span class="n">tfx_wertungen</span><span class="p">.</span><span class="n">int_startnummer</span>
+</code></pre></div></p>
+<p><strong>Sortierung</strong>:
+1. Position (falls manuell gesetzt)
+2. Wettkampf-Nummer
+3. Team-Nummer (1., 2., 3. Mannschaft)
+4. Team-ID
+5. Startnummer</p>
+<p>→ <strong>Teams starten zusammen</strong>, sortiert nach Team-Nummer!</p>
+<h3 id="6-gruppenwertung-vs-einzelwertung">6. Gruppenwertung vs. Einzelwertung<a class="headerlink" href="#6-gruppenwertung-vs-einzelwertung" title="Permanent link">&para;</a></h3>
+<p><strong>Spezielle Abfrage für Gruppenwertung</strong> (<code>result_calc.cpp</code>, Line 368):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">bol_ak</span><span class="o">=</span><span class="s1">&#39;true&#39;</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">&#39;AK&#39;</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">END</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">platz</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">       </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">var_name</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">       </span><span class="n">tfx_vereine</span><span class="p">.</span><span class="n">var_name</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">       </span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">       </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="w"> </span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="k">FROM</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="w"> </span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">INNER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">tfx_wertungen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_gruppenid</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">int_veranstaltungenid</span><span class="o">=?</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">var_nummer</span><span class="o">=?</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">bol_startet_nicht</span><span class="o">=</span><span class="s1">&#39;false&#39;</span><span class="w"> </span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">int_gruppenid</span><span class="p">,</span><span class="w"> </span><span class="n">bol_ak</span><span class="p">,</span><span class="w"> </span><span class="n">tfx_gruppen</span><span class="p">.</span><span class="n">var_name</span><span class="p">,</span><span class="w"> </span><span class="n">tfx_vereine</span><span class="p">.</span><span class="n">var_name</span><span class="w"> </span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">bol_ak</span><span class="w"> </span><span class="k">DESC</span>
+</code></pre></div></p>
+<p><strong>Bedeutung</strong>: 
+- Nur Gruppen werden ausgewertet (INNER JOIN auf tfx_gruppen)
+- Gruppierung nach Gruppe (nicht nach Person)
+- Separate Wertung für Gruppen</p>
+<h3 id="7-team-dialog-ui-teamdialogcpp">7. Team-Dialog UI (teamdialog.cpp)<a class="headerlink" href="#7-team-dialog-ui-teamdialogcpp" title="Permanent link">&para;</a></h3>
+<p><strong>Funktionen</strong>:
+1. <strong>Team erstellen/bearbeiten</strong>:
+   - Verein auswählen
+   - Team-Nummer setzen (1., 2., 3. Mannschaft)
+   - Wettkampf auswählen
+   - Riege zuordnen</p>
+<ol>
+<li><strong>Teilnehmer hinzufügen</strong>:</li>
+<li>Einzelpersonen aus Verein auswählen</li>
+<li>ODER bestehende Gruppen auswählen</li>
+<li>
+<p>Startnummern werden automatisch vergeben</p>
+</li>
+<li>
+<p><strong>Team-Strafen</strong>:</p>
+</li>
+<li>Aus Liste vordefinierter Strafen auswählen</li>
+<li>Mehrfachauswahl möglich</li>
+<li>
+<p>Strafen werden bei Berechnung abgezogen</p>
+</li>
+<li>
+<p><strong>Validierung</strong>:</p>
+</li>
+<li>Warnung, wenn Team zu wenig Mitglieder hat</li>
+<li>Prüfung des Jahrgangs (nur bei Einzelpersonen)</li>
+</ol>
+<hr />
+<h2 id="web-ui-fehlende-funktionalitat">Web-UI: Fehlende Funktionalität<a class="headerlink" href="#web-ui-fehlende-funktionalitat" title="Permanent link">&para;</a></h2>
+<h3 id="bereits-vorhanden-in-web-ui">✅ Bereits vorhanden in Web-UI<a class="headerlink" href="#bereits-vorhanden-in-web-ui" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Einzelteilnehmer-Verwaltung</li>
+<li>Wettkampf-Verwaltung</li>
+<li>Verein-Verwaltung</li>
+<li>Startnummern-Vergabe</li>
+<li>Riegen-Zuordnung (nur für Einzelpersonen)</li>
+</ul>
+<h3 id="fehlt-in-web-ui">❌ Fehlt in Web-UI<a class="headerlink" href="#fehlt-in-web-ui" title="Permanent link">&para;</a></h3>
+<h4 id="backend-prismaexpress">Backend (Prisma/Express)<a class="headerlink" href="#backend-prismaexpress" title="Permanent link">&para;</a></h4>
+<ol>
+<li>❌ API-Route für Gruppen (CRUD)</li>
+<li>❌ API-Route für Gruppenmitglieder</li>
+<li>❌ API-Route für Teams/Mannschaften (CRUD)</li>
+<li>❌ API-Route für Team-Mitglieder</li>
+<li>❌ API-Route für Team-Strafen</li>
+<li>❌ Ergebnis-Berechnung für Teams</li>
+<li>❌ Ergebnis-Berechnung für Gruppen</li>
+<li>❌ Wertungen mit Gruppen-ID statt Teilnehmer-ID</li>
+</ol>
+<h4 id="frontend-react">Frontend (React)<a class="headerlink" href="#frontend-react" title="Permanent link">&para;</a></h4>
+<ol>
+<li>❌ Gruppen-Verwaltungs-Seite</li>
+<li>❌ Gruppenmitglieder hinzufügen/entfernen</li>
+<li>❌ Team-Verwaltungs-Seite</li>
+<li>❌ Team-Dialog (ähnlich wie QT)</li>
+<li>❌ Team-Mitglieder-Auswahl</li>
+<li>❌ Team-Strafen-Auswahl</li>
+<li>❌ Wettkampf-Typ-Auswahl (Einzel/Gruppe/Mannschaft)</li>
+<li>❌ Anzeige-Logik: Gruppenname statt Personenname</li>
+<li>❌ Riegen-Zuordnung für Teams</li>
+<li>❌ Startlisten mit Team-Sortierung</li>
+<li>❌ Ergebnislisten mit Team-Wertung</li>
+<li>❌ Meldematrix mit Gruppen und Teams</li>
+</ol>
+<hr />
+<h2 id="todo-liste-fur-web-ui">TODO-Liste für Web-UI<a class="headerlink" href="#todo-liste-fur-web-ui" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-backend-grundstruktur-prio-hoch">Phase 1: Backend - Grundstruktur (Prio: HOCH)<a class="headerlink" href="#phase-1-backend-grundstruktur-prio-hoch" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>1.1 API: Gruppen</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/groups</code> - Alle Gruppen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/groups/:id</code> - Eine Gruppe</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>POST /api/groups</code> - Gruppe erstellen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>PUT /api/groups/:id</code> - Gruppe bearbeiten</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>DELETE /api/groups/:id</code> - Gruppe löschen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/groups/club/:clubId</code> - Gruppen eines Vereins</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>1.2 API: Gruppenmitglieder</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/groups/:id/members</code> - Mitglieder einer Gruppe</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>POST /api/groups/:id/members</code> - Mitglied hinzufügen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>DELETE /api/groups/:groupId/members/:participantId</code> - Mitglied entfernen</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>1.3 API: Teams/Mannschaften</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/teams</code> - Alle Teams</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/teams/:id</code> - Ein Team</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>POST /api/teams</code> - Team erstellen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>PUT /api/teams/:id</code> - Team bearbeiten</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>DELETE /api/teams/:id</code> - Team löschen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/teams/competition/:competitionId</code> - Teams eines Wettkampfs</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/teams/event/:eventId</code> - Teams einer Veranstaltung</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>1.4 API: Team-Strafen</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/team-penalties</code> - Alle verfügbaren Strafen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>POST /api/team-penalties</code> - Strafe erstellen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>GET /api/teams/:id/penalties</code> - Strafen eines Teams</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>POST /api/teams/:id/penalties</code> - Strafe zuordnen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>DELETE /api/teams/:teamId/penalties/:penaltyId</code> - Strafe entfernen</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>1.5 API: Wertungen erweitern</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Wertungen mit <code>int_gruppenid</code> erstellen können</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Wertungen mit <code>int_mannschaftenid</code> verknüpfen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Validierung: ENTWEDER <code>int_teilnehmerid</code> ODER <code>int_gruppenid</code></li>
+</ul>
+<h3 id="phase-2-frontend-gruppen-prio-hoch">Phase 2: Frontend - Gruppen (Prio: HOCH)<a class="headerlink" href="#phase-2-frontend-gruppen-prio-hoch" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>2.1 Gruppen-Verwaltung</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Seite <code>/groups</code> - Gruppen-Liste</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppe erstellen/bearbeiten Dialog</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppenname, Verein auswählen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Filter nach Verein</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Suche nach Gruppenname</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>2.2 Gruppenmitglieder</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mitglieder-Liste in Gruppen-Detail</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Teilnehmer aus Verein hinzufügen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Teilnehmer entfernen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Drag &amp; Drop für Reihenfolge (optional)</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>2.3 Wettkampf-Anmeldung mit Gruppen</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> In Event-Participants: Gruppen zusätzlich zu Einzelpersonen anzeigen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Filter: "Einzelperson" / "Gruppe" / "Alle"</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Bei Anmeldung: Auswahl zwischen Einzelperson und Gruppe</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Display-Logic: Gruppenname statt Personenname</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppenmitglieder anzeigen (Tooltip oder Expandable)</li>
+</ul>
+<h3 id="phase-3-frontend-teamsmannschaften-prio-mittel">Phase 3: Frontend - Teams/Mannschaften (Prio: MITTEL)<a class="headerlink" href="#phase-3-frontend-teamsmannschaften-prio-mittel" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>3.1 Team-Verwaltung</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Seite <code>/teams</code> - Team-Liste</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Team erstellen/bearbeiten Dialog</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Team-Nummer (1., 2., 3. Mannschaft)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Wettkampf auswählen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verein auswählen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Riege zuordnen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Filter nach Event, Verein, Wettkampf</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>3.2 Team-Mitglieder</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verfügbare Teilnehmer anzeigen (Einzel + Gruppen aus Verein)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Filter: nur ungenutzte / alle / nur aus diesem Verein</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Checkbox-Auswahl oder Drag &amp; Drop</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mitglieder hinzufügen/entfernen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mindest-Anzahl-Validierung (aus Wettkampf-Konfiguration)</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>3.3 Team-Strafen</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Liste verfügbarer Strafen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Checkbox-Auswahl (Mehrfachauswahl)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Strafen-Verwaltung (Admin)</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Anzeige der Gesamt-Abzüge</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>3.4 Riegen-Zuordnung für Teams</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> In Squad-Management: Teams zusätzlich zu Einzelpersonen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Wenn Team zugeordnet → alle Mitglieder bekommen gleiche Riege</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Warnung bei Konflikten</li>
+</ul>
+<h3 id="phase-4-ergebnis-berechnung-prio-hoch">Phase 4: Ergebnis-Berechnung (Prio: HOCH)<a class="headerlink" href="#phase-4-ergebnis-berechnung-prio-hoch" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>4.1 Gruppen-Ergebnisse</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Ergebnis-Berechnung für Gruppen (wie Einzelpersonen)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppenwertung in Results-Page</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Filter: Einzel / Gruppen / Alle</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppenmitglieder in Ergebnis-Details anzeigen</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>4.2 Team-Ergebnisse</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Ergebnis-Berechnung für Teams</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Streichresultate berücksichtigen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Team-Strafen abziehen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Team-Wertung in Results-Page</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Team-Details expandierbar (alle Mitglieder-Ergebnisse)</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>4.3 Wettkampf-Typ-Konfiguration</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> In Competition-Settings: Typ auswählen<ul>
+<li>Einzelwertung</li>
+<li>Gruppenwertung</li>
+<li>Mannschaftswertung</li>
+<li>Kombiniert</li>
+</ul>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Streichresultate konfigurieren (Anzahl)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mindest-Team-Größe</li>
+</ul>
+<h3 id="phase-5-startlisten-listen-prio-mittel">Phase 5: Startlisten &amp; Listen (Prio: MITTEL)<a class="headerlink" href="#phase-5-startlisten-listen-prio-mittel" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>5.1 Startlisten</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Sortierung nach Team-Nummer</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Teams zusammen anzeigen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppennamen anzeigen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Riegen-Zuordnung für Teams</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>5.2 Meldematrix</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppen zählen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Teams zählen</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Separate Zeilen oder Spalten (?)</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>5.3 Status-Übersicht</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gruppennamen anzeigen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Team-Zugehörigkeit anzeigen</li>
+</ul>
+<h3 id="phase-6-pdf-exporte-prio-niedrig">Phase 6: PDF-Exporte (Prio: NIEDRIG)<a class="headerlink" href="#phase-6-pdf-exporte-prio-niedrig" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>6.1 PDF-Updates</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Teilnehmerliste: Gruppen und Teams</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Startlisten: Team-Sortierung</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Ergebnisse: Team-Wertung</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Meldematrix: Gruppen zählen</li>
+</ul>
+<h3 id="phase-7-uiux-prio-niedrig">Phase 7: UI/UX (Prio: NIEDRIG)<a class="headerlink" href="#phase-7-uiux-prio-niedrig" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>7.1 Lokalisierung</strong></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>groups.*</code> - Gruppen-Strings (DE/EN)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>teams.*</code> - Team-Strings (DE/EN)</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>teamPenalties.*</code> - Strafen-Strings (DE/EN)</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>7.2 Icons &amp; Badges</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Icon für Gruppe (z.B. 👥)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Icon für Team (z.B. 🏆)</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Badge für Team-Nummer ("1. Mannschaft")</p>
+</li>
+<li class="task-list-item">
+<p><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>7.3 Hilfetexte</strong></p>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> BlueInfoBox für Gruppen-Erklärung</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> BlueInfoBox für Team-Erklärung</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Workflow-Hinweise (YellowInfoBox)</li>
+</ul>
+<hr />
+<h2 id="technische-hinweise">Technische Hinweise<a class="headerlink" href="#technische-hinweise" title="Permanent link">&para;</a></h2>
+<h3 id="backend-patterns">Backend-Patterns<a class="headerlink" href="#backend-patterns" title="Permanent link">&para;</a></h3>
+<p><strong>Prisma-Queries für Gruppen:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// Gruppe mit Mitgliedern</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">prisma</span><span class="p">.</span><span class="nx">tfx_gruppen</span><span class="p">.</span><span class="nx">findUnique</span><span class="p">({</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nx">where</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">int_gruppenid</span><span class="o">:</span><span class="w"> </span><span class="kt">id</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nx">include</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nx">tfx_gruppen_x_teilnehmer</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">      </span><span class="nx">include</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">        </span><span class="nx">tfx_teilnehmer</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="p">});</span>
+</code></pre></div></p>
+<p><strong>Display-Name-Logic:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// Backend: JSON response mit Type</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="p">{</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">123</span><span class="p">,</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;group&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;participant&#39;</span><span class="p">,</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;...&#39;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Entweder Gruppenname oder Vor-/Nachname</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span><span class="nx">participants</span><span class="o">:</span><span class="w"> </span><span class="p">[...]</span><span class="w"> </span><span class="c1">// Nur bei Gruppen</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="p">}</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1">// Frontend: Conditional rendering</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;group&#39;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">  </span><span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="w"> </span><span class="err">👥</span><span class="o">&lt;</span><span class="err">/span&gt;</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">  </span><span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">firstName</span><span class="p">}</span><span class="w"> </span><span class="p">{</span><span class="nx">participant</span><span class="p">.</span><span class="nx">lastName</span><span class="p">}</span><span class="o">&lt;</span><span class="err">/span&gt;</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="p">)}</span>
+</code></pre></div></p>
+<p><strong>Team-Ergebnis-Berechnung:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// 1. Alle Wertungen des Teams holen</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">scores</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">prisma</span><span class="p">.</span><span class="nx">tfx_wertungen</span><span class="p">.</span><span class="nx">findMany</span><span class="p">({</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nx">where</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">int_mannschaftenid</span><span class="o">:</span><span class="w"> </span><span class="kt">teamId</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nx">include</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">tfx_wertungen_details</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="p">});</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1">// 2. Pro Gerät sortieren und beste N nehmen</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="kd">const</span><span class="w"> </span><span class="nx">deviceResults</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">scores</span><span class="p">.</span><span class="nx">reduce</span><span class="p">((</span><span class="nx">acc</span><span class="p">,</span><span class="w"> </span><span class="nx">score</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">  </span><span class="c1">// Gruppieren nach Gerät</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">  </span><span class="c1">// Sortieren absteigend</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">  </span><span class="c1">// Beste N nehmen (N = teamSize - streichresultate)</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">acc</span><span class="p">;</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="p">},</span><span class="w"> </span><span class="p">{});</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="c1">// 3. Team-Strafen holen und abziehen</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="kd">const</span><span class="w"> </span><span class="nx">penalties</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">prisma</span><span class="p">.</span><span class="nx">tfx_man_x_man_ab</span><span class="p">.</span><span class="nx">findMany</span><span class="p">({</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">  </span><span class="nx">where</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">int_mannschaftenid</span><span class="o">:</span><span class="w"> </span><span class="kt">teamId</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="w">  </span><span class="nx">include</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">tfx_mannschaften_abzug</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="p">});</span>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="kd">const</span><span class="w"> </span><span class="nx">totalPenalty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">penalties</span><span class="p">.</span><span class="nx">reduce</span><span class="p">((</span><span class="nx">sum</span><span class="p">,</span><span class="w"> </span><span class="nx">p</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">  </span><span class="nx">sum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">p</span><span class="p">.</span><span class="nx">tfx_mannschaften_abzug</span><span class="p">.</span><span class="nx">rel_abzug</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="c1">// 4. Gesamtergebnis = Summe - Strafen</span>
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="kd">const</span><span class="w"> </span><span class="nx">teamTotal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">deviceResults</span><span class="p">.</span><span class="nx">total</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">totalPenalty</span><span class="p">;</span>
+</code></pre></div></p>
+<h3 id="frontend-patterns">Frontend-Patterns<a class="headerlink" href="#frontend-patterns" title="Permanent link">&para;</a></h3>
+<p><strong>Gruppen-Auswahl-Komponente:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="p">&lt;</span><span class="nt">Select</span><span class="p">&gt;</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">option</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">&gt;</span><span class="nx">Teilnehmer</span><span class="w"> </span><span class="nx">auswählen</span><span class="p">...&lt;/</span><span class="nt">option</span><span class="p">&gt;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">optgroup</span><span class="w"> </span><span class="na">label</span><span class="o">=</span><span class="s">&quot;Einzelpersonen&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="p">{</span><span class="nx">participants</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">      </span><span class="p">&lt;</span><span class="nt">option</span><span class="w"> </span><span class="na">key</span><span class="o">=</span><span class="p">{</span><span class="nx">p</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="sb">`p_</span><span class="si">${</span><span class="nx">p</span><span class="p">.</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">}&gt;</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">        </span><span class="p">{</span><span class="nx">p</span><span class="p">.</span><span class="nx">firstName</span><span class="p">}</span><span class="w"> </span><span class="p">{</span><span class="nx">p</span><span class="p">.</span><span class="nx">lastName</span><span class="p">}</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">      </span><span class="p">&lt;/</span><span class="nt">option</span><span class="p">&gt;</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="p">))}</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">  </span><span class="p">&lt;/</span><span class="nt">optgroup</span><span class="p">&gt;</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">optgroup</span><span class="w"> </span><span class="na">label</span><span class="o">=</span><span class="s">&quot;Gruppen&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">    </span><span class="p">{</span><span class="nx">groups</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">      </span><span class="p">&lt;</span><span class="nt">option</span><span class="w"> </span><span class="na">key</span><span class="o">=</span><span class="p">{</span><span class="nx">g</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span><span class="w"> </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="sb">`g_</span><span class="si">${</span><span class="nx">g</span><span class="p">.</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">}&gt;</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">        </span><span class="err">👥</span><span class="w"> </span><span class="p">{</span><span class="nx">g</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="w"> </span><span class="p">({</span><span class="nx">g</span><span class="p">.</span><span class="nx">memberCount</span><span class="p">}</span><span class="w"> </span><span class="nx">Mitglieder</span><span class="p">)</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">      </span><span class="p">&lt;/</span><span class="nt">option</span><span class="p">&gt;</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">    </span><span class="p">))}</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">  </span><span class="p">&lt;/</span><span class="nt">optgroup</span><span class="p">&gt;</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="p">&lt;/</span><span class="nt">Select</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<p><strong>Team-Mitglieder-Liste:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;team-members&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">h3</span><span class="p">&gt;</span><span class="nx">Team</span><span class="o">-</span><span class="nx">Mitglieder</span><span class="w"> </span><span class="p">({</span><span class="nx">members</span><span class="p">.</span><span class="nx">length</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="nx">minSize</span><span class="p">})&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="p">{</span><span class="nx">members</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nx">minSize</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">RosaInfoBox</span><span class="p">&gt;</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">      </span><span class="nx">Mindestens</span><span class="w"> </span><span class="p">{</span><span class="nx">minSize</span><span class="p">}</span><span class="w"> </span><span class="nx">Mitglieder</span><span class="w"> </span><span class="nx">erforderlich</span><span class="o">!</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">RosaInfoBox</span><span class="p">&gt;</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">  </span><span class="p">)}</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="p">{</span><span class="nx">members</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">      </span><span class="p">&lt;</span><span class="nt">li</span><span class="w"> </span><span class="na">key</span><span class="o">=</span><span class="p">{</span><span class="nx">m</span><span class="p">.</span><span class="nx">id</span><span class="p">}&gt;</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">        </span><span class="p">{</span><span class="nx">m</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;group&#39;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s1">&#39;👥&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;👤&#39;</span><span class="p">}</span><span class="w"> </span><span class="p">{</span><span class="nx">m</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">        </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">removeMember</span><span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">id</span><span class="p">)}&gt;</span><span class="err">❌</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">      </span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">    </span><span class="p">))}</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">  </span><span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<hr />
+<h2 id="geschatzte-aufwande">Geschätzte Aufwände<a class="headerlink" href="#geschatzte-aufwande" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Aufwand</th>
+<th>Priorität</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 1: Backend - Grundstruktur</td>
+<td>3-4 Tage</td>
+<td>HOCH</td>
+</tr>
+<tr>
+<td>Phase 2: Frontend - Gruppen</td>
+<td>2-3 Tage</td>
+<td>HOCH</td>
+</tr>
+<tr>
+<td>Phase 3: Frontend - Teams</td>
+<td>3-4 Tage</td>
+<td>MITTEL</td>
+</tr>
+<tr>
+<td>Phase 4: Ergebnis-Berechnung</td>
+<td>2-3 Tage</td>
+<td>HOCH</td>
+</tr>
+<tr>
+<td>Phase 5: Startlisten &amp; Listen</td>
+<td>1-2 Tage</td>
+<td>MITTEL</td>
+</tr>
+<tr>
+<td>Phase 6: PDF-Exporte</td>
+<td>1 Tag</td>
+<td>NIEDRIG</td>
+</tr>
+<tr>
+<td>Phase 7: UI/UX</td>
+<td>1 Tag</td>
+<td>NIEDRIG</td>
+</tr>
+<tr>
+<td><strong>GESAMT</strong></td>
+<td><strong>13-20 Tage</strong></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<ol>
+<li>✅ <strong>Analyse abgeschlossen</strong> - Dieses Dokument</li>
+<li>⏳ <strong>Entscheidung</strong>: Sollen wir mit Phase 1 (Backend) beginnen?</li>
+<li>⏳ <strong>Priorisierung</strong>: Welche Funktionen sind am wichtigsten?</li>
+<li>Nur Gruppen? (Phases 1-2)</li>
+<li>Nur Teams? (Phases 1, 3-4)</li>
+<li>Beides? (Alle Phasen)</li>
+</ol>
+<hr />
+<h2 id="offene-fragen">Offene Fragen<a class="headerlink" href="#offene-fragen" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Wettkampf-Typen</strong>: Soll ein Wettkampf gleichzeitig Einzel-, Gruppen- UND Team-Wertung haben?</li>
+<li>In QT: Scheint so (getrennte Wertungen)</li>
+<li>
+<p>In Web-UI: Tabs? Separate Ansichten?</p>
+</li>
+<li>
+<p><strong>Team-Größe</strong>: Wo wird die Mindest-/Maximal-Größe definiert?</p>
+</li>
+<li>In QT: <code>int_wertungen</code> in <code>tfx_wettkaempfe</code></li>
+<li>
+<p>In Prisma: Feld fehlt aktuell in schema!</p>
+</li>
+<li>
+<p><strong>Gruppen-Jahrgänge</strong>: Haben Gruppen ein "Alter"?</p>
+</li>
+<li>In QT: Keine Geburtsdatum-Anzeige für Gruppen</li>
+<li>
+<p>In Web-UI: N/A für Gruppen?</p>
+</li>
+<li>
+<p><strong>Meldematrix</strong>: Wie Gruppen/Teams zählen?</p>
+</li>
+<li>1 Gruppe = 1 Teilnehmer? Oder = Anzahl Mitglieder?</li>
+<li>1 Team = ? (Vermutlich 1 Team)</li>
+</ol>
+<hr />
+<p><strong>Erstellt</strong>: 2025-01-XX
+<strong>Analysiert aus</strong>: QT C++ Codebase (turnfix)
+<strong>Ziel</strong>: Feature-Parity in Web-UI (React/Express/Prisma)</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../gender-helpers/" class="btn btn-neutral float-left" title="Gender Helpers Centralization - Point 128"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../jury-comparison/" class="btn btn-neutral float-right" title="Jury Portal Comparison &amp; Consolidation Analysis">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../gender-helpers/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../jury-comparison/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

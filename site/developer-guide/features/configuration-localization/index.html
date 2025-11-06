@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/configuration-localization/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Configuration Page Lokalisierung - Status - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Configuration Page Lokalisierung - Status";
+        var mkdocs_page_input_path = "developer-guide\\features\\configuration-localization.md";
+        var mkdocs_page_url = "/developer-guide/features/configuration-localization/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Configuration Page Lokalisierung - Status</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#point-13-abgeschlossen-100-vollstandig">✅ Point 13 ABGESCHLOSSEN - 100% VOLLSTÄNDIG</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lokalisierte-komponenten">Lokalisierte Komponenten:</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#management-center-card">✅ Management Center Card:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#translation-keys-verwendet">Translation Keys verwendet:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lokalisierte-sections">Lokalisierte Sections:</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#bereits-lokalisiert-vor-point-13">✅ Bereits lokalisiert (vor Point 13):</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#neu-lokalisiert-point-13">✅ Neu lokalisiert (Point 13):</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lokalisierte-messages">Lokalisierte Messages:</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#successerror-messages">Success/Error Messages:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#bereits-vorhandene-messages">Bereits vorhandene Messages:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#zusammenfassung">Zusammenfassung:</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Configuration Page Lokalisierung - Status</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/configuration-localization.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="configuration-page-lokalisierung-status">Configuration Page Lokalisierung - Status<a class="headerlink" href="#configuration-page-lokalisierung-status" title="Permanent link">&para;</a></h1>
+<h2 id="point-13-abgeschlossen-100-vollstandig">✅ Point 13 ABGESCHLOSSEN - 100% VOLLSTÄNDIG<a class="headerlink" href="#point-13-abgeschlossen-100-vollstandig" title="Permanent link">&para;</a></h2>
+<p>Die komplette Configuration-Seite (http://localhost:5173/configuration) wurde erfolgreich lokalisiert, <strong>inklusive des Menüeintrags im Management Center</strong>.</p>
+<h2 id="lokalisierte-komponenten">Lokalisierte Komponenten:<a class="headerlink" href="#lokalisierte-komponenten" title="Permanent link">&para;</a></h2>
+<h3 id="management-center-card">✅ Management Center Card:<a class="headerlink" href="#management-center-card" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Group Title:</strong> "Einstellungen" / "Settings"</li>
+<li><strong>Group Subtitle:</strong> "Anwendungseinstellungen, Datenbankkonfiguration und Systemeinstellungen" / "Application settings, database configuration, and system preferences"</li>
+<li><strong>Card Title:</strong> "Anwendungseinstellungen" / "Application Settings"</li>
+<li><strong>Card Description:</strong> "Datenbank, Debug-Modus, Sprache, Ports und andere Systemeinstellungen konfigurieren" / "Configure database, debug mode, language, ports, and other system settings"</li>
+</ul>
+<h3 id="translation-keys-verwendet">Translation Keys verwendet:<a class="headerlink" href="#translation-keys-verwendet" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>managementCenter.configuration.title</code></li>
+<li><code>managementCenter.configuration.subtitle</code></li>
+<li><code>managementCenter.configuration.applicationSettings.title</code></li>
+<li><code>managementCenter.configuration.applicationSettings.description</code></li>
+</ul>
+<h2 id="lokalisierte-sections">Lokalisierte Sections:<a class="headerlink" href="#lokalisierte-sections" title="Permanent link">&para;</a></h2>
+<h3 id="bereits-lokalisiert-vor-point-13">✅ Bereits lokalisiert (vor Point 13):<a class="headerlink" href="#bereits-lokalisiert-vor-point-13" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Database</strong> - Datenbankkonfiguration</li>
+<li>Host, Port, Name, User, Password, SSL</li>
+<li>
+<p>Alle 6 Settings vollständig lokalisiert</p>
+</li>
+<li>
+<p><strong>Application</strong> - Anwendungseinstellungen</p>
+</li>
+<li>Name, Version, Debug Mode, Server Port, Client Port</li>
+<li>
+<p>Alle 5 Settings vollständig lokalisiert</p>
+</li>
+<li>
+<p><strong>Localization</strong> - Sprache &amp; Lokalisierung</p>
+</li>
+<li>Language, Date Format, Timezone</li>
+<li>
+<p>Alle 3 Settings mit allen Optionen lokalisiert</p>
+</li>
+<li>
+<p><strong>Printing</strong> - Druck- &amp; PDF-Einstellungen</p>
+</li>
+<li>Page Size, Orientation, Quality, Watermark</li>
+<li>
+<p>Alle 4 Settings mit allen Optionen lokalisiert</p>
+</li>
+<li>
+<p><strong>Participant Labels</strong> - Teilnehmer-Etiketten</p>
+</li>
+<li>Rows, Columns, Width, Height, Margins (Top, Bottom, Left, Right), Show Borders</li>
+<li>
+<p>Alle 9 Settings vollständig lokalisiert</p>
+</li>
+<li>
+<p><strong>Firewall</strong> - Firewall &amp; Netzwerk</p>
+</li>
+<li>Vollständig lokalisiert mit allen Meldungen</li>
+</ol>
+<h3 id="neu-lokalisiert-point-13">✅ Neu lokalisiert (Point 13):<a class="headerlink" href="#neu-lokalisiert-point-13" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Security Settings</strong> - Sicherheitseinstellungen</li>
+<li>Session Timeout: <code>configuration.sections.security.sessionTimeout</code></li>
+<li>Password Min Length: <code>configuration.sections.security.passwordMinLength</code></li>
+<li>Max Login Attempts: <code>configuration.sections.security.maxLoginAttempts</code></li>
+<li>Require HTTPS: <code>configuration.sections.security.requireHttps</code></li>
+<li>
+<p><strong>4 Settings vollständig lokalisiert</strong></p>
+</li>
+<li>
+<p><strong>Import &amp; Export Settings</strong> - Import- &amp; Export-Einstellungen</p>
+</li>
+<li>Max File Size: <code>configuration.sections.imports.maxFileSize</code></li>
+<li>Allowed File Types: <code>configuration.sections.imports.allowedTypes</code></li>
+<li>Automatic Backup: <code>configuration.sections.imports.autoBackup</code></li>
+<li>Validate Imports: <code>configuration.sections.imports.validateImports</code></li>
+<li>
+<p><strong>4 Settings vollständig lokalisiert</strong></p>
+</li>
+<li>
+<p><strong>Logging Configuration</strong> - Protokollierungskonfiguration</p>
+</li>
+<li>Log Level: <code>configuration.sections.logging.level</code> (mit 4 Optionen)</li>
+<li>Log Retention: <code>configuration.sections.logging.retention</code></li>
+<li>Enable Audit Log: <code>configuration.sections.logging.auditLog</code></li>
+<li>Log Database Queries: <code>configuration.sections.logging.dbQueries</code></li>
+<li><strong>4 Settings vollständig lokalisiert (inkl. 4 Log-Level-Optionen)</strong></li>
+</ol>
+<h2 id="lokalisierte-messages">Lokalisierte Messages:<a class="headerlink" href="#lokalisierte-messages" title="Permanent link">&para;</a></h2>
+<h3 id="successerror-messages">Success/Error Messages:<a class="headerlink" href="#successerror-messages" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>configuration.messages.loadFailed</code> - "Fehler beim Laden der Einstellungen"</li>
+<li>✅ <code>configuration.messages.saveFailed</code> - "Fehler beim Speichern der Einstellungen"</li>
+<li>✅ <code>configuration.messages.saveSuccess</code> - "Einstellungen erfolgreich gespeichert"</li>
+<li>✅ <code>configuration.messages.dbTestSuccess</code> - "Datenbankverbindung erfolgreich"</li>
+<li>✅ <code>configuration.messages.dbTestFailed</code> - "Datenbankverbindung fehlgeschlagen"</li>
+</ul>
+<h3 id="bereits-vorhandene-messages">Bereits vorhandene Messages:<a class="headerlink" href="#bereits-vorhandene-messages" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <code>configuration.confirmCreateDatabase</code></li>
+<li>✅ <code>configuration.databaseCreated</code></li>
+<li>✅ <code>configuration.databaseCreationFailed</code></li>
+<li>✅ <code>configuration.databaseAlreadyExists</code></li>
+</ul>
+<h2 id="zusammenfassung">Zusammenfassung:<a class="headerlink" href="#zusammenfassung" title="Permanent link">&para;</a></h2>
+<p><strong>Sections total:</strong> 9
+<strong>Settings total:</strong> ~35
+<strong>Options total:</strong> ~15 (Dropdown-Optionen)
+<strong>Messages:</strong> 9</p>
+<p><strong>Sprachen:</strong> DE + EN</p>
+<p><strong>Status:</strong> ✅ <strong>100% lokalisiert</strong></p>
+<p>Alle Sections der Configuration-Seite verwenden jetzt vollständig die Translation Keys aus <code>configuration.sections.*</code> und <code>configuration.messages.*</code>.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../api-route-fixes/" class="btn btn-neutral float-left" title="API Route Mismatches Analysis &amp; Fixes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../default-views/" class="btn btn-neutral float-right" title="Point 40: Default Table-View Verification">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../api-route-fixes/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../default-views/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

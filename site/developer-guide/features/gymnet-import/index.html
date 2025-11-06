@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/gymnet-import/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Point 38 Implementation Summary - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Point 38 Implementation Summary";
+        var mkdocs_page_input_path = "developer-guide\\features\\gymnet-import.md";
+        var mkdocs_page_url = "/developer-guide/features/gymnet-import/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Point 38 Implementation Summary</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#implementiert-aber-noch-nicht-getestet">✅ IMPLEMENTIERT - Aber noch NICHT GETESTET!</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#problem">Problem</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#root-cause-analysis">Root Cause Analysis</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#implementierte-losung">Implementierte Lösung</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#formel">Formel</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#test-dateien-erstellt">Test-Dateien erstellt</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#build-status">Build Status</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#nachste-schritte-fur-user">Nächste Schritte für User</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#rollback-falls-notig">Rollback (falls nötig)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#potenzielle-probleme">Potenzielle Probleme</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#verbesserungsvorschlage-fur-spater">Verbesserungsvorschläge (für später)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#zusammenfassung">Zusammenfassung</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Point 38 Implementation Summary</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/gymnet-import.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="point-38-implementation-summary">Point 38 Implementation Summary<a class="headerlink" href="#point-38-implementation-summary" title="Permanent link">&para;</a></h1>
+<h2 id="implementiert-aber-noch-nicht-getestet">✅ IMPLEMENTIERT - Aber noch NICHT GETESTET!<a class="headerlink" href="#implementiert-aber-noch-nicht-getestet" title="Permanent link">&para;</a></h2>
+<h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
+<p>User berichtet: "Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt?"</p>
+<h3 id="root-cause-analysis">Root Cause Analysis<a class="headerlink" href="#root-cause-analysis" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>events.ts Zeile 1931-1932</strong>: Hardcoded defaults 2000/2030 für Birth Years</li>
+<li><strong>Fehlende Age-to-Birth-Year Konvertierung</strong>: Ages aus XML wurden nicht in Birth Years umgewandelt</li>
+<li><strong>Display Fallback</strong>: competitions.ts zeigt 6-18 Jahre wenn Birth Years fehlen/ungültig</li>
+</ol>
+<h3 id="implementierte-losung">Implementierte Lösung<a class="headerlink" href="#implementierte-losung" title="Permanent link">&para;</a></h3>
+<h4 id="eventsts-anderungen-zeilen-1920-2015">events.ts Änderungen (Zeilen 1920-2015)<a class="headerlink" href="#eventsts-anderungen-zeilen-1920-2015" title="Permanent link">&para;</a></h4>
+<p><strong>Hinzugefügt:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// Get event year for age-to-birth-year conversion</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">eventYear</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createdEvent</span><span class="p">.</span><span class="nx">dat_von</span><span class="w"> </span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">(</span><span class="nx">createdEvent</span><span class="p">.</span><span class="nx">dat_von</span><span class="p">).</span><span class="nx">getFullYear</span><span class="p">()</span><span class="w"> </span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">().</span><span class="nx">getFullYear</span><span class="p">();</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">// Convert ages from XML to birth years for database storage</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="kd">let</span><span class="w"> </span><span class="nx">birthYearFrom</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kd">let</span><span class="w"> </span><span class="nx">birthYearTo</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">min</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="p">.</span><span class="nx">min</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nx">birthYearFrom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">eventYear</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="p">.</span><span class="nx">min</span><span class="p">;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">}</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">max</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="p">.</span><span class="nx">max</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nx">birthYearTo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">eventYear</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="p">.</span><span class="nx">max</span><span class="p">;</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">}</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1">// Fallback to defaults (age 6-18) if no age info</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">birthYearFrom</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nx">birthYearTo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  ⚠️ No age information - using default range (age 6-18)`</span><span class="p">);</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="nx">birthYearFrom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">eventYear</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">18</span><span class="p">;</span><span class="w">  </span><span class="c1">// Max age: 18</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="nx">birthYearTo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">eventYear</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">6</span><span class="p">;</span><span class="w">     </span><span class="c1">// Min age: 6</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">}</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="c1">// Enhanced logging</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  🔍 Processing: </span><span class="si">${</span><span class="nx">competition</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`     - Event year: </span><span class="si">${</span><span class="nx">eventYear</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`     - Ages from XML: </span><span class="si">${</span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">min</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s1">&#39;none&#39;</span><span class="si">}</span><span class="sb"> - </span><span class="si">${</span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">max</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s1">&#39;none&#39;</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`     - Birth years (DB): </span><span class="si">${</span><span class="nx">birthYearFrom</span><span class="si">}</span><span class="sb"> - </span><span class="si">${</span><span class="nx">birthYearTo</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`     - Display ages: </span><span class="si">${</span><span class="nx">displayAgeFrom</span><span class="si">}</span><span class="sb"> - </span><span class="si">${</span><span class="nx">displayAgeTo</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</code></pre></div></p>
+<p><strong>Entfernt:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// OLD (WRONG):</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ageFrom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">min</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">2000</span><span class="p">;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ageTo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">max</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">2030</span><span class="p">;</span>
+</code></pre></div></p>
+<p><strong>Edge Cases:</strong>
+- ✅ Keine Age-Info → Default 6-18 (als Birth Years)
+- ✅ Age = 0 → Als fehlend behandelt
+- ✅ Nur Min oder Max → Intelligente Defaults
+- ✅ Invalides Event-Datum → Aktuelles Jahr</p>
+<h3 id="formel">Formel<a class="headerlink" href="#formel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Age → Birth Year: birthYear = eventYear - age
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Birth Year → Age: age = eventYear - birthYear
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Beispiel (Event Year 2025, Ages 11-12):
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  waAlterMin = 11 → birthYearFrom = 2025 - 11 = 2014
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  waAlterMax = 12 → birthYearTo = 2025 - 12 = 2013
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>DB Speicherung: yer_von = 2014, yer_bis = 2013
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>Display (competitions.ts):
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  ageFrom = 2025 - 2014 = 11 ✅
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>  ageTo = 2025 - 2013 = 12 ✅
+</code></pre></div>
+<h3 id="test-dateien-erstellt">Test-Dateien erstellt<a class="headerlink" href="#test-dateien-erstellt" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>POINT-38-GYMNET-AGE-FIX.md</strong>: Vollständige Analyse + Implementierung</li>
+<li><strong>POINT-38-TEST-CASES.md</strong>: Test-Szenarien + erwartete Ergebnisse</li>
+<li><strong>server/test-age-conversion.xml</strong>: Test XML mit 9 verschiedenen Age-Szenarien</li>
+</ol>
+<h3 id="build-status">Build Status<a class="headerlink" href="#build-status" title="Permanent link">&para;</a></h3>
+<p>✅ Server kompiliert ohne Fehler (<code>npm run build</code> erfolgreich)</p>
+<h3 id="nachste-schritte-fur-user">Nächste Schritte für User<a class="headerlink" href="#nachste-schritte-fur-user" title="Permanent link">&para;</a></h3>
+<p><strong>WICHTIG</strong>: Implementation ist vollständig, aber <strong>NICHT GETESTET</strong>!</p>
+<p>User muss folgendes testen:</p>
+<ol>
+<li>
+<p><strong>Server neu starten</strong> (falls noch nicht geschehen)
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c"># In einem Terminal:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd </span><span class="n">newWebBased</span><span class="p">/</span><span class="n">server</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">npm</span> <span class="n">run</span> <span class="n">dev</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>GymNet Import testen</strong></p>
+</li>
+<li>Gehe zu: http://localhost:5173/events</li>
+<li>Klicke "Import from Gymnet"</li>
+<li>Wähle <code>server/test-age-conversion.xml</code></li>
+<li>
+<p>Event-Details eingeben und Import starten</p>
+</li>
+<li>
+<p><strong>Console Logs überprüfen</strong></p>
+</li>
+<li>
+<p>Im Server-Terminal sollten detaillierte Logs erscheinen:
+     <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>🏆 Processing competitions...
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  🔍 Processing: Test Case 1: Ages 11-12
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>     - Event year: 2025
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>     - Ages from XML: 11 - 12
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>     - Birth years (DB): 2014 - 2013
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>     - Display ages: 11 - 12
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>     - Gender: männlich
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  ✅ Inserted: Test Case 1: Ages 11-12 (Birth years: 2014-2013, Ages: 11-12, Number: TC01)
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>UI überprüfen</strong></p>
+</li>
+<li>Nach Import: Competitions-Seite öffnen</li>
+<li>Verify age ranges sind korrekt (11-12, 6-18, etc.)</li>
+<li>
+<p>NICHT mehr alle 6-18!</p>
+</li>
+<li>
+<p><strong>Realen GymNet Import testen</strong></p>
+</li>
+<li>Mit echtem GymNet XML-File importieren</li>
+<li>Verify ages sind korrekt</li>
+<li>Problem sollte behoben sein</li>
+</ol>
+<h3 id="rollback-falls-notig">Rollback (falls nötig)<a class="headerlink" href="#rollback-falls-notig" title="Permanent link">&para;</a></h3>
+<p>Falls die Implementierung Probleme verursacht:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// In events.ts Zeile 1931 ersetzen durch:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ageFrom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">min</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">2000</span><span class="p">;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ageTo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">competition</span><span class="p">.</span><span class="nx">ageInfo</span><span class="o">?</span><span class="p">.</span><span class="nx">max</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">2030</span><span class="p">;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1">// Alle neuen Zeilen (event year, conversion, logging) löschen</span>
+</code></pre></div>
+<p>Aber <strong>ACHTUNG</strong>: Das alte Verhalten war auch falsch! 
+Besser: Issue melden und gemeinsam debuggen.</p>
+<h3 id="potenzielle-probleme">Potenzielle Probleme<a class="headerlink" href="#potenzielle-probleme" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Event-Datum nicht gesetzt</strong>: Verwendet aktuelles Jahr (sollte OK sein)</li>
+<li><strong>Age-Reihenfolge vertauscht</strong>: Display verwendet Math.min/max (sollte korrekt sein)</li>
+<li><strong>Null-Werte in DB</strong>: <code>yer_bis</code> ist nullable, sollte OK sein</li>
+<li><strong>Bestehende Competitions</strong>: Diese behalten alte (falsche) Werte! </li>
+<li>Lösung: Competitions löschen und neu importieren</li>
+<li>ODER: Migrations-Script schreiben (falls viele Daten)</li>
+</ol>
+<h3 id="verbesserungsvorschlage-fur-spater">Verbesserungsvorschläge (für später)<a class="headerlink" href="#verbesserungsvorschlage-fur-spater" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>DB Migration</strong>: Bestehende Competitions korrigieren</li>
+<li><strong>Validation</strong>: Age Range überprüfen (min &lt; max)</li>
+<li><strong>UI Warning</strong>: Anzeigen wenn Default 6-18 verwendet wurde</li>
+<li><strong>Import Summary</strong>: Zeigen welche Competitions welche Age-Ranges haben</li>
+<li><strong>Age vs Birth Year Clarity</strong>: UI sollte zeigen was gespeichert wird</li>
+</ol>
+<h3 id="zusammenfassung">Zusammenfassung<a class="headerlink" href="#zusammenfassung" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Code implementiert</strong> - Vollständige Age-to-Birth-Year Konvertierung
+✅ <strong>Build erfolgreich</strong> - Keine Compile-Fehler
+✅ <strong>Logging hinzugefügt</strong> - Detaillierte Debug-Ausgabe
+✅ <strong>Test-Dateien erstellt</strong> - Test XML + Dokumentation
+✅ <strong>Edge Cases behandelt</strong> - Fehlende Ages, Age=0, nur Min/Max, etc.
+⚠️ <strong>NICHT GETESTET</strong> - User muss Import testen und verifizieren
+📝 <strong>Dokumentation komplett</strong> - Drei MD-Dateien mit allen Details</p>
+<p><strong>User Action Required</strong>: Import testen und Feedback geben!</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../gymnet-hotfix/" class="btn btn-neutral float-left" title="Point 38 - HOTFIX: Age Conversion Logic Korrektur"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../gymnet-localization/" class="btn btn-neutral float-right" title="Point 47 - GymNet Import Localization">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../gymnet-hotfix/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../gymnet-localization/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

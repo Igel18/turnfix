@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/features/point-131-modal/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Point 131: Modal Integration for EventParticipants Buttons - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Point 131: Modal Integration for EventParticipants Buttons";
+        var mkdocs_page_input_path = "developer-guide\\features\\point-131-modal.md";
+        var mkdocs_page_url = "/developer-guide/features/point-131-modal/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Features</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Point 131: Modal Integration for EventParticipants Buttons</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#user-requirement">User Requirement</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementation-summary">Implementation Summary</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#architecture-point-122-soc-compliance">Architecture: Point 122 SoC Compliance</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#components-created">Components Created</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-addparticipantmodaltsx">1. AddParticipantModal.tsx</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-labelconfigmodaltsx">2. LabelConfigModal.tsx</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-uselabelprintingts-hook">3. useLabelPrinting.ts Hook</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration-into-indextsx">Integration into index.tsx</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#state-management">State Management</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#hook-usage">Hook Usage</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#button-handlers">Button Handlers</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#modal-components">Modal Components</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#callbacks">Callbacks</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#barrel-exports">Barrel Exports</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#componentsindexts">components/index.ts</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#hooksindexts">hooks/index.ts</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#i18n-translations">i18n Translations</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#german-dejson">German (de.json)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#english-enjson">English (en.json)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#code-quality">Code Quality</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#separation-of-concerns-compliance">Separation of Concerns Compliance ✅</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#build-results">Build Results</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#client-build">Client Build</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#pm2-deployment">PM2 Deployment</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing-checklist">Testing Checklist</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#add-participant-modal">Add Participant Modal</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#print-labels-modal">Print Labels Modal</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#csv-export-existing">CSV Export (Existing)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#pdf-list-export-existing">PDF List Export (Existing)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#api-endpoints-used">API Endpoints Used</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#get-participantslimit10000">GET /participants?limit=10000</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#post-event-participantsadd">POST /event-participants/add</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#get-configuration">GET /configuration</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#get-event-participantseventidid">GET /event-participants?eventId={id}</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#npm-packages">NPM Packages</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#internal-utilities">Internal Utilities</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#related-points">Related Points</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#files-modified">Files Modified</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#created">Created</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#modified">Modified</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#translations">Translations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#commit-message">Commit Message</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#next-steps-testing">Next Steps (Testing)</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Point 131: Modal Integration for EventParticipants Buttons</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/features/point-131-modal.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="point-131-modal-integration-for-eventparticipants-buttons">Point 131: Modal Integration for EventParticipants Buttons<a class="headerlink" href="#point-131-modal-integration-for-eventparticipants-buttons" title="Permanent link">&para;</a></h1>
+<p><strong>Date</strong>: 2025-01-31<br />
+<strong>Status</strong>: ✅ COMPLETE<br />
+<strong>Build</strong>: Client ✓ 6.09s | PM2 Restart #10</p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Successfully implemented modal-based workflows for "Add Participant" and "Print Labels" buttons on the EventParticipants page, following <strong>Point 122 Separation of Concerns</strong> architecture.</p>
+<h3 id="user-requirement">User Requirement<a class="headerlink" href="#user-requirement" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"Die buttons sind da. Aber die funktionen sind nicht wie vorher. Beim hinzufügen von personen kommt kein Dialog"</p>
+</blockquote>
+<p>The buttons were present but lacked proper modal dialogs like the original implementation.</p>
+<hr />
+<h2 id="implementation-summary">Implementation Summary<a class="headerlink" href="#implementation-summary" title="Permanent link">&para;</a></h2>
+<h3 id="architecture-point-122-soc-compliance">Architecture: Point 122 SoC Compliance<a class="headerlink" href="#architecture-point-122-soc-compliance" title="Permanent link">&para;</a></h3>
+<p>Created three new components following established patterns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>client/src/pages/EventParticipants/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── components/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── AddParticipantModal.tsx (179 lines) ✅
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   └── LabelConfigModal.tsx (264 lines) ✅
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── hooks/
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   └── useLabelPrinting.ts (157 lines) ✅ (fixed lint warning)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>└── index.tsx (391 lines) ✅ (modals wired)
+</code></pre></div>
+<hr />
+<h2 id="components-created">Components Created<a class="headerlink" href="#components-created" title="Permanent link">&para;</a></h2>
+<h3 id="1-addparticipantmodaltsx">1. AddParticipantModal.tsx<a class="headerlink" href="#1-addparticipantmodaltsx" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Search and add participants to events</p>
+<p><strong>Features</strong>:
+- Loads all available participants from <code>/participants</code> API
+- Real-time search filtering by name/club
+- Shows participant info with GenderBadge
+- Displays "Already in event" vs "Add" button states
+- Uses centralized <code>normalizeGender()</code> helper
+- Calls <code>/event-participants/add</code> API endpoint</p>
+<p><strong>Props</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">isOpen</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">onClose</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">eventId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">onParticipantAdded</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Workflow</strong>:
+1. User clicks "Add Participant" button → Modal opens
+2. Modal fetches available participants
+3. User searches/filters participants
+4. User clicks "Add" button
+5. API POST request adds participant to event
+6. Modal closes, parent component refreshes data</p>
+<hr />
+<h3 id="2-labelconfigmodaltsx">2. LabelConfigModal.tsx<a class="headerlink" href="#2-labelconfigmodaltsx" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Configure label layout before PDF generation</p>
+<p><strong>Features</strong>:
+- Loads saved configuration from <code>/configuration</code> API
+- 8 configurable inputs:
+  - Rows (1-20, default: 8)
+  - Columns (1-10, default: 4)
+  - Width (mm, default: 48.5)
+  - Height (mm, default: 16.9)
+  - Margins: Top, Left, Right, Bottom (mm)
+  - Show Borders (boolean)
+- Real-time preview calculation
+- Passes configuration to PDF generation hook</p>
+<p><strong>Props</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">isOpen</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">onClose</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">onPrint</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">config</span><span class="o">:</span><span class="w"> </span><span class="kt">LabelConfig</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>LabelConfig Type</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">LabelConfig</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">rows</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">columns</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">height</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nx">marginTop</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nx">marginLeft</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nx">marginRight</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nx">marginBottom</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nx">showBorders</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Workflow</strong>:
+1. User clicks "Print Labels" button → Modal opens
+2. Modal loads saved config from server
+3. User adjusts layout settings
+4. User clicks "Generate PDF"
+5. Modal calls <code>generateLabelsPDF(config)</code>
+6. PDF downloads
+7. Modal closes</p>
+<hr />
+<h3 id="3-uselabelprintingts-hook">3. useLabelPrinting.ts Hook<a class="headerlink" href="#3-uselabelprintingts-hook" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Extract PDF generation logic from UI component</p>
+<p><strong>Features</strong>:
+- Sorts participants by gender → squad → club
+- Calculates label positions on A4 grid
+- Multi-page support
+- Renders participant info (name, club, start number, squad, competitions)
+- Optional borders for alignment
+- German locale sorting</p>
+<p><strong>Hook Signature</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">useLabelPrinting</span><span class="p">({</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nx">participants</span><span class="o">:</span><span class="w"> </span><span class="kt">Participant</span><span class="p">[],</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">competitions</span><span class="o">:</span><span class="w"> </span><span class="kt">Competition</span><span class="p">[],</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">eventId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nx">generateLabelsPDF</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">config</span><span class="o">:</span><span class="w"> </span><span class="kt">LabelConfig</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>PDF Layout Algorithm</strong>:
+1. Calculate available space (A4 - margins)
+2. Calculate label dimensions (available space ÷ rows/columns)
+3. Iterate participants, placing each in grid position
+4. Add new page when grid is full
+5. Render participant data within each label
+6. Download PDF</p>
+<p><strong>Fixed Issue</strong>: Removed unused <code>labelsPerPage</code> variable (lint warning)</p>
+<hr />
+<h2 id="integration-into-indextsx">Integration into index.tsx<a class="headerlink" href="#integration-into-indextsx" title="Permanent link">&para;</a></h2>
+<h3 id="state-management">State Management<a class="headerlink" href="#state-management" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">showAddModal</span><span class="p">,</span><span class="w"> </span><span class="nx">setShowAddModal</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">showLabelModal</span><span class="p">,</span><span class="w"> </span><span class="nx">setShowLabelModal</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="hook-usage">Hook Usage<a class="headerlink" href="#hook-usage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">generateLabelsPDF</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useLabelPrinting</span><span class="p">({</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">participants</span><span class="o">:</span><span class="w"> </span><span class="kt">filteredParticipants</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">competitions</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">eventId</span><span class="o">:</span><span class="w"> </span><span class="kt">eventId</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">});</span>
+</code></pre></div>
+<h3 id="button-handlers">Button Handlers<a class="headerlink" href="#button-handlers" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// Add Participant button</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">onAdd</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setShowAddModal</span><span class="p">(</span><span class="kc">true</span><span class="p">)}</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">// Print Labels button</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nx">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setShowLabelModal</span><span class="p">(</span><span class="kc">true</span><span class="p">)}</span>
+</code></pre></div>
+<h3 id="modal-components">Modal Components<a class="headerlink" href="#modal-components" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span><span class="cm">/* Add Participant Modal */</span><span class="p">}</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">&lt;</span><span class="nt">AddParticipantModal</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="na">isOpen</span><span class="o">=</span><span class="p">{</span><span class="nx">showAddModal</span><span class="p">}</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="na">onClose</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setShowAddModal</span><span class="p">(</span><span class="kc">false</span><span class="p">)}</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="na">eventId</span><span class="o">=</span><span class="p">{</span><span class="nx">eventId</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">}</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="na">onParticipantAdded</span><span class="o">=</span><span class="p">{</span><span class="nx">handleParticipantAdded</span><span class="p">}</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">/&gt;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="p">{</span><span class="cm">/* Label Configuration Modal */</span><span class="p">}</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="p">&lt;</span><span class="nt">LabelConfigModal</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="na">isOpen</span><span class="o">=</span><span class="p">{</span><span class="nx">showLabelModal</span><span class="p">}</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="na">onClose</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setShowLabelModal</span><span class="p">(</span><span class="kc">false</span><span class="p">)}</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">  </span><span class="na">onPrint</span><span class="o">=</span><span class="p">{</span><span class="nx">generateLabelsPDF</span><span class="p">}</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="p">/&gt;</span>
+</code></pre></div>
+<h3 id="callbacks">Callbacks<a class="headerlink" href="#callbacks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">handleParticipantAdded</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">reload</span><span class="p">();</span><span class="w"> </span><span class="c1">// Refresh to show new participant</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">};</span>
+</code></pre></div>
+<hr />
+<h2 id="barrel-exports">Barrel Exports<a class="headerlink" href="#barrel-exports" title="Permanent link">&para;</a></h2>
+<h3 id="componentsindexts">components/index.ts<a class="headerlink" href="#componentsindexts" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">export</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">AddParticipantModal</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./AddParticipantModal&#39;</span><span class="p">;</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">export</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">LabelConfigModal</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./LabelConfigModal&#39;</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="hooksindexts">hooks/index.ts<a class="headerlink" href="#hooksindexts" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">export</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useLabelPrinting</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./useLabelPrinting&#39;</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="i18n-translations">i18n Translations<a class="headerlink" href="#i18n-translations" title="Permanent link">&para;</a></h2>
+<p>All required translations were already present in both <code>de.json</code> and <code>en.json</code>:</p>
+<h3 id="german-dejson">German (de.json)<a class="headerlink" href="#german-dejson" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">&quot;eventParticipants&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">&quot;pageTitle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Veranstaltungsteilnehmer&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nt">&quot;addParticipant&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Teilnehmer hinzufügen&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nt">&quot;actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">      </span><span class="nt">&quot;printLabels&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etiketten drucken&quot;</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="nt">&quot;addModal&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Teilnehmer zur Veranstaltung hinzufügen&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">      </span><span class="nt">&quot;searchPlaceholder&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Teilnehmer suchen...&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">      </span><span class="nt">&quot;noParticipants&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Keine verfügbaren Teilnehmer gefunden&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">      </span><span class="nt">&quot;alreadyInEvent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bereits in Veranstaltung&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">      </span><span class="nt">&quot;add&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hinzufügen&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">      </span><span class="nt">&quot;close&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Schließen&quot;</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">    </span><span class="nt">&quot;labelConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etiketten-Konfiguration&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">      </span><span class="nt">&quot;rows&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Zeilen&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">      </span><span class="nt">&quot;columns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Spalten&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">      </span><span class="nt">&quot;labelWidth&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etikettenbreite (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">      </span><span class="nt">&quot;labelHeight&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etikettenhöhe (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">      </span><span class="nt">&quot;marginTop&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Oberer Rand (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">      </span><span class="nt">&quot;marginBottom&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Unterer Rand (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">      </span><span class="nt">&quot;marginLeft&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Linker Rand (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="w">      </span><span class="nt">&quot;marginRight&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rechter Rand (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="w">      </span><span class="nt">&quot;showBorders&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etikettenrahmen anzeigen (zur Ausrichtung)&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">      </span><span class="nt">&quot;previewInfo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Vorschau-Info&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">      </span><span class="nt">&quot;labelsPerPage&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etiketten pro Seite&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">      </span><span class="nt">&quot;cancel&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abbrechen&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">      </span><span class="nt">&quot;exportLabels&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Etiketten-PDF exportieren&quot;</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="english-enjson">English (en.json)<a class="headerlink" href="#english-enjson" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">&quot;eventParticipants&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">&quot;pageTitle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Event Participants&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nt">&quot;addParticipant&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Add Participant&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="nt">&quot;actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">      </span><span class="nt">&quot;printLabels&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Print Labels&quot;</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="nt">&quot;addModal&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Add Participant to Event&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">      </span><span class="nt">&quot;searchPlaceholder&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Search participants...&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">      </span><span class="nt">&quot;noParticipants&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;No available participants found&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">      </span><span class="nt">&quot;alreadyInEvent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Already in event&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">      </span><span class="nt">&quot;add&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Add&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">      </span><span class="nt">&quot;close&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Close&quot;</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">    </span><span class="nt">&quot;labelConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Label Configuration&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="w">      </span><span class="nt">&quot;rows&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rows&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="w">      </span><span class="nt">&quot;columns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Columns&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="w">      </span><span class="nt">&quot;labelWidth&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Label Width (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="w">      </span><span class="nt">&quot;labelHeight&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Label Height (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="w">      </span><span class="nt">&quot;marginTop&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Top Margin (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="w">      </span><span class="nt">&quot;marginBottom&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bottom Margin (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="w">      </span><span class="nt">&quot;marginLeft&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Left Margin (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="w">      </span><span class="nt">&quot;marginRight&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Right Margin (mm)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="w">      </span><span class="nt">&quot;showBorders&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Show label borders (for alignment)&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="w">      </span><span class="nt">&quot;previewInfo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Preview Info&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="w">      </span><span class="nt">&quot;labelsPerPage&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;labels per page&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a><span class="w">      </span><span class="nt">&quot;cancel&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cancel&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="w">      </span><span class="nt">&quot;exportLabels&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Export Labels PDF&quot;</span>
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h2>
+<h3 id="separation-of-concerns-compliance">Separation of Concerns Compliance ✅<a class="headerlink" href="#separation-of-concerns-compliance" title="Permanent link">&para;</a></h3>
+<p><strong>File Sizes</strong>:
+- <code>AddParticipantModal.tsx</code>: 179 lines (✅ &lt; 200)
+- <code>LabelConfigModal.tsx</code>: 264 lines (✅ &lt; 400)
+- <code>useLabelPrinting.ts</code>: 157 lines (✅ &lt; 200)
+- <code>index.tsx</code>: 391 lines (✅ &lt; 400)</p>
+<p>All components follow Point 122 guidelines:
+- ✅ Components &lt; 300 lines
+- ✅ Hooks &lt; 250 lines
+- ✅ Main component &lt; 400 lines
+- ✅ Clear separation: UI (components) vs Logic (hooks)
+- ✅ Proper TypeScript typing
+- ✅ Localized all strings</p>
+<hr />
+<h2 id="build-results">Build Results<a class="headerlink" href="#build-results" title="Permanent link">&para;</a></h2>
+<h3 id="client-build">Client Build<a class="headerlink" href="#client-build" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>✓ built in 6.09s
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>dist/assets/index-DQXeim6i.js: 1,531.09 kB │ gzip: 411.64 kB
+</code></pre></div>
+<h3 id="pm2-deployment">PM2 Deployment<a class="headerlink" href="#pm2-deployment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>│ 0  │ turnfix-server     │ fork     │ 10   │ online    │ 0%       │ 55.6mb   │
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>│ 1  │ turnfix-jury-serv… │ fork     │ 2    │ online    │ 0%       │ 55.6mb   │
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+</code></pre></div>
+<hr />
+<h2 id="testing-checklist">Testing Checklist<a class="headerlink" href="#testing-checklist" title="Permanent link">&para;</a></h2>
+<h3 id="add-participant-modal">Add Participant Modal<a class="headerlink" href="#add-participant-modal" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Click "Add Participant" button → Modal opens</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Modal displays all available participants</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Search filtering works by name/club</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> "Already in event" badge shows for existing participants</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> "Add" button disabled for participants already in event</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Clicking "Add" successfully adds participant</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Modal closes after adding</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Participant list refreshes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Gender badges display correctly</li>
+</ul>
+<h3 id="print-labels-modal">Print Labels Modal<a class="headerlink" href="#print-labels-modal" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Click "Print Labels" button → Modal opens</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Configuration loads from server</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> All 8 input fields are editable</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Preview info updates when values change</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Click "Generate PDF" → PDF downloads</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PDF contains correct participant data</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PDF layout matches configuration</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Borders show/hide based on setting</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Multi-page PDFs work correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Modal closes after generation</li>
+</ul>
+<h3 id="csv-export-existing">CSV Export (Existing)<a class="headerlink" href="#csv-export-existing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Click "Export CSV" → File downloads</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> CSV contains filtered participants</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> UTF-8 encoding correct (German characters)</li>
+</ul>
+<h3 id="pdf-list-export-existing">PDF List Export (Existing)<a class="headerlink" href="#pdf-list-export-existing" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Click "Export PDF" → File downloads</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PDF table formatted correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Header/footer show event info</li>
+</ul>
+<hr />
+<h2 id="api-endpoints-used">API Endpoints Used<a class="headerlink" href="#api-endpoints-used" title="Permanent link">&para;</a></h2>
+<h3 id="get-participantslimit10000">GET <code>/participants?limit=10000</code><a class="headerlink" href="#get-participantslimit10000" title="Permanent link">&para;</a></h3>
+<p><strong>Used by</strong>: AddParticipantModal<br />
+<strong>Purpose</strong>: Load all available participants<br />
+<strong>Response</strong>: Array of participant objects</p>
+<h3 id="post-event-participantsadd">POST <code>/event-participants/add</code><a class="headerlink" href="#post-event-participantsadd" title="Permanent link">&para;</a></h3>
+<p><strong>Used by</strong>: AddParticipantModal<br />
+<strong>Purpose</strong>: Add participant to event<br />
+<strong>Payload</strong>: <code>{ eventId, participantId }</code></p>
+<h3 id="get-configuration">GET <code>/configuration</code><a class="headerlink" href="#get-configuration" title="Permanent link">&para;</a></h3>
+<p><strong>Used by</strong>: LabelConfigModal<br />
+<strong>Purpose</strong>: Load saved label configuration<br />
+<strong>Response</strong>: Configuration object with label settings</p>
+<h3 id="get-event-participantseventidid">GET <code>/event-participants?eventId={id}</code><a class="headerlink" href="#get-event-participantseventidid" title="Permanent link">&para;</a></h3>
+<p><strong>Used by</strong>: useParticipants hook<br />
+<strong>Purpose</strong>: Load participants for specific event<br />
+<strong>Response</strong>: Array of event participants</p>
+<hr />
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<h3 id="npm-packages">NPM Packages<a class="headerlink" href="#npm-packages" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>jspdf@^2.5.2</code> - PDF generation</li>
+<li><code>react@^18.3.1</code> - Component framework</li>
+<li><code>react-i18next@^15.1.4</code> - Internationalization</li>
+<li><code>lucide-react@^0.469.0</code> - Icons</li>
+<li><code>@heroicons/react@^2.2.0</code> - Tag icon</li>
+</ul>
+<h3 id="internal-utilities">Internal Utilities<a class="headerlink" href="#internal-utilities" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>@/utils/api</code> - API helpers (apiGet, apiPost)</li>
+<li><code>@/utils/genderHelpers</code> - Gender normalization (Point 128)</li>
+<li><code>@/components/UnifiedModal</code> - Base modal component</li>
+<li><code>@/components/GenderBadge</code> - Gender display component</li>
+</ul>
+<hr />
+<h2 id="related-points">Related Points<a class="headerlink" href="#related-points" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Point 122</strong>: Separation of Concerns architecture (followed)</li>
+<li><strong>Point 128</strong>: Gender helpers centralization (used in AddParticipantModal)</li>
+<li><strong>Point 130</strong>: Table column separation (completed before this)</li>
+</ul>
+<hr />
+<h2 id="files-modified">Files Modified<a class="headerlink" href="#files-modified" title="Permanent link">&para;</a></h2>
+<h3 id="created">Created<a class="headerlink" href="#created" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>client/src/pages/EventParticipants/components/AddParticipantModal.tsx</code> (179 lines)</li>
+<li><code>client/src/pages/EventParticipants/components/LabelConfigModal.tsx</code> (264 lines)</li>
+<li><code>client/src/pages/EventParticipants/hooks/useLabelPrinting.ts</code> (157 lines)</li>
+</ol>
+<h3 id="modified">Modified<a class="headerlink" href="#modified" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>client/src/pages/EventParticipants/index.tsx</code></li>
+<li>Added modal state management</li>
+<li>Integrated useLabelPrinting hook</li>
+<li>Wired button handlers to modals</li>
+<li>Added modal components to JSX</li>
+<li>Removed old inline PDF generation function</li>
+<li>
+<p>Removed unused imports</p>
+</li>
+<li>
+<p><code>client/src/pages/EventParticipants/components/index.ts</code></p>
+</li>
+<li>Added: <code>export { AddParticipantModal } from './AddParticipantModal'</code></li>
+<li>
+<p>Added: <code>export { LabelConfigModal } from './LabelConfigModal'</code></p>
+</li>
+<li>
+<p><code>client/src/pages/EventParticipants/hooks/index.ts</code></p>
+</li>
+<li>Added: <code>export { useLabelPrinting } from './useLabelPrinting'</code></li>
+</ol>
+<h3 id="translations">Translations<a class="headerlink" href="#translations" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>client/src/i18n/locales/de.json</code> (already had all required translations)</li>
+<li><code>client/src/i18n/locales/en.json</code> (already had all required translations)</li>
+</ul>
+<hr />
+<h2 id="commit-message">Commit Message<a class="headerlink" href="#commit-message" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Complete Point 131: Modal integration for EventParticipants buttons
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Implemented modal-based workflows for &quot;Add Participant&quot; and &quot;Print Labels&quot;
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>following Point 122 Separation of Concerns architecture.
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>**New Components** (SoC compliant):
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>- AddParticipantModal.tsx (179 lines) - Search/add participants to event
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>- LabelConfigModal.tsx (264 lines) - Configure label layout
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>- useLabelPrinting.ts hook (157 lines) - PDF generation logic
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>**Integration**:
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>- Wired modals into EventParticipants/index.tsx
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>- Added state: showAddModal, showLabelModal
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>- Updated button handlers to open modals
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>- Removed old inline PDF generation function
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>- Fixed lint warning in useLabelPrinting (unused labelsPerPage)
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>**Features**:
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>✅ Add Participant: Search available participants, add to event
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>✅ Print Labels: Configure layout (rows, columns, margins), generate PDF
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>✅ Proper dialog workflows (matches original implementation)
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>✅ Uses centralized gender helpers (Point 128)
+<a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>✅ All strings localized (de.json, en.json)
+<a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>✅ Follows Point 122 SoC guidelines (all files &lt; 400 lines)
+<a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a>
+<a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a>**Build**: Client ✓ 6.09s | PM2 Restart #10
+<a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a>
+<a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a>Files modified:
+<a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a>- client/src/pages/EventParticipants/components/AddParticipantModal.tsx (new)
+<a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a>- client/src/pages/EventParticipants/components/LabelConfigModal.tsx (new)
+<a id="__codelineno-16-31" name="__codelineno-16-31" href="#__codelineno-16-31"></a>- client/src/pages/EventParticipants/hooks/useLabelPrinting.ts (new)
+<a id="__codelineno-16-32" name="__codelineno-16-32" href="#__codelineno-16-32"></a>- client/src/pages/EventParticipants/components/index.ts
+<a id="__codelineno-16-33" name="__codelineno-16-33" href="#__codelineno-16-33"></a>- client/src/pages/EventParticipants/hooks/index.ts
+<a id="__codelineno-16-34" name="__codelineno-16-34" href="#__codelineno-16-34"></a>- client/src/pages/EventParticipants/index.tsx
+</code></pre></div>
+<hr />
+<h2 id="next-steps-testing">Next Steps (Testing)<a class="headerlink" href="#next-steps-testing" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Test Add Participant Workflow</strong>:</li>
+<li>Open EventParticipants page</li>
+<li>Click "Add Participant" button</li>
+<li>Verify modal opens with participant list</li>
+<li>Test search functionality</li>
+<li>
+<p>Add a participant and verify it appears in list</p>
+</li>
+<li>
+<p><strong>Test Label Printing Workflow</strong>:</p>
+</li>
+<li>Click "Print Labels" button</li>
+<li>Verify modal opens with configuration</li>
+<li>Adjust settings (rows, columns, margins)</li>
+<li>Generate PDF and verify layout</li>
+<li>Test with borders on/off</li>
+<li>
+<p>Test multi-page scenarios</p>
+</li>
+<li>
+<p><strong>Verify Existing Functions</strong>:</p>
+</li>
+<li>Test CSV export</li>
+<li>Test PDF list export</li>
+<li>Verify participant editing still works</li>
+<li>Check participant deletion</li>
+</ol>
+<hr />
+<p><strong>Status</strong>: ✅ READY FOR TESTING</p>
+<p>All modal components implemented, integrated, built, and deployed successfully.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../point-114b-date-support/" class="btn btn-neutral float-left" title="Point 114b: Date Support for Start/Warmup Times"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../point-135-start-devices/" class="btn btn-neutral float-right" title="Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../point-114b-date-support/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../point-135-start-devices/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

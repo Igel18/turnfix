@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/getting-started/installation/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>🎯 TurnFix - Schnellstart für Anwender - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83c\udfaf TurnFix - Schnellstart f\u00fcr Anwender";
+        var mkdocs_page_input_path = "getting-started\\installation.md";
+        var mkdocs_page_url = "/getting-started/installation/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developer-guide/">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Architecture</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/architecture/live-updates/">Live-Update UI-Element - Dokumentation</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">🎯 TurnFix - Schnellstart für Anwender</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#einfachste-bedienung-nur-doppelklick">⚡ Einfachste Bedienung - Nur Doppelklick!</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#schritt-1-turnfix-manager-starten">Schritt 1: TurnFix Manager starten</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#was-das-menu-kann">📋 Was das Menü kann:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#typische-arbeitsablaufe">🚀 Typische Arbeitsabläufe</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#wettkampftag-vorbereitung">Wettkampftag - Vorbereitung</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#wahrend-des-wettkampfs">Während des Wettkampfs</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nach-dem-wettkampf">Nach dem Wettkampf</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#zugriff-von-anderen-geraten-tabletshandys">🌐 Zugriff von anderen Geräten (Tablets/Handys)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#so-finden-sie-die-netzwerk-adresse">So finden Sie die Netzwerk-Adresse:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#auf-dem-tablethandy">Auf dem Tablet/Handy:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#erweiterte-optionen">🔧 Erweiterte Optionen</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#haufige-probleme-losungen">❓ Häufige Probleme &amp; Lösungen</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-keine-server-gestartet">Problem: "Keine Server gestartet"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-build-dateien-nicht-gefunden">Problem: "Build-Dateien nicht gefunden"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-webseite-ladt-nicht">Problem: "Webseite lädt nicht"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-tablet-kann-nicht-verbinden">Problem: "Tablet kann nicht verbinden"</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#problem-server-startet-nicht">Problem: "Server startet nicht"</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#was-bedeuten-die-anzeigen">📊 Was bedeuten die Anzeigen?</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#server-status">Server Status</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#laufzeit">Laufzeit</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#speicher">Speicher</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#neustarts">Neustarts</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tipps-fur-anfanger">🎓 Tipps für Anfänger</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#weitere-hilfe">📞 Weitere Hilfe</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tastenkurzel-im-manager">⌨️ Tastenkürzel im Manager</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting started</li>
+      <li class="breadcrumb-item active">🎯 TurnFix - Schnellstart für Anwender</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/getting-started/installation.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="turnfix-schnellstart-fur-anwender">🎯 TurnFix - Schnellstart für Anwender<a class="headerlink" href="#turnfix-schnellstart-fur-anwender" title="Permanent link">&para;</a></h1>
+<h2 id="einfachste-bedienung-nur-doppelklick">⚡ Einfachste Bedienung - Nur Doppelklick!<a class="headerlink" href="#einfachste-bedienung-nur-doppelklick" title="Permanent link">&para;</a></h2>
+<h3 id="schritt-1-turnfix-manager-starten"><strong>Schritt 1: TurnFix Manager starten</strong><a class="headerlink" href="#schritt-1-turnfix-manager-starten" title="Permanent link">&para;</a></h3>
+<p>📁 <strong>Doppelklick auf:</strong> <code>TurnFix-Manager.bat</code></p>
+<p>Das war's! Ein benutzerfreundliches Menü öffnet sich.</p>
+<hr />
+<h2 id="was-das-menu-kann">📋 Was das Menü kann:<a class="headerlink" href="#was-das-menu-kann" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>╔════════════════════════════════════════════════════════════╗
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>║                    TurnFix Manager                         ║
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>║          Turnwettkampf Verwaltungssystem v2.0             ║
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>╚════════════════════════════════════════════════════════════╝
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Status wird geprüft...
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>┌─────────────────────────────────────────────────────┐
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│             TurnFix Server Status                   │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├─────────────────────────────────────────────────────┤
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│ Haupt-Server:     ✓ LÄUFT                          │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   Adresse:        http://localhost:3001            │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   Laufzeit:       45.3 Minuten                     │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   Speicher:       114.5 MB                         │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   Neustarts:      2                                │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│                                                     │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│ Kampfrichter:     ✓ LÄUFT                          │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   Adresse:        http://localhost:3002            │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   Laufzeit:       45.2 Minuten                     │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   Speicher:       53.8 MB                          │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   Neustarts:      1                                │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>└─────────────────────────────────────────────────────┘
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>┌─────────────────────────────────────────────────────┐
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│                   Hauptmenü                         │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>├─────────────────────────────────────────────────────┤
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│                                                     │
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  [1] ▶  TurnFix STARTEN                            │
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│  [2] ■  TurnFix STOPPEN                            │
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│  [3] ↻  TurnFix NEU STARTEN                        │
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│                                                     │
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│  [4] 📊 Status anzeigen                             │
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│  [5] 📋 Live-Logs anzeigen                          │
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│  [6] 💻 System-Monitor öffnen                       │
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│                                                     │
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│  [7] 🌐 Webseiten öffnen                            │
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│  [8] 🔧 Erweiterte Optionen                         │
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│                                                     │
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│  [0] ✖  BEENDEN                                     │
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│                                                     │
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>└─────────────────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="typische-arbeitsablaufe">🚀 Typische Arbeitsabläufe<a class="headerlink" href="#typische-arbeitsablaufe" title="Permanent link">&para;</a></h2>
+<h3 id="wettkampftag-vorbereitung"><strong>Wettkampftag - Vorbereitung</strong><a class="headerlink" href="#wettkampftag-vorbereitung" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Doppelklick</strong> auf <code>TurnFix-Manager.bat</code></li>
+<li><strong>Drücke [1]</strong> - "TurnFix STARTEN"</li>
+<li>Warte 10-15 Sekunden</li>
+<li><strong>Drücke [7]</strong> - "Webseiten öffnen"</li>
+<li>✓ TurnFix läuft!</li>
+</ol>
+<h3 id="wahrend-des-wettkampfs"><strong>Während des Wettkampfs</strong><a class="headerlink" href="#wahrend-des-wettkampfs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Status prüfen</strong>: Drücke [4]</li>
+<li><strong>Probleme?</strong> Drücke [3] für Neustart</li>
+<li><strong>Logs ansehen</strong>: Drücke [5]</li>
+</ul>
+<h3 id="nach-dem-wettkampf"><strong>Nach dem Wettkampf</strong><a class="headerlink" href="#nach-dem-wettkampf" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Doppelklick</strong> auf <code>TurnFix-Manager.bat</code></li>
+<li><strong>Drücke [2]</strong> - "TurnFix STOPPEN"</li>
+<li>Fertig!</li>
+</ol>
+<hr />
+<h2 id="zugriff-von-anderen-geraten-tabletshandys">🌐 Zugriff von anderen Geräten (Tablets/Handys)<a class="headerlink" href="#zugriff-von-anderen-geraten-tabletshandys" title="Permanent link">&para;</a></h2>
+<h3 id="so-finden-sie-die-netzwerk-adresse"><strong>So finden Sie die Netzwerk-Adresse:</strong><a class="headerlink" href="#so-finden-sie-die-netzwerk-adresse" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Doppelklick</strong> auf <code>TurnFix-Manager.bat</code></li>
+<li><strong>Drücke [8]</strong> - "Erweiterte Optionen"</li>
+<li><strong>Drücke [4]</strong> - "Netzwerk-IP anzeigen"</li>
+</ol>
+<p>Beispiel-Ausgabe:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Netzwerk-Informationen:
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  Ihre IP-Adresse: 192.168.1.105
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  Zugriff vom Tablet/Handy:
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    Verwaltung:    http://192.168.1.105:3001
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    Kampfrichter:  http://192.168.1.105:3002
+</code></pre></div></p>
+<h3 id="auf-dem-tablethandy"><strong>Auf dem Tablet/Handy:</strong><a class="headerlink" href="#auf-dem-tablethandy" title="Permanent link">&para;</a></h3>
+<p>📱 Öffne Browser und gebe ein: <code>http://192.168.1.105:3002</code>
+(Ersetze die IP mit deiner eigenen!)</p>
+<hr />
+<h2 id="erweiterte-optionen">🔧 Erweiterte Optionen<a class="headerlink" href="#erweiterte-optionen" title="Permanent link">&para;</a></h2>
+<p>Im Menü <strong>[8] Erweiterte Optionen</strong> findest du:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Beschreibung</th>
+<th>Wann nutzen?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>[1] Logs löschen</strong></td>
+<td>Entfernt alte Log-Dateien</td>
+<td>Wenn Festplatte voll wird</td>
+</tr>
+<tr>
+<td><strong>[2] PM2 neu starten</strong></td>
+<td>Komplett-Neustart</td>
+<td>Bei schweren Problemen</td>
+</tr>
+<tr>
+<td><strong>[3] Build neu erstellen</strong></td>
+<td>Software neu kompilieren</td>
+<td>Nach Updates</td>
+</tr>
+<tr>
+<td><strong>[4] Netzwerk-IP</strong></td>
+<td>Zeigt deine IP-Adresse</td>
+<td>Für Tablet-Zugriff</td>
+</tr>
+<tr>
+<td><strong>[5] Datenbank prüfen</strong></td>
+<td>Testet DB-Verbindung</td>
+<td>Bei Verbindungsproblemen</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="haufige-probleme-losungen">❓ Häufige Probleme &amp; Lösungen<a class="headerlink" href="#haufige-probleme-losungen" title="Permanent link">&para;</a></h2>
+<h3 id="problem-keine-server-gestartet"><strong>Problem: "Keine Server gestartet"</strong><a class="headerlink" href="#problem-keine-server-gestartet" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Lösung</strong>: Drücke [1] zum Starten</p>
+<h3 id="problem-build-dateien-nicht-gefunden"><strong>Problem: "Build-Dateien nicht gefunden"</strong><a class="headerlink" href="#problem-build-dateien-nicht-gefunden" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Lösung</strong>: 
+1. Drücke [8] (Erweiterte Optionen)
+2. Drücke [3] (Build neu erstellen)
+3. Drücke [0] (Zurück)
+4. Drücke [1] (Starten)</p>
+<h3 id="problem-webseite-ladt-nicht"><strong>Problem: "Webseite lädt nicht"</strong><a class="headerlink" href="#problem-webseite-ladt-nicht" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Lösung</strong>: 
+1. Drücke [4] - Status prüfen
+2. Wenn gestoppt: Drücke [1] zum Starten
+3. Wenn läuft: Drücke [3] zum Neustart</p>
+<h3 id="problem-tablet-kann-nicht-verbinden"><strong>Problem: "Tablet kann nicht verbinden"</strong><a class="headerlink" href="#problem-tablet-kann-nicht-verbinden" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Lösung</strong>:
+1. Drücke [8] → [4] für Netzwerk-IP
+2. Prüfe ob Tablet im gleichen WLAN ist
+3. Windows Firewall prüfen:
+   - Windows-Taste → "Firewall"
+   - "App durch Firewall zulassen"
+   - "Node.js" muss erlaubt sein</p>
+<h3 id="problem-server-startet-nicht"><strong>Problem: "Server startet nicht"</strong><a class="headerlink" href="#problem-server-startet-nicht" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Lösung</strong>:
+1. Drücke [8] → [5] (Datenbank prüfen)
+2. Prüfe ob PostgreSQL läuft:
+   - Windows-Taste → "Dienste"
+   - Suche "PostgreSQL"
+   - Muss "Wird ausgeführt" sein
+3. Falls nicht: Rechtsklick → "Starten"</p>
+<hr />
+<h2 id="was-bedeuten-die-anzeigen">📊 Was bedeuten die Anzeigen?<a class="headerlink" href="#was-bedeuten-die-anzeigen" title="Permanent link">&para;</a></h2>
+<h3 id="server-status"><strong>Server Status</strong><a class="headerlink" href="#server-status" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>✓ LÄUFT    = Server funktioniert normal
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>✗ GESTOPPT = Server ist aus (mit [1] starten)
+</code></pre></div>
+<h3 id="laufzeit"><strong>Laufzeit</strong><a class="headerlink" href="#laufzeit" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Zeigt wie lange der Server schon läuft</li>
+<li>Bei Neustart geht auf 0 zurück</li>
+</ul>
+<h3 id="speicher"><strong>Speicher</strong><a class="headerlink" href="#speicher" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Zeigt RAM-Nutzung in MB</li>
+<li>Normal: 50-150 MB</li>
+<li>Bei &gt;400 MB: Automatischer Neustart</li>
+</ul>
+<h3 id="neustarts"><strong>Neustarts</strong><a class="headerlink" href="#neustarts" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Zählt wie oft Server neu gestartet wurde</li>
+<li>0-5 = Normal</li>
+<li>
+<blockquote>
+<p>10 = Eventuell Problem (Logs prüfen mit [5])</p>
+</blockquote>
+</li>
+</ul>
+<hr />
+<h2 id="tipps-fur-anfanger">🎓 Tipps für Anfänger<a class="headerlink" href="#tipps-fur-anfanger" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Vor dem Wettkampf</strong>: </li>
+<li>Starte TurnFix 30 Min vorher</li>
+<li>Teste alle Tablets/Geräte</li>
+<li>
+<p>Mache Backup der Datenbank</p>
+</li>
+<li>
+<p><strong>Während des Wettkampfs</strong>:</p>
+</li>
+<li>Lass TurnFix-Manager geöffnet</li>
+<li>Prüfe Status alle 30 Min mit [4]</li>
+<li>
+<p>Nicht während laufender Eingaben neu starten!</p>
+</li>
+<li>
+<p><strong>Nach dem Wettkampf</strong>:</p>
+</li>
+<li>Exportiere Ergebnisse zuerst</li>
+<li>Dann mit [2] stoppen</li>
+<li>Backup nicht vergessen!</li>
+</ol>
+<hr />
+<h2 id="weitere-hilfe">📞 Weitere Hilfe<a class="headerlink" href="#weitere-hilfe" title="Permanent link">&para;</a></h2>
+<ul>
+<li>📖 <strong>Vollständige Doku</strong>: <code>README.md</code></li>
+<li>🚀 <strong>Setup-Guide</strong>: <code>setup/windows/SETUP-GUIDE-DE.md</code></li>
+<li>🔧 <strong>Deployment</strong>: <code>newWebBased/DEPLOYMENT.md</code></li>
+<li>🐛 <strong>Probleme melden</strong>: <a href="https://github.com/Igel18/turnfix/issues">GitHub Issues</a></li>
+</ul>
+<hr />
+<h2 id="tastenkurzel-im-manager">⌨️ Tastenkürzel im Manager<a class="headerlink" href="#tastenkurzel-im-manager" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Taste</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td>Starten</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Stoppen</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Neustart</td>
+</tr>
+<tr>
+<td><strong>7</strong></td>
+<td>Browser öffnen</td>
+</tr>
+<tr>
+<td><strong>0</strong></td>
+<td>Beenden</td>
+</tr>
+</tbody>
+</table>
+<p>Einfach Zahl drücken + Enter!</p>
+<hr />
+<p><strong>✨ Viel Erfolg mit TurnFix! ✨</strong></p>
+<p><em>Bei Fragen: Drücke im Menü [5] für Live-Logs oder [6] für System-Monitor</em></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../" class="btn btn-neutral float-left" title="Erste Schritte mit TurnFix v2.0"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../quickstart/" class="btn btn-neutral float-right" title="Getting Started with TurnFix">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../quickstart/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

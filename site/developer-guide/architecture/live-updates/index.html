@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="TurnFix Team" /><link rel="canonical" href="https://turnfix.readthedocs.io/developer-guide/architecture/live-updates/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Live-Update UI-Element - Dokumentation - TurnFix Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Live-Update UI-Element - Dokumentation";
+        var mkdocs_page_input_path = "developer-guide\\architecture\\live-updates.md";
+        var mkdocs_page_url = "/developer-guide/architecture/live-updates/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> TurnFix Documentation
+        </a>
+        <div class="version">
+          {'provider': 'mike'}
+        </div><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">TurnFix v2.0 - Webbasierte Wettkampfverwaltung</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../DOCS-STRUCTURE/">GitBook-Konfiguration für TurnFix v2.0 Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../MIGRATION-STATUS/">📚 TurnFix v2.0 - GitBook Dokumentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../REORGANIZATION-COMPLETE/">📚 TurnFix Dokumentations-Reorganisation - Abschlussbericht</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../SUMMARY/">Summary</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Deployment</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/admin-rights/">Admin Rights Detection for Firewall Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-gui/">Firewall Management GUI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall-platform/">Firewall Management - Platform Information Enhancement</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/firewall/">Firewall Setup für Jury Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/frontend-serving/">✅ IMPLEMENTIERT: Frontend vom Backend servieren</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/jury-portal-access/">🏆 TurnFix Jury Portal - Competition Day Access</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network-fixes/">Network Access Fixes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/network/">🌐 TurnFix Network Configuration Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../deployment/production/">🚀 TurnFix Production Deployment Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Troubleshooting</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/hard-refresh/">Hard Refresh Notwendig! 🔄</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../deployment/troubleshooting/node-modules-fix/">Node_modules Korruption beheben</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../">Entwicklerhandbuch</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Architecture</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../field-mapping/">Dynamisches Feld-Mapping für Formeln</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../gender-helpers/">Gender Helpers Centralization - Point 128</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../groups-teams/">Analyse: Gruppen und Mannschaftswettkämpfe</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-comparison/">Jury Portal Comparison &amp; Consolidation Analysis</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../jury-portal/">Jury Portal - Simplified Competition Day Interface</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Live-Update UI-Element - Dokumentation</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#ubersicht">Übersicht</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementierte-seiten-mit-live-updates">Implementierte Seiten mit Live-Updates</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#1-livescoreupdates-score-wertungen">1. LiveScoreUpdates (Score-Wertungen)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#2-competitionstatusmanagement-wettkampf-status">2. CompetitionStatusManagement (Wettkampf-Status)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#3-squadstatusmanagement-riegen-status">3. SquadStatusManagement (Riegen-Status)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#4-results-wettkampfergebnisse">4. Results (Wettkampfergebnisse)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#5-scorecapture-wertungserfassung">5. ScoreCapture (Wertungserfassung)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#liveupdateindicator-component">LiveUpdateIndicator Component</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#import">Import</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#basis-verwendung">Basis-Verwendung</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#props">Props</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#beispiel-implementierungen">Beispiel-Implementierungen</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#wo-sollte-der-indikator-hinzugefugt-werden">Wo sollte der Indikator hinzugefügt werden?</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#empfohlene-seiten-fur-live-update-indikator">Empfohlene Seiten für Live-Update Indikator:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#implementierungs-beispiel-fur-competitionstatusmanagement">Implementierungs-Beispiel für CompetitionStatusManagement</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#lokalisierung">Lokalisierung</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#styling-details">Styling-Details</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#farben">Farben</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#groen">Größen</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#animation">Animation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nachste-schritte">Nächste Schritte</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#verwandte-dateien">Verwandte Dateien</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Best practices</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/database/">Prisma Connection Pool Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/templates/">Template Unification: EventManagementTemplate with View Persistence</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../best-practices/typescript/">TypeScript Build Fixes</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Features</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/api-route-fixes/">API Route Mismatches Analysis &amp; Fixes</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/configuration-localization/">Configuration Page Lokalisierung - Status</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/default-views/">Point 40: Default Table-View Verification</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-icons/">Discipline Icons Implementation - Point 18</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/discipline-validation-fix/">Fix: "Mindestens eine Disziplin muss ausgewählt werden" beim ersten Öffnen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/events-localization/">Point 49 - Events Page Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gender-unification/">Point 30: Gender Unification Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-hotfix/">Point 38 - HOTFIX: Age Conversion Logic Korrektur</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-import/">Point 38 Implementation Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/gymnet-localization/">Point 47 - GymNet Import Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/header-unification/">Point 51: UnifiedHeader und UnifiedPageHeader Zusammenführung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-icons/">Point 46 - Jury Portal Icons Fix</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-production/">Point 46 - Production Build Solution</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/jury-scores/">Jury Scores Feature Implementation</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/management-localization/">Management Center - Vollständige Lokalisierung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/participants-localization/">Participants localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/pdf-system/">Point 34: PDF-Export Vereinheitlichung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-114b-date-support/">Point 114b: Date Support for Start/Warmup Times</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-131-modal/">Point 131: Modal Integration for EventParticipants Buttons</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/point-135-start-devices/">Point 135: Startgeräte-Verwaltung &amp; Gantt-Verbesserungen</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/setup-automation/">Point 11: Setup-Automatisierung - Implementierungs-Zusammenfassung</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/start-numbers-fix/">Fix: Lokalisierung für "Generate Start Numbers" Button</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-localization/">Point 31: Table Text Localization</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-scrolling/">Point 32: Horizontal Scrolling in Tables - Usability Improvement</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../features/table-sorting/">Point 33: Sortable Table Headers Implementation Guide</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Testing</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/gymnet-test-cases/">Point 38: GymNet Import Age Groups - Test Cases</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/setup/">Testing Infrastructure Setup Summary</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../testing/strategy/">TurnFix UI Testing Suite</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/">Erste Schritte mit TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/installation/">🎯 TurnFix - Schnellstart für Anwender</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../getting-started/quickstart/">Getting Started with TurnFix</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/changelog/">Priority Fixes Log - TurnFix v2.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/project-readme/">TurnFix - Gymnastics Competition Management System</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/scripts/">TurnFix Development Scripts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../reference/update-v2/">🎉 TurnFix v2.0 - Production-Modus Update</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/certificate-creation/">Urkunden erstellen &amp; Drucken</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/event-competition-management/">Wettkämpfe erstellen und verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/participant-management/">Teilnehmer verwalten</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/score-capture/">Wertungserfassung &amp; Kampfrichter-Portal</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/time-planning/">Zeitplanung für Wettkämpfe</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../user-guide/ui-overview/">TurnFix v2.0 - UI Screenshots &amp; Feature-Übersicht</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TurnFix Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Developer guide</li>
+          <li class="breadcrumb-item">Architecture</li>
+      <li class="breadcrumb-item active">Live-Update UI-Element - Dokumentation</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Igel18/turnfix/edit/WebInterface/documentation/newwebbased/developer-guide/architecture/live-updates.md">Edit on Igel18/turnfix</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="live-update-ui-element-dokumentation">Live-Update UI-Element - Dokumentation<a class="headerlink" href="#live-update-ui-element-dokumentation" title="Permanent link">&para;</a></h1>
+<h2 id="ubersicht">Übersicht<a class="headerlink" href="#ubersicht" title="Permanent link">&para;</a></h2>
+<p>Das <code>LiveUpdateIndicator</code> Component ist ein wiederverwendbares UI-Element, das anzeigt, wenn eine Seite oder Komponente aktive Live-Updates über Socket.IO hat. Es zeigt einen grünen pulsierenden Punkt mit optionalem Label.</p>
+<h2 id="implementierte-seiten-mit-live-updates">Implementierte Seiten mit Live-Updates<a class="headerlink" href="#implementierte-seiten-mit-live-updates" title="Permanent link">&para;</a></h2>
+<h3 id="1-livescoreupdates-score-wertungen">1. <strong>LiveScoreUpdates</strong> (Score-Wertungen)<a class="headerlink" href="#1-livescoreupdates-score-wertungen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Datei</strong>: <code>client/src/components/LiveScoreUpdates.tsx</code></li>
+<li><strong>Verwendung</strong>: Zeigt Live-Wertungen in Echtzeit</li>
+<li><strong>Socket Events</strong>: </li>
+<li><code>score-updated</code> - Neue Wertung eingegangen</li>
+<li><code>join-competition</code> / <code>leave-competition</code> - Raum betreten/verlassen</li>
+<li><strong>Live-Indikator</strong>: ✅ Bereits integriert (Zeile 123)</li>
+</ul>
+<h3 id="2-competitionstatusmanagement-wettkampf-status">2. <strong>CompetitionStatusManagement</strong> (Wettkampf-Status)<a class="headerlink" href="#2-competitionstatusmanagement-wettkampf-status" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Datei</strong>: <code>client/src/pages/CompetitionStatusManagement.tsx</code></li>
+<li><strong>Verwendung</strong>: Echtzeit-Updates für Wettkampfstatus</li>
+<li><strong>Socket Events</strong>:</li>
+<li><code>competition-status-updated</code> - Wettkampfstatus geändert</li>
+<li><code>squad-status-updated</code> - Riegen-Status geändert</li>
+<li><strong>Live-Indikator</strong>: ✅ Implementiert (customActions)</li>
+</ul>
+<h3 id="3-squadstatusmanagement-riegen-status">3. <strong>SquadStatusManagement</strong> (Riegen-Status)<a class="headerlink" href="#3-squadstatusmanagement-riegen-status" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Datei</strong>: <code>client/src/pages/SquadStatusManagement.tsx</code></li>
+<li><strong>Verwendung</strong>: Echtzeit-Updates für Riegen-Status</li>
+<li><strong>Socket Events</strong>:</li>
+<li><code>squad-status-updated</code> - Riegen-Status geändert</li>
+<li><code>competition-status-updated</code> - Wettkampfstatus geändert</li>
+<li><strong>Live-Indikator</strong>: ✅ Implementiert (customActions)</li>
+</ul>
+<h3 id="4-results-wettkampfergebnisse">4. <strong>Results</strong> (Wettkampfergebnisse)<a class="headerlink" href="#4-results-wettkampfergebnisse" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Datei</strong>: <code>client/src/pages/Results.tsx</code></li>
+<li><strong>Verwendung</strong>: Echtzeit-Updates für Ergebnisse</li>
+<li><strong>Socket Events</strong>:</li>
+<li><code>results-updated</code> - Ergebnisse aktualisiert</li>
+<li><code>score-updated</code> - Neue Wertung eingegangen</li>
+<li><strong>Live-Indikator</strong>: ✅ Implementiert (customActions)</li>
+</ul>
+<h3 id="5-scorecapture-wertungserfassung">5. <strong>ScoreCapture</strong> (Wertungserfassung)<a class="headerlink" href="#5-scorecapture-wertungserfassung" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Datei</strong>: <code>client/src/pages/ScoreCapture.tsx</code></li>
+<li><strong>Verwendung</strong>: Echtzeit-Updates für Wertungen von anderen Jury-Mitgliedern</li>
+<li><strong>Socket Events</strong>:</li>
+<li><code>score-updated</code> - Neue Wertung eingegangen</li>
+<li><strong>Live-Indikator</strong>: ✅ Implementiert (customActions)</li>
+</ul>
+<h2 id="liveupdateindicator-component">LiveUpdateIndicator Component<a class="headerlink" href="#liveupdateindicator-component" title="Permanent link">&para;</a></h2>
+<h3 id="import">Import<a class="headerlink" href="#import" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="nx">LiveUpdateIndicator</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/components/LiveUpdateIndicator&#39;</span>
+</code></pre></div>
+<h3 id="basis-verwendung">Basis-Verwendung<a class="headerlink" href="#basis-verwendung" title="Permanent link">&para;</a></h3>
+<h4 id="einfachster-fall-nur-gruner-punkt-live">Einfachster Fall (nur grüner Punkt + "Live")<a class="headerlink" href="#einfachster-fall-nur-gruner-punkt-live" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h4 id="mit-eigenem-label">Mit eigenem Label<a class="headerlink" href="#mit-eigenem-label" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">label</span><span class="o">=</span><span class="s">&quot;Live Scores&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h4 id="verschiedene-groen">Verschiedene Größen<a class="headerlink" href="#verschiedene-groen" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="cm">/* Klein */</span><span class="p">}</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">size</span><span class="o">=</span><span class="s">&quot;sm&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">{</span><span class="cm">/* Mittel (Standard) */</span><span class="p">}</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">size</span><span class="o">=</span><span class="s">&quot;md&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">{</span><span class="cm">/* Groß */</span><span class="p">}</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">size</span><span class="o">=</span><span class="s">&quot;lg&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h4 id="deaktivierter-status-grau-kein-puls">Deaktivierter Status (grau, kein Puls)<a class="headerlink" href="#deaktivierter-status-grau-kein-puls" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">isActive</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h4 id="nur-punkt-kein-label">Nur Punkt, kein Label<a class="headerlink" href="#nur-punkt-kein-label" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">showLabel</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span>
+</code></pre></div>
+<h3 id="props">Props<a class="headerlink" href="#props" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Typ</th>
+<th>Standard</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isActive</code></td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Ob Live-Updates aktiv sind (grün + Puls) oder nicht (grau)</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td>-</td>
+<td>Benutzerdefiniertes Label (überschreibt Standard "Live")</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code>'sm' \| 'md' \| 'lg'</code></td>
+<td><code>'md'</code></td>
+<td>Größe des Indikators</td>
+</tr>
+<tr>
+<td><code>className</code></td>
+<td><code>string</code></td>
+<td><code>''</code></td>
+<td>Zusätzliche CSS-Klassen</td>
+</tr>
+<tr>
+<td><code>showLabel</code></td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Ob "Live" Label angezeigt werden soll</td>
+</tr>
+</tbody>
+</table>
+<h3 id="beispiel-implementierungen">Beispiel-Implementierungen<a class="headerlink" href="#beispiel-implementierungen" title="Permanent link">&para;</a></h3>
+<h4 id="in-einem-header">In einem Header<a class="headerlink" href="#in-einem-header" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;flex items-center justify-between&quot;</span><span class="p">&gt;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span><span class="nx">Wettkampfergebnisse</span><span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="p">/&gt;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div>
+<h4 id="mit-socketio-state">Mit Socket.IO State<a class="headerlink" href="#mit-socketio-state" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">isConnected</span><span class="p">,</span><span class="w"> </span><span class="nx">setIsConnected</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getSocket</span><span class="p">()</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nx">socket</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;connect&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setIsConnected</span><span class="p">(</span><span class="kc">true</span><span class="p">))</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nx">socket</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;disconnect&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setIsConnected</span><span class="p">(</span><span class="kc">false</span><span class="p">))</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nx">socket</span><span class="p">.</span><span class="nx">off</span><span class="p">(</span><span class="s1">&#39;connect&#39;</span><span class="p">)</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="nx">socket</span><span class="p">.</span><span class="nx">off</span><span class="p">(</span><span class="s1">&#39;disconnect&#39;</span><span class="p">)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">      </span><span class="na">isActive</span><span class="o">=</span><span class="p">{</span><span class="nx">isConnected</span><span class="p">}</span><span class="w"> </span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">      </span><span class="na">label</span><span class="o">=</span><span class="p">{</span><span class="nx">isConnected</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s2">&quot;Live Updates&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Offline&quot;</span><span class="p">}</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="p">/&gt;</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">  </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="p">)</span>
+</code></pre></div>
+<h4 id="in-eventmanagementtemplate-header">In EventManagementTemplate Header<a class="headerlink" href="#in-eventmanagementtemplate-header" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">&lt;</span><span class="nt">EventManagementTemplate</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="na">title</span><span class="o">=</span><span class="s">&quot;Score Capture&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="na">customActions</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">label</span><span class="o">=</span><span class="s">&quot;Live Scores&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">&gt;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p">{</span><span class="cm">/* Content */</span><span class="p">}</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">&lt;/</span><span class="nt">EventManagementTemplate</span><span class="p">&gt;</span>
+</code></pre></div>
+<h2 id="wo-sollte-der-indikator-hinzugefugt-werden">Wo sollte der Indikator hinzugefügt werden?<a class="headerlink" href="#wo-sollte-der-indikator-hinzugefugt-werden" title="Permanent link">&para;</a></h2>
+<h3 id="empfohlene-seiten-fur-live-update-indikator">Empfohlene Seiten für Live-Update Indikator:<a class="headerlink" href="#empfohlene-seiten-fur-live-update-indikator" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>✅ LiveScoreUpdates</strong> - Bereits implementiert</li>
+<li><strong>⚠️ CompetitionStatusManagement</strong> - Socket.IO aktiv, aber kein visueller Indikator</li>
+<li><strong>⚠️ SquadStatusManagement</strong> - Könnte von Live-Updates profitieren</li>
+<li><strong>⚠️ ScoreCapture</strong> - Wenn andere Jury-Mitglieder Wertungen eingeben</li>
+<li><strong>⚠️ Results</strong> - Echtzeit-Aktualisierung wenn neue Ergebnisse berechnet werden</li>
+</ol>
+<h3 id="implementierungs-beispiel-fur-competitionstatusmanagement">Implementierungs-Beispiel für CompetitionStatusManagement<a class="headerlink" href="#implementierungs-beispiel-fur-competitionstatusmanagement" title="Permanent link">&para;</a></h3>
+<p><strong>Vorher:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">&lt;</span><span class="nt">EventManagementTemplate</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="na">title</span><span class="o">=</span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;competitionStatus.title&#39;</span><span class="p">)}</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="na">subtitle</span><span class="o">=</span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;competitionStatus.subtitle&#39;</span><span class="p">)}</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="na">icon</span><span class="o">=</span><span class="p">{</span><span class="nx">TrophyIcon</span><span class="p">}</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">&gt;</span>
+</code></pre></div></p>
+<p><strong>Nachher:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">&lt;</span><span class="nt">EventManagementTemplate</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="na">title</span><span class="o">=</span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;competitionStatus.title&#39;</span><span class="p">)}</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="na">subtitle</span><span class="o">=</span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;competitionStatus.subtitle&#39;</span><span class="p">)}</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="na">icon</span><span class="o">=</span><span class="p">{</span><span class="nx">TrophyIcon</span><span class="p">}</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="na">customActions</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="p">&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">      </span><span class="na">label</span><span class="o">=</span><span class="p">{</span><span class="nx">t</span><span class="p">(</span><span class="s1">&#39;common.liveUpdates&#39;</span><span class="p">)}</span><span class="w"> </span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="p">/&gt;</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="p">&gt;</span>
+</code></pre></div></p>
+<h2 id="lokalisierung">Lokalisierung<a class="headerlink" href="#lokalisierung" title="Permanent link">&para;</a></h2>
+<p>Füge folgende Keys zu <code>de.json</code> und <code>en.json</code> hinzu:</p>
+<p><strong>de.json:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">&quot;common&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">&quot;live&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Live&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">&quot;liveUpdates&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Live-Updates&quot;</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>en.json:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">&quot;common&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">&quot;live&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Live&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nt">&quot;liveUpdates&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Live Updates&quot;</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<h2 id="styling-details">Styling-Details<a class="headerlink" href="#styling-details" title="Permanent link">&para;</a></h2>
+<h3 id="farben">Farben<a class="headerlink" href="#farben" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Aktiv</strong>: <code>bg-green-400</code> (grün, pulsierend)</li>
+<li><strong>Inaktiv</strong>: <code>bg-gray-400</code> (grau, statisch)</li>
+</ul>
+<h3 id="groen">Größen<a class="headerlink" href="#groen" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Small</strong>: 1.5 x 1.5 (6px), Text: text-xs</li>
+<li><strong>Medium</strong>: 2 x 2 (8px), Text: text-sm</li>
+<li><strong>Large</strong>: 3 x 3 (12px), Text: text-base</li>
+</ul>
+<h3 id="animation">Animation<a class="headerlink" href="#animation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tailwind CSS: <code>animate-pulse</code> (nur wenn <code>isActive={true}</code>)</li>
+</ul>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Platzierung</strong>: Rechts oben im Header oder neben dem Titel</li>
+<li><strong>Größe</strong>: Verwende <code>size="md"</code> für Header, <code>size="sm"</code> für Inline-Text</li>
+<li><strong>State Management</strong>: Verbinde <code>isActive</code> mit tatsächlichem Socket-Verbindungsstatus</li>
+<li><strong>Accessibility</strong>: Label macht Status für Screen-Reader verfügbar</li>
+<li><strong>Konsistenz</strong>: Verwende gleiche Props auf ähnlichen Seiten</li>
+</ol>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">render</span><span class="p">,</span><span class="w"> </span><span class="nx">screen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@testing-library/react&#39;</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">import</span><span class="w"> </span><span class="nx">LiveUpdateIndicator</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@/components/LiveUpdateIndicator&#39;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;shows green pulsing dot when active&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="nx">render</span><span class="p">(&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="p">/&gt;)</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">indicator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">screen</span><span class="p">.</span><span class="nx">getByText</span><span class="p">(</span><span class="s1">&#39;Live&#39;</span><span class="p">)</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="nx">expect</span><span class="p">(</span><span class="nx">indicator</span><span class="p">).</span><span class="nx">toBeInTheDocument</span><span class="p">()</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="p">})</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="nx">test</span><span class="p">(</span><span class="s1">&#39;shows gray static dot when inactive&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">  </span><span class="nx">render</span><span class="p">(&lt;</span><span class="nt">LiveUpdateIndicator</span><span class="w"> </span><span class="na">isActive</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;)</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">  </span><span class="c1">// Check for gray color class</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="p">})</span>
+</code></pre></div>
+<h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
+<ol>
+<li>✅ Component erstellt: <code>LiveUpdateIndicator.tsx</code></li>
+<li>✅ Dokumentation erstellt: <code>LIVE_UPDATE_INDICATOR.md</code></li>
+<li>✅ Lokalisierung hinzugefügt (de.json, en.json)</li>
+<li>✅ In CompetitionStatusManagement integriert</li>
+<li>✅ In SquadStatusManagement integriert</li>
+<li>✅ In Results integriert</li>
+<li>✅ In ScoreCapture integriert</li>
+<li>⏳ Tests schreiben</li>
+</ol>
+<h2 id="verwandte-dateien">Verwandte Dateien<a class="headerlink" href="#verwandte-dateien" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>client/src/components/LiveUpdateIndicator.tsx</code> - Component</li>
+<li><code>client/src/components/LiveScoreUpdates.tsx</code> - Verwendungsbeispiel</li>
+<li><code>client/src/pages/CompetitionStatusManagement.tsx</code> - Socket.IO Integration ✅</li>
+<li><code>client/src/pages/SquadStatusManagement.tsx</code> - Socket.IO Integration ✅</li>
+<li><code>client/src/pages/Results.tsx</code> - Socket.IO Integration ✅</li>
+<li><code>client/src/pages/ScoreCapture.tsx</code> - Socket.IO Integration ✅</li>
+<li><code>client/src/utils/socket.ts</code> - Socket.IO Utility</li>
+<li><code>newWebBased/LIVE_UPDATE_INDICATOR.md</code> - Diese Dokumentation</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../jury-portal/" class="btn btn-neutral float-left" title="Jury Portal - Simplified Competition Day Interface"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../best-practices/database/" class="btn btn-neutral float-right" title="Prisma Connection Pool Fix">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024-2025 TurnFix Team</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Igel18/turnfix" class="fa fa-code-fork" style="color: #fcfcfc"> Igel18/turnfix</a>
+        </span>
+    
+    
+      <span><a href="../jury-portal/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../best-practices/database/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
