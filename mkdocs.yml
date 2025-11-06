@@ -6,10 +6,10 @@ site_url: https://turnfix.readthedocs.io
 # Repository
 repo_name: Igel18/turnfix
 repo_url: https://github.com/Igel18/turnfix
-edit_uri: edit/WebInterface/documentation/newwebbased/
+edit_uri: edit/WebInterface/documentation/newWebbased/
 
 # Documentation directory
-docs_dir: documentation/newwebbased
+docs_dir: documentation/newWebbased
 
 # Theme configuration
 theme:
