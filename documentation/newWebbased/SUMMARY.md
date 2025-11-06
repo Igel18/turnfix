@@ -11,6 +11,7 @@
 ## 👥 Benutzerhandbuch
 
 * [Übersicht](user-guide/README.md)
+* [UI-Übersicht & Screenshots](user-guide/ui-overview.md)
 
 ### Veranstaltungsverwaltung
 
@@ -45,6 +46,14 @@
 * [Vereine verwalten](user-guide/master-data/clubs.md)
 * [Athleten verwalten](user-guide/master-data/athletes.md)
 * [Disziplinen](user-guide/master-data/disciplines.md)
+
+### Feature-Guides
+
+* [Wettkämpfe erstellen & verwalten](user-guide/event-competition-management.md)
+* [Zeitplanung für Wettkämpfe](user-guide/time-planning.md)
+* [Wertungserfassung & Kampfrichter-Portal](user-guide/score-capture.md)
+* [Urkunden erstellen & drucken](user-guide/certificate-creation.md)
+* [Teilnehmer verwalten](user-guide/participant-management.md)
 
 ### Workflows
 
@@ -86,11 +95,6 @@
 
 * [Point 135: Startgeräte-Verwaltung](developer-guide/features/point-135-start-devices.md)
 * [Point 133: Bahn-Konzept](developer-guide/features/point-133-bahn.md)
-* [Gender-Unification](developer-guide/features/gender-unification.md)
-### Features & Implementation
-
-* [Point 135: Startgeräte-Verwaltung](developer-guide/features/point-135-start-devices.md)
-* [Point 133: Bahn-Konzept](developer-guide/features/point-133-bahn.md)
 * [Point 131: Modal Integration](developer-guide/features/point-131-modal.md)
 * [Point 114B: Date Support](developer-guide/features/point-114b-date-support.md)
 * [Gender-Unification](developer-guide/features/gender-unification.md)
@@ -99,8 +103,6 @@
 * [API Route Fixes](developer-guide/features/api-route-fixes.md)
 * [Discipline Validation Fix](developer-guide/features/discipline-validation-fix.md)
 * [Start Numbers Localization](developer-guide/features/start-numbers-fix.md)
-* [Dynamic Field Mapping](developer-guide/architecture/field-mapping.md)
-* [GymNet Import](developer-guide/features/gymnet-import.md)
 
 ### Best Practices
 
