@@ -4861,3 +4861,7 @@ Ok. Schau dir jetzt bitte noch mal die erstellt Doku an. An einigen Stellen hast
 - `documentation/newWebbased/SUMMARY.md` (komplette Umstrukturierung)
 
 **Commit**: 6e91234a - "Reorganize documentation to follow workflow sequence (Point 137)"
+
+
+138. Location mit Karte 
+Wir verwenden ja eine Location. Falls es eine Internetverbindung gibt, wäre es cool diese Location in einer OSM-Karte anzuzeigen. 

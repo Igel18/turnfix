@@ -15,9 +15,18 @@
 
 ### Stammdaten (Vorbereitung)
 
+* [Regionen verwalten](user-guide/master-data/regions.md)
+* [Verbände verwalten](user-guide/master-data/associations.md)
 * [Vereine verwalten](user-guide/master-data/clubs.md)
+* [Wettkampforte verwalten](user-guide/master-data/locations.md)
 * [Athleten verwalten](user-guide/master-data/athletes.md)
-* [Disziplinen](user-guide/master-data/disciplines.md)
+* [Sportarten verwalten](user-guide/master-data/sports.md)
+* [Disziplinen verwalten](user-guide/master-data/disciplines.md)
+* [Disziplingruppen verwalten](user-guide/master-data/discipline-groups.md)
+* [Disziplinfelder verwalten](user-guide/master-data/discipline-fields.md)
+* [Formeln verwalten](user-guide/master-data/formulas.md)
+* [Status verwalten](user-guide/master-data/status.md)
+* [Urkundenlayouts verwalten](user-guide/master-data/certificate-layouts.md)
 
 ### Workflow: Veranstaltung durchführen
 
