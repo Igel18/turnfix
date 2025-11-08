@@ -8,6 +8,8 @@ TurnFix is a comprehensive gymnastics competition management system designed for
 
 ## 🎯 **Quick Start for New Users**
 
+**[Complete Docu](https://turnfix.readthedocs.io/de/webinterface/)**
+
 **Want to install TurnFix quickly?**
 
 ➡️ **[Download ZIP](https://github.com/Igel18/turnfix/archive/refs/heads/WebInterface.zip)** → Extract → Run `setup\windows\INSTALL.bat` as Administrator → Done! ✨

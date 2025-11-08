@@ -4818,3 +4818,46 @@ dist/assets/index-CruaHZeJ.js  1,542.76 kB │ gzip: 414.89 kB
 **Status**: ✅ COMPLETE  
 **Dokumentation**: ✅ Migriert zu `documentation/newWebbased/developer-guide/features/point-135-start-devices.md`  
 **Ergebnis**: Alle Riegen werden korrekt im Gantt angezeigt, keine Konflikte mehr! 
+
+136. Doku stimmt nicht 
+Ok. Schau dir jetzt bitte noch mal die erstellt Doku an. An einigen Stellen hast du haluziniert z.B. gibt es aktuell kein Geschlecht divers. Schau bitte noch mal KOMPLETT drüber und korrigiere ggf. wenn es nicht wirklich durch die erstellten md files im archiv ordner belegt ist. 
+
+137. Doku Reihenfolge sollte sein wie der Workflow: 
+
+  1. Event anlegen 
+  2. Wettkämpfe anlegen 
+  2.a) Disziplinen zuweisen 
+  3. Teilnehmer hinzufügen 
+  4. Riegen Einteilen 
+  5. Zeitplanung 
+  6. Wertungen erfassen 
+  7. Urkunden drucken / Siegerlisten drucken 
+
+**Status**: ✅ Erledigt
+
+**Änderungen**:
+- SUMMARY.md nach Workflow-Reihenfolge reorganisiert
+- Neue Struktur im Benutzerhandbuch:
+  1. **Stammdaten (Vorbereitung)** - Vereine, Athleten, Disziplinen
+  2. **Workflow: Veranstaltung durchführen** (7 Schritte)
+     - 1️⃣ Event anlegen
+     - 2️⃣ Wettkämpfe anlegen (inkl. Disziplinen zuweisen)
+     - 3️⃣ Teilnehmer hinzufügen (inkl. GymNet Import, Startnummern)
+     - 4️⃣ Riegen einteilen
+     - 5️⃣ Zeitplanung (Durchgänge, Startgeräte, Gantt, Rotation)
+     - 6️⃣ Wertungen erfassen (Score Capture, Jury-Portal, Live-Updates)
+     - 7️⃣ Urkunden & Siegerlisten drucken (Urkunden, PDF, CSV)
+  3. **Feature-Guides** - Detaillierte Anleitungen (5 Guides)
+  4. **Komplette Workflows** - End-to-End Anleitung
+
+**Vorteile**:
+- ✅ Dokumentation folgt natürlichem Arbeitsablauf
+- ✅ Benutzer werden Schritt für Schritt durch Veranstaltung geführt
+- ✅ Klare Nummerierung (1-7) zeigt Reihenfolge
+- ✅ Feature-Guides als Vertiefung weiterhin verfügbar
+- ✅ Stammdaten zuerst (logische Vorbereitung)
+
+**Dateien geändert**:
+- `documentation/newWebbased/SUMMARY.md` (komplette Umstrukturierung)
+
+**Commit**: 6e91234a - "Reorganize documentation to follow workflow sequence (Point 137)"

@@ -13,53 +13,65 @@
 * [Übersicht](user-guide/README.md)
 * [UI-Übersicht & Screenshots](user-guide/ui-overview.md)
 
-### Veranstaltungsverwaltung
-
-* [Event anlegen](user-guide/event-management/create-event.md)
-* [Teilnehmer verwalten](user-guide/event-management/participants.md)
-* [Wettkämpfe konfigurieren](user-guide/event-management/competitions.md)
-* [Riegen zuordnen](user-guide/event-management/squads.md)
-* [Startnummern generieren](user-guide/event-management/start-numbers.md)
-
-### Zeitplanung
-
-* [Durchgänge planen](user-guide/time-planning/sessions.md)
-* [Gantt-Chart](user-guide/time-planning/gantt.md)
-* [Rotations-Übersicht](user-guide/time-planning/rotation.md)
-* [Startgeräte festlegen](user-guide/time-planning/start-devices.md)
-
-### Wertungserfassung
-
-* [Score Capture](user-guide/score-capture/overview.md)
-* [Kampfrichter-Portal](user-guide/score-capture/jury-portal.md)
-* [Live-Updates](user-guide/score-capture/live-updates.md)
-
-### Ergebnisse & Export
-
-* [Wettkampfstatus](user-guide/results/competition-status.md)
-* [Urkunden drucken](user-guide/results/certificates.md)
-* [PDF-Export](user-guide/results/pdf-export.md)
-* [CSV-Export](user-guide/results/csv-export.md)
-
-### Stammdaten
+### Stammdaten (Vorbereitung)
 
 * [Vereine verwalten](user-guide/master-data/clubs.md)
 * [Athleten verwalten](user-guide/master-data/athletes.md)
 * [Disziplinen](user-guide/master-data/disciplines.md)
 
-### Feature-Guides
+### Workflow: Veranstaltung durchführen
+
+#### 1. Event anlegen
+
+* [Event erstellen](user-guide/event-management/create-event.md)
+
+#### 2. Wettkämpfe anlegen
+
+* [Wettkämpfe konfigurieren](user-guide/event-management/competitions.md)
+* [Disziplinen zuweisen](user-guide/event-management/disciplines.md)
+
+#### 3. Teilnehmer hinzufügen
+
+* [Teilnehmer verwalten](user-guide/event-management/participants.md)
+* [GymNet Import](user-guide/workflows/gymnet-import.md)
+* [Startnummern generieren](user-guide/event-management/start-numbers.md)
+
+#### 4. Riegen einteilen
+
+* [Riegen zuordnen](user-guide/event-management/squads.md)
+
+#### 5. Zeitplanung
+
+* [Durchgänge planen](user-guide/time-planning/sessions.md)
+* [Startgeräte festlegen](user-guide/time-planning/start-devices.md)
+* [Gantt-Chart](user-guide/time-planning/gantt.md)
+* [Rotations-Übersicht](user-guide/time-planning/rotation.md)
+
+#### 6. Wertungen erfassen
+
+* [Score Capture](user-guide/score-capture/overview.md)
+* [Kampfrichter-Portal](user-guide/score-capture/jury-portal.md)
+* [Jury-Setup](user-guide/workflows/jury-setup.md)
+* [Live-Updates](user-guide/score-capture/live-updates.md)
+
+#### 7. Urkunden & Siegerlisten drucken
+
+* [Urkunden drucken](user-guide/results/certificates.md)
+* [Wettkampfstatus](user-guide/results/competition-status.md)
+* [PDF-Export](user-guide/results/pdf-export.md)
+* [CSV-Export](user-guide/results/csv-export.md)
+
+### Feature-Guides (Detaillierte Anleitungen)
 
 * [Wettkämpfe erstellen & verwalten](user-guide/event-competition-management.md)
+* [Teilnehmer verwalten](user-guide/participant-management.md)
 * [Zeitplanung für Wettkämpfe](user-guide/time-planning.md)
 * [Wertungserfassung & Kampfrichter-Portal](user-guide/score-capture.md)
 * [Urkunden erstellen & drucken](user-guide/certificate-creation.md)
-* [Teilnehmer verwalten](user-guide/participant-management.md)
 
-### Workflows
+### Komplette Workflows
 
-* [Komplette Veranstaltung](user-guide/workflows/complete-event.md)
-* [GymNet Import](user-guide/workflows/gymnet-import.md)
-* [Jury-Setup](user-guide/workflows/jury-setup.md)
+* [Komplette Veranstaltung A-Z](user-guide/workflows/complete-event.md)
 
 ## 👨‍💻 Entwicklerhandbuch
 
