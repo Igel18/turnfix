@@ -1,9 +1,9 @@
 /**
  * Groups Page - Main Component
- * Refactored with Separation of Concerns (SoC)
+ * Refactored with Separation of Concerns (SoC) + EventManagementTemplate
  * 
  * This component orchestrates group management functionality.
- * Business logic, types, and components are extracted to separate files.
+ * Uses EventManagementTemplate for consistent UI/UX.
  */
 
 import React, { useState } from 'react';
@@ -17,7 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Template & Components
-import { DatabaseManagementTemplate } from '@/components/DatabaseManagementTemplate';
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 
 // Local Hooks & Types
@@ -39,6 +39,7 @@ const Groups: React.FC = () => {
   // Filter states
   const [searchFilter, setSearchFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   
   // Sorting
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort('name', 'asc');
@@ -114,23 +115,6 @@ const Groups: React.FC = () => {
 
     return matchesSearch && matchesClub;
   });
-
-  // Filter options for the template
-  const getFilterOptions = () => [
-    {
-      value: '',
-      label: t('groups.filterByClub'),
-      selectedValue: clubFilter,
-      onChange: setClubFilter,
-      options: [
-        { value: '', label: t('common.all') },
-        ...clubs.map(club => ({ 
-          value: club.int_vereineid.toString(), 
-          label: club.var_name 
-        }))
-      ]
-    }
-  ];
 
   // Render table headers
   const renderTableHeaders = () => (
@@ -215,26 +199,100 @@ const Groups: React.FC = () => {
     </tr>
   );
 
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setSearchFilter('');
+    setClubFilter('');
+  };
+
+  // Filter section component (matching EventParticipants style)
+  const FilterSection = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Search */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {t('groups.searchPlaceholder')}
+        </label>
+        <input
+          type="text"
+          value={searchFilter}
+          onChange={(e) => setSearchFilter(e.target.value)}
+          placeholder={t('groups.searchPlaceholder')}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+      
+      {/* Club Filter */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {t('groups.filterByClub')}
+        </label>
+        <select
+          value={clubFilter}
+          onChange={(e) => setClubFilter(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="">{t('common.all')}</option>
+          {clubs.map(club => (
+            <option key={club.int_vereineid} value={club.int_vereineid.toString()}>
+              {club.var_name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Reset Button */}
+      <div className="flex items-end">
+        <button
+          onClick={handleResetFilters}
+          className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {t('common.reset')}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <DatabaseManagementTemplate
+      <EventManagementTemplate
         title={t('groups.title')}
         subtitle={t('groups.subtitle')}
         icon={UserGroupIcon}
-        data={filteredGroups}
-        isLoading={isLoading}
-        searchTerm={searchFilter}
-        onSearchChange={setSearchFilter}
-        searchPlaceholder={t('groups.searchPlaceholder')}
-        filterOptions={getFilterOptions()}
-        onClearAllFilters={() => setClubFilter('')}
-        viewStorageKey="groups-view"
-        defaultView="table"
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        filterSection={<FilterSection />}
+        showAddButton={true}
+        addButtonText={t('groups.addGroup')}
         onAdd={handleCreate}
-        addLabel={t('groups.addGroup')}
-        renderTableHeaders={renderTableHeaders}
-        renderTableRow={renderTableRow}
-      />
+        viewStorageKey="groups-view"
+        showViewToggle={true}
+      >
+        {() => (
+          <div className="p-6">
+            {isLoading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">{t('groups.loadingGroups')}</p>
+              </div>
+            ) : filteredGroups.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">{t('groups.noGroups')}</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    {renderTableHeaders()}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredGroups.map(renderTableRow)}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </EventManagementTemplate>
 
       {isFormModalOpen && (
         <GroupFormModal
