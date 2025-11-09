@@ -67,8 +67,8 @@ bol_w → femaleAllowed
 ## 🎨 UI Design System
 
 ### Unified Component Architecture
-
-#### 
+#### Filter Sections
+EventParticipants nutzt die ParticipantFilters Komponente, die ein Grid-Layout hat und die Standard-Styles von UnifiedPageHeader verwendet. Die FilterSection soll ein gleiche Styling haben. 
 
 #### Core Templates
 1. **EventManagementTemplate.tsx** - Base template for all event-related pages

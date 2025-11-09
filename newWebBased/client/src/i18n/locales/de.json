@@ -962,6 +962,8 @@
       "close": "Schließen"
     },
     "filters": {
+      "search": "Suche",
+      "searchPlaceholder": "Gruppen durchsuchen...",
       "club": "Verein",
       "allClubs": "Alle Vereine"
     },
@@ -1033,6 +1035,9 @@
       "confirmRemove": "Sind Sie sicher, dass Sie diesen Abzug entfernen möchten?"
     },
     "filters": {
+      "search": "Suche",
+      "searchPlaceholder": "Mannschaften durchsuchen...",
+      "club": "Verein",
       "allClubs": "Alle Vereine",
       "allCompetitions": "Alle Wettkämpfe"
     },
@@ -2496,6 +2501,8 @@
     "adjustFilters": "Versuchen Sie, Ihre Suche oder Filter anzupassen.",
     "loading": "Wettkämpfe werden geladen...",
     "filters": {
+      "search": "Suche",
+      "searchPlaceholder": "Wettkämpfe durchsuchen...",
       "gender": "Geschlecht",
       "allGenders": "Alle Geschlechter",
       "male": "Männlich",

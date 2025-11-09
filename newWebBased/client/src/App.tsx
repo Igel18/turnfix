@@ -19,7 +19,7 @@ import ParticipantsUnified from '@/pages/ParticipantsUnified'
 import Results from '@/pages/Results'
 import ScoreCapture from '@/pages/ScoreCapture'
 import JuryPortal from '@/pages/JuryPortal'
-import CompetitionsFixed from '@/pages/CompetitionsFixed'
+import Competitions from '@/pages/Competitions'
 import DisciplinesUnified from '@/pages/DisciplinesUnified'
 import DisciplineFieldsUnified from '@/pages/DisciplineFieldsUnified'
 import SquadManagement from '@/pages/SquadManagement'
@@ -67,7 +67,7 @@ function App() {
             <Route path="/participants" element={<ParticipantsUnified />} />
             <Route path="/results" element={<Results />} />
             <Route path="/score-capture" element={<ScoreCapture />} />
-            <Route path="/competitions" element={<CompetitionsFixed />} />
+            <Route path="/competitions" element={<Competitions />} />
             <Route path="/squads" element={<SquadManagement />} />
             <Route path="/time-planning" element={<TimePlanning />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />

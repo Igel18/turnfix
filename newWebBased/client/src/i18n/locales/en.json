@@ -962,6 +962,8 @@
       "close": "Close"
     },
     "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search groups...",
       "club": "Club",
       "allClubs": "All Clubs"
     },
@@ -1033,6 +1035,9 @@
       "confirmRemove": "Are you sure you want to remove this penalty?"
     },
     "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search teams...",
+      "club": "Club",
       "allClubs": "All Clubs",
       "allCompetitions": "All Competitions"
     },
@@ -2496,6 +2501,8 @@
     "adjustFilters": "Try adjusting your search or filters.",
     "loading": "Loading competitions...",
     "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search competitions...",
       "gender": "Gender",
       "allGenders": "All Genders",
       "male": "Male",
