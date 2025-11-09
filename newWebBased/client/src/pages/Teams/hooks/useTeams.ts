@@ -28,13 +28,19 @@ export const useTeams = ({ eventId }: UseTeamsProps = {}) => {
       if (selectedClub !== 'all') params.append('clubId', selectedClub);
       if (eventId) params.append('eventId', eventId);
       
-      const response = await fetch(`/api/teams?${params}`);
+      const url = `/api/teams?${params}`;
+      console.log('📋 Fetching teams:', url);
+      
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch teams');
       
       const data = await response.json();
+      console.log('📋 Teams response:', data);
+      console.log('📋 Teams count:', data.teams?.length || 0);
+      
       setTeams(data.teams || []);
     } catch (error) {
-      console.error('Error fetching teams:', error);
+      console.error('❌ Error fetching teams:', error);
     } finally {
       setLoading(false);
     }
@@ -56,15 +62,33 @@ export const useTeams = ({ eventId }: UseTeamsProps = {}) => {
   // Fetch competitions from API
   const fetchCompetitions = useCallback(async () => {
     try {
-      const response = await fetch('/api/competitions?limit=1000');
+      const params = new URLSearchParams({ limit: '1000' });
+      if (eventId) {
+        params.append('eventId', eventId);
+        console.log('🎯 Fetching competitions for eventId:', eventId);
+      } else {
+        console.log('⚠️ No eventId provided, fetching all competitions');
+      }
+      
+      const url = `/api/competitions?${params}`;
+      console.log('📡 API URL:', url);
+      
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch competitions');
       
       const data = await response.json();
-      setCompetitions(data.competitions || []);
+      console.log('📦 Competitions response:', data);
+      console.log('📊 Total competitions:', data.length || 0);
+      
+      // Filter for team competitions only (competitionType === 1)
+      const teamCompetitions = (data || []).filter((comp: any) => comp.competitionType === 1);
+      console.log('🏆 Team competitions (filtered):', teamCompetitions.length);
+      
+      setCompetitions(teamCompetitions);
     } catch (error) {
-      console.error('Error fetching competitions:', error);
+      console.error('❌ Error fetching competitions:', error);
     }
-  }, []);
+  }, [eventId]);
 
   // Initial data load
   useEffect(() => {

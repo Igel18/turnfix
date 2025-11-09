@@ -5098,3 +5098,4 @@ components/
 - ⏳ Live-Updates für Gruppen-/Mannschafts-Wertungen
 - ⏳ Export-Funktionen (PDF, Excel) für Gruppen/Mannschaften
 
+140. Infos und Beispiele zu Mannschaften und Groups. 

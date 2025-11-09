@@ -16,6 +16,9 @@ import {
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 
+// Context
+import { useEvent } from '@/contexts/EventContext';
+
 // Template & Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
@@ -32,9 +35,10 @@ import { GroupFormModal, GroupMembersModal } from './components';
  */
 const Groups: React.FC = () => {
   const { t } = useTranslation();
+  const { selectedEvent } = useEvent();
   
   // Custom hook for data management
-  const { groups, clubs, isLoading, fetchGroups, saveGroup, deleteGroup } = useGroups();
+  const { groups, clubs, isLoading, fetchGroups, saveGroup, deleteGroup } = useGroups(selectedEvent?.int_eventid);
   
   // Filter states
   const [searchFilter, setSearchFilter] = useState('');

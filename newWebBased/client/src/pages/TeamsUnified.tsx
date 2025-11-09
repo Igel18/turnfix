@@ -14,8 +14,8 @@ interface Club {
 }
 
 interface Competition {
-  int_wettkaempfeid: number;
-  var_name: string;
+  id: number;
+  name: string;
 }
 
 interface Team {
@@ -234,8 +234,8 @@ const TeamsUnified: React.FC = () => {
           >
             <option value="all">{t('teams.filters.allCompetitions')}</option>
             {competitions.map((comp) => (
-              <option key={comp.int_wettkaempfeid} value={comp.int_wettkaempfeid.toString()}>
-                {comp.var_name}
+              <option key={comp.id} value={comp.id.toString()}>
+                {comp.name}
               </option>
             ))}
           </select>

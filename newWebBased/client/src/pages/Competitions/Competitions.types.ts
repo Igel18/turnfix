@@ -27,6 +27,7 @@ export interface Competition {
   // Additional competition settings
   round: number;
   track: number;
+  competitionType: number;          // int_typ - Competition type (0=Individual, 1=Team, 2=Group)
   startTime?: string;
   warmupTime?: string;
   qualifiers: number;
@@ -55,6 +56,7 @@ export interface CompetitionFormData {
   // Additional competition settings
   round: number;                    // int_durchgang - Competition round/session
   track: number;                    // int_bahn - Track/lane number
+  competitionType: number;          // int_typ - Competition type (0=Individual, 1=Team, 2=Group)
   startTime?: string;               // tim_startzeit - Start time (HH:MM format)
   warmupTime?: string;              // tim_einturnen - Warm-up time (HH:MM format)
   qualifiers: number;               // int_qualifikation - Number of qualifiers

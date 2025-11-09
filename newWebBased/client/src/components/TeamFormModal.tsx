@@ -11,8 +11,8 @@ interface Club {
 }
 
 interface Competition {
-  int_wettkaempfeid: number;
-  var_name: string;
+  id: number;
+  name: string;
 }
 
 interface Team {
@@ -67,16 +67,24 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({ team, clubs, competitions
       if (formData.var_riege) payload.var_riege = formData.var_riege;
       if (formData.int_startnummer) payload.int_startnummer = formData.int_startnummer;
 
+      console.log('🏆 Saving team:', { method, url, payload });
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
+      console.log('📡 Response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ Server error:', error);
         throw new Error(error.error || 'Failed to save team');
       }
+
+      const result = await response.json();
+      console.log('✅ Team saved successfully:', result);
 
       onClose(true);
     } catch (error) {
@@ -96,6 +104,7 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({ team, clubs, competitions
       isOpen={true}
       onClose={handleClose}
       title={isEditing ? t('teams.editTeam') : t('teams.createTeam')}
+      showFooter={false}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Club Selection */}
@@ -138,8 +147,8 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({ team, clubs, competitions
             >
               <option value="0">{t('teams.form.competitionPlaceholder')}</option>
               {competitions.map((comp) => (
-                <option key={comp.int_wettkaempfeid} value={comp.int_wettkaempfeid.toString()}>
-                  {comp.var_name}
+                <option key={comp.id} value={comp.id.toString()}>
+                  {comp.name}
                 </option>
               ))}
             </select>

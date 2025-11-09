@@ -9,8 +9,8 @@ export interface Club {
 }
 
 export interface Competition {
-  int_wettkaempfeid: number;
-  var_name: string;
+  id: number;
+  name: string;
 }
 
 export interface Team {

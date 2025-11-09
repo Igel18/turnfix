@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Group, Club, GroupFormData } from '../Groups.types';
 
-export const useGroups = () => {
+export const useGroups = (eventId?: number) => {
   const { t } = useTranslation();
   const [groups, setGroups] = useState<Group[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
@@ -17,7 +17,10 @@ export const useGroups = () => {
   const fetchGroups = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/groups?limit=5000');
+      const url = eventId 
+        ? `/api/groups?limit=5000&eventId=${eventId}`
+        : '/api/groups?limit=5000';
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setGroups(Array.isArray(data.data) ? data.data : []);
@@ -28,7 +31,7 @@ export const useGroups = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [eventId]);
 
   // Fetch clubs from API
   const fetchClubs = useCallback(async () => {

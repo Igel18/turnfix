@@ -26,6 +26,7 @@ const createCompetitionSchema = zod_1.z.object({
     // Additional competition settings
     round: zod_1.z.number().min(1).max(10).optional(),
     track: zod_1.z.number().min(1).max(20).optional(),
+    competitionType: zod_1.z.number().min(0).max(2).optional(), // 0=Individual, 1=Team, 2=Group
     startTime: zod_1.z.string().optional(), // Time in HH:MM format
     startDate: zod_1.z.string().optional(), // Date in YYYY-MM-DD format
     warmupTime: zod_1.z.string().optional(), // Time in HH:MM format
@@ -128,6 +129,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 // Additional competition settings
                 round: comp.int_durchgang || 1,
                 track: comp.int_bahn || 1,
+                competitionType: comp.int_typ ?? 0,
                 startTime: comp.tim_startzeit
                     ? `${String(comp.tim_startzeit.getHours()).padStart(2, '0')}:${String(comp.tim_startzeit.getMinutes()).padStart(2, '0')}`
                     : null,
@@ -396,9 +398,15 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Validate gender compatibility
         const genderMismatch = disciplines.some((discipline) => {
+            // Mixed gender competitions can use any discipline
+            if (validatedData.gender === 'gemischt') {
+                return false;
+            }
+            // Male-only competitions need male-allowed disciplines
             if (validatedData.gender === 'männlich' && !discipline.male_allowed) {
                 return true;
             }
+            // Female-only competitions need female-allowed disciplines
             if (validatedData.gender === 'weiblich' && !discipline.female_allowed) {
                 return true;
             }
@@ -450,9 +458,9 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         tim_startzeit,
         tim_einturnen
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
       ) RETURNING int_wettkaempfeid
-    `, validatedData.eventId, bereichId, validatedData.number || null, validatedData.name, birthYearFrom, birthYearTo, validatedData.qualifiers || 0, validatedData.evaluations || 1, validatedData.dropWorstScore || false, validatedData.showAgeGroup || false, validatedData.isOptionalCompetition || false, validatedData.round || 1, validatedData.track || 1, validatedData.showInfo || false, validatedData.useCompulsoryProgram || false, validatedData.sortAscending || false, validatedData.manualSort || false, validatedData.useApparatusPoints || false, validatedData.dropCount || 0, 
+    `, validatedData.eventId, bereichId, validatedData.number || null, validatedData.name, birthYearFrom, birthYearTo, validatedData.competitionType ?? 0, validatedData.qualifiers || 0, validatedData.evaluations || 1, validatedData.dropWorstScore || false, validatedData.showAgeGroup || false, validatedData.isOptionalCompetition || false, validatedData.round || 1, validatedData.track || 1, validatedData.showInfo || false, validatedData.useCompulsoryProgram || false, validatedData.sortAscending || false, validatedData.manualSort || false, validatedData.useApparatusPoints || false, validatedData.dropCount || 0, 
         // Start time and date - both must be provided together
         (validatedData.startTime && validatedData.startDate) ? (() => {
             const [hours, minutes] = validatedData.startTime.split(':');
@@ -581,9 +589,15 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             // Validate gender compatibility if gender is being updated
             if (validatedData.gender) {
                 const genderMismatch = disciplines.some((discipline) => {
+                    // Mixed gender competitions can use any discipline
+                    if (validatedData.gender === 'gemischt') {
+                        return false;
+                    }
+                    // Male-only competitions need male-allowed disciplines
                     if (validatedData.gender === 'männlich' && !discipline.male_allowed) {
                         return true;
                     }
+                    // Female-only competitions need female-allowed disciplines
                     if (validatedData.gender === 'weiblich' && !discipline.female_allowed) {
                         return true;
                     }
@@ -622,6 +636,9 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         if (validatedData.track !== undefined) {
             updateData.int_bahn = validatedData.track;
+        }
+        if (validatedData.competitionType !== undefined) {
+            updateData.int_typ = validatedData.competitionType;
         }
         // Handle start time - date always comes from event
         if (validatedData.startTime !== undefined) {
@@ -757,6 +774,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             // Additional competition settings
             round: validatedData.round !== undefined ? validatedData.round : updatedCompetition.int_durchgang || 1,
             track: validatedData.track !== undefined ? validatedData.track : updatedCompetition.int_bahn || 1,
+            competitionType: validatedData.competitionType !== undefined ? validatedData.competitionType : updatedCompetition.int_typ ?? 0,
             startTime: validatedData.startTime !== undefined ? validatedData.startTime :
                 (updatedCompetition.tim_startzeit
                     ? `${String(updatedCompetition.tim_startzeit.getHours()).padStart(2, '0')}:${String(updatedCompetition.tim_startzeit.getMinutes()).padStart(2, '0')}`

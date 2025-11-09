@@ -30,6 +30,7 @@ interface CompetitionFormData {
   // Additional competition settings
   round: number;                    // int_durchgang - Competition round/session
   track: number;                    // int_bahn - Track/lane number
+  competitionType: number;          // int_typ - Competition type (0=Individual, 1=Team, 2=Group)
   startTime?: string;               // tim_startzeit - Start time (HH:MM format)
   warmupTime?: string;              // tim_einturnen - Warm-up time (HH:MM format)
   qualifiers: number;               // int_qualifikation - Number of qualifiers
@@ -59,6 +60,7 @@ interface Competition {
   // Additional competition settings
   round: number;
   track: number;
+  competitionType: number;
   startTime?: string;
   warmupTime?: string;
   qualifiers: number;
@@ -417,9 +419,25 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 
             {/* Gender and Age Section */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('competitionForm.fields.gender.label')} & Alter</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('competitionForm.categorySettings.title')}</h3>
               
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    🏆 {t('competitionForm.categorySettings.competitionType.label')} *
+                  </label>
+                  <select
+                    value={formData.competitionType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, competitionType: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value={0}>{t('competitionForm.categorySettings.competitionType.individual')}</option>
+                    <option value={1}>{t('competitionForm.categorySettings.competitionType.team')}</option>
+                    <option value={2}>{t('competitionForm.categorySettings.competitionType.group')}</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.categorySettings.competitionType.description')}</p>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     👥 {t('competitionForm.fields.gender.label')} *
@@ -780,6 +798,13 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   const isSelected = formData.disciplines.some(d => d.disciplineId === discipline.id);
                   const selectedDiscipline = formData.disciplines.find(d => d.disciplineId === discipline.id);
                   
+                  // Check gender compatibility
+                  const isCompatible = formData.gender === 'gemischt' || 
+                    (formData.gender === 'männlich' && discipline.male_allowed) ||
+                    (formData.gender === 'weiblich' && discipline.female_allowed);
+                  
+                  const isIncompatibleButSelected = isSelected && !isCompatible;
+                  
                   // DEBUG: Log selection status
                   if (discipline.id <= 3) { // Only log first few to avoid spam
                     console.log(`🎯 Discipline "${discipline.display_name}" (ID: ${discipline.id}):`, {
@@ -793,7 +818,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                     <div
                       key={discipline.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        isSelected 
+                        isIncompatibleButSelected
+                          ? 'bg-red-50 border-red-400 ring-2 ring-red-300' 
+                          : isSelected 
                           ? 'bg-blue-50 border-blue-300' 
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
@@ -807,9 +834,12 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                             <div className="w-5 h-5 border border-gray-300 rounded mr-2"></div>
                           )}
                           <div>
-                            <p className="font-medium text-gray-900">{discipline.display_name}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className={`font-medium ${isIncompatibleButSelected ? 'text-red-700' : 'text-gray-900'}`}>
+                              {discipline.display_name}
+                            </p>
+                            <p className={`text-xs ${isIncompatibleButSelected ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
                               ({getGenderText(discipline.male_allowed, discipline.female_allowed)})
+                              {isIncompatibleButSelected && ' ⚠️ Inkompatibel'}
                             </p>
                           </div>
                         </div>

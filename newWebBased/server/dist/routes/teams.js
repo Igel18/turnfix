@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
         const search = req.query.search;
         const clubId = req.query.clubId;
         const eventId = req.query.eventId;
+        console.log('📋 GET /api/teams - Query params:', { limit, offset, search, clubId, eventId });
         const whereConditions = {};
         if (search) {
             whereConditions.OR = [
@@ -34,9 +35,13 @@ router.get('/', async (req, res) => {
         if (clubId) {
             whereConditions.int_vereineid = parseInt(clubId);
         }
+        // IMPORTANT: eventId filters by COMPETITION's event, not competition ID directly
         if (eventId) {
-            whereConditions.int_wettkaempfeid = parseInt(eventId);
+            whereConditions.tfx_wettkaempfe = {
+                int_veranstaltungenid: parseInt(eventId)
+            };
         }
+        console.log('📋 WHERE conditions:', whereConditions);
         const [teams, totalCount] = await Promise.all([
             prisma_1.default.tfx_mannschaften.findMany({
                 where: whereConditions,
@@ -62,6 +67,7 @@ router.get('/', async (req, res) => {
             }),
             prisma_1.default.tfx_mannschaften.count({ where: whereConditions })
         ]);
+        console.log('📋 Found teams:', teams.length, 'Total count:', totalCount);
         res.json({
             teams,
             pagination: {
@@ -117,7 +123,9 @@ router.get('/:id', async (req, res) => {
 // Create new team
 router.post('/', async (req, res) => {
     try {
+        console.log('🏆 POST /api/teams - Creating team:', req.body);
         const validatedData = createTeamSchema.parse(req.body);
+        console.log('✅ Validation passed:', validatedData);
         const team = await prisma_1.default.tfx_mannschaften.create({
             data: validatedData,
             include: {
@@ -135,16 +143,20 @@ router.post('/', async (req, res) => {
                 }
             }
         });
+        console.log('✅ Team created successfully:', team.int_mannschaftenid);
         res.status(201).json(team);
     }
     catch (error) {
+        console.error('❌ Error creating team:', error);
         if (error instanceof zod_1.z.ZodError) {
+            console.error('❌ Validation error details:', error.issues);
             return res.status(400).json({ error: 'Validation failed', details: error.issues });
         }
         if (error?.code === 'P2003') {
+            console.error('❌ Foreign key constraint failed');
             return res.status(400).json({ error: 'Invalid club or competition reference' });
         }
-        console.error('Error creating team:', error);
+        console.error('❌ Unexpected error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

@@ -27,6 +27,7 @@ const createCompetitionSchema = z.object({
   // Additional competition settings
   round: z.number().min(1).max(10).optional(),
   track: z.number().min(1).max(20).optional(),
+  competitionType: z.number().min(0).max(2).optional(), // 0=Individual, 1=Team, 2=Group
   startTime: z.string().optional(), // Time in HH:MM format
   startDate: z.string().optional(), // Date in YYYY-MM-DD format
   warmupTime: z.string().optional(), // Time in HH:MM format
@@ -138,6 +139,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         // Additional competition settings
         round: comp.int_durchgang || 1,
         track: comp.int_bahn || 1,
+        competitionType: comp.int_typ ?? 0,
         startTime: comp.tim_startzeit 
           ? `${String(comp.tim_startzeit.getHours()).padStart(2, '0')}:${String(comp.tim_startzeit.getMinutes()).padStart(2, '0')}` 
           : null,
@@ -428,9 +430,15 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     
     // Validate gender compatibility
     const genderMismatch = disciplines.some((discipline: any) => {
+      // Mixed gender competitions can use any discipline
+      if (validatedData.gender === 'gemischt') {
+        return false;
+      }
+      // Male-only competitions need male-allowed disciplines
       if (validatedData.gender === 'männlich' && !discipline.male_allowed) {
         return true;
       }
+      // Female-only competitions need female-allowed disciplines
       if (validatedData.gender === 'weiblich' && !discipline.female_allowed) {
         return true;
       }
@@ -489,7 +497,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         tim_startzeit,
         tim_einturnen
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
       ) RETURNING int_wettkaempfeid
     `, 
       validatedData.eventId,
@@ -498,6 +506,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       validatedData.name,
       birthYearFrom,
       birthYearTo,
+      validatedData.competitionType ?? 0,
       validatedData.qualifiers || 0,
       validatedData.evaluations || 1,
       validatedData.dropWorstScore || false,
@@ -652,9 +661,15 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       // Validate gender compatibility if gender is being updated
       if (validatedData.gender) {
         const genderMismatch = disciplines.some((discipline: any) => {
+          // Mixed gender competitions can use any discipline
+          if (validatedData.gender === 'gemischt') {
+            return false;
+          }
+          // Male-only competitions need male-allowed disciplines
           if (validatedData.gender === 'männlich' && !discipline.male_allowed) {
             return true;
           }
+          // Female-only competitions need female-allowed disciplines
           if (validatedData.gender === 'weiblich' && !discipline.female_allowed) {
             return true;
           }
@@ -700,6 +715,9 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     }
     if (validatedData.track !== undefined) {
       updateData.int_bahn = validatedData.track;
+    }
+    if (validatedData.competitionType !== undefined) {
+      updateData.int_typ = validatedData.competitionType;
     }
     
     // Handle start time - date always comes from event
@@ -853,6 +871,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       // Additional competition settings
       round: validatedData.round !== undefined ? validatedData.round : updatedCompetition.int_durchgang || 1,
       track: validatedData.track !== undefined ? validatedData.track : updatedCompetition.int_bahn || 1,
+      competitionType: validatedData.competitionType !== undefined ? validatedData.competitionType : updatedCompetition.int_typ ?? 0,
       startTime: validatedData.startTime !== undefined ? validatedData.startTime : 
                  (updatedCompetition.tim_startzeit 
                    ? `${String(updatedCompetition.tim_startzeit.getHours()).padStart(2, '0')}:${String(updatedCompetition.tim_startzeit.getMinutes()).padStart(2, '0')}` 

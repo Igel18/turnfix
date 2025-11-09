@@ -1672,8 +1672,18 @@
       "title": "Competition Settings",
       "description": "Configure specific competition parameters and behaviors"
     },
+    "categorySettings": {
+      "title": "Category & Type",
+      "competitionType": {
+        "label": "Competition Type",
+        "description": "Type of competition (Individual, Team, or Group)",
+        "individual": "Individual Competition",
+        "team": "Team Competition",
+        "group": "Group Competition"
+      }
+    },
     "scheduling": {
-      "title": "Scheduling",
+      "title": "Time Planning",
       "round": {
         "label": "Round",
         "description": "Competition round or session number"
@@ -2523,6 +2533,7 @@
       "disciplines": "Disciplines",
       "participants": "Participants",
       "gender": "Gender",
+      "type": "Type",
       "ageGroup": "Age Group",
       "ageFrom": "Age From",
       "ageTo": "Age To",

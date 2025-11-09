@@ -62,6 +62,13 @@ export const CompetitionTable: React.FC<CompetitionTableProps> = ({
                 onSort={handleSort}
               />
               <SortableTableHeader
+                sortKey="competitionType"
+                label={t('competitions.fields.type')}
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableTableHeader
                 sortKey="ageFrom"
                 label={t('competitions.fields.ageGroup')}
                 currentSortKey={sortKey}
@@ -126,6 +133,15 @@ export const CompetitionTable: React.FC<CompetitionTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <GenderBadge value={competition.gender} />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
+                    {competition.competitionType === 0 
+                      ? t('competitionForm.categorySettings.competitionType.individual')
+                      : competition.competitionType === 1
+                      ? t('competitionForm.categorySettings.competitionType.team')
+                      : t('competitionForm.categorySettings.competitionType.group')}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">

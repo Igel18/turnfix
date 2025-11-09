@@ -1668,8 +1668,18 @@
       "title": "Wettkampfeinstellungen",
       "description": "Konfigurieren Sie spezifische Wettkampfparameter und Verhaltensweisen"
     },
+    "categorySettings": {
+      "title": "Kategorie & Typ",
+      "competitionType": {
+        "label": "Wettkampftyp",
+        "description": "Art des Wettkampfes (Einzel, Mannschaft oder Gruppe)",
+        "individual": "Einzelwettkampf",
+        "team": "Mannschaftswettkampf",
+        "group": "Gruppenwettkampf"
+      }
+    },
     "scheduling": {
-      "title": "Terminplanung",
+      "title": "Zeitplanung",
       "round": {
         "label": "Durchgang",
         "description": "Wettkampfdurchgang oder Session-Nummer"
@@ -2523,6 +2533,7 @@
       "disciplines": "Disziplinen",
       "participants": "Teilnehmer",
       "gender": "Geschlecht",
+      "type": "Typ",
       "ageGroup": "Altersgruppe",
       "ageFrom": "Alter von",
       "ageTo": "Alter bis",
