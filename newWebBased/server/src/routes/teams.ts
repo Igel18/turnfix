@@ -243,4 +243,22 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Get team penalties
+router.get('/:id/penalties', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid team ID' });
+    }
+
+    console.log('📋 GET /api/teams/:id/penalties - Team ID:', id);
+
+    // For now, return empty array (penalties feature to be implemented)
+    res.json([]);
+  } catch (error) {
+    console.error('Error fetching team penalties:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

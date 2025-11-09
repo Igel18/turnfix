@@ -5099,3 +5099,19 @@ components/
 - ⏳ Export-Funktionen (PDF, Excel) für Gruppen/Mannschaften
 
 140. Infos und Beispiele zu Mannschaften und Groups. 
+
+141. Localisation auf der Seite 
+http://localhost:3001/event-participants?eventId=59
+Veranstaltungsteilnehmer (115)eventParticipants.pagination.showing 1-50 common.of 115 (eventParticipants.pagination.page 1 common.of 3)
+
+142. Localisation in dem Modalen dialog 
+http://localhost:3001/groups?eventId=59
+
+143. Gruppe hinzufügen funktioniert nicht 
+http://localhost:3001/groups?eventId=59
+
+144. Teilnehmer zu Gruppen / Mannschaften hinzufügen 
+Wo machen wir das am besten, und wie? 
+Bei der Gruppenverwaltung gibt es ein Teilnehmer hinzufügen button 
+
+145. PDF Export möglichkeiten bei Gruppen / Mannschaften fehlt
