@@ -187,6 +187,22 @@ const eventSetupActions = [
     color: 'bg-blue-500'
   },
   {
+    name: 'Manage Groups',
+    description: 'Create and manage groups for team competitions',
+    href: '/groups',
+    icon: UserGroupIcon,
+    color: 'bg-emerald-500',
+    badge: 'Beta'
+  },
+  {
+    name: 'Manage Teams',
+    description: 'Create and manage teams for team competitions',
+    href: '/teams',
+    icon: UserGroupIcon,
+    color: 'bg-teal-500',
+    badge: 'Beta'
+  },
+  {
     name: 'Time Planning',
     description: 'Plan competition times and apparatus rotations',
     href: '/time-planning',
@@ -314,6 +330,8 @@ export function ManagementCenter() {
       'View Competitions': 'managementCenter.eventManagement.eventSetup.viewCompetitions.title',
       'Event Participants': 'managementCenter.eventManagement.eventSetup.eventParticipants.title',
       'Manage Squads': 'managementCenter.eventManagement.eventSetup.manageSquads.title',
+      'Manage Groups': 'managementCenter.eventManagement.eventSetup.manageGroups.title',
+      'Manage Teams': 'managementCenter.eventManagement.eventSetup.manageTeams.title',
       'Time Planning': 'managementCenter.eventManagement.eventSetup.timePlanning.title',
       'Meldematrix': 'managementCenter.eventManagement.eventSetup.meldematrix.title',
       'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.title',
@@ -345,6 +363,8 @@ export function ManagementCenter() {
       'View Competitions': 'managementCenter.eventManagement.eventSetup.viewCompetitions.description',
       'Event Participants': 'managementCenter.eventManagement.eventSetup.eventParticipants.description',
       'Manage Squads': 'managementCenter.eventManagement.eventSetup.manageSquads.description',
+      'Manage Groups': 'managementCenter.eventManagement.eventSetup.manageGroups.description',
+      'Manage Teams': 'managementCenter.eventManagement.eventSetup.manageTeams.description',
       'Time Planning': 'managementCenter.eventManagement.eventSetup.timePlanning.description',
       'Meldematrix': 'managementCenter.eventManagement.eventSetup.meldematrix.description',
       'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.description',
@@ -642,9 +662,16 @@ export function ManagementCenter() {
                                 <Icon className="h-5 w-5" />
                               </div>
                               <div>
-                                <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                  {translateAction(action).name}
-                                </h4>
+                                <div className="flex items-center justify-center gap-2">
+                                  <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                    {translateAction(action).name}
+                                  </h4>
+                                  {action.badge && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                      {action.badge}
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-gray-600 mt-1">
                                   {translateAction(action).description}
                                 </p>

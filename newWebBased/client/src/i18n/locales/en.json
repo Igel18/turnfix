@@ -921,7 +921,7 @@
     }
   },
   "groups": {
-    "title": "Group Management",
+    "title": "Group Management (Beta)",
     "subtitle": "Manage groups for team competitions",
     "searchPlaceholder": "Search groups...",
     "addGroup": "Add Group",
@@ -982,7 +982,7 @@
     }
   },
   "teams": {
-    "title": "Team Management",
+    "title": "Team Management (Beta)",
     "subtitle": "Manage teams for team competitions",
     "searchPlaceholder": "Search teams...",
     "addTeam": "Add Team",

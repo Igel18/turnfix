@@ -921,7 +921,7 @@
     }
   },
   "groups": {
-    "title": "Gruppenverwaltung",
+    "title": "Gruppenverwaltung (Beta)",
     "subtitle": "Gruppen für Gruppenwettkämpfe verwalten",
     "searchPlaceholder": "Gruppen suchen...",
     "addGroup": "Gruppe hinzufügen",
@@ -982,7 +982,7 @@
     }
   },
   "teams": {
-    "title": "Mannschaftsverwaltung",
+    "title": "Mannschaftsverwaltung (Beta)",
     "subtitle": "Mannschaften für Mannschaftswettkämpfe verwalten",
     "searchPlaceholder": "Mannschaften suchen...",
     "addTeam": "Mannschaft hinzufügen",
