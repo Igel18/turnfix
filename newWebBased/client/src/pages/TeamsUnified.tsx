@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Plus, Pencil, Trash2, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, AlertCircle } from 'lucide-react';
+import { UsersIcon } from '@heroicons/react/24/outline';
 import TeamFormModal from '@/components/TeamFormModal';
 import TeamPenaltiesModal from '@/components/TeamPenaltiesModal';
+import UnifiedPageHeader from '@/components/UnifiedPageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -101,12 +103,6 @@ const TeamsUnified: React.FC = () => {
     fetchCompetitions();
   }, [fetchTeams, fetchClubs, fetchCompetitions]);
 
-  // Handle create
-  const handleCreate = () => {
-    setEditingTeam(null);
-    setIsFormModalOpen(true);
-  };
-
   // Handle edit
   const handleEdit = (team: Team) => {
     setEditingTeam(team);
@@ -196,14 +192,17 @@ const TeamsUnified: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Users className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">{t('teams.title')}</h1>
-        </div>
-        <p className="text-gray-600">{t('teams.subtitle')}</p>
-      </div>
+      <UnifiedPageHeader
+        title={t('teams.title')}
+        subtitle={t('teams.subtitle')}
+        icon={UsersIcon}
+        onAdd={() => {
+          setEditingTeam(null);
+          setIsFormModalOpen(true);
+        }}
+        addLabel={t('teams.addTeam')}
+        showAdd={true}
+      />
 
       {/* Filters and Actions */}
       <div className="mb-6 space-y-4">
@@ -240,11 +239,6 @@ const TeamsUnified: React.FC = () => {
               </option>
             ))}
           </select>
-
-          <Button onClick={handleCreate} className="ml-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            {t('teams.addTeam')}
-          </Button>
         </div>
       </div>
 

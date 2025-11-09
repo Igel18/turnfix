@@ -108,6 +108,10 @@
           "title": "Gruppen verwalten",
           "description": "Gruppen für Gruppenwettkämpfe erstellen und verwalten"
         },
+        "manageTeams": {
+          "title": "Mannschaften verwalten",
+          "description": "Mannschaften für Mannschaftswettkämpfe erstellen und verwalten"
+        },
         "timePlanning": {
           "title": "Zeitplanung",
           "description": "Wettkampfzeiten und Gerätedurchgänge planen"
@@ -576,6 +580,7 @@
     "collapse": "Zuklappen",
     "showHelp": "Hilfe anzeigen",
     "hideHelp": "Hilfe ausblenden",
+    "backToManagement": "Zurück zum Verwaltungszentrale",
     "pagination": {
       "showing": "Zeige {{start}} bis {{end}} von {{total}} Ergebnissen",
       "showingTotal": "Zeige {{total}} Ergebnisse",

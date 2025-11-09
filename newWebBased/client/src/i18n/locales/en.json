@@ -108,6 +108,10 @@
           "title": "Manage Groups",
           "description": "Create and manage groups for team competitions"
         },
+        "manageTeams": {
+          "title": "Manage Teams",
+          "description": "Create and manage teams for team competitions"
+        },
         "timePlanning": {
           "title": "Time Planning",
           "description": "Plan competition times and apparatus rotations"
@@ -576,6 +580,7 @@
     "collapse": "Collapse",
     "showHelp": "Show Help",
     "hideHelp": "Hide Help",
+    "backToManagement": "Back to Management Center",
     "pagination": {
       "showing": "Showing {{start}} to {{end}} of {{total}} results",
       "showingTotal": "Showing {{total}} results",
