@@ -4,12 +4,17 @@
  * 
  * This component orchestrates team management functionality.
  * Uses EventManagementTemplate for consistent UI/UX.
+ * Event-aware: Filters teams by selected event from EventContext.
  */
 
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, AlertCircle } from 'lucide-react';
 import { UsersIcon } from '@heroicons/react/24/outline';
+
+// Context & Hooks
+import { useEvent } from '@/contexts/EventContext';
 
 // Template & Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
@@ -27,6 +32,12 @@ import { TeamFormModal, TeamPenaltiesModal } from './components';
  */
 const Teams: React.FC = () => {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const urlEventId = searchParams.get('eventId');
+
+  // Event Context
+  const { selectedEvent } = useEvent();
+  const eventId = selectedEvent?.int_eventid.toString() || urlEventId;
   
   // Custom hook for data management
   const {
@@ -36,11 +47,9 @@ const Teams: React.FC = () => {
     loading,
     selectedClub,
     setSelectedClub,
-    selectedCompetition,
-    setSelectedCompetition,
     fetchTeams,
     deleteTeam
-  } = useTeams();
+  } = useTeams({ eventId });
   
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
@@ -129,12 +138,11 @@ const Teams: React.FC = () => {
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedClub('all');
-    setSelectedCompetition('all');
   };
 
   // Filter section component (matching EventParticipants style)
   const FilterSection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {/* Search */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -163,25 +171,6 @@ const Teams: React.FC = () => {
           {clubs.map((club) => (
             <option key={club.int_vereineid} value={club.int_vereineid.toString()}>
               {club.var_name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Competition Filter */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {t('teams.filters.allCompetitions')}
-        </label>
-        <select
-          value={selectedCompetition}
-          onChange={(e) => setSelectedCompetition(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">{t('teams.filters.allCompetitions')}</option>
-          {competitions.map((comp) => (
-            <option key={comp.int_wettkaempfeid} value={comp.int_wettkaempfeid.toString()}>
-              {comp.var_name}
             </option>
           ))}
         </select>

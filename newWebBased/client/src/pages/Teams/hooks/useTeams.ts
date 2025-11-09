@@ -1,20 +1,24 @@
 /**
  * useTeams Hook
  * Handles all data fetching and CRUD operations for teams
+ * Event-aware: Filters teams by eventId when provided
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Team, Club, Competition } from '../Teams.types';
 
-export const useTeams = () => {
+interface UseTeamsProps {
+  eventId?: string | null;
+}
+
+export const useTeams = ({ eventId }: UseTeamsProps = {}) => {
   const { t } = useTranslation();
   const [teams, setTeams] = useState<Team[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClub, setSelectedClub] = useState<string>('all');
-  const [selectedCompetition, setSelectedCompetition] = useState<string>('all');
 
   // Fetch teams from API
   const fetchTeams = useCallback(async () => {
@@ -22,7 +26,7 @@ export const useTeams = () => {
       setLoading(true);
       const params = new URLSearchParams({ limit: '1000' });
       if (selectedClub !== 'all') params.append('clubId', selectedClub);
-      if (selectedCompetition !== 'all') params.append('eventId', selectedCompetition);
+      if (eventId) params.append('eventId', eventId);
       
       const response = await fetch(`/api/teams?${params}`);
       if (!response.ok) throw new Error('Failed to fetch teams');
@@ -34,7 +38,7 @@ export const useTeams = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedClub, selectedCompetition]);
+  }, [selectedClub, eventId]);
 
   // Fetch clubs from API
   const fetchClubs = useCallback(async () => {
@@ -101,9 +105,7 @@ export const useTeams = () => {
     loading,
     selectedClub,
     setSelectedClub,
-    selectedCompetition,
-    setSelectedCompetition,
     fetchTeams,
-    deleteTeam
+    deleteTeam,
   };
 };
