@@ -4992,14 +4992,109 @@ components/
 - `client/src/App.tsx` (geändert: Import + Route hinzugefügt)
 
 **Ausstehende Arbeiten**:
-- ⏳ i18n-Übersetzungen hinzufügen (de.json, en.json)
-  * Schlüssel: groups.title, groups.addGroup, groups.name, groups.club, groups.memberCount, etc.
-  * Aktuell: Fallback-Keys werden angezeigt (funktional, aber nicht lokalisiert)
-- ⏳ Frontend-Commit erstellen
+- ✅ i18n-Übersetzungen hinzugefügt (de.json, en.json)
+- ✅ Frontend-Commit erstellt (8c14ae12)
 - ⏳ Manuelle CRUD-Tests durchführen
 
 **Nächste Schritte (Phase 2)**:
-- ⏳ Teams-Frontend implementieren (ähnliches Pattern wie Gruppen)
-- ⏳ Team-Strafen Integration
+- ✅ Teams-Frontend implementiert (siehe Phase 2 unten)
+- ⏳ Team-Strafen Integration testen
 - ⏳ Wertungen-UI für Gruppen erweitern
+
+---
+
+#### Phase 2: Teams-Frontend (2025-01-15) ✅
+
+**Implementiert**: Vollständige Mannschaften-Verwaltung mit nativen HTML-Elementen
+
+**Route**: `/teams` (registriert in App.tsx)
+
+**Hauptkomponenten**:
+
+1. **TeamsUnified.tsx** (364 Zeilen) - pages/
+   - CRUD-Operationen für Mannschaften
+   - Features:
+     * Liste aller Mannschaften mit Verein, Wettkampf, Nummer, Riege, Startnummer
+     * Sortierung nach Verein, Wettkampf, Nummer, Startnummer
+     * Filter nach Verein und Wettkampf
+     * Create/Edit/Delete
+     * "Abzüge verwalten" Button pro Mannschaft
+   - Native HTML: table, select (keine UI-Komponenten)
+   - API-Integration: GET/POST/PUT/DELETE /api/teams
+
+2. **TeamFormModal.tsx** (211 Zeilen) - components/
+   - Create/Edit-Formular für Mannschaften
+   - Felder:
+     * Verein (Dropdown, Pflichtfeld)
+     * Wettkampf (Dropdown, Pflichtfeld)
+     * Mannschaftsnummer (Zahl, Pflichtfeld, Default: 1)
+     * Riege (Text, max 5 Zeichen, optional)
+     * Startnummer (Zahl, optional)
+   - Validierung: Submit disabled wenn Verein/Wettkampf fehlt
+   - Native HTML select-Elemente
+   - Wrapper: UnifiedModal
+
+3. **TeamPenaltiesModal.tsx** (239 Zeilen) - components/
+   - Abzugsverwaltung für Mannschaften
+   - Features:
+     * Liste aktueller Abzüge mit Name und Wert
+     * Entfernen-Button pro Abzug
+     * Dropdown verfügbarer Abzugsarten
+     * Filtert bereits zugewiesene Abzüge aus Dropdown
+     * Zeigt Abzugswert (rel_abzug) bei jeder Abzugsart
+   - API-Integration:
+     * GET /api/teams/:id/penalties (Abzüge abrufen)
+     * POST /api/teams/:id/penalties (Abzug hinzufügen)
+     * DELETE /api/teams/:teamId/penalties/:penaltyId (Abzug entfernen)
+   - Native HTML select-Elemente
+
+**Ordnerstruktur** (React-Konventionen):
+```
+pages/
+└── TeamsUnified.tsx           ← Route-gebundene Komponente (/teams)
+
+components/
+├── TeamFormModal.tsx          ← Wiederverwendbares Formular-Modal
+└── TeamPenaltiesModal.tsx     ← Wiederverwendbares Abzüge-Dialog
+```
+
+**Technische Details**:
+- TypeScript mit strikter Typisierung
+- React Hooks (useState, useEffect, useCallback)
+- Native HTML-Elemente (select, table) für maximale Kompatibilität
+- API-Calls mit fetch + async/await
+- Error-Handling mit Try-Catch
+- Optimistische UI-Updates
+- Field-Mapping: Backend (snake_case) → Frontend (camelCase)
+
+**Build-Status**:
+- ✅ Client kompiliert erfolgreich (`npm run build`)
+- ✅ Keine TypeScript-Fehler
+- ✅ Route registriert und funktional
+
+**Dateien erstellt/geändert**:
+- `client/src/pages/TeamsUnified.tsx` (neu, 364 Zeilen)
+- `client/src/components/TeamFormModal.tsx` (neu, 211 Zeilen)
+- `client/src/components/TeamPenaltiesModal.tsx` (neu, 239 Zeilen)
+- `client/src/App.tsx` (geändert: Import + Route /teams hinzugefügt)
+- `client/src/i18n/locales/de.json` (teams-Sektion hinzugefügt)
+- `client/src/i18n/locales/en.json` (teams-Sektion hinzugefügt)
+
+**Unterschied zu Groups (Phase 1)**:
+- **Groups**: Verwendet DatabaseManagementTemplate, Heroicons
+- **Teams**: Verwendet native HTML-Elemente (select, table), Lucide icons
+- Beide Ansätze funktional, Teams ist einfacher und direkter
+
+**Commit**: 838363b7
+
+**Ausstehende Arbeiten**:
+- ⏳ Manuelle CRUD-Tests durchführen
+- ⏳ Abzüge-System testen
+- ⏳ Integration mit Wertungs-System (tfx_wertungen.int_mannschaftenid)
+
+**Nächste Schritte (Phase 3)**:
+- ⏳ Wertungen-UI erweitern für Gruppen/Mannschaften
+- ⏳ Ergebnis-Berechnung für Gruppen und Mannschaften
+- ⏳ Live-Updates für Gruppen-/Mannschafts-Wertungen
+- ⏳ Export-Funktionen (PDF, Excel) für Gruppen/Mannschaften
 
