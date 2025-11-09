@@ -12,6 +12,7 @@ import Events from '@/pages/Events'
 import EventManagement from '@/pages/EventManagement'
 import ClubsUnified from '@/pages/ClubsUnified'
 import GroupsUnified from '@/pages/GroupsUnified'
+import TeamsUnified from '@/pages/TeamsUnified'
 import Regions from '@/pages/Regions'
 import Associations from '@/pages/Associations'
 import ParticipantsUnified from '@/pages/ParticipantsUnified'
@@ -60,6 +61,7 @@ function App() {
             <Route path="/event-management" element={<EventManagement />} />
             <Route path="/clubs" element={<ClubsUnified />} />
             <Route path="/groups" element={<GroupsUnified />} />
+            <Route path="/teams" element={<TeamsUnified />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/associations" element={<Associations />} />
             <Route path="/participants" element={<ParticipantsUnified />} />

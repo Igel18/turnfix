@@ -976,6 +976,77 @@
       "memberRemoveError": "Fehler beim Entfernen des Mitglieds"
     }
   },
+  "teams": {
+    "title": "Mannschaftsverwaltung",
+    "subtitle": "Mannschaften für Mannschaftswettkämpfe verwalten",
+    "searchPlaceholder": "Mannschaften suchen...",
+    "addTeam": "Mannschaft hinzufügen",
+    "createTeam": "Neue Mannschaft erstellen",
+    "editTeam": "Mannschaft bearbeiten",
+    "deleteTeam": "Mannschaft löschen",
+    "noTeams": "Keine Mannschaften gefunden",
+    "loadingTeams": "Lade Mannschaften...",
+    "teamsLoaded": "Mannschaften geladen",
+    "managePenalties": "Abzüge verwalten",
+    "table": {
+      "club": "Verein",
+      "competition": "Wettkampf",
+      "number": "Nummer",
+      "squad": "Riege",
+      "startNumber": "Startnummer",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "club": "Verein",
+      "clubPlaceholder": "Verein auswählen",
+      "competition": "Wettkampf",
+      "competitionPlaceholder": "Wettkampf auswählen",
+      "number": "Mannschaftsnummer",
+      "numberPlaceholder": "Nummer eingeben",
+      "squad": "Riege",
+      "squadPlaceholder": "Riege eingeben (optional)",
+      "startNumber": "Startnummer",
+      "startNumberPlaceholder": "Startnummer eingeben (optional)",
+      "selectClubAndCompetition": "Bitte Verein und Wettkampf auswählen",
+      "noClubsAvailable": "Keine Vereine verfügbar. Bitte zuerst Vereine erstellen.",
+      "noCompetitionsAvailable": "Keine Wettkämpfe verfügbar. Bitte zuerst Wettkämpfe erstellen.",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "penalties": {
+      "title": "Abzüge verwalten",
+      "teamInfo": "Mannschaft: {{club}} - {{competition}}",
+      "currentPenalties": "Aktuelle Abzüge",
+      "noPenalties": "Keine Abzüge vorhanden",
+      "addPenalty": "Abzug hinzufügen",
+      "selectPenaltyType": "Abzugsart auswählen",
+      "noPenaltyTypesAvailable": "Alle verfügbaren Abzüge sind bereits zugewiesen",
+      "deduction": "Abzug",
+      "add": "Hinzufügen",
+      "remove": "Entfernen",
+      "close": "Schließen",
+      "confirmRemove": "Sind Sie sicher, dass Sie diesen Abzug entfernen möchten?"
+    },
+    "filters": {
+      "allClubs": "Alle Vereine",
+      "allCompetitions": "Alle Wettkämpfe"
+    },
+    "messages": {
+      "createSuccess": "Mannschaft erfolgreich erstellt",
+      "updateSuccess": "Mannschaft erfolgreich aktualisiert",
+      "deleteSuccess": "Mannschaft erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Mannschaft",
+      "updateError": "Fehler beim Aktualisieren der Mannschaft",
+      "deleteError": "Fehler beim Löschen der Mannschaft",
+      "loadError": "Fehler beim Laden der Mannschaften",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Mannschaft löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "penaltyAddSuccess": "Abzug erfolgreich hinzugefügt",
+      "penaltyRemoveSuccess": "Abzug erfolgreich entfernt",
+      "penaltyAddError": "Fehler beim Hinzufügen des Abzugs",
+      "penaltyRemoveError": "Fehler beim Entfernen des Abzugs"
+    }
+  },
   "venues": {
     "title": "Austragungsorte",
     "subtitle": "Wettkampfstätten und Austragungsorte verwalten",

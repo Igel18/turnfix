@@ -976,6 +976,77 @@
       "memberRemoveError": "Error removing member"
     }
   },
+  "teams": {
+    "title": "Team Management",
+    "subtitle": "Manage teams for team competitions",
+    "searchPlaceholder": "Search teams...",
+    "addTeam": "Add Team",
+    "createTeam": "Create New Team",
+    "editTeam": "Edit Team",
+    "deleteTeam": "Delete Team",
+    "noTeams": "No teams found",
+    "loadingTeams": "Loading teams...",
+    "teamsLoaded": "teams loaded",
+    "managePenalties": "Manage Penalties",
+    "table": {
+      "club": "Club",
+      "competition": "Competition",
+      "number": "Number",
+      "squad": "Squad",
+      "startNumber": "Start Number",
+      "actions": "Actions"
+    },
+    "form": {
+      "club": "Club",
+      "clubPlaceholder": "Select club",
+      "competition": "Competition",
+      "competitionPlaceholder": "Select competition",
+      "number": "Team Number",
+      "numberPlaceholder": "Enter number",
+      "squad": "Squad",
+      "squadPlaceholder": "Enter squad (optional)",
+      "startNumber": "Start Number",
+      "startNumberPlaceholder": "Enter start number (optional)",
+      "selectClubAndCompetition": "Please select club and competition",
+      "noClubsAvailable": "No clubs available. Please create clubs first.",
+      "noCompetitionsAvailable": "No competitions available. Please create competitions first.",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "penalties": {
+      "title": "Manage Penalties",
+      "teamInfo": "Team: {{club}} - {{competition}}",
+      "currentPenalties": "Current Penalties",
+      "noPenalties": "No penalties assigned",
+      "addPenalty": "Add Penalty",
+      "selectPenaltyType": "Select penalty type",
+      "noPenaltyTypesAvailable": "All available penalties are already assigned",
+      "deduction": "Deduction",
+      "add": "Add",
+      "remove": "Remove",
+      "close": "Close",
+      "confirmRemove": "Are you sure you want to remove this penalty?"
+    },
+    "filters": {
+      "allClubs": "All Clubs",
+      "allCompetitions": "All Competitions"
+    },
+    "messages": {
+      "createSuccess": "Team created successfully",
+      "updateSuccess": "Team updated successfully",
+      "deleteSuccess": "Team deleted successfully",
+      "createError": "Error creating team",
+      "updateError": "Error updating team",
+      "deleteError": "Error deleting team",
+      "loadError": "Error loading teams",
+      "confirmDelete": "Are you sure you want to delete this team?",
+      "deleteWarning": "This action cannot be undone.",
+      "penaltyAddSuccess": "Penalty added successfully",
+      "penaltyRemoveSuccess": "Penalty removed successfully",
+      "penaltyAddError": "Error adding penalty",
+      "penaltyRemoveError": "Error removing penalty"
+    }
+  },
   "venues": {
     "title": "Venues",
     "subtitle": "Manage competition venues and locations",
