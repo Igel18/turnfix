@@ -104,6 +104,10 @@
           "title": "Riegen verwalten",
           "description": "Riegen erstellen und Teilnehmer organisieren"
         },
+        "manageGroups": {
+          "title": "Gruppen verwalten",
+          "description": "Gruppen für Gruppenwettkämpfe erstellen und verwalten"
+        },
         "timePlanning": {
           "title": "Zeitplanung",
           "description": "Wettkampfzeiten und Gerätedurchgänge planen"
@@ -909,6 +913,67 @@
       "loadError": "Fehler beim Laden der Vereine",
       "confirmDelete": "Sind Sie sicher, dass Sie diesen Verein löschen möchten?",
       "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  },
+  "groups": {
+    "title": "Gruppenverwaltung",
+    "subtitle": "Gruppen für Gruppenwettkämpfe verwalten",
+    "searchPlaceholder": "Gruppen suchen...",
+    "addGroup": "Gruppe hinzufügen",
+    "createGroup": "Neue Gruppe erstellen",
+    "editGroup": "Gruppe bearbeiten",
+    "deleteGroup": "Gruppe löschen",
+    "noGroups": "Keine Gruppen gefunden",
+    "loadingGroups": "Lade Gruppen...",
+    "groupsLoaded": "Gruppen geladen",
+    "manageMembers": "Mitglieder verwalten",
+    "memberCount": "Mitglieder",
+    "table": {
+      "name": "Gruppenname",
+      "club": "Verein",
+      "memberCount": "Anzahl Mitglieder",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "name": "Gruppenname",
+      "namePlaceholder": "Gruppenname eingeben",
+      "club": "Verein",
+      "clubPlaceholder": "Verein auswählen",
+      "selectClub": "Bitte Verein auswählen",
+      "noClubsAvailable": "Keine Vereine verfügbar. Bitte zuerst Vereine erstellen.",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "members": {
+      "title": "Mitglieder verwalten",
+      "groupName": "Gruppe: {{name}}",
+      "currentMembers": "Aktuelle Mitglieder",
+      "noMembers": "Keine Mitglieder in dieser Gruppe",
+      "addMember": "Mitglied hinzufügen",
+      "availableParticipants": "Verfügbare Teilnehmer",
+      "selectParticipant": "Teilnehmer auswählen",
+      "noParticipantsAvailable": "Keine Teilnehmer vom Verein {{club}} verfügbar",
+      "remove": "Entfernen",
+      "close": "Schließen"
+    },
+    "filters": {
+      "club": "Verein",
+      "allClubs": "Alle Vereine"
+    },
+    "messages": {
+      "createSuccess": "Gruppe erfolgreich erstellt",
+      "updateSuccess": "Gruppe erfolgreich aktualisiert",
+      "deleteSuccess": "Gruppe erfolgreich gelöscht",
+      "createError": "Fehler beim Erstellen der Gruppe",
+      "updateError": "Fehler beim Aktualisieren der Gruppe",
+      "deleteError": "Fehler beim Löschen der Gruppe",
+      "loadError": "Fehler beim Laden der Gruppen",
+      "confirmDelete": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "memberAddSuccess": "Mitglied erfolgreich hinzugefügt",
+      "memberRemoveSuccess": "Mitglied erfolgreich entfernt",
+      "memberAddError": "Fehler beim Hinzufügen des Mitglieds",
+      "memberRemoveError": "Fehler beim Entfernen des Mitglieds"
     }
   },
   "venues": {

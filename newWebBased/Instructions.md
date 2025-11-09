@@ -4916,8 +4916,90 @@ Danach Dokumentiert.
 **Nächste Schritte**:
 - ⏳ Team/Mannschaften-API erweitern (teams.ts existiert, muss vervollständigt werden)
 - ⏳ Wertungen-API erweitern für Gruppen-Unterstützung
-- ⏳ Frontend: Gruppen-Verwaltungsseite
+- ✅ Frontend: Gruppen-Verwaltungsseite (siehe Phase 1b unten)
 - ⏳ Frontend: Team-Verwaltungsseite
 - ⏳ Ergebnis-Berechnung für Gruppen und Teams
 - ⏳ Dokumentation
+
+---
+
+#### Phase 1b: Frontend-Implementierung (2025-01-15) ✅
+
+**Implementiert**: Vollständige Gruppen-Verwaltung mit DatabaseManagementTemplate-Pattern
+
+**Route**: `/groups` (registriert in App.tsx)
+
+**Hauptkomponenten**:
+
+1. **GroupsUnified.tsx** (348 Zeilen) - pages/
+   - CRUD-Operationen für Gruppen
+   - Features:
+     * Liste aller Gruppen mit Name, Verein, Anzahl Mitglieder
+     * Sortierung nach Name, Verein, Mitglieder
+     * Filter nach Verein
+     * Create/Edit/Delete
+     * "Mitglieder verwalten" Button pro Gruppe
+   - Template: DatabaseManagementTemplate-Pattern
+   - API-Integration: GET/POST/PUT/DELETE /api/groups
+
+2. **GroupFormModal.tsx** (114 Zeilen) - components/
+   - Create/Edit-Formular für Gruppen
+   - Felder:
+     * Name (Pflichtfeld)
+     * Verein (Dropdown, Pflichtfeld)
+   - Validierung: Submit disabled wenn keine Vereine verfügbar
+   - Wrapper: UnifiedModal
+
+3. **GroupMembersModal.tsx** (254 Zeilen) - components/
+   - Mitgliederverwaltung für Gruppen
+   - Features:
+     * Liste aktueller Mitglieder mit Entfernen-Button
+     * Dropdown verfügbarer Teilnehmer (vom selben Verein)
+     * Hinzufügen-Button für neue Mitglieder
+     * Filtert bereits zugewiesene Mitglieder aus Dropdown
+   - API-Integration:
+     * GET /api/groups/:id/members (Mitglieder abrufen)
+     * POST /api/groups/:id/members (Mitglied hinzufügen)
+     * DELETE /api/groups/:groupId/members/:participantId (Mitglied entfernen)
+
+**Ordnerstruktur** (React-Konventionen):
+```
+pages/
+└── GroupsUnified.tsx          ← Route-gebundene Komponente (/groups)
+
+components/
+├── GroupFormModal.tsx         ← Wiederverwendbares Formular-Modal
+└── GroupMembersModal.tsx      ← Wiederverwendbares Mitglieder-Dialog
+```
+
+**Technische Details**:
+- TypeScript mit strikter Typisierung
+- React Hooks (useState, useEffect, useCallback)
+- API-Calls mit fetch + async/await
+- Error-Handling mit Try-Catch
+- Optimistische UI-Updates
+- Field-Mapping: Backend (snake_case) → Frontend (camelCase)
+
+**Build-Status**:
+- ✅ Client kompiliert erfolgreich (`npm run build`)
+- ✅ Keine TypeScript-Fehler
+- ✅ Route registriert und funktional
+
+**Dateien erstellt/geändert**:
+- `client/src/pages/GroupsUnified.tsx` (neu, 348 Zeilen)
+- `client/src/components/GroupFormModal.tsx` (neu, 114 Zeilen)
+- `client/src/components/GroupMembersModal.tsx` (neu, 254 Zeilen)
+- `client/src/App.tsx` (geändert: Import + Route hinzugefügt)
+
+**Ausstehende Arbeiten**:
+- ⏳ i18n-Übersetzungen hinzufügen (de.json, en.json)
+  * Schlüssel: groups.title, groups.addGroup, groups.name, groups.club, groups.memberCount, etc.
+  * Aktuell: Fallback-Keys werden angezeigt (funktional, aber nicht lokalisiert)
+- ⏳ Frontend-Commit erstellen
+- ⏳ Manuelle CRUD-Tests durchführen
+
+**Nächste Schritte (Phase 2)**:
+- ⏳ Teams-Frontend implementieren (ähnliches Pattern wie Gruppen)
+- ⏳ Team-Strafen Integration
+- ⏳ Wertungen-UI für Gruppen erweitern
 
