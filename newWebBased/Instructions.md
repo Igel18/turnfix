@@ -4865,3 +4865,59 @@ Ok. Schau dir jetzt bitte noch mal die erstellt Doku an. An einigen Stellen hast
 
 138. Location mit Karte 
 Wir verwenden ja eine Location. Falls es eine Internetverbindung gibt, wäre es cool diese Location in einer OSM-Karte anzuzeigen. 
+
+139. Mannschaftswettkampf / Gruppenwettkampf ⏳
+Es gibt ein GROUPS_AND_TEAMS_ANALYSIS.md 
+Dies soll umgesetzt werden. Beachte bitte SoC und allgemeine Vorgaben. 
+Beginne mit dem Backend. 
+Danach das Frontend Themen. 
+Danach Dokumentiert. 
+
+**Status**: Backend Phase 1 abgeschlossen
+
+**Backend - Completed**:
+- ✅ API-Route für Gruppen (CRUD): `/api/groups`
+  - GET /api/groups - Alle Gruppen mit Mitgliedern
+  - GET /api/groups/:id - Einzelne Gruppe
+  - GET /api/groups/club/:clubId - Gruppen eines Vereins
+  - POST /api/groups - Gruppe erstellen
+  - PUT /api/groups/:id - Gruppe bearbeiten
+  - DELETE /api/groups/:id - Gruppe löschen
+  
+- ✅ API-Route für Gruppenmitglieder: `/api/groups/:id/members`
+  - GET /api/groups/:id/members - Mitglieder einer Gruppe
+  - POST /api/groups/:id/members - Mitglied hinzufügen
+  - POST /api/groups/:id/members/bulk - Mehrere Mitglieder hinzufügen
+  - DELETE /api/groups/:groupId/members/:participantId - Mitglied entfernen
+
+- ✅ API-Route für Team-Strafen: `/api/team-penalties`
+  - GET /api/team-penalties - Alle verfügbaren Strafen
+  - POST /api/team-penalties - Strafe erstellen
+  - PUT /api/team-penalties/:id - Strafe bearbeiten
+  - DELETE /api/team-penalties/:id - Strafe löschen
+  - GET /api/teams/:teamId/penalties - Strafen eines Teams
+  - POST /api/teams/:teamId/penalties - Strafe zuordnen
+  - DELETE /api/teams/:teamId/penalties/:penaltyId - Strafe entfernen
+
+**Technische Details**:
+- Prisma-Schema bereits vorhanden (tfx_gruppen, tfx_gruppen_x_teilnehmer, tfx_mannschaften, tfx_mannschaften_abzug)
+- Field-Mapping: Database (snake_case) → Client (camelCase)
+- Validierung: int_gruppenid XOR int_teilnehmerid in tfx_wertungen
+- Display-Logic: Gruppenname vs. Personenname (Vorname + Nachname)
+
+**Dateien erstellt**:
+- `server/src/routes/groups.ts` (269 Zeilen)
+- `server/src/routes/groupMembers.ts` (212 Zeilen)
+- `server/src/routes/teamPenalties.ts` (243 Zeilen)
+
+**Dateien geändert**:
+- `server/src/index.ts` (Import und Registrierung der neuen Routen)
+
+**Nächste Schritte**:
+- ⏳ Team/Mannschaften-API erweitern (teams.ts existiert, muss vervollständigt werden)
+- ⏳ Wertungen-API erweitern für Gruppen-Unterstützung
+- ⏳ Frontend: Gruppen-Verwaltungsseite
+- ⏳ Frontend: Team-Verwaltungsseite
+- ⏳ Ergebnis-Berechnung für Gruppen und Teams
+- ⏳ Dokumentation
+

@@ -65,6 +65,9 @@ import timePlanningRoutes from './routes/timePlanning';
 import firewallRoutes from './routes/firewall';
 import appSettingsRoutes from './routes/appSettings';
 import clientErrorRoutes from './routes/clientErrors';
+import groupRoutes from './routes/groups';
+import groupMemberRoutes from './routes/groupMembers';
+import teamPenaltyRoutes from './routes/teamPenalties';
 
 const app = express();
 const server = createServer(app);
@@ -236,6 +239,9 @@ app.use('/api/time-planning', timePlanningRoutes);
 app.use('/api/firewall', firewallRoutes);
 app.use('/api/app-settings', appSettingsRoutes);
 app.use('/api/client-errors', clientErrorRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/groups', groupMemberRoutes);
+app.use('/api/team-penalties', teamPenaltyRoutes);
 
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {
