@@ -40,7 +40,7 @@ description: TurnFix v2.0 - Full-Stack Gymnastics Competition Management System 
 ```typescript
 // Database (snake_case) → Client (camelCase)
 int_disziplinenid → id
-var_name → name
+var_name → name 
 bol_m → maleAllowed
 bol_w → femaleAllowed
 ```

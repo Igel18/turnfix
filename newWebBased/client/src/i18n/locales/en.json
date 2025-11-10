@@ -2509,6 +2509,12 @@
     "title": "Squad Management",
     "subtitle": "Create squads and assign participants to competitions",
     "searchPlaceholder": "Search participants, clubs, competitions...",
+    "entityNames": {
+      "master": "Squad",
+      "available": "Participant",
+      "masterPlural": "Squads",
+      "availablePlural": "Participants"
+    },
     "filters": {
       "gender": "Gender",
       "competition": "Competition",

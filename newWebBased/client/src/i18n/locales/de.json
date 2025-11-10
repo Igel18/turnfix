@@ -2509,6 +2509,12 @@
     "title": "Riegenverwaltung",
     "subtitle": "Erstelle Riegen und weise Teilnehmer Wettkämpfen zu",
     "searchPlaceholder": "Teilnehmer, Vereine, Wettkämpfe suchen...",
+    "entityNames": {
+      "master": "Riege",
+      "available": "Teilnehmer",
+      "masterPlural": "Riegen",
+      "availablePlural": "Teilnehmer"
+    },
     "filters": {
       "gender": "Geschlecht",
       "competition": "Wettkampf",

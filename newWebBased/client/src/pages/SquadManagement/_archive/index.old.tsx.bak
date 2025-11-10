@@ -1,17 +1,16 @@
 /**
- * Squad Management Page - Unified Version
- * Using UnifiedAssignmentModal for generic M:N assignment UI
- * Reduced from 298 lines to ~150 lines (50% reduction)
+ * Squad Management Page
+ * Refactored with Separation of Concerns (SoC) pattern
+ * Main file reduced from 1070 lines to ~200 lines
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
 import { UserGroupIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
-import { UnifiedAssignmentModal } from '@/components/assignment';
 
 // Hooks
 import { useSquads } from './hooks/useSquads';
@@ -19,16 +18,18 @@ import { useParticipants } from './hooks/useParticipants';
 import { useSquadAssignment } from './hooks/useSquadAssignment';
 
 // Components
+import { SquadList } from './components/SquadList';
+import { AvailableParticipantsList } from './components/AvailableParticipantsList';
+import { SquadDetailPane } from './components/SquadDetailPane';
 import { CreateSquadModal } from './components/CreateSquadModal';
 
 // Utils
 import { exportSquadsPDF } from './utils/squadPdfExport';
-import { createSquadConfig } from './squadAssignmentConfig';
 
 // Types
-import type { Participant } from './SquadManagement.types';
+import type { Squad } from './SquadManagement.types';
 
-const SquadManagementUnified: React.FC = () => {
+const SquadManagement: React.FC = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
@@ -44,7 +45,9 @@ const SquadManagementUnified: React.FC = () => {
   // Custom hooks for data management
   const {
     squads,
+    selectedSquad,
     isLoading: squadsLoading,
+    setSelectedSquad,
     forceLoadSquads,
     createSquad,
     deleteSquad
@@ -82,6 +85,12 @@ const SquadManagementUnified: React.FC = () => {
   // Combined loading state
   const isLoading = squadsLoading || assignmentLoading;
 
+  // Handler for squad selection - reset competition selection when squad changes
+  const handleSquadSelection = (squad: Squad) => {
+    setSelectedSquad(squad);
+    setCompetitionSelection({ id: null, name: null });
+  };
+
   // Handler for competition selection
   const handleCompetitionClick = (competitionId: number, competitionName: string) => {
     const isSameCompetition = competitionSelection.id === competitionId && competitionSelection.name === competitionName;
@@ -91,44 +100,10 @@ const SquadManagementUnified: React.FC = () => {
     });
   };
 
-  // Handler for participant removal
-  const handleRemoveParticipant = async (participantId: number) => {
-    await removeParticipantFromSquad(participantId);
-  };
-
-  // Handler for assignment
-  const handleAssign = async (participant: Participant, squadId: number | string) => {
-    await assignParticipantToSquad(participant, squadId);
-  };
-
-  // Handler for unassignment
-  const handleUnassign = async (_squadId: number | string, participantId: number | string) => {
-    await removeParticipantFromSquad(Number(participantId));
-  };
-
   // PDF Export Handler
   const handleExportPDF = () => {
     if (!selectedEvent) return;
     exportSquadsPDF({ squads, selectedEvent, t });
-  };
-
-  // Create squad configuration with callbacks
-  const squadConfig = createSquadConfig({
-    t,
-    competitionSelection,
-    onCompetitionClick: handleCompetitionClick,
-    onRemoveParticipant: handleRemoveParticipant,
-    participantHasSelectedCompetition
-  });
-
-  // Override config callbacks
-  const config = {
-    ...squadConfig,
-    onAssign: handleAssign,
-    onUnassign: handleUnassign,
-    onCreateMaster: () => setIsCreateModalOpen(true),
-    onDeleteMaster: deleteSquad,
-    onExportPDF: handleExportPDF
   };
 
   // No event selected state
@@ -273,15 +248,38 @@ const SquadManagementUnified: React.FC = () => {
             </div>
           )}
 
-          {/* UnifiedAssignmentModal replaces the 3-column layout */}
-          <UnifiedAssignmentModal
-            masterItems={squads}
-            availableItems={filteredParticipants}
-            assignments={[]} // Not needed for this implementation
-            config={config}
-            isLoading={isLoading}
-            eventId={eventId}
-          />
+          {/* Main 3-Column Grid */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Column 1: Squad List (Master) */}
+              <SquadList
+                squads={squads}
+                selectedSquad={selectedSquad}
+                onSquadSelect={handleSquadSelection}
+                onSquadDelete={deleteSquad}
+              />
+
+              {/* Column 2: Available Participants */}
+              <AvailableParticipantsList
+                participants={filteredParticipants}
+                selectedSquad={selectedSquad}
+                hasVirtualSquads={squads.some(s => s.isVirtual)}
+                competitionSelection={competitionSelection}
+                onAssign={assignParticipantToSquad}
+                onCompetitionSelectionClear={() => setCompetitionSelection({ id: null, name: null })}
+                participantHasSelectedCompetition={participantHasSelectedCompetition}
+              />
+
+              {/* Column 3: Squad Details */}
+              <SquadDetailPane
+                selectedSquad={selectedSquad}
+                competitionSelection={competitionSelection}
+                onRemoveParticipant={removeParticipantFromSquad}
+                onCompetitionClick={handleCompetitionClick}
+                participantHasSelectedCompetition={participantHasSelectedCompetition}
+              />
+            </div>
+          </div>
 
           {/* Create Squad Modal */}
           <CreateSquadModal
@@ -296,4 +294,4 @@ const SquadManagementUnified: React.FC = () => {
   );
 };
 
-export default SquadManagementUnified;
+export default SquadManagement;
