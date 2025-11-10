@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { 
@@ -16,6 +16,9 @@ import {
 } from '@heroicons/react/24/outline'
 import { useOptionalEvent } from '../contexts/EventContext'
 import LanguageSwitcher from './LanguageSwitcher'
+// @ts-ignore - Import build info
+import buildInfo from '../build-info.json'
+import { apiGet } from '../utils/api'
 
 interface FilterOption {
   value: string
@@ -129,6 +132,21 @@ export default function UnifiedPageHeader({
   const { t } = useTranslation()
   const eventContext = useOptionalEvent()
   const selectedEvent = eventContext?.selectedEvent ?? null
+  const [serverVersion, setServerVersion] = useState<string | null>(null)
+
+  // Fetch server version on mount
+  useEffect(() => {
+    const fetchServerVersion = async () => {
+      try {
+        const data = await apiGet('/system/version');
+        setServerVersion(data.build?.gitHash || 'unknown');
+      } catch (error) {
+        console.error('Failed to fetch server version:', error);
+        setServerVersion('error');
+      }
+    };
+    fetchServerVersion();
+  }, []);
 
   // Debug logging to track when the header re-renders with updated event data
   useEffect(() => {
@@ -215,6 +233,18 @@ export default function UnifiedPageHeader({
           )}
           
           {customActions}
+          
+          {/* Version Display - Frontend + Backend */}
+          <div className="flex items-center gap-1">
+            <div className="flex items-center px-2 py-1.5 text-xs bg-blue-50 rounded-md border border-blue-200" title={`Frontend Build\nHash: ${buildInfo.gitHash}\nBranch: ${buildInfo.gitBranch}\nBuilt: ${buildInfo.buildDate}`}>
+              <span className="text-blue-600 font-semibold mr-1">FE:</span>
+              <span className="font-mono text-blue-800">{buildInfo.gitHash}</span>
+            </div>
+            <div className="flex items-center px-2 py-1.5 text-xs bg-green-50 rounded-md border border-green-200" title={serverVersion ? `Backend Build\nHash: ${serverVersion}` : 'Loading backend version...'}>
+              <span className="text-green-600 font-semibold mr-1">BE:</span>
+              <span className="font-mono text-green-800">{serverVersion || '...'}</span>
+            </div>
+          </div>
           
           {/* Language Switcher - Always visible */}
           <LanguageSwitcher />
