@@ -12,81 +12,30 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000;
     const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-    const eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
-
-    let groups;
-    let total;
-
-    if (eventId) {
-      // Filter groups by event - get groups that have members participating in competitions of this event
-      const groupsWithMembers = await prisma.$queryRaw`
-        SELECT DISTINCT g.int_gruppenid
-        FROM tfx_gruppen g
-        INNER JOIN tfx_wertungen w ON w.int_gruppenid = g.int_gruppenid
-        INNER JOIN tfx_wettkaempfe wk ON wk.int_wettkaempfeid = w.int_wettkaempfeid
-        WHERE wk.int_veranstaltungenid = ${eventId}
-      ` as any[];
-
-      const groupIds = groupsWithMembers.map((g: any) => g.int_gruppenid);
-
-      if (groupIds.length === 0) {
-        // No groups found for this event
-        return res.json({
-          data: [],
-          total: 0,
-          limit,
-          offset
-        });
+    // Note: eventId is ignored for groups - groups are event-independent
+    // They can be used across multiple events
+    
+    // Get all groups (no event filtering)
+    const groups = await prisma.tfx_gruppen.findMany({
+      take: limit,
+      skip: offset,
+      include: {
+        tfx_gruppen_x_teilnehmer: {
+          include: {
+            tfx_teilnehmer: {
+              include: {
+                tfx_vereine: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        var_name: 'asc'
       }
+    });
 
-      groups = await prisma.tfx_gruppen.findMany({
-        where: {
-          int_gruppenid: {
-            in: groupIds
-          }
-        },
-        take: limit,
-        skip: offset,
-        include: {
-          tfx_gruppen_x_teilnehmer: {
-            include: {
-              tfx_teilnehmer: {
-                include: {
-                  tfx_vereine: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: {
-          var_name: 'asc'
-        }
-      });
-
-      total = groupIds.length;
-    } else {
-      // No event filter - return all groups
-      groups = await prisma.tfx_gruppen.findMany({
-        take: limit,
-        skip: offset,
-        include: {
-          tfx_gruppen_x_teilnehmer: {
-            include: {
-              tfx_teilnehmer: {
-                include: {
-                  tfx_vereine: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: {
-          var_name: 'asc'
-        }
-      });
-
-      total = await prisma.tfx_gruppen.count();
-    }
+    const total = await prisma.tfx_gruppen.count();
 
     // Get unique club IDs
     const clubIds = [...new Set(groups.map((g: any) => g.int_vereineid).filter(Boolean))];

@@ -76,6 +76,8 @@ export const useGroups = (eventId?: number) => {
       
       const method = editingGroup ? 'PUT' : 'POST';
 
+      console.log('💾 Saving group:', { url, method, formData });
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -88,7 +90,11 @@ export const useGroups = (eventId?: number) => {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('💾 Group saved:', result);
+        console.log('💾 Fetching groups after save...');
         await fetchGroups();
+        console.log('💾 Groups after fetch:', groups.length);
         return true;
       } else {
         const error = await response.json();
@@ -109,12 +115,16 @@ export const useGroups = (eventId?: number) => {
     }
 
     try {
+      console.log('🗑️ Deleting group:', group.id);
+
       const response = await fetch(`/api/groups/${group.id}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
+        console.log('🗑️ Group deleted, fetching groups...');
         await fetchGroups();
+        console.log('🗑️ Groups after fetch:', groups.length);
         return true;
       } else {
         const error = await response.json();
