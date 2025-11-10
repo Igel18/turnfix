@@ -486,6 +486,7 @@ const mapped = {
 - `newWebBased/Instructions.md` - Detailed feature tracking (3200+ lines)
 - Point-based system for feature development
 - Commit history with meaningful messages
+- don't add documentation to the instrucons.md. Only use it for feature tracking.
 
 ---
 

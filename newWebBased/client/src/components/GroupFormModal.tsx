@@ -50,7 +50,7 @@ const GroupFormModal: React.FC<GroupFormModalProps> = ({
         {/* Group Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {t('groups.name')} *
+            {t('groups.form.name')} *
           </label>
           <input
             type="text"
@@ -60,14 +60,14 @@ const GroupFormModal: React.FC<GroupFormModalProps> = ({
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
                      bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                      focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={t('groups.namePlaceholder')}
+            placeholder={t('groups.form.namePlaceholder')}
           />
         </div>
 
         {/* Club Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {t('groups.club')} *
+            {t('groups.form.club')} *
           </label>
           <select
             required
@@ -77,7 +77,7 @@ const GroupFormModal: React.FC<GroupFormModalProps> = ({
                      bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                      focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">{t('groups.selectClub')}</option>
+            <option value="">{t('groups.form.selectClub')}</option>
             {Array.isArray(clubs) && clubs.map(club => (
               <option key={club.int_vereineid} value={club.int_vereineid}>
                 {club.var_name}
@@ -86,7 +86,7 @@ const GroupFormModal: React.FC<GroupFormModalProps> = ({
           </select>
           {clubs.length === 0 && (
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-              ⚠️ {t('groups.noClubs')}
+              ⚠️ {t('groups.form.noClubsAvailable')}
             </p>
           )}
         </div>

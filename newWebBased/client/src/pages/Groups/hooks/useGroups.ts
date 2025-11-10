@@ -20,13 +20,22 @@ export const useGroups = (eventId?: number) => {
       const url = eventId 
         ? `/api/groups?limit=5000&eventId=${eventId}`
         : '/api/groups?limit=5000';
+      
+      console.log('🏃 Fetching groups:', url);
+      
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        console.log('🏃 Groups response:', data);
+        console.log('🏃 Groups data array:', data.data);
+        console.log('🏃 Groups count:', data.data?.length || 0);
+        
         setGroups(Array.isArray(data.data) ? data.data : []);
+      } else {
+        console.error('🏃 Groups fetch failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error fetching groups:', error);
+      console.error('❌ Error fetching groups:', error);
       setGroups([]);
     } finally {
       setIsLoading(false);

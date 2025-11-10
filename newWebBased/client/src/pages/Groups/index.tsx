@@ -124,28 +124,28 @@ const Groups: React.FC = () => {
   const renderTableHeaders = () => (
     <tr>
       <SortableTableHeader
-        label={t('groups.name')}
+        label={t('groups.table.name')}
         sortKey="name"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label={t('groups.club')}
+        label={t('groups.table.club')}
         sortKey="club"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <SortableTableHeader
-        label={t('groups.memberCount')}
+        label={t('groups.table.memberCount')}
         sortKey="members"
         currentSortKey={sortKey}
         currentSortDirection={sortDirection}
         onSort={handleSort}
       />
       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-        {t('common.actions')}
+        {t('groups.table.actions')}
       </th>
     </tr>
   );

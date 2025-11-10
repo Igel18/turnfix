@@ -5115,3 +5115,14 @@ Wo machen wir das am besten, und wie?
 Bei der Gruppenverwaltung gibt es ein Teilnehmer hinzufügen button 
 
 145. PDF Export möglichkeiten bei Gruppen / Mannschaften fehlt
+
+146. Es gibt aktuell verschiedene UIs um Datensätze zuzuweisen. 
+Diese sollen vereinheitlicht werden. 
+Wettkämpfe <-> Disziplinen 
+Teilnehmer <-> Wettkämpfe 
+Riegen <-> Teilnehmer 
+Mannschaften <-> Teilnehmer 
+Gruppen <-> Teilnehmer 
+Teilnehmer <-> Veranstaltung 
+
+Entwerfe hierzu erst mal ein Konzept und schau ob es noch weitere Seiten betrifft. 

@@ -88,10 +88,30 @@ router.get('/', async (req: Request, res: Response) => {
       total = await prisma.tfx_gruppen.count();
     }
 
+    // Get unique club IDs
+    const clubIds = [...new Set(groups.map((g: any) => g.int_vereineid).filter(Boolean))];
+    
+    // Fetch club names
+    const clubs = await prisma.tfx_vereine.findMany({
+      where: {
+        int_vereineid: {
+          in: clubIds
+        }
+      },
+      select: {
+        int_vereineid: true,
+        var_name: true
+      }
+    });
+
+    // Create club name lookup
+    const clubNames = new Map(clubs.map(c => [c.int_vereineid, c.var_name]));
+
     // Map to client-friendly format
     const mappedGroups = groups.map((group: any) => ({
       id: group.int_gruppenid,
       clubId: group.int_vereineid,
+      clubName: clubNames.get(group.int_vereineid) || 'Unknown Club',
       name: group.var_name,
       memberCount: group.tfx_gruppen_x_teilnehmer.length,
       members: group.tfx_gruppen_x_teilnehmer.map((gxt: any) => ({
