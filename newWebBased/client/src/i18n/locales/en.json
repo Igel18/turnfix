@@ -981,6 +981,60 @@
       "memberRemoveSuccess": "Member removed successfully",
       "memberAddError": "Error adding member",
       "memberRemoveError": "Error removing member"
+    },
+    "help": {
+      "button": "Help",
+      "title": "Help - Groups",
+      "whatAreGroups": {
+        "title": "What are Groups?",
+        "description": "Groups are flexible participant groups that exist independently of competitions. They are used to organize gymnasts from a club who should compete together - e.g. by age class, performance level, or training group."
+      },
+      "whenToUse": {
+        "title": "When to use Groups?",
+        "item1": "For cross-competition organizational units (e.g. 'Youth Group U14')",
+        "item2": "When the same gymnasts compete together in multiple competitions",
+        "item3": "For club-internal organizational structures (e.g. training groups)"
+      },
+      "differences": {
+        "title": "Difference: Groups vs. Teams",
+        "groups": "Groups",
+        "groupsItem1": "Competition-independent",
+        "groupsItem2": "Reusable across multiple events",
+        "groupsItem3": "Flexible member management",
+        "teams": "Teams",
+        "teamsItem1": "Bound to a competition",
+        "teamsItem2": "Only for a specific competition",
+        "teamsItem3": "Competition-specific properties (squad, start number)"
+      },
+      "properties": {
+        "title": "Group Properties",
+        "name": "Group Name",
+        "nameDesc": "Name of the group (e.g. 'Youth Group U14', 'Performance Group Men')",
+        "club": "Club",
+        "clubDesc": "The club the group belongs to",
+        "members": "Members",
+        "membersDesc": "The gymnasts who belong to this group"
+      },
+      "examples": {
+        "title": "Examples",
+        "example1": {
+          "title": "Example 1: Age Group",
+          "usage": "Usage",
+          "usageDesc": "This group can be used in various U14 competitions"
+        },
+        "example2": {
+          "title": "Example 2: Performance Group",
+          "usage": "Usage",
+          "usageDesc": "This group can be used for various men's competitions"
+        }
+      },
+      "workflow": {
+        "title": "Workflow",
+        "step1": "Create group via 'Add Group' and select club",
+        "step2": "Add gymnasts to the group via 'Manage Members'",
+        "step3": "Group can now be used in various competitions",
+        "step4": "During score capture, the group can be selected as a unit"
+      }
     }
   },
   "teams": {
@@ -1055,6 +1109,51 @@
       "penaltyRemoveSuccess": "Penalty removed successfully",
       "penaltyAddError": "Error adding penalty",
       "penaltyRemoveError": "Error removing penalty"
+    },
+    "help": {
+      "button": "Help",
+      "title": "Help - Teams",
+      "whatAreTeams": {
+        "title": "What are Teams?",
+        "description": "Teams are groups of participants from a club that compete together in a team competition. A team is always assigned to a specific competition and represents the participation of a club in that competition."
+      },
+      "whenToUse": {
+        "title": "When to use Teams?",
+        "item1": "For team all-around competitions (e.g. Bundesliga, Oberliga, Landesliga)",
+        "item2": "When multiple gymnasts from a club compete together as a team",
+        "item3": "When team scores and results are needed"
+      },
+      "properties": {
+        "title": "Team Properties",
+        "club": "Club",
+        "clubDesc": "The participating club",
+        "competition": "Competition",
+        "competitionDesc": "The specific team competition (e.g. '3rd League Male')",
+        "riege": "Squad",
+        "riegeDesc": "Optional: Squad designation (e.g. 'Squad A', 'Squad B')",
+        "startNumber": "Start Number",
+        "startNumberDesc": "Optional: Team start number"
+      },
+      "examples": {
+        "title": "Examples",
+        "example1": {
+          "title": "Example 1: Men's Team",
+          "usage": "Usage",
+          "usageDesc": "This team competes in 'Team All-Around 3rd League Male'"
+        },
+        "example2": {
+          "title": "Example 2: Women's Team",
+          "usage": "Usage",
+          "usageDesc": "This team competes in 'Team All-Around Oberliga Female'"
+        }
+      },
+      "workflow": {
+        "title": "Workflow",
+        "step1": "Create team via 'Add Team'",
+        "step2": "Select club and competition",
+        "step3": "Optional: Set squad and start number",
+        "step4": "Individual gymnasts are assigned via score capture"
+      }
     }
   },
   "venues": {

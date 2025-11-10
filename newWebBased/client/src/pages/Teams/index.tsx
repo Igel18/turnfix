@@ -25,7 +25,7 @@ import { useTeams } from './hooks';
 import type { Team, SortField, SortDirection } from './Teams.types';
 
 // Modal Components
-import { TeamFormModal, TeamPenaltiesModal } from './components';
+import { TeamFormModal, TeamPenaltiesModal, TeamsHelpPanel } from './components';
 
 /**
  * Main Teams Component
@@ -56,6 +56,7 @@ const Teams: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('club');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [showFilters, setShowFilters] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   // Modal states
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -205,9 +206,24 @@ const Teams: React.FC = () => {
         }}
         viewStorageKey="teams-view"
         showViewToggle={true}
+        customActions={
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              showHelp
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {t('teams.help.button')}
+          </button>
+        }
       >
         {() => (
           <div className="p-6">
+            {/* Help Panel */}
+            {showHelp && <TeamsHelpPanel />}
+
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">{t('teams.loadingTeams')}</p>

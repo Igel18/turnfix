@@ -70,6 +70,12 @@ bol_w → femaleAllowed
 #### Filter Sections
 EventParticipants nutzt die ParticipantFilters Komponente, die ein Grid-Layout hat und die Standard-Styles von UnifiedPageHeader verwendet. Die FilterSection soll ein gleiche Styling haben. 
 
+#### Help 
+Help content should be provided via a separate section that follows the established design patterns in the application. This includes consistent header styles, and responsive layouts, colour, Icons, and so on. To open the Help section there must be a help button in the page header that toggles the visibility of the Help section.
+check example at
+http://localhost:3001/time-planning?eventId=59
+There should be a template available for all pages.
+
 #### Core Templates
 1. **EventManagementTemplate.tsx** - Base template for all event-related pages
    - UnifiedPageHeader (title, actions, breadcrumbs)

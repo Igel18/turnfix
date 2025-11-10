@@ -5,3 +5,4 @@
 
 export { default as GroupFormModal } from '@/components/GroupFormModal';
 export { default as GroupMembersModal } from '@/components/GroupMembersModal';
+export { GroupsHelpPanel } from './GroupsHelpPanel';

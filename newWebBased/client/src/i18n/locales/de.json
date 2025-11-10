@@ -981,6 +981,60 @@
       "memberRemoveSuccess": "Mitglied erfolgreich entfernt",
       "memberAddError": "Fehler beim Hinzufügen des Mitglieds",
       "memberRemoveError": "Fehler beim Entfernen des Mitglieds"
+    },
+    "help": {
+      "button": "Hilfe",
+      "title": "Hilfe - Gruppen",
+      "whatAreGroups": {
+        "title": "Was sind Gruppen?",
+        "description": "Gruppen sind flexible Teilnehmergruppen, die unabhängig von Wettkämpfen existieren. Sie werden verwendet, um Turner eines Vereins zu organisieren, die gemeinsam antreten sollen - z.B. nach Altersklasse, Leistungsniveau oder Trainingsgruppe."
+      },
+      "whenToUse": {
+        "title": "Wann werden Gruppen verwendet?",
+        "item1": "Für wettkampfübergreifende Organisationseinheiten (z.B. 'Jugendgruppe U14')",
+        "item2": "Wenn dieselben Turner in mehreren Wettkämpfen zusammen antreten",
+        "item3": "Für vereinsinterne Organisationsstrukturen (z.B. Trainingsgruppen)"
+      },
+      "differences": {
+        "title": "Unterschied: Gruppen vs. Mannschaften",
+        "groups": "Gruppen",
+        "groupsItem1": "Wettkampf-unabhängig",
+        "groupsItem2": "Wiederverwendbar über mehrere Events",
+        "groupsItem3": "Flexible Mitgliederverwaltung",
+        "teams": "Mannschaften",
+        "teamsItem1": "An einen Wettkampf gebunden",
+        "teamsItem2": "Nur für einen spezifischen Wettkampf",
+        "teamsItem3": "Wettkampf-spezifische Eigenschaften (Riege, Startnummer)"
+      },
+      "properties": {
+        "title": "Eigenschaften einer Gruppe",
+        "name": "Gruppenname",
+        "nameDesc": "Bezeichnung der Gruppe (z.B. 'Jugendgruppe U14', 'Leistungsgruppe Herren')",
+        "club": "Verein",
+        "clubDesc": "Der Verein, zu dem die Gruppe gehört",
+        "members": "Mitglieder",
+        "membersDesc": "Die Turner, die zu dieser Gruppe gehören"
+      },
+      "examples": {
+        "title": "Beispiele",
+        "example1": {
+          "title": "Beispiel 1: Altersgruppe",
+          "usage": "Verwendung",
+          "usageDesc": "Diese Gruppe kann in verschiedenen U14-Wettkämpfen verwendet werden"
+        },
+        "example2": {
+          "title": "Beispiel 2: Leistungsgruppe",
+          "usage": "Verwendung",
+          "usageDesc": "Diese Gruppe kann für verschiedene Herren-Wettkämpfe genutzt werden"
+        }
+      },
+      "workflow": {
+        "title": "Arbeitsablauf",
+        "step1": "Gruppe über 'Gruppe hinzufügen' erstellen und Verein auswählen",
+        "step2": "Über 'Mitglieder verwalten' Turner zur Gruppe hinzufügen",
+        "step3": "Gruppe kann nun in verschiedenen Wettkämpfen verwendet werden",
+        "step4": "Bei Wertungserfassung kann die Gruppe als Einheit ausgewählt werden"
+      }
     }
   },
   "teams": {
@@ -1055,6 +1109,51 @@
       "penaltyRemoveSuccess": "Abzug erfolgreich entfernt",
       "penaltyAddError": "Fehler beim Hinzufügen des Abzugs",
       "penaltyRemoveError": "Fehler beim Entfernen des Abzugs"
+    },
+    "help": {
+      "button": "Hilfe",
+      "title": "Hilfe - Mannschaften",
+      "whatAreTeams": {
+        "title": "Was sind Mannschaften?",
+        "description": "Mannschaften sind Teilnehmergruppen eines Vereins, die gemeinsam in einem Mannschaftswettkampf antreten. Eine Mannschaft ist immer einem bestimmten Wettkampf zugeordnet und repräsentiert die Teilnahme eines Vereins in diesem Wettkampf."
+      },
+      "whenToUse": {
+        "title": "Wann werden Mannschaften verwendet?",
+        "item1": "Bei Mannschaftsmehrkämpfen (z.B. Bundesliga, Oberliga, Landesliga)",
+        "item2": "Wenn mehrere Turner eines Vereins zusammen als Team antreten",
+        "item3": "Wenn Mannschaftswertungen und -ergebnisse benötigt werden"
+      },
+      "properties": {
+        "title": "Eigenschaften einer Mannschaft",
+        "club": "Verein",
+        "clubDesc": "Der teilnehmende Verein",
+        "competition": "Wettkampf",
+        "competitionDesc": "Der spezifische Mannschaftswettkampf (z.B. '3. Liga männlich')",
+        "riege": "Riege",
+        "riegeDesc": "Optional: Bezeichnung der Riege (z.B. 'Riege A', 'Riege B')",
+        "startNumber": "Startnummer",
+        "startNumberDesc": "Optional: Startnummer der Mannschaft"
+      },
+      "examples": {
+        "title": "Beispiele",
+        "example1": {
+          "title": "Beispiel 1: Herren-Mannschaft",
+          "usage": "Verwendung",
+          "usageDesc": "Diese Mannschaft tritt im Wettkampf 'Mannschaftsmehrkampf 3. Liga männlich' an"
+        },
+        "example2": {
+          "title": "Beispiel 2: Damen-Mannschaft",
+          "usage": "Verwendung",
+          "usageDesc": "Diese Mannschaft tritt im Wettkampf 'Mannschaftsmehrkampf Oberliga weiblich' an"
+        }
+      },
+      "workflow": {
+        "title": "Arbeitsablauf",
+        "step1": "Mannschaft über 'Mannschaft hinzufügen' erstellen",
+        "step2": "Verein und Wettkampf auswählen",
+        "step3": "Optional: Riege und Startnummer festlegen",
+        "step4": "Einzelne Turner dieser Mannschaft werden über die Wertungserfassung zugeordnet"
+      }
     }
   },
   "venues": {

@@ -28,7 +28,7 @@ import { useGroups } from './hooks';
 import type { Group, GroupFormData } from './Groups.types';
 
 // Modal Components
-import { GroupFormModal, GroupMembersModal } from './components';
+import { GroupFormModal, GroupMembersModal, GroupsHelpPanel } from './components';
 
 /**
  * Main Groups Component
@@ -44,6 +44,7 @@ const Groups: React.FC = () => {
   const [searchFilter, setSearchFilter] = useState('');
   const [clubFilter, setClubFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   // Sorting
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort('name', 'asc');
@@ -271,9 +272,24 @@ const Groups: React.FC = () => {
         onAdd={handleCreate}
         viewStorageKey="groups-view"
         showViewToggle={true}
+        customActions={
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              showHelp
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {t('groups.help.button')}
+          </button>
+        }
       >
         {() => (
           <div className="p-6">
+            {/* Help Panel */}
+            {showHelp && <GroupsHelpPanel />}
+
             {isLoading ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">{t('groups.loadingGroups')}</p>

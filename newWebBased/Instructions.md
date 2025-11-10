@@ -5098,7 +5098,34 @@ components/
 - ⏳ Live-Updates für Gruppen-/Mannschafts-Wertungen
 - ⏳ Export-Funktionen (PDF, Excel) für Gruppen/Mannschaften
 
-140. Infos und Beispiele zu Mannschaften und Groups. 
+140. ✅ Infos und Beispiele zu Mannschaften und Groups. 
+**Problem**: Benutzer brauchen Hilfe zu verstehen, wann Mannschaften vs. Gruppen verwendet werden.
+**Lösung**: Hilfe-Button im Header hinzugefügt mit ausführlichen Modals
+- Erstellt: `TeamsHelpModal.tsx` mit Erklärungen, Beispielen, Workflow
+- Erstellt: `GroupsHelpModal.tsx` mit Unterschieden zu Teams, Beispielen
+- Lokalisierung: Vollständig in de.json und en.json (teams.help.*, groups.help.*)
+- Inhalt:
+  * Was sind Mannschaften/Gruppen?
+  * Wann verwenden? (Use Cases)
+  * Unterschiede Gruppen vs. Mannschaften
+  * Eigenschaften (Club, Competition/Name, Riege, Startnummer/Members)
+  * Beispiele (Herren-Mannschaft 3. Liga, Jugendgruppe U14, etc.)
+  * Workflow (Schritt-für-Schritt Anleitung)
+- Integration: Hilfe-Button im EventManagementTemplate Header
+- Dateien:
+  * `client/src/pages/Teams/components/TeamsHelpModal.tsx`
+  * `client/src/pages/Groups/components/GroupsHelpModal.tsx`
+  * `client/src/pages/Teams/index.tsx` (Help Modal Integration)
+  * `client/src/pages/Groups/index.tsx` (Help Modal Integration)
+  * `client/src/i18n/locales/de.json` (teams.help.*, groups.help.*)
+  * `client/src/i18n/locales/en.json` (teams.help.*, groups.help.*)
+
+**Key Points**:
+- **Mannschaften**: Wettkampf-gebunden, für spezifische Team-Wettkämpfe
+- **Gruppen**: Wettkampf-unabhängig, wiederverwendbar, flexibel
+- Hilfe-Modals mit YellowInfoBox für wichtige Hinweise
+- Farbcodierte Beispiele (blau/grün/orange für verschiedene Szenarien)
+- Vergleichs-Grid für Unterschiede Gruppen vs. Teams
 
 141. Localisation auf der Seite 
 http://localhost:3001/event-participants?eventId=59
