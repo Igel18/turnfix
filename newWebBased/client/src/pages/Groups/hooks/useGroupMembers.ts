@@ -48,8 +48,10 @@ export const useGroupMembers = (
       const response = await fetch(`/api/groups/${group.id}/members`);
       if (response.ok) {
         const data = await response.json();
-        const memberList = Array.isArray(data.data) ? data.data : [];
-        console.log('📥 Members loaded:', memberList.length);
+        // API returns array directly, not wrapped in { data: ... }
+        const memberList = Array.isArray(data) ? data : [];
+        console.log('📥 Members loaded:', memberList.length, 'for group:', group.id);
+        console.log('📥 Member IDs:', memberList.map((m: any) => m.id));
         setMembers(memberList);
       } else {
         console.error('❌ Failed to fetch members:', response.status);
@@ -125,9 +127,14 @@ export const useGroupMembers = (
 
       if (response.ok) {
         console.log('✅ Member added successfully');
+        // First: refresh group list (updates memberCount) - WAIT for completion
+        console.log('🔄 Calling onMembersChanged to refresh group list');
+        await onMembersChanged?.();
+        // Then: fetch fresh member data
+        console.log('🔄 Fetching fresh members and available participants');
         await fetchMembers();
         await fetchAvailableParticipants();
-        onMembersChanged?.();
+        console.log('✅ All data refreshed after add');
         return true;
       } else {
         const error = await response.json();
@@ -161,9 +168,14 @@ export const useGroupMembers = (
 
       if (response.ok) {
         console.log('✅ Member removed successfully');
+        // First: refresh group list (updates memberCount) - WAIT for completion
+        console.log('🔄 Calling onMembersChanged to refresh group list');
+        await onMembersChanged?.();
+        // Then: fetch fresh member data
+        console.log('🔄 Fetching fresh members and available participants');
         await fetchMembers();
         await fetchAvailableParticipants();
-        onMembersChanged?.();
+        console.log('✅ All data refreshed after remove');
         return true;
       } else {
         const error = await response.json();

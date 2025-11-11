@@ -3,18 +3,35 @@
  * Handles all data fetching and CRUD operations for groups
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Group, Club, GroupFormData } from '../Groups.types';
 
-export const useGroups = (eventId?: number) => {
+export const useGroups = (eventId?: number, selectedGroup?: Group | null, onSelectedGroupUpdate?: (group: Group | null) => void) => {
   const { t } = useTranslation();
   const [groups, setGroups] = useState<Group[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  /**
+   * Update selected group with fresh data after reload
+   * (Same pattern as SquadManagement)
+   */
+  const updateSelectedGroup = (newGroups: Group[]) => {
+    if (selectedGroup && onSelectedGroupUpdate) {
+      const updatedGroup = newGroups.find(g => g.id === selectedGroup.id);
+      if (updatedGroup) {
+        console.log('📝 Updating selected group with fresh data from server');
+        onSelectedGroupUpdate(updatedGroup);
+      } else {
+        console.log('❌ Selected group no longer exists, clearing selection');
+        onSelectedGroupUpdate(null);
+      }
+    }
+  };
+
   // Fetch groups from API
-  const fetchGroups = useCallback(async () => {
+  const fetchGroups = async () => {
     setIsLoading(true);
     try {
       const url = eventId 
@@ -30,7 +47,11 @@ export const useGroups = (eventId?: number) => {
         console.log('🏃 Groups data array:', data.data);
         console.log('🏃 Groups count:', data.data?.length || 0);
         
-        setGroups(Array.isArray(data.data) ? data.data : []);
+        const newGroups = Array.isArray(data.data) ? data.data : [];
+        setGroups(newGroups);
+        
+        // Update selected group with fresh data (like SquadManagement)
+        updateSelectedGroup(newGroups);
       } else {
         console.error('🏃 Groups fetch failed:', response.status, response.statusText);
       }
@@ -40,10 +61,10 @@ export const useGroups = (eventId?: number) => {
     } finally {
       setIsLoading(false);
     }
-  }, [eventId]);
+  };
 
   // Fetch clubs from API
-  const fetchClubs = useCallback(async () => {
+  const fetchClubs = async () => {
     try {
       const response = await fetch('/api/clubs?limit=5000');
       if (response.ok) {
@@ -54,13 +75,13 @@ export const useGroups = (eventId?: number) => {
       console.error('Error fetching clubs:', error);
       setClubs([]);
     }
-  }, []);
+  };
 
   // Initial data load
   useEffect(() => {
     fetchGroups();
     fetchClubs();
-  }, [fetchGroups, fetchClubs]);
+  }, [eventId]); // Only eventId dependency, NOT fetchGroups/fetchClubs!
 
   // Create or update group
   const saveGroup = async (formData: GroupFormData, editingGroup: Group | null): Promise<boolean> => {

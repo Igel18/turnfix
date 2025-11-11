@@ -92,7 +92,13 @@ export function UnifiedAssignmentModal<
           />
 
           {/* Column 3: Detail Pane */}
+          {/* Key forces re-render when selectedMaster or its nested data changes */}
           <DetailPane
+            key={
+              selectedMaster 
+                ? `detail-${selectedMaster.id}-${(selectedMaster as any).members?.length ?? 0}-${(selectedMaster as any).memberCount ?? 0}`
+                : 'no-selection'
+            }
             selectedItem={selectedMaster}
             entityName={config.entityNames.master}
             renderContent={config.renderDetailPane}

@@ -18,7 +18,7 @@ import { useEvent } from '@/contexts/EventContext';
 
 // Template & Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
-import { UnifiedAssignmentModal } from '@/components/assignment';
+import { UnifiedAssignmentModal, useAssignmentRefresh } from '@/components/assignment';
 
 // Local Hooks & Types
 import { useGroups, useGroupMembers } from './hooks';
@@ -63,7 +63,15 @@ export function Groups() {
     saveGroup,
     deleteGroup,
     fetchGroups,
-  } = useGroups(eventId);
+  } = useGroups(
+    eventId,
+    selectedGroup,
+    (updatedGroup) => {
+      // Callback to update selectedGroup with fresh data from server
+      console.log('🔄 useGroups callback: updating selectedGroup');
+      setSelectedGroup(updatedGroup);
+    }
+  );
 
   // Member Management Hook - now connected with external selection control
   const {
@@ -76,13 +84,21 @@ export function Groups() {
     removeMember,
   } = useGroupMembers(
     selectedGroup,
-    () => {
+    async () => {
       // Refresh groups list when members change
-      // Don't call fetchMembers/fetchAvailableParticipants here - 
-      // the useEffect below handles that automatically
-      fetchGroups();
+      console.log('🔄 onMembersChanged called - refreshing groups');
+      await fetchGroups();
+      // Trigger refresh handled by useAssignmentRefresh hook
+      triggerRefresh();
     }
   );
+
+  // Assignment refresh hook (SoC pattern for DetailPane re-rendering)
+  const { modalKey, triggerRefresh } = useAssignmentRefresh({
+    selectedId: selectedGroup?.id,
+    assignmentIds: members.map(m => m.id),
+    prefix: 'group'
+  });
 
   // Combined loading state
   const isLoading = isLoadingGroups || isLoadingMembers;
@@ -95,14 +111,15 @@ export function Groups() {
     }
   }, [selectedGroup?.id, fetchMembers, fetchAvailableParticipants]);
 
-  // Merge members into groups for display
-  const groupsWithMembers = groups.map((group) => ({
-    ...group,
-    members: group.id === selectedGroup?.id ? members : [],
-  }));
+  // Debug logging
+  if (selectedGroup) {
+    console.log('🔍 Selected group:', selectedGroup.id, 'name:', selectedGroup.name);
+    console.log('🔍 Members from hook:', members.length, 'IDs:', members.map(m => m.id));
+    console.log('🔍 Members in selected group:', selectedGroup.members?.length);
+  }
 
   // Filter groups by search/club
-  const filteredGroups = groupsWithMembers.filter((group) => {
+  const filteredGroups = groups.filter((group) => {
     const matchesSearch = !searchFilter || 
       group.name.toLowerCase().includes(searchFilter.toLowerCase());
     const matchesClub = !clubFilter || group.clubId.toString() === clubFilter;
@@ -125,7 +142,8 @@ export function Groups() {
     availableParticipantsCount: availableParticipants.length,
     filteredAvailableCount: filteredAvailableParticipants.length,
     membersCount: members.length,
-    memberIds: Array.from(memberIds)
+    memberIds: Array.from(memberIds),
+    modalKey // Debug: Check key changes
   });
 
   // Handler: Create Group
@@ -184,6 +202,8 @@ export function Groups() {
   };
 
   // Create modal configuration (only needs t and onRemoveMember)
+  // NOTE: Like SquadManagement, we create config on every render (no useMemo)
+  // This ensures callbacks always have fresh closure over current state
   const config = createGroupConfig({
     t,
     onRemoveMember: removeMember
@@ -265,7 +285,9 @@ export function Groups() {
     >
       <div className="space-y-6">
         {/* UnifiedAssignmentModal with 3-column layout */}
+        {/* Key includes member IDs to force re-render when members change */}
         <UnifiedAssignmentModal
+          key={modalKey}
           config={enhancedConfig}
           masterItems={filteredGroups}
           availableItems={filteredAvailableParticipants}

@@ -10,6 +10,9 @@ export { MasterList } from './MasterList';
 export { AvailableList } from './AvailableList';
 export { DetailPane } from './DetailPane';
 
+// Hooks
+export { useAssignmentRefresh } from './hooks';
+
 export type {
   BaseMasterItem,
   BaseAvailableItem,
