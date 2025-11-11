@@ -5166,3 +5166,4 @@ für Groups & Event-Participants & Squads. auf der Seite sieht das in der Grid V
 h) Groups filter sollte angepasst werden: wenn man eine gruppe auswählt, wird automatisch nach vereinen gefiltert. das passt. 
 Es sollten aber verschiedene textfelder geben: einmal nach gruppenname und einmal nach personname. 
 Workflow: Ich suche eine Person "Max Mustermann" und möchte diese der Gruppe "MeineGruppe" zuweisen. Dann sollten immer nur die entsprechenden Spalten gefiltert werden. Dies soll auch graphisch hervorgehoben werden, indem diese Filter genau über den Spalten sind. Ein-/Ausblenden sollte aber weiterhin mit dem "Filter" Button funktionieren. Und der Darüber liegende Filter sollte nicht geändert werden, da er über alles filtert. 
+i) SquadManagement kann jetzt ebenfalls useServerSyncedSelection<Squad> für Konsistenz verwenden.✅

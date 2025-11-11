@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiGet, apiPost, apiDelete, apiPut } from '@/utils/api';
+import { useServerSyncedSelection } from '@/hooks';
 import type { Squad } from '../SquadManagement.types';
 
 interface UseSquadsReturn {
@@ -26,6 +27,16 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
   const [squads, setSquads] = useState<Squad[]>([]);
   const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  /**
+   * Keep selected squad in sync with server data
+   */
+  const updateSelectedSquad = useServerSyncedSelection<Squad>({
+    selectedItem: selectedSquad,
+    onUpdate: setSelectedSquad,
+    getId: (squad) => squad.id,
+    getName: (squad) => squad.name
+  });
 
   /**
    * Load squads with cache busting
@@ -94,24 +105,6 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
           : comp;
       }) || []
     }));
-  };
-
-  /**
-   * Update selected squad with fresh data
-   */
-  const updateSelectedSquad = (newSquads: Squad[]) => {
-    if (selectedSquad) {
-      const updatedSquad = newSquads.find((s: Squad) => 
-        s.id === selectedSquad.id || s.name === selectedSquad.name
-      );
-      if (updatedSquad) {
-        console.log('📝 Updating selected squad with fresh data');
-        setSelectedSquad(updatedSquad);
-      } else {
-        console.log('❌ Selected squad no longer exists, clearing selection');
-        setSelectedSquad(null);
-      }
-    }
   };
 
   /**

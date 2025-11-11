@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useServerSyncedSelection } from '@/hooks';
 import type { Group, Club, GroupFormData } from '../Groups.types';
 
 export const useGroups = (eventId?: number, selectedGroup?: Group | null, onSelectedGroupUpdate?: (group: Group | null) => void) => {
@@ -14,21 +15,15 @@ export const useGroups = (eventId?: number, selectedGroup?: Group | null, onSele
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * Update selected group with fresh data after reload
+   * Use reusable server sync hook to keep selected group updated
    * (Same pattern as SquadManagement)
    */
-  const updateSelectedGroup = (newGroups: Group[]) => {
-    if (selectedGroup && onSelectedGroupUpdate) {
-      const updatedGroup = newGroups.find(g => g.id === selectedGroup.id);
-      if (updatedGroup) {
-        console.log('📝 Updating selected group with fresh data from server');
-        onSelectedGroupUpdate(updatedGroup);
-      } else {
-        console.log('❌ Selected group no longer exists, clearing selection');
-        onSelectedGroupUpdate(null);
-      }
-    }
-  };
+  const updateSelectedGroup = useServerSyncedSelection<Group>({
+    selectedItem: selectedGroup || null,
+    onUpdate: onSelectedGroupUpdate,
+    getId: (group) => group.id,
+    getName: (group) => group.name
+  });
 
   // Fetch groups from API
   const fetchGroups = async () => {
