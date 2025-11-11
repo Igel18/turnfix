@@ -24,7 +24,7 @@ export function AvailableList<TAvailable extends BaseAvailableItem>({
     <div className="lg:col-span-1">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">
-          Available {entityName} ({items.length})
+          {entityName} ({items.length})
         </h3>
         {!selectedMaster && items.length > 0 && (
           <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
