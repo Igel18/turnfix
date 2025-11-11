@@ -26,7 +26,7 @@ import { exportSquadsPDF } from './utils/squadPdfExport';
 import { createSquadConfig } from './squadAssignmentConfig';
 
 // Types
-import type { Participant } from './SquadManagement.types';
+import type { Participant, Squad } from './SquadManagement.types';
 
 const SquadManagementUnified: React.FC = () => {
   const { t } = useTranslation();
@@ -39,6 +39,8 @@ const SquadManagementUnified: React.FC = () => {
   
   // UI state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Custom hooks for data management
@@ -47,6 +49,7 @@ const SquadManagementUnified: React.FC = () => {
     isLoading: squadsLoading,
     forceLoadSquads,
     createSquad,
+    updateSquad,
     deleteSquad
   } = useSquads(eventId);
 
@@ -112,6 +115,18 @@ const SquadManagementUnified: React.FC = () => {
     exportSquadsPDF({ squads, selectedEvent, t });
   };
 
+  // Edit squad handler
+  const handleEditSquad = (squad: Squad) => {
+    setEditingSquad(squad);
+    setIsEditModalOpen(true);
+  };
+
+  // Close edit modal
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingSquad(null);
+  };
+
   // Create squad configuration with callbacks
   const squadConfig = createSquadConfig({
     t,
@@ -127,6 +142,7 @@ const SquadManagementUnified: React.FC = () => {
     onAssign: handleAssign,
     onUnassign: handleUnassign,
     onCreateMaster: () => setIsCreateModalOpen(true),
+    onEditMaster: handleEditSquad,
     onDeleteMaster: deleteSquad,
     onExportPDF: handleExportPDF
   };
@@ -287,8 +303,19 @@ const SquadManagementUnified: React.FC = () => {
           <CreateSquadModal
             isOpen={isCreateModalOpen}
             isLoading={isLoading}
+            mode="create"
             onClose={() => setIsCreateModalOpen(false)}
             onCreate={createSquad}
+          />
+
+          {/* Edit Squad Modal */}
+          <CreateSquadModal
+            isOpen={isEditModalOpen}
+            isLoading={isLoading}
+            mode="edit"
+            initialName={editingSquad?.name || ''}
+            onClose={handleCloseEditModal}
+            onUpdate={updateSquad}
           />
         </div>
       )}

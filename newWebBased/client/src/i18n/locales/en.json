@@ -928,11 +928,28 @@
     "createGroup": "Create New Group",
     "editGroup": "Edit Group",
     "deleteGroup": "Delete Group",
+    "confirmDelete": "Really delete group '{{name}}'?",
     "noGroups": "No groups found",
     "loadingGroups": "Loading groups...",
     "groupsLoaded": "groups loaded",
     "manageMembers": "Manage Members",
     "memberCount": "Members",
+    "actions": {
+      "create": "Create Group",
+      "edit": "Edit",
+      "delete": "Delete",
+      "manageMembers": "Manage Members"
+    },
+    "entityNames": {
+      "master": "Group",
+      "available": "Participant",
+      "masterPlural": "Groups",
+      "availablePlural": "Available Participants"
+    },
+    "details": {
+      "members": "{{count}} Members",
+      "currentMembers": "Current Members ({{count}})"
+    },
     "table": {
       "name": "Group Name",
       "club": "Club",
@@ -965,7 +982,10 @@
       "search": "Search",
       "searchPlaceholder": "Search groups...",
       "club": "Club",
-      "allClubs": "All Clubs"
+      "all": "All Clubs",
+      "allClubs": "All Clubs",
+      "showFilters": "Show Filters",
+      "hideFilters": "Hide Filters"
     },
     "messages": {
       "createSuccess": "Group created successfully",
@@ -2533,6 +2553,7 @@
     },
     "messages": {
       "squadCreated": "Squad \"{{name}}\" created successfully!",
+      "squadUpdated": "Squad \"{{oldName}}\" successfully renamed to \"{{newName}}\"!",
       "squadDeleted": "Squad deleted successfully",
       "participantAssigned": "Participant assigned successfully",
       "participantRemoved": "Participant removed successfully",
@@ -2540,6 +2561,7 @@
       "nameTooLong": "❌ Squad name too long!\n\n{{message}}\n\n💡 {{hint}}\n\nProvided: \"{{providedName}}\" ({{nameLength}} characters)\nMaximum: 5 characters",
       "validationFailed": "❌ Validation failed!\n\n{{errors}}",
       "creationFailed": "❌ Squad creation failed!\n\n{{message}}",
+      "updateFailed": "❌ Squad update failed!\n\n{{message}}",
       "assignmentFailed": "❌ Assignment failed!\n\n{{message}}",
       "deletionFailed": "Failed to delete squad",
       "removalFailed": "Failed to remove participant from squad",
@@ -2575,6 +2597,7 @@
     },
     "createModal": {
       "title": "Create New Squad",
+      "editTitle": "Edit Squad",
       "squadName": "Squad Name",
       "maxCharacters": "(max 5 characters)",
       "placeholder": "Enter squad name...",
@@ -2582,6 +2605,7 @@
       "hint": "The squad will appear in the list immediately and be ready for participant assignment.",
       "characterCount": "{{count}}/5",
       "createButton": "Create Squad",
+      "updateButton": "Update Squad",
       "cancelButton": "Cancel"
     },
     "virtualInfo": {

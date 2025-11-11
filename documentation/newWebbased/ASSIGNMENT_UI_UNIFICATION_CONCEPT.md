@@ -16,27 +16,320 @@ Aktuell gibt es verschiedene UIs für die Zuweisung von Datensätzen zueinander.
 
 ---
 
+## 🔢 Beziehungstypen & UI-Patterns
+
+### Was ist eine 1:1 Beziehung?
+
+**Definition:** Eine **1:1 (One-to-One)** Beziehung bedeutet, dass ein Datensatz der einen Seite mit maximal einem Datensatz der anderen Seite verbunden ist, und umgekehrt.
+
+**Beispiele:**
+- **Benutzer ↔ Profil**: Ein Benutzer hat ein Profil, ein Profil gehört zu einem Benutzer
+- **Person ↔ Reisepass**: Eine Person hat einen Reisepass, ein Reisepass gehört zu einer Person
+- **Wettkampf ↔ Siegerehrung**: Ein Wettkampf hat eine Siegerehrung, eine Siegerehrung gehört zu einem Wettkampf
+
+**Charakteristik:**
+- ✅ Exklusive Beziehung (1:1 Mapping)
+- ✅ Oft Denormalisierung oder Aufteilung großer Tabellen
+- ❌ Keine Mehrfachzuweisung
+- ❌ Keine "Verfügbar"-Liste sinnvoll
+
+**Passende UI-Patterns:**
+
+| Pattern | Beschreibung | Use Case |
+|---------|--------------|----------|
+| **Inline-Formular** | Details direkt im Hauptformular | Profil-Daten im User-Formular |
+| **Verknüpfter Tab** | Separate Tab-Section | Erweiterte Details |
+| **Modal mit Einzelauswahl** | Auswahl eines verknüpften Elements | Beziehung herstellen |
+| **Autocomplete-Feld** | Typeahead-Suche | Große Auswahl an möglichen Verknüpfungen |
+
+**Beispiel UI (Person ↔ Profil - 1:1):**
+```
+┌─────────────────────────────────────────────────┐
+│  Person bearbeiten                             │
+├─────────────────────────────────────────────────┤
+│  Name:      [Max Mustermann          ]         │
+│  Geburtstag: [01.01.2000             ]         │
+│                                                 │
+│  ┌─ Profil-Details ────────────────────────┐   │
+│  │ Bio:     [Sportler seit...          ]   │   │
+│  │ Website: [https://...               ]   │   │
+│  │ Foto:    [Upload...]                    │   │
+│  └─────────────────────────────────────────┘   │
+│                                                 │
+│  [Speichern] [Abbrechen]                       │
+└─────────────────────────────────────────────────┘
+```
+
+**Warum NICHT UnifiedAssignmentModal?**
+- ❌ Keine "Zuweisung" im eigentlichen Sinne
+- ❌ Kein "Verfügbar" vs "Zugewiesen" - nur eine direkte Verknüpfung
+- ❌ Meist Teil des Hauptformulars (Inline-Edit)
+
+---
+
+### Was ist eine 1:N Beziehung?
+
+**Definition:** Eine **1:N (One-to-Many)** Beziehung bedeutet, dass ein Datensatz der einen Seite mit mehreren Datensätzen der anderen Seite verbunden sein kann, aber jeder Datensatz der anderen Seite gehört zu maximal einem Datensatz der ersten Seite.
+
+**Beispiele:**
+- **Verein ↔ Teilnehmer**: Ein Verein hat viele Teilnehmer, aber jeder Teilnehmer gehört zu einem Verein
+- **Wettkampf ↔ Ergebnisse**: Ein Wettkampf hat viele Ergebnisse, aber jedes Ergebnis gehört zu einem Wettkampf
+- **Kategorie ↔ Produkte**: Eine Kategorie hat viele Produkte, aber ein Produkt gehört zu einer Kategorie
+
+**WICHTIG - EventParticipants ist NICHT 1:N:**
+- ❌ **Event ↔ Teilnehmer** ist eigentlich **M:N** (Athlete ↔ Event)!
+  - Ein Athlete kann in **mehreren Events** teilnehmen
+  - Ein Event hat **mehrere Athletes**
+  - → Zwischentabelle: `EventParticipants` (Join-Table)
+- ❌ **EventParticipant ↔ Competition** ist ebenfalls **M:N**!
+  - Ein Participant kann an **mehreren Competitions** teilnehmen
+  - Eine Competition hat **mehrere Participants**
+  - → Zwischentabelle: `ParticipantCompetitions` (Join-Table)
+
+**Charakteristik:**
+- ✅ Hierarchische Beziehung (Eltern-Kind)
+- ✅ Klare Zugehörigkeit
+- ❌ Keine mehrfache Zuweisung möglich
+
+**Passende UI-Patterns:**
+
+| Pattern | Beschreibung | Use Case |
+|---------|--------------|----------|
+| **Liste mit Filter** | Haupttabelle mit Filteroptionen | Große Datenmengen (EventParticipants) |
+| **Dropdown-Auswahl** | Auswahl des übergeordneten Elements | Wenige Optionen (Event auswählen) |
+| **Hierarchische Ansicht** | Tree-View mit Expandable Items | Verschachtelte Strukturen |
+| **Master-Detail** | Liste links, Details rechts | Detail-Ansicht wichtig |
+
+**Beispiel UI (EventParticipants - 1:N):**
+```
+┌─────────────────────────────────────────────────┐
+│  Event: Bezirksmeisterschaft 2025              │
+├─────────────────────────────────────────────────┤
+│  [Filter: Verein ▼] [Filter: Geschlecht ▼]    │
+├─────────────────────────────────────────────────┤
+│  Teilnehmer-Liste (Tabelle/Cards)              │
+│  ┌──────────────────────────────────────────┐  │
+│  │ □ Max Mustermann | TV Musterstadt | m   │  │
+│  │ □ Anna Beispiel  | SV Beispiel    | w   │  │
+│  │ □ Peter Test     | TV Musterstadt | m   │  │
+│  └──────────────────────────────────────────┘  │
+│  [+ Teilnehmer hinzufügen] [Bulk-Actions]     │
+└─────────────────────────────────────────────────┘
+```
+
+**Warum NICHT UnifiedAssignmentModal?**
+- ❌ Keine "Zuweisung" zwischen zwei gleichberechtigten Entitäten
+- ❌ Kein "Verfügbar" vs "Zugewiesen" - alle Teilnehmer gehören bereits zum Event
+- ❌ Fokus liegt auf **Verwaltung/Anzeige**, nicht auf **Zuweisung**
+
+**Anmerkung zu EventParticipants:**
+EventParticipants sieht aus wie 1:N, ist aber technisch **M:N**:
+- **Athlete ↔ Event** (M:N): `EventParticipants` ist die Join-Table
+- **EventParticipant ↔ Competition** (M:N): `ParticipantCompetitions` ist die Join-Table
+
+Dennoch wird eine **Listen-UI** verwendet (nicht Assignment-UI), weil:
+- Fokus auf Verwaltung der Participants **innerhalb eines Events**
+- Keine "Container-Auswahl" wie bei Riegen
+- Bulk-Zuweisung von Competitions an Participants (Inline-Dropdown)
+
+---
+
+### Was ist eine M:N Beziehung?
+
+**Definition:** Eine **M:N (Many-to-Many)** Beziehung bedeutet, dass ein Datensatz der einen Seite mit mehreren Datensätzen der anderen Seite verbunden sein kann, UND umgekehrt.
+
+**Beispiele:**
+- **Riegen ↔ Teilnehmer**: Eine Riege hat mehrere Teilnehmer, ein Teilnehmer kann in mehreren Riegen sein
+- **Gruppen ↔ Teilnehmer**: Eine Gruppe hat mehrere Mitglieder, ein Teilnehmer kann in mehreren Gruppen sein
+- **Wettkämpfe ↔ Disziplinen**: Ein Wettkampf hat mehrere Disziplinen, eine Disziplin kommt in mehreren Wettkämpfen vor
+- **Mannschaften ↔ Teilnehmer**: Ein Team hat mehrere Mitglieder, ein Teilnehmer kann in mehreren Teams sein
+- **Kampfrichter ↔ Disziplinen**: Ein Kampfrichter bewertet mehrere Disziplinen, eine Disziplin wird von mehreren Kampfrichtern bewertet
+
+**Charakteristik:**
+- ✅ Gleichberechtigte Beziehung (keine Hierarchie)
+- ✅ Mehrfache Zuweisung in beide Richtungen
+- ✅ Zwischentabelle in Datenbank (Join-Table)
+- ✅ Items können "verfügbar" oder "zugewiesen" sein
+
+**Passende UI-Patterns:**
+
+| Pattern | Beschreibung | Use Case | Layout |
+|---------|--------------|----------|--------|
+| **Two-Column Assignment** | Verfügbar ↔ Zugewiesen | Einfache M:N ohne Container | 2-Spalten |
+| **Three-Column Master-Detail** | Container ↔ Verfügbar ↔ Details | M:N mit mehreren Containern (Riegen!) | 3-Spalten |
+| **Checkbox-Grid** | Checkboxen für alle Optionen | Wenige Items mit zusätzlichen Feldern | Inline |
+| **Dropdown mit Liste** | Dropdown + zugewiesene Liste | Sehr wenige Items | Vertikal |
+
+**Beispiel UI: Two-Column (Gruppen ↔ Teilnehmer):**
+```
+┌─────────────────────────────────────────────────────┐
+│  Gruppe: "U12 Jungs" - Mitglieder verwalten   [X] │
+├─────────────────────────────────────────────────────┤
+│  [Search: Suche...]  [Filter: Verein ▼]           │
+├──────────────────────┬──────────────────────────────┤
+│  Verfügbar (25)      │  Zugewiesen zu Gruppe (8)   │
+│  ┌────────────────┐  │  ┌────────────────┐         │
+│  │ ☐ Max M.   [→] │  │  │ ☑ Anna B.  [←] │         │
+│  │ ☐ Peter T. [→] │  │  │ ☑ Lisa S.  [←] │         │
+│  │ ☐ Tom K.   [→] │  │  │ ☑ Jan W.   [←] │         │
+│  │   ...          │  │  │   ...          │         │
+│  └────────────────┘  │  └────────────────┘         │
+│  [Assign Selected]   │  [Remove Selected]          │
+└──────────────────────┴──────────────────────────────┘
+```
+
+**Beispiel UI: Three-Column Master-Detail (Riegen ↔ Teilnehmer):**
+```
+┌───────────────────────────────────────────────────────────────┐
+│  Riegen Management                                   [X]      │
+├───────────────────────────────────────────────────────────────┤
+│  [Search] [Filter: Verein ▼] [Filter: Wettkampf ▼]          │
+├──────────────┬─────────────────────┬──────────────────────────┤
+│  Riegen (5)  │  Verfügbar (50)     │  Riege "A" Details      │
+│  ┌────────┐  │  ┌──────────────┐   │  ┌──────────────────┐   │
+│  │▶ Riege A│  │  │☐ Max M.  [→] │   │  │☑ Anna B.    [←]  │   │
+│  │  Riege B│  │  │☐ Peter T.[→] │   │  │☑ Lisa S.    [←]  │   │
+│  │  Riege C│  │  │☐ Tom K.  [→] │   │  │☑ Jan W.     [←]  │   │
+│  │  + Neu  │  │  │   ...        │   │  │   ...            │   │
+│  └────────┘  │  └──────────────┘   │  └──────────────────┘   │
+│              │                     │                          │
+│  Master-List │  Available Items    │  Detail-Pane             │
+│  (Container) │  (zum Zuweisen)     │  (Zugewiesene + Info)    │
+└──────────────┴─────────────────────┴──────────────────────────┘
+```
+
+**Warum UnifiedAssignmentModal PERFEKT passt:**
+- ✅ Klare "Verfügbar" vs "Zugewiesen" Trennung
+- ✅ Bidirektionale Zuweisung (hinzufügen/entfernen)
+- ✅ Bulk-Operationen sinnvoll
+- ✅ Such- und Filterfunktionen wichtig
+- ✅ Drei-Spalten-Layout für mehrere Container (z.B. mehrere Riegen gleichzeitig verwalten)
+
+---
+
+### Vergleich: 1:N vs M:N
+
+| Aspekt | 1:N (One-to-Many) | M:N (Many-to-Many) |
+|--------|-------------------|-------------------|
+| **Beziehung** | Hierarchisch, Eltern-Kind | Gleichberechtigt |
+| **Mehrfachzuweisung** | ❌ Nein (Kind hat nur 1 Eltern) | ✅ Ja (beide Seiten mehrfach) |
+| **Datenbank** | Foreign Key in Child-Tabelle | Join-Tabelle erforderlich |
+| **UI-Fokus** | Verwaltung, Anzeige, Filter | Zuweisung, Auswahl, Transfer |
+| **Typische Aktionen** | Erstellen, Bearbeiten, Löschen, Filtern | Zuweisen, Entfernen, Bulk-Assign |
+| **"Verfügbar"-Konzept** | ❌ Nicht sinnvoll | ✅ Zentral wichtig |
+| **UnifiedAssignmentModal** | ❌ Nicht geeignet | ✅ Perfekt geeignet |
+
+**Beispiel-Szenarien:**
+
+**1:N Szenario** (EventParticipants):
+```
+Event: "Bezirksmeisterschaft 2025"
+├── Teilnehmer: Max Mustermann
+├── Teilnehmer: Anna Beispiel
+├── Teilnehmer: Peter Test
+└── Teilnehmer: Lisa Schmidt
+
+→ Jeder Teilnehmer gehört NUR zu diesem Event
+→ Fokus: Liste anzeigen, filtern, bearbeiten
+→ UI: Tabelle/Cards mit Filtern
+```
+
+**M:N Szenario** (Riegen ↔ Teilnehmer):
+```
+Riege A (Boden)          Teilnehmer            Riege B (Sprung)
+├── Max Mustermann ←───→ Max Mustermann ←───→ (auch hier!)
+├── Anna Beispiel  ←───→ Anna Beispiel  ←───→ (auch hier!)
+└── Peter Test                                └── Lisa Schmidt
+
+→ Max und Anna sind in BEIDEN Riegen
+→ Fokus: Items zwischen Riegen hin- und herbewegen
+→ UI: Two/Three-Column Assignment mit "Verfügbar"/"Zugewiesen"
+```
+
+---
+
+### Entscheidungsbaum: Welches UI-Pattern?
+
+```
+Beziehungstyp?
+│
+├─ 1:1 (One-to-One)
+│  └─ Inline-Formular oder Modal mit Autocomplete
+│
+├─ 1:N (One-to-Many)
+│  └─ Anzahl Items?
+│     ├─ Wenig (<20)     → Master-Detail (links Liste, rechts Details)
+│     ├─ Mittel (20-100) → Tabelle mit Inline-Edit
+│     └─ Viel (>100)     → Tabelle + Filter + Pagination
+│
+└─ M:N (Many-to-Many)
+   └─ Gibt es mehrere "Container"?
+      ├─ Nein (1 Container)
+      │  └─ Anzahl Items?
+      │     ├─ Wenig (<20)     → Single-Column (Dropdown + Liste)
+      │     ├─ Mittel (20-50)  → Two-Column Assignment
+      │     └─ Viel (>50)      → Two-Column + Search + Filter
+      │
+      └─ Ja (Mehrere Container, z.B. mehrere Riegen)
+         └─ Three-Column Master-Detail
+            ├─ Spalte 1: Container-Auswahl (Master-List)
+            ├─ Spalte 2: Verfügbare Items (Available-List)
+            └─ Spalte 3: Zugewiesene Items + Details (Detail-Pane)
+```
+
+**Beispiele:**
+
+| Use Case | Beziehung | Container? | Items | UI-Pattern |
+|----------|-----------|------------|-------|------------|
+| User → Profil | 1:1 | - | 1 | Inline-Formular (NICHT Assignment) |
+| Verein → Teilnehmer | 1:N | - | >100 | Tabelle + Filter (NICHT Assignment) |
+| **Athlete → Event** | **M:N** | - | >100 | **Liste + Filter** (Spezialfall: Listen-UI statt Assignment)* |
+| **EventParticipant → Competition** | **M:N** | - | 5-15 | **Inline-Dropdown** (Bulk-Zuweisung)* |
+| Gruppen → Teilnehmer | M:N | 1 Gruppe | 20-50 | Two-Column Assignment |
+| Riegen → Teilnehmer | M:N | **Mehrere Riegen** | >50 | **Three-Column Master-Detail** |
+| Teams → Teilnehmer | M:N | 1 Team | 10-20 | Two-Column oder Dropdown+Liste |
+| Wettkampf → Disziplinen | M:N | 1 Wettkampf | 10-15 | Checkbox-Grid (wegen max_score) |
+
+**\* EventParticipants Spezialfall:**
+- Technisch **M:N** (Athlete ↔ Event, EventParticipant ↔ Competition)
+- ABER: UI ist **Listen-fokussiert** (keine Assignment-UI)
+- Grund: Verwaltung **innerhalb eines Events**, keine Container-Navigation
+- Competitions werden via Inline-Dropdown **bulk-zugewiesen**
+
+---
+
 ## 🎯 Betroffene Zuweisungstypen
 
 ### Identifizierte Zuweisungen
 
-| # | Zuweisung | Aktueller Ort | Status | UI-Pattern |
-|---|-----------|---------------|--------|------------|
-| 1 | **Wettkämpfe ↔ Disziplinen** | `CompetitionFormModal.tsx` | ✅ Vorhanden | Inline-Checkboxen in Modal |
-| 2 | **Teilnehmer ↔ Wettkämpfe** | `EventParticipants` (inline) | ✅ Vorhanden | Inline-Auswahl |
-| 3 | **Riegen ↔ Teilnehmer** | `SquadManagement.tsx` | ✅ Vorhanden | Drag & Drop + Listen |
-| 4 | **Mannschaften ↔ Teilnehmer** | `TeamPenaltiesModal.tsx` (Abzüge)<br>`components/` (fehlend) | ⚠️ Teilweise | Modal |
-| 5 | **Gruppen ↔ Teilnehmer** | `GroupMembersModal.tsx` | ✅ Vorhanden | Modal mit Dropdown |
-| 6 | **Teilnehmer ↔ Veranstaltung** | `AddParticipantModal.tsx` | ✅ Vorhanden | Modal mit Suche |
+| # | Zuweisung | Beziehung | Aktueller Ort | Status | UI-Pattern |
+|---|-----------|-----------|---------------|--------|------------|
+| 1 | **Wettkämpfe ↔ Disziplinen** | **M:N** | `CompetitionFormModal.tsx` | ✅ Vorhanden | Inline-Checkboxen in Modal |
+| 2 | **Athlete ↔ Event** | **M:N** | `EventParticipants` (Page) | ✅ Vorhanden | Liste + Filter (Spezialfall)* |
+| 2b | **EventParticipant ↔ Competition** | **M:N** | `EventParticipants` (Inline) | ✅ Vorhanden | Inline-Dropdown (Bulk) |
+| 3 | **Riegen ↔ Teilnehmer** | **M:N** | `SquadManagement.tsx` | ✅ Vorhanden | Drag & Drop + 3-Column Master-Detail |
+| 4 | **Mannschaften ↔ Teilnehmer** | **M:N** | `TeamPenaltiesModal.tsx` (Abzüge)<br>`components/` (fehlend) | ⚠️ Teilweise | Modal |
+| 5 | **Gruppen ↔ Teilnehmer** | **M:N** | `GroupMembersModal.tsx` | ✅ Vorhanden | Modal mit Dropdown |
+
+**Legende Beziehungstypen:**
+- **1:1 (One-to-One)**: Exklusive Beziehung, 1:1 Mapping → **❌ UnifiedAssignmentModal NICHT geeignet** (Inline-Formular)
+- **1:N (One-to-Many)**: Item gehört zu maximal einem Eltern-Element → **❌ UnifiedAssignmentModal NICHT geeignet** (Listen-UI)
+- **M:N (Many-to-Many)**: Item kann mehrfach zugewiesen werden (z.B. Teilnehmer in mehreren Riegen) → **✅ UnifiedAssignmentModal geeignet**
+
+**\* EventParticipants Spezialfall:**
+- Beziehungen sind technisch **M:N** (Athlete ↔ Event, EventParticipant ↔ Competition)
+- ABER: UI ist **Listen-fokussiert** statt Assignment-fokussiert
+- Grund: Verwaltung innerhalb eines Events, keine Container-Navigation wie bei Riegen
+- Dennoch könnten Teilbereiche (z.B. Competition-Zuweisung) theoretisch UnifiedAssignmentModal nutzen
 
 ### Weitere identifizierte Zuweisungen
 
-| # | Zuweisung | Potenzieller Bedarf | Priorität |
-|---|-----------|---------------------|-----------|
-| 7 | **Wettkämpfe ↔ Durchgänge** | TimePlanning | Niedrig (bereits integriert) |
-| 8 | **Riegen ↔ Wettkämpfe** | SquadManagement | Mittel |
-| 9 | **Kampfrichter ↔ Wettkämpfe** | Jury Portal | Hoch (separates System) |
-| 10 | **Mannschaften ↔ Wettkämpfe** | Teams Page | Hoch (aktuell fehlend?) |
+| # | Zuweisung | Beziehung | Potenzieller Bedarf | Priorität |
+|---|-----------|-----------|---------------------|-----------|
+| 7 | **Wettkämpfe ↔ Durchgänge** | **M:N** | TimePlanning | Niedrig (bereits integriert) |
+| 8 | **Riegen ↔ Wettkämpfe** | **M:N** | SquadManagement | Mittel |
+| 9 | **Kampfrichter ↔ Wettkämpfe** | **M:N** | Jury Portal | Hoch (separates System) |
+| 10 | **Mannschaften ↔ Wettkämpfe** | **M:N** | Teams Page | Hoch (aktuell fehlend?) |
 
 ---
 

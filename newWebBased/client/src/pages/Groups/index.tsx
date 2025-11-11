@@ -1,347 +1,299 @@
 /**
- * Groups Page - Main Component
- * Refactored with Separation of Concerns (SoC) + EventManagementTemplate
+ * Groups Page - Unified Version with UnifiedAssignmentModal
+ * Migrated from table view to generic M:N assignment pattern
  * 
- * This component orchestrates group management functionality.
- * Uses EventManagementTemplate for consistent UI/UX.
+ * Uses existing infrastructure:
+ * - useGroups hook (with saveGroup, mapped fields)
+ * - useGroupMembers hook (for member CRUD)
+ * - Existing GroupFormModal component
+ * - camelCase field mapping (id, name, clubId)
  */
 
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  UserGroupIcon,
-  PencilIcon,
-  TrashIcon,
-  UsersIcon,
-  BuildingOfficeIcon
-} from '@heroicons/react/24/outline';
+import { UserGroupIcon } from '@heroicons/react/24/outline';
 
 // Context
 import { useEvent } from '@/contexts/EventContext';
 
 // Template & Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
-import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
+import { UnifiedAssignmentModal } from '@/components/assignment';
 
 // Local Hooks & Types
-import { useGroups } from './hooks';
-import type { Group, GroupFormData } from './Groups.types';
+import { useGroups, useGroupMembers } from './hooks';
+import type { Group, GroupFormData, GroupMember } from './Groups.types';
 
 // Modal Components
-import { GroupFormModal, GroupMembersModal, GroupsHelpPanel } from './components';
+import { GroupFormModal, GroupsHelpPanel } from './components';
+
+// Utils
+import { createGroupConfig } from './groupAssignmentConfig';
 
 /**
- * Main Groups Component
+ * Groups Component - Using UnifiedAssignmentModal
  */
-const Groups: React.FC = () => {
+export function Groups() {
   const { t } = useTranslation();
   const { selectedEvent } = useEvent();
-  
-  // Custom hook for data management
-  const { groups, clubs, isLoading, fetchGroups, saveGroup, deleteGroup } = useGroups(selectedEvent?.int_eventid);
-  
-  // Filter states
-  const [searchFilter, setSearchFilter] = useState('');
-  const [clubFilter, setClubFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  
-  // Sorting
-  const { sortKey, sortDirection, handleSort, sortData } = useTableSort('name', 'asc');
-  
-  // Modal states
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const eventId = selectedEvent?.int_eventid;
+
+  // State: UI & Selection
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [showHelpPanel, setShowHelpPanel] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Form Data (for existing GroupFormModal)
   const [formData, setFormData] = useState<GroupFormData>({
     name: '',
     clubId: ''
   });
 
-  // Form handlers
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      clubId: ''
-    });
+  // Filters
+  const [searchFilter, setSearchFilter] = useState('');
+  const [clubFilter, setClubFilter] = useState<string>('');
+
+  // Data Hooks
+  const {
+    groups,
+    clubs,
+    isLoading: isLoadingGroups,
+    saveGroup,
+    deleteGroup,
+    fetchGroups,
+  } = useGroups(eventId);
+
+  // Member Management Hook - now connected with external selection control
+  const {
+    members,
+    availableParticipants,
+    isLoading: isLoadingMembers,
+    fetchMembers,
+    fetchAvailableParticipants,
+    addMember,
+    removeMember,
+  } = useGroupMembers(
+    selectedGroup,
+    () => {
+      // Refresh groups list when members change
+      // Don't call fetchMembers/fetchAvailableParticipants here - 
+      // the useEffect below handles that automatically
+      fetchGroups();
+    }
+  );
+
+  // Combined loading state
+  const isLoading = isLoadingGroups || isLoadingMembers;
+
+  // Auto-load members when group is selected
+  useEffect(() => {
+    if (selectedGroup?.id) {
+      fetchMembers();
+      fetchAvailableParticipants();
+    }
+  }, [selectedGroup?.id, fetchMembers, fetchAvailableParticipants]);
+
+  // Merge members into groups for display
+  const groupsWithMembers = groups.map((group) => ({
+    ...group,
+    members: group.id === selectedGroup?.id ? members : [],
+  }));
+
+  // Filter groups by search/club
+  const filteredGroups = groupsWithMembers.filter((group) => {
+    const matchesSearch = !searchFilter || 
+      group.name.toLowerCase().includes(searchFilter.toLowerCase());
+    const matchesClub = !clubFilter || group.clubId.toString() === clubFilter;
+    return matchesSearch && matchesClub;
+  });
+
+  // Filter available participants: exclude current members + apply search
+  const memberIds = new Set(members.map(m => m.id));
+  const filteredAvailableParticipants = availableParticipants
+    .filter((p) => !memberIds.has(p.id)) // Exclude current members
+    .filter((p) =>
+      !searchFilter ||
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchFilter.toLowerCase()) ||
+      p.lastName?.toLowerCase().includes(searchFilter.toLowerCase())
+    );
+
+  // Debug logging
+  console.log('🔍 Groups Debug:', {
+    selectedGroup,
+    availableParticipantsCount: availableParticipants.length,
+    filteredAvailableCount: filteredAvailableParticipants.length,
+    membersCount: members.length,
+    memberIds: Array.from(memberIds)
+  });
+
+  // Handler: Create Group
+  const handleCreateGroup = () => {
     setEditingGroup(null);
+    setFormData({ name: '', clubId: '' });
+    setShowFormModal(true);
   };
 
-  const handleCreate = () => {
-    resetForm();
-    setIsFormModalOpen(true);
+  // Handler: Form Submit (uses existing saveGroup)
+  const handleFormSubmit = async () => {
+    const success = await saveGroup(formData, editingGroup);
+    if (success) {
+      setShowFormModal(false);
+      setEditingGroup(null);
+      setFormData({ name: '', clubId: '' });
+    }
   };
 
-  const handleEdit = (group: Group) => {
+  // Handler: Assign Participant (receives full object from UnifiedAssignmentModal)
+  const handleAssign = async (participant: GroupMember, _masterId: number | string) => {
+    if (!selectedGroup) {
+      console.warn('No group selected for assignment');
+      return;
+    }
+    await addMember(participant.id);
+  };
+
+  // Handler: Delete Group (receives ID from UnifiedAssignmentModal)
+  const handleDeleteGroup = async (groupId: number | string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    await deleteGroup(group);
+    // Clear selection if deleted group was selected
+    if (selectedGroup?.id === groupId) {
+      setSelectedGroup(null);
+    }
+  };
+
+  // Handler: Select Group (controlled by UnifiedAssignmentModal)
+  const handleSelectGroup = (group: Group | null) => {
+    console.log('👆 Group selected:', group?.name || 'none');
+    setSelectedGroup(group);
+    // Members will be loaded by useEffect when selectedGroup changes
+  };
+
+  // Handler: Edit Group (now enabled when group is selected)
+  const handleEditGroup = (group: Group) => {
+    setEditingGroup(group);
     setFormData({
       name: group.name,
       clubId: group.clubId.toString()
     });
-    setEditingGroup(group);
-    setIsFormModalOpen(true);
+    setShowFormModal(true);
   };
 
-  const handleManageMembers = (group: Group) => {
-    setSelectedGroup(group);
-    setIsMembersModalOpen(true);
-  };
-
-  const handleDelete = async (group: Group) => {
-    await deleteGroup(group);
-  };
-
-  const handleSubmit = async () => {
-    const success = await saveGroup(formData, editingGroup);
-    if (success) {
-      setIsFormModalOpen(false);
-      resetForm();
-    }
-  };
-
-  // Sort data first
-  const sortedGroups = sortData(groups, (group: Group) => {
-    switch (sortKey) {
-      case 'name': return group.name;
-      case 'club': return group.clubName || '';
-      case 'members': return group.memberCount;
-      default: return group.name;
-    }
+  // Create modal configuration (only needs t and onRemoveMember)
+  const config = createGroupConfig({
+    t,
+    onRemoveMember: removeMember
   });
 
-  // Then filter
-  const filteredGroups = sortedGroups.filter(group => {
-    const matchesSearch = searchFilter === '' || 
-      group.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      (group.clubName && group.clubName.toLowerCase().includes(searchFilter.toLowerCase()));
-    
-    const matchesClub = clubFilter === '' || 
-      group.clubId.toString() === clubFilter;
-
-    return matchesSearch && matchesClub;
-  });
-
-  // Render table headers
-  const renderTableHeaders = () => (
-    <tr>
-      <SortableTableHeader
-        label={t('groups.table.name')}
-        sortKey="name"
-        currentSortKey={sortKey}
-        currentSortDirection={sortDirection}
-        onSort={handleSort}
-      />
-      <SortableTableHeader
-        label={t('groups.table.club')}
-        sortKey="club"
-        currentSortKey={sortKey}
-        currentSortDirection={sortDirection}
-        onSort={handleSort}
-      />
-      <SortableTableHeader
-        label={t('groups.table.memberCount')}
-        sortKey="members"
-        currentSortKey={sortKey}
-        currentSortDirection={sortDirection}
-        onSort={handleSort}
-      />
-      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-        {t('groups.table.actions')}
-      </th>
-    </tr>
-  );
-
-  // Render table row
-  const renderTableRow = (group: Group) => (
-    <tr key={group.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center">
-          <UserGroupIcon className="h-5 w-5 text-gray-400 mr-2" />
-          <span className="text-sm font-medium text-gray-900 dark:text-white">
-            {group.name}
-          </span>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center">
-          <BuildingOfficeIcon className="h-4 w-4 text-gray-400 mr-2" />
-          <span className="text-sm text-gray-900 dark:text-white">
-            {group.clubName || '-'}
-          </span>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center">
-          <UsersIcon className="h-4 w-4 text-gray-400 mr-2" />
-          <span className="text-sm text-gray-900 dark:text-white">
-            {group.memberCount}
-          </span>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-        <button
-          onClick={() => handleManageMembers(group)}
-          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-          title={t('groups.manageMembers')}
-        >
-          <UsersIcon className="h-5 w-5" />
-        </button>
-        <button
-          onClick={() => handleEdit(group)}
-          className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-          title={t('common.edit')}
-        >
-          <PencilIcon className="h-5 w-5" />
-        </button>
-        <button
-          onClick={() => handleDelete(group)}
-          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-          title={t('common.delete')}
-        >
-          <TrashIcon className="h-5 w-5" />
-        </button>
-      </td>
-    </tr>
-  );
-
-  // Handle reset filters
-  const handleResetFilters = () => {
-    setSearchFilter('');
-    setClubFilter('');
+  // Override config callbacks that UnifiedAssignmentModal doesn't handle
+  const enhancedConfig = {
+    ...config,
+    onAssign: handleAssign,
+    onEditMaster: handleEditGroup,
+    onDeleteMaster: handleDeleteGroup,
   };
-
-  // Filter section component (matching EventParticipants style)
-  const FilterSection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {/* Search */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {t('groups.searchPlaceholder')}
-        </label>
-        <input
-          type="text"
-          value={searchFilter}
-          onChange={(e) => setSearchFilter(e.target.value)}
-          placeholder={t('groups.searchPlaceholder')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
-      
-      {/* Club Filter */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {t('groups.filterByClub')}
-        </label>
-        <select
-          value={clubFilter}
-          onChange={(e) => setClubFilter(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">{t('common.all')}</option>
-          {clubs.map(club => (
-            <option key={club.int_vereineid} value={club.int_vereineid.toString()}>
-              {club.var_name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Reset Button */}
-      <div className="flex items-end">
-        <button
-          onClick={handleResetFilters}
-          className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {t('common.reset')}
-        </button>
-      </div>
-    </div>
-  );
 
   return (
-    <>
-      <EventManagementTemplate
-        title={t('groups.title')}
-        subtitle={t('groups.subtitle')}
-        icon={UserGroupIcon}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
-        filterSection={<FilterSection />}
-        showAddButton={true}
-        addButtonText={t('groups.addGroup')}
-        onAdd={handleCreate}
-        viewStorageKey="groups-view"
-        showViewToggle={true}
-        customActions={
-          <button
-            onClick={() => setShowHelp(!showHelp)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              showHelp
-                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {t('groups.help.button')}
-          </button>
-        }
-      >
-        {() => (
-          <div className="p-6">
-            {/* Help Panel */}
-            {showHelp && <GroupsHelpPanel />}
+    <EventManagementTemplate
+      title={t('groups.title')}
+      subtitle={t('groups.subtitle')}
+      icon={UserGroupIcon}
+      showEventContext={false}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      showHelpPanel={showHelpPanel}
+      onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
+      helpContent={<GroupsHelpPanel />}
+      onAdd={handleCreateGroup}
+      showAddButton={true}
+      addButtonText={t('groups.actions.create')}
+      filterSection={
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('groups.filters.search')}
+              </label>
+              <input
+                type="text"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                placeholder={t('groups.filters.searchPlaceholder')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-            {isLoading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">{t('groups.loadingGroups')}</p>
-              </div>
-            ) : filteredGroups.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">{t('groups.noGroups')}</p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    {renderTableHeaders()}
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredGroups.map(renderTableRow)}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            {/* Club Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('groups.filters.club')}
+              </label>
+              <select
+                value={clubFilter}
+                onChange={(e) => setClubFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{t('groups.filters.all')}</option>
+                {clubs.map((club) => (
+                  <option key={club.int_vereineid} value={club.int_vereineid.toString()}>
+                    {club.var_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Reset Button */}
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSearchFilter('');
+                  setClubFilter('');
+                }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                {t('common.resetFilters')}
+              </button>
+            </div>
           </div>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* UnifiedAssignmentModal with 3-column layout */}
+        <UnifiedAssignmentModal
+          config={enhancedConfig}
+          masterItems={filteredGroups}
+          availableItems={filteredAvailableParticipants}
+          assignments={[]} // Not needed for Groups (members stored in group object)
+          isLoading={isLoading}
+          selectedMaster={selectedGroup}
+          onSelectMaster={handleSelectGroup}
+        />
+
+        {/* Form Modal */}
+        {showFormModal && (
+          <GroupFormModal
+            isOpen={showFormModal}
+            onClose={() => {
+              setShowFormModal(false);
+              setEditingGroup(null);
+              setFormData({ name: '', clubId: '' });
+            }}
+            onSubmit={handleFormSubmit}
+            formData={formData}
+            setFormData={setFormData}
+            clubs={clubs}
+            isEditing={!!editingGroup}
+          />
         )}
-      </EventManagementTemplate>
-
-      {isFormModalOpen && (
-        <GroupFormModal
-          isOpen={isFormModalOpen}
-          onClose={() => {
-            setIsFormModalOpen(false);
-            resetForm();
-          }}
-          onSubmit={handleSubmit}
-          formData={formData}
-          setFormData={setFormData}
-          clubs={clubs}
-          isEditing={!!editingGroup}
-        />
-      )}
-
-      {isMembersModalOpen && selectedGroup && (
-        <GroupMembersModal
-          isOpen={isMembersModalOpen}
-          onClose={() => {
-            setIsMembersModalOpen(false);
-            setSelectedGroup(null);
-          }}
-          group={selectedGroup}
-          onMembersChanged={fetchGroups}
-        />
-      )}
-    </>
+      </div>
+    </EventManagementTemplate>
   );
-};
+}
 
 export default Groups;

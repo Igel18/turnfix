@@ -76,6 +76,28 @@ check example at
 http://localhost:3001/time-planning?eventId=59
 There should be a template available for all pages.
 
+#### Page views / Pagination
+Only a part of the available data should be loaded initially (if a lot of data sets exist). Use
+      pagination: {
+        total,
+        limit: query.limit,
+        offset: query.offset,
+        hasMore: query.offset + query.limit < total
+      }
+to provide pagination information to the template.
+Then Show pagination controls in the UI using this information.
+
+#### Component Reusability
+Always look for existing patterns and components before creating new ones.
+eg Gander Badge component is used in multiple places.
+eg use UnifiedDialog for all dialogs.
+eg use UnifiedFilter for all filter sections.
+eg use UnifiedPageHeader for all page headers.
+eg use Table component for all tables.
+eg use BlueInfoBox, YellowInfoBox, PinkInfoBox, RedInfoBox for info boxes.
+eg use Pagination component for pagination.
+eg use Card component for cards.
+
 #### Core Templates
 1. **EventManagementTemplate.tsx** - Base template for all event-related pages
    - UnifiedPageHeader (title, actions, breadcrumbs)

@@ -3,3 +3,4 @@
  */
 
 export { useGroups } from './useGroups';
+export { useGroupMembers } from './useGroupMembers';

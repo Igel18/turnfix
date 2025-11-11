@@ -4,7 +4,7 @@
  * Reusable across Squads, Groups, Teams, etc.
  */
 
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import type { BaseMasterItem, MasterListProps } from './UnifiedAssignmentModal.types';
 
 export function MasterList<TMaster extends BaseMasterItem>({
@@ -12,6 +12,7 @@ export function MasterList<TMaster extends BaseMasterItem>({
   selectedItem,
   onSelect,
   onDelete,
+  onEdit,
   entityName,
   getMetadata
 }: MasterListProps<TMaster>) {
@@ -55,18 +56,32 @@ export function MasterList<TMaster extends BaseMasterItem>({
                     </p>
                   )}
                 </div>
-                {onDelete && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(item.id);
-                    }}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                    title={`Delete ${entityName}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                <div className="flex gap-1">
+                  {onEdit && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                      }}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      title={`Edit ${entityName}`}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item.id);
+                      }}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      title={`Delete ${entityName}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
               
               {/* Tags */}

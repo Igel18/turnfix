@@ -928,11 +928,28 @@
     "createGroup": "Neue Gruppe erstellen",
     "editGroup": "Gruppe bearbeiten",
     "deleteGroup": "Gruppe löschen",
+    "confirmDelete": "Gruppe '{{name}}' wirklich löschen?",
     "noGroups": "Keine Gruppen gefunden",
     "loadingGroups": "Lade Gruppen...",
     "groupsLoaded": "Gruppen geladen",
     "manageMembers": "Mitglieder verwalten",
     "memberCount": "Mitglieder",
+    "actions": {
+      "create": "Gruppe erstellen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "manageMembers": "Mitglieder verwalten"
+    },
+    "entityNames": {
+      "master": "Gruppe",
+      "available": "Teilnehmer",
+      "masterPlural": "Gruppen",
+      "availablePlural": "Verfügbare Teilnehmer"
+    },
+    "details": {
+      "members": "{{count}} Mitglieder",
+      "currentMembers": "Aktuelle Mitglieder ({{count}})"
+    },
     "table": {
       "name": "Gruppenname",
       "club": "Verein",
@@ -965,7 +982,10 @@
       "search": "Suche",
       "searchPlaceholder": "Gruppen durchsuchen...",
       "club": "Verein",
-      "allClubs": "Alle Vereine"
+      "all": "Alle Vereine",
+      "allClubs": "Alle Vereine",
+      "showFilters": "Filter anzeigen",
+      "hideFilters": "Filter ausblenden"
     },
     "messages": {
       "createSuccess": "Gruppe erfolgreich erstellt",
@@ -2533,6 +2553,7 @@
     },
     "messages": {
       "squadCreated": "Riege \"{{name}}\" erfolgreich erstellt!",
+      "squadUpdated": "Riege \"{{oldName}}\" erfolgreich in \"{{newName}}\" umbenannt!",
       "squadDeleted": "Riege erfolgreich gelöscht",
       "participantAssigned": "Teilnehmer erfolgreich zugewiesen",
       "participantRemoved": "Teilnehmer erfolgreich entfernt",
@@ -2540,6 +2561,7 @@
       "nameTooLong": "❌ Riegenname zu lang!\n\n{{message}}\n\n💡 {{hint}}\n\nAngegeben: \"{{providedName}}\" ({{nameLength}} Zeichen)\nMaximum: 5 Zeichen",
       "validationFailed": "❌ Validierung fehlgeschlagen!\n\n{{errors}}",
       "creationFailed": "❌ Riegen-Erstellung fehlgeschlagen!\n\n{{message}}",
+      "updateFailed": "❌ Riegen-Aktualisierung fehlgeschlagen!\n\n{{message}}",
       "assignmentFailed": "❌ Zuweisung fehlgeschlagen!\n\n{{message}}",
       "deletionFailed": "Riege konnte nicht gelöscht werden",
       "removalFailed": "Teilnehmer konnte nicht aus Riege entfernt werden",
@@ -2575,6 +2597,7 @@
     },
     "createModal": {
       "title": "Neue Riege erstellen",
+      "editTitle": "Riege bearbeiten",
       "squadName": "Riegenname",
       "maxCharacters": "(max. 5 Zeichen)",
       "placeholder": "Riegennamen eingeben...",
@@ -2582,6 +2605,7 @@
       "hint": "Die Riege wird sofort in der Liste angezeigt und ist bereit für die Teilnehmerzuweisung.",
       "characterCount": "{{count}}/5",
       "createButton": "Riege erstellen",
+      "updateButton": "Riege aktualisieren",
       "cancelButton": "Abbrechen"
     },
     "virtualInfo": {

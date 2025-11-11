@@ -30,6 +30,13 @@ const participantQuerySchema = zod_1.z.object({
 router.get('/', async (req, res) => {
     try {
         const query = participantQuerySchema.parse(req.query);
+        console.log('🔍 Participants GET request:', {
+            search: query.search,
+            clubId: query.clubId,
+            gender: query.gender,
+            limit: query.limit,
+            offset: query.offset
+        });
         // Build WHERE conditions
         const whereConditions = [];
         const params = [];
@@ -53,6 +60,7 @@ router.get('/', async (req, res) => {
             }
         }
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+        console.log('🔍 WHERE clause:', whereClause, 'params:', params);
         // Count query
         const countQuery = `
       SELECT COUNT(*) as total
@@ -99,6 +107,12 @@ router.get('/', async (req, res) => {
             prisma.$queryRawUnsafe(dataQuery, ...dataParams)
         ]);
         const total = Number(countResult[0]?.total || 0);
+        console.log('📊 Query results:', {
+            total,
+            returned: dataResult.length,
+            whereClause,
+            params
+        });
         // Convert BigInt values to numbers for JSON serialization
         const participantsData = dataResult.map(participant => ({
             ...participant,

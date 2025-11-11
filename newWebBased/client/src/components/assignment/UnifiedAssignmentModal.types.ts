@@ -78,6 +78,7 @@ export interface AssignmentConfig<
   onAssign: (availableItem: TAvailable, masterId: number | string) => Promise<void>;
   onUnassign: (masterId: number | string, itemId: number | string) => Promise<void>;
   onCreateMaster?: () => void;
+  onEditMaster?: (master: TMaster) => void; // NEW: Edit master item
   onDeleteMaster?: (masterId: number | string) => Promise<void>;
   onExportPDF?: () => void;
 
@@ -128,6 +129,11 @@ export interface UnifiedAssignmentModalProps<
 
   // Event context (optional)
   eventId?: string | null;
+
+  // External selection control (optional)
+  // If provided, component uses controlled mode instead of internal state
+  selectedMaster?: TMaster | null;
+  onSelectMaster?: (item: TMaster | null) => void;
 }
 
 // Column-specific props
@@ -136,6 +142,7 @@ export interface MasterListProps<TMaster extends BaseMasterItem> {
   selectedItem: TMaster | null;
   onSelect: (item: TMaster) => void;
   onDelete?: (itemId: number | string) => void;
+  onEdit?: (item: TMaster) => void; // NEW: Edit action
   entityName: string;
   getMetadata: (item: TMaster) => {
     itemCount: number;

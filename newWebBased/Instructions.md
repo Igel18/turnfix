@@ -5127,6 +5127,7 @@ components/
 - Farbcodierte Beispiele (blau/grün/orange für verschiedene Szenarien)
 - Vergleichs-Grid für Unterschiede Gruppen vs. Teams
 
+
 141. Localisation auf der Seite 
 http://localhost:3001/event-participants?eventId=59
 Veranstaltungsteilnehmer (115)eventParticipants.pagination.showing 1-50 common.of 115 (eventParticipants.pagination.page 1 common.of 3)
@@ -5153,3 +5154,9 @@ Gruppen <-> Teilnehmer
 Teilnehmer <-> Veranstaltung 
 
 Entwerfe hierzu erst mal ein Konzept und schau ob es noch weitere Seiten betrifft. 
+
+a) Button Verwaltungszentrale ändert nicht die UI, aber den Pfad in der adressleiste ✅
+b) edit button und auswahl einer gruppe führt weiterhin zur dauerschleife ✅
+c) es werden keine "Verfügbaren Teilnehmer" angezeigt. warum? 
+d) lokalisierung im filter von Common.all fehlt. 
+e) filter lässt sich nicht ein/ausblenden

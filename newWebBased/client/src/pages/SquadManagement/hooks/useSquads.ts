@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apiGet, apiPost, apiDelete } from '@/utils/api';
+import { apiGet, apiPost, apiDelete, apiPut } from '@/utils/api';
 import type { Squad } from '../SquadManagement.types';
 
 interface UseSquadsReturn {
@@ -17,6 +17,7 @@ interface UseSquadsReturn {
   loadSquads: () => Promise<void>;
   forceLoadSquads: () => Promise<void>;
   createSquad: (name: string) => Promise<void>;
+  updateSquad: (oldName: string, newName: string) => Promise<void>;
   deleteSquad: (squadId: number | string) => Promise<void>;
 }
 
@@ -212,6 +213,64 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
     }
   };
 
+  /**
+   * Update squad name
+   */
+  const updateSquad = async (oldName: string, newName: string) => {
+    if (!oldName.trim() || !newName.trim() || !eventId) {
+      throw new Error('Old squad name, new squad name and event ID are required');
+    }
+
+    if (oldName === newName) {
+      // No change needed
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await apiPut('/squad-management/update', {
+        eventId: parseInt(eventId),
+        oldSquadName: oldName,
+        newSquadName: newName
+      });
+
+      alert(t('squadManagement.messages.squadUpdated', { oldName, newName }));
+
+      // Reload data
+      console.log('🔄 Force reloading data after squad update...');
+      await forceLoadSquads();
+      console.log('✅ Force data reload completed after squad update');
+    } catch (error: any) {
+      console.error('Error updating squad:', error);
+
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        if (errorData.constraint === 'varchar(5)') {
+          throw new Error(t('squadManagement.messages.nameTooLong', {
+            message: errorData.message,
+            hint: errorData.hint,
+            providedName: errorData.providedName,
+            nameLength: errorData.nameLength
+          }));
+        } else if (errorData.errors) {
+          const errorMessages = errorData.errors.map((err: any) => err.message).join('\n');
+          throw new Error(t('squadManagement.messages.validationFailed', { errors: errorMessages }));
+        } else {
+          throw new Error(t('squadManagement.messages.updateFailed', { 
+            message: errorData.message || 'Unknown error occurred' 
+          }));
+        }
+      } else {
+        throw new Error(t('squadManagement.messages.updateFailed', { 
+          message: error instanceof Error ? error.message : 'Failed to update squad. Please try again.' 
+        }));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Load squads on mount and when eventId changes
   useEffect(() => {
     if (eventId) {
@@ -227,6 +286,7 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
     loadSquads,
     forceLoadSquads,
     createSquad,
+    updateSquad,
     deleteSquad
   };
 };

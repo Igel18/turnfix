@@ -34,6 +34,14 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const query = participantQuerySchema.parse(req.query);
     
+    console.log('🔍 Participants GET request:', {
+      search: query.search,
+      clubId: query.clubId,
+      gender: query.gender,
+      limit: query.limit,
+      offset: query.offset
+    });
+    
     // Build WHERE conditions
     const whereConditions: string[] = [];
     const params: any[] = [];
@@ -61,6 +69,8 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    
+    console.log('🔍 WHERE clause:', whereClause, 'params:', params);
     
     // Count query
     const countQuery = `
@@ -111,6 +121,13 @@ router.get('/', async (req: Request, res: Response) => {
     ]);
     
     const total = Number((countResult as any)[0]?.total || 0);
+    
+    console.log('📊 Query results:', {
+      total,
+      returned: (dataResult as any[]).length,
+      whereClause,
+      params
+    });
     
     // Convert BigInt values to numbers for JSON serialization
     const participantsData = (dataResult as any[]).map(participant => ({
