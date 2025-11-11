@@ -19,6 +19,7 @@ export interface GroupMember {
   clubId: number;
   clubName?: string;
   age?: number;
+  birthdate?: string | Date;
   gender?: string; // 'male' | 'female' | 'unknown'
   // For AvailableList component (uses lowercase property names)
   firstname?: string;

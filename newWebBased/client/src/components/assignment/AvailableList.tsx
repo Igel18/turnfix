@@ -6,7 +6,20 @@
 
 import { ArrowRight } from 'lucide-react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ParticipantCard, toParticipantCardData } from '@/components/cards';
 import type { BaseAvailableItem, AvailableListProps } from './UnifiedAssignmentModal.types';
+
+/**
+ * Check if item is a participant (has name fields or age/gender)
+ */
+function isParticipantItem(item: any): boolean {
+  return !!(
+    (item.firstName || item.firstname || item.var_vorname) ||
+    (item.lastName || item.lastname || item.var_nachname) ||
+    item.age !== undefined ||
+    (item.gender !== undefined || item.int_geschlecht !== undefined)
+  );
+}
 
 export function AvailableList<TAvailable extends BaseAvailableItem>({
   items,
@@ -50,13 +63,37 @@ export function AvailableList<TAvailable extends BaseAvailableItem>({
       <div className="space-y-2 max-h-[600px] overflow-y-auto">
         {items.map(item => {
           const metadata = getMetadata(item);
+          const hasHighlightedTag = metadata.tags?.some(tag => tag.isHighlighted);
+          
+          // Use ParticipantCard for participant items
+          if (isParticipantItem(item)) {
+            const participantData = toParticipantCardData(item);
+            
+            return (
+              <ParticipantCard
+                key={item.id}
+                participant={participantData}
+                isHighlighted={hasHighlightedTag}
+                actionButton={
+                  selectedMaster ? (
+                    <button
+                      onClick={() => onAssign(item, selectedMaster.id)}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      title={`Assign to ${selectedMaster.name}`}
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : undefined
+                }
+              />
+            );
+          }
+          
+          // Fallback: Generic item card (for non-participants like competitions in Squads)
           const displayName = item.displayName || 
                              (item.firstname && item.lastname 
                                ? `${item.firstname} ${item.lastname}` 
                                : item.name || String(item.id));
-          
-          // Check if any tag is highlighted
-          const hasHighlightedTag = metadata.tags?.some(tag => tag.isHighlighted);
           
           return (
             <div

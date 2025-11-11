@@ -89,6 +89,7 @@ export const useGroupMembers = (
           clubId: p.int_vereineid,
           clubName: p.verein_name || p.clubName,
           age: p.age,
+          birthdate: p.dat_geburtstag,
           gender: p.geschlecht_name, // 'male' | 'female' | 'unknown'
           // For AvailableList component (uses lowercase property names)
           firstname: p.var_vorname,

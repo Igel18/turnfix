@@ -13,7 +13,9 @@ export interface Participant {
   lastname: string;
   club: string;
   gender: string;
+  birthdate?: string | Date;
   birthYear: number;
+  age?: number;
   squadId?: number;
   squadName?: string;
   competitions?: { id: number; name: string; number: string }[];

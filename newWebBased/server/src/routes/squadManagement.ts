@@ -311,6 +311,18 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
           };
         }) : [];
 
+      // Calculate age from birthdate
+      let age = null;
+      if (participant.dat_geburtstag) {
+        const birthDate = new Date(participant.dat_geburtstag);
+        const today = new Date();
+        age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+      }
+
       return {
         id: Number(participant.int_teilnehmerid),
         firstname: participant.var_vorname,
@@ -318,7 +330,9 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
         club: participant.verein_name || 'Unknown Club',
         clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
         gender: participant.gender,
+        birthdate: participant.dat_geburtstag,
         birthYear: participant.birth_year ? Number(participant.birth_year) : null,
+        age: age,
         squadId: undefined,
         squadName: undefined,
         competitions: competitions,
