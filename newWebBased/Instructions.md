@@ -5185,3 +5185,8 @@ unter Punkt 1 ist der Veranstaltungsaufbau. Wenn wir diesen weiter gliedern:
     Riegen 
     Zeitplanung 
     Meldematrix 
+
+
+
+147. Vergleich: Groups vs. Squads vs. Teams vs. EventParticipants 
+Hiernach dürfen groups und teams nur Teilnehmer zugeordnet werden. Sind Teilnehmer hier event-participants oder participants? 

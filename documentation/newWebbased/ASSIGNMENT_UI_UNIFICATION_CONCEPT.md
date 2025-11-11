@@ -16,7 +16,146 @@ Aktuell gibt es verschiedene UIs für die Zuweisung von Datensätzen zueinander.
 
 ---
 
-## 🔢 Beziehungstypen & UI-Patterns
+## � Detaillierter Vergleich: Groups vs. Squads vs. Teams vs. EventParticipants
+
+Diese Tabelle zeigt die Unterschiede zwischen den vier Hauptfeatures für Teilnehmer-Zuordnung:
+
+| Feature | **Groups (Gruppen)** | **Squads (Riegen)** | **Teams (Mannschaften)** | **EventParticipants (Teilnehmer)** |
+|---------|---------------------|---------------------|--------------------------|-----------------------------------|
+| **Primäre Entität** | `tfx_gruppen` | *Virtual/In-Memory* | `tfx_mannschaften` | `tfx_teilnehmer` |
+| **Verknüpfungstabelle** | `tfx_gruppen_x_teilnehmer` | `tfx_riegen_x_disziplinen` | `tfx_man_x_teilnehmer` | `tfx_wertungen` |
+| **Beziehungstyp** | M:N (Group ↔ Participant) | M:N (Squad ↔ Discipline) | M:N (Team ↔ Participant) | **2-stufig**: M:N (Athlete ↔ Event), dann M:N (Participant ↔ Competition) |
+| **Event-Zuordnung** | ❌ Nein (verein-übergreifend) | ❌ Nein | ❌ Nein | ✅ **JA** (über `tfx_wertungen`) |
+| **Wettkampf-Zuordnung** | ❌ Nein | ✅ Ja, **mehrere** möglich | ✅ Ja, **genau EINER (Pflicht!)** | ✅ **JA** (über `tfx_wertungen`, M:N) |
+| **Verein-Zuordnung** | ✅ Ja (Pflicht, `int_vereineid`) | ❌ Nein | ✅ Ja (Pflicht, `int_vereineid`) | ✅ Ja (über `tfx_teilnehmer.int_vereineid`) |
+| **Teilnehmer-Zuordnung** | ✅ M:N (mehrere Teilnehmer pro Gruppe) | ✅ M:N (mehrere Teilnehmer pro Riege) | ✅ M:N (mehrere Teilnehmer pro Team) | - (ist selbst der Teilnehmer) |
+| **Nummer** | ❌ Nein | ❌ Nein | ✅ Ja (`int_nummer`, Mannschafts-Nr.) | ❌ Nein |
+| **Startnummer** | ❌ Nein | ❌ Nein | ✅ Ja (`int_startnummer`, optional) | ✅ Ja (`tfx_wertungen.int_startnummer`) |
+| **Riegen-Buchstabe** | ❌ Nein | ❌ Nein | ✅ Ja (`var_riege`, z.B. "A") | ✅ Ja (`tfx_wertungen.var_riege`) |
+| **Datenbank-Persistenz** | ✅ Immer persistent | ⚠️ Virtual bis erste Teilnehmer-Zuweisung | ✅ Immer persistent | ✅ Immer persistent |
+| **UI-Pattern** | Three-Column Assignment | Three-Column Assignment | Three-Column Assignment | **Liste + Filter + Inline-Edit** |
+| **Container-Navigation** | ✅ Ja (mehrere Gruppen gleichzeitig) | ✅ Ja (mehrere Riegen gleichzeitig) | ✅ Ja (mehrere Teams gleichzeitig) | ❌ Nein (alle Participants eines Events) |
+| **Zweck** | Verein-interne Gruppierung | Wettkampf-Durchgänge organisieren | Mannschaftswettkämpfe | Event-Teilnahme + Wettkampf-Zuweisung |
+
+### 🔍 Detaillierte Struktur-Unterschiede
+
+#### **1. Groups (Gruppen)**
+```sql
+tfx_gruppen (int_gruppenid, int_vereineid, var_name)
+  ↓ M:N via tfx_gruppen_x_teilnehmer
+tfx_teilnehmer
+```
+- **Zweck**: Verein-interne Gruppierung von Teilnehmern (z.B. Trainingsgruppen, Altersklassen)
+- **Beispiel**: "Nachwuchs-Team TV München", "Leistungsgruppe SV Berlin"
+- **Keine Wettkampf-Bindung!** - Gruppen sind wettkampf-unabhängig
+- **Persistenz**: Immer in Datenbank
+- **UI**: Three-Column Master-Detail (Gruppen-Liste | Verfügbare Teilnehmer | Gruppen-Details)
+
+#### **2. Squads (Riegen)**
+```sql
+VIRTUAL Squad Object (in-memory, nicht in DB)
+  ↓ M:N via tfx_riegen_x_disziplinen
+tfx_disziplinen (Geräte: Reck, Barren, etc.)
+```
+- **Zweck**: Wettkampf-Durchgänge organisieren (welche Riege turnt wann an welchem Gerät)
+- **Beispiel**: "Riege A" turnt zuerst Reck (20:00 Uhr), dann Barren (20:15 Uhr)
+- **Mehrere Wettkämpfe möglich!** - Eine Riege kann Teilnehmer aus mehreren Wettkämpfen enthalten
+- **Persistenz**: Wird erst persistent, wenn Teilnehmer zugewiesen werden (in `tfx_wertungen.var_riege`)
+- **Virtual Squad Hinweise**: Orange "Virtual"-Badge, Hinweis auf In-Memory-Status
+- **UI**: Three-Column Master-Detail (Riegen-Liste | Verfügbare Teilnehmer | Riegen-Details mit Competitions)
+
+#### **3. Teams (Mannschaften)** ⭐
+```sql
+tfx_mannschaften (
+  int_mannschaftenid, 
+  int_wettkaempfeid NOT NULL,  -- PFLICHT!
+  int_vereineid NOT NULL,       -- PFLICHT!
+  int_nummer, 
+  var_riege, 
+  int_startnummer
+)
+  ↓ M:N via tfx_man_x_teilnehmer
+tfx_teilnehmer
+```
+- **Zweck**: Mannschaftswettkämpfe organisieren (z.B. "TV München Mannschaft 1" vs "SV Berlin Mannschaft 2")
+- **Beispiel**: "TV München 1" turnt im Wettkampf "Mehrkampf männlich AK 12" mit Startnummer 42 in Riege A
+- **PFLICHT-Felder**: 
+  - `int_wettkaempfeid` - **Genau EIN Wettkampf muss zugewiesen sein!**
+  - `int_vereineid` - Team gehört zu einem Verein
+- **Charakteristik**: Ein Team = Ein Verein + Ein Wettkampf + Nummer + optional Startnummer/Riege
+- **Persistenz**: Immer in Datenbank
+- **UI**: Three-Column Master-Detail (Teams-Liste | Verfügbare Teilnehmer | Team-Details)
+
+#### **4. EventParticipants (Teilnehmer)** 🎯
+```sql
+tfx_teilnehmer (
+  int_teilnehmerid, 
+  int_vereineid, 
+  var_vorname, 
+  var_nachname, 
+  int_geschlecht, 
+  dat_geburtstag
+)
+  ↓ 1:N via tfx_wertungen (M:N Join-Table!)
+tfx_wettkaempfe (competitions within event)
+```
+- **Zweck**: Teilnehmer zu einem Event hinzufügen und dann Wettkämpfen zuweisen
+- **Beispiel**: "Max Mustermann" → Event "Bezirksmeisterschaft" → Wettkämpfe ["Reck", "Barren", "Sprung"]
+- **2-stufiger Prozess**:
+  1. **Stufe 1**: Athlete zu Event hinzufügen → wird zu EventParticipant
+  2. **Stufe 2**: EventParticipant zu Competitions zuweisen (M:N via `tfx_wertungen`)
+- **`tfx_wertungen` = M:N Join-Table** mit zusätzlichen Feldern:
+  - `int_wettkaempfeid` (Competition)
+  - `int_teilnehmerid` (Participant)
+  - `int_startnummer` (Startnummer des Teilnehmers)
+  - `var_riege` (Riegen-Buchstabe, z.B. "A", "B")
+  - `bol_startet_nicht` (DNS - Did Not Start)
+  - `bol_ak` (Außer Konkurrenz)
+  - `var_comment` (Kommentar)
+- **Persistenz**: `tfx_teilnehmer` immer persistent, `tfx_wertungen` nur bei Wettkampf-Zuweisung
+- **UI**: **NICHT Three-Column Assignment!** Stattdessen:
+  - Tabelle/Cards-View mit Filtern (Verein, Geschlecht, Wettkampf)
+  - Inline-Edit für Competition-Zuweisung (Dropdown mit Checkboxes)
+  - Bulk-Actions für mehrere Teilnehmer gleichzeitig
+
+### 🎯 Der zentrale Unterschied
+
+**EventParticipants ist KEIN klassisches M:N Assignment wie Groups/Squads/Teams!**
+
+**Teams (klassisches M:N Assignment)**:
+```
+Container (Team) ↔ Items (Participants) zuweisen
+↑
+Fokus: Teilnehmer zwischen Teams hin- und herbewegen
+```
+
+**EventParticipants (2-stufige Zuordnung)**:
+```
+Stufe 1: Athlete → Event hinzufügen (wird zu EventParticipant)
+Stufe 2: EventParticipant ↔ Competitions zuweisen (M:N)
+↑
+Fokus: Competitions an bestehende Participants zuweisen
+```
+
+**Warum EventParticipants eine Listen-UI braucht:**
+- ✅ Alle Participants eines Events in einer Liste
+- ✅ Filtern nach Verein, Geschlecht, Wettkampf, etc.
+- ✅ Inline-Edit für Competition-Zuweisung
+- ✅ Bulk-Actions (z.B. alle Teilnehmer eines Vereins zu einem Wettkampf zuweisen)
+- ❌ **KEINE** Container-Navigation (kein "Team 1", "Team 2" auswählen)
+- ❌ **KEINE** "Verfügbar vs Zugewiesen" Spalten
+
+**Warum Teams/Groups/Squads Three-Column Assignment brauchen:**
+- ✅ Container-Navigation (Team/Gruppe/Riege auswählen)
+- ✅ "Verfügbar vs Zugewiesen" Spalten
+- ✅ Teilnehmer zwischen Containern verschieben
+- ✅ Klare Zuweisung zu genau einem Container zur Zeit
+
+---
+
+## �🔢 Beziehungstypen & UI-Patterns
+
+---
 
 ### Was ist eine 1:1 Beziehung?
 
