@@ -118,23 +118,10 @@ export function Groups() {
     console.log('🔍 Members in selected group:', selectedGroup.members?.length);
   }
 
-  // Filter groups by search/club
-  const filteredGroups = groups.filter((group) => {
-    const matchesSearch = !searchFilter || 
-      group.name.toLowerCase().includes(searchFilter.toLowerCase());
-    const matchesClub = !clubFilter || group.clubId.toString() === clubFilter;
-    return matchesSearch && matchesClub;
-  });
-
-  // Filter available participants: exclude current members + apply search
+  // Filter available participants: exclude current members
   const memberIds = new Set(members.map(m => m.id));
   const filteredAvailableParticipants = availableParticipants
-    .filter((p) => !memberIds.has(p.id)) // Exclude current members
-    .filter((p) =>
-      !searchFilter ||
-      `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      p.lastName?.toLowerCase().includes(searchFilter.toLowerCase())
-    );
+    .filter((p) => !memberIds.has(p.id)); // Exclude current members (search handled in config)
 
   // Debug logging
   console.log('🔍 Groups Debug:', {
@@ -289,12 +276,16 @@ export function Groups() {
         <UnifiedAssignmentModal
           key={modalKey}
           config={enhancedConfig}
-          masterItems={filteredGroups}
+          masterItems={groups}
           availableItems={filteredAvailableParticipants}
           assignments={[]} // Not needed for Groups (members stored in group object)
           isLoading={isLoading}
           selectedMaster={selectedGroup}
           onSelectMaster={handleSelectGroup}
+          columnSearchPlaceholders={{
+            master: t('groups.columnSearch.master'), // e.g., "Search groups, members, clubs..."
+            available: t('groups.columnSearch.available') // e.g., "Search participants, clubs, start numbers..."
+          }}
         />
 
         {/* Form Modal */}

@@ -17,6 +17,16 @@ export function MasterList<TMaster extends BaseMasterItem>({
   getMetadata
 }: MasterListProps<TMaster>) {
 
+  // Handler: Unselect when clicking on selected item again
+  const handleClick = (item: TMaster) => {
+    if (selectedItem?.id === item.id) {
+      // Click on selected item = unselect
+      onSelect(null as any); // Unselect by passing null
+    } else {
+      onSelect(item);
+    }
+  };
+
   return (
     <div className="lg:col-span-1">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -33,7 +43,7 @@ export function MasterList<TMaster extends BaseMasterItem>({
                   ? 'border-blue-500 bg-blue-50' 
                   : 'hover:border-gray-300'
               } ${item.isVirtual ? 'border-l-4 border-l-orange-400' : ''}`}
-              onClick={() => onSelect(item)}
+              onClick={() => handleClick(item)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">

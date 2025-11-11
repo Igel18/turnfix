@@ -5132,19 +5132,19 @@ components/
 http://localhost:3001/event-participants?eventId=59
 Veranstaltungsteilnehmer (115)eventParticipants.pagination.showing 1-50 common.of 115 (eventParticipants.pagination.page 1 common.of 3)
 
-142. Localisation in dem Modalen dialog 
+142. Localisation in dem Modalen dialog ✅
 http://localhost:3001/groups?eventId=59
 
-143. Gruppe hinzufügen funktioniert nicht 
+143. Gruppe hinzufügen funktioniert nicht ✅
 http://localhost:3001/groups?eventId=59
 
-144. Teilnehmer zu Gruppen / Mannschaften hinzufügen 
+144. Teilnehmer zu Gruppen / Mannschaften hinzufügen ✅
 Wo machen wir das am besten, und wie? 
 Bei der Gruppenverwaltung gibt es ein Teilnehmer hinzufügen button 
 
 145. PDF Export möglichkeiten bei Gruppen / Mannschaften fehlt
 
-146. Es gibt aktuell verschiedene UIs um Datensätze zuzuweisen. 
+146. Es gibt aktuell verschiedene UIs um Datensätze zuzuweisen. ⏳
 Diese sollen vereinheitlicht werden. 
 Wettkämpfe <-> Disziplinen 
 Teilnehmer <-> Wettkämpfe 
@@ -5163,10 +5163,25 @@ e) filter lässt sich nicht ein/ausblenden✅
 f) Groups Überschrift Available Verfügbare Teilnehmer korrigieren ✅
 g) Teilnehmer Cards sollten standartisiert werden mit Name / Alter / Geschlecht (badge) 
 für Groups & Event-Participants & Squads. auf der Seite sieht das in der Grid View ganz gut aus: http://localhost:3001/participants
-beachte SoC. 
+beachte SoC. ✅
 h) Groups filter sollte angepasst werden: wenn man eine gruppe auswählt, wird automatisch nach vereinen gefiltert. das passt. 
 Es sollten aber verschiedene textfelder geben: einmal nach gruppenname und einmal nach personname. 
 Workflow: Ich suche eine Person "Max Mustermann" und möchte diese der Gruppe "MeineGruppe" zuweisen. Dann sollten immer nur die entsprechenden Spalten gefiltert werden. Dies soll auch graphisch hervorgehoben werden, indem diese Filter genau über den Spalten sind. Ein-/Ausblenden sollte aber weiterhin mit dem "Filter" Button funktionieren. Und der Darüber liegende Filter sollte nicht geändert werden, da er über alles filtert. 
 i) SquadManagement kann jetzt ebenfalls useServerSyncedSelection<Squad> für Konsistenz verwenden.✅
 j) Die participantCard.tsx muss geburtsdatum und alter enthalten wie auch bei den participants: 19.1.2011 (14 Jahre)✅
-k) die participant card muss auch bei den squads verwendet werden. 
+k) die participant card muss auch bei den squads verwendet werden. ✅
+l) die Gruppenzuweisung und Mannschaftszuweisung ist doch äquivalent mit den Veranstaltungsteilnehmern oder? 
+wie wäre folgende Gliederung 
+unter Punkt 1 ist der Veranstaltungsaufbau. Wenn wir diesen weiter gliedern: 
+1a) Allgemein 
+    Veranstaltung verwalten 
+    Wettkämpfe anzeigen 
+    Wettkampfdisziplinen verwalten <- Dies Seite wäre neu um die Disziplinen den Wettkämpfen zuzuordnen (und passende weitere Punkte). Dann wäre die Wettkampf editieren UI nicht so groß. 
+1b) Teilnehmer 
+    Veranstaltungsteilnehmer 
+    Gruppen verwalten 
+    Mannschaften verwalten 
+1c) Ablauf 
+    Riegen 
+    Zeitplanung 
+    Meldematrix 

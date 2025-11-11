@@ -297,6 +297,10 @@ const SquadManagementUnified: React.FC = () => {
             config={config}
             isLoading={isLoading}
             eventId={eventId}
+            columnSearchPlaceholders={{
+              master: t('squadManagement.columnSearch.master'),
+              available: t('squadManagement.columnSearch.available')
+            }}
           />
 
           {/* Create Squad Modal */}

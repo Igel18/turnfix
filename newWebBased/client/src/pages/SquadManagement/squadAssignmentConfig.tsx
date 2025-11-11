@@ -122,6 +122,83 @@ export function createSquadConfig({
       </>
     ),
 
+    // Column-specific filter for master items (Squads)
+    filterMasterItems: (squads: Squad[], searchTerm: string) => {
+      if (!searchTerm) return squads;
+      
+      const lowerSearch = searchTerm.toLowerCase();
+      
+      return squads.filter(squad => {
+        // Search in squad name
+        if (squad.name.toLowerCase().includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in competition names
+        if (squad.competitions.some(comp => 
+          comp.name.toLowerCase().includes(lowerSearch) ||
+          (comp.number && comp.number.toString().includes(searchTerm))
+        )) {
+          return true;
+        }
+        
+        // Search in participant names
+        if (squad.participants.some(participant => {
+          const fullName = `${participant.firstname} ${participant.lastname}`.toLowerCase();
+          const reverseName = `${participant.lastname} ${participant.firstname}`.toLowerCase();
+          return fullName.includes(lowerSearch) || reverseName.includes(lowerSearch);
+        })) {
+          return true;
+        }
+        
+        // Search in clubs
+        if (squad.participants.some(participant => 
+          participant.club?.toLowerCase().includes(lowerSearch)
+        )) {
+          return true;
+        }
+        
+        return false;
+      });
+    },
+
+    // Column-specific filter for available items (Participants)
+    filterAvailableItems: (participants: Participant[], filters) => {
+      const searchTerm = filters.columnSearches?.available || '';
+      if (!searchTerm) return participants;
+      
+      const lowerSearch = searchTerm.toLowerCase();
+      
+      return participants.filter(participant => {
+        // Search in name
+        const fullName = `${participant.firstname} ${participant.lastname}`.toLowerCase();
+        const reverseName = `${participant.lastname} ${participant.firstname}`.toLowerCase();
+        if (fullName.includes(lowerSearch) || reverseName.includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in club
+        if (participant.club?.toLowerCase().includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in competition names
+        if (participant.competitions?.some(comp =>
+          comp.name.toLowerCase().includes(lowerSearch) ||
+          (comp.number && comp.number.toString().includes(searchTerm))
+        )) {
+          return true;
+        }
+        
+        // Search in start number
+        if (participant.startNumber && participant.startNumber.toString().includes(searchTerm)) {
+          return true;
+        }
+        
+        return false;
+      });
+    },
+
     onAssign: async () => {
       // Will be provided from parent component
       throw new Error('onAssign must be provided');

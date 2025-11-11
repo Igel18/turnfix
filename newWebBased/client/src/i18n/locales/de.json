@@ -987,6 +987,10 @@
       "showFilters": "Filter anzeigen",
       "hideFilters": "Filter ausblenden"
     },
+    "columnSearch": {
+      "master": "Gruppe, Mitglied, Verein...",
+      "available": "Teilnehmer, Verein, Startnummer..."
+    },
     "messages": {
       "createSuccess": "Gruppe erfolgreich erstellt",
       "updateSuccess": "Gruppe erfolgreich aktualisiert",
@@ -2542,6 +2546,10 @@
       "all": "Alle",
       "male": "Männlich",
       "female": "Weiblich"
+    },
+    "columnSearch": {
+      "master": "Riege, Teilnehmer, Wettkampf...",
+      "available": "Teilnehmer, Verein, Wettkampf, Startnummer..."
     },
     "actions": {
       "newSquad": "Neue Riege",

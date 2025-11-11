@@ -9,9 +9,15 @@ export { UnifiedAssignmentModal } from './UnifiedAssignmentModal';
 export { MasterList } from './MasterList';
 export { AvailableList } from './AvailableList';
 export { DetailPane } from './DetailPane';
+export { ColumnFilters } from './ColumnFilters';
+export { ColumnSearchBar } from './ColumnSearchBar';
 
 // Hooks
 export { useAssignmentRefresh } from './hooks';
+
+// Types
+export type { ColumnFilterConfig, ColumnFiltersProps } from './ColumnFilters';
+export type { ColumnSearchBarProps } from './ColumnSearchBar';
 
 export type {
   BaseMasterItem,

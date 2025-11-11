@@ -21,6 +21,7 @@ export interface GroupMember {
   age?: number;
   birthdate?: string | Date;
   gender?: string; // 'male' | 'female' | 'unknown'
+  startNumber?: number | string; // Added for search functionality
   // For AvailableList component (uses lowercase property names)
   firstname?: string;
   lastname?: string;

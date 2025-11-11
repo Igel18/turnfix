@@ -21,6 +21,7 @@ export interface Participant {
   competitions?: { id: number; name: string; number: string }[];
   competitionCount?: number;
   competitionNames?: string;
+  startNumber?: number | string; // Added for search functionality
 }
 
 /**

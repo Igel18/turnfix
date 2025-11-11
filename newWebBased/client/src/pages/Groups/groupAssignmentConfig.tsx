@@ -119,6 +119,65 @@ export function createGroupConfig({
       </>
     ),
 
+    // Column-specific filter for master items (Groups)
+    filterMasterItems: (groups: Group[], searchTerm: string) => {
+      if (!searchTerm) return groups;
+      
+      const lowerSearch = searchTerm.toLowerCase();
+      
+      return groups.filter(group => {
+        // Search in group name
+        if (group.name.toLowerCase().includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in club name
+        if (group.clubName?.toLowerCase().includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in member names
+        if (group.members) {
+          return group.members.some(member => {
+            const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+            const reverseName = `${member.lastName} ${member.firstName}`.toLowerCase();
+            return fullName.includes(lowerSearch) || reverseName.includes(lowerSearch);
+          });
+        }
+        
+        return false;
+      });
+    },
+
+    // Column-specific filter for available items (Participants)
+    filterAvailableItems: (participants: GroupMember[], filters) => {
+      const searchTerm = filters.columnSearches?.available || '';
+      if (!searchTerm) return participants;
+      
+      const lowerSearch = searchTerm.toLowerCase();
+      
+      return participants.filter(participant => {
+        // Search in name
+        const fullName = `${participant.firstName} ${participant.lastName}`.toLowerCase();
+        const reverseName = `${participant.lastName} ${participant.firstName}`.toLowerCase();
+        if (fullName.includes(lowerSearch) || reverseName.includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in club name
+        if (participant.clubName?.toLowerCase().includes(lowerSearch)) {
+          return true;
+        }
+        
+        // Search in start number
+        if (participant.startNumber && participant.startNumber.toString().includes(searchTerm)) {
+          return true;
+        }
+        
+        return false;
+      });
+    },
+
     onAssign: async () => {
       // Will be provided from parent component
       throw new Error('onAssign must be provided');

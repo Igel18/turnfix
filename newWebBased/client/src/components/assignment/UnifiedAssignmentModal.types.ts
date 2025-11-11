@@ -72,6 +72,7 @@ export interface AssignmentConfig<
 
   // Filtering
   filterAvailableItems?: (items: TAvailable[], filters: FilterState) => TAvailable[];
+  filterMasterItems?: (items: TMaster[], searchTerm: string) => TMaster[];  // NEW: Column filter for master items
   filterConfig?: FilterConfig;
 
   // Callbacks
@@ -107,6 +108,11 @@ export interface FilterField {
 
 export interface FilterState {
   searchTerm: string;
+  columnSearches?: {
+    master?: string;      // Column 1: Master items search
+    available?: string;   // Column 2: Available items search
+    assigned?: string;    // Column 3: Assigned items search
+  };
   [key: string]: any;
 }
 
@@ -134,6 +140,13 @@ export interface UnifiedAssignmentModalProps<
   // If provided, component uses controlled mode instead of internal state
   selectedMaster?: TMaster | null;
   onSelectMaster?: (item: TMaster | null) => void;
+
+  // Column-specific search configurations (optional)
+  columnSearchPlaceholders?: {
+    master?: string;      // Placeholder for column 1 search
+    available?: string;   // Placeholder for column 2 search
+    assigned?: string;    // Placeholder for column 3 search
+  };
 }
 
 // Column-specific props
@@ -142,7 +155,7 @@ export interface MasterListProps<TMaster extends BaseMasterItem> {
   selectedItem: TMaster | null;
   onSelect: (item: TMaster) => void;
   onDelete?: (itemId: number | string) => void;
-  onEdit?: (item: TMaster) => void; // NEW: Edit action
+  onEdit?: (item: TMaster) => void;
   entityName: string;
   getMetadata: (item: TMaster) => {
     itemCount: number;
@@ -150,6 +163,9 @@ export interface MasterListProps<TMaster extends BaseMasterItem> {
     tags?: Array<{ label: string; color?: string }>;
     isVirtual?: boolean;
   };
+  // Column search (optional)
+  columnSearch?: string;
+  onColumnSearchChange?: (value: string) => void;
 }
 
 export interface AvailableListProps<TAvailable extends BaseAvailableItem> {

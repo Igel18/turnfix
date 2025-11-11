@@ -987,6 +987,10 @@
       "showFilters": "Show Filters",
       "hideFilters": "Hide Filters"
     },
+    "columnSearch": {
+      "master": "Group, member, club...",
+      "available": "Participant, club, start number..."
+    },
     "messages": {
       "createSuccess": "Group created successfully",
       "updateSuccess": "Group updated successfully",
@@ -2542,6 +2546,10 @@
       "all": "All",
       "male": "Male",
       "female": "Female"
+    },
+    "columnSearch": {
+      "master": "Squad, participant, competition...",
+      "available": "Participant, club, competition, start number..."
     },
     "actions": {
       "newSquad": "New Squad",

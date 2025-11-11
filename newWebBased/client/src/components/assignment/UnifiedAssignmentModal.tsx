@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { MasterList } from './MasterList';
 import { AvailableList } from './AvailableList';
 import { DetailPane } from './DetailPane';
+import { ColumnFilters } from './ColumnFilters';
 import type { 
   BaseMasterItem, 
   BaseAvailableItem, 
@@ -26,12 +27,20 @@ export function UnifiedAssignmentModal<
   config,
   isLoading = false,
   selectedMaster: externalSelectedMaster,
-  onSelectMaster: externalOnSelectMaster
+  onSelectMaster: externalOnSelectMaster,
+  columnSearchPlaceholders
 }: UnifiedAssignmentModalProps<TMaster, TAvailable, TAssignment>) {
   
   // Internal state (used when not controlled externally)
   const [internalSelectedMaster, setInternalSelectedMaster] = useState<TMaster | null>(null);
-  const [filters, setFilters] = useState<FilterState>({ searchTerm: '' });
+  const [filters, setFilters] = useState<FilterState>({ 
+    searchTerm: '',
+    columnSearches: {
+      master: '',
+      available: '',
+      assigned: ''
+    }
+  });
 
   // Determine if component is controlled or uncontrolled
   const isControlled = externalSelectedMaster !== undefined && externalOnSelectMaster !== undefined;
@@ -40,7 +49,23 @@ export function UnifiedAssignmentModal<
   const selectedMaster = isControlled ? externalSelectedMaster : internalSelectedMaster;
   const setSelectedMaster = isControlled ? externalOnSelectMaster : setInternalSelectedMaster;
 
-  // Apply filters if configured
+  // Handler: Update column-specific search
+  const updateColumnSearch = (column: 'master' | 'available' | 'assigned', value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      columnSearches: {
+        ...prev.columnSearches,
+        [column]: value
+      }
+    }));
+  };
+
+  // Apply filters to master items (column 1)
+  const filteredMaster = config.filterMasterItems && filters.columnSearches?.master
+    ? config.filterMasterItems(masterItems, filters.columnSearches.master)
+    : masterItems;
+
+  // Apply filters to available items (column 2)
   const filteredAvailable = config.filterAvailableItems 
     ? config.filterAvailableItems(availableItems, filters)
     : availableItems;
@@ -65,12 +90,33 @@ export function UnifiedAssignmentModal<
         </div>
       )}
 
+      {/* Column-Specific Filters */}
+      {!isLoading && columnSearchPlaceholders && (
+        <ColumnFilters
+          column1={columnSearchPlaceholders.master ? {
+            placeholder: columnSearchPlaceholders.master,
+            value: filters.columnSearches?.master || '',
+            onChange: (value) => updateColumnSearch('master', value)
+          } : undefined}
+          column2={columnSearchPlaceholders.available ? {
+            placeholder: columnSearchPlaceholders.available,
+            value: filters.columnSearches?.available || '',
+            onChange: (value) => updateColumnSearch('available', value)
+          } : undefined}
+          column3={columnSearchPlaceholders.assigned ? {
+            placeholder: columnSearchPlaceholders.assigned,
+            value: filters.columnSearches?.assigned || '',
+            onChange: (value) => updateColumnSearch('assigned', value)
+          } : undefined}
+        />
+      )}
+
       {/* Three-Column Layout */}
       {!isLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Column 1: Master List */}
           <MasterList
-            items={masterItems}
+            items={filteredMaster}
             selectedItem={selectedMaster}
             onSelect={setSelectedMaster}
             onEdit={config.onEditMaster}
