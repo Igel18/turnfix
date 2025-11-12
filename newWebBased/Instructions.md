@@ -5186,6 +5186,7 @@ Orientiere dich hier an dem PDF
 https://www.dtb.de/fileadmin/user_upload/dtb.de/2024/Wettkampfsport/Wettkampfsport_im_DTB/TGM-TGW/PDFs/Arbeitshilfen/Arbeitshilfe_TGM_1_2025.pdf
 
 Ziel soll es sein, dass wettkämpfe dieser Art durchgeführt werden können. Es soll aber generisch gehalten sein. 
+Wie könnte das aussehen? 
 
 150. Bei den Formeln / Disziplinen sollen Hilfetexte angepasst/hinzugefügt werden um 
 a) das Beispiel für TGM / TGW 
