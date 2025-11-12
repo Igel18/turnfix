@@ -5170,7 +5170,36 @@ Workflow: Ich suche eine Person "Max Mustermann" und möchte diese der Gruppe "M
 i) SquadManagement kann jetzt ebenfalls useServerSyncedSelection<Squad> für Konsistenz verwenden.✅
 j) Die participantCard.tsx muss geburtsdatum und alter enthalten wie auch bei den participants: 19.1.2011 (14 Jahre)✅
 k) die participant card muss auch bei den squads verwendet werden. ✅
-l) die Gruppenzuweisung und Mannschaftszuweisung ist doch äquivalent mit den Veranstaltungsteilnehmern oder? 
+l) Auf der Mannschaftsseite fehlen Lokalisierungen (Überschrifen, in den Karten), die Teilnehmer karten sehen anders aus als auf der Group Seite (es fehlt min. das Geschlecht), Der Filter Button fehlt, Help und Doku button fehlt, Button Neue Mannschaft fehlt. ✅
+
+
+147. Vergleich: Groups vs. Squads vs. Teams vs. EventParticipants 
+Hiernach dürfen groups und teams nur Teilnehmer zugeordnet werden. Sind Teilnehmer hier event-participants oder participants? Weil aktuell werden bei den Groups alle athletes angezeigt, wenn ich das richtig sehe... 
+
+148. Gruppen Wettkämpfe 
+Es gibt bereits diverse hilfetexte bei den groups / Mannschaft. Diese sollen hinsichlich der Arbeitshilfe TGM TGW angepasst werden. 
+https://www.dtb.de/fileadmin/user_upload/dtb.de/2024/Wettkampfsport/Wettkampfsport_im_DTB/TGM-TGW/PDFs/Arbeitshilfen/Arbeitshilfe_TGM_1_2025.pdf
+Was ist hier das richtige, groups oder mannschaft? 
+
+149. Für die Wertung Erfassung bei Groups / Mannschaft 
+Orientiere dich hier an dem PDF 
+https://www.dtb.de/fileadmin/user_upload/dtb.de/2024/Wettkampfsport/Wettkampfsport_im_DTB/TGM-TGW/PDFs/Arbeitshilfen/Arbeitshilfe_TGM_1_2025.pdf
+
+Ziel soll es sein, dass wettkämpfe dieser Art durchgeführt werden können. Es soll aber generisch gehalten sein. 
+
+150. Bei den Formeln / Disziplinen sollen Hilfetexte angepasst/hinzugefügt werden um 
+a) das Beispiel für TGM / TGW 
+https://www.dtb.de/fileadmin/user_upload/dtb.de/2024/Wettkampfsport/Wettkampfsport_im_DTB/TGM-TGW/PDFs/Arbeitshilfen/Arbeitshilfe_TGM_1_2025.pdf
+b) Turn10 Wettkämpfe 
+https://www.turn10.eu/infothek
+c) 4 Kampf Weiblich 
+d) 6 Kampf Männlich 
+
+151. in der UI event-participants funktioniert die Umschaltung Table/Grid nicht 
+
+152. vielleicht sollten wir check boxen machen "ausblenden von zugewiesenen Teilnehmern" auf den Seiten Teams und groups? 
+
+153. die Gruppenzuweisung (groups) und Mannschaftszuweisung (teams) ist doch äquivalent mit den Veranstaltungsteilnehmern (event-participants) oder? 
 wie wäre folgende Gliederung 
 unter Punkt 1 ist der Veranstaltungsaufbau. Wenn wir diesen weiter gliedern: 
 1a) Allgemein 
@@ -5185,8 +5214,3 @@ unter Punkt 1 ist der Veranstaltungsaufbau. Wenn wir diesen weiter gliedern:
     Riegen 
     Zeitplanung 
     Meldematrix 
-
-
-
-147. Vergleich: Groups vs. Squads vs. Teams vs. EventParticipants 
-Hiernach dürfen groups und teams nur Teilnehmer zugeordnet werden. Sind Teilnehmer hier event-participants oder participants? 

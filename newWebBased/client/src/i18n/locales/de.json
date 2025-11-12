@@ -1073,6 +1073,24 @@
     "loadingTeams": "Lade Mannschaften...",
     "teamsLoaded": "Mannschaften geladen",
     "managePenalties": "Abzüge verwalten",
+    "entityNames": {
+      "master": "Mannschaft",
+      "available": "Teilnehmer",
+      "masterPlural": "Mannschaften",
+      "availablePlural": "Teilnehmer"
+    },
+    "details": {
+      "members": "{{count}} Mitglieder",
+      "teamNumber": "Mannschaftsnummer",
+      "startNumber": "Startnummer",
+      "riege": "Riege",
+      "currentMembers": "Aktuelle Mitglieder ({{count}})"
+    },
+    "members": {
+      "noMembers": "Keine Mitglieder zugewiesen",
+      "assignError": "Fehler beim Zuweisen des Teilnehmers",
+      "removeError": "Fehler beim Entfernen des Teilnehmers"
+    },
     "table": {
       "club": "Verein",
       "competition": "Wettkampf",
@@ -1117,7 +1135,8 @@
       "searchPlaceholder": "Mannschaften durchsuchen...",
       "club": "Verein",
       "allClubs": "Alle Vereine",
-      "allCompetitions": "Alle Wettkämpfe"
+      "allCompetitions": "Alle Wettkämpfe",
+      "comingSoon": "Filter werden bald verfügbar sein"
     },
     "messages": {
       "createSuccess": "Mannschaft erfolgreich erstellt",
@@ -1137,6 +1156,7 @@
     "help": {
       "button": "Hilfe",
       "title": "Hilfe - Mannschaften",
+      "description": "Mannschaften sind Teilnehmergruppen eines Vereins für Mannschaftswettkämpfe. Wählen Sie eine Mannschaft aus und weisen Sie Teilnehmer zu.",
       "whatAreTeams": {
         "title": "Was sind Mannschaften?",
         "description": "Mannschaften sind Teilnehmergruppen eines Vereins, die gemeinsam in einem Mannschaftswettkampf antreten. Eine Mannschaft ist immer einem bestimmten Wettkampf zugeordnet und repräsentiert die Teilnahme eines Vereins in diesem Wettkampf."
@@ -1178,7 +1198,13 @@
         "step3": "Optional: Riege und Startnummer festlegen",
         "step4": "Einzelne Turner dieser Mannschaft werden über die Wertungserfassung zugeordnet"
       }
-    }
+    },
+    "columnSearch": {
+      "master": "Mannschaft, Verein, Wettkampf, Nummer...",
+      "available": "Teilnehmer, Verein, Startnummer...",
+      "assigned": "Zugewiesene Teilnehmer durchsuchen..."
+    },
+    "teamLabel": "Mannschaft"
   },
   "venues": {
     "title": "Austragungsorte",

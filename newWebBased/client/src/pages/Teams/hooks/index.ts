@@ -3,3 +3,4 @@
  */
 
 export { useTeams } from './useTeams';
+export { useTeamMembers } from './useTeamMembers';

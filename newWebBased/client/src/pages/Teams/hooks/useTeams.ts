@@ -1,52 +1,82 @@
 /**
- * useTeams Hook
- * Handles all data fetching and CRUD operations for teams
- * Event-aware: Filters teams by eventId when provided
+ * useTeams Hook - Data Management for Teams
+ * Handles fetching, creating, updating, and deleting teams
+ * Server-sync pattern: Updates selectedTeam when data changes
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Team, Club, Competition } from '../Teams.types';
+import type { Team, Club, Competition, TeamFormData } from '../Teams.types';
+import { useServerSyncedSelection } from '@/hooks';
 
-interface UseTeamsProps {
-  eventId?: string | null;
-}
-
-export const useTeams = ({ eventId }: UseTeamsProps = {}) => {
+export const useTeams = (
+  eventId?: string | null,
+  selectedTeam: Team | null = null,
+  onUpdate?: (updatedTeam: Team | null) => void
+) => {
   const { t } = useTranslation();
+  
+  // State
   const [teams, setTeams] = useState<Team[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedClub, setSelectedClub] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch teams from API
+  // Server-synced selection update (like Groups)
+  const updateSelectedTeam = useServerSyncedSelection({
+    selectedItem: selectedTeam || null,
+    onUpdate,
+    getId: (team: Team) => team.id,
+    getName: (team: Team) => team.name
+  });
+
+  // Fetch teams
   const fetchTeams = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({ limit: '1000' });
-      if (selectedClub !== 'all') params.append('clubId', selectedClub);
-      if (eventId) params.append('eventId', eventId);
-      
-      const url = `/api/teams?${params}`;
-      console.log('📋 Fetching teams:', url);
-      
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch teams');
-      
-      const data = await response.json();
-      console.log('📋 Teams response:', data);
-      console.log('📋 Teams count:', data.teams?.length || 0);
-      
-      setTeams(data.teams || []);
-    } catch (error) {
-      console.error('❌ Error fetching teams:', error);
-    } finally {
-      setLoading(false);
+    if (!eventId) {
+      setTeams([]);
+      setIsLoading(false);
+      return;
     }
-  }, [selectedClub, eventId]);
 
-  // Fetch clubs from API
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/teams?eventId=${eventId}&limit=1000`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch teams');
+      }
+
+      const data = await response.json();
+      
+      // Transform database teams to UI teams
+      const transformedTeams: Team[] = (data.teams || []).map((team: any) => ({
+        id: team.int_mannschaftenid,
+        name: `${team.tfx_vereine.var_name} - ${t('teams.teamLabel')} ${team.int_nummer}`,
+        clubId: team.int_vereineid,
+        clubName: team.tfx_vereine.var_name,
+        competitionId: team.int_wettkaempfeid,
+        competitionName: team.tfx_wettkaempfe.var_name,
+        number: team.int_nummer,
+        riege: team.var_riege,
+        startNumber: team.int_startnummer,
+        memberCount: 0, // Will be loaded with members
+        members: []
+      }));
+
+      setTeams(transformedTeams);
+      
+      // Update selected team if it exists in new data
+      updateSelectedTeam(transformedTeams);
+      
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      setTeams([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [eventId, updateSelectedTeam, t]);
+
+  // Fetch clubs
   const fetchClubs = useCallback(async () => {
     try {
       const response = await fetch('/api/clubs?limit=1000');
@@ -56,80 +86,109 @@ export const useTeams = ({ eventId }: UseTeamsProps = {}) => {
       setClubs(data.clubs || []);
     } catch (error) {
       console.error('Error fetching clubs:', error);
+      setClubs([]);
     }
   }, []);
 
-  // Fetch competitions from API
+  // Fetch competitions for event
   const fetchCompetitions = useCallback(async () => {
+    if (!eventId) {
+      setCompetitions([]);
+      return;
+    }
+
     try {
-      const params = new URLSearchParams({ limit: '1000' });
-      if (eventId) {
-        params.append('eventId', eventId);
-        console.log('🎯 Fetching competitions for eventId:', eventId);
-      } else {
-        console.log('⚠️ No eventId provided, fetching all competitions');
-      }
-      
-      const url = `/api/competitions?${params}`;
-      console.log('📡 API URL:', url);
-      
-      const response = await fetch(url);
+      const response = await fetch(`/api/competitions?eventId=${eventId}&limit=1000`);
       if (!response.ok) throw new Error('Failed to fetch competitions');
       
       const data = await response.json();
-      console.log('📦 Competitions response:', data);
-      console.log('📊 Total competitions:', data.length || 0);
-      
-      // Filter for team competitions only (competitionType === 1)
-      const teamCompetitions = (data || []).filter((comp: any) => comp.competitionType === 1);
-      console.log('🏆 Team competitions (filtered):', teamCompetitions.length);
-      
-      setCompetitions(teamCompetitions);
+      setCompetitions(data.competitions || []);
     } catch (error) {
-      console.error('❌ Error fetching competitions:', error);
+      console.error('Error fetching competitions:', error);
+      setCompetitions([]);
     }
   }, [eventId]);
 
-  // Initial data load
-  useEffect(() => {
-    fetchTeams();
-    fetchClubs();
-    fetchCompetitions();
-  }, [fetchTeams, fetchClubs, fetchCompetitions]);
-
-  // Delete team
-  const deleteTeam = async (team: Team): Promise<boolean> => {
-    if (!window.confirm(t('teams.messages.confirmDelete'))) {
-      return false;
-    }
-
+  // Create or update team
+  const saveTeam = useCallback(async (
+    formData: TeamFormData,
+    editingTeam: Team | null
+  ): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/teams/${team.int_mannschaftenid}`, {
-        method: 'DELETE',
+      const url = editingTeam 
+        ? `/api/teams/${editingTeam.id}`
+        : '/api/teams';
+      
+      const method = editingTeam ? 'PUT' : 'POST';
+
+      const payload = {
+        clubId: parseInt(formData.clubId),
+        competitionId: parseInt(formData.competitionId),
+        number: parseInt(formData.number),
+        riege: formData.riege || null,
+        startNumber: formData.startNumber ? parseInt(formData.startNumber) : null
+      };
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to delete team');
+        throw new Error(error.error || 'Failed to save team');
+      }
+
+      // Reload teams after save
+      await fetchTeams();
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving team:', error);
+      alert(error instanceof Error ? error.message : 'Failed to save team');
+      return false;
+    }
+  }, [fetchTeams]);
+
+  // Delete team
+  const deleteTeam = useCallback(async (team: Team): Promise<void> => {
+    if (!confirm(t('teams.messages.confirmDelete', { name: team.name }))) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/teams/${team.id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete team');
       }
 
       await fetchTeams();
-      return true;
+      
     } catch (error) {
       console.error('Error deleting team:', error);
       alert(t('teams.messages.deleteError'));
-      return false;
     }
-  };
+  }, [t, fetchTeams]);
+
+  // Load data on mount and when eventId changes
+  useEffect(() => {
+    fetchTeams();
+    fetchClubs();
+    fetchCompetitions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]); // Only eventId dependency to prevent infinite loop
 
   return {
     teams,
     clubs,
     competitions,
-    loading,
-    selectedClub,
-    setSelectedClub,
+    isLoading,
     fetchTeams,
-    deleteTeam,
+    saveTeam,
+    deleteTeam
   };
 };

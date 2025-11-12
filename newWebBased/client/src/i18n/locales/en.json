@@ -1073,6 +1073,24 @@
     "loadingTeams": "Loading teams...",
     "teamsLoaded": "teams loaded",
     "managePenalties": "Manage Penalties",
+    "entityNames": {
+      "master": "Team",
+      "available": "Participant",
+      "masterPlural": "Teams",
+      "availablePlural": "Participants"
+    },
+    "details": {
+      "members": "{{count}} Members",
+      "teamNumber": "Team Number",
+      "startNumber": "Start Number",
+      "riege": "Squad",
+      "currentMembers": "Current Members ({{count}})"
+    },
+    "members": {
+      "noMembers": "No members assigned",
+      "assignError": "Error assigning participant",
+      "removeError": "Error removing participant"
+    },
     "table": {
       "club": "Club",
       "competition": "Competition",
@@ -1117,7 +1135,8 @@
       "searchPlaceholder": "Search teams...",
       "club": "Club",
       "allClubs": "All Clubs",
-      "allCompetitions": "All Competitions"
+      "allCompetitions": "All Competitions",
+      "comingSoon": "Filters coming soon"
     },
     "messages": {
       "createSuccess": "Team created successfully",
@@ -1137,6 +1156,7 @@
     "help": {
       "button": "Help",
       "title": "Help - Teams",
+      "description": "Teams are participant groups from a club for team competitions. Select a team and assign participants.",
       "whatAreTeams": {
         "title": "What are Teams?",
         "description": "Teams are groups of participants from a club that compete together in a team competition. A team is always assigned to a specific competition and represents the participation of a club in that competition."
@@ -1178,7 +1198,13 @@
         "step3": "Optional: Set squad and start number",
         "step4": "Individual gymnasts are assigned via score capture"
       }
-    }
+    },
+    "columnSearch": {
+      "master": "Team, Club, Competition, Number...",
+      "available": "Participant, Club, Start Number...",
+      "assigned": "Search assigned participants..."
+    },
+    "teamLabel": "Team"
   },
   "venues": {
     "title": "Venues",

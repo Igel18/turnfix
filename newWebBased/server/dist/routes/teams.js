@@ -241,5 +241,134 @@ router.get('/:id/penalties', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+// Get team members
+router.get('/:id/members', async (req, res) => {
+    try {
+        const teamId = parseInt(req.params.id);
+        if (isNaN(teamId)) {
+            return res.status(400).json({ error: 'Invalid team ID' });
+        }
+        console.log('👥 GET /api/teams/:id/members - Team ID:', teamId);
+        const members = await prisma_1.default.tfx_man_x_teilnehmer.findMany({
+            where: { int_mannschaftenid: teamId },
+            include: {
+                tfx_teilnehmer: {
+                    include: {
+                        tfx_vereine: {
+                            select: {
+                                var_name: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                tfx_teilnehmer: {
+                    var_nachname: 'asc'
+                }
+            }
+        });
+        console.log('👥 Found members:', members.length);
+        // Transform members to include gender name
+        const transformedMembers = members.map((member) => ({
+            ...member,
+            tfx_teilnehmer: {
+                ...member.tfx_teilnehmer,
+                geschlecht_name: member.tfx_teilnehmer.int_geschlecht === 1 ? 'male'
+                    : member.tfx_teilnehmer.int_geschlecht === 2 ? 'female'
+                        : 'unknown'
+            }
+        }));
+        res.json({ members: transformedMembers });
+    }
+    catch (error) {
+        console.error('Error fetching team members:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+// Add member to team
+router.post('/:id/members', async (req, res) => {
+    try {
+        const teamId = parseInt(req.params.id);
+        if (isNaN(teamId)) {
+            return res.status(400).json({ error: 'Invalid team ID' });
+        }
+        const { participantId } = req.body;
+        if (!participantId || isNaN(parseInt(participantId))) {
+            return res.status(400).json({ error: 'Invalid participant ID' });
+        }
+        console.log('➕ POST /api/teams/:id/members - Team:', teamId, 'Participant:', participantId);
+        // Check if already member
+        const existing = await prisma_1.default.tfx_man_x_teilnehmer.findFirst({
+            where: {
+                int_mannschaftenid: teamId,
+                int_teilnehmerid: parseInt(participantId)
+            }
+        });
+        if (existing) {
+            return res.status(400).json({ error: 'Participant already in team' });
+        }
+        // Add member
+        const member = await prisma_1.default.tfx_man_x_teilnehmer.create({
+            data: {
+                int_mannschaftenid: teamId,
+                int_teilnehmerid: parseInt(participantId)
+            },
+            include: {
+                tfx_teilnehmer: {
+                    include: {
+                        tfx_vereine: {
+                            select: {
+                                var_name: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log('✅ Member added successfully');
+        res.status(201).json(member);
+    }
+    catch (error) {
+        console.error('Error adding team member:', error);
+        if (error?.code === 'P2003') {
+            return res.status(400).json({ error: 'Invalid team or participant reference' });
+        }
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+// Remove member from team
+router.delete('/:id/members/:participantId', async (req, res) => {
+    try {
+        const teamId = parseInt(req.params.id);
+        const participantId = parseInt(req.params.participantId);
+        if (isNaN(teamId) || isNaN(participantId)) {
+            return res.status(400).json({ error: 'Invalid team or participant ID' });
+        }
+        console.log('➖ DELETE /api/teams/:id/members/:participantId - Team:', teamId, 'Participant:', participantId);
+        // Find the assignment
+        const assignment = await prisma_1.default.tfx_man_x_teilnehmer.findFirst({
+            where: {
+                int_mannschaftenid: teamId,
+                int_teilnehmerid: participantId
+            }
+        });
+        if (!assignment) {
+            return res.status(404).json({ error: 'Participant not in team' });
+        }
+        // Delete the assignment
+        await prisma_1.default.tfx_man_x_teilnehmer.delete({
+            where: {
+                int_man_x_teilnehmerid: assignment.int_man_x_teilnehmerid
+            }
+        });
+        console.log('✅ Member removed successfully');
+        res.status(204).send();
+    }
+    catch (error) {
+        console.error('Error removing team member:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 exports.default = router;
 //# sourceMappingURL=teams.js.map
