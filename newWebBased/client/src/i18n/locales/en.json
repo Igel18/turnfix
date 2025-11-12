@@ -581,6 +581,7 @@
     "showHelp": "Show Help",
     "hideHelp": "Hide Help",
     "backToManagement": "Back to Management Center",
+    "of": "of",
     "pagination": {
       "showing": "Showing {{start}} to {{end}} of {{total}} results",
       "showingTotal": "Showing {{total}} results",
@@ -2526,6 +2527,10 @@
       "eventName": "Event",
       "generatedOn": "Generated on",
       "totalParticipants": "Total Participants"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "page": "Page"
     },
     "labelConfig": {
       "title": "Label Configuration",

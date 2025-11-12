@@ -5128,7 +5128,7 @@ components/
 - Vergleichs-Grid für Unterschiede Gruppen vs. Teams
 
 
-141. Localisation auf der Seite 
+141. Localisation auf der Seite ✅
 http://localhost:3001/event-participants?eventId=59
 Veranstaltungsteilnehmer (115)eventParticipants.pagination.showing 1-50 common.of 115 (eventParticipants.pagination.page 1 common.of 3)
 
@@ -5144,7 +5144,7 @@ Bei der Gruppenverwaltung gibt es ein Teilnehmer hinzufügen button
 
 145. PDF Export möglichkeiten bei Gruppen / Mannschaften fehlt
 
-146. Es gibt aktuell verschiedene UIs um Datensätze zuzuweisen. ⏳
+146. Es gibt aktuell verschiedene UIs um Datensätze zuzuweisen. ✅
 Diese sollen vereinheitlicht werden. 
 Wettkämpfe <-> Disziplinen 
 Teilnehmer <-> Wettkämpfe 
