@@ -124,7 +124,7 @@ jobs:
 
     - name: Upload backup artifact
       if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: database-backup-${{ github.run_number }}
         path: ${{ env.backup_file }}
@@ -187,7 +187,7 @@ jobs:
 
     - name: Upload backup report
       if: github.event.inputs.action == 'backup' || github.event.inputs.action == '' || github.event_name == 'schedule'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: backup-report-${{ github.run_number }}
         path: backup-report.md
