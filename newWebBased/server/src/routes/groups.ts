@@ -12,8 +12,8 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000;
     const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-    // Note: eventId is ignored for groups - groups are event-independent
-    // They can be used across multiple events
+    // Note: Groups are event-independent and can be used across multiple events
+    // Therefore, eventId parameter is ignored
     
     // Get all groups (no event filtering)
     const groups = await prisma.tfx_gruppen.findMany({
@@ -82,6 +82,106 @@ router.get('/', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching groups:', error);
     res.status(500).json({ error: 'Failed to fetch groups' });
+  }
+});
+
+// GET /api/groups/available-participants - Get event-filtered participants for group assignment
+// Matches C++ GroupDialog behavior: filter participants by event and exclude already assigned
+router.get('/available-participants', async (req: Request, res: Response) => {
+  try {
+    const clubId = req.query.clubId ? parseInt(req.query.clubId as string) : undefined;
+    const eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
+    const groupId = req.query.groupId ? parseInt(req.query.groupId as string) : undefined;
+
+    if (!clubId || !eventId) {
+      return res.status(400).json({ error: 'clubId and eventId are required' });
+    }
+
+    debugLog('Fetching available participants for club:', clubId, 'event:', eventId, 'group:', groupId);
+
+    // C++ SQL pattern from groupdialog.cpp:
+    // WHERE int_veranstaltungenid=? 
+    // AND int_teilnehmerid NOT IN (
+    //   SELECT int_teilnehmerid FROM tfx_wertungen 
+    //   INNER JOIN tfx_wettkaempfe USING (int_wettkaempfeid)
+    //   WHERE int_veranstaltungenid=? AND int_teilnehmerid IS NOT NULL AND int_gruppenid != ?
+    // )
+
+    // Get all participants from the club
+    const clubParticipants = await prisma.tfx_teilnehmer.findMany({
+      where: {
+        int_vereineid: clubId
+      },
+      include: {
+        tfx_vereine: true
+      }
+    });
+
+    debugLog('Club participants found:', clubParticipants.length);
+
+    // Get participants already assigned to scores in this event (excluding current group)
+    // Uses raw SQL to match C++ pattern exactly
+    const assignedScoresQuery = groupId 
+      ? `
+        SELECT DISTINCT w.int_teilnehmerid
+        FROM tfx_wertungen w
+        INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+        WHERE wk.int_veranstaltungenid = $1
+          AND w.int_teilnehmerid IS NOT NULL
+          AND (w.int_gruppenid IS NULL OR w.int_gruppenid != $2)
+      `
+      : `
+        SELECT DISTINCT w.int_teilnehmerid
+        FROM tfx_wertungen w
+        INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+        WHERE wk.int_veranstaltungenid = $1
+          AND w.int_teilnehmerid IS NOT NULL
+      `;
+
+    const assignedScores = await prisma.$queryRawUnsafe<any[]>(
+      assignedScoresQuery,
+      eventId,
+      ...(groupId ? [groupId] : [])
+    );
+
+    const assignedParticipantIds = new Set(assignedScores.map((s: any) => s.int_teilnehmerid));
+    debugLog('Already assigned participant IDs:', Array.from(assignedParticipantIds));
+
+    // Filter out assigned participants
+    const availableParticipants = clubParticipants
+      .filter((p: any) => !assignedParticipantIds.has(p.int_teilnehmerid))
+      .map((p: any) => {
+        const club = p.tfx_vereine;
+        
+        // Calculate age
+        let age = null;
+        if (p.dat_geburtstag) {
+          const birthDate = new Date(p.dat_geburtstag);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
+
+        return {
+          int_teilnehmerid: p.int_teilnehmerid,
+          var_vorname: p.var_vorname,
+          var_nachname: p.var_nachname,
+          int_vereineid: p.int_vereineid,
+          verein_name: club?.var_name || null,
+          dat_geburtstag: p.dat_geburtstag,
+          age,
+          geschlecht_name: p.int_geschlecht === 1 ? 'male' : p.int_geschlecht === 2 ? 'female' : 'unknown'
+        };
+      });
+
+    debugLog('Available participants (after filtering):', availableParticipants.length);
+    res.json(availableParticipants);
+  } catch (error) {
+    console.error('Error fetching available participants:', error);
+    res.status(500).json({ error: 'Failed to fetch available participants' });
   }
 });
 

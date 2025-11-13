@@ -84,6 +84,7 @@ export function Groups() {
     removeMember,
   } = useGroupMembers(
     selectedGroup,
+    eventId, // Pass eventId for event-filtered participants
     async () => {
       // Refresh groups list when members change
       console.log('🔄 onMembersChanged called - refreshing groups');
@@ -209,7 +210,7 @@ export function Groups() {
       title={t('groups.title')}
       subtitle={t('groups.subtitle')}
       icon={UserGroupIcon}
-      showEventContext={false}
+      showEventContext={true}
       showFilters={showFilters}
       onToggleFilters={() => setShowFilters(!showFilters)}
       showHelpPanel={showHelpPanel}

@@ -32,6 +32,7 @@ description: TurnFix v2.0 - Full-Stack Gymnastics Competition Management System 
 - ✅ **NEVER** change existing database table/column names
 - ✅ **KEEP** legacy naming conventions (`var_name`, `int_id`, `bol_flag`, etc.)
 - ✅ **MAINTAIN** compatibility with old Qt/C++ application
+Use the old cpp, h and ui files in the turnfix folder for reference only. Do not modify them. But understand how the old application works and use the same logic in the new webbased application. (bugs should be fixed in the new application even if they exist in the old application)
 - ✅ **USE** Prisma for all database operations
 - ⚠️ Old `.cpp`, `.h`, `.ui` files are for **reference only** - understand structure, don't modify
 

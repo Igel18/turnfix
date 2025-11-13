@@ -5181,7 +5181,7 @@ Es gibt bereits diverse hilfetexte bei den groups / Mannschaft. Diese sollen hin
 https://www.dtb.de/fileadmin/user_upload/dtb.de/2024/Wettkampfsport/Wettkampfsport_im_DTB/TGM-TGW/PDFs/Arbeitshilfen/Arbeitshilfe_TGM_1_2025.pdf
 Was ist hier das richtige, groups oder mannschaft? 
 
-149. Für die Wertung Erfassung bei Groups / Mannschaft 
+149. Für die Wertung Erfassung bei Groups / Mannschaft ✅
 Orientiere dich hier an dem PDF 
 https://www.dtb.de/fileadmin/user_upload/dtb.de/2024/Wettkampfsport/Wettkampfsport_im_DTB/TGM-TGW/PDFs/Arbeitshilfen/Arbeitshilfe_TGM_1_2025.pdf
 
@@ -5227,6 +5227,6 @@ Punkt 2 Wettkampftag könnte folgende Untergliedert werden:
     Wettkampfstatus 
     Live-Wertungen 
 
-154. Filter von Gruppen
+154. Filter von Gruppen ✅
 http://localhost:3001/groups?eventId=77
 Auf dieser Seite werden immer alle Gruppen angezeigt. Sind diese je Event oder ganz allgemein? Wenn sie Event spezifisch sind, dann sollten diese auch in dieser UI für das Event gefiltert werden. Es sollte dann auch der Blaue Balken in die UI. Wenn diese ganz allgemein sind, dann sollte dieser Menüeintrag dafür in die DB-Verwaltung. 

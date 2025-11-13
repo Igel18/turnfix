@@ -19,6 +19,7 @@ interface UseGroupMembersReturn {
 
 export const useGroupMembers = (
   selectedGroup: Group | null,
+  eventId: number | undefined,
   onMembersChanged?: () => void
 ): UseGroupMembersReturn => {
   const { t } = useTranslation();
@@ -65,7 +66,7 @@ export const useGroupMembers = (
     }
   }, []); // No dependencies - uses ref
 
-  // Fetch available participants (from same club, not already members)
+  // Fetch available participants (from same club, event-filtered)
   const fetchAvailableParticipants = useCallback(async () => {
     const group = selectedGroupRef.current;
     if (!group) {
@@ -73,13 +74,20 @@ export const useGroupMembers = (
       return;
     }
 
+    // If no eventId, cannot filter by event - show empty list
+    if (!eventId) {
+      console.log('⚠️ No eventId available - cannot filter participants');
+      setAvailableParticipants([]);
+      return;
+    }
+
     try {
-      console.log('📥 Fetching available participants for club:', group.clubId);
-      const response = await fetch(`/api/participants?limit=5000&clubId=${group.clubId}`);
+      console.log('📥 Fetching available participants for club:', group.clubId, 'event:', eventId);
+      const response = await fetch(`/api/groups/available-participants?clubId=${group.clubId}&eventId=${eventId}&groupId=${group.id}`);
       if (response.ok) {
         const data = await response.json();
-        // API returns { participants: [...], pagination: {...} }
-        const participants = Array.isArray(data.participants) ? data.participants : [];
+        // API returns array directly
+        const participants = Array.isArray(data) ? data : [];
         
         // Convert to GroupMember format
         const formatted = participants.map((p: any) => ({
@@ -96,8 +104,7 @@ export const useGroupMembers = (
           lastname: p.var_nachname
         }));
 
-        // Store all participants - filtering will be done in the component
-        console.log('📥 Available participants fetched:', formatted.length);
+        console.log('📥 Available participants fetched (event-filtered):', formatted.length);
         setAvailableParticipants(formatted);
       } else {
         console.error('❌ Failed to fetch participants:', response.status);
@@ -107,7 +114,7 @@ export const useGroupMembers = (
       console.error('❌ Error fetching participants:', error);
       setAvailableParticipants([]);
     }
-  }, []); // No dependencies - uses ref
+  }, [eventId]); // Dependency: eventId
 
   // Add member to group
   const addMember = async (participantId: number): Promise<boolean> => {
