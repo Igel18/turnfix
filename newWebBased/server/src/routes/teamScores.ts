@@ -5,8 +5,8 @@ import prisma from '../lib/prisma';
 
 const router = Router();
 
-const groupScoreCreateSchema = z.object({
-  groupId: z.number().int(),
+const teamScoreCreateSchema = z.object({
+  teamId: z.number().int(),
   competitionId: z.number().int(),
   disciplineId: z.number().int(),
   statusId: z.number().int(),
@@ -21,8 +21,8 @@ const groupScoreCreateSchema = z.object({
   comment: z.string().optional()
 });
 
-const groupScoreQuerySchema = z.object({
-  groupId: z.string().transform(Number).optional(),
+const teamScoreQuerySchema = z.object({
+  teamId: z.string().transform(Number).optional(),
   competitionId: z.string().transform(Number).optional(),
   disciplineId: z.string().transform(Number).optional(),
   eventId: z.string().transform(Number).optional(),
@@ -31,17 +31,17 @@ const groupScoreQuerySchema = z.object({
   offset: z.string().transform(Number).default(0)
 });
 
-router.get('/group', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/team', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const query = groupScoreQuerySchema.parse(req.query);
+    const query = teamScoreQuerySchema.parse(req.query);
     
-    let whereClause = 'WHERE w.int_gruppenid IS NOT NULL';
+    let whereClause = 'WHERE w.int_mannschaftenid IS NOT NULL';
     const queryParams: any[] = [];
     let paramIndex = 1;
     
-    if (query.groupId) {
-      whereClause += ` AND w.int_gruppenid = $${paramIndex}`;
-      queryParams.push(query.groupId);
+    if (query.teamId) {
+      whereClause += ` AND w.int_mannschaftenid = $${paramIndex}`;
+      queryParams.push(query.teamId);
       paramIndex++;
     }
     
@@ -72,29 +72,28 @@ router.get('/group', authenticateToken, async (req: AuthRequest, res: Response) 
     const scoresQuery = `
       SELECT 
         w.int_wertungenid as id,
-        w.int_gruppenid as groupId,
+        w.int_mannschaftenid as teamId,
         w.int_wettkaempfeid as competitionId,
         wd.int_disziplinenid as disciplineId,
         wd.int_versuch as attempt,
-        w.int_startnummer as startNumber,
+        m.int_startnummer as startNumber,
         w.var_riege as riege,
         w.var_comment as comment,
-        g.var_name as groupName,
         v.var_name as clubName,
         d.var_name as disciplineName,
         wk.var_name as competitionName
       FROM tfx_wertungen w
       LEFT JOIN tfx_wertungen_details wd ON w.int_wertungenid = wd.int_wertungenid
-      LEFT JOIN tfx_gruppen g ON w.int_gruppenid = g.int_gruppenid
-      LEFT JOIN tfx_vereine v ON g.int_vereineid = v.int_vereineid
+      LEFT JOIN tfx_mannschaften m ON w.int_mannschaftenid = m.int_mannschaftenid
+      LEFT JOIN tfx_vereine v ON m.int_vereineid = v.int_vereineid
       LEFT JOIN tfx_disziplinen d ON wd.int_disziplinenid = d.int_disziplinenid
       LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       ${whereClause}
-      GROUP BY w.int_wertungenid, w.int_gruppenid, w.int_wettkaempfeid, 
-               wd.int_disziplinenid, wd.int_versuch, w.int_startnummer, 
-               w.var_riege, w.var_comment, g.var_name, v.var_name, 
+      GROUP BY w.int_wertungenid, w.int_mannschaftenid, w.int_wettkaempfeid, 
+               wd.int_disziplinenid, wd.int_versuch, m.int_startnummer, 
+               w.var_riege, w.var_comment, v.var_name, 
                d.var_name, wk.var_name
-      ORDER BY w.int_wettkaempfeid, wd.int_disziplinenid, w.int_gruppenid
+      ORDER BY w.int_wettkaempfeid, wd.int_disziplinenid, w.int_mannschaftenid
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
@@ -115,16 +114,13 @@ router.get('/group', authenticateToken, async (req: AuthRequest, res: Response) 
 
     const mappedResults = results.map((result: any) => ({
       id: result.id,
-      groupId: parseInt(result.groupid),
+      teamId: parseInt(result.teamid),
       competitionId: parseInt(result.competitionid),
       disciplineId: parseInt(result.disciplineid),
       attempt: result.attempt || 1,
       startNumber: result.startnumber,
       riege: result.riege,
       comment: result.comment,
-      group: {
-        name: result.groupname
-      },
       club: {
         name: result.clubname
       },
@@ -147,7 +143,7 @@ router.get('/group', authenticateToken, async (req: AuthRequest, res: Response) 
     });
 
   } catch (error) {
-    console.error('Error fetching group scores:', error);
+    console.error('Error fetching team scores:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
@@ -155,16 +151,16 @@ router.get('/group', authenticateToken, async (req: AuthRequest, res: Response) 
   }
 });
 
-router.post('/group', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.post('/team', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const validatedData = groupScoreCreateSchema.parse(req.body);
+    const validatedData = teamScoreCreateSchema.parse(req.body);
     
-    const group = await prisma.tfx_gruppen.findUnique({
-      where: { int_gruppenid: validatedData.groupId }
+    const team = await prisma.tfx_mannschaften.findUnique({
+      where: { int_mannschaftenid: validatedData.teamId }
     });
     
-    if (!group) {
-      return res.status(404).json({ error: 'Group not found' });
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
     }
     
     const competition = await prisma.tfx_wettkaempfe.findUnique({
@@ -186,10 +182,10 @@ router.post('/group', authenticateToken, async (req: AuthRequest, res: Response)
     let scoreRecord = await prisma.$queryRawUnsafe(`
       SELECT int_wertungenid 
       FROM tfx_wertungen 
-      WHERE int_gruppenid = $1 
+      WHERE int_mannschaftenid = $1 
         AND int_wettkaempfeid = $2
       LIMIT 1
-    `, validatedData.groupId, validatedData.competitionId) as any[];
+    `, validatedData.teamId, validatedData.competitionId) as any[];
     
     let scoreId: number;
     
@@ -203,16 +199,16 @@ router.post('/group', authenticateToken, async (req: AuthRequest, res: Response)
             var_riege = $3,
             var_comment = $4
         WHERE int_wertungenid = $5
-      `, validatedData.statusId, validatedData.startNumber || null, 
+      `, validatedData.statusId, validatedData.startNumber || team.int_startnummer, 
          validatedData.riege || null, validatedData.comment || null, scoreId);
     } else {
       const insertResult = await prisma.$queryRawUnsafe(`
         INSERT INTO tfx_wertungen 
-          (int_gruppenid, int_wettkaempfeid, int_statusid, int_startnummer, var_riege, var_comment, int_teilnehmerid)
+          (int_mannschaftenid, int_wettkaempfeid, int_statusid, int_startnummer, var_riege, var_comment, int_teilnehmerid)
         VALUES ($1, $2, $3, $4, $5, $6, 0)
         RETURNING int_wertungenid
-      `, validatedData.groupId, validatedData.competitionId, validatedData.statusId,
-         validatedData.startNumber || null, validatedData.riege || null, 
+      `, validatedData.teamId, validatedData.competitionId, validatedData.statusId,
+         validatedData.startNumber || team.int_startnummer, validatedData.riege || null, 
          validatedData.comment || null) as any[];
       
       scoreId = insertResult[0].int_wertungenid;
@@ -253,15 +249,15 @@ router.post('/group', authenticateToken, async (req: AuthRequest, res: Response)
 
     res.status(201).json({
       id: scoreId,
-      groupId: validatedData.groupId,
+      teamId: validatedData.teamId,
       competitionId: validatedData.competitionId,
       disciplineId: validatedData.disciplineId,
       attempt: validatedData.attempt,
-      message: 'Group score created/updated successfully'
+      message: 'Team score created/updated successfully'
     });
 
   } catch (error) {
-    console.error('Error creating group score:', error);
+    console.error('Error creating team score:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
@@ -269,7 +265,7 @@ router.post('/group', authenticateToken, async (req: AuthRequest, res: Response)
   }
 });
 
-router.delete('/group/:scoreId', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.delete('/team/:scoreId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const scoreId = parseInt(req.params.scoreId);
     
@@ -278,14 +274,14 @@ router.delete('/group/:scoreId', authenticateToken, async (req: AuthRequest, res
     }
 
     const score = await prisma.$queryRawUnsafe(`
-      SELECT int_wertungenid, int_gruppenid 
+      SELECT int_wertungenid, int_mannschaftenid 
       FROM tfx_wertungen 
       WHERE int_wertungenid = $1 
-        AND int_gruppenid IS NOT NULL
+        AND int_mannschaftenid IS NOT NULL
     `, scoreId) as any[];
     
     if (score.length === 0) {
-      return res.status(404).json({ error: 'Group score not found' });
+      return res.status(404).json({ error: 'Team score not found' });
     }
 
     await prisma.$executeRawUnsafe(`
@@ -299,12 +295,12 @@ router.delete('/group/:scoreId', authenticateToken, async (req: AuthRequest, res
     `, scoreId);
 
     res.json({ 
-      message: 'Group score deleted successfully',
+      message: 'Team score deleted successfully',
       id: scoreId
     });
 
   } catch (error) {
-    console.error('Error deleting group score:', error);
+    console.error('Error deleting team score:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
