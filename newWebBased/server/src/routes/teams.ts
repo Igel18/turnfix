@@ -91,6 +91,122 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get available participants for a team (with filters)
+// IMPORTANT: This route MUST come BEFORE /:id to avoid route matching issues
+router.get('/available-participants', async (req, res) => {
+  try {
+    const eventId = parseInt(req.query.eventId as string);
+    const clubId = parseInt(req.query.clubId as string);
+    const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : undefined;
+    const hidePlanned = req.query.hidePlanned === 'true';
+    const hideOtherClubs = req.query.hideOtherClubs === 'true';
+
+    console.log('🔍 GET /api/teams/available-participants - Params:', {
+      eventId,
+      clubId,
+      teamId,
+      hidePlanned,
+      hideOtherClubs
+    });
+
+    if (isNaN(eventId) || isNaN(clubId)) {
+      return res.status(400).json({ 
+        error: 'Missing or invalid required parameters: eventId, clubId' 
+      });
+    }
+
+    // Build WHERE clause based on hideOtherClubs filter
+    const whereClause: any = hideOtherClubs ? {
+      int_vereineid: clubId  // Only same club
+    } : {};  // All clubs
+
+    // Fetch participants with optional club filter
+    // NOTE: tfx_teilnehmer has NO int_eventid field - get all participants, filter by event via scores
+    const participants = await (prisma as any).tfx_teilnehmer.findMany({
+      where: whereClause,
+      include: {
+        tfx_vereine: {
+          select: {
+            var_name: true
+          }
+        }
+      },
+      orderBy: [
+        { var_nachname: 'asc' },
+        { var_vorname: 'asc' }
+      ]
+    });
+
+    console.log(`📊 Found ${participants.length} participants (before hidePlanned filter)`);
+
+    // If hidePlanned is active, find already assigned participants via tfx_wertungen → tfx_wettkaempfe join
+    let assignedParticipantIds = new Set<number>();
+    if (hidePlanned) {
+      // Match Groups pattern: join wertungen with wettkaempfe to filter by event
+      const assignedScoresQuery = teamId 
+        ? `
+          SELECT DISTINCT w.int_teilnehmerid
+          FROM tfx_wertungen w
+          INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+            AND w.int_teilnehmerid IS NOT NULL
+            AND (w.int_mannschaftenid IS NULL OR w.int_mannschaftenid != $2)
+        `
+        : `
+          SELECT DISTINCT w.int_teilnehmerid
+          FROM tfx_wertungen w
+          INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+            AND w.int_teilnehmerid IS NOT NULL
+        `;
+
+      const assignedScores = await prisma.$queryRawUnsafe<any[]>(
+        assignedScoresQuery,
+        eventId,
+        ...(teamId ? [teamId] : [])
+      );
+      
+      assignedParticipantIds = new Set(assignedScores.map((s: any) => s.int_teilnehmerid));
+      console.log(`📊 Found ${assignedParticipantIds.size} already assigned participants`);
+    }
+
+    // Filter participants based on hidePlanned
+    const filteredParticipants = participants.filter((p: any) => {
+      if (hidePlanned && assignedParticipantIds.has(p.int_teilnehmerid)) {
+        return false; // Hide if already planned
+      }
+      return true;
+    });
+
+    console.log(`📊 Returning ${filteredParticipants.length} participants after all filters`);
+
+    // Transform to client format
+    const transformed = filteredParticipants.map((p: any) => {
+      const birthdate = p.dat_geburtstag;
+      const age = birthdate ? new Date().getFullYear() - new Date(birthdate).getFullYear() : undefined;
+
+      return {
+        int_teilnehmerid: p.int_teilnehmerid,
+        var_vorname: p.var_vorname,
+        var_nachname: p.var_nachname,
+        dat_geburtstag: birthdate,
+        age,
+        geschlecht_name: p.int_geschlecht === 1 ? 'male' 
+                       : p.int_geschlecht === 2 ? 'female' 
+                       : 'unknown',
+        int_startnummer: p.int_startnummer,
+        int_vereineid: p.int_vereineid,
+        verein_name: p.tfx_vereine?.var_name
+      };
+    });
+
+    res.json({ participants: transformed });
+  } catch (error) {
+    console.error('Error fetching available participants:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get team by ID
 router.get('/:id', async (req, res) => {
   try {
@@ -403,106 +519,6 @@ router.delete('/:id/members/:participantId', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error('Error removing team member:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Get available participants for a team (with filters)
-router.get('/available-participants', async (req, res) => {
-  try {
-    const eventId = parseInt(req.query.eventId as string);
-    const clubId = parseInt(req.query.clubId as string);
-    const teamId = parseInt(req.query.teamId as string);
-    const hidePlanned = req.query.hidePlanned === 'true';
-    const hideOtherClubs = req.query.hideOtherClubs === 'true';
-
-    console.log('🔍 GET /api/teams/available-participants - Params:', {
-      eventId,
-      clubId,
-      teamId,
-      hidePlanned,
-      hideOtherClubs
-    });
-
-    if (isNaN(eventId) || isNaN(clubId) || isNaN(teamId)) {
-      return res.status(400).json({ 
-        error: 'Missing or invalid required parameters: eventId, clubId, teamId' 
-      });
-    }
-
-    // Build WHERE clause based on hideOtherClubs filter
-    const whereClause: any = hideOtherClubs ? {
-      int_vereineid: clubId  // Only same club
-    } : {};  // All clubs
-
-    // Fetch participants with optional club filter
-    // NOTE: Don't filter by var_typ - show all participants
-    const participants = await (prisma as any).tfx_teilnehmer.findMany({
-      where: {
-        int_eventid: eventId,
-        ...whereClause
-      },
-      include: {
-        tfx_vereine: {
-          select: {
-            var_name: true
-          }
-        }
-      },
-      orderBy: [
-        { var_nachname: 'asc' },
-        { var_vorname: 'asc' }
-      ]
-    });
-
-    console.log(`📊 Found ${participants.length} participants (before hidePlanned filter)`);
-
-    // If hidePlanned is active, find already assigned participants
-    let assignedParticipantIds = new Set<number>();
-    if (hidePlanned) {
-      const assignedScores = await prisma.$queryRawUnsafe<any[]>(`
-        SELECT DISTINCT int_teilnehmerid
-        FROM tfx_wertungen
-        WHERE int_teilnehmerid IN (
-          SELECT int_teilnehmerid FROM tfx_teilnehmer WHERE int_eventid = $1
-        )
-      `, eventId);
-      
-      assignedParticipantIds = new Set(assignedScores.map((s: any) => s.int_teilnehmerid));
-      console.log(`📊 Found ${assignedParticipantIds.size} already assigned participants`);
-    }
-
-    // Filter participants based on hidePlanned
-    const filteredParticipants = participants.filter((p: any) => {
-      if (hidePlanned && assignedParticipantIds.has(p.int_teilnehmerid)) {
-        return false; // Hide if already planned
-      }
-      return true;
-    });
-
-    console.log(`📊 Returning ${filteredParticipants.length} participants after all filters`);
-
-    // Transform to client format
-    const transformed = filteredParticipants.map((p: any) => {
-      const birthdate = p.dat_geburtstag;
-      const age = birthdate ? new Date().getFullYear() - new Date(birthdate).getFullYear() : undefined;
-
-      return {
-        int_teilnehmerid: p.int_teilnehmerid,
-        var_vorname: p.var_vorname,
-        var_nachname: p.var_nachname,
-        dat_geburtstag: birthdate,
-        age,
-        geschlecht_name: p.var_geschlecht,
-        int_startnummer: p.int_startnummer,
-        int_vereineid: p.int_vereineid,
-        verein_name: p.tfx_vereine?.var_name
-      };
-    });
-
-    res.json({ participants: transformed });
-  } catch (error) {
-    console.error('Error fetching available participants:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
