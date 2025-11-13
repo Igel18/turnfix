@@ -55,6 +55,7 @@ export interface AssignmentConfig<
   renderMasterItem?: (item: TMaster) => React.ReactNode;
   renderAvailableItem?: (item: TAvailable) => React.ReactNode;
   renderDetailPane?: (item: TMaster) => React.ReactNode;
+  renderAvailableHeader?: () => React.ReactNode;  // NEW: Header above available items (for filters, etc.)
 
   // Master item metadata
   getMasterMetadata: (item: TMaster) => {

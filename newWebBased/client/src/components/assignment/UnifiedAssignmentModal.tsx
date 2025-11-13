@@ -126,16 +126,25 @@ export function UnifiedAssignmentModal<
           />
 
           {/* Column 2: Available Items */}
-          <AvailableList
-            items={filteredAvailable}
-            selectedMaster={selectedMaster}
-            onAssign={config.onAssign}
-            entityName={config.entityNames.availablePlural}
-            getMetadata={config.getAvailableMetadata}
-            filters={filters}
-            onFilterChange={setFilters}
-            filterConfig={config.filterConfig}
-          />
+          <div className="lg:col-span-1">
+            {/* Optional Header (e.g., for filters) */}
+            {config.renderAvailableHeader && (
+              <div className="mb-4">
+                {config.renderAvailableHeader()}
+              </div>
+            )}
+            
+            <AvailableList
+              items={filteredAvailable}
+              selectedMaster={selectedMaster}
+              onAssign={config.onAssign}
+              entityName={config.entityNames.availablePlural}
+              getMetadata={config.getAvailableMetadata}
+              filters={filters}
+              onFilterChange={setFilters}
+              filterConfig={config.filterConfig}
+            />
+          </div>
 
           {/* Column 3: Detail Pane */}
           {/* Key forces re-render when selectedMaster or its nested data changes */}

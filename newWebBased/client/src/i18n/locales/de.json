@@ -998,7 +998,9 @@
       "all": "Alle Vereine",
       "allClubs": "Alle Vereine",
       "showFilters": "Filter anzeigen",
-      "hideFilters": "Filter ausblenden"
+      "hideFilters": "Filter ausblenden",
+      "hidePlanned": "Verplante ausblenden",
+      "hideOtherClubs": "Andere Vereine ausblenden"
     },
     "columnSearch": {
       "master": "Gruppe, Mitglied, Verein...",
@@ -1146,6 +1148,8 @@
     "filters": {
       "search": "Suche",
       "searchPlaceholder": "Mannschaften durchsuchen...",
+      "hidePlanned": "Verplante ausblenden",
+      "hideOtherClubs": "Andere Vereine ausblenden",
       "club": "Verein",
       "allClubs": "Alle Vereine",
       "allCompetitions": "Alle Wettkämpfe",

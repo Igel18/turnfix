@@ -11,15 +11,25 @@
 import { ArrowLeft, Building } from 'lucide-react';
 import type { AssignmentConfig } from '@/components/assignment';
 import type { Group, GroupMember } from './Groups.types';
+import { AssignmentFilters, type AssignmentFiltersState } from '@/components/filters';
 
 interface CreateGroupConfigParams {
   t: (key: string, options?: any) => string;
   onRemoveMember: (memberId: number) => void;
+  // Filter props
+  filters?: AssignmentFiltersState;
+  onToggleHidePlanned?: (value: boolean) => void;
+  onToggleHideOtherClubs?: (value: boolean) => void;
+  onResetFilters?: () => void;
 }
 
 export function createGroupConfig({
   t,
-  onRemoveMember
+  onRemoveMember,
+  filters,
+  onToggleHidePlanned,
+  onToggleHideOtherClubs,
+  onResetFilters
 }: CreateGroupConfigParams): AssignmentConfig<Group, GroupMember> {
   return {
     entityNames: {
@@ -27,6 +37,25 @@ export function createGroupConfig({
       available: t('groups.entityNames.available'),
       masterPlural: t('groups.entityNames.masterPlural'),
       availablePlural: t('groups.entityNames.availablePlural')
+    },
+
+    // Render filter buttons above available items (Column 2)
+    renderAvailableHeader: () => {
+      // Only render if filter props are provided
+      if (!filters || !onToggleHidePlanned || !onToggleHideOtherClubs || !onResetFilters) {
+        return null;
+      }
+      
+      return (
+        <AssignmentFilters
+          filters={filters}
+          onToggleHidePlanned={onToggleHidePlanned}
+          onToggleHideOtherClubs={onToggleHideOtherClubs}
+          onResetFilters={onResetFilters}
+          disabled={false}
+          translationPrefix="groups"
+        />
+      );
     },
 
     getMasterMetadata: (group: Group) => ({
@@ -66,12 +95,12 @@ export function createGroupConfig({
     renderDetailPane: (group: Group) => (
       <>
         {/* Group Info Section */}
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-1">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <h4 className="font-medium text-gray-900 dark:text-white mb-1">
             {group.name}
           </h4>
           {group.clubName && (
-            <div className="flex items-center text-sm text-gray-600 mt-1">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-1">
               <Building className="h-4 w-4 mr-1" />
               {group.clubName}
             </div>
@@ -80,33 +109,33 @@ export function createGroupConfig({
 
         {/* Members Section */}
         <div className="mb-4">
-          <h4 className="font-medium text-gray-900 mb-2">
+          <h4 className="font-medium text-gray-900 dark:text-white mb-2">
             {t('groups.details.currentMembers', { count: group.members?.length || 0 })}
           </h4>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {(!group.members || group.members.length === 0) ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 {t('groups.members.noMembers')}
               </div>
             ) : (
               group.members.map(member => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded"
                 >
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {member.firstName} {member.lastName}
                     </p>
                     {member.clubName && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {member.clubName}
                       </p>
                     )}
                   </div>
                   <button
                     onClick={() => onRemoveMember(member.id)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                     title={t('common.remove')}
                   >
                     <ArrowLeft className="w-4 h-4" />

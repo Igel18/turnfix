@@ -998,7 +998,9 @@
       "all": "All Clubs",
       "allClubs": "All Clubs",
       "showFilters": "Show Filters",
-      "hideFilters": "Hide Filters"
+      "hideFilters": "Hide Filters",
+      "hidePlanned": "Hide Planned",
+      "hideOtherClubs": "Hide Other Clubs"
     },
     "columnSearch": {
       "master": "Group, member, club...",
@@ -1146,6 +1148,8 @@
     "filters": {
       "search": "Search",
       "searchPlaceholder": "Search teams...",
+      "hidePlanned": "Hide Planned",
+      "hideOtherClubs": "Hide Other Clubs",
       "club": "Club",
       "allClubs": "All Clubs",
       "allCompetitions": "All Competitions",

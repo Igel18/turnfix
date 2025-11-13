@@ -5,16 +5,21 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
 import type { Group, GroupMember } from '../Groups.types';
 
 interface UseGroupMembersReturn {
   members: GroupMember[];
   availableParticipants: GroupMember[];
+  filters: { hidePlanned: boolean; hideOtherClubs: boolean };
   isLoading: boolean;
   fetchMembers: () => Promise<void>;
   fetchAvailableParticipants: () => Promise<void>;
   addMember: (participantId: number) => Promise<boolean>;
   removeMember: (memberId: number) => Promise<boolean>;
+  setHidePlanned: (hide: boolean) => void;
+  setHideOtherClubs: (hide: boolean) => void;
+  resetFilters: () => void;
 }
 
 export const useGroupMembers = (
@@ -26,6 +31,14 @@ export const useGroupMembers = (
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [availableParticipants, setAvailableParticipants] = useState<GroupMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Use generic assignment filters hook
+  const {
+    filters,
+    setHidePlanned: setHidePlannedFilter,
+    setHideOtherClubs: setHideOtherClubsFilter,
+    resetFilters: resetFiltersState
+  } = useAssignmentFilters();
   
   // Use ref to store the selected group to avoid dependency issues
   const selectedGroupRef = useRef(selectedGroup);
@@ -82,8 +95,29 @@ export const useGroupMembers = (
     }
 
     try {
-      console.log('📥 Fetching available participants for club:', group.clubId, 'event:', eventId);
-      const response = await fetch(`/api/groups/available-participants?clubId=${group.clubId}&eventId=${eventId}&groupId=${group.id}`);
+      // Build query parameters
+      const params = new URLSearchParams({
+        clubId: group.clubId.toString(),
+        eventId: eventId.toString(),
+        groupId: group.id.toString()
+      });
+
+      // Add filter parameters
+      if (filters.hidePlanned) {
+        params.append('hidePlanned', 'true');
+      }
+      if (filters.hideOtherClubs) {
+        params.append('hideOtherClubs', 'true');
+      }
+
+      console.log('📥 Fetching available participants with filters:', { 
+        club: group.clubId, 
+        event: eventId,
+        hidePlanned: filters.hidePlanned,
+        hideOtherClubs: filters.hideOtherClubs
+      });
+
+      const response = await fetch(`/api/groups/available-participants?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         // API returns array directly
@@ -114,7 +148,7 @@ export const useGroupMembers = (
       console.error('❌ Error fetching participants:', error);
       setAvailableParticipants([]);
     }
-  }, [eventId]); // Dependency: eventId
+  }, [eventId, filters]); // Dependencies: eventId and filters
 
   // Add member to group
   const addMember = async (participantId: number): Promise<boolean> => {
@@ -212,10 +246,14 @@ export const useGroupMembers = (
   return {
     members,
     availableParticipants,
+    filters,
     isLoading,
     fetchMembers,
     fetchAvailableParticipants,
     addMember,
-    removeMember
+    removeMember,
+    setHidePlanned: setHidePlannedFilter,
+    setHideOtherClubs: setHideOtherClubsFilter,
+    resetFilters: resetFiltersState
   };
 };

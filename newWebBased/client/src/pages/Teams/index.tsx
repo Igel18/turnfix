@@ -56,10 +56,14 @@ const Teams: React.FC = () => {
   const {
     members,
     availableParticipants,
+    filters,
     isLoading: membersLoading,
     assignParticipant,
     removeParticipant,
-    fetchMembers
+    fetchMembers,
+    setHidePlanned,
+    setHideOtherClubs,
+    resetFilters
   } = useTeamMembers(selectedTeam, eventId);
 
   // Update selected team with fresh member data
@@ -91,9 +95,13 @@ const Teams: React.FC = () => {
       saveTeam,
       deleteTeam,
       assignParticipant,
-      removeParticipant
+      removeParticipant,
+      filters,
+      onToggleHidePlanned: setHidePlanned,
+      onToggleHideOtherClubs: setHideOtherClubs,
+      onResetFilters: resetFilters
     }),
-    [t, clubs, competitions, saveTeam, deleteTeam, assignParticipant, removeParticipant]
+    [t, clubs, competitions, saveTeam, deleteTeam, assignParticipant, removeParticipant, filters, setHidePlanned, setHideOtherClubs, resetFilters]
   );
 
   // Handlers

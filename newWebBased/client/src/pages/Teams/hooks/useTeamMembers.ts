@@ -5,15 +5,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAssignmentFilters } from '@/hooks/useAssignmentFilters';
+import type { AssignmentFiltersState } from '@/components/filters';
 import type { Team, TeamMember, Participant } from '../Teams.types';
 
 interface UseTeamMembersResult {
   members: TeamMember[];
   availableParticipants: Participant[];
+  filters: AssignmentFiltersState;
   isLoading: boolean;
   assignParticipant: (participantId: number) => Promise<void>;
   removeParticipant: (participantId: number) => Promise<void>;
   fetchMembers: () => Promise<void>;
+  setHidePlanned: (value: boolean) => void;
+  setHideOtherClubs: (value: boolean) => void;
+  resetFilters: () => void;
 }
 
 export const useTeamMembers = (
@@ -25,6 +31,14 @@ export const useTeamMembers = (
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [availableParticipants, setAvailableParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use shared filter hook
+  const { 
+    filters, 
+    setHidePlanned: setHidePlannedFilter, 
+    setHideOtherClubs: setHideOtherClubsFilter, 
+    resetFilters: resetFiltersState 
+  } = useAssignmentFilters();
 
   // Fetch team members
   const fetchMembers = useCallback(async () => {
@@ -78,8 +92,55 @@ export const useTeamMembers = (
       return;
     }
 
+    // If no team selected, we can't filter by club - show all participants
+    if (!selectedTeam) {
+      try {
+        const response = await fetch(`/api/participants?eventId=${eventId}&limit=1000`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch participants');
+        }
+
+        const data = await response.json();
+        
+        // Transform to Participant
+        const transformedParticipants: Participant[] = (data.participants || []).map((p: any) => {
+          const birthdate = p.dat_geburtstag;
+          const age = birthdate ? new Date().getFullYear() - new Date(birthdate).getFullYear() : undefined;
+          
+          return {
+            id: p.int_teilnehmerid,
+            firstName: p.var_vorname,
+            lastName: p.var_nachname,
+            clubId: p.int_vereineid,
+            clubName: p.verein_name,
+            birthdate,
+            age,
+            gender: p.geschlecht_name,
+            startNumber: p.int_startnummer
+          };
+        });
+
+        setAvailableParticipants(transformedParticipants);
+      } catch (error) {
+        console.error('Error fetching participants:', error);
+        setAvailableParticipants([]);
+      }
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/participants?eventId=${eventId}&limit=1000`);
+      // Build query params with filters
+      const params = new URLSearchParams({
+        eventId,
+        clubId: selectedTeam.clubId.toString(),
+        teamId: selectedTeam.id.toString()
+      });
+      
+      if (filters.hidePlanned) params.append('hidePlanned', 'true');
+      if (filters.hideOtherClubs) params.append('hideOtherClubs', 'true');
+
+      const response = await fetch(`/api/teams/available-participants?${params}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch participants');
@@ -111,7 +172,7 @@ export const useTeamMembers = (
       console.error('Error fetching participants:', error);
       setAvailableParticipants([]);
     }
-  }, [eventId]);
+  }, [eventId, selectedTeam, filters]);
 
   // Assign participant to team
   const assignParticipant = useCallback(async (participantId: number) => {
@@ -177,14 +238,18 @@ export const useTeamMembers = (
   useEffect(() => {
     fetchAvailableParticipants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]); // Only eventId to prevent loop
+  }, [eventId, selectedTeam?.id, filters]); // Include filters to refetch when they change
 
   return {
     members,
     availableParticipants,
+    filters,
     isLoading,
     assignParticipant,
     removeParticipant,
-    fetchMembers
+    fetchMembers,
+    setHidePlanned: setHidePlannedFilter,
+    setHideOtherClubs: setHideOtherClubsFilter,
+    resetFilters: resetFiltersState
   };
 };

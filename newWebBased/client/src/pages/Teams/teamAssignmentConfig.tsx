@@ -11,6 +11,7 @@
 import { ArrowLeft, Building, Trophy } from 'lucide-react';
 import type { AssignmentConfig } from '@/components/assignment';
 import type { Team, TeamMember, Club, Competition, TeamFormData } from './Teams.types';
+import { AssignmentFilters, type AssignmentFiltersState } from '@/components/filters';
 
 interface CreateTeamConfigParams {
   t: (key: string, options?: any) => string;
@@ -20,6 +21,11 @@ interface CreateTeamConfigParams {
   deleteTeam: (team: Team) => Promise<void>; // For future
   assignParticipant: (participantId: number) => Promise<void>;
   removeParticipant: (participantId: number) => Promise<void>;
+  // Filter props
+  filters?: AssignmentFiltersState;
+  onToggleHidePlanned?: (value: boolean) => void;
+  onToggleHideOtherClubs?: (value: boolean) => void;
+  onResetFilters?: () => void;
 }
 
 export function createTeamConfig({
@@ -29,7 +35,11 @@ export function createTeamConfig({
   saveTeam: _saveTeam, // For future CRUD form implementation
   deleteTeam: _deleteTeam, // For future delete functionality
   assignParticipant,
-  removeParticipant
+  removeParticipant,
+  filters,
+  onToggleHidePlanned,
+  onToggleHideOtherClubs,
+  onResetFilters
 }: CreateTeamConfigParams): AssignmentConfig<Team, TeamMember> {
   return {
     entityNames: {
@@ -37,6 +47,24 @@ export function createTeamConfig({
       available: t('teams.entityNames.available'),
       masterPlural: t('teams.entityNames.masterPlural'),
       availablePlural: t('teams.entityNames.availablePlural')
+    },
+
+    // Render filter buttons above available items (Column 2)
+    renderAvailableHeader: () => {
+      // Only render if filter props are provided
+      if (!filters || !onToggleHidePlanned || !onToggleHideOtherClubs || !onResetFilters) {
+        return null;
+      }
+      
+      return (
+        <AssignmentFilters
+          filters={filters}
+          onToggleHidePlanned={onToggleHidePlanned}
+          onToggleHideOtherClubs={onToggleHideOtherClubs}
+          onResetFilters={onResetFilters}
+          translationPrefix="teams"
+        />
+      );
     },
 
     getMasterMetadata: (team: Team) => ({

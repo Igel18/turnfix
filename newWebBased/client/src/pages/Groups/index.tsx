@@ -77,11 +77,15 @@ export function Groups() {
   const {
     members,
     availableParticipants,
+    filters,
     isLoading: isLoadingMembers,
     fetchMembers,
     fetchAvailableParticipants,
     addMember,
     removeMember,
+    setHidePlanned,
+    setHideOtherClubs,
+    resetFilters
   } = useGroupMembers(
     selectedGroup,
     eventId, // Pass eventId for event-filtered participants
@@ -194,7 +198,12 @@ export function Groups() {
   // This ensures callbacks always have fresh closure over current state
   const config = createGroupConfig({
     t,
-    onRemoveMember: removeMember
+    onRemoveMember: removeMember,
+    // Filter props
+    filters,
+    onToggleHidePlanned: setHidePlanned,
+    onToggleHideOtherClubs: setHideOtherClubs,
+    onResetFilters: resetFilters
   });
 
   // Override config callbacks that UnifiedAssignmentModal doesn't handle

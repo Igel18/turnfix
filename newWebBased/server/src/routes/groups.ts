@@ -92,12 +92,15 @@ router.get('/available-participants', async (req: Request, res: Response) => {
     const clubId = req.query.clubId ? parseInt(req.query.clubId as string) : undefined;
     const eventId = req.query.eventId ? parseInt(req.query.eventId as string) : undefined;
     const groupId = req.query.groupId ? parseInt(req.query.groupId as string) : undefined;
+    const hidePlanned = req.query.hidePlanned === 'true';
+    const hideOtherClubs = req.query.hideOtherClubs === 'true';
 
     if (!clubId || !eventId) {
       return res.status(400).json({ error: 'clubId and eventId are required' });
     }
 
     debugLog('Fetching available participants for club:', clubId, 'event:', eventId, 'group:', groupId);
+    debugLog('Filters:', { hidePlanned, hideOtherClubs });
 
     // C++ SQL pattern from groupdialog.cpp:
     // WHERE int_veranstaltungenid=? 
@@ -107,11 +110,13 @@ router.get('/available-participants', async (req: Request, res: Response) => {
     //   WHERE int_veranstaltungenid=? AND int_teilnehmerid IS NOT NULL AND int_gruppenid != ?
     // )
 
-    // Get all participants from the club
+    // Get all participants from event or from specific club
+    const whereClause: any = hideOtherClubs ? {
+      int_vereineid: clubId  // Only same club
+    } : {};  // All clubs
+
     const clubParticipants = await prisma.tfx_teilnehmer.findMany({
-      where: {
-        int_vereineid: clubId
-      },
+      where: whereClause,
       include: {
         tfx_vereine: true
       }
@@ -120,32 +125,36 @@ router.get('/available-participants', async (req: Request, res: Response) => {
     debugLog('Club participants found:', clubParticipants.length);
 
     // Get participants already assigned to scores in this event (excluding current group)
-    // Uses raw SQL to match C++ pattern exactly
-    const assignedScoresQuery = groupId 
-      ? `
-        SELECT DISTINCT w.int_teilnehmerid
-        FROM tfx_wertungen w
-        INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-        WHERE wk.int_veranstaltungenid = $1
-          AND w.int_teilnehmerid IS NOT NULL
-          AND (w.int_gruppenid IS NULL OR w.int_gruppenid != $2)
-      `
-      : `
-        SELECT DISTINCT w.int_teilnehmerid
-        FROM tfx_wertungen w
-        INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-        WHERE wk.int_veranstaltungenid = $1
-          AND w.int_teilnehmerid IS NOT NULL
-      `;
+    // Only apply if hidePlanned is true
+    let assignedParticipantIds = new Set<number>();
+    
+    if (hidePlanned) {
+      const assignedScoresQuery = groupId 
+        ? `
+          SELECT DISTINCT w.int_teilnehmerid
+          FROM tfx_wertungen w
+          INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+            AND w.int_teilnehmerid IS NOT NULL
+            AND (w.int_gruppenid IS NULL OR w.int_gruppenid != $2)
+        `
+        : `
+          SELECT DISTINCT w.int_teilnehmerid
+          FROM tfx_wertungen w
+          INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+            AND w.int_teilnehmerid IS NOT NULL
+        `;
 
-    const assignedScores = await prisma.$queryRawUnsafe<any[]>(
-      assignedScoresQuery,
-      eventId,
-      ...(groupId ? [groupId] : [])
-    );
+      const assignedScores = await prisma.$queryRawUnsafe<any[]>(
+        assignedScoresQuery,
+        eventId,
+        ...(groupId ? [groupId] : [])
+      );
 
-    const assignedParticipantIds = new Set(assignedScores.map((s: any) => s.int_teilnehmerid));
-    debugLog('Already assigned participant IDs:', Array.from(assignedParticipantIds));
+      assignedParticipantIds = new Set(assignedScores.map((s: any) => s.int_teilnehmerid));
+      debugLog('Already assigned participant IDs:', Array.from(assignedParticipantIds));
+    }
 
     // Filter out assigned participants
     const availableParticipants = clubParticipants
