@@ -5230,3 +5230,29 @@ Punkt 2 Wettkampftag könnte folgende Untergliedert werden:
 154. Filter von Gruppen ✅
 http://localhost:3001/groups?eventId=77
 Auf dieser Seite werden immer alle Gruppen angezeigt. Sind diese je Event oder ganz allgemein? Wenn sie Event spezifisch sind, dann sollten diese auch in dieser UI für das Event gefiltert werden. Es sollte dann auch der Blaue Balken in die UI. Wenn diese ganz allgemein sind, dann sollte dieser Menüeintrag dafür in die DB-Verwaltung. 
+
+155. Einzelteilnehmer verwalten
+zusätzliche UI um Teilnehmer dem Event hinzuzufügen wie es auch bei den Riegen funktioniert. 
+Folgende funktionen: 
+- Button für "Verplante Teilnehmer ausblenden" 
+- und die Teilnehmer werden dann direkt den Wettkämpfen zugewiesen 
+
+156. Gruppen verwalten
+Wird eine Mannschaft hinzugefügt (zu einem Event) können direkt die mitglieder hinzugefügt werden (wie bei squad) 
+- Button für "Verplante Teilnehmer ausblenden" 
+- Button für "Andere Vereine ausblenden" 
+
+157. Mannschaften verwalten
+Wird eine Mannschaft hinzugefügt (zu einem Event) können direkt die mitglieder hinzugefügt werden (wie bei squad) 
+- Button für "Verplante Teilnehmer ausblenden" 
+- Button für "Andere Vereine ausblenden" 
+- Bei den Mannschaftsmittgliedern ist zusätzlich die Auswahl "AK" und "SN" möglich??? 
+- Bei einer neuen Mannschaft kann direkt der wettkampf ausgewählt werden. 
+
+158. Das squd management muss erweitert werden (oder neue seiten) für Mannschaften und gruppen 
+
+159. Gruppen leistung
+Bei gruppen gibt es nur eine gemeinsame Leistungsbewertung (keine der einzelnen personen) 
+
+160. Mannschaften leistung 
+Bei mannschaften gibt es einzelne Bewertungen der Personen 
