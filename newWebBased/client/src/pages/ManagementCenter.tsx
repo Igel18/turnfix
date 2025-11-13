@@ -248,6 +248,14 @@ const competitionDayActions = [
     color: 'bg-orange-500'
   },
   {
+    name: 'Group/Team Scoring',
+    description: 'Enter scores for groups and teams with component breakdown',
+    href: '/group-scoring',
+    icon: UserGroupIcon,
+    color: 'bg-cyan-500',
+    badge: 'New'
+  },
+  {
     name: 'Jury Portal',
     description: 'Simplified jury interface for competition day (opens in new window on port 3002)',
     href: `${window.location.protocol}//${window.location.hostname}:3002`,
@@ -338,6 +346,7 @@ export function ManagementCenter() {
       'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.title',
       'Live Scores': 'managementCenter.eventManagement.competitionDay.liveScores.title',
       'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.title',
+      'Group/Team Scoring': 'managementCenter.eventManagement.competitionDay.groupTeamScoring.title',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.title',
       'View Results': 'managementCenter.eventManagement.resultsAwards.results.title',
       'Medals': 'managementCenter.eventManagement.resultsAwards.medals.title',
@@ -371,6 +380,7 @@ export function ManagementCenter() {
       'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.description',
       'Live Scores': 'managementCenter.eventManagement.competitionDay.liveScores.description',
       'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.description',
+      'Group/Team Scoring': 'managementCenter.eventManagement.competitionDay.groupTeamScoring.description',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.description',
       'View Results': 'managementCenter.eventManagement.resultsAwards.results.description',
       'Medals': 'managementCenter.eventManagement.resultsAwards.medals.description',

@@ -62,6 +62,8 @@ const groups_1 = __importDefault(require("./routes/groups"));
 const groupMembers_1 = __importDefault(require("./routes/groupMembers"));
 const teamPenalties_1 = __importDefault(require("./routes/teamPenalties"));
 const system_1 = __importDefault(require("./routes/system"));
+const groupScores_1 = __importDefault(require("./routes/groupScores"));
+const teamScores_1 = __importDefault(require("./routes/teamScores"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
@@ -222,6 +224,8 @@ app.use('/api/groups', groups_1.default);
 app.use('/api/groups', groupMembers_1.default);
 app.use('/api/team-penalties', teamPenalties_1.default);
 app.use('/api/system', system_1.default);
+app.use('/api/scores', groupScores_1.default);
+app.use('/api/scores', teamScores_1.default);
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {
     const path = require('path');

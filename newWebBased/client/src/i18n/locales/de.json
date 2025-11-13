@@ -132,6 +132,10 @@
           "title": "Wertungserfassung",
           "description": "Noten eingeben und Live-Bewertung verwalten"
         },
+        "groupTeamScoring": {
+          "title": "Gruppen/Mannschaften",
+          "description": "Wertungen für Gruppen und Mannschaften mit Komponentenaufschlüsselung erfassen"
+        },
         "competitionStatus": {
           "title": "Wettkampfstatus",
           "description": "Wettkampffortschritt und Status überwachen"
@@ -2790,6 +2794,34 @@
       "number": "Nr.",
       "status": "Status"
     }
+  },
+  "groupTeamScoring": {
+    "groupScoring": "Gruppen-Wertung",
+    "teamScoring": "Mannschafts-Wertung",
+    "selectionPanel": "Auswahl",
+    "selectGroup": "Gruppe",
+    "chooseGroup": "Gruppe wählen...",
+    "selectTeam": "Mannschaft",
+    "chooseTeam": "Mannschaft wählen...",
+    "selectCompetition": "Wettkampf",
+    "chooseCompetition": "Wettkampf wählen...",
+    "selectDiscipline": "Disziplin",
+    "chooseDiscipline": "Disziplin wählen...",
+    "attempt": "Versuch",
+    "enterScore": "Wertung erfassen",
+    "enterScoreFor": "Wertung erfassen für",
+    "scoreComponents": "Wertungskomponenten",
+    "finalScore": "Endnote",
+    "startingScore": "Ausgangswert",
+    "finalScoreInfo": "Wird automatisch berechnet",
+    "calculatedFinal": "Berechnete Endnote",
+    "comment": "Kommentar",
+    "commentPlaceholder": "Optionaler Kommentar zur Wertung",
+    "scoreSaved": "Wertung erfolgreich gespeichert",
+    "saveError": "Fehler beim Speichern",
+    "noDisciplineFields": "Keine Wertungsfelder für diese Disziplin konfiguriert. Bitte unter 'Disziplinen' > 'Felder verwalten' anlegen.",
+    "groupInfo": "Wählen Sie Gruppe, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen.",
+    "teamInfo": "Wählen Sie Mannschaft, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen."
   }
 }
 

@@ -69,6 +69,8 @@ import groupRoutes from './routes/groups';
 import groupMemberRoutes from './routes/groupMembers';
 import teamPenaltyRoutes from './routes/teamPenalties';
 import systemRoutes from './routes/system';
+import groupScoresRoutes from './routes/groupScores';
+import teamScoresRoutes from './routes/teamScores';
 
 const app = express();
 const server = createServer(app);
@@ -244,6 +246,8 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/groups', groupMemberRoutes);
 app.use('/api/team-penalties', teamPenaltyRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/scores', groupScoresRoutes);
+app.use('/api/scores', teamScoresRoutes);
 
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {

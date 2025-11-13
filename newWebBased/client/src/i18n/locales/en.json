@@ -132,6 +132,10 @@
           "title": "Score Capture",
           "description": "Enter scores and manage live scoring"
         },
+        "groupTeamScoring": {
+          "title": "Group/Team Scoring",
+          "description": "Enter scores for groups and teams with component breakdown"
+        },
         "competitionStatus": {
           "title": "Competition Status",
           "description": "Monitor competition progress and status"
@@ -2790,6 +2794,34 @@
       "number": "No.",
       "status": "Status"
     }
+  },
+  "groupTeamScoring": {
+    "groupScoring": "Group Scoring",
+    "teamScoring": "Team Scoring",
+    "selectionPanel": "Selection",
+    "selectGroup": "Group",
+    "chooseGroup": "Choose group...",
+    "selectTeam": "Team",
+    "chooseTeam": "Choose team...",
+    "selectCompetition": "Competition",
+    "chooseCompetition": "Choose competition...",
+    "selectDiscipline": "Discipline",
+    "chooseDiscipline": "Choose discipline...",
+    "attempt": "Attempt",
+    "enterScore": "Enter Score",
+    "enterScoreFor": "Enter score for",
+    "scoreComponents": "Score Components",
+    "finalScore": "Final Score",
+    "startingScore": "Starting Score",
+    "finalScoreInfo": "Calculated automatically",
+    "calculatedFinal": "Calculated Final",
+    "comment": "Comment",
+    "commentPlaceholder": "Optional comment for this score",
+    "scoreSaved": "Score saved successfully",
+    "saveError": "Error saving score",
+    "noDisciplineFields": "No score fields configured for this discipline. Please configure them under 'Disciplines' > 'Manage Fields'.",
+    "groupInfo": "Select group, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration.",
+    "teamInfo": "Select team, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration."
   }
 }
 
