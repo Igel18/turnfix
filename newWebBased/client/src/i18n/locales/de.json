@@ -573,6 +573,7 @@
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "add": "Hinzufügen",
+    "update": "Aktualisieren",
     "search": "Suchen",
     "filter": "Filter",
     "reset": "Zurücksetzen",
@@ -989,7 +990,8 @@
       "selectParticipant": "Teilnehmer auswählen",
       "noParticipantsAvailable": "Keine Teilnehmer vom Verein {{club}} verfügbar",
       "remove": "Entfernen",
-      "close": "Schließen"
+      "close": "Schließen",
+      "confirmRemove": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten?"
     },
     "filters": {
       "search": "Suche",
@@ -1104,7 +1106,8 @@
     "members": {
       "noMembers": "Keine Mitglieder zugewiesen",
       "assignError": "Fehler beim Zuweisen des Teilnehmers",
-      "removeError": "Fehler beim Entfernen des Teilnehmers"
+      "removeError": "Fehler beim Entfernen des Teilnehmers",
+      "confirmRemove": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten?"
     },
     "table": {
       "club": "Verein",

@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import UnifiedModal from '@/components/UnifiedModal';
+import UnifiedModal from './UnifiedModal';
 
+// Types (matching Teams.types.ts)
 interface Club {
   int_vereineid: number;
   var_name: string;
@@ -15,209 +13,177 @@ interface Competition {
   name: string;
 }
 
-interface Team {
-  int_mannschaftenid: number;
-  int_vereineid: number;
-  int_wettkaempfeid: number;
-  int_nummer: number;
-  var_riege: string | null;
-  int_startnummer: number | null;
+interface FormData {
+  clubId: string;
+  competitionId: string;
+  number: string;
+  riege: string | null;
+  startNumber: string;
 }
 
 interface TeamFormModalProps {
-  team: Team | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   clubs: Club[];
   competitions: Competition[];
-  onClose: (saved: boolean) => void;
+  isEditing: boolean;
 }
 
-const TeamFormModal: React.FC<TeamFormModalProps> = ({ team, clubs, competitions, onClose }) => {
+const TeamFormModal: React.FC<TeamFormModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  setFormData,
+  clubs,
+  competitions,
+  isEditing
+}) => {
   const { t } = useTranslation();
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    int_vereineid: team?.int_vereineid || 0,
-    int_wettkaempfeid: team?.int_wettkaempfeid || 0,
-    int_nummer: team?.int_nummer || 1,
-    var_riege: team?.var_riege || '',
-    int_startnummer: team?.int_startnummer || null as number | null,
-  });
 
-  const isEditing = !!team;
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.int_vereineid === 0 || formData.int_wettkaempfeid === 0) {
-      alert(t('teams.form.selectClubAndCompetition'));
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const url = isEditing ? `/api/teams/${team.int_mannschaftenid}` : '/api/teams';
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const payload: any = {
-        int_vereineid: formData.int_vereineid,
-        int_wettkaempfeid: formData.int_wettkaempfeid,
-        int_nummer: formData.int_nummer,
-      };
-
-      if (formData.var_riege) payload.var_riege = formData.var_riege;
-      if (formData.int_startnummer) payload.int_startnummer = formData.int_startnummer;
-
-      console.log('🏆 Saving team:', { method, url, payload });
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('📡 Response status:', response.status);
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('❌ Server error:', error);
-        throw new Error(error.error || 'Failed to save team');
-      }
-
-      const result = await response.json();
-      console.log('✅ Team saved successfully:', result);
-
-      onClose(true);
-    } catch (error) {
-      console.error('Error saving team:', error);
-      alert(isEditing ? t('teams.messages.updateError') : t('teams.messages.createError'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleClose = () => {
-    if (!saving) onClose(false);
+    onSubmit();
   };
 
   return (
     <UnifiedModal
-      isOpen={true}
-      onClose={handleClose}
+      isOpen={isOpen}
+      onClose={onClose}
       title={isEditing ? t('teams.editTeam') : t('teams.createTeam')}
+      size="lg"
       showFooter={false}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Club Selection */}
         <div>
-          <Label htmlFor="club">{t('teams.form.club')}</Label>
-          {clubs.length === 0 ? (
-            <p className="text-sm text-red-600 mt-1">{t('teams.form.noClubsAvailable')}</p>
-          ) : (
-            <select
-              id="club"
-              value={formData.int_vereineid.toString()}
-              onChange={(e) =>
-                setFormData({ ...formData, int_vereineid: parseInt(e.target.value) })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="0">{t('teams.form.clubPlaceholder')}</option>
-              {clubs.map((club) => (
-                <option key={club.int_vereineid} value={club.int_vereineid.toString()}>
-                  {club.var_name}
-                </option>
-              ))}
-            </select>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {t('teams.form.club')} *
+          </label>
+          <select
+            required
+            value={formData.clubId}
+            onChange={(e) => setFormData({...formData, clubId: e.target.value})}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">{t('teams.form.clubPlaceholder')}</option>
+            {Array.isArray(clubs) && clubs.map(club => (
+              <option key={club.int_vereineid} value={club.int_vereineid}>
+                {club.var_name}
+              </option>
+            ))}
+          </select>
+          {clubs.length === 0 && (
+            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+              ⚠️ {t('teams.form.noClubsAvailable')}
+            </p>
           )}
         </div>
 
         {/* Competition Selection */}
         <div>
-          <Label htmlFor="competition">{t('teams.form.competition')}</Label>
-          {competitions.length === 0 ? (
-            <p className="text-sm text-red-600 mt-1">{t('teams.form.noCompetitionsAvailable')}</p>
-          ) : (
-            <select
-              id="competition"
-              value={formData.int_wettkaempfeid.toString()}
-              onChange={(e) =>
-                setFormData({ ...formData, int_wettkaempfeid: parseInt(e.target.value) })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="0">{t('teams.form.competitionPlaceholder')}</option>
-              {competitions.map((comp) => (
-                <option key={comp.id} value={comp.id.toString()}>
-                  {comp.name}
-                </option>
-              ))}
-            </select>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {t('teams.form.competition')} *
+          </label>
+          <select
+            required
+            value={formData.competitionId}
+            onChange={(e) => setFormData({...formData, competitionId: e.target.value})}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">{t('teams.form.competitionPlaceholder')}</option>
+            {Array.isArray(competitions) && competitions.map(comp => (
+              <option key={comp.id} value={comp.id}>
+                {comp.name}
+              </option>
+            ))}
+          </select>
+          {competitions.length === 0 && (
+            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+              ⚠️ {t('teams.form.noCompetitionsAvailable')}
+            </p>
           )}
         </div>
 
         {/* Team Number */}
         <div>
-          <Label htmlFor="number">{t('teams.form.number')}</Label>
-          <Input
-            id="number"
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {t('teams.form.number')} *
+          </label>
+          <input
             type="number"
+            required
             min="1"
-            value={formData.int_nummer}
-            onChange={(e) =>
-              setFormData({ ...formData, int_nummer: parseInt(e.target.value) || 1 })
-            }
+            value={formData.number}
+            onChange={(e) => setFormData({...formData, number: e.target.value})}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={t('teams.form.numberPlaceholder')}
           />
         </div>
 
-        {/* Squad */}
-        <div>
-          <Label htmlFor="squad">{t('teams.form.squad')}</Label>
-          <Input
-            id="squad"
-            type="text"
-            maxLength={5}
-            value={formData.var_riege || ''}
-            onChange={(e) => setFormData({ ...formData, var_riege: e.target.value })}
-            placeholder={t('teams.form.squadPlaceholder')}
-          />
+        {/* Optional Fields Row */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Riege (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {t('teams.form.squad')}
+            </label>
+            <input
+              type="text"
+              value={formData.riege || ''}
+              onChange={(e) => setFormData({...formData, riege: e.target.value || null})}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={t('teams.form.squadPlaceholder')}
+            />
+          </div>
+
+          {/* Start Number (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {t('teams.form.startNumber')}
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.startNumber}
+              onChange={(e) => setFormData({...formData, startNumber: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={t('teams.form.startNumberPlaceholder')}
+            />
+          </div>
         </div>
 
-        {/* Start Number */}
-        <div>
-          <Label htmlFor="startNumber">{t('teams.form.startNumber')}</Label>
-          <Input
-            id="startNumber"
-            type="number"
-            min="1"
-            value={formData.int_startnummer || ''}
-            onChange={(e) =>
-              setFormData({ 
-                ...formData, 
-                int_startnummer: e.target.value ? parseInt(e.target.value) : null 
-              })
-            }
-            placeholder={t('teams.form.startNumberPlaceholder')}
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={handleClose} disabled={saving}>
-            {t('teams.form.cancel')}
-          </Button>
-          <Button
-            type="submit"
-            disabled={
-              saving ||
-              clubs.length === 0 ||
-              competitions.length === 0 ||
-              formData.int_vereineid === 0 ||
-              formData.int_wettkaempfeid === 0
-            }
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 
+                     rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            {saving ? t('common.saving') : t('teams.form.save')}
-          </Button>
+            {t('common.cancel')}
+          </button>
+          <button
+            type="submit"
+            disabled={clubs.length === 0 || competitions.length === 0}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
+                     disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {isEditing ? t('common.save') : t('common.create')}
+          </button>
         </div>
       </form>
     </UnifiedModal>
@@ -225,3 +191,4 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({ team, clubs, competitions
 };
 
 export default TeamFormModal;
+

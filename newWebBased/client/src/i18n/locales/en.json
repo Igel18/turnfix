@@ -573,6 +573,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "add": "Add",
+    "update": "Update",
     "search": "Search",
     "filter": "Filter",
     "reset": "Reset",
@@ -989,7 +990,8 @@
       "selectParticipant": "Select participant",
       "noParticipantsAvailable": "No participants available from club {{club}}",
       "remove": "Remove",
-      "close": "Close"
+      "close": "Close",
+      "confirmRemove": "Are you sure you want to remove this member?"
     },
     "filters": {
       "search": "Search",
@@ -1104,7 +1106,8 @@
     "members": {
       "noMembers": "No members assigned",
       "assignError": "Error assigning participant",
-      "removeError": "Error removing participant"
+      "removeError": "Error removing participant",
+      "confirmRemove": "Are you sure you want to remove this member?"
     },
     "table": {
       "club": "Club",

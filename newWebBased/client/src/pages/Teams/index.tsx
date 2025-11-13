@@ -16,12 +16,13 @@ import { useTeams, useTeamMembers } from './hooks';
 // Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { UnifiedAssignmentModal } from '@/components/assignment';
+import TeamFormModal from '@/components/TeamFormModal';
 
 // Configuration
 import { createTeamConfig } from './teamAssignmentConfig';
 
 // Types
-import type { Team } from './Teams.types';
+import type { Team, TeamFormData } from './Teams.types';
 
 /**
  * Main Teams Component
@@ -39,6 +40,17 @@ const Teams: React.FC = () => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  
+  // Form Data
+  const [formData, setFormData] = useState<TeamFormData>({
+    clubId: '',
+    competitionId: '',
+    number: '1',
+    riege: null,
+    startNumber: ''
+  });
 
   // Data Hooks
   const {
@@ -117,9 +129,64 @@ const Teams: React.FC = () => {
   };
 
   const handleCreateTeam = () => {
-    // TODO: Implement team creation dialog
-    alert(t('teams.createTeam') + ' - Coming soon!');
+    setEditingTeam(null);
+    setFormData({
+      clubId: '',
+      competitionId: '',
+      number: '1',
+      riege: null,
+      startNumber: ''
+    });
+    setShowFormModal(true);
   };
+
+  // Handler: Edit Team
+  const handleEditTeam = (team: Team) => {
+    setEditingTeam(team);
+    setFormData({
+      clubId: team.clubId.toString(),
+      competitionId: team.competitionId.toString(),
+      number: team.number.toString(),
+      riege: team.riege,
+      startNumber: team.startNumber?.toString() || ''
+    });
+    setShowFormModal(true);
+  };
+
+  // Handler: Form Submit
+  const handleFormSubmit = async () => {
+    const success = await saveTeam(formData, editingTeam);
+    if (success) {
+      setShowFormModal(false);
+      setEditingTeam(null);
+      setFormData({
+        clubId: '',
+        competitionId: '',
+        number: '1',
+        riege: null,
+        startNumber: ''
+      });
+    }
+  };
+
+  // Handler: Delete Team
+  const handleDeleteTeam = async (teamId: number | string) => {
+    const team = teams.find(t => t.id === teamId);
+    if (!team) return;
+    
+    await deleteTeam(team);
+    // Clear selection if deleted team was selected
+    if (selectedTeam?.id === teamId) {
+      setSelectedTeam(null);
+    }
+  };
+
+  // Enhanced config with edit/delete handlers
+  const enhancedConfig = useMemo(() => ({
+    ...config,
+    onEditMaster: handleEditTeam,
+    onDeleteMaster: handleDeleteTeam,
+  }), [config, teams, selectedTeam]);
 
   // Column search placeholders (for UnifiedAssignmentModal)
   const columnSearchPlaceholders = useMemo(() => ({
@@ -157,7 +224,7 @@ const Teams: React.FC = () => {
       <div className="space-y-6">
         {/* Unified Assignment Modal (three-column layout) */}
         <UnifiedAssignmentModal
-          config={config as any} // Type assertion for generic compatibility
+          config={enhancedConfig as any} // Use enhanced config with edit/delete handlers
           masterItems={teams}
           availableItems={filteredAvailableParticipants}
           assignments={[]} // Not needed for Teams (members stored in team object)
@@ -166,6 +233,23 @@ const Teams: React.FC = () => {
           onSelectMaster={handleSelectTeam as any} // Type assertion
           columnSearchPlaceholders={columnSearchPlaceholders}
         />
+
+        {/* Team Form Modal */}
+        {showFormModal && (
+          <TeamFormModal
+            isOpen={showFormModal}
+            onClose={() => {
+              setShowFormModal(false);
+              setEditingTeam(null);
+            }}
+            onSubmit={handleFormSubmit}
+            formData={formData}
+            setFormData={setFormData}
+            clubs={clubs}
+            competitions={competitions}
+            isEditing={!!editingTeam}
+          />
+        )}
       </div>
     </EventManagementTemplate>
   );
