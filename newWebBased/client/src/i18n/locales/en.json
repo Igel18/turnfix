@@ -128,13 +128,21 @@
           "title": "Squad Status",
           "description": "Manage status for squad-discipline combinations"
         },
+        "individualScoring": {
+          "title": "Individual Scoring",
+          "description": "Enter competition results and scores for individual participants"
+        },
         "scoreCapture": {
           "title": "Score Capture",
           "description": "Enter scores and manage live scoring"
         },
-        "groupTeamScoring": {
-          "title": "Group/Team Scoring",
-          "description": "Enter scores for groups and teams with component breakdown"
+        "groupScoring": {
+          "title": "Group Scoring",
+          "description": "Enter scores for TeamGym groups with component breakdown"
+        },
+        "teamScoring": {
+          "title": "Team Scoring",
+          "description": "Enter scores for competition teams"
         },
         "competitionStatus": {
           "title": "Competition Status",
@@ -2821,7 +2829,9 @@
     "saveError": "Error saving score",
     "noDisciplineFields": "No score fields configured for this discipline. Please configure them under 'Disciplines' > 'Manage Fields'.",
     "groupInfo": "Select group, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration.",
-    "teamInfo": "Select team, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration."
+    "teamInfo": "Select team, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration.",
+    "startNumber": "Start Number",
+    "autoStartNumber": "Start number is automatically loaded from team entity"
   }
 }
 

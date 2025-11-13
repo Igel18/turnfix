@@ -39,7 +39,8 @@ import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
 import TimePlanning from '@/pages/TimePlanning'
 import LiveScoresPage from '@/pages/LiveScoresPage'
-import GroupScoreCapture from '@/pages/GroupTeamScoring'
+import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
+import TeamScoreCapture from '@/pages/GroupTeamScoring/TeamScoreCapture'
 
 // Check if we're running on the Jury Portal (port 3002)
 const isJuryPortal = window.location.port === '3002';
@@ -69,6 +70,7 @@ function App() {
             <Route path="/results" element={<Results />} />
             <Route path="/score-capture" element={<ScoreCapture />} />
             <Route path="/group-scoring" element={<GroupScoreCapture />} />
+            <Route path="/team-scoring" element={<TeamScoreCapture />} />
             <Route path="/competitions" element={<Competitions />} />
             <Route path="/squads" element={<SquadManagement />} />
             <Route path="/time-planning" element={<TimePlanning />} />

@@ -5215,3 +5215,18 @@ unter Punkt 1 ist der Veranstaltungsaufbau. Wenn wir diesen weiter gliedern:
     Riegen 
     Zeitplanung 
     Meldematrix 
+
+Punkt 2 Wettkampftag könnte folgende Untergliedert werden: 
+2a) Erfassung 
+    Einzel-Wertung 
+    Gruppen-Wertung 
+    Mannschafts-Wertung 
+    Kampfrichter Portal 
+2b) Status
+    Riegen-Status 
+    Wettkampfstatus 
+    Live-Wertungen 
+
+154. Filter von Gruppen
+http://localhost:3001/groups?eventId=77
+Auf dieser Seite werden immer alle Gruppen angezeigt. Sind diese je Event oder ganz allgemein? Wenn sie Event spezifisch sind, dann sollten diese auch in dieser UI für das Event gefiltert werden. Es sollte dann auch der Blaue Balken in die UI. Wenn diese ganz allgemein sind, dann sollte dieser Menüeintrag dafür in die DB-Verwaltung. 

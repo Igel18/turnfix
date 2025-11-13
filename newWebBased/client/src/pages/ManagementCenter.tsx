@@ -241,19 +241,27 @@ const competitionDayActions = [
     color: 'bg-indigo-500'
   },
   {
-    name: 'Score Capture',
-    description: 'Enter competition results and scores',
+    name: 'Individual Scoring',
+    description: 'Enter competition results and scores for individual participants',
     href: '/score-capture',
     icon: ClipboardDocumentListIcon,
     color: 'bg-orange-500'
   },
   {
-    name: 'Group/Team Scoring',
-    description: 'Enter scores for groups and teams with component breakdown',
+    name: 'Group Scoring',
+    description: 'Enter scores for TeamGym groups with component breakdown',
     href: '/group-scoring',
     icon: UserGroupIcon,
     color: 'bg-cyan-500',
-    badge: 'New'
+    badge: 'Beta'
+  },
+  {
+    name: 'Team Scoring',
+    description: 'Enter scores for competition teams (Mannschaften)',
+    href: '/team-scoring',
+    icon: UserGroupIcon,
+    color: 'bg-teal-500',
+    badge: 'Beta'
   },
   {
     name: 'Jury Portal',
@@ -345,8 +353,9 @@ export function ManagementCenter() {
       'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.title',
       'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.title',
       'Live Scores': 'managementCenter.eventManagement.competitionDay.liveScores.title',
-      'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.title',
-      'Group/Team Scoring': 'managementCenter.eventManagement.competitionDay.groupTeamScoring.title',
+      'Individual Scoring': 'managementCenter.eventManagement.competitionDay.individualScoring.title',
+      'Group Scoring': 'managementCenter.eventManagement.competitionDay.groupScoring.title',
+      'Team Scoring': 'managementCenter.eventManagement.competitionDay.teamScoring.title',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.title',
       'View Results': 'managementCenter.eventManagement.resultsAwards.results.title',
       'Medals': 'managementCenter.eventManagement.resultsAwards.medals.title',
@@ -379,8 +388,9 @@ export function ManagementCenter() {
       'Squad Status': 'managementCenter.eventManagement.competitionDay.squadStatus.description',
       'Competition Status': 'managementCenter.eventManagement.competitionDay.competitionStatus.description',
       'Live Scores': 'managementCenter.eventManagement.competitionDay.liveScores.description',
-      'Score Capture': 'managementCenter.eventManagement.competitionDay.scoreCapture.description',
-      'Group/Team Scoring': 'managementCenter.eventManagement.competitionDay.groupTeamScoring.description',
+      'Individual Scoring': 'managementCenter.eventManagement.competitionDay.individualScoring.description',
+      'Group Scoring': 'managementCenter.eventManagement.competitionDay.groupScoring.description',
+      'Team Scoring': 'managementCenter.eventManagement.competitionDay.teamScoring.description',
       'Jury Portal': 'managementCenter.eventManagement.competitionDay.juryPortal.description',
       'View Results': 'managementCenter.eventManagement.resultsAwards.results.description',
       'Medals': 'managementCenter.eventManagement.resultsAwards.medals.description',
@@ -772,9 +782,16 @@ export function ManagementCenter() {
                                 <Icon className="h-5 w-5" />
                               </div>
                               <div>
-                                <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                  {translateAction(action).name}
-                                </h4>
+                                <div className="flex items-center justify-center gap-2">
+                                  <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                    {translateAction(action).name}
+                                  </h4>
+                                  {action.badge && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                      {action.badge}
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-gray-600 mt-1">
                                   {translateAction(action).description}
                                 </p>

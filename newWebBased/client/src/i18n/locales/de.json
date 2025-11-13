@@ -128,13 +128,21 @@
           "title": "Riegen-Status",
           "description": "Status für Riegen-Disziplin-Kombinationen verwalten"
         },
+        "individualScoring": {
+          "title": "Einzel-Wertung",
+          "description": "Wettkampfergebnisse und Noten für Einzelteilnehmer eingeben"
+        },
         "scoreCapture": {
           "title": "Wertungserfassung",
           "description": "Noten eingeben und Live-Bewertung verwalten"
         },
-        "groupTeamScoring": {
-          "title": "Gruppen/Mannschaften",
-          "description": "Wertungen für Gruppen und Mannschaften mit Komponentenaufschlüsselung erfassen"
+        "groupScoring": {
+          "title": "Gruppen-Wertung",
+          "description": "Wertungen für TeamGym-Gruppen mit Komponentenaufschlüsselung erfassen"
+        },
+        "teamScoring": {
+          "title": "Mannschafts-Wertung",
+          "description": "Wertungen für Wettkampf-Mannschaften erfassen"
         },
         "competitionStatus": {
           "title": "Wettkampfstatus",
@@ -2821,7 +2829,9 @@
     "saveError": "Fehler beim Speichern",
     "noDisciplineFields": "Keine Wertungsfelder für diese Disziplin konfiguriert. Bitte unter 'Disziplinen' > 'Felder verwalten' anlegen.",
     "groupInfo": "Wählen Sie Gruppe, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen.",
-    "teamInfo": "Wählen Sie Mannschaft, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen."
+    "teamInfo": "Wählen Sie Mannschaft, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen.",
+    "startNumber": "Startnummer",
+    "autoStartNumber": "Startnummer wird automatisch von der Mannschaft übernommen"
   }
 }
 
