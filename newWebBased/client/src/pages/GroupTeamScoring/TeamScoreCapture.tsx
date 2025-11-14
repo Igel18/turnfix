@@ -73,12 +73,18 @@ export default function TeamScoreCapture() {
 
       if (teamsRes.ok) {
         const data = await teamsRes.json();
-        setTeams(data.results || []);
+        // Teams API returns paginated results with teams array
+        setTeams(data.teams || []);
       }
 
       if (competitionsRes.ok) {
         const data = await competitionsRes.json();
-        setCompetitions(data.results || []);
+        // Competitions API returns array directly, filtered for team competitions
+        const allCompetitions = Array.isArray(data) ? data : (data.competitions || []);
+        const teamCompetitions = allCompetitions.filter(
+          (comp: any) => comp.competitionType === 1
+        );
+        setCompetitions(teamCompetitions);
       }
 
       if (disciplinesRes.ok) {
@@ -113,7 +119,7 @@ export default function TeamScoreCapture() {
   };
 
   const selectedTeam = useMemo(
-    () => teams.find(t => t.int_mannschaftenid === selectedTeamId),
+    () => teams.find(t => t.id === selectedTeamId),
     [teams, selectedTeamId]
   );
 
@@ -165,7 +171,7 @@ export default function TeamScoreCapture() {
         disciplineId: selectedDisciplineId,
         statusId: selectedStatusId,
         attempt: selectedAttempt,
-        startNumber: selectedTeam?.int_startnummer || undefined, // Auto from team entity
+        startNumber: selectedTeam?.startNumber || undefined, // Auto from team entity
         components: scoreComponents.filter(c => c.value !== null),
         finalScore: finalScore || calculateFinalScore(),
         comment: comment || undefined
@@ -227,9 +233,9 @@ export default function TeamScoreCapture() {
                 >
                   <option value="">{t('groupTeamScoring.chooseTeam')}</option>
                   {teams.map(team => (
-                    <option key={team.int_mannschaftenid} value={team.int_mannschaftenid}>
-                      {team.clubName} - Riege {team.var_riege}
-                      {team.int_startnummer && ` (${t('groupTeamScoring.startNumber')}: ${team.int_startnummer})`}
+                    <option key={team.id} value={team.id}>
+                      {team.clubName} - Riege {team.riege}
+                      {team.startNumber && ` (${t('groupTeamScoring.startNumber')}: ${team.startNumber})`}
                     </option>
                   ))}
                 </select>
@@ -286,10 +292,10 @@ export default function TeamScoreCapture() {
               </div>
             </div>
 
-            {selectedTeam && selectedTeam.int_startnummer && (
+            {selectedTeam && selectedTeam.startNumber && (
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-sm text-blue-800">
-                  ℹ️ {t('groupTeamScoring.autoStartNumber')}: <strong>{selectedTeam.int_startnummer}</strong>
+                  ℹ️ {t('groupTeamScoring.autoStartNumber')}: <strong>{selectedTeam.startNumber}</strong>
                 </p>
               </div>
             )}
@@ -300,7 +306,7 @@ export default function TeamScoreCapture() {
       <UnifiedModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={t('groupTeamScoring.enterScoreFor') + ': ' + (selectedTeam ? `${selectedTeam.clubName} - Riege ${selectedTeam.var_riege}` : '')}
+        title={t('groupTeamScoring.enterScoreFor') + ': ' + (selectedTeam ? `${selectedTeam.clubName} - Riege ${selectedTeam.riege}` : '')}
         size="4xl"
         showFooter={false}
       >

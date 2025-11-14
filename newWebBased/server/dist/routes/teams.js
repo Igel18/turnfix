@@ -274,10 +274,25 @@ router.put('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid team ID' });
         }
+        console.log('🏆 PUT /api/teams/:id - Updating team:', id, req.body);
         const validatedData = updateTeamSchema.parse(req.body);
+        console.log('✅ Validation passed:', validatedData);
+        // Map frontend field names to database field names
+        const dbData = {};
+        if (validatedData.clubId !== undefined)
+            dbData.int_vereineid = validatedData.clubId;
+        if (validatedData.competitionId !== undefined)
+            dbData.int_wettkaempfeid = validatedData.competitionId;
+        if (validatedData.number !== undefined)
+            dbData.int_nummer = validatedData.number;
+        if (validatedData.riege !== undefined)
+            dbData.var_riege = validatedData.riege;
+        if (validatedData.startNumber !== undefined)
+            dbData.int_startnummer = validatedData.startNumber;
+        console.log('🗄️ Database data:', dbData);
         const team = await prisma_1.default.tfx_mannschaften.update({
             where: { int_mannschaftenid: id },
-            data: validatedData,
+            data: dbData,
             include: {
                 tfx_vereine: {
                     select: {

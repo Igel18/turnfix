@@ -6,13 +6,14 @@ export interface Group {
 }
 
 export interface Team {
-  int_mannschaftenid: number;
-  int_wettkaempfeid: number;
-  int_vereineid: number;
-  int_nummer: number;
-  var_riege: string;
-  int_startnummer: number | null;
+  id: number;
+  clubId: number;
+  competitionId: number;
+  number: number;
+  riege: string | null;
+  startNumber: number | null;
   clubName?: string;
+  competitionName?: string;
 }
 
 export interface DisciplineField {
