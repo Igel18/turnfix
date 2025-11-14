@@ -102,7 +102,18 @@ export const useTeams = (
       if (!response.ok) throw new Error('Failed to fetch competitions');
       
       const data = await response.json();
-      setCompetitions(data.competitions || []);
+      console.log('🎯 DEBUG: All competitions for event:', data);
+      
+      // The API returns competitions directly as an array, not wrapped in a competitions property
+      const allCompetitions = Array.isArray(data) ? data : (data.competitions || []);
+      
+      // Filter for team competitions only (competitionType === 1)
+      const teamCompetitions = allCompetitions.filter(
+        (comp: any) => comp.competitionType === 1
+      );
+      
+      console.log('🏆 DEBUG: Filtered team competitions:', teamCompetitions);
+      setCompetitions(teamCompetitions);
     } catch (error) {
       console.error('Error fetching competitions:', error);
       setCompetitions([]);

@@ -6,11 +6,11 @@ const router = Router();
 
 // Validation schemas
 const createTeamSchema = z.object({
-  int_vereineid: z.number().int().positive(),
-  int_wettkaempfeid: z.number().int().positive(),
-  int_nummer: z.number().int().positive().optional().default(1),
-  var_riege: z.string().optional(),
-  int_startnummer: z.number().int().positive().optional(),
+  clubId: z.number().int().positive(),
+  competitionId: z.number().int().positive(),
+  number: z.number().int().positive().optional().default(1),
+  riege: z.string().nullable().optional(),
+  startNumber: z.number().int().positive().nullable().optional(),
 });
 
 const updateTeamSchema = createTeamSchema.partial();
@@ -254,8 +254,17 @@ router.post('/', async (req, res) => {
     const validatedData = createTeamSchema.parse(req.body);
     console.log('✅ Validation passed:', validatedData);
     
+    // Map frontend field names to database field names
+    const dbData = {
+      int_vereineid: validatedData.clubId,
+      int_wettkaempfeid: validatedData.competitionId,
+      int_nummer: validatedData.number,
+      var_riege: validatedData.riege,
+      int_startnummer: validatedData.startNumber,
+    };
+    
     const team = await (prisma as any).tfx_mannschaften.create({
-      data: validatedData,
+      data: dbData,
       include: {
         tfx_vereine: {
           select: {

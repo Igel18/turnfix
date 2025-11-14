@@ -9,11 +9,11 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
 // Validation schemas
 const createTeamSchema = zod_1.z.object({
-    int_vereineid: zod_1.z.number().int().positive(),
-    int_wettkaempfeid: zod_1.z.number().int().positive(),
-    int_nummer: zod_1.z.number().int().positive().optional().default(1),
-    var_riege: zod_1.z.string().optional(),
-    int_startnummer: zod_1.z.number().int().positive().optional(),
+    clubId: zod_1.z.number().int().positive(),
+    competitionId: zod_1.z.number().int().positive(),
+    number: zod_1.z.number().int().positive().optional().default(1),
+    riege: zod_1.z.string().nullable().optional(),
+    startNumber: zod_1.z.number().int().positive().nullable().optional(),
 });
 const updateTeamSchema = createTeamSchema.partial();
 // Get all teams
@@ -225,8 +225,16 @@ router.post('/', async (req, res) => {
         console.log('🏆 POST /api/teams - Creating team:', req.body);
         const validatedData = createTeamSchema.parse(req.body);
         console.log('✅ Validation passed:', validatedData);
+        // Map frontend field names to database field names
+        const dbData = {
+            int_vereineid: validatedData.clubId,
+            int_wettkaempfeid: validatedData.competitionId,
+            int_nummer: validatedData.number,
+            var_riege: validatedData.riege,
+            int_startnummer: validatedData.startNumber,
+        };
         const team = await prisma_1.default.tfx_mannschaften.create({
-            data: validatedData,
+            data: dbData,
             include: {
                 tfx_vereine: {
                     select: {
