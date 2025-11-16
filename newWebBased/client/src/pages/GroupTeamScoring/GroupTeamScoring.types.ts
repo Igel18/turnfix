@@ -43,6 +43,11 @@ export interface Competition {
   name: string;
   eventId: number;
   gender: string;
+  disciplines?: Array<{
+    disciplineId?: number;
+    int_disziplinid?: number;
+    id?: number;
+  }>;
 }
 
 export interface Status {

@@ -178,14 +178,44 @@ export default function TeamScoreCapture() {
 
   // Filter disciplines based on selected team's competition
   const getFilteredDisciplines = (): ScoringDiscipline[] => {
-    // If no team selected, show all disciplines
-    if (!selectedTeamId) return scoringDisciplines;
+    // If no competition selected, don't show any disciplines
+    if (!selectedCompetitionId) {
+      console.log('🔍 TeamScoring: No competition selected');
+      return [];
+    }
     
-    const selectedTeam = teams.find(t => t.id === selectedTeamId);
-    if (!selectedTeam) return scoringDisciplines;
-
-    // TODO: Implement proper discipline filtering based on team's competition
-    // For now, return all disciplines
+    console.log('🔍 TeamScoring: Selected competition ID:', selectedCompetitionId);
+    
+    // Find the selected competition
+    const selectedComp = competitions.find(c => c.id === selectedCompetitionId);
+    if (!selectedComp) {
+      console.log('🔍 TeamScoring: Competition not found');
+      return scoringDisciplines;
+    }
+    
+    console.log('🔍 TeamScoring: Selected competition:', selectedComp);
+    
+    // Get disciplines assigned to this competition
+    // Competitions have a 'disciplines' array with discipline IDs
+    if (selectedComp.disciplines && Array.isArray(selectedComp.disciplines)) {
+      const competitionDisciplineIds = new Set<number>();
+      selectedComp.disciplines.forEach((disc: any) => {
+        const discId = disc.disciplineId || disc.int_disziplinid || disc.id;
+        if (discId) {
+          competitionDisciplineIds.add(discId);
+        }
+      });
+      
+      console.log('🔍 TeamScoring: Competition discipline IDs:', Array.from(competitionDisciplineIds));
+      
+      const filtered = scoringDisciplines.filter(d => competitionDisciplineIds.has(d.id as number));
+      console.log('🔍 TeamScoring: Filtered disciplines:', filtered.map(d => ({ id: d.id, name: d.name })));
+      
+      return filtered;
+    }
+    
+    // If no disciplines property, return all disciplines
+    console.log('🔍 TeamScoring: No disciplines property on competition, returning all');
     return scoringDisciplines;
   };
 
