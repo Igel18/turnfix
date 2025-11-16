@@ -1,21 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { UsersIcon } from '@heroicons/react/24/outline';
 
 import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
-import UnifiedModal from '@/components/UnifiedModal';
 import { BlueInfoBox } from '@/components/InfoBoxes';
-import { ScoreInputFields } from './components/ScoreInputFields';
+import UnifiedScoreEntry, { type ScoreComponentValue } from '@/components/UnifiedScoreEntry';
 
 import type {
   Group,
   Discipline,
   DisciplineField,
   Competition,
-  ScoreData,
-  ScoreComponent
+  ScoreData
 } from './GroupTeamScoring.types';
 
 export default function GroupScoreCapture() {
@@ -42,7 +40,7 @@ export default function GroupScoreCapture() {
   const [selectedAttempt, setSelectedAttempt] = useState<number>(1);
   const [selectedStatusId] = useState<number>(1); // Default status
 
-  const [scoreComponents, setScoreComponents] = useState<ScoreComponent[]>([]);
+  const [scoreComponents, setScoreComponents] = useState<ScoreComponentValue[]>([]);
   const [finalScore, setFinalScore] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -131,6 +129,10 @@ export default function GroupScoreCapture() {
     setScoreComponents(prev =>
       prev.map(c => c.fieldId === fieldId ? { ...c, value } : c)
     );
+  };
+
+  const handleScoreComponentsChange = (fieldId: number, value: number | null) => {
+    handleComponentChange(fieldId, value);
   };
 
   const calculateFinalScore = () => {
@@ -287,79 +289,33 @@ export default function GroupScoreCapture() {
         </div>
       </EventManagementTemplate>
 
-      <UnifiedModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={t('groupTeamScoring.enterScoreFor') + ': ' + (selectedGroup?.var_name || '')}
-        size="4xl"
-        showFooter={false}
-      >
-        <div className="space-y-6">
-          {selectedDiscipline && disciplineFields.length > 0 && (
-            <ScoreInputFields
-              fields={disciplineFields}
-              components={scoreComponents}
-              onChange={handleComponentChange}
-              disabled={saving}
-              calculationType={selectedDiscipline.calculationType}
-            />
-          )}
-
-          {disciplineFields.length === 0 && (
-            <BlueInfoBox>
-              {t('groupTeamScoring.noDisciplineFields')}
-            </BlueInfoBox>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('groupTeamScoring.comment')}
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              disabled={saving}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              rows={3}
-              placeholder={t('groupTeamScoring.commentPlaceholder')}
-            />
-          </div>
-
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div className="text-lg font-semibold">
-              {t('groupTeamScoring.calculatedFinal')}: {calculateFinalScore().toFixed(2)}
-            </div>
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                disabled={saving}
-                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveScore}
-                disabled={saving || disciplineFields.length === 0}
-                className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                    {t('common.saving')}
-                  </>
-                ) : (
-                  <>
-                    <CheckCircleIcon className="h-5 w-5 mr-2" />
-                    {t('common.save')}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </UnifiedModal>
+      {selectedDiscipline && (
+        <UnifiedScoreEntry
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title={t('groupTeamScoring.enterScoreFor') + ': ' + (selectedGroup?.var_name || '')}
+          fields={disciplineFields.map(field => ({
+            id: field.id,
+            name: field.name,
+            sortOrder: field.sortOrder ?? 0,
+            group: field.group,
+            isFinalScore: field.isFinalScore,
+            isStartingScore: field.isStartingScore,
+            enabled: field.enabled
+          }))}
+          components={scoreComponents}
+          onChange={handleScoreComponentsChange}
+          onSave={handleSaveScore}
+          comment={comment}
+          onCommentChange={setComment}
+          attempt={selectedAttempt}
+          maxAttempts={selectedDiscipline.attempts}
+          onAttemptChange={setSelectedAttempt}
+          showAttemptSelector={selectedDiscipline.attempts > 1}
+          calculationType={selectedDiscipline.calculationType}
+          saving={saving}
+        />
+      )}
     </>
   );
 }

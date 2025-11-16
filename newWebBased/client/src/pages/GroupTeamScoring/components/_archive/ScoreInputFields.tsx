@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { DisciplineField, ScoreComponent } from '../GroupTeamScoring.types';
+import type { DisciplineField, ScoreComponent } from '../../GroupTeamScoring.types';
 
 interface ScoreInputFieldsProps {
   fields: DisciplineField[];

@@ -2852,7 +2852,11 @@
     "groupInfo": "Wählen Sie Gruppe, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen.",
     "teamInfo": "Wählen Sie Mannschaft, Wettkampf und Disziplin aus, um eine Wertung zu erfassen. Die Wertungskomponenten (D/E/A-Noten) werden automatisch basierend auf der Disziplin-Konfiguration geladen.",
     "startNumber": "Startnummer",
-    "autoStartNumber": "Startnummer wird automatisch von der Mannschaft übernommen"
+    "autoStartNumber": "Startnummer wird automatisch von der Mannschaft übernommen",
+    "existingScores": "Vorhandene Wertungen",
+    "noScoresYet": "Noch keine Wertungen erfasst",
+    "clickAddToStart": "Klicken Sie auf 'Hinzufügen' um die erste Wertung zu erfassen",
+    "configureFieldsHint": "Bitte konfigurieren Sie zuerst die Wertungsfelder unter 'Disziplinen' > 'Felder verwalten' für diese Disziplin."
   }
 }
 

@@ -1,22 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { UsersIcon } from '@heroicons/react/24/outline';
 
 import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
-import UnifiedModal from '@/components/UnifiedModal';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import EntityScoringSelector, { type ScoringEntity, type ScoringCompetition, type ScoringDiscipline } from '@/components/EntityScoringSelector';
-import { ScoreInputFields } from './components/ScoreInputFields';
+import { TeamScoreTable } from './components/TeamScoreTable';
 
 import type {
   Team,
   Discipline,
   DisciplineField,
   Competition,
-  ScoreData,
-  ScoreComponent
+  ScoreData
 } from './GroupTeamScoring.types';
 
 export default function TeamScoreCapture() {
@@ -33,21 +31,16 @@ export default function TeamScoreCapture() {
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({});
   const [loading, setLoading] = useState(false);
+  const [loadingScores, setLoadingScores] = useState(false);
 
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
   const [selectedCompetitionId, setSelectedCompetitionId] = useState<number | null>(
     competitionId ? parseInt(competitionId) : null
   );
-  const [selectedAttempt, setSelectedAttempt] = useState<number>(1);
   const [selectedStatusId] = useState<number>(1); // Default status
-
-  const [scoreComponents, setScoreComponents] = useState<ScoreComponent[]>([]);
-  const [finalScore, setFinalScore] = useState<number | null>(null);
-  const [comment, setComment] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (eventId) {
@@ -62,6 +55,14 @@ export default function TeamScoreCapture() {
       setDisciplineFields([]);
     }
   }, [selectedDisciplineId]);
+
+  useEffect(() => {
+    if (selectedTeamId && selectedCompetitionId && selectedDisciplineId) {
+      loadExistingScores();
+    } else {
+      setScoreMatrix({});
+    }
+  }, [selectedTeamId, selectedCompetitionId, selectedDisciplineId]);
 
   const loadData = async () => {
     setLoading(true);
@@ -111,18 +112,49 @@ export default function TeamScoreCapture() {
       const res = await fetch(`/api/discipline-fields?disciplineId=${disciplineId}&enabled=true&limit=100`);
       if (res.ok) {
         const data = await res.json();
-        const fields = data.results || [];
-        setDisciplineFields(fields);
+        // API returns array directly, not wrapped in results
+        const allFields = Array.isArray(data) ? data : (data.results || []);
         
-        const components = fields.map((f: DisciplineField) => ({
-          fieldId: f.id,
-          fieldName: f.name,
-          value: null
-        }));
-        setScoreComponents(components);
+        // Filter fields for the selected discipline (API doesn't filter by disciplineId)
+        const fields = allFields.filter((f: any) => f.disciplineId === disciplineId);
+        
+        console.log('📋 Loaded discipline fields for discipline', disciplineId, ':', fields.length, 'fields (filtered from', allFields.length, 'total)');
+        setDisciplineFields(fields);
       }
     } catch (error) {
       console.error('Error loading discipline fields:', error);
+    }
+  };
+
+  const loadExistingScores = async () => {
+    if (!selectedTeamId || !selectedCompetitionId || !selectedDisciplineId) return;
+    
+    setLoadingScores(true);
+    try {
+      const res = await fetch(
+        `/api/teamScores/team?teamId=${selectedTeamId}&competitionId=${selectedCompetitionId}&disciplineId=${selectedDisciplineId}&limit=100`
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('📊 Existing team scores:', data);
+        
+        // Populate scoreMatrix with existing scores
+        const matrix: Record<string, string> = {};
+        (data.results || []).forEach((score: any) => {
+          if (score.components && Array.isArray(score.components)) {
+            score.components.forEach((component: any) => {
+              const key = `team-${selectedTeamId}-attempt-${score.attempt}-field-${component.fieldId}`;
+              matrix[key] = component.value?.toString() || '';
+            });
+          }
+        });
+        setScoreMatrix(matrix);
+      }
+    } catch (error) {
+      console.error('Error loading existing scores:', error);
+    } finally {
+      setLoadingScores(false);
     }
   };
 
@@ -232,76 +264,67 @@ export default function TeamScoreCapture() {
     setSelectedDisciplineId(typeof disciplineId === 'string' ? parseInt(disciplineId) : disciplineId);
   };
 
-  const canOpenScoreEntry = useMemo(
-    () => selectedTeamId && selectedDisciplineId && selectedCompetitionId,
-    [selectedTeamId, selectedDisciplineId, selectedCompetitionId]
-  );
-
-  const handleComponentChange = (fieldId: number, value: number | null) => {
-    setScoreComponents(prev =>
-      prev.map(c => c.fieldId === fieldId ? { ...c, value } : c)
-    );
+  const handleScoreChange = (attempt: number, fieldId: number, value: string) => {
+    const key = `team-${selectedTeamId}-attempt-${attempt}-field-${fieldId}`;
+    setScoreMatrix(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
-  const calculateFinalScore = () => {
-    const finalField = disciplineFields.find(f => f.isFinalScore);
-    if (!finalField) return 0;
-
-    const values = scoreComponents
-      .filter(c => !disciplineFields.find(f => f.id === c.fieldId && f.isFinalScore))
-      .map(c => c.value || 0);
-
-    return values.reduce((sum, val) => sum + val, 0);
-  };
-
-  const handleOpenScoreEntry = () => {
-    if (!canOpenScoreEntry) return;
-    
-    const calculated = calculateFinalScore();
-    setFinalScore(calculated);
-    setShowModal(true);
-  };
-
-  const handleSaveScore = async () => {
+  const handleSaveScore = async (attempt: number) => {
     if (!selectedTeamId || !selectedDisciplineId || !selectedCompetitionId) {
       return;
     }
 
-    setSaving(true);
-    try {
-      const scoreData: ScoreData = {
-        teamId: selectedTeamId,
-        competitionId: selectedCompetitionId,
-        disciplineId: selectedDisciplineId,
-        statusId: selectedStatusId,
-        attempt: selectedAttempt,
-        startNumber: selectedTeam?.startNumber || undefined, // Auto from team entity
-        components: scoreComponents.filter(c => c.value !== null),
-        finalScore: finalScore || calculateFinalScore(),
-        comment: comment || undefined
-      };
+    // Get non-final score fields
+    const scoreFields = disciplineFields.filter(f => !f.isFinalScore);
 
-      const res = await fetch('/api/scores/team', {
+    // Get score components for this attempt
+    const components = scoreFields
+      .map((field: DisciplineField) => {
+        const key = `team-${selectedTeamId}-attempt-${attempt}-field-${field.id}`;
+        const value = parseFloat(scoreMatrix[key] || '0');
+        return {
+          fieldId: field.id,
+          fieldName: field.name,
+          value: value > 0 ? value : null
+        };
+      })
+      .filter((c: any) => c.value !== null);
+
+    if (components.length === 0) {
+      return; // Nothing to save
+    }
+
+    // Calculate final score
+    const finalScore = components.reduce((sum: number, c: any) => sum + (c.value || 0), 0);
+
+    const scoreData: ScoreData = {
+      teamId: selectedTeamId,
+      competitionId: selectedCompetitionId,
+      disciplineId: selectedDisciplineId,
+      statusId: selectedStatusId,
+      attempt: attempt,
+      components: components.map((c: any) => ({ fieldId: c.fieldId, fieldName: c.fieldName, value: c.value! })),
+      finalScore
+    };
+
+    try {
+      const res = await fetch('/api/teamScores/team', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scoreData)
       });
 
       if (res.ok) {
-        setShowModal(false);
-        setScoreComponents(prev => prev.map(c => ({ ...c, value: null })));
-        setFinalScore(null);
-        setComment('');
-        alert(t('groupTeamScoring.scoreSaved'));
+        await loadExistingScores();
       } else {
         const error = await res.json();
-        alert(t('groupTeamScoring.saveError') + ': ' + (error.error || 'Unknown error'));
+        console.error('Error saving score:', error);
       }
     } catch (error) {
       console.error('Error saving score:', error);
-      alert(t('groupTeamScoring.saveError'));
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -311,9 +334,6 @@ export default function TeamScoreCapture() {
         title={t('groupTeamScoring.teamScoring')}
         icon={UsersIcon}
         loading={loading}
-        onAdd={handleOpenScoreEntry}
-        addButtonText={t('groupTeamScoring.enterScore')}
-        showAddButton={!!canOpenScoreEntry}
       >
         <div className="space-y-6">
           <BlueInfoBox>
@@ -337,114 +357,28 @@ export default function TeamScoreCapture() {
             translationPrefix="groupTeamScoring"
           />
 
-          {/* Additional Options */}
-          {selectedTeamId && selectedCompetitionId && selectedDisciplineId && (
-            <div className="bg-white p-6 rounded-lg border">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {t('groupTeamScoring.additionalOptions')}
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('groupTeamScoring.attempt')}
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={selectedDiscipline?.attempts || 3}
-                    value={selectedAttempt}
-                    onChange={(e) => setSelectedAttempt(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                {selectedTeam && selectedTeam.startNumber && (
-                  <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <p className="text-sm text-blue-800">
-                      ℹ️ {t('groupTeamScoring.autoStartNumber')}: <strong>{selectedTeam.startNumber}</strong>
-                    </p>
-                  </div>
-                )}
+          {/* Score Table - Show when Team, Competition, and Discipline are selected */}
+          {selectedTeamId && selectedCompetitionId && selectedDisciplineId && selectedDiscipline && selectedTeam && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('groupTeamScoring.scoreEntry')}
+                </h3>
               </div>
+              
+              <TeamScoreTable
+                team={selectedTeam}
+                disciplineFields={disciplineFields}
+                maxAttempts={selectedDiscipline.attempts}
+                loading={loadingScores}
+                onScoreChange={handleScoreChange}
+                onSaveScore={handleSaveScore}
+                scoreMatrix={scoreMatrix}
+              />
             </div>
           )}
         </div>
       </EventManagementTemplate>
-
-      <UnifiedModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={t('groupTeamScoring.enterScoreFor') + ': ' + (selectedTeam ? `${selectedTeam.clubName} - Riege ${selectedTeam.riege}` : '')}
-        size="4xl"
-        showFooter={false}
-      >
-        <div className="space-y-6">
-          {selectedDiscipline && disciplineFields.length > 0 && (
-            <ScoreInputFields
-              fields={disciplineFields}
-              components={scoreComponents}
-              onChange={handleComponentChange}
-              disabled={saving}
-              calculationType={selectedDiscipline.calculationType}
-            />
-          )}
-
-          {disciplineFields.length === 0 && (
-            <BlueInfoBox>
-              {t('groupTeamScoring.noDisciplineFields')}
-            </BlueInfoBox>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('groupTeamScoring.comment')}
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              disabled={saving}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              rows={3}
-              placeholder={t('groupTeamScoring.commentPlaceholder')}
-            />
-          </div>
-
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div className="text-lg font-semibold">
-              {t('groupTeamScoring.calculatedFinal')}: {calculateFinalScore().toFixed(2)}
-            </div>
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                disabled={saving}
-                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveScore}
-                disabled={saving || disciplineFields.length === 0}
-                className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                    {t('common.saving')}
-                  </>
-                ) : (
-                  <>
-                    <CheckCircleIcon className="h-5 w-5 mr-2" />
-                    {t('common.save')}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </UnifiedModal>
     </>
   );
 }
