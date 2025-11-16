@@ -11,6 +11,11 @@ export function getIconUrl(iconPath?: string): string | null {
   if (!iconPath) return null;
   
   // Handle Qt resource paths that start with ":/"
+  if (iconPath.startsWith(':/icons/')) {
+    const filename = iconPath.substring(':/icons/'.length); // Remove ":/icons/" prefix
+    return `http://localhost:3001/public/icons/${filename}`;
+  }
+  
   if (iconPath.startsWith(':/')) {
     const filename = iconPath.substring(2); // Remove ":/" prefix
     return `http://localhost:3001/public/${filename}`;

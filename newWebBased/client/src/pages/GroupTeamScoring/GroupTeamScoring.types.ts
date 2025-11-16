@@ -31,6 +31,7 @@ export interface Discipline {
   id: number;
   name: string;
   shortName: string;
+  icon?: string;
   maleAllowed: boolean;
   femaleAllowed: boolean;
   calculationType: number;

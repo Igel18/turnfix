@@ -10,6 +10,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getIconUrl } from '@/utils/iconUtils';
 
+
 // Generische Interfaces
 export interface ScoringEntity {
   id: number | string;
@@ -141,7 +142,7 @@ export const EntityScoringSelector: React.FC<EntityScoringSelectorProps> = ({
     : 'space-y-6';
 
   const disciplineGridClass = disciplineLayout === 'grid'
-    ? 'grid gap-3 md:grid-cols-2 lg:grid-cols-4'
+    ? 'grid gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4'
     : 'space-y-2';
 
   return (
@@ -274,7 +275,7 @@ export const EntityScoringSelector: React.FC<EntityScoringSelectorProps> = ({
             {displayDisciplines.map((discipline, index) => (
               <div
                 key={`discipline-${discipline.id || index}-${discipline.name}`}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                className={`border-2 rounded-lg p-5 cursor-pointer transition-all min-h-[140px] flex flex-col items-center justify-center ${
                   selectedDisciplineId === discipline.id
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
@@ -284,16 +285,18 @@ export const EntityScoringSelector: React.FC<EntityScoringSelectorProps> = ({
                 )}
               >
                 <div className="text-center">
-                  <div className="flex justify-center mb-2">
-                    <img 
-                      src={getIconUrl(discipline.icon || discipline.name) || ''}
-                      alt={`${discipline.name} icon`}
-                      className="w-8 h-8 object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
+                  {discipline.icon && (
+                    <div className="flex justify-center mb-3">
+                      <img 
+                        src={getIconUrl(discipline.icon) || ''}
+                        alt={`${discipline.name} icon`}
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
                   <h3 className="font-medium text-sm">{discipline.name}</h3>
                   {discipline.shortName && discipline.shortName !== discipline.name && (
                     <p className="text-xs text-gray-500 mt-1">({discipline.shortName})</p>

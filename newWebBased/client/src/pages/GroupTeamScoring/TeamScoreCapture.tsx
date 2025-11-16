@@ -168,6 +168,7 @@ export default function TeamScoreCapture() {
       id: disc.id,
       name: disc.name,
       shortName: disc.shortName,
+      icon: disc.icon, // Icon-Feld hinzufügen!
       attempts: disc.attempts,
       maleAllowed: disc.maleAllowed,
       femaleAllowed: disc.femaleAllowed
