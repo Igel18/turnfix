@@ -7,6 +7,7 @@ import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import UnifiedModal from '@/components/UnifiedModal';
 import { BlueInfoBox } from '@/components/InfoBoxes';
+import EntityScoringSelector, { type ScoringEntity, type ScoringCompetition, type ScoringDiscipline } from '@/components/EntityScoringSelector';
 import { ScoreInputFields } from './components/ScoreInputFields';
 
 import type {
@@ -73,14 +74,18 @@ export default function TeamScoreCapture() {
 
       if (teamsRes.ok) {
         const data = await teamsRes.json();
-        // Teams API returns paginated results with teams array
-        setTeams(data.teams || []);
+        console.log('🏆 DEBUG: Teams API response:', data);
+        // Teams API returns paginated data with teams array or direct array
+        const teams = Array.isArray(data) ? data : (data.teams || data.results || []);
+        setTeams(teams);
       }
 
       if (competitionsRes.ok) {
         const data = await competitionsRes.json();
-        // Competitions API returns array directly, filtered for team competitions
+        console.log('🎯 DEBUG: Competitions API response:', data);
+        // Competitions API returns array directly
         const allCompetitions = Array.isArray(data) ? data : (data.competitions || []);
+        // Filter for team competitions (competitionType === 1)
         const teamCompetitions = allCompetitions.filter(
           (comp: any) => comp.competitionType === 1
         );
@@ -89,7 +94,10 @@ export default function TeamScoreCapture() {
 
       if (disciplinesRes.ok) {
         const data = await disciplinesRes.json();
-        setDisciplines(data.results || []);
+        console.log('📚 DEBUG: Disciplines API response:', data);
+        // Disciplines API returns direct array, not wrapped in results/disciplines
+        const disciplines = Array.isArray(data) ? data : (data.results || data.disciplines || []);
+        setDisciplines(disciplines);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -127,6 +135,71 @@ export default function TeamScoreCapture() {
     () => disciplines.find(d => d.id === selectedDisciplineId),
     [disciplines, selectedDisciplineId]
   );
+
+  // Transform data for EntityScoringSelector
+  const scoringTeams: ScoringEntity[] = useMemo(
+    () => teams.map(team => ({
+      id: team.id,
+      name: team.clubName || 'Unknown Club',
+      displayName: team.clubName || 'Unknown Club',
+      metadata: {
+        clubName: team.clubName,
+        riege: team.riege,
+        startNumber: team.startNumber,
+        competitionId: team.competitionId
+      }
+    })),
+    [teams]
+  );
+
+  const scoringCompetitions: ScoringCompetition[] = useMemo(
+    () => competitions.map(comp => ({
+      id: comp.id,
+      name: comp.name,
+      eventId: comp.eventId,
+      gender: comp.gender,
+      competitionType: 1 // Team competitions
+    })),
+    [competitions]
+  );
+
+  const scoringDisciplines: ScoringDiscipline[] = useMemo(
+    () => disciplines.map(disc => ({
+      id: disc.id,
+      name: disc.name,
+      shortName: disc.shortName,
+      attempts: disc.attempts,
+      maleAllowed: disc.maleAllowed,
+      femaleAllowed: disc.femaleAllowed
+    })),
+    [disciplines]
+  );
+
+  // Filter disciplines based on selected team's competition
+  const getFilteredDisciplines = (): ScoringDiscipline[] => {
+    // If no team selected, show all disciplines
+    if (!selectedTeamId) return scoringDisciplines;
+    
+    const selectedTeam = teams.find(t => t.id === selectedTeamId);
+    if (!selectedTeam) return scoringDisciplines;
+
+    // TODO: Implement proper discipline filtering based on team's competition
+    // For now, return all disciplines
+    return scoringDisciplines;
+  };
+
+  // Handler functions for EntityScoringSelector
+  const handleTeamChange = (entityId: number | string | null) => {
+    setSelectedTeamId(typeof entityId === 'string' ? parseInt(entityId) : entityId);
+  };
+
+  const handleCompetitionChange = (competitionId: number | null) => {
+    setSelectedCompetitionId(competitionId);
+  };
+
+  const handleDisciplineChange = (disciplineId: number | string | null) => {
+    setSelectedDisciplineId(typeof disciplineId === 'string' ? parseInt(disciplineId) : disciplineId);
+  };
 
   const canOpenScoreEntry = useMemo(
     () => selectedTeamId && selectedDisciplineId && selectedCompetitionId,
@@ -216,90 +289,55 @@ export default function TeamScoreCapture() {
             {t('groupTeamScoring.teamInfo')}
           </BlueInfoBox>
 
-          <div className="bg-white p-6 rounded-lg border space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {t('groupTeamScoring.selectionPanel')}
-            </h3>
+          {/* Team Scoring Selection Steps */}
+          <EntityScoringSelector
+            entities={scoringTeams}
+            selectedEntityId={selectedTeamId}
+            onEntityChange={handleTeamChange}
+            entityType="team"
+            competitions={scoringCompetitions}
+            selectedCompetitionId={selectedCompetitionId}
+            onCompetitionChange={handleCompetitionChange}
+            disciplines={scoringDisciplines}
+            selectedDisciplineId={selectedDisciplineId}
+            onDisciplineChange={handleDisciplineChange}
+            getFilteredDisciplines={getFilteredDisciplines}
+            loading={loading}
+            translationPrefix="groupTeamScoring"
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('groupTeamScoring.selectTeam')} *
-                </label>
-                <select
-                  value={selectedTeamId || ''}
-                  onChange={(e) => setSelectedTeamId(e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">{t('groupTeamScoring.chooseTeam')}</option>
-                  {teams.map(team => (
-                    <option key={team.id} value={team.id}>
-                      {team.clubName} - Riege {team.riege}
-                      {team.startNumber && ` (${t('groupTeamScoring.startNumber')}: ${team.startNumber})`}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Additional Options */}
+          {selectedTeamId && selectedCompetitionId && selectedDisciplineId && (
+            <div className="bg-white p-6 rounded-lg border">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {t('groupTeamScoring.additionalOptions')}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('groupTeamScoring.attempt')}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={selectedDiscipline?.attempts || 3}
+                    value={selectedAttempt}
+                    onChange={(e) => setSelectedAttempt(parseInt(e.target.value) || 1)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('groupTeamScoring.selectCompetition')} *
-                </label>
-                <select
-                  value={selectedCompetitionId || ''}
-                  onChange={(e) => setSelectedCompetitionId(e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">{t('groupTeamScoring.chooseCompetition')}</option>
-                  {competitions.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('groupTeamScoring.selectDiscipline')} *
-                </label>
-                <select
-                  value={selectedDisciplineId || ''}
-                  onChange={(e) => setSelectedDisciplineId(e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">{t('groupTeamScoring.chooseDiscipline')}</option>
-                  {disciplines.map(d => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('groupTeamScoring.attempt')}
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={selectedDiscipline?.attempts || 3}
-                  value={selectedAttempt}
-                  onChange={(e) => setSelectedAttempt(parseInt(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                {selectedTeam && selectedTeam.startNumber && (
+                  <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-sm text-blue-800">
+                      ℹ️ {t('groupTeamScoring.autoStartNumber')}: <strong>{selectedTeam.startNumber}</strong>
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
-
-            {selectedTeam && selectedTeam.startNumber && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-blue-800">
-                  ℹ️ {t('groupTeamScoring.autoStartNumber')}: <strong>{selectedTeam.startNumber}</strong>
-                </p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </EventManagementTemplate>
 

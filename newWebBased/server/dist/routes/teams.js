@@ -68,8 +68,20 @@ router.get('/', async (req, res) => {
             prisma_1.default.tfx_mannschaften.count({ where: whereConditions })
         ]);
         console.log('📋 Found teams:', teams.length, 'Total count:', totalCount);
+        // Map database fields to frontend-friendly names
+        const mappedTeams = teams.map((team) => ({
+            id: team.int_mannschaftenid,
+            clubId: team.int_vereineid,
+            competitionId: team.int_wettkaempfeid,
+            number: team.int_nummer,
+            riege: team.var_riege,
+            startNumber: team.int_startnummer,
+            clubName: team.tfx_vereine?.var_name,
+            competitionName: team.tfx_wettkaempfe?.var_name,
+            competitionNumber: team.tfx_wettkaempfe?.var_nummer
+        }));
         res.json({
-            teams,
+            teams: mappedTeams,
             pagination: {
                 total: totalCount,
                 limit,
