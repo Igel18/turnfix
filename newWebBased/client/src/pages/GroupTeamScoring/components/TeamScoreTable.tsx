@@ -157,10 +157,10 @@ export const TeamScoreTable = ({
                     <div>
                       <div className="text-sm font-medium text-gray-900">{team.clubName}</div>
                       {team.riege && (
-                        <div className="text-sm text-gray-500">Riege {team.riege}</div>
+                        <div className="text-sm text-gray-500">{t('groupTeamScoring.squad')} {team.riege}</div>
                       )}
                       {team.startNumber && (
-                        <div className="text-xs text-gray-400">STN: {team.startNumber}</div>
+                        <div className="text-xs text-gray-400">{t('groupTeamScoring.startNumber')}: {team.startNumber}</div>
                       )}
                     </div>
                   </td>

@@ -619,7 +619,8 @@
       "all": "Alle Geschlechter"
     },
     "live": "Live",
-    "liveUpdates": "Live-Updates"
+    "liveUpdates": "Live-Updates",
+    "startNumber": "Startnummer"
   },
   "events": {
     "title": "Veranstaltungsverwaltung",
@@ -2856,7 +2857,10 @@
     "existingScores": "Vorhandene Wertungen",
     "noScoresYet": "Noch keine Wertungen erfasst",
     "clickAddToStart": "Klicken Sie auf 'Hinzufügen' um die erste Wertung zu erfassen",
-    "configureFieldsHint": "Bitte konfigurieren Sie zuerst die Wertungsfelder unter 'Disziplinen' > 'Felder verwalten' für diese Disziplin."
+    "configureFieldsHint": "Bitte konfigurieren Sie zuerst die Wertungsfelder unter 'Disziplinen' > 'Felder verwalten' für diese Disziplin.",
+    "squad": "Riege",
+    "scoreEntry": "Wertungserfassung",
+    "team": "Mannschaft"
   }
 }
 

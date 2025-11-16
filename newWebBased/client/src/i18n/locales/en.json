@@ -619,7 +619,8 @@
       "all": "All Genders"
     },
     "live": "Live",
-    "liveUpdates": "Live Updates"
+    "liveUpdates": "Live Updates",
+    "startNumber": "Start Number"
   },
   "events": {
     "title": "Event Management",
@@ -2838,7 +2839,10 @@
     "groupInfo": "Select group, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration.",
     "teamInfo": "Select team, competition and discipline to enter a score. Score components (D/E/A notes) will be loaded automatically based on discipline configuration.",
     "startNumber": "Start Number",
-    "autoStartNumber": "Start number is automatically loaded from team entity"
+    "autoStartNumber": "Start number is automatically loaded from team entity",
+    "squad": "Squad",
+    "scoreEntry": "Score Entry",
+    "team": "Team"
   }
 }
 
