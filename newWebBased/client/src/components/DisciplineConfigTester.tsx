@@ -7,13 +7,10 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   BeakerIcon, 
-  CheckCircleIcon, 
-  XCircleIcon,
-  CalculatorIcon 
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 import { 
   normalizeScoreInput, 
-  parseInputMask, 
   getPlaceholder 
 } from '../utils/inputMaskUtils';
 
@@ -51,8 +48,6 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
   disciplineId
 }) => {
   const { t } = useTranslation();
-  const [testValue, setTestValue] = useState('');
-  const [normalizedValue, setNormalizedValue] = useState('');
   const [testFields, setTestFields] = useState<TestField[]>([]);
   const [calculatedResult, setCalculatedResult] = useState<number | null>(null);
   const [formulaError, setFormulaError] = useState<string | null>(null);
@@ -144,35 +139,37 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
     }
   }, [effectiveFormula, disciplineId]);
 
-  // Normalize input value on blur
-  const handleTestValueBlur = () => {
-    if (!testValue || !inputMask) return;
-    
-    try {
-      const normalized = normalizeScoreInput(testValue, inputMask);
-      setNormalizedValue(normalized);
-    } catch (error) {
-      console.error('Normalization error:', error);
-      setNormalizedValue('Error');
-    }
-  };
-
   // Update field value
   const handleFieldChange = (fieldId: number, value: string) => {
+    // Replace dot with comma immediately on input (Point a)
+    const normalizedValue = value.replace('.', ',');
     setTestFields(prev => prev.map(f => 
-      f.id === fieldId ? { ...f, value } : f
+      f.id === fieldId ? { ...f, value: normalizedValue } : f
     ));
   };
 
   // Normalize field value on blur
   const handleFieldBlur = (fieldId: number) => {
-    if (!inputMask) return;
-    
     setTestFields(prev => prev.map(f => {
       if (f.id === fieldId && f.value) {
         try {
-          const normalized = normalizeScoreInput(f.value, inputMask);
-          return { ...f, normalizedValue: normalized };
+          // Always normalize, even without inputMask
+          let normalized = f.value;
+          
+          if (inputMask) {
+            normalized = normalizeScoreInput(f.value, inputMask);
+          } else {
+            // No input mask: just ensure decimal format with comma
+            // Convert to number and back to ensure valid format
+            const numValue = parseFloat(f.value.replace(',', '.'));
+            if (!isNaN(numValue)) {
+              // Format with 2 decimals and use comma
+              normalized = numValue.toFixed(2).replace('.', ',');
+            }
+          }
+          
+          // Update both normalizedValue AND value (show normalized in field)
+          return { ...f, value: normalized, normalizedValue: normalized };
         } catch (error) {
           console.error('Normalization error:', error);
           return { ...f, normalizedValue: 'Error' };
@@ -180,6 +177,39 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
       }
       return f;
     }));
+  };
+
+  // Extract operators between fields from formula
+  const getOperatorAfterField = (fieldIndex: number): string => {
+    if (!effectiveFormula) return '';
+    
+    console.log('🔍 Looking for operator after field index:', fieldIndex);
+    console.log('   Formula:', effectiveFormula);
+    
+    // Formula uses letters: A, B, C, D, etc.
+    // Map field index to letter
+    const fieldLetter = String.fromCharCode(65 + fieldIndex); // 65 = 'A'
+    console.log('   Field letter:', fieldLetter);
+    
+    // Try pattern: A OPERATOR (e.g., "A+", "B-", "C*")
+    const letterPattern = new RegExp(`${fieldLetter}\\s*([+\\-*/])`, 'i');
+    const match = effectiveFormula.match(letterPattern);
+    
+    if (match && match[1]) {
+      console.log('   ✅ Found operator:', match[1]);
+      const op = match[1];
+      if (op === '*') return '×';
+      if (op === '/') return '÷';
+      return op;
+    }
+    
+    console.log('   ❌ No operator found');
+    return '';
+  };
+
+  // Get field letter from formula (A, B, C, etc.)
+  const getFieldLetter = (fieldIndex: number): string => {
+    return String.fromCharCode(65 + fieldIndex); // 65 = 'A'
   };
 
   // Calculate formula result
@@ -190,10 +220,9 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
       return;
     }
 
-    // Check if all fields have normalized values (or raw values if no mask)
-    const allFieldsHaveValues = testFields.every(f => 
-      inputMask ? f.normalizedValue !== '' : f.value !== ''
-    );
+    // Check if all NON-FINAL fields have values
+    const nonFinalFields = testFields.filter(f => !f.isFinalScore);
+    const allFieldsHaveValues = nonFinalFields.every(f => f.value !== '');
     
     if (!allFieldsHaveValues) {
       setCalculatedResult(null);
@@ -202,48 +231,45 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
     }
 
     try {
-      // Build a map of field values
-      const fieldValues: Record<string, number> = {};
-      testFields.forEach(field => {
-        // Use normalized value if available (with mask), otherwise raw value
-        const valueToUse = inputMask && field.normalizedValue 
-          ? field.normalizedValue.replace(',', '.') // Handle comma decimal separator
-          : field.value;
+      // Build a map of field values by index/letter (A, B, C, etc.)
+      const fieldValues: number[] = [];
+      const nonFinalFields = testFields.filter(f => !f.isFinalScore);
+      
+      nonFinalFields.forEach(field => {
+        // Use the value directly (convert comma to dot for parsing)
+        const valueToUse = field.value.replace(',', '.'); 
           
         const fieldValue = parseFloat(valueToUse);
         if (isNaN(fieldValue)) {
           throw new Error(`Invalid value for ${field.name}`);
         }
-        fieldValues[field.name] = fieldValue;
+        fieldValues.push(fieldValue);
       });
 
-      // Parse and calculate formula using Function constructor (safer than eval)
-      // Replace field placeholders with variable names
+      // CSP-safe formula calculation
+      // Replace letters (A, B, C) with their values
       let jsFormula = effectiveFormula;
-      testFields.forEach(field => {
-        // Create safe variable name (replace spaces and special chars)
-        const safeVarName = field.name.replace(/[^a-zA-Z0-9]/g, '_');
-        jsFormula = jsFormula.replace(
-          new RegExp(`\\[${field.name}\\]`, 'g'),
-          safeVarName
-        );
+      
+      console.log('🧮 Starting calculation:', {
+        formula: effectiveFormula,
+        fieldValues,
+        nonFinalFieldCount: nonFinalFields.length
       });
-
-      // Replace math functions
-      jsFormula = jsFormula
-        .replace(/max\(/g, 'Math.max(')
-        .replace(/min\(/g, 'Math.min(')
-        .replace(/abs\(/g, 'Math.abs(')
-        .replace(/sqrt\(/g, 'Math.sqrt(')
-        .replace(/pow\(/g, 'Math.pow(');
-
-      // Create function parameters and arguments
-      const paramNames = testFields.map(f => f.name.replace(/[^a-zA-Z0-9]/g, '_'));
-      const paramValues = testFields.map(f => fieldValues[f.name]);
-
-      // Use Function constructor instead of eval (CSP-safe)
-      const calculateFn = new Function(...paramNames, `return ${jsFormula};`);
-      const result = calculateFn(...paramValues);
+      
+      // Replace each letter with its value
+      fieldValues.forEach((value, index) => {
+        const letter = String.fromCharCode(65 + index); // A, B, C, ...
+        const before = jsFormula;
+        jsFormula = jsFormula.replace(new RegExp(letter, 'g'), value.toString());
+        console.log(`   Replaced ${letter} with ${value}: ${before} → ${jsFormula}`);
+      });
+      
+      console.log('🔢 Formula after replacement:', jsFormula);
+      
+      // Evaluate using safe arithmetic parser
+      const result = evaluateArithmetic(jsFormula);
+      
+      console.log('✅ Calculation result:', result);
       
       if (typeof result === 'number' && !isNaN(result)) {
         setCalculatedResult(result);
@@ -253,286 +279,230 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
         setFormulaError('Invalid calculation result');
       }
     } catch (error) {
+      console.error('❌ Calculation error:', error);
       setCalculatedResult(null);
       setFormulaError(error instanceof Error ? error.message : 'Calculation error');
     }
-  }, [effectiveFormula, testFields, inputMask]);
+  }, [effectiveFormula, testFields, calculationType]);
 
-  const maskInfo = inputMask ? parseInputMask(inputMask) : null;
+  // Simple arithmetic evaluator (CSP-safe, no eval)
+  const evaluateArithmetic = (expression: string): number => {
+    // Remove all whitespace
+    expression = expression.replace(/\s/g, '');
+    
+    console.log('📊 Evaluating expression:', expression);
+    
+    // Validate expression contains only allowed characters
+    if (!/^[\d\.\+\-\*\/\(\)]+$/.test(expression)) {
+      throw new Error(`Invalid characters in expression: ${expression}`);
+    }
+    
+    let pos = 0;
+    
+    const parseExpression = (): number => {
+      let result = parseTerm();
+      
+      while (pos < expression.length) {
+        const op = expression[pos];
+        if (op !== '+' && op !== '-') break;
+        
+        pos++; // consume operator
+        const right = parseTerm();
+        
+        if (op === '+') result += right;
+        else if (op === '-') result -= right;
+      }
+      
+      return result;
+    };
+    
+    const parseTerm = (): number => {
+      let result = parseFactor();
+      
+      while (pos < expression.length) {
+        const op = expression[pos];
+        if (op !== '*' && op !== '/') break;
+        
+        pos++; // consume operator
+        const right = parseFactor();
+        
+        if (op === '*') result *= right;
+        else if (op === '/') {
+          if (right === 0) throw new Error('Division by zero');
+          result /= right;
+        }
+      }
+      
+      return result;
+    };
+    
+    const parseFactor = (): number => {
+      // Handle parentheses
+      if (expression[pos] === '(') {
+        pos++; // consume '('
+        const result = parseExpression();
+        if (expression[pos] !== ')') {
+          throw new Error('Mismatched parentheses');
+        }
+        pos++; // consume ')'
+        return result;
+      }
+      
+      // Handle negative numbers
+      if (expression[pos] === '-') {
+        pos++; // consume '-'
+        return -parseFactor();
+      }
+      
+      // Parse number
+      let numStr = '';
+      while (pos < expression.length && (expression[pos].match(/[\d\.]/) || expression[pos] === '.')) {
+        numStr += expression[pos];
+        pos++;
+      }
+      
+      if (numStr === '') {
+        throw new Error(`Expected number at position ${pos}`);
+      }
+      
+      const num = parseFloat(numStr);
+      if (isNaN(num)) {
+        throw new Error(`Invalid number: ${numStr}`);
+      }
+      
+      return num;
+    };
+    
+    const result = parseExpression();
+    
+    // Ensure we consumed the entire expression
+    if (pos !== expression.length) {
+      throw new Error(`Unexpected characters after position ${pos}`);
+    }
+    
+    return result;
+  };
+
   const placeholder = inputMask ? getPlaceholder(inputMask) : '';
 
   return (
-    <div className="space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border-2 border-blue-200">
+    <div className="space-y-4 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-lg p-6 border-2 border-purple-300">
+      {/* Header */}
       <div className="flex items-center space-x-2">
-        <BeakerIcon className="h-6 w-6 text-blue-600" />
-        <h3 className="text-lg font-semibold text-gray-900">
-          {t('disciplines.tester.title', 'Configuration Tester')}
+        <BeakerIcon className="h-5 w-5 text-purple-600" />
+        <h3 className="text-sm font-semibold text-purple-900">
+          {t('disciplines.tester.title', 'Formula Calculation Test')}
         </h3>
       </div>
 
-      <p className="text-sm text-gray-600">
-        {t('disciplines.tester.description', 'Test input mask normalization and formula calculation without creating a competition.')}
-      </p>
-
-      {/* Input Mask Test */}
-      {inputMask && (
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-            <CalculatorIcon className="h-4 w-4 mr-2 text-blue-600" />
-            {t('disciplines.tester.inputMaskTest', 'Input Mask Test')}
-          </h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                {t('disciplines.tester.inputValue', 'Input Value')}
-              </label>
-              <input
-                type="text"
-                value={testValue}
-                onChange={(e) => setTestValue(e.target.value)}
-                onBlur={handleTestValueBlur}
-                placeholder={placeholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                {t('disciplines.tester.normalizedValue', 'Normalized Value')}
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={normalizedValue}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono"
-                />
-                {normalizedValue && normalizedValue !== 'Error' && (
-                  <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
-                )}
-                {normalizedValue === 'Error' && (
-                  <XCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0" />
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                {t('disciplines.tester.maskInfo', 'Mask Info')}
-              </label>
-              {maskInfo && (
-                <div className="space-y-1 text-xs bg-blue-50 p-2 rounded border border-blue-200">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="font-medium text-gray-900">{maskInfo.type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Decimals:</span>
-                    <span className="font-medium text-gray-900">{maskInfo.decimalPlaces}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Length:</span>
-                    <span className="font-medium text-gray-900">{maskInfo.totalLength}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-3 text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-200">
-            <strong>Examples:</strong> 
-            {inputMask === '0.00' && ' Try: 5 → 5.00, 5.5 → 5.50'}
-            {inputMask === '00.00' && ' Try: 5 → 05.00, 15 → 15.00'}
-            {inputMask === '0:00.00' && ' Try: 65.5 → 1:05.50 (seconds → MM:SS)'}
-            {inputMask === 'h:mm:ss' && ' Try: 3661 → 1:01:01 (seconds → HH:MM:SS)'}
-            {inputMask === '0,00' && ' Try: 5 → 5,00, 5.5 → 5,50'}
-            {!['0.00', '00.00', '0:00.00', 'h:mm:ss', '0,00'].includes(inputMask) && 
-              ` Type a value and press Tab/blur to see normalization`}
-          </div>
+      {/* Loading State */}
+      {loadingFormula && (
+        <div className="text-sm text-gray-500 text-center py-4">
+          Loading formula...
         </div>
       )}
 
-      {/* Formula Test */}
-      {(loadingFormula || effectiveFormula) && (
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-            <CalculatorIcon className="h-4 w-4 mr-2 text-green-600" />
-            {t('disciplines.tester.formulaTest', 'Formula Calculation Test')}
-          </h4>
-
-          {/* Loading State */}
-          {loadingFormula && (
-            <div className="text-sm text-gray-500 text-center py-4">
-              Loading formula...
-            </div>
-          )}
-
-          {/* Formula Display */}
-          {!loadingFormula && effectiveFormula && (
-            <>
-              <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200">
-                <div className="text-xs text-gray-600 mb-1">Formula:</div>
-                <div className="font-mono text-sm text-gray-900">
-                  {effectiveFormula}
-                  {loadedFormula && (
-                    <span className="ml-2 text-xs text-blue-600">
-                      (loaded from ID {formulaId})
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Visual Formula Display with Values */}
-              {testFields.length > 0 && (
-                <div className="mb-4">
-                  {/* Title */}
-                  <div className="text-xs font-semibold text-purple-900 mb-3 flex items-center">
-                    <span className="mr-2">📊</span> 
-                    Formula Calculation Breakdown
-                  </div>
-                  
-                  {/* Formula with Values */}
-                  <div className="p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl border-2 border-purple-300 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-center gap-3">
-                      {/* Show fields in order, with special handling for final score */}
-                      {testFields.map((field, index) => {
-                        // For final score field, show calculated result if available
-                        let displayValue = inputMask && field.normalizedValue 
-                          ? field.normalizedValue 
-                          : field.value || '?';
-                        
-                        // If this is the final score and we have a calculated result, use that
-                        if (field.isFinalScore && calculatedResult !== null) {
-                          displayValue = calculatedResult.toFixed(calculationType === 2 ? 2 : 3);
-                        }
-                        
-                        const hasValue = field.value !== '' || (field.isFinalScore && calculatedResult !== null);
-                        
-                        // If this is the final score (Endwert), show "=" before it
-                        const showEquals = field.isFinalScore && index > 0;
-                        
-                        return (
-                          <React.Fragment key={field.id}>
-                            {/* Show = before final score */}
-                            {showEquals && (
-                              <div className="text-3xl font-bold text-purple-600 px-2">=</div>
-                            )}
-                            
-                            {/* Field box */}
-                            <div className="inline-flex flex-col items-center transform hover:scale-105 transition-transform">
-                              <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
-                                {field.name}
-                              </div>
-                              <div className={`px-4 py-2 rounded-lg border-2 font-bold min-w-[70px] text-center shadow-sm ${
-                                field.isFinalScore
-                                  ? 'bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl'
-                                  : hasValue 
-                                    ? 'bg-white border-purple-400 text-purple-900' 
-                                    : 'bg-gray-100 border-gray-300 text-gray-400'
-                              }`}>
-                                {displayValue}
-                              </div>
-                            </div>
-                            
-                            {/* Show operator after field (except for last field or before final score) */}
-                            {!field.isFinalScore && index < testFields.length - 1 && !testFields[index + 1].isFinalScore && (
-                              <div className="text-3xl font-bold text-purple-600 px-2 select-none">
-                                {effectiveFormula.includes('+') ? '+' : 
-                                 effectiveFormula.includes('-') ? '-' : 
-                                 effectiveFormula.includes('*') ? '×' : 
-                                 effectiveFormula.includes('/') ? '÷' : '+'}
-                              </div>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                      
-                      {/* Show unit at the end if available */}
-                      {unit && testFields.some(f => f.isFinalScore && f.value) && (
-                        <div className="text-lg font-medium text-green-700 ml-1">
-                          {unit}
+      {/* Visual Formula Display */}
+      {!loadingFormula && testFields.length > 0 && (
+        <>
+          {/* Formula Breakdown with Inline Inputs */}
+          <div className="p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl border-2 border-purple-300 shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {testFields.map((field, index) => {
+                const showEquals = field.isFinalScore && index > 0;
+                
+                // Get field letter (A, B, C, etc.) for non-final fields
+                const nonFinalFields = testFields.filter(f => !f.isFinalScore);
+                const nonFinalIndex = nonFinalFields.findIndex(f => f.id === field.id);
+                const fieldLetter = nonFinalIndex >= 0 ? getFieldLetter(nonFinalIndex) : '';
+                
+                // Get operator after this field (from formula using field index)
+                const operatorAfter = nonFinalIndex >= 0 && nonFinalIndex < nonFinalFields.length - 1
+                  ? getOperatorAfterField(nonFinalIndex) 
+                  : '';
+                
+                // For final score, show calculated result
+                const isFinalScoreWithResult = field.isFinalScore && calculatedResult !== null;
+                const displayValue = isFinalScoreWithResult
+                  ? calculatedResult.toFixed(calculationType === 2 ? 2 : 3)
+                  : field.value;
+                
+                return (
+                  <React.Fragment key={field.id}>
+                    {/* Show = before final score */}
+                    {showEquals && (
+                      <div className="text-3xl font-bold text-purple-600 px-2">=</div>
+                    )}
+                    
+                    {/* Field with inline input */}
+                    <div className="inline-flex flex-col items-center">
+                      {/* Show field letter above field name (or EW for final score) */}
+                      {fieldLetter ? (
+                        <div className="text-xs font-bold text-purple-500 mb-0.5">
+                          ({fieldLetter})
                         </div>
+                      ) : field.isFinalScore ? (
+                        <div className="text-xs font-bold text-green-600 mb-0.5">
+                          (EW)
+                        </div>
+                      ) : (
+                        <div className="text-xs mb-0.5">&nbsp;</div>
                       )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Info: Dummy Fields */}
-              {inputMask && testFields.length > 0 && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-800">
-                  <strong>💡 Interactive Mode:</strong> Enter values below using input mask <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-300">{inputMask}</span> and watch the formula calculation update above in real-time.
-                </div>
-              )}
-
-              {/* Field Inputs - Compact Grid */}
-              {testFields.length > 0 && (
-                <>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                    {testFields.map(field => (
-                      <div key={field.id}>
-                        <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                          {field.name}
-                        </label>
+                      <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
+                        {field.name}
+                      </div>
+                      
+                      {/* For final score, show result in green box */}
+                      {field.isFinalScore ? (
+                        <div className="px-4 py-2 rounded-lg border-2 bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl font-bold min-w-[90px] text-center shadow-sm">
+                          {displayValue || '?'}
+                        </div>
+                      ) : (
+                        /* For other fields, show input */
                         <input
                           type="text"
                           value={field.value}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
                           onBlur={() => handleFieldBlur(field.id)}
-                          placeholder={inputMask ? placeholder : '0.00'}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-center font-mono"
+                          placeholder={inputMask ? placeholder : '0,00'}
+                          className="w-[90px] px-3 py-2 border-2 border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm"
                         />
-                        {inputMask && field.normalizedValue && (
-                          <div className="text-xs text-center mt-1 text-gray-500">
-                            → {field.normalizedValue}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {formulaError && (
-                    <div className="mt-4 p-4 bg-red-50 rounded-lg border-2 border-red-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs text-gray-600 mb-1">Error:</div>
-                          <div className="text-sm text-red-700">{formulaError}</div>
-                        </div>
-                        <XCircleIcon className="h-8 w-8 text-red-600" />
-                      </div>
+                      )}
                     </div>
-                  )}
-
-                  {!calculatedResult && !formulaError && (
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-300 text-sm text-blue-900">
-                      <div className="flex items-start space-x-2">
-                        <span className="text-2xl">💡</span>
-                        <div>
-                          <div className="font-semibold mb-1">Ready to calculate!</div>
-                          <div className="text-xs text-blue-700">
-                            {inputMask 
-                              ? 'Fill in all fields below and press Tab to normalize. The formula visualization above will update automatically.'
-                              : 'Fill in all fields below to see the live calculation in the formula visualization above.'}
-                          </div>
-                        </div>
+                    
+                    {/* Show operator after field */}
+                    {operatorAfter && (
+                      <div className="text-3xl font-bold text-purple-600 px-2 select-none">
+                        {operatorAfter}
                       </div>
-                    </div>
-                  )}
-                </>
-              )}
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            
+            {/* Show unit at the end if available */}
+            {unit && (
+              <div className="text-lg font-medium text-green-700 ml-2 flex items-center">
+                {unit}
+              </div>
+            )}
+          </div>
 
-              {testFields.length === 0 && (
-                <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200 text-xs text-yellow-700">
-                  ⚠️ No fields found in formula. Formula should contain field references like [D-Note], [E-Note], etc.
-                </div>
-              )}
-            </>
+          {/* Error Display */}
+          {formulaError && (
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center space-x-2">
+                <XCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0" />
+                <div className="text-sm text-red-700">{formulaError}</div>
+              </div>
+            </div>
           )}
-        </div>
+        </>
       )}
 
-      {!inputMask && !effectiveFormula && !loadingFormula && (
+      {/* No Fields */}
+      {!loadingFormula && testFields.length === 0 && (
         <div className="text-center py-6 text-gray-500">
           <BeakerIcon className="h-12 w-12 mx-auto mb-2 text-gray-400" />
           <p className="text-sm">

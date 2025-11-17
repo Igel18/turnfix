@@ -5256,3 +5256,88 @@ Bei gruppen gibt es nur eine gemeinsame Leistungsbewertung (keine der einzelnen 
 
 160. Mannschaften leistung 
 Bei mannschaften gibt es einzelne Bewertungen der Personen 
+
+## Point 161: Discipline Configuration Tester - Formula & Input Improvements ✅
+
+**Datum**: 2025-11-17  
+**Status**: ✅ Abgeschlossen
+
+### Anforderungen:
+a) **Punkt und Komma → immer Komma**: Eingaben sollen Komma als Dezimaltrenner verwenden
+b) **Formelzeichen zwischen Feldern**: Operators (+, -, ×, ÷) aus der Formel anzeigen
+c) **Endwert berechnen**: Automatische Berechnung sobald alle Felder ausgefüllt
+d) **Generische Formeln unterstützen**: Flexible Formelauswertung ohne hardcoded Logic
+e) **Einheit am Endwert aus der DB** 
+f) **Einheit namenslänge begrenzen wegen DB**
+
+### Implementierung:
+
+#### 1. Input Mask Normalisierung (a)
+**Datei**: `client/src/components/DisciplineConfigTester.tsx`
+
+```typescript
+// Normalize field value on blur
+const handleFieldBlur = (fieldId: number) => {
+  if (!inputMask) return;
+  
+  setTestFields(prev => prev.map(f => {
+    if (f.id === fieldId && f.value) {
+      const normalized = normalizeScoreInput(f.value, inputMask);
+      // Update both normalizedValue AND value (show normalized in field)
+      return { ...f, value: normalized, normalizedValue: normalized };
+    }
+    return f;
+  }));
+};
+```
+
+**Verhalten**:
+- User tippt: `8` → nach Tab/Blur: `8.00`
+- User tippt: `8.5` → nach Tab/Blur: `8.50`
+- User tippt: `8,5` → nach Tab/Blur: `8.50` (Komma wird zu Punkt konvertiert)
+
+#### 2. Formelzeichen zwischen Feldern (b)
+```typescript
+const getOperatorAfterField = (fieldName: string, nextFieldName?: string): string => {
+  // Findet Operator zwischen Feldern aus der Formel
+  // Konvertiert * → ×, / → ÷
+  // Fallback: Sucht zwischen zwei bekannten Feldern
+};
+```
+
+**Ergebnis**: `D/A-Note  +  E/B-Note  +  Ausgangswert  =  Endwert`
+
+#### 3. Automatische Berechnung (c)
+- Sobald alle Eingabefelder Werte haben → Berechnung startet
+- Ergebnis erscheint im grünen Endwert-Feld
+- Aktualisiert sich bei jeder Änderung
+
+#### 4. CSP-Safe Generische Formelauswertung (d)
+**Problem**: `new Function()` und `eval()` werden von CSP blockiert
+
+**Lösung**: Recursive Descent Parser für arithmetische Ausdrücke
+
+**Unterstützte Formeln**:
+- ✅ `[A]+[B]`, `[A]-[B]`, `[A]*[B]`, `[A]/[B]`
+- ✅ `[A]+[B]-[C]` (mehrere Operationen)
+- ✅ `([A]+[B])*[C]` (mit Klammern)
+- ✅ Operator-Präzedenz: `*` und `/` vor `+` und `-`
+
+### UI-Verbesserungen:
+- ✅ Inline-Eingabefelder direkt in der Formel-Visualisierung
+- ✅ Operators aus der tatsächlichen Formel
+- ✅ Endwert zeigt berechnetes Ergebnis (grüner Gradient)
+- ❌ Separates Eingabefeld-Grid entfernt
+- ❌ Redundante Info-Boxen entfernt
+
+### Dateien:
+- `client/src/components/DisciplineConfigTester.tsx` (371 Zeilen)
+
+### Build:
+```bash
+✓ built in 6.72s
+```
+
+**Status**: ✅ Erfolgreich getestet - CSP-konform, alle Anforderungen erfüllt
+
+---

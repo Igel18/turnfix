@@ -9,7 +9,7 @@ const prisma = new client_1.PrismaClient();
 // Validation schemas - using client-friendly field names
 const createDisciplineSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "Name is required"),
-    shortName: zod_1.z.string().max(6).nullable().optional(),
+    shortName: zod_1.z.string().max(5).nullable().optional(), // DB column is varchar(5)
     displayName: zod_1.z.string().max(20).nullable().optional(),
     formula: zod_1.z.string().max(300).nullable().optional(),
     inputMask: zod_1.z.string().max(10).nullable().optional(),
@@ -17,7 +17,7 @@ const createDisciplineSchema = zod_1.z.object({
     icon: zod_1.z.string().max(50).nullable().optional(),
     shortcut: zod_1.z.string().max(50).nullable().optional(),
     calculationType: zod_1.z.number().min(0).max(3).default(2),
-    unit: zod_1.z.string().max(10).nullable().optional(),
+    unit: zod_1.z.string().max(5).nullable().optional(), // DB column is varchar(5)
     lanesDivision: zod_1.z.boolean().default(false),
     maleAllowed: zod_1.z.boolean().default(true),
     femaleAllowed: zod_1.z.boolean().default(true),
