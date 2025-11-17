@@ -5263,12 +5263,12 @@ Bei mannschaften gibt es einzelne Bewertungen der Personen
 **Status**: ✅ Abgeschlossen
 
 ### Anforderungen:
-a) **Punkt und Komma → immer Komma**: Eingaben sollen Komma als Dezimaltrenner verwenden
-b) **Formelzeichen zwischen Feldern**: Operators (+, -, ×, ÷) aus der Formel anzeigen
-c) **Endwert berechnen**: Automatische Berechnung sobald alle Felder ausgefüllt
+a) **Punkt und Komma → immer Komma**: Eingaben sollen Komma als Dezimaltrenner verwenden 
+b) **Formelzeichen zwischen Feldern**: Operators (+, -, ×, ÷) aus der Formel anzeigen ✅
+c) **Endwert berechnen**: Automatische Berechnung sobald alle Felder ausgefüllt ✅
 d) **Generische Formeln unterstützen**: Flexible Formelauswertung ohne hardcoded Logic
-e) **Einheit am Endwert aus der DB** 
-f) **Einheit namenslänge begrenzen wegen DB**
+e) **Einheit am Endwert aus der DB** ✅
+f) **Einheit namenslänge begrenzen wegen DB** ✅
 
 ### Implementierung:
 

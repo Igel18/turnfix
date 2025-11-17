@@ -11,7 +11,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { 
   normalizeScoreInput, 
-  getPlaceholder 
+  getPlaceholder,
+  parseInputMask
 } from '../utils/inputMaskUtils';
 
 interface DisciplineConfigTesterProps {
@@ -77,13 +78,20 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
   // Get the effective formula (either from formulaId or direct formula string)
   const effectiveFormula = loadedFormula?.var_formel || formula;
 
-  // Load discipline fields if disciplineId is provided
+  // Detect formula type: letter-based (A,B,C) or variable-based (x,y,z)
+  const hasLetterVariables = effectiveFormula ? /[A-Z]/.test(effectiveFormula) : false;
+  const hasLowercaseVariables = effectiveFormula ? /\b[a-z]\b/.test(effectiveFormula) : false;
+
+  // Load discipline fields if disciplineId is provided AND it's a letter-based formula
   useEffect(() => {
-    if (!disciplineId) {
+    if (!disciplineId || hasLowercaseVariables) {
+      // Don't load from DB if:
+      // - No disciplineId provided
+      // - Formula uses variables (x,y,z) instead of letters (A,B,C)
       return;
     }
 
-    // If we have disciplineId, load the actual fields from the database
+    // If we have disciplineId and it's a letter-based formula, load the actual fields from the database
     fetch(`/api/discipline-fields?disciplineId=${disciplineId}`)
       .then(res => res.json())
       .then(data => {
@@ -104,47 +112,67 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
       .catch(error => {
         console.error('Error loading discipline fields:', error);
       });
-  }, [disciplineId]);
+  }, [disciplineId, hasLowercaseVariables]);
 
-  // Parse formula to extract fields (only if no disciplineId)
+  // Parse formula to extract variable-based fields (x, y, z)
   useEffect(() => {
-    if (disciplineId) {
-      // Skip formula parsing if we have disciplineId (fields loaded from API)
-      return;
-    }
-    
     if (!effectiveFormula) {
       setTestFields([]);
       return;
     }
 
-    try {
-      // Extract field names from formula (e.g., [D-Note], [E-Note], etc.)
-      const fieldMatches = effectiveFormula.match(/\[([^\]]+)\]/g);
-      if (fieldMatches) {
-        const uniqueFields = Array.from(new Set(fieldMatches.map(f => f.slice(1, -1))));
-        const fields = uniqueFields.map((name, index) => ({
-          id: index + 1,
-          name,
-          value: '',
-          normalizedValue: ''
-        }));
-        setTestFields(fields);
-      } else {
-        setTestFields([]);
-      }
-    } catch (error) {
-      console.error('Error parsing formula:', error);
+    // If it's a letter-based formula with disciplineId, skip (fields loaded from DB)
+    if (disciplineId && hasLetterVariables && !hasLowercaseVariables) {
+      return;
+    }
+
+    // For variable-based formulas, extract which variables are used
+    if (hasLowercaseVariables) {
+      const variableMap = ['x', 'y', 'z', 'a', 'b', 'c'];
+      const usedVariables: string[] = [];
+      
+      variableMap.forEach(variable => {
+        const regex = new RegExp(`\\b${variable}\\b`, 'i');
+        if (regex.test(effectiveFormula)) {
+          usedVariables.push(variable);
+        }
+      });
+
+      console.log('🔍 Variables found in formula:', usedVariables);
+
+      // Create input fields for each used variable
+      const fields = usedVariables.map((variable, index) => ({
+        id: index + 1,
+        name: variable.toUpperCase(), // Display as X, Y, Z
+        value: '',
+        normalizedValue: '',
+        isFinalScore: false,
+        isStartingScore: false
+      }));
+
+      // Add final score field
+      fields.push({
+        id: fields.length + 1,
+        name: 'Endwert',
+        value: '',
+        normalizedValue: '',
+        isFinalScore: true,
+        isStartingScore: false
+      });
+
+      setTestFields(fields);
+    } else {
+      // No variables found, empty fields
       setTestFields([]);
     }
-  }, [effectiveFormula, disciplineId]);
+  }, [effectiveFormula, disciplineId, hasLetterVariables, hasLowercaseVariables]);
 
   // Update field value
   const handleFieldChange = (fieldId: number, value: string) => {
-    // Replace dot with comma immediately on input (Point a)
-    const normalizedValue = value.replace('.', ',');
+    // For InputMask with decimal separator, allow both comma and dot input
+    // The blur handler will normalize to the correct separator
     setTestFields(prev => prev.map(f => 
-      f.id === fieldId ? { ...f, value: normalizedValue } : f
+      f.id === fieldId ? { ...f, value } : f
     ));
   };
 
@@ -153,11 +181,23 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
     setTestFields(prev => prev.map(f => {
       if (f.id === fieldId && f.value) {
         try {
-          // Always normalize, even without inputMask
           let normalized = f.value;
           
+          // Always use inputMask if provided, regardless of formula type
           if (inputMask) {
-            normalized = normalizeScoreInput(f.value, inputMask);
+            // Check if value is already in the correct format (to avoid re-normalizing)
+            const maskInfo = parseInputMask(inputMask);
+            const alreadyFormatted = maskInfo.type === 'time' && /^\d{2}:\d{2}\.\d{2}$/.test(f.value);
+            
+            if (!alreadyFormatted) {
+              // CRITICAL: For decimal masks with dot (0.00), convert comma to dot BEFORE normalizing
+              // This ensures "5,5" becomes "5.5" not "55"
+              let valueToNormalize = f.value;
+              if (maskInfo.type === 'decimal' && valueToNormalize.includes(',')) {
+                valueToNormalize = valueToNormalize.replace(',', '.');
+              }
+              normalized = normalizeScoreInput(valueToNormalize, inputMask);
+            }
           } else {
             // No input mask: just ensure decimal format with comma
             // Convert to number and back to ensure valid format
@@ -235,12 +275,39 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
       const fieldValues: number[] = [];
       const nonFinalFields = testFields.filter(f => !f.isFinalScore);
       
+      console.log('🔍 Processing fields:', nonFinalFields.map(f => ({
+        name: f.name,
+        value: f.value,
+        isEmpty: f.value === ''
+      })));
+      
       nonFinalFields.forEach(field => {
-        // Use the value directly (convert comma to dot for parsing)
-        const valueToUse = field.value.replace(',', '.'); 
+        let valueToUse = field.value;
+        
+        // If value is in time format (MM:SS.ms), convert to seconds
+        const timeMatch = valueToUse.match(/^(\d+):(\d+)[.,](\d+)$/);
+        if (timeMatch) {
+          const minutes = parseInt(timeMatch[1], 10);
+          const seconds = parseInt(timeMatch[2], 10);
+          const milliseconds = parseInt(timeMatch[3], 10);
+          // Convert to total seconds
+          const totalSeconds = minutes * 60 + seconds + (milliseconds / 100);
+          valueToUse = totalSeconds.toString();
+          console.log(`   Time format detected: ${field.value} → ${totalSeconds} seconds`);
+        } else {
+          // Regular number format - just replace comma with dot
+          valueToUse = valueToUse.replace(',', '.');
+        }
+        
+        console.log(`   Field "${field.name}": value="${field.value}" → normalized="${valueToUse}"`);
           
         const fieldValue = parseFloat(valueToUse);
         if (isNaN(fieldValue)) {
+          console.error(`❌ Failed to parse value for ${field.name}:`, {
+            originalValue: field.value,
+            normalizedValue: valueToUse,
+            parsedValue: fieldValue
+          });
           throw new Error(`Invalid value for ${field.name}`);
         }
         fieldValues.push(fieldValue);
@@ -250,19 +317,53 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
       // Replace letters (A, B, C) with their values
       let jsFormula = effectiveFormula;
       
+      // CRITICAL: Normalize formula - replace comma with dot for decimal separator
+      // The formula might contain decimal numbers like "2,158" which need to be "2.158"
+      jsFormula = jsFormula.replace(/,/g, '.');
+      
       console.log('🧮 Starting calculation:', {
-        formula: effectiveFormula,
+        originalFormula: effectiveFormula,
+        normalizedFormula: jsFormula,
         fieldValues,
         nonFinalFieldCount: nonFinalFields.length
       });
       
-      // Replace each letter with its value
-      fieldValues.forEach((value, index) => {
-        const letter = String.fromCharCode(65 + index); // A, B, C, ...
-        const before = jsFormula;
-        jsFormula = jsFormula.replace(new RegExp(letter, 'g'), value.toString());
-        console.log(`   Replaced ${letter} with ${value}: ${before} → ${jsFormula}`);
+      // Detect formula type: letter-based (A, B, C) or variable-based (x, y, z)
+      const hasLetterVariables = /[A-Z]/.test(effectiveFormula);
+      const hasLowercaseVariables = /\b[a-z]\b/.test(effectiveFormula);
+      
+      console.log('📊 Formula analysis:', {
+        hasLetterVariables,
+        hasLowercaseVariables,
+        formula: effectiveFormula
       });
+      
+      // Replace variables with values
+      if (hasLetterVariables) {
+        // Letter-based formula (A, B, C, etc.)
+        fieldValues.forEach((value, index) => {
+          const letter = String.fromCharCode(65 + index); // A, B, C, ...
+          const before = jsFormula;
+          jsFormula = jsFormula.replace(new RegExp(letter, 'g'), value.toString());
+          console.log(`   Replaced ${letter} with ${value}: ${before} → ${jsFormula}`);
+        });
+      } else if (hasLowercaseVariables) {
+        // Legacy formula with x, y, z variables
+        const variableMap = ['x', 'y', 'z', 'a', 'b', 'c'];
+        fieldValues.forEach((value, index) => {
+          if (index < variableMap.length) {
+            const variable = variableMap[index];
+            const before = jsFormula;
+            // Use global replace with word boundaries
+            const regex = new RegExp(`\\b${variable}\\b`, 'gi');
+            jsFormula = jsFormula.replace(regex, value.toString());
+            console.log(`   Replaced ${variable} with ${value}: ${before} → ${jsFormula}`);
+          }
+        });
+      } else {
+        // No variables, use formula as-is
+        console.log('   No variables found, using formula as-is');
+      }
       
       console.log('🔢 Formula after replacement:', jsFormula);
       
@@ -424,7 +525,7 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
                 // For final score, show calculated result
                 const isFinalScoreWithResult = field.isFinalScore && calculatedResult !== null;
                 const displayValue = isFinalScoreWithResult
-                  ? calculatedResult.toFixed(calculationType === 2 ? 2 : 3)
+                  ? calculatedResult.toFixed(calculationType === 2 ? 2 : 3).replace('.', ',')
                   : field.value;
                 
                 return (
