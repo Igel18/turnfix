@@ -18,6 +18,7 @@ import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import { SquadDisciplineSelector } from '@/components/scoreCapture/SquadDisciplineSelector';
+import { normalizeScoreByDecimalPlaces } from '@/utils/inputMaskUtils';
 
 // All 8 hooks
 import {
@@ -450,8 +451,8 @@ export default function ScoreCapture() {
           saveScore={saveScore}
           saveFieldScore={saveFieldScore}
           parseFormulaDisplay={parseFormulaDisplay}
-          normalizeScoreInput={(value: string, _decimalPlaces: number) => value}
-          getScorePlaceholder={(_decimalPlaces: number) => '0.00'}
+          normalizeScoreInput={normalizeScoreByDecimalPlaces}
+          getScorePlaceholder={(decimalPlaces: number) => '0.' + '0'.repeat(decimalPlaces)}
           setScoreMatrix={setScoreMatrix}
           disciplines={disciplines}
           competitionId={competitionId || undefined}
