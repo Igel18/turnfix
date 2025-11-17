@@ -132,7 +132,7 @@ export default function TeamScoreCapture() {
     setLoadingScores(true);
     try {
       const res = await fetch(
-        `/api/teamScores/team?teamId=${selectedTeamId}&competitionId=${selectedCompetitionId}&disciplineId=${selectedDisciplineId}&limit=100`
+        `/api/scores/team?teamId=${selectedTeamId}&competitionId=${selectedCompetitionId}&disciplineId=${selectedDisciplineId}&limit=100`
       );
       
       if (res.ok) {
@@ -311,7 +311,7 @@ export default function TeamScoreCapture() {
     };
 
     try {
-      const res = await fetch('/api/teamScores/team', {
+      const res = await fetch('/api/scores/team', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scoreData)

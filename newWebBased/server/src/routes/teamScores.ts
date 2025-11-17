@@ -204,8 +204,8 @@ router.post('/team', authenticateToken, async (req: AuthRequest, res: Response) 
     } else {
       const insertResult = await prisma.$queryRawUnsafe(`
         INSERT INTO tfx_wertungen 
-          (int_mannschaftenid, int_wettkaempfeid, int_statusid, int_startnummer, var_riege, var_comment, int_teilnehmerid)
-        VALUES ($1, $2, $3, $4, $5, $6, 0)
+          (int_mannschaftenid, int_wettkaempfeid, int_statusid, int_startnummer, var_riege, var_comment)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING int_wertungenid
       `, validatedData.teamId, validatedData.competitionId, validatedData.statusId,
          validatedData.startNumber || team.int_startnummer, validatedData.riege || null, 
