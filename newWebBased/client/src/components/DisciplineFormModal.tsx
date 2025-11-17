@@ -456,13 +456,15 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
             </div>
 
             {/* Configuration Tester */}
-            {(formData.inputMask || formData.formula) && (
+            {(formData.inputMask || formData.formula || formData.formulaId) && (
               <div className="md:col-span-2">
                 <DisciplineConfigTester
                   inputMask={formData.inputMask}
                   formula={formData.formula}
+                  formulaId={formData.formulaId}
                   calculationType={formData.calculationType}
                   unit={formData.unit}
+                  disciplineId={editingDiscipline?.id}
                 />
               </div>
             )}

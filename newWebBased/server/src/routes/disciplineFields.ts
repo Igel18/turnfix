@@ -21,7 +21,15 @@ router.get('/count', async (req, res) => {
 // GET /api/discipline-fields - Get all discipline fields
 router.get('/', async (req, res) => {
   try {
+    const disciplineId = req.query.disciplineId ? parseInt(req.query.disciplineId as string) : undefined;
+
+    const whereClause: any = {};
+    if (disciplineId) {
+      whereClause.int_disziplinenid = disciplineId;
+    }
+
     const disciplineFields = await prisma.tfx_disziplinen_felder.findMany({
+      where: whereClause,
       include: {
         tfx_disziplinen: {
           select: {
