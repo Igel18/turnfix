@@ -112,6 +112,39 @@ router.get('/team', authenticateToken, async (req: AuthRequest, res: Response) =
     const totalResult = await prisma.$queryRawUnsafe(totalCountQuery, ...queryParams.slice(0, -2)) as any[];
     const totalCount = parseInt(totalResult[0]?.count || '0');
 
+    // Load components for each score
+    const scoreIds = results.map(r => r.id);
+    let componentsMap: Record<number, any[]> = {};
+    
+    if (scoreIds.length > 0) {
+      const componentsQuery = `
+        SELECT 
+          wd.int_wertungenid as scoreId,
+          wd.int_kp as fieldId,
+          wd.rel_leistung as value,
+          df.var_name as fieldName
+        FROM tfx_wertungen_details wd
+        LEFT JOIN tfx_disziplinen_felder df ON wd.int_kp = df.int_disziplinen_felderid
+        WHERE wd.int_wertungenid IN (${scoreIds.join(',')})
+        ORDER BY wd.int_kp
+      `;
+      
+      const components = await prisma.$queryRawUnsafe(componentsQuery) as any[];
+      
+      // Group components by scoreId
+      components.forEach(comp => {
+        const scoreId = parseInt(comp.scoreid);
+        if (!componentsMap[scoreId]) {
+          componentsMap[scoreId] = [];
+        }
+        componentsMap[scoreId].push({
+          fieldId: parseInt(comp.fieldid),
+          fieldName: comp.fieldname,
+          value: parseFloat(comp.value) || 0
+        });
+      });
+    }
+
     const mappedResults = results.map((result: any) => ({
       id: result.id,
       teamId: parseInt(result.teamid),
@@ -121,6 +154,7 @@ router.get('/team', authenticateToken, async (req: AuthRequest, res: Response) =
       startNumber: result.startnumber,
       riege: result.riege,
       comment: result.comment,
+      components: componentsMap[result.id] || [],
       club: {
         name: result.clubname
       },

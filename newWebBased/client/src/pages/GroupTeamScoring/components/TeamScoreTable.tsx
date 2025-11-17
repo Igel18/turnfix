@@ -5,6 +5,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
+import { normalizeScoreInput, getPlaceholder } from '@/utils/inputMaskUtils';
 
 interface Team {
   id: number;
@@ -21,6 +22,7 @@ interface TeamScoreTableProps {
     isFinalScore: boolean;
   }>;
   maxAttempts: number;
+  inputMask: string;
   loading?: boolean;
   onScoreChange: (attempt: number, fieldId: number, value: string) => void;
   onSaveScore: (attempt: number) => Promise<void>;
@@ -31,6 +33,7 @@ export const TeamScoreTable = ({
   team,
   disciplineFields,
   maxAttempts,
+  inputMask,
   loading,
   onScoreChange,
   onSaveScore,
@@ -65,25 +68,6 @@ export const TeamScoreTable = ({
   // Handle blur event to save score
   const handleBlur = async (attempt: number) => {
     await onSaveScore(attempt);
-  };
-
-  // Normalize score input
-  const normalizeScoreInput = (value: string, decimalPlaces: number = 3): string => {
-    // Remove any non-numeric characters except decimal point
-    let cleaned = value.replace(/[^\d.]/g, '');
-    
-    // Handle multiple decimal points
-    const parts = cleaned.split('.');
-    if (parts.length > 2) {
-      cleaned = parts[0] + '.' + parts.slice(1).join('');
-    }
-    
-    // Limit decimal places
-    if (parts.length === 2 && parts[1].length > decimalPlaces) {
-      cleaned = parts[0] + '.' + parts[1].substring(0, decimalPlaces);
-    }
-    
-    return cleaned;
   };
 
   if (loading) {
@@ -174,14 +158,21 @@ export const TeamScoreTable = ({
                   <td key={field.id} className="px-4 py-3 whitespace-nowrap">
                     <input
                       type="text"
+                      inputMode="decimal"
                       value={getScoreValue(attempt, field.id)}
                       onChange={(e) => {
-                        const normalized = normalizeScoreInput(e.target.value);
-                        onScoreChange(attempt, field.id, normalized);
+                        onScoreChange(attempt, field.id, e.target.value);
                       }}
-                      onBlur={() => handleBlur(attempt)}
+                      onBlur={(e) => {
+                        // Normalize score using utility function
+                        const normalized = normalizeScoreInput(e.target.value, inputMask);
+                        if (normalized !== e.target.value) {
+                          onScoreChange(attempt, field.id, normalized);
+                        }
+                        handleBlur(attempt);
+                      }}
                       className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0.000"
+                      placeholder={getPlaceholder(inputMask)}
                     />
                   </td>
                 ))}

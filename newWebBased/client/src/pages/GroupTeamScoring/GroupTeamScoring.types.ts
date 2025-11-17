@@ -36,6 +36,7 @@ export interface Discipline {
   femaleAllowed: boolean;
   calculationType: number;
   attempts: number;
+  inputMask?: string;
 }
 
 export interface Competition {

@@ -310,6 +310,8 @@ export default function TeamScoreCapture() {
       finalScore
     };
 
+    console.log('💾 Saving team score:', scoreData);
+
     try {
       const res = await fetch('/api/scores/team', {
         method: 'POST',
@@ -317,14 +319,18 @@ export default function TeamScoreCapture() {
         body: JSON.stringify(scoreData)
       });
 
+      console.log('💾 Save response status:', res.status);
+      
       if (res.ok) {
+        const result = await res.json();
+        console.log('💾 Save successful:', result);
         await loadExistingScores();
       } else {
         const error = await res.json();
-        console.error('Error saving score:', error);
+        console.error('❌ Error saving score:', error);
       }
     } catch (error) {
-      console.error('Error saving score:', error);
+      console.error('❌ Error saving score:', error);
     }
   };
 
@@ -370,6 +376,7 @@ export default function TeamScoreCapture() {
                 team={selectedTeam}
                 disciplineFields={disciplineFields}
                 maxAttempts={selectedDiscipline.attempts}
+                inputMask={selectedDiscipline.inputMask || '0.000'}
                 loading={loadingScores}
                 onScoreChange={handleScoreChange}
                 onSaveScore={handleSaveScore}
