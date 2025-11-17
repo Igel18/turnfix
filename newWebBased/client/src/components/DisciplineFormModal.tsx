@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getIconUrl } from '../utils/iconUtils';
 import UnifiedModal from './UnifiedModal';
+import DisciplineConfigTester from './DisciplineConfigTester';
 
 interface Discipline {
   id: number;
@@ -453,6 +454,18 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Configuration Tester */}
+            {(formData.inputMask || formData.formula) && (
+              <div className="md:col-span-2">
+                <DisciplineConfigTester
+                  inputMask={formData.inputMask}
+                  formula={formData.formula}
+                  calculationType={formData.calculationType}
+                  unit={formData.unit}
+                />
+              </div>
+            )}
           </div>
 
           {/* Form Actions */}
