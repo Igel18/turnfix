@@ -97,6 +97,8 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
       .then(data => {
         const disciplineFields = Array.isArray(data) ? data : [];
         
+        console.log('📋 Loaded discipline fields from API:', disciplineFields);
+        
         if (disciplineFields.length > 0) {
           const fields = disciplineFields.map((field: any) => ({
             id: field.id,
@@ -106,13 +108,49 @@ const DisciplineConfigTester: React.FC<DisciplineConfigTesterProps> = ({
             isFinalScore: field.isFinalScore,
             isStartingScore: field.isStartingScore
           }));
+          
+          // CRITICAL: Check if formula requires more fields than we have
+          // Extract all letter variables from formula (A, B, C, D, E, etc.)
+          if (effectiveFormula) {
+            const lettersInFormula = effectiveFormula.match(/[A-Z]/g) || [];
+            const uniqueLetters = Array.from(new Set(lettersInFormula)).sort();
+            const maxLetterIndex = uniqueLetters.length > 0 
+              ? uniqueLetters[uniqueLetters.length - 1].charCodeAt(0) - 65 
+              : -1;
+            
+            const nonFinalFields = fields.filter(f => !f.isFinalScore);
+            const missingFieldsCount = (maxLetterIndex + 1) - nonFinalFields.length;
+            
+            console.log(`🔍 Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
+            
+            if (missingFieldsCount > 0) {
+              console.log(`⚠️ Creating ${missingFieldsCount} missing fields...`);
+              
+              // Create missing fields with generic names
+              for (let i = nonFinalFields.length; i <= maxLetterIndex; i++) {
+                const letter = String.fromCharCode(65 + i);
+                fields.splice(fields.length - (fields.filter(f => f.isFinalScore).length), 0, {
+                  id: 1000 + i, // Use high IDs to avoid conflicts
+                  name: `Field ${letter}`,
+                  value: '',
+                  normalizedValue: '',
+                  isFinalScore: false,
+                  isStartingScore: false
+                });
+              }
+            }
+          }
+          
+          console.log('✅ Mapped fields for tester:', fields);
+          console.log(`   Total fields: ${fields.length}, Non-final: ${fields.filter(f => !f.isFinalScore).length}`);
+          
           setTestFields(fields);
         }
       })
       .catch(error => {
         console.error('Error loading discipline fields:', error);
       });
-  }, [disciplineId, hasLowercaseVariables]);
+  }, [disciplineId, hasLowercaseVariables, effectiveFormula]);
 
   // Parse formula to extract variable-based fields (x, y, z)
   useEffect(() => {
