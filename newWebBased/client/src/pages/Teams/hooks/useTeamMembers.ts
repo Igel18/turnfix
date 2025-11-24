@@ -16,6 +16,7 @@ interface UseTeamMembersResult {
   isLoading: boolean;
   assignParticipant: (participantId: number) => Promise<void>;
   removeParticipant: (participantId: number) => Promise<void>;
+  updateMemberFlags: (participantId: number, flags: { bol_ak?: boolean; bol_startet_nicht?: boolean }) => Promise<void>;
   fetchMembers: () => Promise<void>;
   setHidePlanned: (value: boolean) => void;
   setHideOtherClubs: (value: boolean) => void;
@@ -71,7 +72,9 @@ export const useTeamMembers = (
           birthdate,
           age,
           gender: member.tfx_teilnehmer.geschlecht_name, // Fixed: use geschlecht_name from API
-          startNumber: member.tfx_teilnehmer.int_startnummer
+          startNumber: member.tfx_teilnehmer.int_startnummer,
+          bol_ak: member.bol_ak || false, // From tfx_wertungen
+          bol_startet_nicht: member.bol_startet_nicht || false // From tfx_wertungen
         };
       });
 
@@ -228,6 +231,39 @@ export const useTeamMembers = (
     }
   }, [selectedTeam, fetchMembers, t]);
 
+  // Update member flags (AK, Startet Nicht)
+  const updateMemberFlags = useCallback(async (
+    participantId: number, 
+    flags: { bol_ak?: boolean; bol_startet_nicht?: boolean }
+  ) => {
+    if (!selectedTeam) {
+      console.error('No team selected');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/teams/${selectedTeam.id}/members/${participantId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(flags)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update member flags');
+      }
+
+      // Reload members to reflect changes
+      await fetchMembers();
+      
+    } catch (error) {
+      console.error('Error updating member flags:', error);
+      alert(t('teams.messages.updateError'));
+    }
+  }, [selectedTeam, fetchMembers, t]);
+
   // Load members when team changes
   useEffect(() => {
     fetchMembers();
@@ -247,6 +283,7 @@ export const useTeamMembers = (
     isLoading,
     assignParticipant,
     removeParticipant,
+    updateMemberFlags,
     fetchMembers,
     setHidePlanned: setHidePlannedFilter,
     setHideOtherClubs: setHideOtherClubsFilter,

@@ -21,6 +21,7 @@ interface CreateTeamConfigParams {
   deleteTeam: (team: Team) => Promise<void>; // For future
   assignParticipant: (participantId: number) => Promise<void>;
   removeParticipant: (participantId: number) => Promise<void>;
+  updateMemberFlags: (participantId: number, flags: { bol_ak?: boolean; bol_startet_nicht?: boolean }) => Promise<void>;
   // Filter props
   filters?: AssignmentFiltersState;
   onToggleHidePlanned?: (value: boolean) => void;
@@ -36,6 +37,7 @@ export function createTeamConfig({
   deleteTeam: _deleteTeam, // For future delete functionality
   assignParticipant,
   removeParticipant,
+  updateMemberFlags,
   filters,
   onToggleHidePlanned,
   onToggleHideOtherClubs,
@@ -163,25 +165,49 @@ export function createTeamConfig({
               team.members.map(member => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  className="p-3 bg-gray-50 rounded border border-gray-200"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {member.firstName} {member.lastName}
-                    </p>
-                    {member.clubName && (
-                      <p className="text-xs text-gray-500">
-                        {member.clubName}
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {member.firstName} {member.lastName}
                       </p>
-                    )}
+                      {member.clubName && (
+                        <p className="text-xs text-gray-500">
+                          {member.clubName}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeParticipant(member.id)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      title={t('common.remove')}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => removeParticipant(member.id)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                    title={t('common.remove')}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
+                  
+                  {/* AK and SN Checkboxes */}
+                  <div className="flex gap-4 mt-2 pt-2 border-t border-gray-200">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={member.bol_ak || false}
+                        onChange={(e) => updateMemberFlags(member.id, { bol_ak: e.target.checked })}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">{t('teams.members.ak')}</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={member.bol_startet_nicht || false}
+                        onChange={(e) => updateMemberFlags(member.id, { bol_startet_nicht: e.target.checked })}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">{t('teams.members.sn')}</span>
+                    </label>
+                  </div>
                 </div>
               ))
             )}

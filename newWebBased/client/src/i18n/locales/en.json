@@ -1108,7 +1108,10 @@
       "noMembers": "No members assigned",
       "assignError": "Error assigning participant",
       "removeError": "Error removing participant",
-      "confirmRemove": "Are you sure you want to remove this member?"
+      "updateError": "Error updating member flags",
+      "confirmRemove": "Are you sure you want to remove this member?",
+      "ak": "Out of Competition",
+      "sn": "Not Starting"
     },
     "table": {
       "club": "Club",

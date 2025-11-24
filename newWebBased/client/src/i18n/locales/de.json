@@ -1108,7 +1108,10 @@
       "noMembers": "Keine Mitglieder zugewiesen",
       "assignError": "Fehler beim Zuweisen des Teilnehmers",
       "removeError": "Fehler beim Entfernen des Teilnehmers",
-      "confirmRemove": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten?"
+      "updateError": "Fehler beim Aktualisieren der Teilnehmer-Flags",
+      "confirmRemove": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten?",
+      "ak": "Außer Konkurrenz",
+      "sn": "Startet Nicht"
     },
     "table": {
       "club": "Verein",

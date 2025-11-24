@@ -5259,85 +5259,205 @@ Bei mannschaften gibt es einzelne Bewertungen der Personen
 
 ## Point 161: Discipline Configuration Tester - Formula & Input Improvements ✅
 
-**Datum**: 2025-11-17  
-**Status**: ✅ Abgeschlossen
+**Datum**: 2025-11-17 → 2025-11-18  
+**Status**: ✅ Vollständig abgeschlossen mit Refactoring zu wiederverwendbaren Utils
 
 ### Anforderungen:
-a) **Punkt und Komma → immer Komma**: Eingaben sollen Komma als Dezimaltrenner verwenden 
-b) **Formelzeichen zwischen Feldern**: Operators (+, -, ×, ÷) aus der Formel anzeigen ✅
-c) **Endwert berechnen**: Automatische Berechnung sobald alle Felder ausgefüllt ✅
-d) **Generische Formeln unterstützen**: Flexible Formelauswertung ohne hardcoded Logic
-e) **Einheit am Endwert aus der DB** ✅
-f) **Einheit namenslänge begrenzen wegen DB** ✅
+a) ✅ **Punkt und Komma → immer Komma**: Eingaben verwenden Komma als Dezimaltrenner
+b) ✅ **Formelzeichen zwischen Feldern**: Operators (+, -, ×, ÷) aus der Formel anzeigen
+c) ✅ **Endwert berechnen**: Automatische Berechnung sobald alle Felder ausgefüllt
+d) ✅ **Generische Formeln unterstützen**: Beide Formeltypen (Letter-based, Variable-based)
+e) ✅ **Einheit am Endwert aus der DB**
+f) ✅ **Einheit namenslänge begrenzen wegen DB**
+g) ✅ **Dynamische Felderstellung**: Fehlende Felder werden automatisch generiert
+h) ✅ **Wiederverwendbare Utils**: Ausgelagert für Verwendung in allen Eingabe-UIs
 
 ### Implementierung:
 
-#### 1. Input Mask Normalisierung (a)
-**Datei**: `client/src/components/DisciplineConfigTester.tsx`
+#### Phase 1: Basis-Implementierung (2025-11-17)
+**Datei**: `client/src/components/DisciplineConfigTester.tsx` (371 Zeilen)
 
+- Input Mask Normalisierung
+- Operator-Extraktion aus Formel
+- CSP-Safe Parser (Recursive Descent)
+- Inline-Eingabefelder mit Echtzeit-Berechnung
+
+#### Phase 2: Dual-Formula System (2025-11-18)
+**Problem**: Verschiedene Formel-Typen erfordern unterschiedliche Logik
+
+**Lösung**: Zwei Formel-Systeme implementiert:
+
+1. **Letter-based Formulas** (A, B, C, D, E, ...):
+   - Lädt Felder aus Datenbank (`/api/discipline-fields`)
+   - Field-Mapping basiert auf `int_sortierung`
+   - Beispiel: `A+B-C` = D-Note + E-Note - Abzug
+
+2. **Variable-based Formulas** (x, y, z, a, b, c):
+   - Erstellt Felder dynamisch basierend auf Variablen in Formel
+   - Beispiel: `(((1000/x)-2.158)/0.006)/49` (Zielwurf)
+
+**Dynamische Felderstellung**:
 ```typescript
-// Normalize field value on blur
-const handleFieldBlur = (fieldId: number) => {
-  if (!inputMask) return;
-  
-  setTestFields(prev => prev.map(f => {
-    if (f.id === fieldId && f.value) {
-      const normalized = normalizeScoreInput(f.value, inputMask);
-      // Update both normalizedValue AND value (show normalized in field)
-      return { ...f, value: normalized, normalizedValue: normalized };
-    }
-    return f;
-  }));
+// Formel: A+B+C+D+E (benötigt 5 Felder)
+// DB hat nur: 3 Felder (A, B, C)
+// System erstellt automatisch: "Field D", "Field E"
+```
+
+#### Phase 3: Refactoring zu Wiederverwendbaren Utils (2025-11-18)
+**Motivation**: Code-Wiederverwendung in ScoreCapture, TeamScoreCapture, etc.
+
+**Neue Struktur**:
+
+##### 1. `client/src/utils/formulaCalculator.ts` (13 Core Functions)
+```typescript
+✅ parseTimeToSeconds()           // Zeit-Format → Sekunden
+✅ normalizeValueForCalculation() // Komma→Punkt, Zeit→Sekunden
+✅ detectFormulaType()            // Erkennt 'letter' oder 'variable'
+✅ extractVariables()             // Holt alle Variablen aus Formel
+✅ getMaxLetterIndex()            // Höchster Buchstabe (E → 4)
+✅ getFieldLetter()               // Index→Buchstabe (0→A, 1→B)
+✅ getOperatorAfterField()        // Operator nach Feld (A + B)
+✅ replaceVariablesInFormula()    // A,B,C → Werte ersetzen
+✅ evaluateArithmetic()           // CSP-safe Parser (kein eval!)
+✅ calculateFormulaResult()       // Komplette Berechnung mit Error-Handling
+```
+
+##### 2. `client/src/hooks/useFormulaFields.ts` (State Management Hook)
+```typescript
+interface UseFormulaFieldsResult {
+  fields: FormulaField[];           // Alle Felder inkl. Werte
+  calculatedResult: number | null;  // Berechnetes Ergebnis
+  formulaError: string | null;      // Fehler-Message
+  loadingFormula: boolean;
+  effectiveFormula: string;
+  updateFieldValue: (id, value) => void;
+  normalizeFieldValue: (id) => void;
+  getFieldOperator: (index) => string;
+  getFieldLetterLabel: (index) => string;
+}
+```
+
+**Features**:
+- Lädt Formeln aus API (`/api/formulas/:id`)
+- Lädt Disziplinfelder aus API (`/api/discipline-fields`)
+- Erstellt fehlende Felder dynamisch
+- Normalisiert InputMask-Werte
+- Berechnet Ergebnis automatisch
+- Callbacks für Events (`onFieldsLoaded`, `onCalculationComplete`)
+
+##### 3. `client/src/components/FormulaInput.tsx` (Wiederverwendbare UI)
+```typescript
+interface FormulaInputProps {
+  inputMask?: string;
+  formula?: string;
+  formulaId?: number | null;
+  calculationType?: number;
+  unit?: string;
+  disciplineId?: number;
+  showTitle?: boolean;
+  className?: string;
+  onFieldsLoaded?: (fields) => void;
+  onCalculationComplete?: (result) => void;
+}
+```
+
+**UI-Features**:
+- Letter-Labels (A), (B), (C), (EW)
+- Operator-Darstellung (+ - × ÷)
+- InputMask-Integration
+- Echtzeit-Berechnung
+- Error-Anzeige
+- Unit-Display
+
+##### 4. `client/src/components/DisciplineConfigTester.tsx` (Wrapper - 42 Zeilen)
+```typescript
+// Jetzt nur noch ein einfacher Wrapper
+const DisciplineConfigTester = (props) => {
+  return <FormulaInput {...props} showTitle={true} />;
 };
 ```
 
-**Verhalten**:
-- User tippt: `8` → nach Tab/Blur: `8.00`
-- User tippt: `8.5` → nach Tab/Blur: `8.50`
-- User tippt: `8,5` → nach Tab/Blur: `8.50` (Komma wird zu Punkt konvertiert)
+### Verwendungs-Szenarien:
 
-#### 2. Formelzeichen zwischen Feldern (b)
+#### Szenario 1: Disziplin-Konfiguration (aktuell)
 ```typescript
-const getOperatorAfterField = (fieldName: string, nextFieldName?: string): string => {
-  // Findet Operator zwischen Feldern aus der Formel
-  // Konvertiert * → ×, / → ÷
-  // Fallback: Sucht zwischen zwei bekannten Feldern
-};
+<DisciplineConfigTester
+  inputMask="0.00"
+  formula="A+B-C"
+  formulaId={3}
+  calculationType={3}
+  unit="Pkt."
+  disciplineId={74}
+/>
 ```
 
-**Ergebnis**: `D/A-Note  +  E/B-Note  +  Ausgangswert  =  Endwert`
+#### Szenario 2: Wertungserfassung (zukünftig)
+```typescript
+<FormulaInput
+  formula="A+B-C"
+  disciplineId={74}
+  showTitle={false}
+  onCalculationComplete={(result) => saveScore(result)}
+/>
+```
 
-#### 3. Automatische Berechnung (c)
-- Sobald alle Eingabefelder Werte haben → Berechnung startet
-- Ergebnis erscheint im grünen Endwert-Feld
-- Aktualisiert sich bei jeder Änderung
+#### Szenario 3: Custom Hook (Team-Wertung)
+```typescript
+const { fields, calculatedResult } = useFormulaFields({
+  formula: "A+B+C",
+  disciplineId: 31,
+  onCalculationComplete: (result) => saveTeamScore(result)
+});
+```
 
-#### 4. CSP-Safe Generische Formelauswertung (d)
-**Problem**: `new Function()` und `eval()` werden von CSP blockiert
+### Spezielle Behandlung:
 
-**Lösung**: Recursive Descent Parser für arithmetische Ausdrücke
+#### InputMask-Typen:
+1. **Dezimal** (`0.00`, `00.00`):
+   - Eingabe: `5,5` → Display: `5.50` → Berechnung: `5.5`
+   - Pre-Convert: Komma→Punkt vor Normalisierung
 
-**Unterstützte Formeln**:
-- ✅ `[A]+[B]`, `[A]-[B]`, `[A]*[B]`, `[A]/[B]`
-- ✅ `[A]+[B]-[C]` (mehrere Operationen)
-- ✅ `([A]+[B])*[C]` (mit Klammern)
-- ✅ Operator-Präzedenz: `*` und `/` vor `+` und `-`
+2. **Zeit** (`00:00.00`):
+   - Eingabe: `00:05.55` → Display: `00:05.55` → Berechnung: `5.55` Sekunden
+   - Konvertierung: `MM * 60 + SS + ms/100`
 
-### UI-Verbesserungen:
-- ✅ Inline-Eingabefelder direkt in der Formel-Visualisierung
-- ✅ Operators aus der tatsächlichen Formel
-- ✅ Endwert zeigt berechnetes Ergebnis (grüner Gradient)
-- ❌ Separates Eingabefeld-Grid entfernt
-- ❌ Redundante Info-Boxen entfernt
+#### Fehlerbehandlung:
+```typescript
+✅ Division durch Null → Error: "Division by zero"
+✅ Ungültige Zeichen  → Error: "Invalid characters in expression"
+✅ Ungültiger Wert    → Error: "Invalid value: abc"
+✅ Fehlende Eingabe   → Kein Fehler, Ergebnis bleibt leer
+```
+
+### Sicherheit (CSP-Safe):
+- ✅ **Kein `eval()`** - Verwendet Recursive Descent Parser
+- ✅ **Kein `Function()`** - Pure arithmetic operations
+- ✅ **Input Validation** - Regex-Filter vor Parsing: `/^[\d\.\+\-\*\/\(\)]+$/`
+- ✅ **XSS Protection** - Alle Werte escaped (React)
 
 ### Dateien:
-- `client/src/components/DisciplineConfigTester.tsx` (371 Zeilen)
+- `client/src/utils/formulaCalculator.ts` (300+ Zeilen) ✅ NEU
+- `client/src/hooks/useFormulaFields.ts` (230+ Zeilen) ✅ NEU
+- `client/src/components/FormulaInput.tsx` (200+ Zeilen) ✅ NEU
+- `client/src/components/DisciplineConfigTester.tsx` (42 Zeilen) ✅ REFACTORED
+- `documentation/newWebbased/FORMULA_SYSTEM.md` ✅ NEU
+
+### Dokumentation:
+📚 **Vollständige Dokumentation**: `documentation/newWebbased/FORMULA_SYSTEM.md`
+- Formel-Typen (Letter-based vs Variable-based)
+- InputMask System (Dezimal, Zeit, etc.)
+- Architektur & Komponenten
+- Code-Beispiele für alle Szenarien
+- Technische Details (Performance, Sicherheit)
+- Troubleshooting Guide
 
 ### Build:
 ```bash
-✓ built in 6.72s
+✓ 2341 modules transformed
+✓ built in 5.85s
 ```
 
-**Status**: ✅ Erfolgreich getestet - CSP-konform, alle Anforderungen erfüllt
+**Status**: ✅ Vollständig abgeschlossen - Wiederverwendbare Utils für alle Eingabe-UIs bereit
 
 ---
+

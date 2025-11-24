@@ -55,6 +55,8 @@ export interface TeamMember {
   birthdate?: string | Date;
   gender?: string; // 'male' | 'female' | 'unknown'
   startNumber?: number | string;
+  bol_ak?: boolean; // Außer Konkurrenz (from tfx_wertungen)
+  bol_startet_nicht?: boolean; // Startet Nicht (from tfx_wertungen)
   // For AvailableList component (uses lowercase property names)
   firstname?: string;
   lastname?: string;

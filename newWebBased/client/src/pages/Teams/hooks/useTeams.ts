@@ -49,17 +49,18 @@ export const useTeams = (
       const data = await response.json();
       
       // Transform database teams to UI teams
+      // Backend now sends mapped fields (clubName, competitionName) instead of relations
       const transformedTeams: Team[] = (data.teams || []).map((team: any) => ({
-        id: team.int_mannschaftenid,
-        name: `${team.tfx_vereine.var_name} - ${t('teams.teamLabel')} ${team.int_nummer}`,
-        clubId: team.int_vereineid,
-        clubName: team.tfx_vereine.var_name,
-        competitionId: team.int_wettkaempfeid,
-        competitionName: team.tfx_wettkaempfe.var_name,
-        number: team.int_nummer,
-        riege: team.var_riege,
-        startNumber: team.int_startnummer,
-        memberCount: 0, // Will be loaded with members
+        id: team.id || team.int_mannschaftenid,
+        name: `${team.clubName || 'Unbekannt'} - ${t('teams.teamLabel')} ${team.number || team.int_nummer}`,
+        clubId: team.clubId || team.int_vereineid,
+        clubName: team.clubName || 'Unbekannter Verein',
+        competitionId: team.competitionId || team.int_wettkaempfeid,
+        competitionName: team.competitionName || 'Unbekannter Wettkampf',
+        number: team.number || team.int_nummer,
+        riege: team.riege || team.var_riege,
+        startNumber: team.startNumber || team.int_startnummer,
+        memberCount: team.memberCount || 0, // From backend
         members: []
       }));
 

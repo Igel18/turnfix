@@ -76,18 +76,46 @@ router.get('/', async (req, res) => {
 
     console.log('📋 Found teams:', teams.length, 'Total count:', totalCount);
 
+    // Load member counts for all teams
+    const teamIds = teams.map((t: any) => t.int_mannschaftenid);
+    const memberCounts = await (prisma as any).tfx_man_x_teilnehmer.groupBy({
+      by: ['int_mannschaftenid'],
+      where: {
+        int_mannschaftenid: { in: teamIds }
+      },
+      _count: {
+        int_teilnehmerid: true
+      }
+    });
+
+    // Create a map for quick lookup
+    const memberCountMap = new Map(
+      memberCounts.map((mc: any) => [mc.int_mannschaftenid, mc._count.int_teilnehmerid])
+    );
+
     // Map database fields to frontend-friendly names
-    const mappedTeams = teams.map((team: any) => ({
-      id: team.int_mannschaftenid,
-      clubId: team.int_vereineid,
-      competitionId: team.int_wettkaempfeid,
-      number: team.int_nummer,
-      riege: team.var_riege,
-      startNumber: team.int_startnummer,
-      clubName: team.tfx_vereine?.var_name,
-      competitionName: team.tfx_wettkaempfe?.var_name,
-      competitionNumber: team.tfx_wettkaempfe?.var_nummer
-    }));
+    const mappedTeams = teams.map((team: any) => {
+      // Debug: Log if club or competition data is missing
+      if (!team.tfx_vereine) {
+        console.warn('⚠️ Team', team.int_mannschaftenid, 'has no club data (int_vereineid:', team.int_vereineid, ')');
+      }
+      if (!team.tfx_wettkaempfe) {
+        console.warn('⚠️ Team', team.int_mannschaftenid, 'has no competition data (int_wettkaempfeid:', team.int_wettkaempfeid, ')');
+      }
+
+      return {
+        id: team.int_mannschaftenid,
+        clubId: team.int_vereineid,
+        competitionId: team.int_wettkaempfeid,
+        number: team.int_nummer,
+        riege: team.var_riege,
+        startNumber: team.int_startnummer,
+        clubName: team.tfx_vereine?.var_name || 'Unbekannter Verein',
+        competitionName: team.tfx_wettkaempfe?.var_name || 'Unbekannter Wettkampf',
+        competitionNumber: team.tfx_wettkaempfe?.var_nummer,
+        memberCount: memberCountMap.get(team.int_mannschaftenid) || 0
+      };
+    });
 
     res.json({
       teams: mappedTeams,
@@ -421,6 +449,15 @@ router.get('/:id/members', async (req, res) => {
 
     console.log('👥 GET /api/teams/:id/members - Team ID:', teamId);
 
+    // Get team to find competition
+    const team = await (prisma as any).tfx_mannschaften.findUnique({
+      where: { int_mannschaftenid: teamId }
+    });
+
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
     const members = await (prisma as any).tfx_man_x_teilnehmer.findMany({
       where: { int_mannschaftenid: teamId },
       include: {
@@ -443,16 +480,41 @@ router.get('/:id/members', async (req, res) => {
 
     console.log('👥 Found members:', members.length);
 
-    // Transform members to include gender name
-    const transformedMembers = members.map((member: any) => ({
-      ...member,
-      tfx_teilnehmer: {
-        ...member.tfx_teilnehmer,
-        geschlecht_name: member.tfx_teilnehmer.int_geschlecht === 1 ? 'male' 
-                       : member.tfx_teilnehmer.int_geschlecht === 2 ? 'female' 
-                       : 'unknown'
+    // Load wertungen for all members
+    const memberIds = members.map((m: any) => m.int_teilnehmerid);
+    const wertungen = await (prisma as any).tfx_wertungen.findMany({
+      where: {
+        int_wettkaempfeid: team.int_wettkaempfeid,
+        int_teilnehmerid: { in: memberIds },
+        int_mannschaftenid: teamId
+      },
+      select: {
+        int_teilnehmerid: true,
+        bol_ak: true,
+        bol_startet_nicht: true
       }
-    }));
+    });
+
+    // Create a map for quick lookup
+    const wertungenMap = new Map(
+      wertungen.map((w: any) => [w.int_teilnehmerid, w])
+    );
+
+    // Transform members to include gender name and AK/SN flags
+    const transformedMembers = members.map((member: any) => {
+      const wertung = wertungenMap.get(member.int_teilnehmerid) as any;
+      return {
+        ...member,
+        tfx_teilnehmer: {
+          ...member.tfx_teilnehmer,
+          geschlecht_name: member.tfx_teilnehmer.int_geschlecht === 1 ? 'male' 
+                         : member.tfx_teilnehmer.int_geschlecht === 2 ? 'female' 
+                         : 'unknown'
+        },
+        bol_ak: wertung?.bol_ak || false,
+        bol_startet_nicht: wertung?.bol_startet_nicht || false
+      };
+    });
 
     res.json({ members: transformedMembers });
   } catch (error) {
@@ -553,6 +615,86 @@ router.delete('/:id/members/:participantId', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error('Error removing team member:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update member flags (AK, Startet Nicht)
+router.patch('/:id/members/:participantId', async (req, res) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const participantId = parseInt(req.params.participantId);
+    
+    if (isNaN(teamId) || isNaN(participantId)) {
+      return res.status(400).json({ error: 'Invalid team or participant ID' });
+    }
+
+    const { bol_ak, bol_startet_nicht } = req.body;
+
+    console.log('🔄 PATCH /api/teams/:id/members/:participantId - Team:', teamId, 'Participant:', participantId, 'AK:', bol_ak, 'SN:', bol_startet_nicht);
+
+    // Find the assignment to verify membership
+    const assignment = await (prisma as any).tfx_man_x_teilnehmer.findFirst({
+      where: {
+        int_mannschaftenid: teamId,
+        int_teilnehmerid: participantId
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ error: 'Participant not in team' });
+    }
+
+    // Get team to find competition
+    const team = await (prisma as any).tfx_mannschaften.findUnique({
+      where: { int_mannschaftenid: teamId }
+    });
+
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Find or create wertung for this participant in this competition and team
+    let wertung = await (prisma as any).tfx_wertungen.findFirst({
+      where: {
+        int_wettkaempfeid: team.int_wettkaempfeid,
+        int_teilnehmerid: participantId,
+        int_mannschaftenid: teamId
+      }
+    });
+
+    const updateData: any = {};
+    if (bol_ak !== undefined) updateData.bol_ak = bol_ak;
+    if (bol_startet_nicht !== undefined) updateData.bol_startet_nicht = bol_startet_nicht;
+
+    if (wertung) {
+      // Update existing wertung
+      wertung = await (prisma as any).tfx_wertungen.update({
+        where: { int_wertungenid: wertung.int_wertungenid },
+        data: updateData
+      });
+      console.log('✅ Updated existing wertung');
+    } else {
+      // Create new wertung with default status
+      wertung = await (prisma as any).tfx_wertungen.create({
+        data: {
+          int_wettkaempfeid: team.int_wettkaempfeid,
+          int_teilnehmerid: participantId,
+          int_mannschaftenid: teamId,
+          int_statusid: 1, // Default status
+          ...updateData
+        }
+      });
+      console.log('✅ Created new wertung');
+    }
+
+    res.json({ 
+      success: true,
+      bol_ak: wertung.bol_ak,
+      bol_startet_nicht: wertung.bol_startet_nicht
+    });
+  } catch (error) {
+    console.error('Error updating member flags:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

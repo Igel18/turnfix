@@ -72,6 +72,7 @@ const Teams: React.FC = () => {
     isLoading: membersLoading,
     assignParticipant,
     removeParticipant,
+    updateMemberFlags,
     fetchMembers,
     setHidePlanned,
     setHideOtherClubs,
@@ -108,12 +109,13 @@ const Teams: React.FC = () => {
       deleteTeam,
       assignParticipant,
       removeParticipant,
+      updateMemberFlags,
       filters,
       onToggleHidePlanned: setHidePlanned,
       onToggleHideOtherClubs: setHideOtherClubs,
       onResetFilters: resetFilters
     }),
-    [t, clubs, competitions, saveTeam, deleteTeam, assignParticipant, removeParticipant, filters, setHidePlanned, setHideOtherClubs, resetFilters]
+    [t, clubs, competitions, saveTeam, deleteTeam, assignParticipant, removeParticipant, updateMemberFlags, filters, setHidePlanned, setHideOtherClubs, resetFilters]
   );
 
   // Handlers
