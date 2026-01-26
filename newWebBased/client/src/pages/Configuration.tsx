@@ -39,6 +39,7 @@ interface ConfigSetting {
 const Configuration: React.FC = () => {
     // GymNet preset initialization state and handler
     const [loadingGymNet, setLoadingGymNet] = useState(false);
+    const [loadingSchema, setLoadingSchema] = useState(false);
 
     const handleGymNetPreset = async () => {
       if (!confirm(t('configuration.gymnetPresetConfirm') || 'Geräte und Formeln für GymNet-Import anlegen?')) return;
@@ -80,6 +81,35 @@ const Configuration: React.FC = () => {
         console.error('GymNet preset error:', error);
       } finally {
         setLoadingGymNet(false);
+      }
+    };
+
+    const handleCreateSchema = async () => {
+      if (!confirm(t('configuration.createSchemaConfirm') || 'Datenbankschema jetzt erstellen? Dies ist notwendig nach der Datenbankverbindung.')) return;
+      setLoadingSchema(true);
+      setMessage(null);
+      try {
+        const response = await apiPost('/configuration/create-schema');
+        setMessage({
+          type: 'success',
+          text: t('configuration.createSchemaSuccess') || 'Datenbankschema wurde erfolgreich erstellt.'
+        });
+        console.log('Schema creation response:', response);
+      } catch (error: any) {
+        let details = '';
+        if (error?.response?.data) {
+          if (error.response.data.details) details += error.response.data.details + '\n';
+          if (error.response.data.stack) details += error.response.data.stack;
+        }
+        setMessage({
+          type: 'error',
+          text:
+            (t('configuration.createSchemaError') || 'Fehler beim Erstellen des Datenbankschemas.') +
+            (details ? `\n${details}` : '')
+        });
+        console.error('Schema creation error:', error);
+      } finally {
+        setLoadingSchema(false);
       }
     };
   const { t } = useTranslation()
@@ -719,6 +749,15 @@ const Configuration: React.FC = () => {
                 >
                   <CircleStackIcon className="h-4 w-4 mr-2" />
                   {t('configuration.testConnection')}
+                </button>
+                <button
+                  onClick={handleCreateSchema}
+                  disabled={loadingSchema}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
+                  title={t('configuration.createSchemaTooltip') || 'Datenbankschema mit Prisma erstellen'}
+                >
+                  <CircleStackIcon className="h-4 w-4 mr-2 text-purple-600" />
+                  {loadingSchema ? t('configuration.creatingSchema') : t('configuration.createSchema')}
                 </button>
                 <button
                   onClick={handleGymNetPreset}

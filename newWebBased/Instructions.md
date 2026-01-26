@@ -5615,3 +5615,14 @@ Damit die Formeln richtig funktionieren müssen für die Geräte zusätzlich noc
 sollte auch automatisch mit dem hinzufügen zur datenbank erfolgen. ggf. kann das auch immer vorhanden sein? 
 Siehe TurnFixImport.exe.config vielleicht gibt es auch noch eine andere Datei hierzu?
 
+# DB Workflow # 
+Im Configuration -> Database sollte es eine möglichkeit geben die DB mit diesem Workflow einzurichten. Über die Buttons am Oberen Rand ist der Workflow nicht ganz klar. 
+
+Workflow-Sequenz (UI):
+Datenbank erstellen → Creates PostgreSQL DB
+Verbindung testen → Verifies connection works
+Schema erstellen → Initializes all 15 tables with relations ← NEU
+GymNet-Voreinstellungen → Populates 60+ devices, formulas, fields
+
+Das wäre in einem Modalen Dialog mit Ausgabe über erfolgte imports / änderungen usw. ganz gut. Wenn ein Schritt erledigt ist (DB-Erstellt kann der nächste angestartet werden z.B. Schama erstellen) 
+Der Import der GymNet Voreinstellungen ist optional muss aber im Nachhinein auch noch möglich sein. 

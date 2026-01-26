@@ -747,9 +747,8 @@ router.post('/import', async (req, res) => {
     }
     
     res.json({ 
-      success: true, 
-      message: 'Configuration imported successfully',
-      config: mergedConfig 
+      success: true,
+      message: 'Configuration imported successfully'
     });
   } catch (error: any) {
     console.error('Error importing configuration:', error);
@@ -760,4 +759,82 @@ router.post('/import', async (req, res) => {
   }
 });
 
+// POST /api/configuration/create-schema - Datenbankschema erstellen mit Prisma
+router.post('/create-schema', async (req, res) => {
+  try {
+    console.log('[Configuration] Starting database schema creation with Prisma...');
+    
+    // Execute Prisma migrate deploy to apply the schema
+    exec('npx prisma migrate deploy', { cwd: process.cwd() }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('[Configuration] Prisma migrate error:', error);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create database schema',
+          details: stderr || error.message,
+          stack: process.env.DEBUG === 'true' ? error.stack : undefined
+        });
+      }
+
+      console.log('[Configuration] Prisma schema created successfully');
+      console.log('[Configuration] Migrate output:', stdout);
+
+      res.json({
+        success: true,
+        message: 'Database schema created successfully',
+        details: stdout
+      });
+    });
+  } catch (error: any) {
+    console.error('Error creating schema:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create database schema',
+      details: process.env.DEBUG === 'true' ? error.message : undefined
+    });
+  }
+});
+
+// POST /api/configuration/init-database - Kompletter DB-Initialisierungsprozess
+router.post('/init-database', async (req, res) => {
+  try {
+    console.log('[Configuration] Starting complete database initialization...');
+    
+    // 1. Create schema
+    const schemaResult = await new Promise((resolve, reject) => {
+      exec('npx prisma migrate deploy', { cwd: process.cwd() }, (error, stdout, stderr) => {
+        if (error) reject({ error: 'Schema creation failed', details: stderr || error.message });
+        else resolve({ success: true, step: 'schema', output: stdout });
+      });
+    });
+
+    console.log('[Configuration] Schema created');
+
+    // 2. Apply GymNet preset
+    const presetResult = await applyGymNetPreset();
+    
+    console.log('[Configuration] GymNet preset applied');
+
+    res.json({
+      success: true,
+      message: 'Database initialization completed successfully',
+      steps: {
+        schema: schemaResult,
+        preset: presetResult
+      }
+    });
+  } catch (error: any) {
+    console.error('Error during database initialization:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to initialize database',
+      details: error?.details || error?.message || String(error),
+      stack: process.env.DEBUG === 'true' ? error?.stack : undefined
+    });
+  }
+});
+
+
 export default router;
+
+
