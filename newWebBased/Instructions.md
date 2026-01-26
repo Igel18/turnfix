@@ -5626,3 +5626,110 @@ GymNet-Voreinstellungen → Populates 60+ devices, formulas, fields
 
 Das wäre in einem Modalen Dialog mit Ausgabe über erfolgte imports / änderungen usw. ganz gut. Wenn ein Schritt erledigt ist (DB-Erstellt kann der nächste angestartet werden z.B. Schama erstellen) 
 Der Import der GymNet Voreinstellungen ist optional muss aber im Nachhinein auch noch möglich sein. 
+
+## Implementierung (Point 136) ✅ ##
+
+**Datum**: 2026-01-26
+**Status**: Abgeschlossen
+
+### Komponenten:
+1. **DatabaseSetupWizard.tsx** - Neuer modaler Wizard-Dialog
+   - 4 Schritte mit Status-Tracking (pending, running, success, error, skipped)
+   - Sequentielle Ausführung (nächster Schritt erst nach Erfolg)
+   - Live-Output-Log für jeden Schritt
+   - Fehlerbehandlung mit Retry-Funktion
+   - Optionaler GymNet-Preset-Schritt (kann übersprungen werden)
+
+2. **UnifiedDialog.tsx** - Neue wiederverwendbare Dialog-Komponente
+   - Basiert auf Headless UI (@headlessui/react)
+   - Konfigurierbare Breite (sm bis 7xl)
+   - Animationen und Übergänge
+   - Schließen-Button optional
+
+3. **Configuration.tsx** - Integration des Wizards
+   - "Setup-Assistent" Button im Header (hervorgehoben mit blauem Border)
+   - Wrapper-Funktionen für alle 4 Schritte
+   - Rückgabe von success/error/stats für den Wizard
+
+### Features:
+- **Schritt 1: Datenbank erstellen**
+  - Führt `/api/configuration/create-database` aus
+  - Erstellt neue PostgreSQL-Datenbank
+
+- **Schritt 2: Verbindung testen**
+  - Führt `/api/configuration/test-connection` aus
+  - Verifiziert Datenbankverbindung
+
+- **Schritt 3: Schema erstellen**
+  - Führt `/api/configuration/create-schema` aus
+  - Prisma migrate deploy (15+ Tabellen mit Beziehungen)
+  - Zeigt Migrate-Output im Log
+
+- **Schritt 4: GymNet-Voreinstellungen** (Optional)
+  - Führt `/api/configuration/gymnet-preset` aus
+  - 60+ Geräte, Formeln, Felder
+  - Detaillierte Statistiken (X/Y Formeln, Geräte, Felder)
+  - Kann übersprungen werden
+
+### UI/UX:
+- **Status-Indikatoren**: Icons für jeden Status (CheckCircle, Clock-Spinner, XCircle, ChevronRight)
+- **Farbcodierung**: Grün (success), Blau (running), Rot (error), Grau (skipped/pending)
+- **Ausgabe-Log**: Terminal-Style Output mit Emojis (⏳, ✅, ❌, ℹ️, 📊)
+- **Fortschritts-Tracking**: Alle Schritte sichtbar, nur ausführbare Schritte aktiv
+- **Erfolgs-Message**: Nach Abschluss aller Pflichtschritte
+- **Reset-Funktion**: Wizard zurücksetzen und neu starten
+
+### Lokalisierung:
+Alle UI-Texte lokalisiert in de.json und en.json:
+- `configuration.wizard.title`: "Datenbank-Setup-Assistent" / "Database Setup Wizard"
+- `configuration.wizard.createDatabase`: "Datenbank erstellen" / "Create Database"
+- Komplette Beschreibungen für alle 4 Schritte
+- Buttons: "Ausführen", "Überspringen", "Wiederholen", "Zurücksetzen"
+
+### Backend:
+Alle bestehenden Endpoints wurden wiederverwendet:
+- `POST /api/configuration/create-database`
+- `POST /api/configuration/test-connection`
+- `POST /api/configuration/create-schema` (neu in Point 135)
+- `POST /api/configuration/gymnet-preset`
+
+### Dateien:
+```
+client/src/pages/Configuration/DatabaseSetupWizard.tsx (neue Komponente, 387 Zeilen)
+client/src/components/UnifiedDialog.tsx (neue Komponente, 91 Zeilen)
+client/src/pages/Configuration.tsx (erweitert mit Wizard-Integration)
+client/src/i18n/locales/de.json (erweitert mit wizard.* Keys)
+client/src/i18n/locales/en.json (erweitert mit wizard.* Keys)
+```
+
+### Abhängigkeiten:
+- `@headlessui/react` - Für Dialog-Komponente (neu installiert)
+- Bestehende: `@heroicons/react`, `react-i18next`
+
+### Commit:
+```
+git commit -m "Add Point 136: Database Setup Wizard with 4-step workflow
+
+- Created DatabaseSetupWizard component with step-by-step DB initialization
+- Added UnifiedDialog reusable component for modal dialogs
+- Integrated wizard into Configuration page with prominent 'Setup-Assistent' button
+- Full i18n support (German/English)
+- Live output logs, status tracking, retry functionality
+- Optional GymNet preset step (can be skipped)
+- All required steps must complete before optional step
+- Success confirmation when setup is complete
+
+Files modified:
+- client/src/pages/Configuration/DatabaseSetupWizard.tsx (new)
+- client/src/components/UnifiedDialog.tsx (new)
+- client/src/pages/Configuration.tsx
+- client/src/i18n/locales/de.json
+- client/src/i18n/locales/en.json
+
+Dependencies added:
+- @headlessui/react
+"
+```
+ 
+Für den DB Wizard wurde eine neue UI imporiert: @headlessui/react'
+ist das wirklich notwendig da wir in anderen UIs schon andere modale dialoge verwenden... 

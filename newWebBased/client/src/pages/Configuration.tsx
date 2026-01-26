@@ -16,6 +16,7 @@ import {
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
 import FirewallManagement from '@/components/FirewallManagement'
+import DatabaseSetupWizard from './Configuration/DatabaseSetupWizard'
 
 interface ConfigSection {
   id: string
@@ -40,6 +41,7 @@ const Configuration: React.FC = () => {
     // GymNet preset initialization state and handler
     const [loadingGymNet, setLoadingGymNet] = useState(false);
     const [loadingSchema, setLoadingSchema] = useState(false);
+    const [showWizard, setShowWizard] = useState(false);
 
     const handleGymNetPreset = async () => {
       if (!confirm(t('configuration.gymnetPresetConfirm') || 'Geräte und Formeln für GymNet-Import anlegen?')) return;
@@ -112,6 +114,81 @@ const Configuration: React.FC = () => {
         setLoadingSchema(false);
       }
     };
+
+    // Wizard wrapper functions
+    const wizardCreateDatabase = async () => {
+      try {
+        const dbSection = configSections.find(s => s.id === 'database');
+        if (!dbSection) {
+          return { success: false, error: 'Database configuration not found' };
+        }
+
+        const dbConfig = dbSection.settings.reduce((acc, setting) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {} as any);
+
+        const response = await apiPost('/configuration/create-database', dbConfig);
+        if (response?.success) {
+          return { success: true, message: response.message };
+        }
+        return { success: false, error: response?.error || 'Unknown error' };
+      } catch (error: any) {
+        return { success: false, error: error?.response?.data?.error || error.message };
+      }
+    };
+
+    const wizardTestConnection = async () => {
+      try {
+        const dbSection = configSections.find(s => s.id === 'database');
+        if (!dbSection) {
+          return { success: false, error: 'Database configuration not found' };
+        }
+
+        const dbConfig = dbSection.settings.reduce((acc, setting) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {} as any);
+
+        const response = await apiPost('/configuration/test-database', dbConfig);
+        if (response?.success) {
+          return { success: true, message: 'Connection successful' };
+        }
+        return { success: false, error: response?.error || 'Connection failed' };
+      } catch (error: any) {
+        const errorMsg = error?.response?.data?.error || error?.message || 'Connection failed';
+        return { success: false, error: errorMsg };
+      }
+    };
+
+    const wizardCreateSchema = async () => {
+      try {
+        const response = await apiPost('/configuration/create-schema');
+        if (response?.success) {
+          return { success: true, message: response.message, details: response.details };
+        }
+        return { success: false, error: response?.error || 'Schema creation failed' };
+      } catch (error: any) {
+        return { success: false, error: error?.response?.data?.details || error?.response?.data?.error || error.message };
+      }
+    };
+
+    const wizardApplyGymNetPreset = async () => {
+      try {
+        const response = await apiPost('/configuration/gymnet-preset');
+        if (response?.success && response?.result) {
+          return { 
+            success: true, 
+            message: 'GymNet presets applied',
+            stats: response.result
+          };
+        }
+        return { success: false, error: response?.error || 'Preset application failed' };
+      } catch (error: any) {
+        return { success: false, error: error?.response?.data?.details || error?.response?.data?.error || error.message };
+      }
+    };
+
   const { t } = useTranslation()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
@@ -734,6 +811,15 @@ const Configuration: React.FC = () => {
             {activeSection === 'database' && (
               <>
                 <button
+                  onClick={() => setShowWizard(true)}
+                  className="inline-flex items-center px-4 py-2 border-2 border-blue-600 shadow-sm text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  title={t('configuration.wizard.openButton') || 'Datenbank-Setup-Assistent öffnen'}
+                >
+                  <CogIcon className="h-4 w-4 mr-2" />
+                  {t('configuration.wizard.openButton') || 'Setup-Assistent'}
+                </button>
+                <div className="border-l border-gray-300 mx-2" />
+                <button
                   onClick={createDatabase}
                   disabled={loading}
                   className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
@@ -969,6 +1055,16 @@ const Configuration: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Database Setup Wizard */}
+      <DatabaseSetupWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onCreateDatabase={wizardCreateDatabase}
+        onTestConnection={wizardTestConnection}
+        onCreateSchema={wizardCreateSchema}
+        onApplyGymNetPreset={wizardApplyGymNetPreset}
+      />
     </div>
   )
 }

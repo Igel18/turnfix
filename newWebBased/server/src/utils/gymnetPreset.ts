@@ -3,6 +3,16 @@
 import prisma from '../lib/prisma';
 
 export async function applyGymNetPreset() {
+    try {
+      // Check if database schema exists by trying to query the tables
+      try {
+        await prisma.tfx_formeln.count();
+      } catch (error: any) {
+        if (error.message && error.message.includes('does not exist')) {
+          throw new Error('Database schema not initialized. Please run "Create Schema" step first.');
+        }
+        throw error;
+      }
     // Explizite Disziplin-Felder pro Gerät (exakte Namensgebung und Reihenfolge)
     // Mapping: Geräte-Name (var_name) → Felder
     const deviceFieldMap: Record<string, Array<{ var_name: string; int_sortierung: number }>> = {
@@ -273,17 +283,20 @@ export async function applyGymNetPreset() {
   const formulas = [
     {
       var_name: 'P-Wettkampf',
-      var_formel: '(10 + Stufe) - AbzugAusf',
+      // Feld-Reihenfolge: A=Stufe, B=AbzugAusf.
+      var_formel: '(10 + A) - B',
       int_typ: 0
     },
     {
       var_name: 'AK',
-      var_formel: 'Ausgangswert - AbzugAusf - AbzugSonst',
+      // Feld-Reihenfolge: A=Ausgangswert, B=AbzugAusf., C=AbzugSonst.
+      var_formel: 'A - B - C',
       int_typ: 0
     },
     {
       var_name: 'LK',
-      var_formel: 'D-Note + E-Note - N-Abzuege',
+      // Feld-Reihenfolge: A=D-Note, B=E-Note, C=N-Abzüge.
+      var_formel: 'A + B - C',
       int_typ: 0
     }
   ];
@@ -295,6 +308,9 @@ export async function applyGymNetPreset() {
       await prisma.tfx_formeln.create({ data: formula });
       console.log(`[GymNetPreset] Formel hinzugefügt: ${formula.var_name}`);
       createdFormulas++;
+    } else if (existing.var_formel !== formula.var_formel || existing.int_typ !== formula.int_typ) {
+      await prisma.tfx_formeln.update({ where: { int_formelid: existing.int_formelid }, data: formula });
+      console.log(`[GymNetPreset] Formel aktualisiert: ${formula.var_name}`);
     }
   }
 
@@ -474,4 +490,8 @@ export async function applyGymNetPreset() {
     totalDevices,
     totalFields
   };
+    } catch (error: any) {
+      console.error('[GymNetPreset] Error:', error);
+      throw error;
+    }
 }

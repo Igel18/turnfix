@@ -36,10 +36,9 @@ export const normalizeValueForCalculation = (value: string): string => {
  */
 export const detectFormulaType = (formula: string): 'letter' | 'variable' | 'none' => {
   if (!formula) return 'none';
-  
-  const hasLetterVariables = /[A-Z]/.test(formula);
+  // Nur Einzelbuchstaben (A, B, C, ...) als eigene Tokens werten, keine Großbuchstaben in Wörtern
+  const hasLetterVariables = /\b[A-Z]\b/.test(formula);
   const hasLowercaseVariables = /\b[a-z]\b/.test(formula);
-  
   if (hasLetterVariables) return 'letter';
   if (hasLowercaseVariables) return 'variable';
   return 'none';
@@ -50,7 +49,7 @@ export const detectFormulaType = (formula: string): 'letter' | 'variable' | 'non
  */
 export const extractVariables = (formula: string, type: 'letter' | 'variable'): string[] => {
   if (type === 'letter') {
-    const letters = formula.match(/[A-Z]/g) || [];
+    const letters = formula.match(/\b[A-Z]\b/g) || [];
     return Array.from(new Set(letters)).sort();
   } else if (type === 'variable') {
     const variableMap = ['x', 'y', 'z', 'a', 'b', 'c'];
@@ -73,7 +72,7 @@ export const extractVariables = (formula: string, type: 'letter' | 'variable'): 
  * Get maximum letter index from formula (A=0, B=1, C=2, etc.)
  */
 export const getMaxLetterIndex = (formula: string): number => {
-  const letters = formula.match(/[A-Z]/g) || [];
+  const letters = formula.match(/\b[A-Z]\b/g) || [];
   if (letters.length === 0) return -1;
   
   const uniqueLetters = Array.from(new Set(letters)).sort();

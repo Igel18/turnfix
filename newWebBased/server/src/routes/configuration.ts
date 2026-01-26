@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import prisma from '../lib/prisma';
 import { PrismaClient } from '@prisma/client'; // Still needed for test connections
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 
 const router = express.Router();
 
@@ -759,38 +759,53 @@ router.post('/import', async (req, res) => {
   }
 });
 
-// POST /api/configuration/create-schema - Datenbankschema erstellen mit Prisma
+// POST /api/configuration/create-schema - Datenbankschema direkt aus schema.prisma generieren
 router.post('/create-schema', async (req, res) => {
   try {
-    console.log('[Configuration] Starting database schema creation with Prisma...');
+    console.log('[Configuration] Starting database schema creation from schema.prisma...');
     
-    // Execute Prisma migrate deploy to apply the schema
-    exec('npx prisma migrate deploy', { cwd: process.cwd() }, (error, stdout, stderr) => {
-      if (error) {
-        console.error('[Configuration] Prisma migrate error:', error);
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to create database schema',
-          details: stderr || error.message,
-          stack: process.env.DEBUG === 'true' ? error.stack : undefined
-        });
+    // Use Prisma's db push which generates all tables directly from schema.prisma
+    const { execSync } = require('child_process');
+    
+    try {
+      // Run Prisma db push to create schema directly from schema.prisma
+      const output = execSync('npx prisma db push --skip-generate', {
+        cwd: process.cwd(),
+        encoding: 'utf-8'
+      });
+      
+      console.log('[Configuration] Database schema created successfully from schema.prisma');
+      if (process.env.DEBUG === 'true') {
+        console.log('[DEBUG] Schema push output:', output);
       }
-
-      console.log('[Configuration] Prisma schema created successfully');
-      console.log('[Configuration] Migrate output:', stdout);
-
+      
       res.json({
         success: true,
         message: 'Database schema created successfully',
-        details: stdout
+        details: 'All tables and relationships initialized from schema.prisma'
       });
-    });
+    } catch (execError: any) {
+      const errorOutput = execError.stderr || execError.stdout || execError.message;
+      
+      // Check if schema already exists
+      if (errorOutput && (errorOutput.includes('already exists') || errorOutput.includes('Your database is now in sync'))) {
+        console.log('[Configuration] Schema already exists - database is in sync');
+        return res.json({
+          success: true,
+          message: 'Database schema already exists',
+          details: 'All tables are already present in database'
+        });
+      }
+      
+      throw execError;
+    }
   } catch (error: any) {
-    console.error('Error creating schema:', error);
+    console.error('[Configuration] Error creating schema:', error.message);
     res.status(500).json({
       success: false,
       error: 'Failed to create database schema',
-      details: process.env.DEBUG === 'true' ? error.message : undefined
+      details: error.message || 'Unknown error occurred',
+      stack: process.env.DEBUG === 'true' ? error.stack : undefined
     });
   }
 });
