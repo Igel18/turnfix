@@ -37,6 +37,51 @@ interface ConfigSetting {
 }
 
 const Configuration: React.FC = () => {
+    // GymNet preset initialization state and handler
+    const [loadingGymNet, setLoadingGymNet] = useState(false);
+
+    const handleGymNetPreset = async () => {
+      if (!confirm(t('configuration.gymnetPresetConfirm') || 'Geräte und Formeln für GymNet-Import anlegen?')) return;
+      setLoadingGymNet(true);
+      setMessage(null);
+      try {
+        const response = await apiPost('/configuration/gymnet-preset');
+        if (response?.result) {
+          const { createdFormulas, totalFormulas, createdDevices, totalDevices, createdFields, totalFields } = response.result;
+          setMessage({
+            type: 'success',
+            text:
+              t('configuration.gymnetPresetSuccessDetailed', {
+                createdFormulas,
+                totalFormulas,
+                createdDevices,
+                totalDevices,
+                createdFields,
+                totalFields
+              }) ||
+              `Import erfolgreich: ${createdFormulas}/${totalFormulas} Formeln, ${createdDevices}/${totalDevices} Geräte, ${createdFields}/${totalFields} Felder neu angelegt.`
+          });
+        } else {
+          setMessage({ type: 'success', text: t('configuration.gymnetPresetSuccess') || 'GymNet-Voreinstellungen wurden erfolgreich angelegt.' });
+        }
+      } catch (error: any) {
+        // Fehlerdetails aus dem Response extrahieren (falls vorhanden)
+        let details = '';
+        if (error?.response?.data) {
+          if (error.response.data.details) details += error.response.data.details + '\n';
+          if (error.response.data.stack) details += error.response.data.stack;
+        }
+        setMessage({
+          type: 'error',
+          text:
+            (t('configuration.gymnetPresetError') || 'Fehler beim Anlegen der GymNet-Voreinstellungen.') +
+            (details ? `\n${details}` : '')
+        });
+        console.error('GymNet preset error:', error);
+      } finally {
+        setLoadingGymNet(false);
+      }
+    };
   const { t } = useTranslation()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
@@ -674,6 +719,15 @@ const Configuration: React.FC = () => {
                 >
                   <CircleStackIcon className="h-4 w-4 mr-2" />
                   {t('configuration.testConnection')}
+                </button>
+                <button
+                  onClick={handleGymNetPreset}
+                  disabled={loadingGymNet}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50"
+                  title={t('configuration.gymnetPresetButtonTooltip') || 'Geräte und Formeln für GymNet-Import anlegen'}
+                >
+                  <ClipboardDocumentListIcon className="h-4 w-4 mr-2 text-pink-600" />
+                  {loadingGymNet ? t('configuration.gymnetPresetLoading') : t('configuration.gymnetPresetButton')}
                 </button>
               </>
             )}

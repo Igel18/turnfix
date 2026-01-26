@@ -8,6 +8,27 @@ import { exec } from 'child_process';
 
 const router = express.Router();
 
+
+import { applyGymNetPreset } from '../utils/gymnetPreset';
+
+// POST /api/configuration/gymnet-preset - Geräte/Formeln für GymNet anlegen
+router.post('/gymnet-preset', async (req, res) => {
+  try {
+    const result = await applyGymNetPreset();
+    res.json({ success: true, result });
+  } catch (error: any) {
+    // Backend-Log mit Stacktrace
+    console.error('GymNet preset failed:', error && (error.stack || error));
+    // Fehlerdetails möglichst ausführlich an den Client zurückgeben
+    res.status(500).json({
+      error: 'Failed to apply GymNet preset',
+      details: error?.message || String(error),
+      stack: error?.stack || null
+    });
+  }
+});
+
+
 // Configuration file path
 const CONFIG_FILE = path.join(process.cwd(), 'config', 'app-config.json');
 const CONFIG_DIR = path.dirname(CONFIG_FILE);

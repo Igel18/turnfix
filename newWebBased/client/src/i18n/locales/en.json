@@ -193,6 +193,13 @@
     }
   },
   "configuration": {
+    "gymnetPresetButton": "Initialize DB with GymNet presets",
+    "gymnetPresetButtonTooltip": "Insert devices and formulas for GymNet import",
+    "gymnetPresetLoading": "Applying presets...",
+    "gymnetPresetSuccess": "GymNet presets have been successfully applied.",
+    "gymnetPresetSuccessDetailed": "Import successful: {{createdFormulas}}/{{totalFormulas}} formulas, {{createdDevices}}/{{totalDevices}} devices, {{createdFields}}/{{totalFields}} fields newly created.",
+    "gymnetPresetError": "Error applying GymNet presets.",
+    "gymnetPresetConfirm": "Insert devices and formulas for GymNet import?",
     "title": "Settings",
     "subtitle": "Manage application settings and preferences",
     "searchPlaceholder": "Search configuration settings...",
@@ -1872,7 +1879,7 @@
       },
       "warmupTime": {
         "label": "Warm-up Time",
-        "placeholder": "HH:MM", 
+               "placeholder": "HH:MM", 
         "description": "Time for warm-up before the competition"
       }
     },

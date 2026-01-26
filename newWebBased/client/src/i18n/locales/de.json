@@ -193,6 +193,13 @@
     }
   },
   "configuration": {
+    "gymnetPresetButton": "DB mit GymNet-Voreinstellungen befüllen",
+    "gymnetPresetButtonTooltip": "Geräte und Formeln für GymNet-Import anlegen",
+    "gymnetPresetLoading": "Voreinstellungen werden angelegt...",
+    "gymnetPresetSuccess": "GymNet-Voreinstellungen wurden erfolgreich angelegt.",
+    "gymnetPresetSuccessDetailed": "Import erfolgreich: {{createdFormulas}}/{{totalFormulas}} Formeln, {{createdDevices}}/{{totalDevices}} Geräte, {{createdFields}}/{{totalFields}} Felder neu angelegt.",
+    "gymnetPresetError": "Fehler beim Anlegen der GymNet-Voreinstellungen.",
+    "gymnetPresetConfirm": "Geräte und Formeln für GymNet-Import anlegen?",
     "title": "Einstellungen",
     "subtitle": "Anwendungseinstellungen und Einstellungen verwalten",
     "searchPlaceholder": "Konfigurationseinstellungen suchen...",
@@ -1597,7 +1604,7 @@
       "sortOrder": "Sortierung",
       "finalScore": "Endwert",
       "startingScore": "Ausgangswert",
-      "status": "Status"
+           "status": "Status"
     },
     "filter": {
       "discipline": "Disziplin",

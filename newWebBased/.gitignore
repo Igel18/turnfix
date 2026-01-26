@@ -10,10 +10,6 @@ build/
 */dist/
 */build/
 
-# Build info (generated at build time)
-client/src/build-info.json
-server/src/build-info.json
-
 # Environment variables
 .env
 .env.local
@@ -161,8 +157,8 @@ temp_*.*
 config/local.json
 config/production.json
 
-# PM2 process file - REMOVED: ecosystem.config.js now tracked in git
-# ecosystem.config.js
+# PM2 process file
+ecosystem.config.js
 
 # Webpack bundle analyzer
 bundle-analyzer-report.html
