@@ -273,17 +273,17 @@ export async function applyGymNetPreset() {
   const formulas = [
     {
       var_name: 'P-Wettkampf',
-      var_formel: '(10+Übungsstufe) - AbzugAusführung',
+      var_formel: '(10 + Stufe) - AbzugAusf',
       int_typ: 0
     },
     {
       var_name: 'AK',
-      var_formel: 'Ausgangswert - Ausführungsabzüge - Sonstige Abzüge',
+      var_formel: 'Ausgangswert - AbzugAusf - AbzugSonst',
       int_typ: 0
     },
     {
       var_name: 'LK',
-      var_formel: 'D-Note + E-Note - N-Abzüge',
+      var_formel: 'D-Note + E-Note - N-Abzuege',
       int_typ: 0
     }
   ];

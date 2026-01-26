@@ -5614,3 +5614,4 @@ Damit die Formeln richtig funktionieren müssen für die Geräte zusätzlich noc
 ## Zuordnung von gymnet und turnfix ## 
 sollte auch automatisch mit dem hinzufügen zur datenbank erfolgen. ggf. kann das auch immer vorhanden sein? 
 Siehe TurnFixImport.exe.config vielleicht gibt es auch noch eine andere Datei hierzu?
+
