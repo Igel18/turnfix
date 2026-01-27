@@ -189,6 +189,38 @@ const Configuration: React.FC = () => {
       }
     };
 
+    const wizardImportProductionDisciplines = async () => {
+      try {
+        const response = await apiPost('/configuration/production-disciplines');
+        if (response?.success && response?.stats) {
+          return { 
+            success: true, 
+            message: 'Production disciplines imported',
+            stats: response.stats
+          };
+        }
+        return { success: false, error: response?.error || 'Production disciplines import failed' };
+      } catch (error: any) {
+        return { success: false, error: error?.response?.data?.details || error?.response?.data?.error || error.message };
+      }
+    };
+
+    const wizardImportProductionStatuses = async () => {
+      try {
+        const response = await apiPost('/configuration/production-statuses');
+        if (response?.success && response?.stats) {
+          return { 
+            success: true, 
+            message: 'Production statuses imported',
+            stats: response.stats
+          };
+        }
+        return { success: false, error: response?.error || 'Production statuses import failed' };
+      } catch (error: any) {
+        return { success: false, error: error?.response?.data?.details || error?.response?.data?.error || error.message };
+      }
+    };
+
   const { t } = useTranslation()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
@@ -1064,6 +1096,8 @@ const Configuration: React.FC = () => {
         onTestConnection={wizardTestConnection}
         onCreateSchema={wizardCreateSchema}
         onApplyGymNetPreset={wizardApplyGymNetPreset}
+        onImportProductionDisciplines={wizardImportProductionDisciplines}
+        onImportProductionStatuses={wizardImportProductionStatuses}
       />
     </div>
   )

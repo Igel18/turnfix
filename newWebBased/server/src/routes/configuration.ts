@@ -10,6 +10,8 @@ const router = express.Router();
 
 
 import { applyGymNetPreset } from '../utils/gymnetPreset';
+import { applyProductionDisciplines } from '../utils/productionDisciplinesImport';
+import { applyProductionStatuses } from '../utils/productionStatusesImport';
 
 // POST /api/configuration/gymnet-preset - Geräte/Formeln für GymNet anlegen
 router.post('/gymnet-preset', async (req, res) => {
@@ -22,6 +24,36 @@ router.post('/gymnet-preset', async (req, res) => {
     // Fehlerdetails möglichst ausführlich an den Client zurückgeben
     res.status(500).json({
       error: 'Failed to apply GymNet preset',
+      details: error?.message || String(error),
+      stack: error?.stack || null
+    });
+  }
+});
+
+// POST /api/configuration/production-disciplines - Import all production disciplines
+router.post('/production-disciplines', async (req, res) => {
+  try {
+    const result = await applyProductionDisciplines();
+    res.json(result);
+  } catch (error: any) {
+    console.error('Production disciplines import failed:', error && (error.stack || error));
+    res.status(500).json({
+      error: 'Failed to import production disciplines',
+      details: error?.message || String(error),
+      stack: error?.stack || null
+    });
+  }
+});
+
+// POST /api/configuration/production-statuses - Import all production statuses
+router.post('/production-statuses', async (req, res) => {
+  try {
+    const result = await applyProductionStatuses();
+    res.json(result);
+  } catch (error: any) {
+    console.error('Production statuses import failed:', error && (error.stack || error));
+    res.status(500).json({
+      error: 'Failed to import production statuses',
       details: error?.message || String(error),
       stack: error?.stack || null
     });

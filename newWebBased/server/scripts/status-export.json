@@ -1,0 +1,73 @@
+Found 10 status entries
+[
+  {
+    "int_statusid": 1,
+    "var_name": "kein Status",
+    "ary_colorcode": "{255,255,255}",
+    "bol_bogen": true,
+    "bol_karte": true
+  },
+  {
+    "int_statusid": 9,
+    "var_name": "Leistungen erfasst",
+    "ary_colorcode": "{4,172,39}",
+    "bol_bogen": true,
+    "bol_karte": true
+  },
+  {
+    "int_statusid": 2,
+    "var_name": "Meldung erfasst",
+    "ary_colorcode": "{249,105,5}",
+    "bol_bogen": true,
+    "bol_karte": true
+  },
+  {
+    "int_statusid": 3,
+    "var_name": "Riegen eingeteilt",
+    "ary_colorcode": "{251,170,12}",
+    "bol_bogen": true,
+    "bol_karte": false
+  },
+  {
+    "int_statusid": 4,
+    "var_name": "Riegenbogen gedruckt",
+    "ary_colorcode": "{251,249,42}",
+    "bol_bogen": true,
+    "bol_karte": false
+  },
+  {
+    "int_statusid": 7,
+    "var_name": "Riegenbogen im Wettkampfbüro",
+    "ary_colorcode": "{0,255,0}",
+    "bol_bogen": true,
+    "bol_karte": false
+  },
+  {
+    "int_statusid": 10,
+    "var_name": "Urkunde gedruckt",
+    "ary_colorcode": "{5,201,252}",
+    "bol_bogen": false,
+    "bol_karte": true
+  },
+  {
+    "int_statusid": 6,
+    "var_name": "Wettkampf gestartet",
+    "ary_colorcode": "{108,208,34}",
+    "bol_bogen": true,
+    "bol_karte": true
+  },
+  {
+    "int_statusid": 5,
+    "var_name": "Wettkampfkarte gedruckt",
+    "ary_colorcode": "{251,249,42}",
+    "bol_bogen": false,
+    "bol_karte": true
+  },
+  {
+    "int_statusid": 8,
+    "var_name": "Wettkampfkarte im Wettkampfbüro",
+    "ary_colorcode": "{0,255,0}",
+    "bol_bogen": false,
+    "bol_karte": true
+  }
+]

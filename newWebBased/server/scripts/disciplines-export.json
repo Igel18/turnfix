@@ -1,0 +1,5804 @@
+Found 139 disciplines
+[
+  {
+    "int_disziplinenid": 73,
+    "int_sportid": 1,
+    "var_name": "Balken",
+    "var_kurz1": "BALK",
+    "var_kurz2": "Balken",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/balken.png",
+    "var_kuerzel": "Ctrl+Shift+R",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 73,
+        "int_disziplinenid": 73,
+        "var_name": "D/A-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 74,
+        "int_disziplinenid": 73,
+        "var_name": "E/B-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 45,
+        "int_disziplinenid": 73,
+        "var_name": "Neutrale Abzüge",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 47,
+        "int_disziplinenid": 73,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 4,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 48,
+        "int_disziplinenid": 73,
+        "var_name": "Endwert",
+        "int_sortierung": 5,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 46,
+        "int_disziplinenid": 73,
+        "var_name": "E-Note | B-Note",
+        "int_sortierung": 5,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 67,
+    "int_sportid": 1,
+    "var_name": "Bank",
+    "var_kurz1": "BANK",
+    "var_kurz2": "Bank",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/bank.png",
+    "var_kuerzel": null,
+    "int_berechnung": 3,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 72,
+    "int_sportid": 1,
+    "var_name": "Barren",
+    "var_kurz1": "BARR",
+    "var_kurz2": "Barren",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/barren.png",
+    "var_kuerzel": "Ctrl+Shift+W",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 71,
+        "int_disziplinenid": 72,
+        "var_name": "D/A-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 72,
+        "int_disziplinenid": 72,
+        "var_name": "E/B-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 39,
+        "int_disziplinenid": 72,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 40,
+        "int_disziplinenid": 72,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 74,
+    "int_sportid": 1,
+    "var_name": "Boden",
+    "var_kurz1": "BODEN",
+    "var_kurz2": "Boden",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/boden.png",
+    "var_kuerzel": "Ctrl+Shift+E",
+    "int_berechnung": 2,
+    "var_einheit": "Pkt. ",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 69,
+        "int_disziplinenid": 74,
+        "var_name": "D/A-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 70,
+        "int_disziplinenid": 74,
+        "var_name": "E/B-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 43,
+        "int_disziplinenid": 74,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 44,
+        "int_disziplinenid": 74,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 75,
+    "int_sportid": 1,
+    "var_name": "Gerätebahn A",
+    "var_kurz1": "GA",
+    "var_kurz2": "GBahn A",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/boden.png",
+    "var_kuerzel": "Ctrl+Shift+A",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 76,
+    "int_sportid": 1,
+    "var_name": "Gerätebahn B",
+    "var_kurz1": "GB",
+    "var_kurz2": "GBahn B",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/boden.png",
+    "var_kuerzel": "Ctrl+Shift+B",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 19,
+        "int_disziplinenid": 76,
+        "var_name": "A-Note",
+        "int_sortierung": 0,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 0,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 20,
+        "int_disziplinenid": 76,
+        "var_name": "B-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 0,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 31,
+    "int_sportid": 1,
+    "var_name": "Pauschenpferd",
+    "var_kurz1": "PPFR",
+    "var_kurz2": "Pauschenpferd",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/seitpferd.png",
+    "var_kuerzel": "Ctrl+Shift+U",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 65,
+        "int_disziplinenid": 31,
+        "var_name": "D/A-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 66,
+        "int_disziplinenid": 31,
+        "var_name": "E/B-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 67,
+        "int_disziplinenid": 31,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 68,
+        "int_disziplinenid": 31,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 46,
+    "int_sportid": 1,
+    "var_name": "Reck",
+    "var_kurz1": "RECK",
+    "var_kurz2": "Reck",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/reck.png",
+    "var_kuerzel": "Ctrl+Shift+T",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 63,
+        "int_disziplinenid": 46,
+        "var_name": "D/A-Note",
+        "int_sortierung": 0,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 64,
+        "int_disziplinenid": 46,
+        "var_name": "E/B-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 75,
+        "int_disziplinenid": 46,
+        "var_name": "P (Penalty) ",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 0,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 25,
+        "int_disziplinenid": 46,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 28,
+        "int_disziplinenid": 46,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 50,
+    "int_sportid": 1,
+    "var_name": "Ringe",
+    "var_kurz1": "RINGE",
+    "var_kurz2": "Ringe",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/ringe.png",
+    "var_kuerzel": "Ctrl+Shift+I",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 61,
+        "int_disziplinenid": 50,
+        "var_name": "D/A-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 62,
+        "int_disziplinenid": 50,
+        "var_name": "E/B-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 53,
+        "int_disziplinenid": 50,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 54,
+        "int_disziplinenid": 50,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 71,
+    "int_sportid": 1,
+    "var_name": "Sprung",
+    "var_kurz1": "SPRU",
+    "var_kurz2": "Sprung",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/sprung.png",
+    "var_kuerzel": "Ctrl+Shift+Q",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 57,
+        "int_disziplinenid": 71,
+        "var_name": "D/A-Note",
+        "int_sortierung": 0,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 58,
+        "int_disziplinenid": 71,
+        "var_name": "E/B-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 21,
+        "int_disziplinenid": 71,
+        "var_name": "P (Penalty)",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 0,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 24,
+        "int_disziplinenid": 71,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 0,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 23,
+        "int_disziplinenid": 71,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 0,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 22,
+        "int_disziplinenid": 71,
+        "var_name": "E-Note",
+        "int_sortierung": 5,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 0,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 68,
+    "int_sportid": 1,
+    "var_name": "Stufenbarren",
+    "var_kurz1": "STBARR",
+    "var_kurz2": "Stufenbarren",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 4,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 1,
+      "var_name": "Turnen"
+    },
+    "tfx_formeln": {
+      "int_formelid": 4,
+      "var_name": "D+E-Neutral",
+      "var_formel": "A+B-C",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 59,
+        "int_disziplinenid": 68,
+        "var_name": "D/A-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 60,
+        "int_disziplinenid": 68,
+        "var_name": "E/B-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 29,
+        "int_disziplinenid": 68,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 32,
+        "int_disziplinenid": 68,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 30,
+        "int_disziplinenid": 68,
+        "var_name": "D-Note",
+        "int_sortierung": 5,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 31,
+        "int_disziplinenid": 68,
+        "var_name": "E-Note",
+        "int_sortierung": 6,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 45,
+    "int_sportid": 2,
+    "var_name": "1.000-m-Lauf",
+    "var_kurz1": "1000",
+    "var_kurz2": "1000m",
+    "var_formel": "((((1000/x)-1,9231)/0,00566)/49)",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/1000.png",
+    "var_kuerzel": "Ctrl+Shift+S",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 44,
+    "int_sportid": 2,
+    "var_name": "1.000-m-Lauf",
+    "var_kurz1": "1000",
+    "var_kurz2": "1000m",
+    "var_formel": "(((1000/x)-2,158)/0,006)/49",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/1000.png",
+    "var_kuerzel": "Ctrl+Shift+S",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 22,
+    "int_sportid": 2,
+    "var_name": "100-m-Lauf elektrische Zeitm.",
+    "var_kurz1": "100M",
+    "var_kurz2": "100m-Lauf",
+    "var_formel": "(((100/x)-4,341)/0,00676)/49",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100.png",
+    "var_kuerzel": "Ctrl+Shift+F12",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 55,
+    "int_sportid": 2,
+    "var_name": "100-m-Lauf elektrische Zeitm.",
+    "var_kurz1": "100M",
+    "var_kurz2": "100m-Lauf",
+    "var_formel": "(((100/(x*0,90)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100.png",
+    "var_kuerzel": "Ctrl+Shift+F12",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 26,
+    "int_sportid": 2,
+    "var_name": "100-m-Lauf Handstoppung",
+    "var_kurz1": "100M",
+    "var_kurz2": "100m-Lauf",
+    "var_formel": "(((100/((x+0,24)*0,90)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100.png",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 54,
+    "int_sportid": 2,
+    "var_name": "100-m-Lauf Handstoppung",
+    "var_kurz1": "100M",
+    "var_kurz2": "100m-Lauf",
+    "var_formel": "(((100/(x+0,24)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100.png",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 3,
+    "int_sportid": 2,
+    "var_name": "2.000-m-Lauf",
+    "var_kurz1": "2000",
+    "var_kurz2": "2000m",
+    "var_formel": "(((2000/x)-1,784)/0,006)/49",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/2000.png",
+    "var_kuerzel": "Ctrl+Shift+D",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 5,
+    "int_sportid": 2,
+    "var_name": "2.000-m-Lauf",
+    "var_kurz1": "2000",
+    "var_kurz2": "2000m",
+    "var_formel": "(((2000/x)-1,584)/0,00566)/49",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/2000.png",
+    "var_kuerzel": "Ctrl+Shift+D",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 66,
+    "int_sportid": 2,
+    "var_name": "3.000-m-Lauf",
+    "var_kurz1": "3000",
+    "var_kurz2": "3000m",
+    "var_formel": "(((3000/x)-1,3)/0,006)/49",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/3000.png",
+    "var_kuerzel": "Ctrl+Shift+F",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 4,
+    "int_sportid": 2,
+    "var_name": "50-m-Lauf elektrische Zeitm.",
+    "var_kurz1": "50M",
+    "var_kurz2": "50m-Lauf",
+    "var_formel": "(((100/(x*1,7)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50.png",
+    "var_kuerzel": "Ctrl+Shift+O",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 23,
+    "int_sportid": 2,
+    "var_name": "50-m-Lauf elektrische Zeitm.",
+    "var_kurz1": "50M",
+    "var_kurz2": "50m-Lauf",
+    "var_formel": "(((100/(x*1,6)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50.png",
+    "var_kuerzel": "Ctrl+Shift+O",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 51,
+    "int_sportid": 2,
+    "var_name": "50-m-Lauf Handstoppung",
+    "var_kurz1": "50M",
+    "var_kurz2": "50m-Lauf",
+    "var_formel": "(((100/((x+0,24)*1,7)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50.png",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 64,
+    "int_sportid": 2,
+    "var_name": "50-m-Lauf Handstoppung",
+    "var_kurz1": "50M",
+    "var_kurz2": "50m-Lauf",
+    "var_formel": "(((100/((x+0,24)*1,6)-4,341)/0,00676)/49)",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50.png",
+    "var_kuerzel": "",
+    "int_berechnung": 3,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 25,
+    "int_sportid": 2,
+    "var_name": "75-m-Lauf elektrische Zeitm.",
+    "var_kurz1": "75M",
+    "var_kurz2": "75m-Lauf",
+    "var_formel": "(((100/(x*1,2)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/75.png",
+    "var_kuerzel": "Ctrl+Shift+P",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 21,
+    "int_sportid": 2,
+    "var_name": "75-m-Lauf elektrische Zeitm.",
+    "var_kurz1": "75M",
+    "var_kurz2": "75m-Lauf",
+    "var_formel": "(((100/(x*1,3)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/75.png",
+    "var_kuerzel": "Ctrl+Shift+P",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 24,
+    "int_sportid": 2,
+    "var_name": "75-m-Lauf Handstoppung",
+    "var_kurz1": "75M",
+    "var_kurz2": "75m-Lauf",
+    "var_formel": "(((100/((x+0,24)*1,2)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/75.png",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 53,
+    "int_sportid": 2,
+    "var_name": "75-m-Lauf Handstoppung",
+    "var_kurz1": "75M",
+    "var_kurz2": "75m-Lauf",
+    "var_formel": "(((100/((x+0,24)*1,3)-4,341)/0,00676)/49)",
+    "var_maske": "00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/75.png",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "s",
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 11,
+    "int_sportid": 2,
+    "var_name": "Kugelstoßen + Medizinball",
+    "var_kurz1": "KUGEL",
+    "var_kurz2": "Kugel",
+    "var_formel": "1,2*x",
+    "var_maske": "00.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/kugel.png",
+    "var_kuerzel": "Ctrl+Shift+J",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 7,
+    "int_sportid": 2,
+    "var_name": "Kugelstoßen + Medizinball",
+    "var_kurz1": "KUGEL",
+    "var_kurz2": "Kugel",
+    "var_formel": "1*x",
+    "var_maske": "00.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/kugel.png",
+    "var_kuerzel": "Ctrl+Shift+J",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 8,
+    "int_sportid": 2,
+    "var_name": "Schleuderball / Schlagball",
+    "var_kurz1": "SBALL",
+    "var_kurz2": "Schleuderball",
+    "var_formel": "x/4,5",
+    "var_maske": "00.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/schleuder.png",
+    "var_kuerzel": "Ctrl+Shift+K",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 12,
+    "int_sportid": 2,
+    "var_name": "Schleuderball / Schlagball",
+    "var_kurz1": "SBALL",
+    "var_kurz2": "Schleuderball",
+    "var_formel": "x/3,5",
+    "var_maske": "00.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/schleuder.png",
+    "var_kuerzel": "Ctrl+Shift+K",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 13,
+    "int_sportid": 2,
+    "var_name": "Vollball",
+    "var_kurz1": "VBALL",
+    "var_kurz2": "Vollball",
+    "var_formel": "x/1,5",
+    "var_maske": "00.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/ball.png",
+    "var_kuerzel": "Ctrl+Shift+L",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 1,
+    "int_sportid": 2,
+    "var_name": "Vollball",
+    "var_kurz1": "VBALL",
+    "var_kurz2": "Vollball",
+    "var_formel": "x/2,5",
+    "var_maske": "00.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/ball.png",
+    "var_kuerzel": "Ctrl+Shift+L",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 6,
+    "int_sportid": 2,
+    "var_name": "Weitsprung / Zone",
+    "var_kurz1": "WEZ",
+    "var_kurz2": "Weit (Zone)",
+    "var_formel": "2,2*x",
+    "var_maske": "0.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/weitzone.png",
+    "var_kuerzel": "Ctrl+Shift+G",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 14,
+    "int_sportid": 2,
+    "var_name": "Weitsprung / Zone",
+    "var_kurz1": "WEZ",
+    "var_kurz2": "Weit (Zone)",
+    "var_formel": "2*x",
+    "var_maske": "0.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/weitzone.png",
+    "var_kuerzel": "Ctrl+Shift+G",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 9,
+    "int_sportid": 2,
+    "var_name": "Weitsprung aus dem Stand",
+    "var_kurz1": "WES",
+    "var_kurz2": "Weit (Stand)",
+    "var_formel": "4*x",
+    "var_maske": "0.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/weitstand.png",
+    "var_kuerzel": "Ctrl+Shift+H",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 10,
+    "int_sportid": 2,
+    "var_name": "Weitsprung aus dem Stand",
+    "var_kurz1": "WES",
+    "var_kurz2": "Weit (Stand)",
+    "var_formel": "4,4*x",
+    "var_maske": "0.00",
+    "int_versuche": 3,
+    "var_icon": ":/icons/weitstand.png",
+    "var_kuerzel": "Ctrl+Shift+H",
+    "int_berechnung": 2,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 2,
+      "var_name": "Leichtathletik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 49,
+    "int_sportid": 3,
+    "var_name": "Easy Jump 30",
+    "var_kurz1": "EJ30",
+    "var_kurz2": "Easy Jump 30",
+    "var_formel": "x/7,5",
+    "var_maske": "000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/rope1.png",
+    "var_kuerzel": "Ctrl+Shift+F10",
+    "int_berechnung": 0,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 3,
+      "var_name": "Rope-Skipping"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 2,
+    "int_sportid": 3,
+    "var_name": "Speed 30",
+    "var_kurz1": "SPE30",
+    "var_kurz2": "Speed 30",
+    "var_formel": "x/5",
+    "var_maske": "000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/rope2.png",
+    "var_kuerzel": "Ctrl+Shift+F11",
+    "int_berechnung": 0,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 3,
+      "var_name": "Rope-Skipping"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 77,
+    "int_sportid": 4,
+    "var_name": "Minitrampolin",
+    "var_kurz1": "MTRAMP",
+    "var_kurz2": "Tramp",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 4,
+      "var_name": "Trampolin"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 18,
+    "int_sportid": 5,
+    "var_name": "10 m Streckentauchen",
+    "var_kurz1": "10TAU",
+    "var_kurz2": "10 Tauchen",
+    "var_formel": "12*(((100/(1,2*(15*x-16,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/10t.png",
+    "var_kuerzel": "Ctrl+Shift+F6",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 17,
+    "int_sportid": 5,
+    "var_name": "10 m Streckentauchen",
+    "var_kurz1": "10TAU",
+    "var_kurz2": "10 Tauchen",
+    "var_formel": "12*(((100/(1,2*(15*x-16,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/10t.png",
+    "var_kuerzel": "Ctrl+Shift+F6",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 39,
+    "int_sportid": 5,
+    "var_name": "100 m Brust",
+    "var_kurz1": "100BR",
+    "var_kurz2": "100 Brust",
+    "var_formel": "12*(((100/(1,2*(x-22,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100b.png",
+    "var_kuerzel": "Ctrl+Shift+C",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 29,
+    "int_sportid": 5,
+    "var_name": "100 m Brust",
+    "var_kurz1": "100BR",
+    "var_kurz2": "100 Brust",
+    "var_formel": "12*(((100/(1,2*(x-14,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100b.png",
+    "var_kuerzel": "Ctrl+Shift+C",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 37,
+    "int_sportid": 5,
+    "var_name": "100 m Kraul",
+    "var_kurz1": "100KR",
+    "var_kurz2": "100 Kraul",
+    "var_formel": "12*(((100/(1,2*(x-6,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100k.png",
+    "var_kuerzel": "Ctrl+Shift+N",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 27,
+    "int_sportid": 5,
+    "var_name": "100 m Kraul",
+    "var_kurz1": "100KR",
+    "var_kurz2": "100 Kraul",
+    "var_formel": "12*(((100/(1,2*x))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100k.png",
+    "var_kuerzel": "Ctrl+Shift+N",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 57,
+    "int_sportid": 5,
+    "var_name": "100 m Rücken",
+    "var_kurz1": "100RÜ",
+    "var_kurz2": "100 Rücken",
+    "var_formel": "12*(((100/(1,2*(x-7,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100r.png",
+    "var_kuerzel": "Ctrl+Shift+F2",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 42,
+    "int_sportid": 5,
+    "var_name": "100 m Rücken",
+    "var_kurz1": "100RÜ",
+    "var_kurz2": "100 Rücken",
+    "var_formel": "12*(((100/(1,2*(x-13,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100r.png",
+    "var_kuerzel": "Ctrl+Shift+F2",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 70,
+    "int_sportid": 5,
+    "var_name": "100 m Schmetterling",
+    "var_kurz1": "100SM",
+    "var_kurz2": "100 Schmetterling",
+    "var_formel": "12*(((100/(1,2*(x-11,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100s.png",
+    "var_kuerzel": "Ctrl+Shift+F5",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 58,
+    "int_sportid": 5,
+    "var_name": "100 m Schmetterling",
+    "var_kurz1": "100SM",
+    "var_kurz2": "100 Schmetterling",
+    "var_formel": "12*(((100/(1,2*(x-5,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/100s.png",
+    "var_kuerzel": "Ctrl+Shift+F5",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 20,
+    "int_sportid": 5,
+    "var_name": "15 m Streckentauchen",
+    "var_kurz1": "15TAU",
+    "var_kurz2": "15 Tauchen",
+    "var_formel": "12*(((100/(1,2*(8*x-10,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/15t.png",
+    "var_kuerzel": "Ctrl+Shift+F7",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 16,
+    "int_sportid": 5,
+    "var_name": "15 m Streckentauchen",
+    "var_kurz1": "15TAU",
+    "var_kurz2": "15 Tauchen",
+    "var_formel": "12*(((100/(1,2*(8*x-2,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/15t.png",
+    "var_kuerzel": "Ctrl+Shift+F7",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 36,
+    "int_sportid": 5,
+    "var_name": "200 m Freistil",
+    "var_kurz1": "200FS",
+    "var_kurz2": "200 Freistil",
+    "var_formel": "12*(((100/(1,2*(0,5*x-5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/200f.png",
+    "var_kuerzel": "Ctrl+Shift+F9",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 48,
+    "int_sportid": 5,
+    "var_name": "200 m Freistil",
+    "var_kurz1": "200FS",
+    "var_kurz2": "200 Freistil",
+    "var_formel": "12*(((100/(1,2*(0,5*x-10,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/200f.png",
+    "var_kuerzel": "Ctrl+Shift+F9",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 41,
+    "int_sportid": 5,
+    "var_name": "25 m Brust",
+    "var_kurz1": "25BR",
+    "var_kurz2": "25 Brust",
+    "var_formel": "12*(((100/(1,2*(4*x-13,7)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25b.png",
+    "var_kuerzel": "Ctrl+Shift+Y",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 69,
+    "int_sportid": 5,
+    "var_name": "25 m Brust",
+    "var_kurz1": "25BR",
+    "var_kurz2": "25 Brust",
+    "var_formel": "12*(((100/(1,2*(4*x-13,7)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25b.png",
+    "var_kuerzel": "Ctrl+Shift+Y",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 28,
+    "int_sportid": 5,
+    "var_name": "25 m Kraul",
+    "var_kurz1": "25KR",
+    "var_kurz2": "25 Kraul",
+    "var_formel": "12*(((100/(1,2*(4*x+6,3)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25k.png",
+    "var_kuerzel": "Ctrl+Shift+V",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 59,
+    "int_sportid": 5,
+    "var_name": "25 m Kraul",
+    "var_kurz1": "25KR",
+    "var_kurz2": "25 Kraul",
+    "var_formel": "12*(((100/(1,2*(4*x+6,3)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25k.png",
+    "var_kuerzel": "Ctrl+Shift+V",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 43,
+    "int_sportid": 5,
+    "var_name": "25 m Rücken",
+    "var_kurz1": "25RÜ",
+    "var_kurz2": "25 Rücken",
+    "var_formel": "12*(((100/(1,2*(4*x-5,7)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25r.png",
+    "var_kuerzel": "Ctrl+Shift+M",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 33,
+    "int_sportid": 5,
+    "var_name": "25 m Rücken",
+    "var_kurz1": "25RÜ",
+    "var_kurz2": "25 Rücken",
+    "var_formel": "12*(((100/(1,2*(4*x-5,7)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25r.png",
+    "var_kuerzel": "Ctrl+Shift+M",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 47,
+    "int_sportid": 5,
+    "var_name": "25 m Schmetterling",
+    "var_kurz1": "25SM",
+    "var_kurz2": "25 Schmetterling",
+    "var_formel": "12*(((100/(1,2*(4*x-1,7)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25s.png",
+    "var_kuerzel": "Ctrl+Shift+F3",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 35,
+    "int_sportid": 5,
+    "var_name": "25 m Schmetterling",
+    "var_kurz1": "25SM",
+    "var_kurz2": "25 Schmetterling",
+    "var_formel": "12*(((100/(1,2*(4*x-1,7)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25s.png",
+    "var_kuerzel": "Ctrl+Shift+F3",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 19,
+    "int_sportid": 5,
+    "var_name": "25 m Streckentauchen",
+    "var_kurz1": "25TAU",
+    "var_kurz2": "25 Tauchen",
+    "var_formel": "12*(((100/(1,2*(4*x-2,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25t.png",
+    "var_kuerzel": "Ctrl+Shift+F8",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 15,
+    "int_sportid": 5,
+    "var_name": "25 m Streckentauchen",
+    "var_kurz1": "25TAU",
+    "var_kurz2": "25 Tauchen",
+    "var_formel": "12*(((100/(1,2*(4*x+1,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/25t.png",
+    "var_kuerzel": "Ctrl+Shift+F8",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 40,
+    "int_sportid": 5,
+    "var_name": "50 m Brust",
+    "var_kurz1": "50BR",
+    "var_kurz2": "50 Brust",
+    "var_formel": "12*(((100/(1,2*(2*x-18,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50b.png",
+    "var_kuerzel": "Ctrl+Shift+X",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 30,
+    "int_sportid": 5,
+    "var_name": "50 m Brust",
+    "var_kurz1": "50BR",
+    "var_kurz2": "50 Brust",
+    "var_formel": "12*(((100/(1,2*(2*x-10,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50b.png",
+    "var_kuerzel": "Ctrl+Shift+X",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 56,
+    "int_sportid": 5,
+    "var_name": "50 m Kraul",
+    "var_kurz1": "50KR",
+    "var_kurz2": "50 Kraul",
+    "var_formel": "12*(((100/(1,2*(2*x+3,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50k.png",
+    "var_kuerzel": "Ctrl+Shift+B",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 38,
+    "int_sportid": 5,
+    "var_name": "50 m Kraul",
+    "var_kurz1": "50KR",
+    "var_kurz2": "50 Kraul",
+    "var_formel": "12*(((100/(1,2*(2*x-2,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50k.png",
+    "var_kuerzel": "Ctrl+Shift+B",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 60,
+    "int_sportid": 5,
+    "var_name": "50 m Rücken",
+    "var_kurz1": "50RÜ",
+    "var_kurz2": "50 Rücken",
+    "var_formel": "12*(((100/(1,2*(2*x-10,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50r.png",
+    "var_kuerzel": "Ctrl+Shift+F1",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 32,
+    "int_sportid": 5,
+    "var_name": "50 m Rücken",
+    "var_kurz1": "50RÜ",
+    "var_kurz2": "50 Rücken",
+    "var_formel": "12*(((100/(1,2*(2*x-4,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50r.png",
+    "var_kuerzel": "Ctrl+Shift+F1",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 34,
+    "int_sportid": 5,
+    "var_name": "50 m Schmetterling",
+    "var_kurz1": "50SM",
+    "var_kurz2": "50 Schmetterling",
+    "var_formel": "12*(((100/(1,2*(2*x-1,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50s.png",
+    "var_kuerzel": "Ctrl+Shift+F4",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 61,
+    "int_sportid": 5,
+    "var_name": "50 m Schmetterling",
+    "var_kurz1": "50SM",
+    "var_kurz2": "50 Schmetterling",
+    "var_formel": "12*(((100/(1,2*(2*x-7,5)))-0,3))",
+    "var_maske": "00:00.00",
+    "int_versuche": 1,
+    "var_icon": ":/icons/50s.png",
+    "var_kuerzel": "Ctrl+Shift+F4",
+    "int_berechnung": 2,
+    "var_einheit": null,
+    "bol_bahnen": true,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 5,
+      "var_name": "Schwimmen"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 52,
+    "int_sportid": 6,
+    "var_name": "Ball",
+    "var_kurz1": "BALL",
+    "var_kurz2": "Ball",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/g-ball.png",
+    "var_kuerzel": "",
+    "int_berechnung": 3,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 6,
+      "var_name": "Gymnastik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 62,
+    "int_sportid": 6,
+    "var_name": "Band",
+    "var_kurz1": "BAND",
+    "var_kurz2": "Band",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/band.png",
+    "var_kuerzel": "",
+    "int_berechnung": 3,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 6,
+      "var_name": "Gymnastik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 63,
+    "int_sportid": 6,
+    "var_name": "Keule",
+    "var_kurz1": "KEUL",
+    "var_kurz2": "Keule",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/keule.png",
+    "var_kuerzel": "",
+    "int_berechnung": 3,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 6,
+      "var_name": "Gymnastik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 65,
+    "int_sportid": 6,
+    "var_name": "Reifen",
+    "var_kurz1": "REIF",
+    "var_kurz2": "Reifen",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": ":/icons/reifen.png",
+    "var_kuerzel": "",
+    "int_berechnung": 3,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 6,
+      "var_name": "Gymnastik"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 78,
+    "int_sportid": 9,
+    "var_name": "Alter",
+    "var_kurz1": "ALTER",
+    "var_kurz2": "alt",
+    "var_formel": "1*x",
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 2,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 9,
+      "var_name": "Alter"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 15,
+        "int_disziplinenid": 78,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 16,
+        "int_disziplinenid": 78,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 17,
+        "int_disziplinenid": 78,
+        "var_name": "Übung",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 18,
+        "int_disziplinenid": 78,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 79,
+    "int_sportid": 10,
+    "var_name": "BalanceUndTreffen",
+    "var_kurz1": "BAL_TR",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "000",
+    "int_versuche": 1,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 2,
+    "bol_berechnen": false,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": {
+      "int_formelid": 2,
+      "var_name": "testFitnesstreff",
+      "var_formel": "A+B",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 12,
+        "int_disziplinenid": 79,
+        "var_name": "A",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 13,
+        "int_disziplinenid": 79,
+        "var_name": "B",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 14,
+        "int_disziplinenid": 79,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 83,
+    "int_sportid": 10,
+    "var_name": "Ball Weitwurf",
+    "var_kurz1": "WEITWU",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 2,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": false,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 87,
+    "int_sportid": 10,
+    "var_name": "Eckkegeln",
+    "var_kurz1": "ECK_KE",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 3,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 84,
+    "int_sportid": 10,
+    "var_name": "Fitnesstest",
+    "var_kurz1": "FIT_TE",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 1,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": false,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 86,
+    "int_sportid": 10,
+    "var_name": "Koordinationsübung",
+    "var_kurz1": "KOORD",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "000",
+    "int_versuche": 1,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 80,
+    "int_sportid": 10,
+    "var_name": "Rumpfvorbeuge",
+    "var_kurz1": "RUMPFV",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 2,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "cm",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 82,
+    "int_sportid": 10,
+    "var_name": "Standweitsprung",
+    "var_kurz1": "",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "00.000",
+    "int_versuche": 2,
+    "var_icon": ":/icons/weitstand.png",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "m",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 85,
+    "int_sportid": 10,
+    "var_name": "Werfen und Fangen",
+    "var_kurz1": "WER_FA",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "000",
+    "int_versuche": 1,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": null,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": null,
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 81,
+    "int_sportid": 10,
+    "var_name": "Zielwurf",
+    "var_kurz1": "ZIELW",
+    "var_kurz2": "",
+    "var_formel": "1*x",
+    "var_maske": "000",
+    "int_versuche": 5,
+    "var_icon": "",
+    "var_kuerzel": "",
+    "int_berechnung": 0,
+    "var_einheit": "",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": false,
+    "int_formelid": 1,
+    "bol_berechnen": false,
+    "tfx_sport": {
+      "int_sportid": 10,
+      "var_name": "Fitnesstreff"
+    },
+    "tfx_formeln": {
+      "int_formelid": 1,
+      "var_name": "Zielwurf Summe",
+      "var_formel": "A+B+C+D+E",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 6,
+        "int_disziplinenid": 81,
+        "var_name": "Wert 1",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 7,
+        "int_disziplinenid": 81,
+        "var_name": "Wert 2",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 8,
+        "int_disziplinenid": 81,
+        "var_name": "Wert 3",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 9,
+        "int_disziplinenid": 81,
+        "var_name": "Wert 4",
+        "int_sortierung": 4,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      },
+      {
+        "int_disziplinen_felderid": 10,
+        "int_disziplinenid": 81,
+        "var_name": "Wert 5",
+        "int_sortierung": 5,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": false
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 306,
+    "int_sportid": 11,
+    "var_name": "AK",
+    "var_kurz1": "AK   ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 6,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 6,
+      "var_name": "AK",
+      "var_formel": "Ausgangswert - Ausführungsabzüge - Sonstige Abzüge",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 343,
+    "int_sportid": 11,
+    "var_name": "Boden AK",
+    "var_kurz1": "BODAK ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 6,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 6,
+      "var_name": "AK",
+      "var_formel": "Ausgangswert - Ausführungsabzüge - Sonstige Abzüge",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 939,
+        "int_disziplinenid": 343,
+        "var_name": "Ausgangswert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": true,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 940,
+        "int_disziplinenid": 343,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 941,
+        "int_disziplinenid": 343,
+        "var_name": "AbzugSonst.",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 942,
+        "int_disziplinenid": 343,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 317,
+    "int_sportid": 11,
+    "var_name": "Boden m. Kür",
+    "var_kurz1": "BODEN",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 843,
+        "int_disziplinenid": 317,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 844,
+        "int_disziplinenid": 317,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 845,
+        "int_disziplinenid": 317,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 846,
+        "int_disziplinenid": 317,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 302,
+    "int_sportid": 11,
+    "var_name": "Boden w",
+    "var_kurz1": "BODEN",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 323,
+    "int_sportid": 11,
+    "var_name": "Boden w. Kür",
+    "var_kurz1": "BODEN",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 307,
+    "int_sportid": 11,
+    "var_name": "KM",
+    "var_kurz1": "KM   ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 308,
+    "int_sportid": 11,
+    "var_name": "KM2",
+    "var_kurz1": "KM2  ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 309,
+    "int_sportid": 11,
+    "var_name": "KM3",
+    "var_kurz1": "KM3  ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 318,
+    "int_sportid": 11,
+    "var_name": "P.-Pferd Kür",
+    "var_kurz1": "PFERD",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/seitpferd.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 847,
+        "int_disziplinenid": 318,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 848,
+        "int_disziplinenid": 318,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 849,
+        "int_disziplinenid": 318,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 850,
+        "int_disziplinenid": 318,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 321,
+    "int_sportid": 11,
+    "var_name": "Par.-Barren Kür",
+    "var_kurz1": "BARREN",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 859,
+        "int_disziplinenid": 321,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 860,
+        "int_disziplinenid": 321,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 861,
+        "int_disziplinenid": 321,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 862,
+        "int_disziplinenid": 321,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 322,
+    "int_sportid": 11,
+    "var_name": "Reck m. Kür",
+    "var_kurz1": "RECK",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/reck.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 863,
+        "int_disziplinenid": 322,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 864,
+        "int_disziplinenid": 322,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 865,
+        "int_disziplinenid": 322,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 866,
+        "int_disziplinenid": 322,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 319,
+    "int_sportid": 11,
+    "var_name": "Ringe m.",
+    "var_kurz1": "RINGE",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/ringe.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 851,
+        "int_disziplinenid": 319,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 852,
+        "int_disziplinenid": 319,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 853,
+        "int_disziplinenid": 319,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 854,
+        "int_disziplinenid": 319,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 301,
+    "int_sportid": 11,
+    "var_name": "Schwebebalken",
+    "var_kurz1": "BALKN",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/balken.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 320,
+    "int_sportid": 11,
+    "var_name": "Sprung m. Kür",
+    "var_kurz1": "SPRNG",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 855,
+        "int_disziplinenid": 320,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 856,
+        "int_disziplinenid": 320,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 857,
+        "int_disziplinenid": 320,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 858,
+        "int_disziplinenid": 320,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 300,
+    "int_sportid": 11,
+    "var_name": "Sprung w",
+    "var_kurz1": "SPRNG",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 324,
+    "int_sportid": 11,
+    "var_name": "Sprung w. Kür",
+    "var_kurz1": "SPRNG",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 11,
+      "var_name": "Turnen DTB"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 312,
+    "int_sportid": 12,
+    "var_name": "Balken/Bank Turn10® Basis",
+    "var_kurz1": "BLKT10",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/balken.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 828,
+        "int_disziplinenid": 312,
+        "var_name": "Wert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 829,
+        "int_disziplinenid": 312,
+        "var_name": "Abzug",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 830,
+        "int_disziplinenid": 312,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 311,
+    "int_sportid": 12,
+    "var_name": "Boden Turn10® Basis",
+    "var_kurz1": "BODT10",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 825,
+        "int_disziplinenid": 311,
+        "var_name": "Wert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 826,
+        "int_disziplinenid": 311,
+        "var_name": "Abzug",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 827,
+        "int_disziplinenid": 311,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 314,
+    "int_sportid": 12,
+    "var_name": "Minitrampolin Turn10® Basis",
+    "var_kurz1": "MNTT10",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/minitrampolin.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 834,
+        "int_disziplinenid": 314,
+        "var_name": "Wert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 835,
+        "int_disziplinenid": 314,
+        "var_name": "Abzug",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 836,
+        "int_disziplinenid": 314,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 313,
+    "int_sportid": 12,
+    "var_name": "P-Barren Turn10® Basis",
+    "var_kurz1": "PBRT10",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 831,
+        "int_disziplinenid": 313,
+        "var_name": "Wert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 832,
+        "int_disziplinenid": 313,
+        "var_name": "Abzug",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 833,
+        "int_disziplinenid": 313,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 315,
+    "int_sportid": 12,
+    "var_name": "Reck/St-Barren Turn10® Basis",
+    "var_kurz1": "RKST10",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/reck.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 837,
+        "int_disziplinenid": 315,
+        "var_name": "Wert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 838,
+        "int_disziplinenid": 315,
+        "var_name": "Abzug",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 839,
+        "int_disziplinenid": 315,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 316,
+    "int_sportid": 12,
+    "var_name": "Sprung Turn10® Basis",
+    "var_kurz1": "SPRT10",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 840,
+        "int_disziplinenid": 316,
+        "var_name": "Wert",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 841,
+        "int_disziplinenid": 316,
+        "var_name": "Abzug",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 842,
+        "int_disziplinenid": 316,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 310,
+    "int_sportid": 12,
+    "var_name": "Turn10",
+    "var_kurz1": "TURN1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 12,
+      "var_name": "Turnen DTB Turn10"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 325,
+    "int_sportid": 13,
+    "var_name": "Boden m. LK1",
+    "var_kurz1": "BODLK1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 867,
+        "int_disziplinenid": 325,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 868,
+        "int_disziplinenid": 325,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 869,
+        "int_disziplinenid": 325,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 870,
+        "int_disziplinenid": 325,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 331,
+    "int_sportid": 13,
+    "var_name": "Boden m. LK2",
+    "var_kurz1": "BODLK2",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 891,
+        "int_disziplinenid": 331,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 892,
+        "int_disziplinenid": 331,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 893,
+        "int_disziplinenid": 331,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 894,
+        "int_disziplinenid": 331,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 337,
+    "int_sportid": 13,
+    "var_name": "Boden m. LK3",
+    "var_kurz1": "BODLK3",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 915,
+        "int_disziplinenid": 337,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 916,
+        "int_disziplinenid": 337,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 917,
+        "int_disziplinenid": 337,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 918,
+        "int_disziplinenid": 337,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 303,
+    "int_sportid": 13,
+    "var_name": "LK1",
+    "var_kurz1": "LK1  ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 304,
+    "int_sportid": 13,
+    "var_name": "LK2",
+    "var_kurz1": "LK2  ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 305,
+    "int_sportid": 13,
+    "var_name": "LK3",
+    "var_kurz1": "LK3  ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/boden.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": []
+  },
+  {
+    "int_disziplinenid": 326,
+    "int_sportid": 13,
+    "var_name": "P.-Pferd LK1",
+    "var_kurz1": "PFRLK1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/seitpferd.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 871,
+        "int_disziplinenid": 326,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 872,
+        "int_disziplinenid": 326,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 873,
+        "int_disziplinenid": 326,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 874,
+        "int_disziplinenid": 326,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 332,
+    "int_sportid": 13,
+    "var_name": "P.-Pferd LK2",
+    "var_kurz1": "PFRLK2",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/seitpferd.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 895,
+        "int_disziplinenid": 332,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 896,
+        "int_disziplinenid": 332,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 897,
+        "int_disziplinenid": 332,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 898,
+        "int_disziplinenid": 332,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 338,
+    "int_sportid": 13,
+    "var_name": "P.-Pferd LK3",
+    "var_kurz1": "PFRLK3",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/seitpferd.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 919,
+        "int_disziplinenid": 338,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 920,
+        "int_disziplinenid": 338,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 921,
+        "int_disziplinenid": 338,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 922,
+        "int_disziplinenid": 338,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 329,
+    "int_sportid": 13,
+    "var_name": "Par.-Barren LK1",
+    "var_kurz1": "PBRLK1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 883,
+        "int_disziplinenid": 329,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 884,
+        "int_disziplinenid": 329,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 885,
+        "int_disziplinenid": 329,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 886,
+        "int_disziplinenid": 329,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 335,
+    "int_sportid": 13,
+    "var_name": "Par.-Barren LK2",
+    "var_kurz1": "PBRLK2",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 907,
+        "int_disziplinenid": 335,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 908,
+        "int_disziplinenid": 335,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 909,
+        "int_disziplinenid": 335,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 910,
+        "int_disziplinenid": 335,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 341,
+    "int_sportid": 13,
+    "var_name": "Par.-Barren LK3",
+    "var_kurz1": "PBRLK3",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 931,
+        "int_disziplinenid": 341,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 932,
+        "int_disziplinenid": 341,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 933,
+        "int_disziplinenid": 341,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 934,
+        "int_disziplinenid": 341,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 330,
+    "int_sportid": 13,
+    "var_name": "Reck m. LK1",
+    "var_kurz1": "REKLK1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/reck.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 887,
+        "int_disziplinenid": 330,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 888,
+        "int_disziplinenid": 330,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 889,
+        "int_disziplinenid": 330,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 890,
+        "int_disziplinenid": 330,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 336,
+    "int_sportid": 13,
+    "var_name": "Reck m. LK2",
+    "var_kurz1": "REKLK2",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/reck.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 911,
+        "int_disziplinenid": 336,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 912,
+        "int_disziplinenid": 336,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 913,
+        "int_disziplinenid": 336,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 914,
+        "int_disziplinenid": 336,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 342,
+    "int_sportid": 13,
+    "var_name": "Reck m. LK3",
+    "var_kurz1": "REKLK3",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/reck.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 935,
+        "int_disziplinenid": 342,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 936,
+        "int_disziplinenid": 342,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 937,
+        "int_disziplinenid": 342,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 938,
+        "int_disziplinenid": 342,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 327,
+    "int_sportid": 13,
+    "var_name": "Ringe LK1",
+    "var_kurz1": "RINLK1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/ringe.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 875,
+        "int_disziplinenid": 327,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 876,
+        "int_disziplinenid": 327,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 877,
+        "int_disziplinenid": 327,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 878,
+        "int_disziplinenid": 327,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 333,
+    "int_sportid": 13,
+    "var_name": "Ringe LK2",
+    "var_kurz1": "RINLK2",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/ringe.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 899,
+        "int_disziplinenid": 333,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 900,
+        "int_disziplinenid": 333,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 901,
+        "int_disziplinenid": 333,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 902,
+        "int_disziplinenid": 333,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 339,
+    "int_sportid": 13,
+    "var_name": "Ringe LK3",
+    "var_kurz1": "RINLK3",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/ringe.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 923,
+        "int_disziplinenid": 339,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 924,
+        "int_disziplinenid": 339,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 925,
+        "int_disziplinenid": 339,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 926,
+        "int_disziplinenid": 339,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 328,
+    "int_sportid": 13,
+    "var_name": "Sprung m. LK1",
+    "var_kurz1": "SPRLK1",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 879,
+        "int_disziplinenid": 328,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 880,
+        "int_disziplinenid": 328,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 881,
+        "int_disziplinenid": 328,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 882,
+        "int_disziplinenid": 328,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 334,
+    "int_sportid": 13,
+    "var_name": "Sprung m. LK2",
+    "var_kurz1": "SPRLK2",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 903,
+        "int_disziplinenid": 334,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 904,
+        "int_disziplinenid": 334,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 905,
+        "int_disziplinenid": 334,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 906,
+        "int_disziplinenid": 334,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 340,
+    "int_sportid": 13,
+    "var_name": "Sprung m. LK3",
+    "var_kurz1": "SPRLK3",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 7,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 13,
+      "var_name": "Turnen DTB LK"
+    },
+    "tfx_formeln": {
+      "int_formelid": 7,
+      "var_name": "LK",
+      "var_formel": "D-Note + E-Note - N-Abzuege",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 927,
+        "int_disziplinenid": 340,
+        "var_name": "D-Note",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 928,
+        "int_disziplinenid": 340,
+        "var_name": "E-Note",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 929,
+        "int_disziplinenid": 340,
+        "var_name": "N-Abzuege",
+        "int_sortierung": 3,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 930,
+        "int_disziplinenid": 340,
+        "var_name": "Endwert",
+        "int_sortierung": 4,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 348,
+    "int_sportid": 14,
+    "var_name": "Par.-Barren P1-P9",
+    "var_kurz1": "PBARP ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/barren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 955,
+        "int_disziplinenid": 348,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 956,
+        "int_disziplinenid": 348,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 957,
+        "int_disziplinenid": 348,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 345,
+    "int_sportid": 14,
+    "var_name": "Pauschenpferd P1-P9",
+    "var_kurz1": "PFERP ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/seitpferd.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 946,
+        "int_disziplinenid": 345,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 947,
+        "int_disziplinenid": 345,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 948,
+        "int_disziplinenid": 345,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 349,
+    "int_sportid": 14,
+    "var_name": "Reck m. P1-P9",
+    "var_kurz1": "RECKP ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/reck.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 958,
+        "int_disziplinenid": 349,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 959,
+        "int_disziplinenid": 349,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 960,
+        "int_disziplinenid": 349,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 351,
+    "int_sportid": 14,
+    "var_name": "Reck/StuBa. P1-P9",
+    "var_kurz1": "RKSBP ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/stufenbarren.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 964,
+        "int_disziplinenid": 351,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 965,
+        "int_disziplinenid": 351,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 966,
+        "int_disziplinenid": 351,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 346,
+    "int_sportid": 14,
+    "var_name": "Ringe P1-P9",
+    "var_kurz1": "RINGEP",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/ringe.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 949,
+        "int_disziplinenid": 346,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 950,
+        "int_disziplinenid": 346,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 951,
+        "int_disziplinenid": 346,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 352,
+    "int_sportid": 14,
+    "var_name": "Schwebebalken P1-P9",
+    "var_kurz1": "BALKP ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/balken.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 967,
+        "int_disziplinenid": 352,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 968,
+        "int_disziplinenid": 352,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 969,
+        "int_disziplinenid": 352,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 347,
+    "int_sportid": 14,
+    "var_name": "Sprung m. P1-P9",
+    "var_kurz1": "SPRP  ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": true,
+    "bol_w": false,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 952,
+        "int_disziplinenid": 347,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 953,
+        "int_disziplinenid": 347,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 954,
+        "int_disziplinenid": 347,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  },
+  {
+    "int_disziplinenid": 350,
+    "int_sportid": 14,
+    "var_name": "Sprung w. P1-P9",
+    "var_kurz1": "SPRWP ",
+    "var_kurz2": null,
+    "var_formel": null,
+    "var_maske": "0.00",
+    "int_versuche": 1,
+    "var_icon": "/icons/sprung.png",
+    "var_kuerzel": null,
+    "int_berechnung": 2,
+    "var_einheit": "Pkt.",
+    "bol_bahnen": false,
+    "bol_m": false,
+    "bol_w": true,
+    "int_formelid": 5,
+    "bol_berechnen": true,
+    "tfx_sport": {
+      "int_sportid": 14,
+      "var_name": "Turnen DTB P"
+    },
+    "tfx_formeln": {
+      "int_formelid": 5,
+      "var_name": "P-Wettkampf",
+      "var_formel": "(10+Uebungsstufe) - AbzugAusfuehrung",
+      "int_typ": 0
+    },
+    "tfx_disziplinen_felder": [
+      {
+        "int_disziplinen_felderid": 961,
+        "int_disziplinenid": 350,
+        "var_name": "Stufe",
+        "int_sortierung": 1,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 962,
+        "int_disziplinenid": 350,
+        "var_name": "AbzugAusf.",
+        "int_sortierung": 2,
+        "bol_endwert": false,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      },
+      {
+        "int_disziplinen_felderid": 963,
+        "int_disziplinenid": 350,
+        "var_name": "Endwert",
+        "int_sortierung": 3,
+        "bol_endwert": true,
+        "bol_ausgangswert": false,
+        "int_gruppe": 1,
+        "bol_enabled": true
+      }
+    ]
+  }
+]

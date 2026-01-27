@@ -5733,6 +5733,18 @@ Dependencies added:
 
 
 Für den DB Wizard wurde eine neue UI imporiert: @headlessui/react'
-Die UI gefällt mir ganz gut aber ist das wirklich notwendig da wir in vielen anderen UIs schon andere modale dialoge verwenden... 
+Die UI gefällt mir ganz gut aber ist das wirklich notwendig da wir in vielen anderen UIs schon andere modale dialoge verwenden... -> Erledigt 
 
 Der wizard muss erweitert werden um alle Sportarten (Gymnastik, Leichtathletik, Schwimmen, Rope-Skipping, Turnen) welche in der DB "Turnfix" vorhanden sind. Hierbei muss alles (Name, Kurzname, Anzeigename, Benutzerdefinierte Formel, Berechnungstyp, Eingabemaske, Versuche, Einheit, Symbol, Tastenkürzel, Sportart, Geschlecht, Bahneinteilung, ... ) von den Sportarten übernommen werden. Hierfür sollte es einen separaten Wizard Step geben welcher auch übersprungen werden könnte. 
+-> erledigt 
+
+für den Status sollte es ebenfalls einen Wizardstep geben "Status Management"
+-> erledigt 
+
+Beim erstellen einer DB ist der Workflow aktuell seltsam. 
+ Umbenennen -> Viele connection fehler wegen irgend einem Reconnect-> irgendwann ist alles gut -> erstellen drücken 
+Besser wäre vielleicht: 
+  -> in dem Wizard eine Textbox mit dem "Neue DB Name" 
+  -> Dann erstellen drücken 
+  -> in dem Wizard die erstellung abwarten 
+  -> neuer DB name in den Einstellungen übernehmen 

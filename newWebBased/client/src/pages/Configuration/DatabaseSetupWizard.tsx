@@ -28,6 +28,30 @@ interface DatabaseSetupWizardProps {
     };
     error?: string;
   }>;
+  onImportProductionDisciplines: () => Promise<{
+    success: boolean;
+    message?: string;
+    stats?: {
+      createdSports: number;
+      createdFormulas: number;
+      totalFormulas: number;
+      createdDisciplines: number;
+      createdFields: number;
+      skippedDisciplines: number;
+      totalDisciplines: number;
+    };
+    error?: string;
+  }>;
+  onImportProductionStatuses: () => Promise<{
+    success: boolean;
+    message?: string;
+    stats?: {
+      createdStatuses: number;
+      skippedStatuses: number;
+      totalStatuses: number;
+    };
+    error?: string;
+  }>;
 }
 
 type StepStatus = 'pending' | 'running' | 'success' | 'error' | 'skipped';
@@ -48,7 +72,9 @@ export default function DatabaseSetupWizard({
   onCreateDatabase,
   onTestConnection,
   onCreateSchema,
-  onApplyGymNetPreset
+  onApplyGymNetPreset,
+  onImportProductionDisciplines,
+  onImportProductionStatuses
 }: DatabaseSetupWizardProps) {
   const { t } = useTranslation();
   
@@ -78,9 +104,25 @@ export default function DatabaseSetupWizard({
       output: []
     },
     {
+      id: 'production-statuses',
+      title: 'Status Management importieren',
+      description: 'Importiert 10 Status-Typen für Teilnehmer-Tracking (z.B. "Meldung erfasst", "Leistungen erfasst", "Urkunde gedruckt")',
+      status: 'pending',
+      optional: true,
+      output: []
+    },
+    {
+      id: 'production-disciplines',
+      title: 'Produktions-Disziplinen importieren',
+      description: 'Importiert alle 139 Disziplinen aus 12 Sportarten (Turnen, Leichtathletik, Schwimmen, etc.) - Empfohlen!',
+      status: 'pending',
+      optional: true,
+      output: []
+    },
+    {
       id: 'gymnet-preset',
       title: t('configuration.wizard.gymnetPreset') || 'GymNet-Voreinstellungen',
-      description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit Geräten und Formeln (optional)',
+      description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit zusätzlichen GymNet-spezifischen Geräten und Formeln (optional)',
       status: 'pending',
       optional: true,
       output: []
@@ -139,8 +181,8 @@ export default function DatabaseSetupWizard({
       }
     }
     
-    // Special rule: GymNet preset (step 3) requires schema (step 2) to be explicitly successful
-    if (stepIndex === 3) {
+    // Special rule: Production disciplines (step 3) and GymNet preset (step 4) require schema (step 2) to be explicitly successful
+    if (stepIndex === 3 || stepIndex === 4) {
       const schemaStep = steps[2];
       if (schemaStep.status !== 'success') {
         return false; // Schema must be successfully created, not skipped
@@ -205,6 +247,43 @@ export default function DatabaseSetupWizard({
             updateStepStatus(stepId, 'success');
           } else {
             throw new Error(result.error || result.message || 'Fehler beim Erstellen des Schemas');
+          }
+          break;
+
+        case 'production-statuses':
+          addStepOutput(stepId, '⏳ Status Management wird importiert...');
+          result = await onImportProductionStatuses();
+          if (result.success) {
+            addStepOutput(stepId, '✅ Status Management erfolgreich importiert');
+            if (result.stats) {
+              addStepOutput(stepId, `  📊 ${result.stats.createdStatuses}/${result.stats.totalStatuses} Status-Typen angelegt`);
+              if (result.stats.skippedStatuses > 0) {
+                addStepOutput(stepId, `  ℹ️ ${result.stats.skippedStatuses} Status-Typen übersprungen (bereits vorhanden)`);
+              }
+            }
+            updateStepStatus(stepId, 'success');
+          } else {
+            throw new Error(result.error || result.message || 'Fehler beim Importieren der Status-Typen');
+          }
+          break;
+
+        case 'production-disciplines':
+          addStepOutput(stepId, '⏳ Produktions-Disziplinen werden importiert...');
+          result = await onImportProductionDisciplines();
+          if (result.success) {
+            addStepOutput(stepId, '✅ Produktions-Disziplinen erfolgreich importiert');
+            if (result.stats) {
+              addStepOutput(stepId, `  📊 ${result.stats.createdSports} neue Sportarten angelegt`);
+              addStepOutput(stepId, `  📊 ${result.stats.createdFormulas}/${result.stats.totalFormulas} Formeln angelegt`);
+              addStepOutput(stepId, `  📊 ${result.stats.createdDisciplines}/${result.stats.totalDisciplines} Disziplinen importiert`);
+              addStepOutput(stepId, `  📊 ${result.stats.createdFields} Felder angelegt`);
+              if (result.stats.skippedDisciplines > 0) {
+                addStepOutput(stepId, `  ℹ️ ${result.stats.skippedDisciplines} Disziplinen übersprungen (bereits vorhanden)`);
+              }
+            }
+            updateStepStatus(stepId, 'success');
+          } else {
+            throw new Error(result.error || result.message || 'Fehler beim Importieren der Produktions-Disziplinen');
           }
           break;
 

@@ -4,7 +4,7 @@
     "db_port": 5432,
     "db_name": "turnfix",
     "db_user": "postgres",
-    "db_password": "0e5b7c0a8187d371032a900248d35e1d:6a8b9974aba5144b672d3f8e0c88da30",
+    "db_password": "b3950a33d9a6c4df2a85ae3273595cdf:6973fab06e4631907caddc26496f8542",
     "db_ssl": false
   },
   "application": {
