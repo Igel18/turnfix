@@ -1392,6 +1392,43 @@
     "editFormula": "Formel bearbeiten",
     "deleteFormula": "Formel löschen",
     "formulasLoaded": "Formeln geladen",
+    "createFormula": "Formel erstellen",
+    "updateFormula": "Formel aktualisieren",
+    "fields": {
+      "name": "Formelname",
+      "namePlaceholder": "Formelnamen eingeben",
+      "code": "Formel-Code",
+      "codePlaceholder": "z.B. (10 + A) - B  oder  A + B - C",
+      "type": "Typ",
+      "typeDescription": "Der Formeltyp dient zur Kategorisierung und Filterung. Standard-Formeln sind vordefinierte Formeln wie P-Wettkampf, LK, AK. Benutzerdefinierte Formeln sind eigene Varianten. Erweiterte Formeln verwenden komplexe Berechnungen.",
+      "typeCurrent": "Aktuell",
+      "id": "Formel-ID:",
+      "usedBy": "Verwendet von:",
+      "disciplines": "Disziplinen"
+    },
+    "types": {
+      "type0": "Standard",
+      "type1": "Benutzerdefiniert",
+      "type2": "Erweitert"
+    },
+    "help": {
+      "syntaxTitle": "Formelsyntax-Regeln",
+      "rule1Title": "Nur Großbuchstaben verwenden:",
+      "rule1": "A, B, C, D, E, ... (nur einzelne Buchstaben)",
+      "rule2Title": "Variablen werden Feldern nach Sortierung zugeordnet:",
+      "rule2": "A = 1. Feld, B = 2. Feld, C = 3. Feld, usw.",
+      "rule3Title": "KEINE Feldnamen verwenden",
+      "rule3": "wie \"Stufe\" oder \"AbzugAusf.\" - nur Buchstaben verwenden",
+      "rule4Title": "Zahlen & Konstanten:",
+      "rule4": "Zahlen sind in Formeln erlaubt, z.B. (10 + A) - B",
+      "rule5Title": "Operatoren:",
+      "rule5": "+ (addieren), - (subtrahieren), * (multiplizieren), / (dividieren), () (Klammern)",
+      "example1Title": "Beispiel P-Wettkampf:",
+      "example1": "wobei A=Stufe, B=AbzugAusf.",
+      "example2Title": "Beispiel LK:",
+      "example2": "wobei A=D-Note, B=E-Note, C=N-Abzüge",
+      "warning": "⚠️ Die Formel kennt KEINE Feldnamen - nur Buchstabenvariablen (A, B, C), die automatisch den Disziplinfeldern nach deren Sortierreihenfolge zugeordnet werden."
+    },
     "table": {
       "name": "Name",
       "formula": "Formel",

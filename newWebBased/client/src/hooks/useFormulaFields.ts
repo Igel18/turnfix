@@ -96,7 +96,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
 
   // Load discipline fields for letter-based formulas
   useEffect(() => {
-    if (!disciplineId || hasLowercaseVariables || formulaType === 'none') {
+    if (!disciplineId || hasLowercaseVariables) {
       return;
     }
 
@@ -159,7 +159,9 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
   // Parse variable-based formulas
   useEffect(() => {
     if (!effectiveFormula || formulaType !== 'variable') {
-      if (formulaType === 'none') {
+      // Don't clear fields if formulaType is 'none' and we have disciplineId
+      // (fields will be loaded from discipline-fields endpoint)
+      if (formulaType === 'none' && !disciplineId) {
         setFields([]);
       }
       return;

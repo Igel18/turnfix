@@ -48,10 +48,9 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
     calculatedResult,
     formulaError,
     loadingFormula,
+    effectiveFormula,
     updateFieldValue,
-    normalizeFieldValue,
-    getFieldOperator,
-    getFieldLetterLabel
+    normalizeFieldValue
   } = useFormulaFields({
     formula,
     formulaId,
@@ -89,77 +88,161 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
           {/* Formula Breakdown with Inline Inputs */}
           <div className="p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl border-2 border-purple-300 shadow-sm">
             <div className="flex flex-wrap items-center justify-center gap-3">
-              {fields.map((field, index) => {
-                const showEquals = field.isFinalScore && index > 0;
-                
-                // Get field letter (A, B, C, etc.) for non-final fields
-                const nonFinalFields = fields.filter(f => !f.isFinalScore);
-                const nonFinalIndex = nonFinalFields.findIndex(f => f.id === field.id);
-                const fieldLetter = nonFinalIndex >= 0 ? getFieldLetterLabel(nonFinalIndex) : '';
-                
-                // Get operator after this field
-                const operatorAfter = nonFinalIndex >= 0 && nonFinalIndex < nonFinalFields.length - 1
-                  ? getFieldOperator(nonFinalIndex) 
-                  : '';
-                
-                // For final score, show calculated result
-                const isFinalScoreWithResult = field.isFinalScore && calculatedResult !== null;
-                const displayValue = isFinalScoreWithResult
-                  ? calculatedResult.toFixed(calculationType === 2 ? 2 : 3).replace('.', ',')
-                  : field.value;
-                
-                return (
-                  <React.Fragment key={field.id}>
-                    {/* Show = before final score */}
-                    {showEquals && (
-                      <div className="text-3xl font-bold text-purple-600 px-2">=</div>
-                    )}
+              {effectiveFormula ? (
+                // Show formula with constants and operators
+                (() => {
+                  // Parse formula to extract constants and structure
+                  const nonFinalFields = fields.filter(f => !f.isFinalScore);
+                  const formulaParts: Array<{type: 'constant' | 'field' | 'equals', content: string, fieldIndex?: number}> = [];
+                  
+                  let remainingFormula = effectiveFormula;
+                  
+                  // Find each letter variable in order
+                  nonFinalFields.forEach((_field, index) => {
+                    const letter = String.fromCharCode(65 + index); // A, B, C...
+                    const regex = new RegExp(`\\b${letter}\\b`);
+                    const match = remainingFormula.search(regex);
                     
-                    {/* Field with inline input */}
-                    <div className="inline-flex flex-col items-center">
-                      {/* Show field letter above field name (or EW for final score) */}
-                      {fieldLetter ? (
-                        <div className="text-xs font-bold text-purple-500 mb-0.5">
-                          ({fieldLetter})
-                        </div>
-                      ) : field.isFinalScore ? (
-                        <div className="text-xs font-bold text-green-600 mb-0.5">
-                          (EW)
-                        </div>
-                      ) : (
-                        <div className="text-xs mb-0.5">&nbsp;</div>
-                      )}
-                      <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
-                        {field.name}
-                      </div>
+                    if (match !== -1) {
+                      // Add constant before this field
+                      if (match > 0) {
+                        formulaParts.push({
+                          type: 'constant',
+                          content: remainingFormula.substring(0, match).trim()
+                        });
+                      }
                       
-                      {/* For final score, show result in green box */}
-                      {field.isFinalScore ? (
-                        <div className="px-4 py-2 rounded-lg border-2 bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl font-bold min-w-[90px] text-center shadow-sm">
-                          {displayValue || '?'}
+                      // Add the field
+                      formulaParts.push({
+                        type: 'field',
+                        content: letter,
+                        fieldIndex: index
+                      });
+                      
+                      // Move past this letter
+                      remainingFormula = remainingFormula.substring(match + 1);
+                    }
+                  });
+                  
+                  // Add any remaining constant after last field
+                  if (remainingFormula.trim()) {
+                    formulaParts.push({
+                      type: 'constant',
+                      content: remainingFormula.trim()
+                    });
+                  }
+                  
+                  // Add equals and final field
+                  formulaParts.push({ type: 'equals', content: '=' });
+                  formulaParts.push({ 
+                    type: 'field', 
+                    content: 'EW',
+                    fieldIndex: nonFinalFields.length
+                  });
+                  
+                  return formulaParts.map((part, partIndex) => {
+                    if (part.type === 'constant') {
+                      return (
+                        <div key={`const-${partIndex}`} className="text-2xl font-bold text-purple-600 px-1">
+                          {part.content}
                         </div>
-                      ) : (
-                        /* For other fields, show input */
-                        <input
-                          type="text"
-                          value={field.value}
-                          onChange={(e) => updateFieldValue(field.id, e.target.value)}
-                          onBlur={() => normalizeFieldValue(field.id)}
-                          placeholder={inputMask ? placeholder : '0,00'}
-                          className="w-[90px] px-3 py-2 border-2 border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm"
-                        />
+                      );
+                    } else if (part.type === 'equals') {
+                      return (
+                        <div key="equals" className="text-3xl font-bold text-purple-600 px-2">=</div>
+                      );
+                    } else if (part.type === 'field') {
+                      const fieldIndex = part.fieldIndex!;
+                      const field = fieldIndex < nonFinalFields.length 
+                        ? nonFinalFields[fieldIndex]
+                        : fields.find(f => f.isFinalScore);
+                      
+                      if (!field) return null;
+                      
+                      const fieldLetter = part.content;
+                      const isFinalScoreWithResult = field.isFinalScore && calculatedResult !== null;
+                      const displayValue = isFinalScoreWithResult
+                        ? calculatedResult.toFixed(calculationType === 2 ? 2 : 3).replace('.', ',')
+                        : field.value;
+                      
+                      return (
+                        <div key={`field-${field.id}`} className="inline-flex flex-col items-center">
+                          {/* Show field letter above field name (or EW for final score) */}
+                          <div className={`text-xs font-bold mb-0.5 ${field.isFinalScore ? 'text-green-600' : 'text-purple-500'}`}>
+                            ({fieldLetter})
+                          </div>
+                          <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
+                            {field.name}
+                          </div>
+                          
+                          {/* For final score, show result in green box */}
+                          {field.isFinalScore ? (
+                            <div className="px-4 py-2 rounded-lg border-2 bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl font-bold min-w-[90px] text-center shadow-sm">
+                              {displayValue || '?'}
+                            </div>
+                          ) : (
+                            /* For other fields, show input */
+                            <input
+                              type="text"
+                              value={field.value}
+                              onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                              onBlur={() => normalizeFieldValue(field.id)}
+                              placeholder={inputMask ? placeholder : '0,00'}
+                              className="w-[90px] px-3 py-2 border-2 border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm"
+                            />
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  });
+                })()
+              ) : (
+                // No formula - just show fields without operators
+                fields.map((field, index) => {
+                  const showEquals = field.isFinalScore && index > 0;
+                  const nonFinalFields = fields.filter(f => !f.isFinalScore);
+                  const nonFinalIndex = nonFinalFields.findIndex(f => f.id === field.id);
+                  const fieldLetter = nonFinalIndex >= 0 ? String.fromCharCode(65 + nonFinalIndex) : '';
+                  
+                  const isFinalScoreWithResult = field.isFinalScore && calculatedResult !== null;
+                  const displayValue = isFinalScoreWithResult
+                    ? calculatedResult.toFixed(calculationType === 2 ? 2 : 3).replace('.', ',')
+                    : field.value;
+                  
+                  return (
+                    <React.Fragment key={field.id}>
+                      {showEquals && (
+                        <div className="text-3xl font-bold text-purple-600 px-2">=</div>
                       )}
-                    </div>
-                    
-                    {/* Show operator after field */}
-                    {operatorAfter && (
-                      <div className="text-3xl font-bold text-purple-600 px-2 select-none">
-                        {operatorAfter}
+                      
+                      <div className="inline-flex flex-col items-center">
+                        <div className={`text-xs font-bold mb-0.5 ${field.isFinalScore ? 'text-green-600' : 'text-purple-500'}`}>
+                          ({fieldLetter || 'EW'})
+                        </div>
+                        <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
+                          {field.name}
+                        </div>
+                        
+                        {field.isFinalScore ? (
+                          <div className="px-4 py-2 rounded-lg border-2 bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl font-bold min-w-[90px] text-center shadow-sm">
+                            {displayValue || '?'}
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            value={field.value}
+                            onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                            onBlur={() => normalizeFieldValue(field.id)}
+                            placeholder={inputMask ? placeholder : '0,00'}
+                            className="w-[90px] px-3 py-2 border-2 border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm"
+                          />
+                        )}
                       </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                    </React.Fragment>
+                  );
+                })
+              )}
             </div>
             
             {/* Show unit at the end if available */}

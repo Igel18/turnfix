@@ -5730,6 +5730,8 @@ Dependencies added:
 - @headlessui/react
 "
 ```
- 
+
+
 Für den DB Wizard wurde eine neue UI imporiert: @headlessui/react'
 ist das wirklich notwendig da wir in anderen UIs schon andere modale dialoge verwenden... 
+Der wizard muss erweitert werden um alle Sportarten (außer Turnen) welche in der DB "Turnfix" vorhanden sind. 

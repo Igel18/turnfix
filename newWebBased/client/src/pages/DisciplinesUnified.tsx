@@ -508,16 +508,29 @@ const DisciplinesUnified: React.FC = () => {
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           {hasFormula ? (
-            <div className="flex items-center text-sm">
-              {formula && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-1">
-                  {formula.var_name}
-                </span>
+            <div className="flex flex-col text-sm space-y-1">
+              <div className="flex items-center">
+                {formula && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-1">
+                    {formula.var_name}
+                  </span>
+                )}
+                {hasCustomFormula && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {t('disciplines.card.custom')}
+                  </span>
+                )}
+              </div>
+              {/* Show actual formula expression */}
+              {formula?.var_formel && (
+                <code className="text-xs text-purple-700 font-mono bg-purple-50 px-2 py-0.5 rounded">
+                  {formula.var_formel}
+                </code>
               )}
-              {hasCustomFormula && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {t('disciplines.card.custom')}
-                </span>
+              {hasCustomFormula && discipline.formula && (
+                <code className="text-xs text-blue-700 font-mono bg-blue-50 px-2 py-0.5 rounded">
+                  {discipline.formula}
+                </code>
               )}
             </div>
           ) : (
