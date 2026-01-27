@@ -35,6 +35,7 @@ description: TurnFix v2.0 - Full-Stack Gymnastics Competition Management System 
 Use the old cpp, h and ui files in the turnfix folder for reference only. Do not modify them. But understand how the old application works and use the same logic in the new webbased application. (bugs should be fixed in the new application even if they exist in the old application)
 - ✅ **USE** Prisma for all database operations
 - ⚠️ Old `.cpp`, `.h`, `.ui` files are for **reference only** - understand structure, don't modify
+- If create a database abfrage always check in prisma for the correct name of the table and the columns. Do not create new names
 
 ### Field Mapping Convention
 **All routes must map database fields to client-friendly names:**

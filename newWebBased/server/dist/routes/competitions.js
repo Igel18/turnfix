@@ -319,7 +319,7 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
         d.bol_m,
         d.bol_w,
         d.var_icon,
-        d.var_formel,
+        COALESCE(d.var_formel, f.var_formel) as var_formel,
         d.int_formelid,
         d.var_maske,
         d.var_einheit,
@@ -328,6 +328,7 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
         wd.rel_max
       FROM tfx_disziplinen d
       INNER JOIN tfx_wettkaempfe_x_disziplinen wd ON d.int_disziplinenid = wd.int_disziplinenid
+      LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
       WHERE wd.int_wettkaempfeid = $1
       ORDER BY d.var_name
     `, competitionId);

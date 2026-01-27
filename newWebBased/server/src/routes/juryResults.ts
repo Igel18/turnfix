@@ -145,59 +145,71 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     const validatedData = juryResultCreateSchema.parse(req.body);
     console.log('Creating jury result:', validatedData);
 
-    // Find the wertungenid from the participant data
-    console.log(`Looking up wertungenid for participantId: ${validatedData.participantId}`);
-    
-    const wertungenQuery = `
-      SELECT w.pk_wertungen AS wertungenid 
-      FROM tfx_wertungen w
-      WHERE w.int_teilnehmerid = $1
-      ${validatedData.competitionId ? 'AND w.int_wkid = $2' : ''}
+    // The participantId from the client is actually the wertungenId
+    // (from Score Capture, it's passed as wertungenId prop)
+    const wertungenId = validatedData.participantId;
+    console.log(`Using wertungenid: ${wertungenId}`);
+
+    // Check if entry already exists
+    const existingQuery = `
+      SELECT int_juryresultsid
+      FROM tfx_jury_results
+      WHERE int_wertungenid = $1 
+        AND int_disziplinen_felderid = $2
+        AND int_versuch = $3
       LIMIT 1
     `;
-    
-    const queryParams = [validatedData.participantId];
-    if (validatedData.competitionId) {
-      queryParams.push(validatedData.competitionId);
-    }
-    
-    const wertungenResult = await prisma.$queryRawUnsafe(wertungenQuery, ...queryParams) as any[];
-    
-    if (!wertungenResult || wertungenResult.length === 0) {
-      console.error(`No wertungenid found for participantId: ${validatedData.participantId}`);
-      return res.status(404).json({ 
-        error: 'Participant not found in competition', 
-        participantId: validatedData.participantId,
-        competitionId: validatedData.competitionId 
-      });
-    }
-    
-    const wertungenId = wertungenResult[0].wertungenid;
-    console.log(`Found wertungenid: ${wertungenId}`);
 
-    // Insert new jury result
-    const insertQuery = `
-      INSERT INTO tfx_jury_results 
-        (int_wertungenid, int_disziplinen_felderid, int_versuch, rel_leistung, int_kp)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *
-    `;
-
-    const created = await prisma.$queryRawUnsafe(
-      insertQuery,
-      wertungenId,  // Use the looked up wertungenid instead of participantId
+    const existing = await prisma.$queryRawUnsafe(
+      existingQuery,
+      wertungenId,
       validatedData.disciplineFieldId,
-      validatedData.attempt,
-      validatedData.performance,
-      validatedData.type
+      validatedData.attempt
     ) as any[];
 
-    if (!created || created.length === 0) {
-      return res.status(500).json({ error: 'Failed to create jury result' });
+    let result;
+    
+    if (existing && existing.length > 0) {
+      // Update existing entry
+      const updateQuery = `
+        UPDATE tfx_jury_results
+        SET rel_leistung = $1,
+            int_kp = $2
+        WHERE int_juryresultsid = $3
+        RETURNING *
+      `;
+      
+      result = await prisma.$queryRawUnsafe(
+        updateQuery,
+        validatedData.performance,
+        validatedData.type,
+        existing[0].int_juryresultsid
+      ) as any[];
+    } else {
+      // Insert new entry
+      const insertQuery = `
+        INSERT INTO tfx_jury_results 
+          (int_wertungenid, int_disziplinen_felderid, int_versuch, rel_leistung, int_kp)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `;
+
+      result = await prisma.$queryRawUnsafe(
+        insertQuery,
+        wertungenId,
+        validatedData.disciplineFieldId,
+        validatedData.attempt,
+        validatedData.performance,
+        validatedData.type
+      ) as any[];
     }
 
-    console.log('Created jury result:', created[0]);
-    res.status(201).json(created[0]);
+    if (!result || result.length === 0) {
+      return res.status(500).json({ error: 'Failed to save jury result' });
+    }
+
+    console.log('Saved jury result:', result[0]);
+    res.status(existing && existing.length > 0 ? 200 : 201).json(result[0]);
 
   } catch (error) {
     console.error('Error creating jury result:', error);

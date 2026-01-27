@@ -5495,111 +5495,6 @@ Siehe TurnFixImport.exe.config vielleicht gibt es auch noch eine andere Datei hi
 
 In GymNet sieht das so aus, wenn man die DTB Geräte / Wettkämpfe usw. verwendet
 
-# Geräte # 
-## Einzelwettkampf: ##
-### P-Übung: ###
-209 - Boden m. P 1 - P 9
-219 - Pauschenpferd P 1-P 9
-229 - Ringe P1- P9 
-239 - Sprung m. P 1 - P 9
-249 - Par.-Barren P 1 - P 9
-259 - Reck m. P 1 - P 9
-
-269 -	Sprung w. P 1 - P 9
-279 -	Reck/StuBa. P 1 - P 9
-289 -	Schwebebalken P 1 - P 9
-299 -	Boden w. P 1 - P 9
-
-### Turn10: ###
-001 - Boden Turn10® Basis
-002 - Balken/Bank Turn10® Basis
-002 - P-Barren Turn10® Basis
-003 - Minitrampolin Turn10® Basis
-004 - Reck/St-Barren Turn10® Basis
-005 - Sprung Turn10® Basis
-
-### Kür ###
-100 - Boden m. Kür
-110 - P.-Pferd Kür
-120 - Ringe m.
-130 - Sprung m. Kür
-140 - Par.-Barren Kür
-150 - Reck m. Kür
-
-### LK1 ###
-101 - Boden m. LK1
-111 - P.-Pferd LK1
-121 - Ringe LK1
-131 - Sprung m. LK1
-141 - Par.-Barren LK1
-151 - Reck m. LK1
-
-### LK2 ###
-102 - Boden m. LK2
-112 - P.-Pferd LK2
-122 - Ringe LK2
-132 - Sprung m. LK2
-142 - Par.-Barren LK2
-152 - Reck m. LK2
-
-### LK3 ###
-103 - Boden m. LK3
-113 - P.-Pferd LK3
-123 - Ringe LK3
-133 - Sprung m. LK3
-143 - Par.-Barren LK3
-153 - Reck m. LK3
-
-## Gruppen/Mannschaft-wettkampf:##
-Geräte wie oben. 
-
-# Wettkämpfe # 
-
-## Einzelwettkampf: ##
-1112 	21 	Gerätturnen WahlWettKampf M 12-13 
-1212 	21 	Gerätturnen WahlWettKampf W 12-13 
-
-## Gruppen/Mannschaft-wettkampf: ##
-21970 	21 	Pokalwettkampf Gerätturnen LK 2 Mixed m/w 
-21971 	21 	Pokalwettkampf Gerätturnen LK 1 Mixed m/w 
-
-# Formeln: # 
-## Einzelwettkampf ##
-### P-Wettkampf ### 
-
-(AusgangAusführung + Übungsstufe) - AbzugAusführung 
-(10+Übungsstufe) - AbzugAusführung 
-Bsp.: P7 & 3,4 Abzug 
-10+7 - 3,4 = 13,6 Punkte 
-
-### AK ### 
-Endnote = Ausgangswert - Ausführungsabzüge - Sonstige Abzüge
-
-Bsp.:
-Ausgangswert: 10,0
-Ausführungsabzüge: -1,5
-Kompositionsabzüge: -0,5
-Endnote: 8,0 Punkte
-
-
-### LK ###
-Endnote = D-Note + E-Note - N-Abzüge
-Endnote = D-Note + 10 - SummeAllerAbzüge - N-Abzüge
-
-Bsp.: 
-D 5,2 + E 8,4 - N 0,3 = 13,3 Punkte
-
-## Mannschaftswettkampf ## 
-(Siehe LK für Einzelwertungen der Turner) 
-
-Es Turnen z.B. 4 Turner je Gerät und 3 Besten Ergebnisse je Gerät werden gewertet: 
-
-Bsp.: Reck 
-Turner A: 13,5
-Turner B: 12,8
-Turner C: 14,1
-Turner D: 11,9 ← streicht
-Geräteergebnis: 40,4 Punkte
 
 # Datenbank - Initialisierung # 
 Beim Anlegen der DB müssen diese Geräte & Formeln angelegt und miteinander verknüpft werden. (Außer Mannschaft, da diese als Wettkampf angelegt wird). 
@@ -5751,8 +5646,115 @@ Besser wäre vielleicht:
 -> erledigt 
 
 ## Zuordnung von gymnet und turnfix ## 
-sollte auch automatisch mit dem hinzufügen zur datenbank erfolgen. ggf. kann das auch immer vorhanden sein? 
-Siehe TurnFixImport.exe.config vielleicht gibt es auch noch eine andere Datei hierzu?
+Beim Import eines Events "GymNetImport" geschieht ein Mapping von Geräten welche in der XML stehen und in der DB sind. Ich meine die Zuordnung ist in der TurnFixImport.exe.config. 
+Nun haben wir ja deutlich mehr Geräte durch das befüllen der DB. Aber auch hier gibt es ein mapping welches in der Zuordnungsdatei stehen muss. 
+Die GymNet Id der Geräte ist hier zu finden: 
+# Geräte # 
+## Einzelwettkampf: ##
+### P-Übung: ###
+209 - Boden m. P 1 - P 9
+219 - Pauschenpferd P 1-P 9
+229 - Ringe P1- P9 
+239 - Sprung m. P 1 - P 9
+249 - Par.-Barren P 1 - P 9
+259 - Reck m. P 1 - P 9
+
+269 -	Sprung w. P 1 - P 9
+279 -	Reck/StuBa. P 1 - P 9
+289 -	Schwebebalken P 1 - P 9
+299 -	Boden w. P 1 - P 9
+
+### Turn10: ###
+001 - Boden Turn10® Basis
+002 - Balken/Bank Turn10® Basis
+002 - P-Barren Turn10® Basis
+003 - Minitrampolin Turn10® Basis
+004 - Reck/St-Barren Turn10® Basis
+005 - Sprung Turn10® Basis
+
+### Kür ###
+100 - Boden m. Kür
+110 - P.-Pferd Kür
+120 - Ringe m.
+130 - Sprung m. Kür
+140 - Par.-Barren Kür
+150 - Reck m. Kür
+
+### LK1 ###
+101 - Boden m. LK1
+111 - P.-Pferd LK1
+121 - Ringe LK1
+131 - Sprung m. LK1
+141 - Par.-Barren LK1
+151 - Reck m. LK1
+
+### LK2 ###
+102 - Boden m. LK2
+112 - P.-Pferd LK2
+122 - Ringe LK2
+132 - Sprung m. LK2
+142 - Par.-Barren LK2
+152 - Reck m. LK2
+
+### LK3 ###
+103 - Boden m. LK3
+113 - P.-Pferd LK3
+123 - Ringe LK3
+133 - Sprung m. LK3
+143 - Par.-Barren LK3
+153 - Reck m. LK3
+
+## Gruppen/Mannschaft-wettkampf:##
+Geräte wie oben. 
+
+# Wettkämpfe # 
+
+## Einzelwettkampf: ##
+1112 	21 	Gerätturnen WahlWettKampf M 12-13 
+1212 	21 	Gerätturnen WahlWettKampf W 12-13 
+
+## Gruppen/Mannschaft-wettkampf: ##
+21970 	21 	Pokalwettkampf Gerätturnen LK 2 Mixed m/w 
+21971 	21 	Pokalwettkampf Gerätturnen LK 1 Mixed m/w 
+
+# Formeln: # 
+## Einzelwettkampf ##
+### P-Wettkampf ### 
+
+(AusgangAusführung + Übungsstufe) - AbzugAusführung 
+(10+Übungsstufe) - AbzugAusführung 
+Bsp.: P7 & 3,4 Abzug 
+10+7 - 3,4 = 13,6 Punkte 
+
+### AK ### 
+Endnote = Ausgangswert - Ausführungsabzüge - Sonstige Abzüge
+
+Bsp.:
+Ausgangswert: 10,0
+Ausführungsabzüge: -1,5
+Kompositionsabzüge: -0,5
+Endnote: 8,0 Punkte
+
+
+### LK ###
+Endnote = D-Note + E-Note - N-Abzüge
+Endnote = D-Note + 10 - SummeAllerAbzüge - N-Abzüge
+
+Bsp.: 
+D 5,2 + E 8,4 - N 0,3 = 13,3 Punkte
+
+## Mannschaftswettkampf ## 
+(Siehe LK für Einzelwertungen der Turner) 
+
+Es Turnen z.B. 4 Turner je Gerät und 3 Besten Ergebnisse je Gerät werden gewertet: 
+
+Bsp.: Reck 
+Turner A: 13,5
+Turner B: 12,8
+Turner C: 14,1
+Turner D: 11,9 ← streicht
+Geräteergebnis: 40,4 Punkte
+
 
 Überarbeiten der Dateien 
 - GymNetPresets.ts 

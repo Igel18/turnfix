@@ -7,7 +7,7 @@
  * - FormulaInput component (showJuryScores = true): Multi-field input with formula calculation
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FormulaInput } from '@/components/FormulaInput';
 import type { Discipline, DisciplineField } from '@/types/ScoreCapture.types';
 
@@ -44,31 +44,39 @@ export const ScoreInputCell = ({
   const decimalPlaces = discipline.int_berechnung || 2;
   const [initialFieldValues, setInitialFieldValues] = useState<Record<number, string>>({});
   const [loadingValues, setLoadingValues] = useState(false);
+  const lastCalculatedValue = useRef<string | null>(null);
 
   // Load existing jury results when in jury score mode
   useEffect(() => {
     if (!showJuryScores || !wertungenId || disciplineFields.length === 0) {
+      console.log('🔵 Skipping load:', { showJuryScores, wertungenId, disciplineFieldsLength: disciplineFields.length });
       return;
     }
 
+    console.log('🔵 Loading jury results:', { wertungenId, disciplineId, disciplineFields });
     setLoadingValues(true);
     
     // Load jury results for this participant and discipline
     fetch(`/api/jury-results?participantId=${wertungenId}&disciplineId=${disciplineId}`)
       .then(res => res.json())
       .then(data => {
+        console.log('🔵 Loaded jury results from API:', data);
         if (data.results && Array.isArray(data.results)) {
           const values: Record<number, string> = {};
           data.results.forEach((result: any) => {
             if (result.disciplineFieldId) {
               values[result.disciplineFieldId] = result.performance?.toString() || '';
+              console.log(`🔵 Mapping field ${result.disciplineFieldId} = ${result.performance}`);
             }
           });
+          console.log('🔵 Final initialFieldValues:', values);
           setInitialFieldValues(values);
+        } else {
+          console.warn('⚠️ No results array in response:', data);
         }
       })
       .catch(error => {
-        console.error('Error loading jury results:', error);
+        console.error('❌ Error loading jury results:', error);
       })
       .finally(() => {
         setLoadingValues(false);
@@ -164,9 +172,23 @@ export const ScoreInputCell = ({
         compact={false}
         initialValues={initialFieldValues}
         onFieldChange={(fieldId, value) => {
+          console.log('🔵 onFieldChange called:', { fieldId, value, wertungenId, participantId });
+          
           // Save individual field value
           const field = disciplineFields.find(f => f.id === fieldId);
           if (field && wertungenId) {
+            // Convert comma to dot for correct parsing (German decimal format: 4,15 → 4.15)
+            const normalizedValue = value.replace(',', '.');
+            const performanceValue = parseFloat(normalizedValue) || 0;
+            
+            console.log('💾 Saving jury result:', {
+              participantId: wertungenId,
+              disciplineFieldId: fieldId,
+              performance: performanceValue,
+              originalValue: value,
+              normalizedValue
+            });
+            
             // Use API to save jury result
             fetch('/api/jury-results', {
               method: 'POST',
@@ -174,18 +196,31 @@ export const ScoreInputCell = ({
               body: JSON.stringify({
                 participantId: wertungenId,
                 disciplineFieldId: fieldId,
-                performance: parseFloat(value) || 0,
+                performance: performanceValue,
                 attempt: 1,
                 type: 0
               })
-            }).catch(error => console.error('Error saving field value:', error));
+            })
+            .then(res => {
+              console.log('✅ Save response status:', res.status);
+              return res.json();
+            })
+            .then(data => console.log('✅ Save response data:', data))
+            .catch(error => console.error('❌ Error saving field value:', error));
+          } else {
+            console.warn('⚠️ Cannot save: field or wertungenId missing', { field, wertungenId });
           }
         }}
         onCalculationComplete={(result) => {
           if (result !== null) {
             const normalized = normalizeScoreInput(result.toString(), decimalPlaces);
-            onScoreChange(participantId, disciplineId, normalized);
-            onSave(participantId, disciplineId);
+            
+            // Only update if value actually changed (prevent infinite loop)
+            if (normalized !== lastCalculatedValue.current) {
+              lastCalculatedValue.current = normalized;
+              onScoreChange(participantId, disciplineId, normalized);
+              onSave(participantId, disciplineId);
+            }
           }
         }}
       />
