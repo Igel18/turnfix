@@ -5765,3 +5765,6 @@ Und alle Dateien mit Geräten in einem einheitlichen Format? ^
 -> Erledigt 
 
 Wenn mit dem Wizard eine neue DB erstellt wurde muss auch die Verbindung zu dieser neuen DB getestet werden. Ist die erfolgreich, müssen auch die folgenden schritte auf die neue DB wirken und nicht auf die alte! 
+-> Erledigt 
+
+

@@ -15,8 +15,19 @@ import { applyProductionStatuses } from '../utils/productionStatusesImport';
 
 // POST /api/configuration/gymnet-preset - Geräte/Formeln für GymNet anlegen
 router.post('/gymnet-preset', async (req, res) => {
+  let customClient = null;
   try {
-    const result = await applyGymNetPreset();
+    const { dbConfig } = req.body;
+    
+    // If custom DB config provided (from wizard), create temporary client
+    if (dbConfig) {
+      const { createDynamicPrismaClient } = require('../utils/dynamicPrismaClient');
+      customClient = createDynamicPrismaClient(dbConfig);
+      await customClient.$connect();
+      console.log('[Configuration] Using custom database connection for GymNet preset');
+    }
+    
+    const result = await applyGymNetPreset(customClient);
     res.json({ success: true, result });
   } catch (error: any) {
     // Backend-Log mit Stacktrace
@@ -27,13 +38,29 @@ router.post('/gymnet-preset', async (req, res) => {
       details: error?.message || String(error),
       stack: error?.stack || null
     });
+  } finally {
+    // Clean up custom client
+    if (customClient) {
+      await customClient.$disconnect();
+    }
   }
 });
 
 // POST /api/configuration/production-disciplines - Import all production disciplines
 router.post('/production-disciplines', async (req, res) => {
+  let customClient = null;
   try {
-    const result = await applyProductionDisciplines();
+    const { dbConfig } = req.body;
+    
+    // If custom DB config provided (from wizard), create temporary client
+    if (dbConfig) {
+      const { createDynamicPrismaClient } = require('../utils/dynamicPrismaClient');
+      customClient = createDynamicPrismaClient(dbConfig);
+      await customClient.$connect();
+      console.log('[Configuration] Using custom database connection for production disciplines');
+    }
+    
+    const result = await applyProductionDisciplines(customClient);
     res.json(result);
   } catch (error: any) {
     console.error('Production disciplines import failed:', error && (error.stack || error));
@@ -42,13 +69,29 @@ router.post('/production-disciplines', async (req, res) => {
       details: error?.message || String(error),
       stack: error?.stack || null
     });
+  } finally {
+    // Clean up custom client
+    if (customClient) {
+      await customClient.$disconnect();
+    }
   }
 });
 
 // POST /api/configuration/production-statuses - Import all production statuses
 router.post('/production-statuses', async (req, res) => {
+  let customClient = null;
   try {
-    const result = await applyProductionStatuses();
+    const { dbConfig } = req.body;
+    
+    // If custom DB config provided (from wizard), create temporary client
+    if (dbConfig) {
+      const { createDynamicPrismaClient } = require('../utils/dynamicPrismaClient');
+      customClient = createDynamicPrismaClient(dbConfig);
+      await customClient.$connect();
+      console.log('[Configuration] Using custom database connection for production statuses');
+    }
+    
+    const result = await applyProductionStatuses(customClient);
     res.json(result);
   } catch (error: any) {
     console.error('Production statuses import failed:', error && (error.stack || error));
@@ -57,8 +100,14 @@ router.post('/production-statuses', async (req, res) => {
       details: error?.message || String(error),
       stack: error?.stack || null
     });
+  } finally {
+    // Clean up custom client
+    if (customClient) {
+      await customClient.$disconnect();
+    }
   }
 });
+
 
 
 // Configuration file path
@@ -796,14 +845,29 @@ router.post('/create-schema', async (req, res) => {
   try {
     console.log('[Configuration] Starting database schema creation from schema.prisma...');
     
+    // Check if custom database config provided (from wizard)
+    const dbConfig = req.body.dbConfig;
+    
     // Use Prisma's db push which generates all tables directly from schema.prisma
     const { execSync } = require('child_process');
     
     try {
+      // Build environment with custom DATABASE_URL if provided
+      const env = { ...process.env };
+      if (dbConfig) {
+        const { db_host, db_port, db_name, db_user, db_password } = dbConfig;
+        env.DATABASE_URL = `postgresql://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}?schema=public`;
+        console.log('[Configuration] Using custom database:', db_name);
+        if (process.env.DEBUG === 'true') {
+          console.log('[DEBUG] Custom DATABASE_URL (password masked):', env.DATABASE_URL.replace(/:([^@]+)@/, ':****@'));
+        }
+      }
+      
       // Run Prisma db push to create schema directly from schema.prisma
       const output = execSync('npx prisma db push --skip-generate', {
         cwd: process.cwd(),
-        encoding: 'utf-8'
+        encoding: 'utf-8',
+        env
       });
       
       console.log('[Configuration] Database schema created successfully from schema.prisma');

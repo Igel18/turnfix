@@ -38,82 +38,7 @@ interface ConfigSetting {
 }
 
 const Configuration: React.FC = () => {
-    // GymNet preset initialization state and handler
-    const [loadingGymNet, setLoadingGymNet] = useState(false);
-    const [loadingSchema, setLoadingSchema] = useState(false);
     const [showWizard, setShowWizard] = useState(false);
-
-    const handleGymNetPreset = async () => {
-      if (!confirm(t('configuration.gymnetPresetConfirm') || 'Geräte und Formeln für GymNet-Import anlegen?')) return;
-      setLoadingGymNet(true);
-      setMessage(null);
-      try {
-        const response = await apiPost('/configuration/gymnet-preset');
-        if (response?.result) {
-          const { createdFormulas, totalFormulas, createdDevices, totalDevices, createdFields, totalFields } = response.result;
-          setMessage({
-            type: 'success',
-            text:
-              t('configuration.gymnetPresetSuccessDetailed', {
-                createdFormulas,
-                totalFormulas,
-                createdDevices,
-                totalDevices,
-                createdFields,
-                totalFields
-              }) ||
-              `Import erfolgreich: ${createdFormulas}/${totalFormulas} Formeln, ${createdDevices}/${totalDevices} Geräte, ${createdFields}/${totalFields} Felder neu angelegt.`
-          });
-        } else {
-          setMessage({ type: 'success', text: t('configuration.gymnetPresetSuccess') || 'GymNet-Voreinstellungen wurden erfolgreich angelegt.' });
-        }
-      } catch (error: any) {
-        // Fehlerdetails aus dem Response extrahieren (falls vorhanden)
-        let details = '';
-        if (error?.response?.data) {
-          if (error.response.data.details) details += error.response.data.details + '\n';
-          if (error.response.data.stack) details += error.response.data.stack;
-        }
-        setMessage({
-          type: 'error',
-          text:
-            (t('configuration.gymnetPresetError') || 'Fehler beim Anlegen der GymNet-Voreinstellungen.') +
-            (details ? `\n${details}` : '')
-        });
-        console.error('GymNet preset error:', error);
-      } finally {
-        setLoadingGymNet(false);
-      }
-    };
-
-    const handleCreateSchema = async () => {
-      if (!confirm(t('configuration.createSchemaConfirm') || 'Datenbankschema jetzt erstellen? Dies ist notwendig nach der Datenbankverbindung.')) return;
-      setLoadingSchema(true);
-      setMessage(null);
-      try {
-        const response = await apiPost('/configuration/create-schema');
-        setMessage({
-          type: 'success',
-          text: t('configuration.createSchemaSuccess') || 'Datenbankschema wurde erfolgreich erstellt.'
-        });
-        console.log('Schema creation response:', response);
-      } catch (error: any) {
-        let details = '';
-        if (error?.response?.data) {
-          if (error.response.data.details) details += error.response.data.details + '\n';
-          if (error.response.data.stack) details += error.response.data.stack;
-        }
-        setMessage({
-          type: 'error',
-          text:
-            (t('configuration.createSchemaError') || 'Fehler beim Erstellen des Datenbankschemas.') +
-            (details ? `\n${details}` : '')
-        });
-        console.error('Schema creation error:', error);
-      } finally {
-        setLoadingSchema(false);
-      }
-    };
 
     // Wizard wrapper functions
     const wizardCreateDatabase = async (newDbName: string, dbConfig: any) => {
@@ -160,9 +85,9 @@ const Configuration: React.FC = () => {
       }));
     };
 
-    const wizardCreateSchema = async () => {
+    const wizardCreateSchema = async (dbConfig?: any) => {
       try {
-        const response = await apiPost('/configuration/create-schema');
+        const response = await apiPost('/configuration/create-schema', { dbConfig });
         if (response?.success) {
           return { success: true, message: response.message, details: response.details };
         }
@@ -172,9 +97,9 @@ const Configuration: React.FC = () => {
       }
     };
 
-    const wizardApplyGymNetPreset = async () => {
+    const wizardApplyGymNetPreset = async (dbConfig?: any) => {
       try {
-        const response = await apiPost('/configuration/gymnet-preset');
+        const response = await apiPost('/configuration/gymnet-preset', { dbConfig });
         if (response?.success && response?.result) {
           return { 
             success: true, 
@@ -188,9 +113,9 @@ const Configuration: React.FC = () => {
       }
     };
 
-    const wizardImportProductionDisciplines = async () => {
+    const wizardImportProductionDisciplines = async (dbConfig?: any) => {
       try {
-        const response = await apiPost('/configuration/production-disciplines');
+        const response = await apiPost('/configuration/production-disciplines', { dbConfig });
         if (response?.success && response?.stats) {
           return { 
             success: true, 
@@ -204,9 +129,9 @@ const Configuration: React.FC = () => {
       }
     };
 
-    const wizardImportProductionStatuses = async () => {
+    const wizardImportProductionStatuses = async (dbConfig?: any) => {
       try {
-        const response = await apiPost('/configuration/production-statuses');
+        const response = await apiPost('/configuration/production-statuses', { dbConfig });
         if (response?.success && response?.stats) {
           return { 
             success: true, 
@@ -223,7 +148,6 @@ const Configuration: React.FC = () => {
   const { t } = useTranslation()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -233,7 +157,6 @@ const Configuration: React.FC = () => {
   }, [t]) // Reload when language changes
 
   const loadConfiguration = async () => {
-    setLoading(true)
     try {
       const response = await apiGet('/configuration')
       
@@ -660,8 +583,6 @@ const Configuration: React.FC = () => {
     } catch (error) {
       console.error('Error loading configuration:', error)
       setMessage({ type: 'error', text: t('configuration.messages.loadFailed') })
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -725,98 +646,8 @@ const Configuration: React.FC = () => {
     ))
   }
 
-  const testDatabaseConnection = async () => {
-    setLoading(true)
-    try {
-      const dbSection = configSections.find(s => s.id === 'database')
-      if (!dbSection) return
-
-      const dbConfig = dbSection.settings.reduce((acc, setting) => {
-        acc[setting.key] = setting.value
-        return acc
-      }, {} as any)
-
-      await apiPost('/configuration/test-database', dbConfig)
-      setMessage({ type: 'success', text: t('configuration.messages.dbTestSuccess') })
-    } catch (error: any) {
-      console.error('Database connection test failed:', error)
-      
-      // Extract more specific error message from the API response
-      let errorMessage = t('configuration.messages.dbTestFailed')
-      
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error
-      } else if (error.response?.data?.details && process.env.NODE_ENV === 'development') {
-        errorMessage = error.response.data.details
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-      
-      setMessage({ 
-        type: 'error', 
-        text: errorMessage
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createDatabase = async () => {
-    // Confirm action
-    if (!confirm(t('configuration.confirmCreateDatabase') || 'Are you sure you want to create a new database? This action will create a new database with the configured settings.')) {
-      return
-    }
-
-    setLoading(true)
-    try {
-      const dbSection = configSections.find(s => s.id === 'database')
-      if (!dbSection) return
-
-      const dbConfig = dbSection.settings.reduce((acc, setting) => {
-        acc[setting.key] = setting.value
-        return acc
-      }, {} as any)
-
-      const response = await apiPost('/configuration/create-database', dbConfig)
-      
-      let successMessage = t('configuration.databaseCreated')
-      if (response.nextSteps) {
-        successMessage += '\n\n' + response.nextSteps.join('\n')
-      }
-      
-      setMessage({ 
-        type: 'success', 
-        text: successMessage
-      })
-    } catch (error: any) {
-      console.error('Database creation failed:', error)
-      
-      // Extract more specific error message from the API response
-      let errorMessage = t('configuration.databaseCreationFailed')
-      
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error
-        
-        // Check for specific error codes
-        if (error.response.data.errorCode === 'DB_ALREADY_EXISTS') {
-          errorMessage = t('configuration.databaseAlreadyExists')
-        } else if (error.response.data.errorCode === 'PERMISSION_DENIED') {
-          errorMessage += ' - Permission denied. The database user must have CREATE DATABASE privileges.'
-        }
-      } else if (error.response?.data?.details && process.env.NODE_ENV === 'development') {
-        errorMessage += '\n\nDetails: ' + error.response.data.details
-      } else if (error.message) {
-        errorMessage += ': ' + error.message
-      }
-      
-      setMessage({ 
-        type: 'error', 
-        text: errorMessage
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Database operations are now handled by the Setup Wizard
+  // testDatabaseConnection and createDatabase functions removed
 
   const filteredSections = configSections.filter(section =>
     section.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -840,52 +671,14 @@ const Configuration: React.FC = () => {
         customActions={
           <div className="flex space-x-3">
             {activeSection === 'database' && (
-              <>
-                <button
-                  onClick={() => setShowWizard(true)}
-                  className="inline-flex items-center px-4 py-2 border-2 border-blue-600 shadow-sm text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  title={t('configuration.wizard.openButton') || 'Datenbank-Setup-Assistent öffnen'}
-                >
-                  <CogIcon className="h-4 w-4 mr-2" />
-                  {t('configuration.wizard.openButton') || 'Setup-Assistent'}
-                </button>
-                <div className="border-l border-gray-300 mx-2" />
-                <button
-                  onClick={createDatabase}
-                  disabled={loading}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-                  title="Create a new database with the configured settings"
-                >
-                  <CircleStackIcon className="h-4 w-4 mr-2" />
-                  {loading ? t('configuration.creatingDatabase') : t('configuration.createDatabase')}
-                </button>
-                <button
-                  onClick={testDatabaseConnection}
-                  disabled={loading}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  <CircleStackIcon className="h-4 w-4 mr-2" />
-                  {t('configuration.testConnection')}
-                </button>
-                <button
-                  onClick={handleCreateSchema}
-                  disabled={loadingSchema}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
-                  title={t('configuration.createSchemaTooltip') || 'Datenbankschema mit Prisma erstellen'}
-                >
-                  <CircleStackIcon className="h-4 w-4 mr-2 text-purple-600" />
-                  {loadingSchema ? t('configuration.creatingSchema') : t('configuration.createSchema')}
-                </button>
-                <button
-                  onClick={handleGymNetPreset}
-                  disabled={loadingGymNet}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50"
-                  title={t('configuration.gymnetPresetButtonTooltip') || 'Geräte und Formeln für GymNet-Import anlegen'}
-                >
-                  <ClipboardDocumentListIcon className="h-4 w-4 mr-2 text-pink-600" />
-                  {loadingGymNet ? t('configuration.gymnetPresetLoading') : t('configuration.gymnetPresetButton')}
-                </button>
-              </>
+              <button
+                onClick={() => setShowWizard(true)}
+                className="inline-flex items-center px-4 py-2 border-2 border-blue-600 shadow-sm text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                title={t('configuration.wizard.openButton') || 'Datenbank-Setup-Assistent öffnen'}
+              >
+                <CogIcon className="h-4 w-4 mr-2" />
+                {t('configuration.wizard.openButton') || 'Setup-Assistent'}
+              </button>
             )}
             <button
               onClick={saveConfiguration}

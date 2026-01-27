@@ -14,8 +14,8 @@ interface DatabaseSetupWizardProps {
   onClose: () => void;
   onCreateDatabase: (dbName: string, dbConfig: any) => Promise<{ success: boolean; message?: string; error?: string }>;
   onTestConnection: (dbConfig: any) => Promise<{ success: boolean; message?: string; error?: string }>;
-  onCreateSchema: () => Promise<{ success: boolean; message?: string; details?: string; error?: string }>;
-  onApplyGymNetPreset: () => Promise<{ 
+  onCreateSchema: (dbConfig?: any) => Promise<{ success: boolean; message?: string; details?: string; error?: string }>;
+  onApplyGymNetPreset: (dbConfig?: any) => Promise<{ 
     success: boolean; 
     message?: string; 
     stats?: { 
@@ -28,7 +28,7 @@ interface DatabaseSetupWizardProps {
     };
     error?: string;
   }>;
-  onImportProductionDisciplines: () => Promise<{
+  onImportProductionDisciplines: (dbConfig?: any) => Promise<{
     success: boolean;
     message?: string;
     stats?: {
@@ -42,7 +42,7 @@ interface DatabaseSetupWizardProps {
     };
     error?: string;
   }>;
-  onImportProductionStatuses: () => Promise<{
+  onImportProductionStatuses: (dbConfig?: any) => Promise<{
     success: boolean;
     message?: string;
     stats?: {
@@ -83,6 +83,7 @@ export default function DatabaseSetupWizard({
   const { t } = useTranslation();
   
   const [newDatabaseName, setNewDatabaseName] = useState('');
+  const [activeDbConfig, setActiveDbConfig] = useState<any>(null); // Config for the new database after creation
   
   const [steps, setSteps] = useState<Step[]>([
     {
@@ -249,6 +250,8 @@ export default function DatabaseSetupWizard({
           result = await onTestConnection(testDbConfig);
           if (result.success) {
             addStepOutput(stepId, '✅ Verbindung erfolgreich getestet');
+            // Save the active DB config for subsequent steps
+            setActiveDbConfig(testDbConfig);
             updateStepStatus(stepId, 'success');
           } else {
             const errorMsg = result.error || 'Verbindungstest fehlgeschlagen';
@@ -258,7 +261,7 @@ export default function DatabaseSetupWizard({
 
         case 'create-schema':
           addStepOutput(stepId, '⏳ Datenbankschema wird erstellt...');
-          result = await onCreateSchema();
+          result = await onCreateSchema(activeDbConfig);
           if (result.success) {
             addStepOutput(stepId, '✅ Schema erfolgreich erstellt');
             if (result.details) {
@@ -278,7 +281,7 @@ export default function DatabaseSetupWizard({
 
         case 'production-statuses':
           addStepOutput(stepId, '⏳ Status Management wird importiert...');
-          result = await onImportProductionStatuses();
+          result = await onImportProductionStatuses(activeDbConfig);
           if (result.success) {
             addStepOutput(stepId, '✅ Status Management erfolgreich importiert');
             if (result.stats) {
@@ -295,7 +298,7 @@ export default function DatabaseSetupWizard({
 
         case 'production-disciplines':
           addStepOutput(stepId, '⏳ Produktions-Disziplinen werden importiert...');
-          result = await onImportProductionDisciplines();
+          result = await onImportProductionDisciplines(activeDbConfig);
           if (result.success) {
             addStepOutput(stepId, '✅ Produktions-Disziplinen erfolgreich importiert');
             if (result.stats) {
@@ -315,7 +318,7 @@ export default function DatabaseSetupWizard({
 
         case 'gymnet-preset':
           addStepOutput(stepId, '⏳ GymNet-Voreinstellungen werden angewendet...');
-          result = await onApplyGymNetPreset();
+          result = await onApplyGymNetPreset(activeDbConfig);
           if (result.success) {
             addStepOutput(stepId, '✅ GymNet-Voreinstellungen erfolgreich angewendet');
             if (result.stats) {
@@ -327,6 +330,10 @@ export default function DatabaseSetupWizard({
           } else {
             throw new Error(result.error || result.message || 'Fehler beim Anwenden der GymNet-Voreinstellungen');
           }
+          break;
+
+        default:
+          console.warn(`Unknown step: ${stepId}`);
           break;
       }
     } catch (error: any) {

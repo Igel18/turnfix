@@ -13,16 +13,20 @@
  */
 
 import prisma from '../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { 
   loadProductionDisciplines, 
   getAvailableSports 
 } from '../data/loaders/disciplineLoader';
 
-export async function applyProductionDisciplines() {
+export async function applyProductionDisciplines(customPrismaClient?: PrismaClient) {
+  // Use custom client if provided (for wizard), otherwise use default
+  const db = customPrismaClient || prisma;
+  
   try {
     // Check if database schema exists
     try {
-      await prisma.tfx_formeln.count();
+      await db.tfx_formeln.count();
     } catch (error: any) {
       if (error.message && error.message.includes('does not exist')) {
         throw new Error('Database schema not initialized. Please run "Create Schema" step first.');
@@ -52,12 +56,12 @@ export async function applyProductionDisciplines() {
 
     console.log(`[ProductionDisciplines] Creating ${uniqueFormulas.size} unique formulas...`);
     for (const [_, formula] of uniqueFormulas) {
-      const existing = await prisma.tfx_formeln.findFirst({
+      const existing = await db.tfx_formeln.findFirst({
         where: { var_name: formula.name }
       });
       
       if (!existing) {
-        await prisma.tfx_formeln.create({
+        await db.tfx_formeln.create({
           data: {
             var_name: formula.name,
             var_formel: formula.formula,
@@ -75,12 +79,12 @@ export async function applyProductionDisciplines() {
 
     // Create sports if they don't exist
     for (const sportName of sports) {
-      const existingSport = await prisma.tfx_sport.findFirst({
+      const existingSport = await db.tfx_sport.findFirst({
         where: { var_name: sportName }
       });
       
       if (!existingSport) {
-        await prisma.tfx_sport.create({
+        await db.tfx_sport.create({
           data: { var_name: sportName }
         });
         createdSports++;
@@ -91,7 +95,7 @@ export async function applyProductionDisciplines() {
     console.log(`[ProductionDisciplines] Importing disciplines...`);
     for (const disc of disciplines) {
       // Check if discipline already exists
-      const existing = await prisma.tfx_disziplinen.findFirst({
+      const existing = await db.tfx_disziplinen.findFirst({
         where: { var_name: disc.name }
       });
 
@@ -101,7 +105,7 @@ export async function applyProductionDisciplines() {
       }
 
       // Get sport ID
-      const sport = await prisma.tfx_sport.findFirst({
+      const sport = await db.tfx_sport.findFirst({
         where: { var_name: disc.sportart }
       });
 
@@ -113,18 +117,18 @@ export async function applyProductionDisciplines() {
       // Get formula ID if exists
       let formelId = null;
       if (disc.formelName) {
-        const formel = await prisma.tfx_formeln.findFirst({
+        const formel = await db.tfx_formeln.findFirst({
           where: { var_name: disc.formelName }
         });
         formelId = formel?.int_formelid || null;
       }
 
       // Create discipline
-      const created = await prisma.tfx_disziplinen.create({
+      const created = await db.tfx_disziplinen.create({
         data: {
           var_name: disc.name,
           var_kurz1: disc.kurzname.substring(0, 5), // DB constraint: max 5 chars
-          var_kurz2: disc.anzeigename,
+          var_kurz2: disc.anzeigename || disc.name, // Fallback to name if anzeigename is empty
           var_maske: disc.maske,
           var_einheit: disc.einheit,
           var_icon: disc.icon,
@@ -145,7 +149,7 @@ export async function applyProductionDisciplines() {
       // Create fields if they exist
       if (disc.felder && disc.felder.length > 0) {
         for (const field of disc.felder) {
-          await prisma.tfx_disziplinen_felder.create({
+          await db.tfx_disziplinen_felder.create({
             data: {
               int_disziplinenid: created.int_disziplinenid,
               var_name: field.name,

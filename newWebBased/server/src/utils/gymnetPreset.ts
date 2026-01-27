@@ -1,12 +1,16 @@
 // Utility for GymNet preset import: Geräte, Formeln, Mapping
 // Reusable for DB initialization and import
 import prisma from '../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
-export async function applyGymNetPreset() {
+export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
+    // Use custom client if provided (for wizard), otherwise use default
+    const db = customPrismaClient || prisma;
+    
     try {
       // Check if database schema exists by trying to query the tables
       try {
-        await prisma.tfx_formeln.count();
+        await db.tfx_formeln.count();
       } catch (error: any) {
         if (error.message && error.message.includes('does not exist')) {
           throw new Error('Database schema not initialized. Please run "Create Schema" step first.');
@@ -303,13 +307,13 @@ export async function applyGymNetPreset() {
 
   let createdFormulas = 0;
   for (const formula of formulas) {
-    const existing = await prisma.tfx_formeln.findFirst({ where: { var_name: formula.var_name } });
+    const existing = await db.tfx_formeln.findFirst({ where: { var_name: formula.var_name } });
     if (!existing) {
-      await prisma.tfx_formeln.create({ data: formula });
+      await db.tfx_formeln.create({ data: formula });
       console.log(`[GymNetPreset] Formel hinzugefügt: ${formula.var_name}`);
       createdFormulas++;
     } else if (existing.var_formel !== formula.var_formel || existing.int_typ !== formula.int_typ) {
-      await prisma.tfx_formeln.update({ where: { int_formelid: existing.int_formelid }, data: formula });
+      await db.tfx_formeln.update({ where: { int_formelid: existing.int_formelid }, data: formula });
       console.log(`[GymNetPreset] Formel aktualisiert: ${formula.var_name}`);
     }
   }
@@ -411,21 +415,22 @@ export async function applyGymNetPreset() {
   let createdFields = 0;
   for (const geraet of geraete) {
     // Sportart anlegen oder abrufen
-    let sport = await prisma.tfx_sport.findFirst({ where: { var_name: geraet.sport } });
+    let sport = await db.tfx_sport.findFirst({ where: { var_name: geraet.sport } });
     if (!sport) {
-      sport = await prisma.tfx_sport.create({ data: { var_name: geraet.sport } });
+      sport = await db.tfx_sport.create({ data: { var_name: geraet.sport } });
       console.log(`[GymNetPreset] Sportart "${geraet.sport}" wurde angelegt.`);
     }
     const sportId = sport.int_sportid;
     
-    const existing = await prisma.tfx_disziplinen.findFirst({ where: { var_name: geraet.name } });
+    const existing = await db.tfx_disziplinen.findFirst({ where: { var_name: geraet.name } });
     let disziplinId: number | null = null;
     if (!existing) {
-      const formula = await prisma.tfx_formeln.findFirst({ where: { var_name: geraet.formula } });
-      const created = await prisma.tfx_disziplinen.create({
+      const formula = await db.tfx_formeln.findFirst({ where: { var_name: geraet.formula } });
+      const created = await db.tfx_disziplinen.create({
         data: {
-          var_name: geraet.name, // Anzeigename
-          var_kurz1: geraet.kurzname, // Kurzname (max 6)
+          var_name: geraet.name, // Name
+          var_kurz1: geraet.kurzname, // Kurzname (max 5 chars)
+          var_kurz2: geraet.anzeigename || geraet.name, // Anzeigename (fallback to name)
           var_maske: geraet.eingabemaske, // Eingabemaske
           var_einheit: geraet.einheit, // Einheit
           var_icon: geraet.symbol, // Symbol/Icon
@@ -450,11 +455,11 @@ export async function applyGymNetPreset() {
         fields = deviceFieldMap[geraet.name] || [];
       }
       for (const field of fields) {
-        const existingField = await prisma.tfx_disziplinen_felder.findFirst({
+        const existingField = await db.tfx_disziplinen_felder.findFirst({
           where: { int_disziplinenid: disziplinId, var_name: field.var_name }
         });
         if (!existingField) {
-          await prisma.tfx_disziplinen_felder.create({
+          await db.tfx_disziplinen_felder.create({
             data: {
               int_disziplinenid: disziplinId,
               var_name: field.var_name,

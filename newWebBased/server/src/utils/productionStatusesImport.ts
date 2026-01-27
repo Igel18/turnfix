@@ -18,13 +18,17 @@
  */
 
 import prisma from '../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { loadProductionStatuses } from '../data/loaders/statusLoader';
 
-export async function applyProductionStatuses() {
+export async function applyProductionStatuses(customPrismaClient?: PrismaClient) {
+  // Use custom client if provided (for wizard), otherwise use default
+  const db = customPrismaClient || prisma;
+  
   try {
     // Check if database schema exists
     try {
-      await prisma.tfx_status.count();
+      await db.tfx_status.count();
     } catch (error: any) {
       if (error.message && error.message.includes('does not exist')) {
         throw new Error('Database schema not initialized. Please run "Create Schema" step first.');
@@ -44,7 +48,7 @@ export async function applyProductionStatuses() {
     // Process each status
     for (const status of statuses) {
       // Check if status already exists
-      const existing = await prisma.tfx_status.findFirst({
+      const existing = await db.tfx_status.findFirst({
         where: { var_name: status.name }
       });
 
@@ -54,7 +58,7 @@ export async function applyProductionStatuses() {
       }
 
       // Create status
-      await prisma.tfx_status.create({
+      await db.tfx_status.create({
         data: {
           var_name: status.name,
           ary_colorcode: status.colorCode,

@@ -1,6 +1,6 @@
 {
   "scoreCapture": {
-    "showJuryScores": false,
+    "showJuryScores": true,
     "description": "When true, shows individual jury scores in score capture. When false, shows only the total score."
   },
   "juryPortal": {
