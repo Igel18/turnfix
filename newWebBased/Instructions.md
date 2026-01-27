@@ -5761,4 +5761,7 @@ Siehe TurnFixImport.exe.config vielleicht gibt es auch noch eine andere Datei hi
 - productionStatusesImport.ts 
 
 Vielleicht lässt sich das in JSON Dateien auslagern, dann könnte man diese ändern / erweitern ohne den Code neu kompilieren zu müssen? Oder vielleicht die GymNetPresets auch in den data ordner legen neben den ProductionDisciplines.ts? 
-Und alle Dateien mit Geräten in einem einheitlichen Format? 
+Und alle Dateien mit Geräten in einem einheitlichen Format? ^
+-> Erledigt 
+
+Wenn mit dem Wizard eine neue DB erstellt wurde muss auch die Verbindung zu dieser neuen DB getestet werden. Ist die erfolgreich, müssen auch die folgenden schritte auf die neue DB wirken und nicht auf die alte! 

@@ -13,10 +13,12 @@
  * - Descriptive name
  * - Color code for visual identification
  * - Flags for printing on squad sheets (Bogen) and participant cards (Karte)
+ * 
+ * Now uses JSON-based data loaders for better maintainability.
  */
 
 import prisma from '../lib/prisma';
-import { PRODUCTION_STATUSES } from '../data/productionStatuses';
+import { loadProductionStatuses } from '../data/loaders/statusLoader';
 
 export async function applyProductionStatuses() {
   try {
@@ -31,56 +33,52 @@ export async function applyProductionStatuses() {
     }
 
     console.log('[ProductionStatuses] Starting import...');
-    console.log(`[ProductionStatuses] Total statuses to process: ${PRODUCTION_STATUSES.length}`);
+    
+    // Load statuses from JSON
+    const statuses = loadProductionStatuses();
+    console.log(`[ProductionStatuses] Loaded ${statuses.length} statuses from JSON`);
     
     let createdStatuses = 0;
     let skippedStatuses = 0;
 
     // Process each status
-    for (const status of PRODUCTION_STATUSES) {
-      try {
-        // Check if status already exists
-        const existing = await prisma.tfx_status.findFirst({
-          where: { var_name: status.name }
-        });
+    for (const status of statuses) {
+      // Check if status already exists
+      const existing = await prisma.tfx_status.findFirst({
+        where: { var_name: status.name }
+      });
 
-        if (existing) {
-          skippedStatuses++;
-          continue; // Skip if already exists
-        }
-
-        // Create status
-        await prisma.tfx_status.create({
-          data: {
-            var_name: status.name,
-            ary_colorcode: status.colorCode,
-            bol_bogen: status.bogen,
-            bol_karte: status.karte
-          }
-        });
-
-        createdStatuses++;
-        console.log(`[ProductionStatuses] Status created: ${status.name} (${status.colorCode})`);
-
-      } catch (error) {
-        console.error(`[ProductionStatuses] Error processing ${status.name}:`, error);
-        // Continue with next status
+      if (existing) {
+        skippedStatuses++;
+        continue; // Skip if already exists
       }
+
+      // Create status
+      await prisma.tfx_status.create({
+        data: {
+          var_name: status.name,
+          ary_colorcode: status.colorCode,
+          bol_bogen: status.bogen,
+          bol_karte: status.karte
+        }
+      });
+
+      createdStatuses++;
     }
 
-    const stats = {
-      createdStatuses,
-      skippedStatuses,
-      totalStatuses: PRODUCTION_STATUSES.length
+    const result = {
+      success: true,
+      stats: {
+        createdStatuses: createdStatuses,
+        skippedStatuses: skippedStatuses,
+        totalStatuses: statuses.length
+      }
     };
 
     console.log('[ProductionStatuses] Import complete!');
-    console.log(`[ProductionStatuses] Stats:`, stats);
+    console.log(JSON.stringify(result, null, 2));
 
-    return {
-      success: true,
-      stats
-    };
+    return result;
 
   } catch (error: any) {
     console.error('[ProductionStatuses] Import failed:', error);

@@ -1,5 +1,5 @@
 /**
- * GymNet Preset - Production Disciplines Import
+ * Production Disciplines Import Utility
  * 
  * This utility imports all disciplines from the production TurnFix database.
  * It includes:
@@ -8,10 +8,15 @@
  * - Associated formulas and fields
  * 
  * Usage: Called during database setup wizard or manually via API
+ * 
+ * Now uses JSON-based data loaders for better maintainability.
  */
 
 import prisma from '../lib/prisma';
-import { PRODUCTION_DISCIPLINES, getAllSports } from '../data/productionDisciplines';
+import { 
+  loadProductionDisciplines, 
+  getAvailableSports 
+} from '../data/loaders/disciplineLoader';
 
 export async function applyProductionDisciplines() {
   try {
@@ -26,7 +31,10 @@ export async function applyProductionDisciplines() {
     }
 
     console.log('[ProductionDisciplines] Starting import...');
-    console.log(`[ProductionDisciplines] Total disciplines to process: ${PRODUCTION_DISCIPLINES.length}`);
+    
+    // Load disciplines from JSON
+    const disciplines = loadProductionDisciplines();
+    console.log(`[ProductionDisciplines] Loaded ${disciplines.length} disciplines from JSON`);
     
     let createdSports = 0;
     let createdFormulas = 0;
@@ -36,7 +44,7 @@ export async function applyProductionDisciplines() {
 
     // First, create all unique formulas from the disciplines
     const uniqueFormulas = new Map<string, { name: string; formula: string }>();
-    PRODUCTION_DISCIPLINES.forEach(d => {
+    disciplines.forEach(d => {
       if (d.formelName && d.formel) {
         uniqueFormulas.set(d.formelName, { name: d.formelName, formula: d.formel });
       }
@@ -61,112 +69,115 @@ export async function applyProductionDisciplines() {
       }
     }
 
-    // Process each discipline
-    for (const disc of PRODUCTION_DISCIPLINES) {
-      try {
-        // 1. Ensure sport exists
-        let sport = await prisma.tfx_sport.findFirst({
-          where: { var_name: disc.sportart }
+    // Get all unique sports
+    const sports = getAvailableSports();
+    console.log(`[ProductionDisciplines] Found ${sports.length} sports`);
+
+    // Create sports if they don't exist
+    for (const sportName of sports) {
+      const existingSport = await prisma.tfx_sport.findFirst({
+        where: { var_name: sportName }
+      });
+      
+      if (!existingSport) {
+        await prisma.tfx_sport.create({
+          data: { var_name: sportName }
         });
-
-        if (!sport) {
-          sport = await prisma.tfx_sport.create({
-            data: { var_name: disc.sportart }
-          });
-          createdSports++;
-          console.log(`[ProductionDisciplines] Sport created: ${disc.sportart}`);
-        }
-
-        // 2. Check if discipline already exists
-        const existing = await prisma.tfx_disziplinen.findFirst({
-          where: {
-            var_name: disc.name,
-            int_sportid: sport.int_sportid
-          }
-        });
-
-        if (existing) {
-          skippedDisciplines++;
-          continue; // Skip if already exists
-        }
-
-        // 3. Get formula ID if formula name is provided
-        let formulaId: number | null = null;
-        if (disc.formelName) {
-          const formula = await prisma.tfx_formeln.findFirst({
-            where: { var_name: disc.formelName }
-          });
-          formulaId = formula?.int_formelid || null;
-        }
-
-        // 4. Create discipline
-        const createdDisc = await prisma.tfx_disziplinen.create({
-          data: {
-            int_sportid: sport.int_sportid,
-            var_name: disc.name,
-            var_kurz1: disc.kurzname?.substring(0, 5) || null, // Max 5 chars
-            var_kurz2: disc.anzeigename || null,
-            var_formel: disc.formel,
-            var_maske: disc.maske || null,
-            int_versuche: disc.versuche || 1,
-            var_einheit: disc.einheit || null,
-            var_icon: disc.icon || null,
-            var_kuerzel: disc.kuerzel || null,
-            int_berechnung: disc.berechnungstyp || 2,
-            bol_bahnen: disc.bahnen || false,
-            bol_m: disc.maennlich,
-            bol_w: disc.weiblich,
-            int_formelid: formulaId,
-            bol_berechnen: disc.berechnen
-          }
-        });
-
-        createdDisciplines++;
-        console.log(`[ProductionDisciplines] Discipline created: ${disc.name} (${disc.sportart})`);
-
-        // 5. Create fields for this discipline
-        if (disc.felder && disc.felder.length > 0) {
-          for (const field of disc.felder) {
-            await prisma.tfx_disziplinen_felder.create({
-              data: {
-                int_disziplinenid: createdDisc.int_disziplinenid,
-                var_name: field.name,
-                int_sortierung: field.sortierung,
-                bol_endwert: field.endwert,
-                bol_ausgangswert: field.ausgangswert,
-                int_gruppe: field.gruppe,
-                bol_enabled: field.enabled
-              }
-            });
-            createdFields++;
-          }
-          console.log(`[ProductionDisciplines]   → ${disc.felder.length} fields created`);
-        }
-
-      } catch (error) {
-        console.error(`[ProductionDisciplines] Error processing ${disc.name}:`, error);
-        // Continue with next discipline
+        createdSports++;
       }
     }
 
-    const stats = {
-      createdSports,
-      createdFormulas,
-      totalFormulas: uniqueFormulas.size,
-      createdDisciplines,
-      createdFields,
-      skippedDisciplines,
-      totalDisciplines: PRODUCTION_DISCIPLINES.length
+    // Now import all disciplines
+    console.log(`[ProductionDisciplines] Importing disciplines...`);
+    for (const disc of disciplines) {
+      // Check if discipline already exists
+      const existing = await prisma.tfx_disziplinen.findFirst({
+        where: { var_name: disc.name }
+      });
+
+      if (existing) {
+        skippedDisciplines++;
+        continue;
+      }
+
+      // Get sport ID
+      const sport = await prisma.tfx_sport.findFirst({
+        where: { var_name: disc.sportart }
+      });
+
+      if (!sport) {
+        console.warn(`[ProductionDisciplines] Sport not found: ${disc.sportart} for discipline ${disc.name}`);
+        continue;
+      }
+
+      // Get formula ID if exists
+      let formelId = null;
+      if (disc.formelName) {
+        const formel = await prisma.tfx_formeln.findFirst({
+          where: { var_name: disc.formelName }
+        });
+        formelId = formel?.int_formelid || null;
+      }
+
+      // Create discipline
+      const created = await prisma.tfx_disziplinen.create({
+        data: {
+          var_name: disc.name,
+          var_kurz1: disc.kurzname.substring(0, 5), // DB constraint: max 5 chars
+          var_kurz2: disc.anzeigename,
+          var_maske: disc.maske,
+          var_einheit: disc.einheit,
+          var_icon: disc.icon,
+          var_kuerzel: disc.kuerzel,
+          int_versuche: disc.versuche,
+          int_formelid: formelId,
+          int_sportid: sport.int_sportid,
+          int_berechnung: disc.berechnungstyp,
+          bol_m: disc.maennlich,
+          bol_w: disc.weiblich,
+          bol_bahnen: disc.bahnen,
+          bol_berechnen: disc.berechnen
+        }
+      });
+
+      createdDisciplines++;
+
+      // Create fields if they exist
+      if (disc.felder && disc.felder.length > 0) {
+        for (const field of disc.felder) {
+          await prisma.tfx_disziplinen_felder.create({
+            data: {
+              int_disziplinenid: created.int_disziplinenid,
+              var_name: field.name,
+              int_sortierung: field.sortierung,
+              bol_endwert: field.endwert,
+              bol_ausgangswert: field.ausgangswert,
+              int_gruppe: field.gruppe,
+              bol_enabled: field.enabled
+            }
+          });
+          createdFields++;
+        }
+      }
+    }
+
+    const result = {
+      success: true,
+      stats: {
+        createdSports: createdSports,
+        createdFormulas: createdFormulas,
+        totalFormulas: uniqueFormulas.size,
+        createdDisciplines: createdDisciplines,
+        skippedDisciplines: skippedDisciplines,
+        totalDisciplines: disciplines.length,
+        createdFields: createdFields
+      }
     };
 
     console.log('[ProductionDisciplines] Import complete!');
-    console.log(`[ProductionDisciplines] Stats:`, stats);
+    console.log(JSON.stringify(result, null, 2));
 
-    return {
-      success: true,
-      stats
-    };
-
+    return result;
   } catch (error: any) {
     console.error('[ProductionDisciplines] Import failed:', error);
     throw error;
