@@ -320,7 +320,10 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
         d.bol_w,
         d.var_icon,
         d.var_formel,
+        d.int_formelid,
         d.var_maske,
+        d.var_einheit,
+        d.int_berechnung,
         d.int_versuche,
         wd.rel_max
       FROM tfx_disziplinen d
@@ -339,7 +342,11 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
             bol_w: discipline.bol_w,
             var_icon: discipline.var_icon,
             var_formel: discipline.var_formel,
+            int_formelid: discipline.int_formelid,
             var_maske: discipline.var_maske,
+            var_eingabemaske: discipline.var_maske, // Alias for compatibility
+            var_einheit: discipline.var_einheit,
+            int_berechnung: discipline.int_berechnung,
             int_versuche: discipline.int_versuche || 1,
             attempts: discipline.int_versuche || 1, // For compatibility
             maxScore: discipline.rel_max || 0 // Maximum score for this discipline in this competition

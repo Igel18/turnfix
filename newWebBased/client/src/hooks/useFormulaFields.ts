@@ -32,7 +32,9 @@ export interface UseFormulaFieldsOptions {
   disciplineId?: number;
   inputMask?: string;
   calculationType?: number;
+  initialValues?: Record<number, string>; // Field ID -> value mapping
   onFieldsLoaded?: (fields: FormulaField[]) => void;
+  onFieldChange?: (fieldId: number, value: string) => void;
   onCalculationComplete?: (result: number | null) => void;
 }
 
@@ -57,7 +59,9 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
     formulaId,
     disciplineId,
     inputMask,
+    initialValues: _initialValues = {},
     onFieldsLoaded,
+    onFieldChange,
     onCalculationComplete
   } = options;
 
@@ -236,6 +240,11 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
     setFields(prev => prev.map(f => 
       f.id === fieldId ? { ...f, value } : f
     ));
+    
+    // Notify parent component of field change
+    if (onFieldChange) {
+      onFieldChange(fieldId, value);
+    }
   };
 
   // Normalize field value on blur

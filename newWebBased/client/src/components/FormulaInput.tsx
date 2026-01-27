@@ -21,7 +21,10 @@ export interface FormulaInputProps {
   disciplineId?: number;
   showTitle?: boolean;
   className?: string;
+  compact?: boolean; // New: compact mode for table display
+  initialValues?: Record<number, string>; // Field ID -> value mapping
   onFieldsLoaded?: (fields: FormulaField[]) => void;
+  onFieldChange?: (fieldId: number, value: string) => void;
   onCalculationComplete?: (result: number | null) => void;
 }
 
@@ -38,7 +41,10 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
   disciplineId,
   showTitle = true,
   className = '',
+  compact = false, // Default to full size
+  initialValues = {},
   onFieldsLoaded,
+  onFieldChange,
   onCalculationComplete
 }) => {
   const { t } = useTranslation();
@@ -57,14 +63,45 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
     disciplineId,
     inputMask,
     calculationType,
+    initialValues,
+    onFieldChange,
     onFieldsLoaded,
     onCalculationComplete
   });
 
   const placeholder = inputMask ? getPlaceholder(inputMask) : '';
 
+  // Conditional sizing based on compact prop
+  const sizeClasses = compact ? {
+    container: 'p-3',
+    gap: 'gap-2',
+    textSize: 'text-lg',
+    equalsSize: 'text-2xl',
+    letterSize: 'text-[10px]',
+    nameSize: 'text-[10px]',
+    inputWidth: 'w-[70px]',
+    inputPadding: 'px-2 py-1',
+    inputBorder: 'border',
+    resultWidth: 'min-w-[70px]',
+    resultPadding: 'px-3 py-1',
+    resultText: 'text-lg'
+  } : {
+    container: 'p-6',
+    gap: 'gap-3',
+    textSize: 'text-2xl',
+    equalsSize: 'text-3xl',
+    letterSize: 'text-xs',
+    nameSize: 'text-xs',
+    inputWidth: 'w-[90px]',
+    inputPadding: 'px-3 py-2',
+    inputBorder: 'border-2',
+    resultWidth: 'min-w-[100px]',
+    resultPadding: 'px-4 py-2',
+    resultText: 'text-xl'
+  };
+
   return (
-    <div className={`space-y-4 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-lg p-6 border-2 border-purple-300 ${className}`}>
+    <div className={`${sizeClasses.container} bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl ${compact ? 'border' : 'border-2'} border-purple-300 shadow-sm ${className}`}>
       {/* Header */}
       {showTitle && (
         <div className="flex items-center space-x-2">
@@ -86,8 +123,8 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
       {!loadingFormula && fields.length > 0 && (
         <>
           {/* Formula Breakdown with Inline Inputs */}
-          <div className="p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl border-2 border-purple-300 shadow-sm">
-            <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl border-2 border-purple-300 shadow-sm">
+            <div className={`flex flex-wrap items-center justify-center ${sizeClasses.gap}`}>
               {effectiveFormula ? (
                 // Show formula with constants and operators
                 (() => {
@@ -143,13 +180,13 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                   return formulaParts.map((part, partIndex) => {
                     if (part.type === 'constant') {
                       return (
-                        <div key={`const-${partIndex}`} className="text-2xl font-bold text-purple-600 px-1">
+                        <div key={`const-${partIndex}`} className={`${sizeClasses.textSize} font-bold text-purple-600 px-1`}>
                           {part.content}
                         </div>
                       );
                     } else if (part.type === 'equals') {
                       return (
-                        <div key="equals" className="text-3xl font-bold text-purple-600 px-2">=</div>
+                        <div key="equals" className={`${sizeClasses.equalsSize} font-bold text-purple-600 px-2`}>=</div>
                       );
                     } else if (part.type === 'field') {
                       const fieldIndex = part.fieldIndex!;
@@ -168,16 +205,16 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                       return (
                         <div key={`field-${field.id}`} className="inline-flex flex-col items-center">
                           {/* Show field letter above field name (or EW for final score) */}
-                          <div className={`text-xs font-bold mb-0.5 ${field.isFinalScore ? 'text-green-600' : 'text-purple-500'}`}>
+                          <div className={`${sizeClasses.letterSize} font-bold mb-0.5 ${field.isFinalScore ? 'text-green-600' : 'text-purple-500'}`}>
                             ({fieldLetter})
                           </div>
-                          <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
+                          <div className={`${sizeClasses.nameSize} font-medium text-purple-700 mb-1 whitespace-nowrap`}>
                             {field.name}
                           </div>
                           
                           {/* For final score, show result in green box */}
                           {field.isFinalScore ? (
-                            <div className="px-4 py-2 rounded-lg border-2 bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl font-bold min-w-[90px] text-center shadow-sm">
+                            <div className={`${sizeClasses.resultPadding} rounded-lg ${sizeClasses.inputBorder} bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white ${sizeClasses.resultText} font-bold ${sizeClasses.resultWidth} text-center shadow-sm`}>
                               {displayValue || '?'}
                             </div>
                           ) : (
@@ -188,7 +225,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                               onChange={(e) => updateFieldValue(field.id, e.target.value)}
                               onBlur={() => normalizeFieldValue(field.id)}
                               placeholder={inputMask ? placeholder : '0,00'}
-                              className="w-[90px] px-3 py-2 border-2 border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm"
+                              className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm`}
                             />
                           )}
                         </div>
@@ -213,19 +250,19 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                   return (
                     <React.Fragment key={field.id}>
                       {showEquals && (
-                        <div className="text-3xl font-bold text-purple-600 px-2">=</div>
+                        <div className={`${sizeClasses.equalsSize} font-bold text-purple-600 px-2`}>=</div>
                       )}
                       
                       <div className="inline-flex flex-col items-center">
-                        <div className={`text-xs font-bold mb-0.5 ${field.isFinalScore ? 'text-green-600' : 'text-purple-500'}`}>
+                        <div className={`${sizeClasses.letterSize} font-bold mb-0.5 ${field.isFinalScore ? 'text-green-600' : 'text-purple-500'}`}>
                           ({fieldLetter || 'EW'})
                         </div>
-                        <div className="text-xs font-medium text-purple-700 mb-1 whitespace-nowrap">
+                        <div className={`${sizeClasses.nameSize} font-medium text-purple-700 mb-1 whitespace-nowrap`}>
                           {field.name}
                         </div>
                         
                         {field.isFinalScore ? (
-                          <div className="px-4 py-2 rounded-lg border-2 bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white text-xl font-bold min-w-[90px] text-center shadow-sm">
+                          <div className={`${sizeClasses.resultPadding} rounded-lg ${sizeClasses.inputBorder} bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white ${sizeClasses.resultText} font-bold ${sizeClasses.resultWidth} text-center shadow-sm`}>
                             {displayValue || '?'}
                           </div>
                         ) : (
@@ -235,7 +272,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                             onChange={(e) => updateFieldValue(field.id, e.target.value)}
                             onBlur={() => normalizeFieldValue(field.id)}
                             placeholder={inputMask ? placeholder : '0,00'}
-                            className="w-[90px] px-3 py-2 border-2 border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm"
+                            className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm`}
                           />
                         )}
                       </div>
