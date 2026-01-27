@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
-import { mapDatabaseGenderToGerman, getGermanGenderCaseStatement } from '../utils/genderHelpers';
+import { mapDatabaseGenderToGerman, getGermanGenderCaseStatement, mapStringGenderToDatabase } from '../utils/genderHelpers';
 
 const router = Router();
 
@@ -669,8 +669,14 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
       if (birthday !== undefined) {
         updateData.dat_geburtstag = new Date(birthday);
       }
-      if (gender !== undefined) {
-        updateData.int_geschlecht = gender === 'männlich' ? 1 : gender === 'weiblich' ? 2 : 0;
+      // Only update gender if explicitly provided with a valid value (not null, not empty string)
+      if (gender !== undefined && gender !== null && gender !== '') {
+        const mappedGender = mapStringGenderToDatabase(gender);
+        // Only update if the mapped value is valid (not default 0 from invalid input)
+        // This prevents accidental resets when invalid values are passed
+        if (mappedGender !== 0 || gender === 'unknown' || gender === 'unbekannt' || gender === '0') {
+          updateData.int_geschlecht = mappedGender;
+        }
       }
       if (clubId !== undefined) {
         updateData.int_vereineid = clubId;
