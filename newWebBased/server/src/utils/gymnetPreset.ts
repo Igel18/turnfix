@@ -330,7 +330,7 @@ export async function applyGymNetPreset() {
     { name: 'Pauschenpferd', anzeigename: 'Pauschenpferd', kurzname: 'PFERD', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Ringe', anzeigename: 'Ringe', kurzname: 'RINGE', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Sprung', anzeigename: 'Sprung', kurzname: 'SPRNG', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: true },
-    { name: 'Barren', anzeigename: 'Barren', kurzname: 'BARREN', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
+    { name: 'Barren', anzeigename: 'Barren', kurzname: 'BARR', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Reck', anzeigename: 'Reck', kurzname: 'RECK', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Sprung w', anzeigename: 'Sprung', kurzname: 'SPRNG', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
     { name: 'Stufenbarren', anzeigename: 'Stufenbarren', kurzname: 'STUBA', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/stufenbarren.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
@@ -362,7 +362,7 @@ export async function applyGymNetPreset() {
     { name: 'P.-Pferd Kür', anzeigename: 'Pferd', kurzname: 'PFERD', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Ringe m.', anzeigename: 'Ringe', kurzname: 'RINGE', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Sprung m. Kür', anzeigename: 'Sprung', kurzname: 'SPRNG', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
-    { name: 'Par.-Barren Kür', anzeigename: 'Barren', kurzname: 'BARREN', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
+    { name: 'Par.-Barren Kür', anzeigename: 'Barren', kurzname: 'BARR', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
     { name: 'Reck m. Kür', anzeigename: 'Reck', kurzname: 'RECK', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
     { name: 'Boden w. Kür', anzeigename: 'Boden', kurzname: 'BODEN', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
     { name: 'Sprung w. Kür', anzeigename: 'Sprung', kurzname: 'SPRNG', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
@@ -395,16 +395,16 @@ export async function applyGymNetPreset() {
     { name: 'Boden AK', anzeigename: 'Boden AK', kurzname: 'BODAK ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'AK', sport: 'Turnen DTB', bol_m: true, bol_w: true },
     
     // P-Geräte (Sammelgeräte P1-P9)
-    { name: 'Boden m. P1-P9', anzeigename: 'Boden m. P1-P9', kurzname: 'BODP  ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
-    { name: 'Pauschenpferd P1-P9', anzeigename: 'Pauschenpferd P1-P9', kurzname: 'PFERP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
+    { name: 'Boden m. P1-P9', anzeigename: 'Boden m. P1-P9', kurzname: 'BODP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
+    { name: 'Pauschenpferd P1-P9', anzeigename: 'Pauschenpferd P1-P9', kurzname: 'PFERP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
     { name: 'Ringe P1-P9', anzeigename: 'Ringe P1-P9', kurzname: 'RINGEP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
-    { name: 'Sprung m. P1-P9', anzeigename: 'Sprung m. P1-P9', kurzname: 'SPRP  ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
-    { name: 'Par.-Barren P1-P9', anzeigename: 'Par.-Barren P1-P9', kurzname: 'PBARP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
-    { name: 'Reck m. P1-P9', anzeigename: 'Reck m. P1-P9', kurzname: 'RECKP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
-    { name: 'Sprung w. P1-P9', anzeigename: 'Sprung w. P1-P9', kurzname: 'SPRWP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
-    { name: 'Reck/StuBa. P1-P9', anzeigename: 'Reck/StuBa. P1-P9', kurzname: 'RKSBP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/stufenbarren.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
-    { name: 'Schwebebalken P1-P9', anzeigename: 'Schwebebalken P1-P9', kurzname: 'BALKP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/balken.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
-    { name: 'Boden w. P1-P9', anzeigename: 'Boden w. P1-P9', kurzname: 'BODWP ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true }
+    { name: 'Sprung m. P1-P9', anzeigename: 'Sprung m. P1-P9', kurzname: 'SPRP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
+    { name: 'Par.-Barren P1-P9', anzeigename: 'Par.-Barren P1-P9', kurzname: 'PBARP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
+    { name: 'Reck m. P1-P9', anzeigename: 'Reck m. P1-P9', kurzname: 'RECKP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: true, bol_w: false, isP: true },
+    { name: 'Sprung w. P1-P9', anzeigename: 'Sprung w. P1-P9', kurzname: 'SPRWP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
+    { name: 'Reck/StuBa. P1-P9', anzeigename: 'Reck/StuBa. P1-P9', kurzname: 'RKSBP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/stufenbarren.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
+    { name: 'Schwebebalken P1-P9', anzeigename: 'Schwebebalken P1-P9', kurzname: 'BALKP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/balken.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true },
+    { name: 'Boden w. P1-P9', anzeigename: 'Boden w. P1-P9', kurzname: 'BODWP', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB P', bol_m: false, bol_w: true, isP: true }
   ];
 
   let createdDevices = 0;

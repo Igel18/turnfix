@@ -12,8 +12,8 @@ import {
 interface DatabaseSetupWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateDatabase: () => Promise<{ success: boolean; message?: string; error?: string }>;
-  onTestConnection: () => Promise<{ success: boolean; message?: string; error?: string }>;
+  onCreateDatabase: (dbName: string, dbConfig: any) => Promise<{ success: boolean; message?: string; error?: string }>;
+  onTestConnection: (dbConfig: any) => Promise<{ success: boolean; message?: string; error?: string }>;
   onCreateSchema: () => Promise<{ success: boolean; message?: string; details?: string; error?: string }>;
   onApplyGymNetPreset: () => Promise<{ 
     success: boolean; 
@@ -52,6 +52,8 @@ interface DatabaseSetupWizardProps {
     };
     error?: string;
   }>;
+  onUpdateDatabaseName: (newDbName: string) => Promise<void>;
+  currentDbConfig: any;
 }
 
 type StepStatus = 'pending' | 'running' | 'success' | 'error' | 'skipped';
@@ -74,9 +76,13 @@ export default function DatabaseSetupWizard({
   onCreateSchema,
   onApplyGymNetPreset,
   onImportProductionDisciplines,
-  onImportProductionStatuses
+  onImportProductionStatuses,
+  onUpdateDatabaseName,
+  currentDbConfig
 }: DatabaseSetupWizardProps) {
   const { t } = useTranslation();
+  
+  const [newDatabaseName, setNewDatabaseName] = useState('');
   
   const [steps, setSteps] = useState<Step[]>([
     {
@@ -138,7 +144,7 @@ export default function DatabaseSetupWizard({
 
   const checkDatabaseExists = async () => {
     try {
-      const result = await onTestConnection();
+      const result = await onTestConnection(currentDbConfig);
       if (result.success) {
         // Database exists and is accessible
         updateStepStatus('create-db', 'skipped', ['ℹ️ Datenbank existiert bereits - Schritt übersprungen']);
@@ -203,15 +209,30 @@ export default function DatabaseSetupWizard({
       
       switch (stepId) {
         case 'create-db':
-          addStepOutput(stepId, '⏳ Datenbank wird erstellt...');
-          result = await onCreateDatabase();
+          if (!newDatabaseName.trim()) {
+            throw new Error('Bitte geben Sie einen Datenbanknamen ein');
+          }
+          addStepOutput(stepId, `⏳ Datenbank "${newDatabaseName}" wird erstellt...`);
+          // Create database with new name
+          const dbConfigWithNewName = {
+            ...currentDbConfig,
+            db_name: newDatabaseName
+          };
+          result = await onCreateDatabase(newDatabaseName, dbConfigWithNewName);
           if (result.success) {
             addStepOutput(stepId, '✅ Datenbank erfolgreich erstellt');
+            addStepOutput(stepId, '⏳ Konfiguration wird aktualisiert...');
+            // Update configuration with new database name
+            await onUpdateDatabaseName(newDatabaseName);
+            addStepOutput(stepId, '✅ Konfiguration aktualisiert');
             updateStepStatus(stepId, 'success');
           } else if (result.error && result.error.includes('already exists')) {
             // Database already exists - treat as success
             addStepOutput(stepId, '⏳ Datenbank existiert bereits');
             addStepOutput(stepId, '✅ Das ist ok - Schritt abgeschlossen');
+            // Still update configuration
+            await onUpdateDatabaseName(newDatabaseName);
+            addStepOutput(stepId, '✅ Konfiguration aktualisiert');
             updateStepStatus(stepId, 'success');
           } else {
             throw new Error(result.error || result.message || 'Fehler beim Erstellen der Datenbank');
@@ -220,7 +241,12 @@ export default function DatabaseSetupWizard({
 
         case 'test-connection':
           addStepOutput(stepId, '⏳ Verbindung wird getestet...');
-          result = await onTestConnection();
+          // Test with current or new database name
+          const testDbConfig = newDatabaseName.trim() ? {
+            ...currentDbConfig,
+            db_name: newDatabaseName
+          } : currentDbConfig;
+          result = await onTestConnection(testDbConfig);
           if (result.success) {
             addStepOutput(stepId, '✅ Verbindung erfolgreich getestet');
             updateStepStatus(stepId, 'success');
@@ -358,6 +384,27 @@ export default function DatabaseSetupWizard({
       maxWidth="4xl"
     >
       <div className="space-y-6">
+        {/* Database Name Input */}
+        <div className="bg-white border border-gray-300 rounded-lg p-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Neuer Datenbankname
+          </label>
+          <input
+            type="text"
+            value={newDatabaseName}
+            onChange={(e) => setNewDatabaseName(e.target.value)}
+            placeholder={currentDbConfig?.db_name || 'turnfix_new'}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={steps[0].status === 'running' || steps[0].status === 'success'}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Aktuell: <span className="font-medium">{currentDbConfig?.db_name || 'keine'}</span>
+            {newDatabaseName.trim() && newDatabaseName !== currentDbConfig?.db_name && (
+              <span className="ml-2 text-blue-600">→ Neu: <span className="font-medium">{newDatabaseName}</span></span>
+            )}
+          </p>
+        </div>
+
         {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex">
@@ -368,7 +415,7 @@ export default function DatabaseSetupWizard({
               </p>
               <p>
                 {t('configuration.wizard.infoDetail') || 
-                  'Die Schritte müssen in der angegebenen Reihenfolge ausgeführt werden. Der letzte Schritt (GymNet-Voreinstellungen) ist optional.'}
+                  'Die Schritte müssen in der angegebenen Reihenfolge ausgeführt werden. Optional können Status-Typen, Disziplinen und GymNet-Presets importiert werden.'}
               </p>
             </div>
           </div>

@@ -5748,3 +5748,17 @@ Besser wäre vielleicht:
   -> Dann erstellen drücken 
   -> in dem Wizard die erstellung abwarten 
   -> neuer DB name in den Einstellungen übernehmen 
+-> erledigt 
+
+## Zuordnung von gymnet und turnfix ## 
+sollte auch automatisch mit dem hinzufügen zur datenbank erfolgen. ggf. kann das auch immer vorhanden sein? 
+Siehe TurnFixImport.exe.config vielleicht gibt es auch noch eine andere Datei hierzu?
+
+Überarbeiten der Dateien 
+- GymNetPresets.ts 
+- Status 
+- productionDisciplinesImport.ts 
+- productionStatusesImport.ts 
+
+Vielleicht lässt sich das in JSON Dateien auslagern, dann könnte man diese ändern / erweitern ohne den Code neu kompilieren zu müssen? Oder vielleicht die GymNetPresets auch in den data ordner legen neben den ProductionDisciplines.ts? 
+Und alle Dateien mit Geräten in einem einheitlichen Format? 

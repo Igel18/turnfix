@@ -116,19 +116,11 @@ const Configuration: React.FC = () => {
     };
 
     // Wizard wrapper functions
-    const wizardCreateDatabase = async () => {
+    const wizardCreateDatabase = async (newDbName: string, dbConfig: any) => {
       try {
-        const dbSection = configSections.find(s => s.id === 'database');
-        if (!dbSection) {
-          return { success: false, error: 'Database configuration not found' };
-        }
-
-        const dbConfig = dbSection.settings.reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as any);
-
-        const response = await apiPost('/configuration/create-database', dbConfig);
+        // Use the new DB name provided from wizard
+        const configWithNewDb = { ...dbConfig, db_name: newDbName };
+        const response = await apiPost('/configuration/create-database', configWithNewDb);
         if (response?.success) {
           return { success: true, message: response.message };
         }
@@ -138,18 +130,8 @@ const Configuration: React.FC = () => {
       }
     };
 
-    const wizardTestConnection = async () => {
+    const wizardTestConnection = async (dbConfig: any) => {
       try {
-        const dbSection = configSections.find(s => s.id === 'database');
-        if (!dbSection) {
-          return { success: false, error: 'Database configuration not found' };
-        }
-
-        const dbConfig = dbSection.settings.reduce((acc, setting) => {
-          acc[setting.key] = setting.value;
-          return acc;
-        }, {} as any);
-
         const response = await apiPost('/configuration/test-database', dbConfig);
         if (response?.success) {
           return { success: true, message: 'Connection successful' };
@@ -159,6 +141,23 @@ const Configuration: React.FC = () => {
         const errorMsg = error?.response?.data?.error || error?.message || 'Connection failed';
         return { success: false, error: errorMsg };
       }
+    };
+
+    const wizardUpdateDatabaseName = async (newDbName: string) => {
+      // Update the database name in the configuration state
+      setConfigSections(prev => prev.map(section => {
+        if (section.id === 'database') {
+          return {
+            ...section,
+            settings: section.settings.map(setting =>
+              setting.key === 'db_name' 
+                ? { ...setting, value: newDbName }
+                : setting
+            )
+          };
+        }
+        return section;
+      }));
     };
 
     const wizardCreateSchema = async () => {
@@ -1098,6 +1097,11 @@ const Configuration: React.FC = () => {
         onApplyGymNetPreset={wizardApplyGymNetPreset}
         onImportProductionDisciplines={wizardImportProductionDisciplines}
         onImportProductionStatuses={wizardImportProductionStatuses}
+        onUpdateDatabaseName={wizardUpdateDatabaseName}
+        currentDbConfig={configSections.find(s => s.id === 'database')?.settings.reduce((acc, setting) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {} as any) || {}}
       />
     </div>
   )
