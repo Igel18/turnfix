@@ -112,14 +112,20 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
         console.log('📋 [useFormulaFields] Loaded discipline fields from API:', disciplineFields);
         
         if (disciplineFields.length > 0) {
-          let loadedFields = disciplineFields.map((field: any) => ({
-            id: field.id,
-            name: field.name,
-            value: '',
-            normalizedValue: '',
-            isFinalScore: field.isFinalScore,
-            isStartingScore: field.isStartingScore
-          }));
+          let loadedFields = disciplineFields.map((field: any) => {
+            // Apply initial value if available
+            const initialValue = _initialValues[field.id];
+            const valueToUse = initialValue !== undefined ? initialValue : '';
+            
+            return {
+              id: field.id,
+              name: field.name,
+              value: valueToUse,
+              normalizedValue: valueToUse,
+              isFinalScore: field.isFinalScore,
+              isStartingScore: field.isStartingScore
+            };
+          });
           
           // Check if formula requires more fields than we have
           if (effectiveFormula && formulaType === 'letter') {
@@ -158,7 +164,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
       .catch(error => {
         console.error('[useFormulaFields] Error loading discipline fields:', error);
       });
-  }, [disciplineId, hasLowercaseVariables, effectiveFormula, formulaType, onFieldsLoaded]);
+  }, [disciplineId, hasLowercaseVariables, effectiveFormula, formulaType, onFieldsLoaded, _initialValues]);
 
   // Parse variable-based formulas
   useEffect(() => {
