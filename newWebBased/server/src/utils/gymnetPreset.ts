@@ -323,6 +323,7 @@ export async function applyGymNetPreset() {
   ];
 
   // Vollständige Liste aller Geräte mit expliziten Gender-Angaben und Sportart
+  // WICHTIG: kurzname (var_kurz1) darf maximal 5 Zeichen haben (DB-Constraint: varchar(5))
   const geraete = [
     // Basis-Geräte (Standard)
     { name: 'Boden', anzeigename: 'Boden', kurzname: 'BODEN', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: true },
@@ -348,14 +349,13 @@ export async function applyGymNetPreset() {
     { name: 'KM2', anzeigename: 'KM2', kurzname: 'KM2  ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: true },
     { name: 'KM3', anzeigename: 'KM3', kurzname: 'KM3  ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: true },
     
-    // Turn10 Geräte
-    { name: 'Turn10', anzeigename: 'Turn10', kurzname: 'TURN1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
-    { name: 'Boden Turn10® Basis', anzeigename: 'Boden Turn10® Basis', kurzname: 'BODT10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
-    { name: 'Balken/Bank Turn10® Basis', anzeigename: 'Balken/Bank Turn10® Basis', kurzname: 'BLKT10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/balken.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
-    { name: 'P-Barren Turn10® Basis', anzeigename: 'P-Barren Turn10® Basis', kurzname: 'PBRT10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
-    { name: 'Minitrampolin Turn10® Basis', anzeigename: 'Minitrampolin Turn10® Basis', kurzname: 'MNTT10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/minitrampolin.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
-    { name: 'Reck/St-Barren Turn10® Basis', anzeigename: 'Reck/St-Barren Turn10® Basis', kurzname: 'RKST10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
-    { name: 'Sprung Turn10® Basis', anzeigename: 'Sprung Turn10® Basis', kurzname: 'SPRT10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
+    // Turn10 Geräte (max. 5 Zeichen für kurzname!)
+    { name: 'Boden Turn10® Basis', anzeigename: 'Boden Turn10® Basis', kurzname: 'BOD10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
+    { name: 'Balken/Bank Turn10® Basis', anzeigename: 'Balken/Bank Turn10® Basis', kurzname: 'BLK10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/balken.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
+    { name: 'P-Barren Turn10® Basis', anzeigename: 'P-Barren Turn10® Basis', kurzname: 'PBR10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
+    { name: 'Minitrampolin Turn10® Basis', anzeigename: 'Minitrampolin Turn10® Basis', kurzname: 'MNT10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/minitrampolin.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
+    { name: 'Reck/St-Barren Turn10® Basis', anzeigename: 'Reck/St-Barren Turn10® Basis', kurzname: 'RKS10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
+    { name: 'Sprung Turn10® Basis', anzeigename: 'Sprung Turn10® Basis', kurzname: 'SPR10', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'P-Wettkampf', sport: 'Turnen DTB Turn10', bol_m: true, bol_w: true },
     
     // Kür Geräte
     { name: 'Boden m. Kür', anzeigename: 'Boden', kurzname: 'BODEN', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB', bol_m: true, bol_w: false },
@@ -367,29 +367,29 @@ export async function applyGymNetPreset() {
     { name: 'Boden w. Kür', anzeigename: 'Boden', kurzname: 'BODEN', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
     { name: 'Sprung w. Kür', anzeigename: 'Sprung', kurzname: 'SPRNG', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB', bol_m: false, bol_w: true },
     
-    // LK1 Geräte
-    { name: 'Boden m. LK1', anzeigename: 'Boden m. LK1', kurzname: 'BODLK1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'P.-Pferd LK1', anzeigename: 'P.-Pferd LK1', kurzname: 'PFRLK1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Ringe LK1', anzeigename: 'Ringe LK1', kurzname: 'RINLK1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Sprung m. LK1', anzeigename: 'Sprung m. LK1', kurzname: 'SPRLK1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Par.-Barren LK1', anzeigename: 'Par.-Barren LK1', kurzname: 'PBRLK1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: false, bol_w: true },
-    { name: 'Reck m. LK1', anzeigename: 'Reck m. LK1', kurzname: 'REKLK1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    // LK1 Geräte (max. 5 Zeichen für kurzname!)
+    { name: 'Boden m. LK1', anzeigename: 'Boden m. LK1', kurzname: 'BODL1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'P.-Pferd LK1', anzeigename: 'P.-Pferd LK1', kurzname: 'PFRL1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Ringe LK1', anzeigename: 'Ringe LK1', kurzname: 'RINL1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Sprung m. LK1', anzeigename: 'Sprung m. LK1', kurzname: 'SPRL1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Par.-Barren LK1', anzeigename: 'Par.-Barren LK1', kurzname: 'PBRL1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: false, bol_w: true },
+    { name: 'Reck m. LK1', anzeigename: 'Reck m. LK1', kurzname: 'REKL1', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
     
-    // LK2 Geräte
-    { name: 'Boden m. LK2', anzeigename: 'Boden m. LK2', kurzname: 'BODLK2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'P.-Pferd LK2', anzeigename: 'P.-Pferd LK2', kurzname: 'PFRLK2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Ringe LK2', anzeigename: 'Ringe LK2', kurzname: 'RINLK2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Sprung m. LK2', anzeigename: 'Sprung m. LK2', kurzname: 'SPRLK2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Par.-Barren LK2', anzeigename: 'Par.-Barren LK2', kurzname: 'PBRLK2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: false, bol_w: true },
-    { name: 'Reck m. LK2', anzeigename: 'Reck m. LK2', kurzname: 'REKLK2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    // LK2 Geräte (max. 5 Zeichen für kurzname!)
+    { name: 'Boden m. LK2', anzeigename: 'Boden m. LK2', kurzname: 'BODL2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'P.-Pferd LK2', anzeigename: 'P.-Pferd LK2', kurzname: 'PFRL2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Ringe LK2', anzeigename: 'Ringe LK2', kurzname: 'RINL2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Sprung m. LK2', anzeigename: 'Sprung m. LK2', kurzname: 'SPRL2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Par.-Barren LK2', anzeigename: 'Par.-Barren LK2', kurzname: 'PBRL2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: false, bol_w: true },
+    { name: 'Reck m. LK2', anzeigename: 'Reck m. LK2', kurzname: 'REKL2', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
     
-    // LK3 Geräte
-    { name: 'Boden m. LK3', anzeigename: 'Boden m. LK3', kurzname: 'BODLK3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'P.-Pferd LK3', anzeigename: 'P.-Pferd LK3', kurzname: 'PFRLK3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Ringe LK3', anzeigename: 'Ringe LK3', kurzname: 'RINLK3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Sprung m. LK3', anzeigename: 'Sprung m. LK3', kurzname: 'SPRLK3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
-    { name: 'Par.-Barren LK3', anzeigename: 'Par.-Barren LK3', kurzname: 'PBRLK3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: false, bol_w: true },
-    { name: 'Reck m. LK3', anzeigename: 'Reck m. LK3', kurzname: 'REKLK3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    // LK3 Geräte (max. 5 Zeichen für kurzname!)
+    { name: 'Boden m. LK3', anzeigename: 'Boden m. LK3', kurzname: 'BODL3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'P.-Pferd LK3', anzeigename: 'P.-Pferd LK3', kurzname: 'PFRL3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/seitpferd.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Ringe LK3', anzeigename: 'Ringe LK3', kurzname: 'RINL3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/ringe.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Sprung m. LK3', anzeigename: 'Sprung m. LK3', kurzname: 'SPRL3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/sprung.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
+    { name: 'Par.-Barren LK3', anzeigename: 'Par.-Barren LK3', kurzname: 'PBRL3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/barren.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: false, bol_w: true },
+    { name: 'Reck m. LK3', anzeigename: 'Reck m. LK3', kurzname: 'REKL3', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/reck.png', formula: 'LK', sport: 'Turnen DTB LK', bol_m: true, bol_w: false },
     
     // AK Geräte
     { name: 'Boden AK', anzeigename: 'Boden AK', kurzname: 'BODAK ', eingabemaske: '0.00', einheit: 'Pkt.', symbol: '/icons/boden.png', formula: 'AK', sport: 'Turnen DTB', bol_m: true, bol_w: true },

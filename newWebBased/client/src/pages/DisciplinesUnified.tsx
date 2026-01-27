@@ -291,6 +291,15 @@ const DisciplinesUnified: React.FC = () => {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Save error:', errorData);
+        
+        // Show detailed validation errors
+        if (errorData.details && Array.isArray(errorData.details)) {
+          const errorMessages = errorData.details.map((issue: any) => 
+            `${issue.path.join('.')}: ${issue.message}`
+          ).join('\n');
+          throw new Error(`Validation error:\n${errorMessages}`);
+        }
+        
         throw new Error(errorData.error || 'Failed to save discipline');
       }
       

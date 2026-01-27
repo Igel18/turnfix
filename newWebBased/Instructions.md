@@ -5733,5 +5733,6 @@ Dependencies added:
 
 
 Für den DB Wizard wurde eine neue UI imporiert: @headlessui/react'
-ist das wirklich notwendig da wir in anderen UIs schon andere modale dialoge verwenden... 
-Der wizard muss erweitert werden um alle Sportarten (außer Turnen) welche in der DB "Turnfix" vorhanden sind. 
+Die UI gefällt mir ganz gut aber ist das wirklich notwendig da wir in vielen anderen UIs schon andere modale dialoge verwenden... 
+
+Der wizard muss erweitert werden um alle Sportarten (Gymnastik, Leichtathletik, Schwimmen, Rope-Skipping, Turnen) welche in der DB "Turnfix" vorhanden sind. Hierbei muss alles (Name, Kurzname, Anzeigename, Benutzerdefinierte Formel, Berechnungstyp, Eingabemaske, Versuche, Einheit, Symbol, Tastenkürzel, Sportart, Geschlecht, Bahneinteilung, ... ) von den Sportarten übernommen werden. Hierfür sollte es einen separaten Wizard Step geben welcher auch übersprungen werden könnte. 
