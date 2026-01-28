@@ -574,11 +574,16 @@
       },
       "scoreCapture": {
         "title": "Wertungserfassung",
-        "description": "Einstellungen für die Wertungserfassung und Jury-Scores",
-        "showJuryScores": {
-          "label": "Jury-Wertungen anzeigen",
-          "description": "Wenn aktiviert, werden die einzelnen Jury-Wertungen in der Wertungserfassung angezeigt. Wenn deaktiviert, wird nur die Gesamtwertung angezeigt."
-        }
+        "description": "Einstellungen für die Wertungserfassung und Jury-Results",
+        "useJuryResults": {
+          "label": "Jury-Results verwenden",
+          "description": "Wenn aktiviert, werden feldspezifische Jury-Results in der Wertungserfassung, Ergebnisanzeige, Live-Results und PDF-Export verwendet. Diese Einstellung ändert die verwendeten Datenbanktabellen."
+        },
+        "warningTitle": "⚠️ WICHTIG: Datenbankstruktur",
+        "warningText": "Diese Einstellung darf NICHT während eines aktiven Wettkampfes geändert werden!",
+        "warningPoint1": "Jury-Results verwenden unterschiedliche Datenbanktabellen (tfx_jury_results vs. tfx_wertungen)",
+        "warningPoint2": "Änderungen während eines laufenden Wettkampfes führen zu Dateninkonsistenz",
+        "warningPoint3": "Standard: Aktiviert (empfohlen für detaillierte Wertungserfassung)"
       }
     },
     "common": {
@@ -2371,7 +2376,10 @@
       "device": "Gerät",
       "total": "Gesamt",
       "totalScore": "Gesamtwertung"
-    }
+    },
+    "details": "Einzelwertungen",
+    "values": "Werte",
+    "finalScore": "Endwert"
   },
   "medallienspiegel": {
     "title": "Medallienspiegel",

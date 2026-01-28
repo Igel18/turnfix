@@ -109,6 +109,9 @@ export function useResultsData(
       }
 
       const scoresMap = new Map<number, { [discipline: string]: number }>();
+      const juryResultsMap = new Map<number, { [discipline: string]: any[] }>();
+      const formulasMap = new Map<number, { [discipline: string]: string }>();
+      const startValuesMap = new Map<number, { [discipline: string]: number }>();
       const disciplineSet = new Set<string>();
       const participantIds = new Set(participants.map((p: any) => p.id));
       const filteredScores = scores.filter((score: any) => participantIds.has(score.participantId));
@@ -118,6 +121,15 @@ export function useResultsData(
         const discipline = score.discipline?.name || score.disciplineName;
         const scoreValue = score.score || 0;
         
+        console.log('🔍 [Results] Processing score:', { 
+          participantId, 
+          discipline, 
+          scoreValue, 
+          juryResults: score.juryResults,
+          juryResultsCount: score.juryResults?.length || 0,
+          fullScore: score 
+        });
+        
         if (!participantId || !discipline || scoreValue === null) return;
         if (allowedDisciplines && !allowedDisciplines.has(discipline)) return;
         
@@ -126,12 +138,44 @@ export function useResultsData(
           scoresMap.set(participantId, {});
         }
         scoresMap.get(participantId)![discipline] = scoreValue;
+        
+        // Store jury results if available
+        if (score.juryResults && score.juryResults.length > 0) {
+          console.log('✅ [Results] Storing jury results for participant', participantId, 'discipline', discipline, ':', score.juryResults);
+          if (!juryResultsMap.has(participantId)) {
+            juryResultsMap.set(participantId, {});
+          }
+          juryResultsMap.get(participantId)![discipline] = score.juryResults;
+        } else {
+          console.log('⚠️ [Results] No jury results for participant', participantId, 'discipline', discipline);
+        }
+        
+        // Store formula and startValue if available
+        if (score.formula) {
+          if (!formulasMap.has(participantId)) {
+            formulasMap.set(participantId, {});
+          }
+          formulasMap.get(participantId)![discipline] = score.formula;
+        }
+        if (score.startValue !== undefined) {
+          if (!startValuesMap.has(participantId)) {
+            startValuesMap.set(participantId, {});
+          }
+          startValuesMap.get(participantId)![discipline] = score.startValue;
+        }
       });
+
+      console.log('📊 [Results] Final scores map:', Array.from(scoresMap.entries()));
+      console.log('📊 [Results] Final jury results map:', Array.from(juryResultsMap.entries()));
+      console.log('📊 [Results] Disciplines found:', Array.from(disciplineSet));
 
       const participantsList: Participant[] = participants
         .filter((participant: any) => !participant.startet_nicht)
         .map((participant: any) => {
           const participantScores = scoresMap.get(participant.id) || {};
+          const participantJuryResults = juryResultsMap.get(participant.id) || {};
+          const participantFormulas = formulasMap.get(participant.id) || {};
+          const participantStartValues = startValuesMap.get(participant.id) || {};
           const totalScore = Object.values(participantScores).reduce((sum: number, score: number) => sum + score, 0);
 
           return {
@@ -143,6 +187,9 @@ export function useResultsData(
             gender: participant.gender || 'unbekannt',
             startet_nicht: participant.startet_nicht || false,
             scores: participantScores,
+            juryResults: participantJuryResults,
+            formulas: participantFormulas,
+            startValues: participantStartValues,
             totalScore,
             rank: 0,
             competitionId: participant.assignedCompetitions?.[0],

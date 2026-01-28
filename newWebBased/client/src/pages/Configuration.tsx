@@ -562,11 +562,11 @@ const Configuration: React.FC = () => {
           description: t('configuration.sections.scoreCapture.description'),
           settings: [
             {
-              key: 'showJuryScores',
-              label: t('configuration.sections.scoreCapture.showJuryScores.label'),
+              key: 'useJuryResults',
+              label: t('configuration.sections.scoreCapture.useJuryResults.label'),
               type: 'boolean',
-              value: (appSettings as any)?.scoreCapture?.showJuryScores || false,
-              description: t('configuration.sections.scoreCapture.showJuryScores.description')
+              value: (appSettings as any)?.scoreCapture?.useJuryResults !== false, // Default: true
+              description: t('configuration.sections.scoreCapture.useJuryResults.description')
             }
           ]
         },
@@ -782,6 +782,30 @@ const Configuration: React.FC = () => {
                                   <li>Test Connection: Verify that the database is accessible</li>
                                   <li>Create Database: Create a new database if it doesn\'t exist yet</li>
                                   <li>After creating the database, run migrations to set up the schema</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Score Capture Section Warning Box */}
+                      {activeConfigSection.id === 'scoreCapture' && (
+                        <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <ExclamationTriangleIcon className="h-5 w-5 text-orange-600" />
+                            </div>
+                            <div className="ml-3">
+                              <h3 className="text-sm font-medium text-orange-800">
+                                {t('configuration.sections.scoreCapture.warningTitle')}
+                              </h3>
+                              <div className="mt-2 text-sm text-orange-700">
+                                <p className="font-semibold">{t('configuration.sections.scoreCapture.warningText')}</p>
+                                <ul className="list-disc list-inside mt-2 space-y-1">
+                                  <li>{t('configuration.sections.scoreCapture.warningPoint1')}</li>
+                                  <li>{t('configuration.sections.scoreCapture.warningPoint2')}</li>
+                                  <li>{t('configuration.sections.scoreCapture.warningPoint3')}</li>
                                 </ul>
                               </div>
                             </div>

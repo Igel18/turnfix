@@ -9,6 +9,7 @@
 
 import { useTranslation } from 'react-i18next'
 import { TrophyIcon } from '@heroicons/react/24/outline'
+import { JuryResultsDisplay } from './JuryResultsDisplay'
 import type { Participant, CompetitionGroup } from '../Results.types'
 
 interface ResultsTableProps {
@@ -125,22 +126,45 @@ export const ResultsTable = ({
                   <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
                     {participant.age}
                   </td>
-                  {showDisciplineScores && disciplines.map(discipline => (
-                    <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
-                      <div className="flex flex-col items-center">
-                        {participant.scores[discipline] ? (
-                          <span className="text-lg font-bold text-gray-900">
-                            {formatScore(participant.scores[discipline])}
-                          </span>
-                        ) : (
-                          <span className="text-lg font-medium text-gray-400">-</span>
-                        )}
-                        <span className="text-xs text-gray-500 mt-1">
-                          {discipline}
-                        </span>
-                      </div>
-                    </td>
-                  ))}
+                  {showDisciplineScores && disciplines.map(discipline => {
+                    const juryResults = participant.juryResults?.[discipline] || []
+                    const hasJuryResults = juryResults.length > 0
+                    
+                    return (
+                      <td key={discipline} className="px-3 py-3 text-center border-l border-gray-100 bg-gray-50">
+                        <div className="flex flex-col items-center">
+                          {/* Device Name Header */}
+                          <div className="text-xs font-semibold text-gray-700 mb-2 border-b border-gray-300 pb-1 w-full">
+                            {discipline}
+                          </div>
+                          
+                          {/* Jury Results Display or Simple Score */}
+                          {participant.scores[discipline] ? (
+                            hasJuryResults ? (
+                              <JuryResultsDisplay 
+                                juryResults={juryResults}
+                                finalScore={participant.scores[discipline]}
+                                disciplineName={discipline}
+                                formula={participant.formulas?.[discipline]}
+                                startValue={participant.startValues?.[discipline]}
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center py-2">
+                                <span className="text-2xl font-bold text-gray-900">
+                                  {formatScore(participant.scores[discipline])}
+                                </span>
+                                <span className="text-xs text-gray-500 mt-1">Pkt.</span>
+                              </div>
+                            )
+                          ) : (
+                            <div className="py-4">
+                              <span className="text-xl font-medium text-gray-400">-</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    )
+                  })}
                   <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
                     <div className="flex flex-col items-center">
                       <span className="text-xl font-bold text-blue-900">
@@ -255,22 +279,45 @@ export const ResultsTable = ({
                       <td className="px-4 py-4 whitespace-nowrap text-center text-gray-600">
                         {participant.age}
                       </td>
-                      {showDisciplineScores && group.disciplines.map(discipline => (
-                        <td key={discipline} className="px-4 py-4 whitespace-nowrap text-center border-l border-gray-100">
-                          <div className="flex flex-col items-center">
-                            {participant.scores[discipline] ? (
-                              <span className="text-lg font-bold text-gray-900">
-                                {formatScore(participant.scores[discipline])}
-                              </span>
-                            ) : (
-                              <span className="text-lg font-medium text-gray-400">-</span>
-                            )}
-                            <span className="text-xs text-gray-500 mt-1">
-                              {discipline}
-                            </span>
-                          </div>
-                        </td>
-                      ))}
+                      {showDisciplineScores && group.disciplines.map(discipline => {
+                        const juryResults = participant.juryResults?.[discipline] || []
+                        const hasJuryResults = juryResults.length > 0
+                        
+                        return (
+                          <td key={discipline} className="px-3 py-3 text-center border-l border-gray-100 bg-gray-50">
+                            <div className="flex flex-col items-center">
+                              {/* Device Name Header */}
+                              <div className="text-xs font-semibold text-gray-700 mb-2 border-b border-gray-300 pb-1 w-full">
+                                {discipline}
+                              </div>
+                              
+                              {/* Jury Results Display or Simple Score */}
+                              {participant.scores[discipline] ? (
+                                hasJuryResults ? (
+                                  <JuryResultsDisplay 
+                                    juryResults={juryResults}
+                                    finalScore={participant.scores[discipline]}
+                                    disciplineName={discipline}
+                                    formula={participant.formulas?.[discipline]}
+                                    startValue={participant.startValues?.[discipline]}
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center py-2">
+                                    <span className="text-2xl font-bold text-gray-900">
+                                      {formatScore(participant.scores[discipline])}
+                                    </span>
+                                    <span className="text-xs text-gray-500 mt-1">Pkt.</span>
+                                  </div>
+                                )
+                              ) : (
+                                <div className="py-4">
+                                  <span className="text-xl font-medium text-gray-400">-</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        )
+                      })}
                       <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
                         <div className="flex flex-col items-center">
                           <span className="text-xl font-bold text-blue-900">

@@ -209,6 +209,56 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     console.log('Saved jury result:', result[0]);
+
+    // ✨ UPDATE tfx_wertungen_details with final score
+    // Get the discipline from the field
+    const disciplineQuery = `
+      SELECT int_disziplinenid 
+      FROM tfx_disziplinen_felder 
+      WHERE int_disziplinen_felderid = $1
+    `;
+    const disciplineResult = await prisma.$queryRawUnsafe(
+      disciplineQuery,
+      validatedData.disciplineFieldId
+    ) as any[];
+
+    if (disciplineResult && disciplineResult.length > 0) {
+      const disciplineId = disciplineResult[0].int_disziplinenid;
+
+      // Check if this field is the final score field
+      const fieldQuery = `
+        SELECT bol_endwert 
+        FROM tfx_disziplinen_felder 
+        WHERE int_disziplinen_felderid = $1
+      `;
+      const fieldResult = await prisma.$queryRawUnsafe(
+        fieldQuery,
+        validatedData.disciplineFieldId
+      ) as any[];
+
+      const isFinalScoreField = fieldResult && fieldResult.length > 0 && fieldResult[0].bol_endwert;
+
+      if (isFinalScoreField) {
+        // This is the final score field - update tfx_wertungen_details
+        console.log(`💾 Updating tfx_wertungen_details: wertungenId=${wertungenId}, disciplineId=${disciplineId}, score=${validatedData.performance}`);
+        
+        const updateDetailsQuery = `
+          UPDATE tfx_wertungen_details
+          SET rel_leistung = $1
+          WHERE int_wertungenid = $2 AND int_disziplinenid = $3
+        `;
+        
+        await prisma.$executeRawUnsafe(
+          updateDetailsQuery,
+          validatedData.performance,
+          wertungenId,
+          disciplineId
+        );
+
+        console.log('✅ Updated tfx_wertungen_details with final score');
+      }
+    }
+
     res.status(existing && existing.length > 0 ? 200 : 201).json(result[0]);
 
   } catch (error) {
@@ -282,6 +332,42 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     console.log('Updated jury result:', updated[0]);
+
+    // ✨ UPDATE tfx_wertungen_details if this is the final score field
+    if (validatedData.performance !== undefined) {
+      const disciplineQuery = `
+        SELECT df.int_disziplinenid, df.bol_endwert, jr.int_wertungenid
+        FROM tfx_disziplinen_felder df
+        JOIN tfx_jury_results jr ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+        WHERE jr.int_juryresultsid = $1
+      `;
+      const disciplineResult = await prisma.$queryRawUnsafe(disciplineQuery, id) as any[];
+
+      if (disciplineResult && disciplineResult.length > 0) {
+        const { int_disziplinenid, bol_endwert, int_wertungenid } = disciplineResult[0];
+
+        if (bol_endwert) {
+          // This is the final score field - update tfx_wertungen_details
+          console.log(`💾 Updating tfx_wertungen_details: wertungenId=${int_wertungenid}, disciplineId=${int_disziplinenid}, score=${validatedData.performance}`);
+          
+          const updateDetailsQuery = `
+            UPDATE tfx_wertungen_details
+            SET rel_leistung = $1
+            WHERE int_wertungenid = $2 AND int_disziplinenid = $3
+          `;
+          
+          await prisma.$executeRawUnsafe(
+            updateDetailsQuery,
+            validatedData.performance,
+            int_wertungenid,
+            int_disziplinenid
+          );
+
+          console.log('✅ Updated tfx_wertungen_details with final score');
+        }
+      }
+    }
+
     res.json(updated[0]);
 
   } catch (error) {

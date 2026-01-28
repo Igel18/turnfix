@@ -574,11 +574,16 @@
       },
       "scoreCapture": {
         "title": "Score Capture",
-        "description": "Settings for score capture and jury scoring",
-        "showJuryScores": {
-          "label": "Show Jury Scores",
-          "description": "When enabled, individual jury scores will be shown in score capture. When disabled, only the total score will be displayed."
-        }
+        "description": "Settings for score capture and jury results",
+        "useJuryResults": {
+          "label": "Use Jury Results",
+          "description": "When enabled, field-specific jury results will be used in score capture, results display, live results, and PDF export. This setting changes the database tables used."
+        },
+        "warningTitle": "⚠️ IMPORTANT: Database Structure",
+        "warningText": "This setting must NOT be changed during an active competition!",
+        "warningPoint1": "Jury Results use different database tables (tfx_jury_results vs. tfx_wertungen)",
+        "warningPoint2": "Changes during an active competition will lead to data inconsistency",
+        "warningPoint3": "Default: Enabled (recommended for detailed score capture)"
       }
     },
     "common": {
@@ -2337,7 +2342,10 @@
       "device": "Device",
       "total": "Total",
       "totalScore": "Total Score"
-    }
+    },
+    "details": "Score Details",
+    "values": "values",
+    "finalScore": "Final Score"
   },
   "medallienspiegel": {
     "title": "Medal Standings",

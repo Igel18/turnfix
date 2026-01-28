@@ -62,12 +62,14 @@ const scoreQuerySchema = zod_1.z.object({
     participantId: zod_1.z.string().transform(Number).optional(),
     disciplineId: zod_1.z.string().transform(Number).optional(),
     eventId: zod_1.z.string().transform(Number).optional(),
+    squadName: zod_1.z.string().optional(),
     limit: zod_1.z.string().transform(Number).default(100),
     offset: zod_1.z.string().transform(Number).default(0)
 });
 // Get scores with filters
 router.get('/', authBypass_1.authenticateToken, async (req, res) => {
     try {
+        console.log('🌐 [Scores API] GET /scores called');
         console.log('Raw query params received:', req.query);
         console.log('Raw query params eventId:', req.query.eventId);
         const query = scoreQuerySchema.parse(req.query);
@@ -95,6 +97,11 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         if (query.eventId) {
             whereClause += ` AND wk.int_veranstaltungenid = $${paramIndex}`;
             queryParams.push(query.eventId);
+            paramIndex++;
+        }
+        if (query.squadName) {
+            whereClause += ` AND w.var_riege = $${paramIndex}`;
+            queryParams.push(query.squadName);
             paramIndex++;
         }
         const scoresQuery = `
@@ -125,6 +132,205 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
     `;
         queryParams.push(query.limit, query.offset);
         const results = await prisma_1.default.$queryRawUnsafe(scoresQuery, ...queryParams);
+        console.log(`📊 [Scores API] Query returned ${results.length} results`);
+        if (results.length > 0) {
+            console.log('📋 [Scores API] Sample result:', { id: results[0].id, participantid: results[0].participantid, disciplineid: results[0].disciplineid });
+        }
+        // Load jury results for each score
+        const resultsWithJuryData = await Promise.all(results.map(async (result) => {
+            if (!result.id)
+                return result;
+            // Initialize formula and startValue for this result
+            let formula = null;
+            let startValue = 10.0; // Default starting value
+            try {
+                console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
+                const juryResultsQuery = `
+          SELECT 
+            jr.int_juryresultsid as id,
+            jr.int_disziplinen_felderid as "disciplineFieldId",
+            jr.rel_leistung as performance,
+            jr.int_versuch as attempt,
+            jr.int_kp as kp,
+            df.var_name as "fieldName",
+            df.var_name as "fieldShortName",
+            df.bol_endwert as "isFinalScore",
+            df.bol_ausgangswert as "isStartingScore",
+            df.int_sortierung as "sortOrder"
+          FROM tfx_jury_results jr
+          LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+          WHERE jr.int_wertungenid = $1
+          ORDER BY df.int_sortierung ASC, df.bol_ausgangswert DESC, df.bol_endwert DESC, df.int_disziplinen_felderid
+        `;
+                const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, result.id);
+                console.log('✅ [Server] Found', juryResults.length, 'jury results for wertungenId', result.id);
+                if (juryResults.length > 0) {
+                    console.log('📋 [Server] Sample jury result:', juryResults[0]);
+                }
+                // Check if final score field exists but is missing from jury results
+                let needsEndwertCalculation = false;
+                let endwertFieldId = null;
+                const disciplineId = result.disciplineid ? parseInt(result.disciplineid) : null;
+                if (disciplineId && juryResults.length > 0) {
+                    // Check if there's a field with isFinalScore for this discipline
+                    const finalScoreField = await prisma_1.default.$queryRawUnsafe(`
+            SELECT 
+              df.int_disziplinen_felderid as id, 
+              df.var_name as name
+            FROM tfx_disziplinen_felder df
+            WHERE df.int_disziplinenid = $1 AND df.bol_endwert = true
+          `, disciplineId);
+                    if (finalScoreField.length > 0) {
+                        endwertFieldId = finalScoreField[0].id;
+                        // Check if this field exists in jury results
+                        const hasFinalScore = juryResults.some(jr => jr.isFinalScore);
+                        if (!hasFinalScore) {
+                            console.log('⚠️ [Server] Final score field exists but not in jury results - will calculate');
+                            needsEndwertCalculation = true;
+                        }
+                    }
+                }
+                // Load formula information for this discipline (always load for display purposes)
+                if (disciplineId) {
+                    try {
+                        const formulaQuery = `
+              SELECT 
+                d.var_formel as "disciplineFormula",
+                d.int_formelid as "disciplineFormulaId",
+                f.var_formel as "tableFormula",
+                f.var_name as "formulaName"
+              FROM tfx_disziplinen d
+              LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
+              WHERE d.int_disziplinenid = $1
+            `;
+                        const formulaResult = await prisma_1.default.$queryRawUnsafe(formulaQuery, disciplineId);
+                        console.log(`📊 [Server] Formula query for discipline ${disciplineId}:`, JSON.stringify(formulaResult, null, 2));
+                        if (formulaResult.length > 0) {
+                            formula = formulaResult[0].tableFormula || formulaResult[0].disciplineFormula;
+                            if (formula) {
+                                console.log('📐 [Server] Found formula on discipline:', formula);
+                            }
+                            else {
+                                console.log(`⚠️ [Server] No formula found for discipline ${disciplineId} - disciplineFormula: '${formulaResult[0].disciplineFormula}', tableFormula: '${formulaResult[0].tableFormula}'`);
+                            }
+                        }
+                        else {
+                            console.log(`❌ [Server] No discipline found with ID ${disciplineId}`);
+                        }
+                    }
+                    catch (error) {
+                        console.error('❌ [Server] Error loading discipline formula:', error);
+                    }
+                }
+                // Parse starting value from formula if it contains a constant
+                if (formula) {
+                    const startValueMatch = formula.match(/^[(\s]*(\d+\.?\d*)/);
+                    if (startValueMatch) {
+                        startValue = parseFloat(startValueMatch[1]);
+                    }
+                }
+                // Calculate and save final score if needed
+                if (needsEndwertCalculation && formula && endwertFieldId) {
+                    try {
+                        console.log('🧮 [Server] Calculating final score with formula:', formula);
+                        // Build value map: A, B, C, etc. → performance values
+                        const valueMap = {};
+                        const letters = formula.match(/[A-Z]/g) || [];
+                        const nonFinalScores = juryResults.filter(jr => !jr.isFinalScore);
+                        letters.forEach((letter, index) => {
+                            if (nonFinalScores[index] && nonFinalScores[index].performance !== null) {
+                                valueMap[letter] = parseFloat(nonFinalScores[index].performance);
+                            }
+                        });
+                        console.log('📊 [Server] Value map:', valueMap);
+                        // Replace variables in formula and evaluate
+                        let evalFormula = formula;
+                        Object.keys(valueMap).forEach(letter => {
+                            evalFormula = evalFormula.replace(new RegExp(letter, 'g'), valueMap[letter].toString());
+                        });
+                        console.log('📐 [Server] Evaluation formula:', evalFormula);
+                        // Safe eval using Function constructor
+                        const calculatedScore = new Function(`return ${evalFormula}`)();
+                        console.log('✅ [Server] Calculated score:', calculatedScore);
+                        // Insert into tfx_jury_results
+                        await prisma_1.default.$executeRawUnsafe(`
+              INSERT INTO tfx_jury_results (int_wertungenid, int_disziplinen_felderid, rel_leistung, int_versuch, int_kp)
+              VALUES ($1, $2, $3, $4, $5)
+            `, result.id, endwertFieldId, calculatedScore, 1, 0);
+                        // Update tfx_wertungen_details
+                        await prisma_1.default.$executeRawUnsafe(`
+              UPDATE tfx_wertungen_details
+              SET rel_leistung = $1
+              WHERE int_wertungenid = $2 AND int_disziplinenid = $3
+            `, calculatedScore, result.id, disciplineId);
+                        console.log('💾 [Server] Saved calculated score to both tables');
+                        // Add to jury results array
+                        juryResults.push({
+                            id: null, // Will be assigned by DB
+                            disciplineFieldId: endwertFieldId,
+                            performance: calculatedScore,
+                            attempt: 1,
+                            kp: 0,
+                            fieldName: 'Endwert',
+                            fieldShortName: 'EW',
+                            isFinalScore: true,
+                            isStartingScore: false,
+                            sortOrder: 999
+                        });
+                        // Update the result score
+                        result.score = calculatedScore;
+                    }
+                    catch (error) {
+                        console.error('❌ [Server] Error calculating/saving final score:', error);
+                    }
+                }
+                // ✨ Sync check: Ensure tfx_wertungen_details matches final score from jury results
+                if (!needsEndwertCalculation && juryResults.length > 0) {
+                    const finalScoreResult = juryResults.find(jr => jr.isFinalScore);
+                    if (finalScoreResult && finalScoreResult.performance !== null) {
+                        const finalScore = parseFloat(finalScoreResult.performance);
+                        const currentScore = result.score ? parseFloat(result.score) : null;
+                        if (currentScore !== finalScore) {
+                            console.log(`⚠️ [Server] Score mismatch detected! wertungenId=${result.id}, current=${currentScore}, expected=${finalScore}`);
+                            console.log(`💾 [Server] Syncing tfx_wertungen_details with jury results final score`);
+                            try {
+                                await prisma_1.default.$executeRawUnsafe(`
+                  UPDATE tfx_wertungen_details
+                  SET rel_leistung = $1
+                  WHERE int_wertungenid = $2 AND int_disziplinenid = $3
+                `, finalScore, result.id, disciplineId);
+                                // Update in-memory result
+                                result.score = finalScore;
+                                console.log(`✅ [Server] Synced score: ${finalScore}`);
+                            }
+                            catch (error) {
+                                console.error('❌ [Server] Error syncing score:', error);
+                            }
+                        }
+                    }
+                }
+                return {
+                    ...result,
+                    formula,
+                    startValue,
+                    juryResults: juryResults.map((jr) => ({
+                        id: jr.id,
+                        disciplineFieldId: jr.disciplineFieldId,
+                        performance: jr.performance ? parseFloat(jr.performance) : null,
+                        attempt: jr.attempt,
+                        kp: jr.kp,
+                        fieldName: jr.fieldName,
+                        fieldShortName: jr.fieldShortName,
+                        isFinalScore: jr.isFinalScore,
+                        isStartingScore: jr.isStartingScore
+                    }))
+                };
+            }
+            catch (error) {
+                console.error(`❌ [Server] Error loading jury results for score ${result.id}:`, error);
+                return { ...result, juryResults: [] };
+            }
+        }));
         const totalCountQuery = `
       SELECT COUNT(*) as count
       FROM tfx_wertungen w  
@@ -134,23 +340,26 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
     `;
         const totalResult = await prisma_1.default.$queryRawUnsafe(totalCountQuery, ...queryParams.slice(0, -2));
         const totalCount = parseInt(totalResult[0]?.count || '0');
-        console.log(`Found ${results.length} scores out of ${totalCount} total`);
-        if (results.length > 0) {
-            console.log('Sample raw result:', results[0]);
-            console.log('Raw result field names:', Object.keys(results[0]));
-            console.log('participantId value:', results[0].participantid || results[0].participantId);
-            console.log('disciplineId value:', results[0].disciplineid || results[0].disciplineId);
-            console.log('score value:', results[0].score);
+        console.log(`Found ${resultsWithJuryData.length} scores out of ${totalCount} total`);
+        if (resultsWithJuryData.length > 0) {
+            console.log('Sample raw result:', resultsWithJuryData[0]);
+            console.log('Raw result field names:', Object.keys(resultsWithJuryData[0]));
+            console.log('participantId value:', resultsWithJuryData[0].participantid || resultsWithJuryData[0].participantId);
+            console.log('disciplineId value:', resultsWithJuryData[0].disciplineid || resultsWithJuryData[0].disciplineId);
+            console.log('score value:', resultsWithJuryData[0].score);
+            console.log('juryResults count:', resultsWithJuryData[0].juryResults?.length || 0);
         }
-        const mappedResults = results.map((result) => ({
+        const mappedResults = resultsWithJuryData.map((result) => ({
             id: result.id,
             participantId: parseInt(result.participantid),
-            disciplineId: parseInt(result.disciplineid),
+            disciplineId: result.disciplineid ? parseInt(result.disciplineid) : null,
             competitionId: parseInt(result.competitionid),
             score: result.score ? parseFloat(result.score) : null,
             attempt: result.attempt || 1,
             notes: result.notes,
             status: result.status,
+            formula: result.formula || null,
+            startValue: result.startValue || null,
             participant: {
                 firstName: result.var_vorname,
                 lastName: result.var_nachname
@@ -160,7 +369,8 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
             },
             competition: {
                 name: result.competition_name
-            }
+            },
+            juryResults: result.juryResults || []
         }));
         if (mappedResults.length > 0) {
             console.log('Sample mapped result:', mappedResults[0]);

@@ -9,7 +9,8 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         NODE_ENV: 'production',
-        PORT: 3001
+        PORT: 3001,
+        DATABASE_URL: 'postgresql://postgres:UG2-UA.de@localhost:5432/turnfix_2026_4?schema=public&connection_limit=20&pool_timeout=10'
       },
       env_development: {
         NODE_ENV: 'development',

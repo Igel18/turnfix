@@ -6,3 +6,4 @@
 export { ResultsTable } from './ResultsTable'
 export { ResultsFilters } from './ResultsFilters'
 export { CertificateDialog } from './CertificateDialog'
+export { JuryResultsDisplay } from './JuryResultsDisplay'

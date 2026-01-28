@@ -3,6 +3,20 @@
  * Point 123: Separation of Concerns
  */
 
+export interface JuryResult {
+  id: number;
+  disciplineFieldId: number;
+  performance: number | null;
+  attempt: number;
+  kp: number;
+  fieldName: string;
+  fieldShortName: string;
+  isFinalScore: boolean;
+  isStartingScore: boolean;
+  formula?: string;
+  startValue?: number;
+}
+
 export interface Participant {
   id: number;
   name: string;
@@ -12,6 +26,9 @@ export interface Participant {
   gender: string;
   startet_nicht?: boolean;
   scores: { [discipline: string]: number };
+  juryResults?: { [discipline: string]: JuryResult[] };
+  formulas?: { [discipline: string]: string };
+  startValues?: { [discipline: string]: number };
   totalScore: number;
   rank: number;
   competitionId?: number;

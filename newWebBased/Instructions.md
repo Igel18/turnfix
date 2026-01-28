@@ -5770,3 +5770,14 @@ Wenn mit dem Wizard eine neue DB erstellt wurde muss auch die Verbindung zu dies
 -> Erledigt 
 
 
+BEi den Einstellungen gibt es Wertungserfassung. Extra für die Jury-Wertungen. Ich denke das sollte die alleinige einstellung sein. Auf der ScoreCapture seite sollte diese einstellug dann weg. Und damit wird dann auch alleinig die umstellung der DB-Tabellen gemacht. Wie wäre das? Dann muss man die DB-Tabellen mit normal und den Details nicht komisch synchronisieren. Und in den Einstellungen unter diesem punkt sollte dann auch erklärt werden das dies nicht einfach während einem Wettkampf umgeschaltet werden darf, da hier dann andere DB-Tabellen verwendet werden. Per Default sollte "Jury-Results" True sein. 
+Also wenn JuryResults gesetzt: 
+ - Score-Capture "Jury-Results" aktivieren 
+ - results anzeige umschalten auf "Jury-Results" 
+ - Auch den Druck von Ergebnissen als PDF anpassen mit "Jury-Results" 
+ - Live Results umschalten auf "Jury-Results" 
+
+
+Einbauen dieses Befehls in Turnfix-manager.ps1:
+$pids = Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique; if ($pids) { $pids | ForEach-Object { Stop-Process -Id $_ -Force } }; Start-Sleep -Seconds 1; pm2 restart all
+  

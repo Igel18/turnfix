@@ -36,6 +36,8 @@ Use the old cpp, h and ui files in the turnfix folder for reference only. Do not
 - ✅ **USE** Prisma for all database operations
 - ⚠️ Old `.cpp`, `.h`, `.ui` files are for **reference only** - understand structure, don't modify
 - If create a database abfrage always check in prisma for the correct name of the table and the columns. Do not create new names
+- Attention: The Restart of PM2 can take up to 5 minutes because the database connection pool needs to be closed properly and the tcp port is blocked for a long time from windows. Do not reduce the kill_timeout in the ecosystem.config.js file. 
+and it should noch be necessary to add the DATABASE_URL to the ecosystem.config.js file because it is already defined in the .env file.
 
 ### Field Mapping Convention
 **All routes must map database fields to client-friendly names:**
