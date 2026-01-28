@@ -88,23 +88,53 @@ export const useExport = ({
       'Gesamt'
     ]
 
-    // Table data
-    const tableData = participants.map(participant => [
-      participant.rank,
-      participant.startNumber || '',
-      participant.name,
-      participant.club,
-      participant.age,
-      ...disciplines.map(discipline =>
-        participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
-      ),
-      formatScore(participant.totalScore)
-    ])
+    // Table data with jury results support
+    const tableData = participants.map(participant => {
+      const baseRow = [
+        participant.rank,
+        participant.startNumber || '',
+        participant.name,
+        participant.club,
+        participant.age
+      ]
+
+      // For each discipline, include score and jury breakdown if available
+      const disciplineData = disciplines.map(discipline => {
+        const score = participant.scores[discipline]
+        if (!score) return '-'
+
+        const juryResults = participant.juryResults?.[discipline]
+        if (!juryResults || juryResults.length === 0) {
+          return formatScore(score)
+        }
+
+        // Build jury breakdown string
+        const formula = participant.formulas?.[discipline] || ''
+        const startValue = participant.startValues?.[discipline]
+        
+        // Format individual field scores
+        const fieldScores = juryResults
+          .filter(jr => !jr.isFinalScore)
+          .map(jr => `${jr.fieldShortName}: ${jr.performance !== null ? jr.performance.toFixed(1) : '-'}`)
+          .join(', ')
+
+        // Build detailed breakdown
+        const breakdown: string[] = []
+        if (formula) breakdown.push(`Formula: ${formula}`)
+        if (startValue !== undefined) breakdown.push(`Start: ${startValue}`)
+        if (fieldScores) breakdown.push(fieldScores)
+        breakdown.push(`Total: ${formatScore(score)}`)
+
+        return breakdown.join('\n')
+      })
+
+      return [...baseRow, ...disciplineData, formatScore(participant.totalScore)]
+    })
 
     // Get unified table styles
     const unifiedStyles = getUnifiedTableStyles()
 
-    // Generate table
+    // Generate table with jury results support
     autoTable(doc, {
       ...unifiedStyles,
       head: [headers],
@@ -112,8 +142,11 @@ export const useExport = ({
       startY: 60,
       styles: {
         ...unifiedStyles.styles,
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 7,
+        cellPadding: 3,
+        lineWidth: 0.1,
+        valign: 'middle',
+        overflow: 'linebreak', // Enable line breaks for multi-line content
       },
       columnStyles: (() => {
         const styles: any = {
@@ -129,8 +162,14 @@ export const useExport = ({
             fontStyle: 'bold'
           }
         }
+        // Discipline columns with more space for jury results
         disciplines.forEach((_, index) => {
-          styles[5 + index] = { halign: 'center', cellWidth: 18 }
+          styles[5 + index] = { 
+            halign: 'center', 
+            cellWidth: 24, // Increased from 18 to accommodate jury details
+            fontSize: 6, // Smaller font for breakdown
+            cellPadding: 2
+          }
         })
         return styles
       })(),
@@ -218,23 +257,53 @@ export const useExport = ({
         'Gesamt'
       ]
 
-      // Table data
-      const tableData = group.participants.map(participant => [
-        participant.rank,
-        participant.startNumber || '',
-        participant.name,
-        participant.club,
-        participant.age,
-        ...group.disciplines.map(discipline =>
-          participant.scores[discipline] ? formatScore(participant.scores[discipline]) : '-'
-        ),
-        formatScore(participant.totalScore)
-      ])
+      // Table data with jury results support
+      const tableData = group.participants.map(participant => {
+        const baseRow = [
+          participant.rank,
+          participant.startNumber || '',
+          participant.name,
+          participant.club,
+          participant.age
+        ]
+
+        // For each discipline, include score and jury breakdown if available
+        const disciplineData = group.disciplines.map(discipline => {
+          const score = participant.scores[discipline]
+          if (!score) return '-'
+
+          const juryResults = participant.juryResults?.[discipline]
+          if (!juryResults || juryResults.length === 0) {
+            return formatScore(score)
+          }
+
+          // Build jury breakdown string
+          const formula = participant.formulas?.[discipline] || ''
+          const startValue = participant.startValues?.[discipline]
+          
+          // Format individual field scores
+          const fieldScores = juryResults
+            .filter(jr => !jr.isFinalScore)
+            .map(jr => `${jr.fieldShortName}: ${jr.performance !== null ? jr.performance.toFixed(1) : '-'}`)
+            .join(', ')
+
+          // Build detailed breakdown
+          const breakdown: string[] = []
+          if (formula) breakdown.push(`Formula: ${formula}`)
+          if (startValue !== undefined) breakdown.push(`Start: ${startValue}`)
+          if (fieldScores) breakdown.push(fieldScores)
+          breakdown.push(`Total: ${formatScore(score)}`)
+
+          return breakdown.join('\n')
+        })
+
+        return [...baseRow, ...disciplineData, formatScore(participant.totalScore)]
+      })
 
       // Get unified table styles
       const unifiedStyles = getUnifiedTableStyles()
 
-      // Generate table
+      // Generate table with jury results support
       autoTable(doc, {
         ...unifiedStyles,
         head: [headers],
@@ -243,8 +312,11 @@ export const useExport = ({
         pageBreak: 'auto',
         styles: {
           ...unifiedStyles.styles,
-          fontSize: 8,
-          cellPadding: 2,
+          fontSize: 7,
+          cellPadding: 3,
+          lineWidth: 0.1,
+          valign: 'middle',
+          overflow: 'linebreak', // Enable line breaks for multi-line content
         },
         columnStyles: (() => {
           const styles: any = {
@@ -260,8 +332,14 @@ export const useExport = ({
               fontStyle: 'bold'
             }
           }
+          // Discipline columns with more space for jury results
           group.disciplines.forEach((_, index) => {
-            styles[5 + index] = { halign: 'center', cellWidth: 18 }
+            styles[5 + index] = { 
+              halign: 'center', 
+              cellWidth: 24, // Increased from 18 to accommodate jury details
+              fontSize: 6, // Smaller font for breakdown
+              cellPadding: 2
+            }
           })
           return styles
         })(),
