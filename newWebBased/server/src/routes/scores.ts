@@ -889,4 +889,288 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
   }
 });
 
+/**
+ * Create a new wertungen entry (for formula-based scoring in Jury Portal)
+ * POST /api/scores/create-wertung
+ * Body: { competitionId, participantId, disciplineId }
+ */
+router.post('/create-wertung', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { competitionId, participantId, disciplineId } = req.body;
+    
+    if (!competitionId || !participantId || !disciplineId) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: competitionId, participantId, disciplineId' 
+      });
+    }
+    
+    console.log('📝 Creating wertungen entry:', { competitionId, participantId, disciplineId });
+    
+    // Check if wertungen entry already exists
+    const existingQuery = `
+      SELECT int_wertungenid 
+      FROM tfx_wertungen 
+      WHERE int_wettkaempfeid = $1 
+        AND int_teilnehmerid = $2
+      LIMIT 1
+    `;
+    
+    const existing = await prisma.$queryRawUnsafe(existingQuery, competitionId, participantId) as any[];
+    
+    if (existing && existing.length > 0) {
+      console.log('✅ Wertungen entry already exists:', existing[0].int_wertungenid);
+      return res.json({
+        success: true,
+        wertungenId: existing[0].int_wertungenid,
+        message: 'Existing wertungen entry found'
+      });
+    }
+    
+    // Create new wertungen entry
+    const insertQuery = `
+      INSERT INTO tfx_wertungen (
+        int_wettkaempfeid,
+        int_teilnehmerid,
+        int_statusid,
+        var_riege
+      ) VALUES ($1, $2, 1, '')
+      RETURNING int_wertungenid
+    `;
+    
+    const result = await prisma.$queryRawUnsafe(insertQuery, competitionId, participantId) as any[];
+    
+    if (result && result.length > 0) {
+      const wertungenId = result[0].int_wertungenid;
+      console.log('✅ Created new wertungen entry:', wertungenId);
+      
+      res.json({
+        success: true,
+        wertungenId: wertungenId,
+        message: 'Wertungen entry created successfully'
+      });
+    } else {
+      throw new Error('Failed to create wertungen entry');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error creating wertungen entry:', error);
+    res.status(500).json({ 
+      error: 'Failed to create wertungen entry',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Calculate and save final score for formula-based disciplines
+ * POST /api/scores/calculate-final
+ * Body: { competitionId, participantId, disciplineId }
+ */
+router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { competitionId, participantId, disciplineId } = req.body;
+    
+    if (!competitionId || !participantId || !disciplineId) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: competitionId, participantId, disciplineId' 
+      });
+    }
+    
+    console.log('🧮 Calculating final score:', { competitionId, participantId, disciplineId });
+    
+    // Get wertungenId
+    const wertungenQuery = `
+      SELECT int_wertungenid 
+      FROM tfx_wertungen 
+      WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2
+      LIMIT 1
+    `;
+    
+    const wertungenResult = await prisma.$queryRawUnsafe(wertungenQuery, competitionId, participantId) as any[];
+    
+    if (!wertungenResult || wertungenResult.length === 0) {
+      return res.status(404).json({ error: 'No wertungen entry found' });
+    }
+    
+    const wertungenId = wertungenResult[0].int_wertungenid;
+    console.log('✅ Found wertungenId:', wertungenId);
+    
+    // Get formula for discipline
+    const formulaQuery = `
+      SELECT 
+        d.var_formel as "disciplineFormula",
+        f.var_formel as "lookupFormula",
+        d.int_formelid
+      FROM tfx_disziplinen d
+      LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
+      WHERE d.int_disziplinenid = $1
+    `;
+    
+    const formulaResult = await prisma.$queryRawUnsafe(formulaQuery, disciplineId) as any[];
+    
+    if (!formulaResult || formulaResult.length === 0) {
+      return res.status(404).json({ error: 'Discipline not found' });
+    }
+    
+    const formula = formulaResult[0].lookupFormula || formulaResult[0].disciplineFormula;
+    
+    if (!formula) {
+      return res.status(400).json({ error: 'No formula defined for this discipline' });
+    }
+    
+    console.log('📝 Formula:', formula);
+    
+    // Extract start value from formula
+    const startValueMatch = formula.match(/^(\d+(\.\d+)?)/);
+    const startValue = startValueMatch ? parseFloat(startValueMatch[1]) : undefined;
+    
+    // Get all non-final jury results
+    const juryResultsQuery = `
+      SELECT 
+        jr.rel_leistung as performance,
+        df.var_name as "fieldName",
+        df.bol_endwert as "isFinalScore",
+        df.int_sortierung as "sortOrder"
+      FROM tfx_jury_results jr
+      INNER JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+      WHERE jr.int_wertungenid = $1
+        AND df.int_disziplinenid = $2
+        AND jr.int_versuch = 1
+      ORDER BY df.int_sortierung ASC
+    `;
+    
+    const juryResults = await prisma.$queryRawUnsafe(juryResultsQuery, wertungenId, disciplineId) as any[];
+    console.log('📊 Jury results:', juryResults);
+    
+    if (!juryResults || juryResults.length === 0) {
+      return res.status(400).json({ error: 'No jury results found to calculate from' });
+    }
+    
+    // Build field symbols map
+    const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
+    const fields = Object.values(fieldsMap);
+    
+    // Build values map for calculation
+    const valuesMap: Record<string, number> = {};
+    fields.forEach(field => {
+      if (field.value !== null && !juryResults.find(jr => jr.fieldName === field.fieldName && jr.isFinalScore)) {
+        valuesMap[field.symbol] = field.value;
+      }
+    });
+    
+    console.log('🧮 Calculating with values:', valuesMap, 'startValue:', startValue);
+    
+    // Calculate using centralized formula utility
+    const result = calculateFormula(formula, valuesMap, startValue);
+    
+    if (result === null) {
+      return res.status(500).json({ error: 'Formula calculation failed' });
+    }
+    
+    console.log('✅ Calculated final score:', result);
+    
+    // Get the final score field ID
+    const finalFieldQuery = `
+      SELECT int_disziplinen_felderid
+      FROM tfx_disziplinen_felder
+      WHERE int_disziplinenid = $1 AND bol_endwert = true
+      LIMIT 1
+    `;
+    
+    const finalFieldResult = await prisma.$queryRawUnsafe(finalFieldQuery, disciplineId) as any[];
+    
+    if (!finalFieldResult || finalFieldResult.length === 0) {
+      return res.status(404).json({ error: 'No final score field defined' });
+    }
+    
+    const finalFieldId = finalFieldResult[0].int_disziplinen_felderid;
+    
+    // Check if final score already exists
+    const existingFinalQuery = `
+      SELECT int_juryresultsid
+      FROM tfx_jury_results
+      WHERE int_wertungenid = $1 
+        AND int_disziplinen_felderid = $2 
+        AND int_versuch = 1
+      LIMIT 1
+    `;
+    
+    const existingFinal = await prisma.$queryRawUnsafe(
+      existingFinalQuery,
+      wertungenId,
+      finalFieldId
+    ) as any[];
+    
+    if (existingFinal && existingFinal.length > 0) {
+      // Update existing final score
+      const updateQuery = `
+        UPDATE tfx_jury_results
+        SET rel_leistung = $1
+        WHERE int_juryresultsid = $2
+      `;
+      await prisma.$executeRawUnsafe(updateQuery, result, existingFinal[0].int_juryresultsid);
+      console.log('✅ Updated existing final score in tfx_jury_results');
+    } else {
+      // Insert new final score
+      const insertQuery = `
+        INSERT INTO tfx_jury_results 
+          (int_wertungenid, int_disziplinen_felderid, int_versuch, rel_leistung, int_kp)
+        VALUES ($1, $2, 1, $3, 0)
+      `;
+      await prisma.$executeRawUnsafe(insertQuery, wertungenId, finalFieldId, result);
+      console.log('✅ Inserted new final score to tfx_jury_results');
+    }
+    
+    // Update tfx_wertungen_details for legacy compatibility
+    const updateDetailsQuery = `
+      UPDATE tfx_wertungen_details
+      SET rel_leistung = $1
+      WHERE int_wertungenid = $2 AND int_disziplinenid = $3
+    `;
+    
+    await prisma.$executeRawUnsafe(updateDetailsQuery, result, wertungenId, disciplineId);
+    console.log('✅ Updated tfx_wertungen_details');
+    
+    // Emit Socket.IO event
+    try {
+      const { io } = await import('../index');
+      const eventQuery = `
+        SELECT wk.int_veranstaltungenid as event_id
+        FROM tfx_wertungen w
+        LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+        WHERE w.int_wertungenid = $1
+      `;
+      const eventResult = await prisma.$queryRawUnsafe(eventQuery, wertungenId) as any[];
+      const eventId = eventResult[0]?.event_id;
+      
+      if (eventId) {
+        io.to(`competition-${eventId}`).emit('score-updated', { 
+          eventId,
+          competitionId,
+          disciplineId,
+          participantId,
+          score: result,
+          calculated: true
+        });
+        console.log('✅ Emitted Socket.IO event');
+      }
+    } catch (socketError) {
+      console.error('❌ Socket.IO error:', socketError);
+    }
+    
+    res.json({
+      success: true,
+      finalScore: result,
+      message: 'Final score calculated and saved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error calculating final score:', error);
+    res.status(500).json({ 
+      error: 'Failed to calculate final score',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

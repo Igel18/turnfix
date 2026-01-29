@@ -14,12 +14,19 @@ import {
   formatScore 
 } from '../utils/formulaUtils';
 
+interface DisciplineField {
+  id: number;
+  name: string;
+  sortOrder: number;
+}
+
 interface FormulaInputProps {
   formula: string;
   startValue?: number;
   decimals: number;
   onScoreChange: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   disabled?: boolean;
+  disciplineFields?: DisciplineField[];
 }
 
 /**
@@ -32,7 +39,8 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
   startValue,
   decimals,
   onScoreChange,
-  disabled = false
+  disabled = false,
+  disciplineFields = []
 }) => {
   const [fieldValues, setFieldValues] = useState<Record<string, number>>({});
   const [fieldInputs, setFieldInputs] = useState<Record<string, string>>({}); // String inputs for editing
@@ -94,10 +102,12 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
 
       {/* Individual Field Inputs */}
       <div className="grid grid-cols-2 gap-2">
-        {symbols.map(symbol => (
+        {symbols.map((symbol, index) => {
+          const fieldName = disciplineFields[index]?.name || `Feld ${symbol}`;
+          return (
           <div key={symbol}>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Feld {symbol}
+              {symbol}: {fieldName}
             </label>
             <input
               type="text"
@@ -110,7 +120,8 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
               className="w-full text-lg text-center p-2 border-2 rounded-lg focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
-        ))}
+        );
+        })}
       </div>
 
       {/* Calculated Result */}

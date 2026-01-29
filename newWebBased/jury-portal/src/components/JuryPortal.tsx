@@ -91,6 +91,7 @@ const JuryPortal: React.FC = () => {
   
   // Formula-related states
   const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
+  const [formulaFieldValues, setFormulaFieldValues] = useState<Record<string, number>>({});
   
   // Auto-filter settings - persist in localStorage
   const [filterToday, setFilterToday] = useState<boolean>(() => {
@@ -664,7 +665,122 @@ const JuryPortal: React.FC = () => {
         }
       }
       
-      // Use the same save-value endpoint as Score Capture
+      // Check if this is a formula-based discipline
+      const hasFormula = selectedDevice.var_formel && Object.keys(formulaFieldValues).length > 0;
+      
+      if (hasFormula) {
+        // Save formula field values to tfx_jury_results
+        console.log('🔵 JURY: Saving formula field values:', formulaFieldValues);
+        
+        // Save each field value to tfx_jury_results
+        for (const [symbol, value] of Object.entries(formulaFieldValues)) {
+          // Find the corresponding discipline field
+          const fieldIndex = symbol.charCodeAt(0) - 65; // A=0, B=1, C=2...
+          const disciplineField = disciplineFields[fieldIndex];
+          
+          if (!disciplineField) {
+            console.warn(`⚠️ JURY: No discipline field found for symbol ${symbol}`);
+            continue;
+          }
+          
+          const juryResultData = {
+            competitionId: actualCompetitionId,
+            participantId: currentParticipant.participantId,
+            disciplineId: selectedDevice.disciplineId,
+            disciplineFieldId: disciplineField.id,
+            performance: value,
+            attempt: 1
+          };
+          
+          console.log('🔵 JURY: Saving field', symbol, ':', juryResultData);
+          
+          try {
+            const fieldResponse = await fetch(`${API_BASE_URL}/jury-results`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(juryResultData)
+            });
+            
+            if (!fieldResponse.ok) {
+              console.error('❌ JURY: Failed to save field', symbol);
+            } else {
+              const fieldResult = await fieldResponse.json();
+              console.log('✅ JURY: Saved field', symbol, 'result:', fieldResult);
+            }
+          } catch (fieldError) {
+            console.error('❌ JURY: Error saving field', symbol, ':', fieldError);
+          }
+        }
+        
+        console.log('✅ JURY: All formula fields saved, backend will auto-calculate final score');
+        
+        // Trigger final score calculation and get the result
+        try {
+          console.log('🔵 JURY: Triggering final score calculation...');
+          const calculateResponse = await fetch(`${API_BASE_URL}/scores/calculate-final`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              competitionId: actualCompetitionId,
+              participantId: currentParticipant.participantId,
+              disciplineId: selectedDevice.disciplineId
+            })
+          });
+          
+          if (calculateResponse.ok) {
+            const calculateResult = await calculateResponse.json();
+            console.log('✅ JURY: Final score calculated:', calculateResult);
+            
+            // Update score with calculated value
+            if (calculateResult.finalScore !== undefined) {
+              setScore(calculateResult.finalScore.toFixed(selectedDevice.int_berechnung || 2));
+              
+              // Update participant list with calculated score
+              const updatedParticipants = [...participants];
+              if (updatedParticipants[currentParticipantIndex]) {
+                updatedParticipants[currentParticipantIndex].status = 'completed';
+                updatedParticipants[currentParticipantIndex].currentScore = calculateResult.finalScore;
+              }
+              setParticipants(updatedParticipants);
+            }
+          } else {
+            console.error('❌ JURY: Failed to calculate final score');
+          }
+        } catch (calcError) {
+          console.error('❌ JURY: Error calculating final score:', calcError);
+        }
+      }
+      
+      // For formula-based disciplines, the backend auto-calculates the final score
+      // We don't need to save via /scores/save-value
+      // Instead, just update the participant list with the calculated score
+      if (hasFormula) {
+        // Update participant status and score
+        const updatedParticipants = [...participants];
+        if (updatedParticipants[currentParticipantIndex]) {
+          updatedParticipants[currentParticipantIndex].status = 'completed';
+          updatedParticipants[currentParticipantIndex].currentScore = parseFloat(score);
+        }
+        
+        setParticipants(updatedParticipants);
+        
+        // Show success feedback
+        const successMsg = document.createElement('div');
+        successMsg.textContent = '✅ Bewertung gespeichert!';
+        successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+        
+        console.log('✅ Formula-based score saved! Final score auto-calculated by backend.');
+        setLoading(false);
+        return;
+      }
+      
+      // For non-formula disciplines, save the final score directly
       const scoreData = {
         competitionId: actualCompetitionId,
         participantId: currentParticipant.participantId,
@@ -694,10 +810,14 @@ const JuryPortal: React.FC = () => {
         }
         
         setParticipants(updatedParticipants);
-        // Keep the normalized score visible after saving (don't clear it)
-        // User can manually clear or move to next participant
         
-        // Optional: Show success message
+        // Show success feedback
+        const successMsg = document.createElement('div');
+        successMsg.textContent = '✅ Bewertung gespeichert!';
+        successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+        
         console.log('✅ Score saved! You can now navigate to the next participant or continue scoring.');
       } else {
         const errorData = await response.json();
@@ -1137,17 +1257,13 @@ const JuryPortal: React.FC = () => {
                       formula={selectedDevice.var_formel}
                       startValue={selectedDevice.maxScore}
                       decimals={selectedDevice.int_berechnung || 2}
-                      onScoreChange={(calculatedScore) => {
+                      disciplineFields={disciplineFields}
+                      onScoreChange={(calculatedScore, fieldValues) => {
                         if (calculatedScore !== null) {
                           const formattedScore = calculatedScore.toFixed(selectedDevice.int_berechnung || 2);
                           setScore(formattedScore);
-                          
-                          // Update participant list immediately with calculated score
-                          const updatedParticipants = [...participants];
-                          if (updatedParticipants[currentParticipantIndex]) {
-                            updatedParticipants[currentParticipantIndex].currentScore = calculatedScore;
-                          }
-                          setParticipants(updatedParticipants);
+                          setFormulaFieldValues(fieldValues);
+                          // Don't update participant list here - only on save
                         }
                       }}
                       disabled={loading}

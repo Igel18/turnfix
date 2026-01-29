@@ -5795,3 +5795,5 @@ Kann man dass nicht komplett verallgemeinern?
 
 Es wird zukünftig nochmal 2 UIs geben, welche diese Elemente benötigen. Die Live-View und der Jury-Server. 
 Dann hat man auch nicht immer wieder die Probleme, dass an der einen Stelle die Formel richtig ist und an der anderen nicht. 
+
+ergänze mal meine allgemeinen instruktionen in myown um den part, dass wir schon sehr viel dokumentiert haben. Und diese doku ist die grundlage für weitere entwicklungen. Daher sollte bevor etwas neu entwickelt wird immer erst die Doku gelesen werden, damit die zusammenhänge verständlich sind. 
