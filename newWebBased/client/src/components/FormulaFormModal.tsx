@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import UnifiedModal from './UnifiedModal';
+import { FORMULA_VARIABLES } from '@/utils/formulaUtils';
 
 interface Formula {
   int_formelid: number;
@@ -87,7 +88,7 @@ const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
                   {t('formulas.help.syntaxTitle', 'Formula Syntax Rules')}
                 </h4>
                 <ul className="text-xs text-blue-800 space-y-1.5 list-disc list-inside">
-                  <li><strong>{t('formulas.help.rule1Title', 'Use only uppercase letters:')}</strong> {t('formulas.help.rule1', 'A, B, C, D, E, ... (single letters only)')}</li>
+                  <li><strong>{t('formulas.help.rule1Title', 'Use only uppercase letters:')}</strong> {t('formulas.help.rule1', `${FORMULA_VARIABLES.slice(0, 5).join(', ')}, ... (A-Z, single letters only)`)}</li>
                   <li><strong>{t('formulas.help.rule2Title', 'Variables map to fields by sort order:')}</strong> {t('formulas.help.rule2', 'A = 1st field, B = 2nd field, C = 3rd field, etc.')}</li>
                   <li><strong>{t('formulas.help.rule3Title', 'DO NOT use field names')}</strong> {t('formulas.help.rule3', 'like "Stufe" or "AbzugAusf." - use letters only')}</li>
                   <li><strong>{t('formulas.help.rule4Title', 'Numbers & Constants:')}</strong> {t('formulas.help.rule4', 'Numbers are allowed in formulas, e.g., (10 + A) - B')}</li>
@@ -96,7 +97,7 @@ const FormulaFormModal: React.FC<FormulaFormModalProps> = ({
                   <li><strong>{t('formulas.help.example2Title', 'Example LK:')}</strong> <code className="bg-blue-100 px-1 rounded">A + B - C</code> {t('formulas.help.example2', 'where A=D-Note, B=E-Note, C=N-Abzüge')}</li>
                 </ul>
                 <p className="text-xs text-blue-700 mt-2 italic">
-                  {t('formulas.help.warning', '⚠️ The formula does NOT know field names - only letter variables (A, B, C) that are mapped automatically to discipline fields based on their sort order.')}
+                  {t('formulas.help.warning', `⚠️ The formula does NOT know field names - only letter variables (${FORMULA_VARIABLES.slice(0, 3).join(', ')}, ...) that are mapped automatically to discipline fields based on their sort order.`)}
                 </p>
               </div>
             </div>

@@ -1,10 +1,16 @@
 /**
  * useFormulaCalculation Hook
  * Point 123: Separation of Concerns - Formula Parsing & Calculation
+ * REFACTORED: Now uses centralized formulaUtils for all formula operations
  * 
- * Handles formula parsing, evaluation, and score calculations for disciplines
+ * Provides Score Capture-specific wrappers around centralized formula utilities
+ * Legacy interface maintained for backward compatibility with Score Capture components
  */
 
+import { 
+  FORMULA_VARIABLES, 
+  calculateFormula
+} from '@/utils/formulaUtils';
 import type { DisciplineField } from '@/types/ScoreCapture.types';
 
 interface UseFormulaCalculationReturn {
@@ -14,98 +20,92 @@ interface UseFormulaCalculationReturn {
 
 export function useFormulaCalculation(): UseFormulaCalculationReturn {
   
-  // Generic formula parsing helper - converts formula variables to readable field names
+  /**
+   * Parse formula for display - converts formula variables to readable field names
+   * Example: "(10 + A) - B" with fields [Stufe, AbzugAusf] → "Endnote = (10 + Stufe) - AbzugAusf"
+   * 
+   * Wrapper around formatFormulaWithValues that maps field names instead of values
+   */
   const parseFormulaDisplay = (formula: string, fields: DisciplineField[], finalFieldName: string): string | null => {
     if (!formula || !fields || fields.length === 0) {
       return null;
     }
 
-    const variableMap: {[key: string]: string} = {};
-    const variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    // Build map of symbols to field names (not values)
+    const fieldNameMap: {[key: string]: string} = {};
     
     const sortedFields = [...fields]
       .filter(f => !f.isFinalScore)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     
     sortedFields.forEach((field, index) => {
-      if (index < variables.length) {
-        variableMap[variables[index]] = field.name;
+      if (index < FORMULA_VARIABLES.length) {
+        fieldNameMap[FORMULA_VARIABLES[index]] = field.name;
       }
     });
 
+    // Replace symbols with field names
     let displayFormula = formula;
-    
-    variables.forEach(variable => {
-      if (variableMap[variable]) {
+    FORMULA_VARIABLES.forEach(variable => {
+      if (fieldNameMap[variable]) {
         const regex = new RegExp(`\\b${variable}\\b`, 'g');
-        displayFormula = displayFormula.replace(regex, variableMap[variable]);
+        displayFormula = displayFormula.replace(regex, fieldNameMap[variable]);
       }
     });
 
     return `${finalFieldName} = ${displayFormula}`;
   };
 
-  // Generic formula evaluation helper
+  /**
+   * Evaluate formula with field values
+   * Wrapper around calculateFormula() that converts field-based values to symbol-based values
+   * 
+   * @param formula - Formula string like "(10 + A) - B"
+   * @param fieldValues - Values keyed by field name: { "Stufe": 6.0, "AbzugAusf.": 3.5 }
+   * @param fields - Optional field definitions for mapping order
+   * @returns Calculated result or 0 on error
+   */
   const evaluateFormula = (formula: string, fieldValues: {[key: string]: number}, fields?: DisciplineField[]): number => {
     if (!formula) {
       return 0;
     }
 
-    const variableMap: {[key: string]: number} = {};
-    const variables = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    // Build map of symbols to values (A → 6.0, B → 3.5)
+    const symbolValueMap: {[key: string]: number} = {};
     
     if (fields && fields.length > 0) {
+      // Use field sort order to assign symbols
       const sortedFields = [...fields]
         .filter(f => !f.isFinalScore)
         .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
       
       sortedFields.forEach((field, index) => {
-        if (index < variables.length && fieldValues[field.name] !== undefined) {
-          variableMap[variables[index]] = fieldValues[field.name];
+        if (index < FORMULA_VARIABLES.length && fieldValues[field.name] !== undefined) {
+          const symbol = FORMULA_VARIABLES[index];
+          symbolValueMap[symbol] = fieldValues[field.name];
+          
           if (process.env.DEBUG === 'true') {
-            console.log(`  ${variables[index]} = ${field.name} (sortOrder: ${field.sortOrder}) = ${fieldValues[field.name]}`);
+            console.log(`[useFormulaCalculation] ${symbol} = ${field.name} (sortOrder: ${field.sortOrder}) = ${fieldValues[field.name]}`);
           }
         }
       });
     } else {
+      // No fields provided, use field order from fieldValues keys
       const availableFields = Object.keys(fieldValues);
       availableFields.forEach((fieldName, index) => {
-        if (index < variables.length && fieldValues[fieldName] !== undefined) {
-          variableMap[variables[index]] = fieldValues[fieldName];
+        if (index < FORMULA_VARIABLES.length && fieldValues[fieldName] !== undefined) {
+          symbolValueMap[FORMULA_VARIABLES[index]] = fieldValues[fieldName];
         }
       });
     }
 
-    console.log('Formula evaluation:', { formula, fieldValues, variableMap });
-
-    try {
-      let evalFormula = formula;
-      variables.forEach(variable => {
-        if (variableMap[variable] !== undefined) {
-          const regex = new RegExp(`\\b${variable}\\b`, 'g');
-          evalFormula = evalFormula.replace(regex, variableMap[variable].toString());
-        } else {
-          const regex = new RegExp(`\\b${variable}\\b`, 'g');
-          evalFormula = evalFormula.replace(regex, '0');
-        }
-      });
-
-      evalFormula = evalFormula.replace(/\s+/g, '');
-      
-      if (!/^[0-9+\-*/.() ]+$/.test(evalFormula)) {
-        console.warn('Formula contains invalid characters:', evalFormula);
-        return 0;
-      }
-
-      const result = Function(`"use strict"; return (${evalFormula})`)();
-      
-      console.log(`Formula "${formula}" with values ${JSON.stringify(variableMap)} = ${result}`);
-      return isNaN(result) ? 0 : result;
-      
-    } catch (error) {
-      console.error('Error evaluating formula:', formula, error);
-      return 0;
+    if (process.env.DEBUG === 'true') {
+      console.log('[useFormulaCalculation] Formula evaluation:', { formula, fieldValues, symbolValueMap });
     }
+
+    // Use centralized calculation function
+    const result = calculateFormula(formula, symbolValueMap);
+    return result !== null ? result : 0;
   };
 
   return {

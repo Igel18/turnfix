@@ -5781,3 +5781,17 @@ Also wenn JuryResults gesetzt:
 Einbauen dieses Befehls in Turnfix-manager.ps1:
 $pids = Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique; if ($pids) { $pids | ForEach-Object { Stop-Process -Id $_ -Force } }; Start-Sleep -Seconds 1; pm2 restart all
   
+Formel refacoring:
+UI: 
+Es gibt verschiedenen UIs welche die Formeln darstellen. Manchmal als Eingabe, manchmal zum Testen, manchmal nur als Anzeige. Die DB bzw. Route sind dementsprechend auch öfter mal in verwendung.  
+1. Disziplin 
+2. Score Capture 
+3. Result 
+4. Result-PDF
+
+Jetzt gibt es schon die JuryResultDisplay.tsx. 
+Und auch die JuryScore.tsx 
+Kann man dass nicht komplett verallgemeinern? 
+
+Es wird zukünftig nochmal 2 UIs geben, welche diese Elemente benötigen. Die Live-View und der Jury-Server. 
+Dann hat man auch nicht immer wieder die Probleme, dass an der einen Stelle die Formel richtig ist und an der anderen nicht. 

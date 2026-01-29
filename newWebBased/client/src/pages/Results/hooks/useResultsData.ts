@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
+import { calculateFormula, buildFieldSymbolsMap } from '@/utils/formulaUtils';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
 
 interface UseResultsDataReturn {
@@ -176,7 +177,58 @@ export function useResultsData(
           const participantJuryResults = juryResultsMap.get(participant.id) || {};
           const participantFormulas = formulasMap.get(participant.id) || {};
           const participantStartValues = startValuesMap.get(participant.id) || {};
-          const totalScore = Object.values(participantScores).reduce((sum: number, score: number) => sum + score, 0);
+          
+          // IMPORTANT: Recalculate scores from juryResults if formula exists
+          // This ensures totalScore uses correct calculated values, not stored DB values
+          const recalculatedScores: { [discipline: string]: number } = {};
+          
+          Object.keys(participantScores).forEach(discipline => {
+            const storedScore = participantScores[discipline];
+            const juryResults = participantJuryResults[discipline];
+            const formula = participantFormulas[discipline];
+            const startValue = participantStartValues[discipline] || 10;
+            
+            // If we have jury results and formula, recalculate
+            if (juryResults && juryResults.length > 0 && formula) {
+              const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
+              const fields = Object.values(fieldsMap);
+              
+              if (fields.length > 0) {
+                const valuesMap: Record<string, number> = {};
+                fields.forEach(field => {
+                  if (field.value !== null) {
+                    valuesMap[field.symbol] = field.value;
+                  }
+                });
+                
+                const calculatedScore = calculateFormula(formula, valuesMap, startValue);
+                
+                if (calculatedScore !== null) {
+                  recalculatedScores[discipline] = calculatedScore;
+                  
+                  if (Math.abs(calculatedScore - storedScore) > 0.01) {
+                    console.log(`🔄 [Results] Recalculated ${participant.firstname} ${participant.lastname} - ${discipline}:`, {
+                      stored: storedScore,
+                      calculated: calculatedScore,
+                      difference: calculatedScore - storedScore
+                    });
+                  }
+                } else {
+                  // Calculation failed, use stored score
+                  recalculatedScores[discipline] = storedScore;
+                }
+              } else {
+                // No fields, use stored score
+                recalculatedScores[discipline] = storedScore;
+              }
+            } else {
+              // No jury results or formula, use stored score
+              recalculatedScores[discipline] = storedScore;
+            }
+          });
+          
+          // Calculate total from recalculated scores
+          const totalScore = Object.values(recalculatedScores).reduce((sum: number, score: number) => sum + score, 0);
 
           return {
             id: participant.id,
@@ -186,7 +238,7 @@ export function useResultsData(
             age: participant.age || 0,
             gender: participant.gender || 'unbekannt',
             startet_nicht: participant.startet_nicht || false,
-            scores: participantScores,
+            scores: recalculatedScores, // Use recalculated scores instead of stored scores
             juryResults: participantJuryResults,
             formulas: participantFormulas,
             startValues: participantStartValues,

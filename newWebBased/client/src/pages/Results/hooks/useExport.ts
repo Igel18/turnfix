@@ -6,6 +6,8 @@
  * - CSV export with formatted scores
  * - PDF export (single competition or all competitions)
  * - File naming and formatting
+ * 
+ * REFACTORED: Uses centralized formula utilities
  */
 
 import { useCallback } from 'react'
@@ -18,6 +20,11 @@ import {
   addSectionTitle,
   drawRankingBadge
 } from '@/utils/pdfUtils'
+import { 
+  formatFormulaWithValues, 
+  buildFieldSymbolsMap, 
+  formatScore as formatScoreUtil 
+} from '@/utils/formulaUtils'
 import type { Participant, CompetitionGroup } from '../Results.types'
 
 interface UseExportProps {
@@ -108,21 +115,41 @@ export const useExport = ({
           return formatScore(score)
         }
 
-        // Build jury breakdown string
-        const formula = participant.formulas?.[discipline] || ''
+        // Use centralized formula utilities
+        const formula = participant.formulas?.[discipline]
         const startValue = participant.startValues?.[discipline]
         
-        // Format individual field scores
-        const fieldScores = juryResults
-          .filter(jr => !jr.isFinalScore)
-          .map(jr => `${jr.fieldShortName}: ${jr.performance !== null ? jr.performance.toFixed(1) : '-'}`)
-          .join(', ')
+        // Build field symbols map
+        const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
+        const fields = Object.values(fieldsMap)
+        
+        // Build values map for formula
+        const valuesMap: Record<string, number> = {}
+        fields.forEach(field => {
+          if (field.value !== null) {
+            valuesMap[field.symbol] = field.value
+          }
+        })
+        
+        // Format formula with values using centralized utility
+        const formulaWithValues = formula
+          ? formatFormulaWithValues(formula, valuesMap, { 
+              decimals: 2, 
+              replaceStartValue: startValue 
+            })
+          : null
 
         // Build detailed breakdown
         const breakdown: string[] = []
-        if (formula) breakdown.push(`Formula: ${formula}`)
+        if (formulaWithValues) breakdown.push(`Formula: ${formulaWithValues}`)
         if (startValue !== undefined) breakdown.push(`Start: ${startValue}`)
+        
+        // Field scores
+        const fieldScores = fields
+          .map(f => `${f.symbol}: ${formatScoreUtil(f.value)}`)
+          .join(', ')
         if (fieldScores) breakdown.push(fieldScores)
+        
         breakdown.push(`Total: ${formatScore(score)}`)
 
         return breakdown.join('\n')
@@ -277,21 +304,41 @@ export const useExport = ({
             return formatScore(score)
           }
 
-          // Build jury breakdown string
-          const formula = participant.formulas?.[discipline] || ''
+          // Use centralized formula utilities
+          const formula = participant.formulas?.[discipline]
           const startValue = participant.startValues?.[discipline]
           
-          // Format individual field scores
-          const fieldScores = juryResults
-            .filter(jr => !jr.isFinalScore)
-            .map(jr => `${jr.fieldShortName}: ${jr.performance !== null ? jr.performance.toFixed(1) : '-'}`)
-            .join(', ')
+          // Build field symbols map
+          const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
+          const fields = Object.values(fieldsMap)
+          
+          // Build values map for formula
+          const valuesMap: Record<string, number> = {}
+          fields.forEach(field => {
+            if (field.value !== null) {
+              valuesMap[field.symbol] = field.value
+            }
+          })
+          
+          // Format formula with values using centralized utility
+          const formulaWithValues = formula
+            ? formatFormulaWithValues(formula, valuesMap, { 
+                decimals: 2, 
+                replaceStartValue: startValue 
+              })
+            : null
 
           // Build detailed breakdown
           const breakdown: string[] = []
-          if (formula) breakdown.push(`Formula: ${formula}`)
+          if (formulaWithValues) breakdown.push(`Formula: ${formulaWithValues}`)
           if (startValue !== undefined) breakdown.push(`Start: ${startValue}`)
+          
+          // Field scores
+          const fieldScores = fields
+            .map(f => `${f.symbol}: ${formatScoreUtil(f.value)}`)
+            .join(', ')
           if (fieldScores) breakdown.push(fieldScores)
+          
           breakdown.push(`Total: ${formatScore(score)}`)
 
           return breakdown.join('\n')
