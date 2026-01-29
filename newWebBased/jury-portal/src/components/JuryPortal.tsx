@@ -3,6 +3,7 @@ import { Users, Trophy } from 'lucide-react';
 import { getDisciplineIcon, getFallbackDeviceEmoji } from '../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder } from '../utils/scoreFormatter';
 import getSocket from '../utils/socket';
+import FormulaInput from './FormulaInput';
 
 interface Participant {
   id: number;
@@ -36,6 +37,18 @@ interface Device {
   maxScore?: number; // Maximum allowed score for this discipline
   int_berechnung?: number; // Number of decimal places (0-3)
   var_maske?: string; // Format pattern (e.g., "0.00", "0,000", "0:00:00")
+  var_formel?: string; // Formula for calculation (e.g., "(10 + A) - B")
+  int_formelid?: number; // Formula ID reference
+}
+
+interface DisciplineField {
+  id: number;
+  disciplineId: number;
+  name: string;
+  sortOrder: number;
+  enabled: boolean;
+  isEndValue: boolean;
+  isStartValue: boolean;
 }
 
 interface Competition {
@@ -75,6 +88,9 @@ const JuryPortal: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Formula-related states
+  const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
   
   // Auto-filter settings - persist in localStorage
   const [filterToday, setFilterToday] = useState<boolean>(() => {
@@ -325,7 +341,9 @@ const JuryPortal: React.FC = () => {
             iconPath: iconUrl, // Web-accessible icon path or null
             maxScore: discipline.maxScore || 0, // Maximum allowed score
             int_berechnung: discipline.int_berechnung, // Decimal places configuration
-            var_maske: discipline.var_maske // Format mask
+            var_maske: discipline.var_maske, // Format mask
+            var_formel: discipline.var_formel, // Formula from database
+            int_formelid: discipline.int_formelid // Formula ID
           };
         });
         
@@ -344,7 +362,9 @@ const JuryPortal: React.FC = () => {
               iconPath: iconUrl, // Web-accessible icon path or null
               maxScore: discipline.maxScore || 0, // Maximum allowed score
               int_berechnung: discipline.int_berechnung, // Decimal places configuration
-              var_maske: discipline.var_maske // Format mask
+              var_maske: discipline.var_maske, // Format mask
+              var_formel: discipline.var_formel, // Formula from database
+              int_formelid: discipline.int_formelid // Formula ID
             };
           });
           setDevices(fallbackDevices);
@@ -507,7 +527,90 @@ const JuryPortal: React.FC = () => {
     };
   }, [selectedEvent, selectedDevice]);
 
+  // Load discipline fields and jury results when device is selected
+  useEffect(() => {
+    const loadDisciplineFields = async () => {
+      if (!selectedDevice) {
+        setDisciplineFields([]);
+        return;
+      }
+
+      try {
+        console.log('🔵 JURY: Loading discipline fields for discipline', selectedDevice.disciplineId);
+        
+        // Load all discipline fields from API
+        const response = await fetch(`${API_BASE_URL}/discipline-fields`);
+        const allFields = await response.json();
+        
+        console.log('🔵 JURY: Total fields loaded:', allFields.length);
+        
+        // Filter fields for current discipline that are enabled
+        const relevantFields = allFields.filter((f: any) => 
+          f.disciplineId === selectedDevice.disciplineId && f.enabled
+        );
+        
+        console.log('🔵 JURY: Relevant fields for discipline:', relevantFields);
+        
+        // Transform to DisciplineField interface
+        const fields: DisciplineField[] = relevantFields.map((f: any) => ({
+          id: f.id,
+          disciplineId: f.disciplineId,
+          name: f.name,
+          sortOrder: f.sortOrder,
+          enabled: f.enabled,
+          isEndValue: f.isEndValue || false,
+          isStartValue: f.isStartValue || false
+        }));
+        
+        // Sort by sortOrder
+        fields.sort((a, b) => a.sortOrder - b.sortOrder);
+        
+        setDisciplineFields(fields);
+        console.log('🔵 JURY: Loaded', fields.length, 'discipline fields');
+        
+      } catch (error) {
+        console.error('❌ JURY: Error loading discipline fields:', error);
+        setDisciplineFields([]);
+      }
+    };
+
+    loadDisciplineFields();
+  }, [selectedDevice]);
+
+  // Define currentParticipant BEFORE using it in useEffect
   const currentParticipant = participants[currentParticipantIndex];
+
+  // Load jury results when participant changes
+  useEffect(() => {
+    const loadJuryResults = async () => {
+      if (!currentParticipant || !selectedDevice || disciplineFields.length === 0) {
+        return;
+      }
+
+      if (!currentParticipant.wertungenId) {
+        console.log('🔵 JURY: No wertungenId for participant, skipping jury results load');
+        return;
+      }
+
+      try {
+        console.log('🔵 JURY: Loading jury results for wertungenId', currentParticipant.wertungenId, 'discipline', selectedDevice.disciplineId);
+        
+        const response = await fetch(
+          `${API_BASE_URL}/jury-results?participantId=${currentParticipant.wertungenId}&disciplineId=${selectedDevice.disciplineId}`
+        );
+        const data = await response.json();
+        
+        console.log('🔵 JURY: Loaded jury results:', data);
+        
+        // Jury results can be used for formula calculation if needed
+        // Currently not implemented in simplified FormulaInput
+      } catch (error) {
+        console.error('❌ JURY: Error loading jury results:', error);
+      }
+    };
+
+    loadJuryResults();
+  }, [currentParticipant, selectedDevice, disciplineFields]);
 
   // Update score input when current participant changes
   useEffect(() => {
@@ -1028,48 +1131,72 @@ const JuryPortal: React.FC = () => {
 
                 {/* Score Input Section - Compact */}
                 <div className="space-y-2">
-                  {(() => {
-                    const validation = getScoreValidation(score);
-                    return (
-                      <div className={validation.isValid ? '' : 'mb-6'}>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 text-center">
-                          Wertung eingeben
-                          {selectedDevice?.maxScore && selectedDevice.maxScore > 0 && (
-                            <span className="ml-2 text-blue-600">
-                              (max. {selectedDevice.maxScore.toFixed(2)})
-                            </span>
-                          )}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={score}
-                            onChange={(e) => setScore(e.target.value)}
-                            onBlur={(e) => {
-                              // Normalize score to show all decimal places
-                              const normalized = normalizeScoreInput(e.target.value, selectedDevice?.int_berechnung || 2);
-                              if (normalized !== e.target.value) {
-                                setScore(normalized);
-                              }
-                            }}
-                            placeholder={getScorePlaceholder(selectedDevice?.int_berechnung || 2)}
-                            className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-3 rounded-lg focus:outline-none font-bold transition-colors ${
-                              validation.isValid
-                                ? 'border-gray-300 focus:border-blue-500 text-blue-900 bg-blue-50'
-                                : 'border-red-300 focus:border-red-500 text-red-900 bg-red-50'
-                            }`}
-                            autoFocus
-                          />
-                          {!validation.isValid && (
-                            <div className="absolute left-0 right-0 mt-1 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 text-center z-10">
-                              ⚠️ {validation.message}
-                            </div>
-                          )}
+                  {selectedDevice?.var_formel ? (
+                    // Formula-based input
+                    <FormulaInput
+                      formula={selectedDevice.var_formel}
+                      startValue={selectedDevice.maxScore}
+                      decimals={selectedDevice.int_berechnung || 2}
+                      onScoreChange={(calculatedScore) => {
+                        if (calculatedScore !== null) {
+                          const formattedScore = calculatedScore.toFixed(selectedDevice.int_berechnung || 2);
+                          setScore(formattedScore);
+                          
+                          // Update participant list immediately with calculated score
+                          const updatedParticipants = [...participants];
+                          if (updatedParticipants[currentParticipantIndex]) {
+                            updatedParticipants[currentParticipantIndex].currentScore = calculatedScore;
+                          }
+                          setParticipants(updatedParticipants);
+                        }
+                      }}
+                      disabled={loading}
+                    />
+                  ) : (
+                    // Simple score input (existing logic)
+                    (() => {
+                      const validation = getScoreValidation(score);
+                      return (
+                        <div className={validation.isValid ? '' : 'mb-6'}>
+                          <label className="block text-xs font-medium text-gray-700 mb-1 text-center">
+                            Wertung eingeben
+                            {selectedDevice?.maxScore && selectedDevice.maxScore > 0 && (
+                              <span className="ml-2 text-blue-600">
+                                (max. {selectedDevice.maxScore.toFixed(2)})
+                              </span>
+                            )}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={score}
+                              onChange={(e) => setScore(e.target.value)}
+                              onBlur={(e) => {
+                                // Normalize score to show all decimal places
+                                const normalized = normalizeScoreInput(e.target.value, selectedDevice?.int_berechnung || 2);
+                                if (normalized !== e.target.value) {
+                                  setScore(normalized);
+                                }
+                              }}
+                              placeholder={getScorePlaceholder(selectedDevice?.int_berechnung || 2)}
+                              className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-3 rounded-lg focus:outline-none font-bold transition-colors ${
+                                validation.isValid
+                                  ? 'border-gray-300 focus:border-blue-500 text-blue-900 bg-blue-50'
+                                  : 'border-red-300 focus:border-red-500 text-red-900 bg-red-50'
+                              }`}
+                              autoFocus
+                            />
+                            {!validation.isValid && (
+                              <div className="absolute left-0 right-0 mt-1 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 text-center z-10">
+                                ⚠️ {validation.message}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()
+                  )}
 
                   {/* Action Buttons - Compact */}
                   <div className="flex flex-col space-y-1.5">
