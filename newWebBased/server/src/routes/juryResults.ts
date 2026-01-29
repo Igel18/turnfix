@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
+import { calculateFormula, buildFieldSymbolsMap, FORMULA_VARIABLES } from '../utils/formulaUtils';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -257,8 +258,152 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 
         console.log('✅ Updated tfx_wertungen_details with final score');
       }
-    }
-
+      
+      // ✨ Emit Socket.IO event with formula calculation for live updates
+      // DO THIS ALWAYS, not just for final score fields - formulas need all fields
+      try {
+        const { io } = await import('../index');
+        
+        console.log(`[JuryResults] 🔍 Starting Socket.IO emit for wertungenId=${wertungenId}, disciplineId=${disciplineId}`);
+        
+        // Get event ID for Socket.IO room
+        const eventQuery = `
+          SELECT wk.int_veranstaltungenid as event_id
+          FROM tfx_wertungen w
+          LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE w.int_wertungenid = $1
+        `;
+        const eventResult = await prisma.$queryRawUnsafe(eventQuery, wertungenId) as any[];
+        const eventId = eventResult[0]?.event_id;
+        
+        console.log(`[JuryResults] 🔍 Found eventId: ${eventId}`);
+        
+        if (eventId) {
+            // Fetch formula and competition details
+            const detailsQuery = `
+              SELECT 
+                t.var_vorname as firstname,
+                t.var_nachname as lastname,
+                CASE 
+                  WHEN t.int_geschlecht = 1 THEN 'männlich'
+                  WHEN t.int_geschlecht = 2 THEN 'weiblich'
+                  ELSE 'männlich'
+                END as gender,
+                wk.var_name as competition_name,
+                wk.var_nummer as competition_number,
+                wk.int_wettkaempfeid as competition_id,
+                d.var_name as discipline_name,
+                d.var_kurz1 as discipline_short,
+                w.var_riege as squad_name,
+                d.var_formel as discipline_formula,
+                f.var_formel as table_formula
+              FROM tfx_wertungen w
+              LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+              LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+              LEFT JOIN tfx_disziplinen d ON $2 = d.int_disziplinenid
+              LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
+              WHERE w.int_wertungenid = $1
+            `;
+            
+            const details = await prisma.$queryRawUnsafe(detailsQuery, wertungenId, disciplineId) as any[];
+            const info = details[0] || {};
+            
+            // Get formula and calculate score
+            const formula = info.table_formula || info.discipline_formula;
+            const startValue = info.start_value || 10;
+            let calculatedScore = validatedData.performance;
+            
+            if (formula) {
+              console.log(`[JuryResults] Formula found: "${formula}", recalculating...`);
+              
+              // Fetch all jury results for formula calculation
+              const juryResultsQuery = `
+                SELECT 
+                  jr.rel_leistung as performance,
+                  jr.int_versuch as attempt,
+                  df.var_name as field_name,
+                  df.var_name as field_short_name,
+                  df.int_sortierung as sort_order
+                FROM tfx_jury_results jr
+                LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+                WHERE jr.int_wertungenid = $1
+                  AND df.int_disziplinenid = $2
+                  AND jr.int_versuch = $3
+                ORDER BY df.int_sortierung ASC
+              `;
+              
+              const juryResults = await prisma.$queryRawUnsafe(
+                juryResultsQuery, 
+                wertungenId, 
+                disciplineId,
+                validatedData.attempt
+              ) as any[];
+              
+              if (juryResults && juryResults.length > 0) {
+                const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
+                const fields = Object.values(fieldsMap);
+                const valuesMap: Record<string, number> = {};
+                
+                fields.forEach(field => {
+                  if (field.value !== null) {
+                    valuesMap[field.symbol] = field.value;
+                  }
+                });
+                
+                console.log(`[JuryResults] Calculating formula with values:`, valuesMap);
+                const result = calculateFormula(formula, valuesMap, startValue);
+                
+                if (result !== null) {
+                  calculatedScore = result;
+                  console.log(`[JuryResults] ✅ Calculated score: ${result}`);
+                }
+              }
+            }
+            
+            // Emit Socket.IO event
+            console.log(`[JuryResults] 🔔 Emitting score-updated to room 'competition-${eventId}'`);
+            console.log(`[JuryResults] 🔔 Event data:`, {
+              scoreId: wertungenId,
+              eventId,
+              disciplineName: info.discipline_name,
+              participantName: `${info.firstname} ${info.lastname}`,
+              calculatedScore
+            });
+            
+            io.to(`competition-${eventId}`).emit('score-updated', {
+              scoreId: wertungenId,
+              eventId,
+              competitionId: info.competition_id,
+              competitionName: info.competition_name,
+              competitionNumber: info.competition_number,
+              disciplineId: disciplineId,
+              disciplineName: info.discipline_name,
+              disciplineShort: info.discipline_short,
+              firstname: info.firstname,
+              lastname: info.lastname,
+              participantFirstName: info.firstname,
+              participantLastName: info.lastname,
+              participantGender: info.gender,
+              gender: info.gender,
+              squadName: info.squad_name,
+              finalScore: calculatedScore,
+              score: calculatedScore,
+              formula: formula,
+              startValue: startValue,
+              attempt: validatedData.attempt,
+              timestamp: new Date().toISOString()
+            });
+            
+            console.log(`[JuryResults] ✅ Socket.IO event emitted successfully`);
+          } else {
+            console.log(`[JuryResults] ⚠️ No eventId found, skipping Socket.IO emit`);
+          }
+        } catch (socketError) {
+          console.error('[JuryResults] ⚠️ Socket.IO emit failed:', socketError);
+          // Don't fail the request if Socket.IO fails
+        }
+    } // Close the disciplineResult check
+    
     res.status(existing && existing.length > 0 ? 200 : 201).json(result[0]);
 
   } catch (error) {

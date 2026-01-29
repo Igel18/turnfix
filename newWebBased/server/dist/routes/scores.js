@@ -41,6 +41,7 @@ const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const scoreSynchronizer_1 = require("../utils/scoreSynchronizer");
+const formulaUtils_1 = require("../utils/formulaUtils");
 const router = (0, express_1.Router)();
 // Validation schemas
 const scoreCreateSchema = zod_1.z.object({
@@ -662,7 +663,7 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
             try {
                 const { io } = await Promise.resolve().then(() => __importStar(require('../index')));
                 console.log(`🔍 About to query score details with wertungenId=${wertungenId}, disciplineId=${actualDisciplineId}`);
-                // Fetch additional data for the live score update
+                // Fetch additional data for the live score update including formula and jury results
                 const scoreDetailsQuery = `
           SELECT 
             t.var_vorname as firstname,
@@ -676,11 +677,15 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
             wk.var_nummer as competition_number,
             d.var_name as discipline_name,
             d.var_kurz1 as discipline_short,
-            w.var_riege as squad_name
+            w.var_riege as squad_name,
+            d.var_formel as discipline_formula,
+            d.int_formelid as formula_id,
+            f.var_formel as table_formula
           FROM tfx_wertungen w
           LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
           LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
           LEFT JOIN tfx_disziplinen d ON $2 = d.int_disziplinenid
+          LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
           WHERE w.int_wertungenid = $1
         `;
                 console.log(`🔍 Executing SQL query for score details...`);
@@ -688,6 +693,63 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
                 console.log(`🔍 Query returned ${scoreDetails?.length || 0} rows`);
                 const details = scoreDetails[0] || {};
                 console.log(`🔔 Score details from DB:`, details);
+                // Get formula (prefer table formula over discipline formula)
+                const formula = details.table_formula || details.discipline_formula;
+                const startValue = details.start_value || 10;
+                let calculatedScore = parseFloat(score); // Default to stored score
+                // If we have a formula, fetch jury results and recalculate
+                if (formula) {
+                    console.log(`🧮 Formula found: "${formula}", fetching jury results for recalculation...`);
+                    // Fetch jury results for this participant/discipline
+                    const juryResultsQuery = `
+            SELECT 
+              jr.flo_leistung as performance,
+              jr.int_reihenfolge as sort_order,
+              df.var_name as field_name,
+              df.var_kurz as field_short_name,
+              df.bol_ergebnis as is_final_score,
+              df.bol_startwert as is_starting_score
+            FROM tfx_wertungen_details jr
+            LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+            WHERE jr.int_wertungenid = $1
+              AND jr.int_disziplinenid = $2
+              AND jr.int_versuch = 1
+            ORDER BY jr.int_reihenfolge ASC
+          `;
+                    const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, wertungenId, actualDisciplineId);
+                    console.log(`🧮 Jury results:`, juryResults);
+                    if (juryResults && juryResults.length > 0) {
+                        // Build field symbols map
+                        const fieldsMap = (0, formulaUtils_1.buildFieldSymbolsMap)(juryResults, formula);
+                        const fields = Object.values(fieldsMap);
+                        // Build values map for calculation
+                        const valuesMap = {};
+                        fields.forEach(field => {
+                            if (field.value !== null) {
+                                valuesMap[field.symbol] = field.value;
+                            }
+                        });
+                        console.log(`🧮 Calculating formula "${formula}" with values:`, valuesMap, 'startValue:', startValue);
+                        // Calculate using centralized formula utility
+                        const result = (0, formulaUtils_1.calculateFormula)(formula, valuesMap, startValue);
+                        if (result !== null) {
+                            calculatedScore = result;
+                            console.log(`✅ Formula calculated successfully: ${result}`);
+                            if (Math.abs(result - parseFloat(score)) > 0.01) {
+                                console.warn(`⚠️ Score mismatch! Stored: ${score}, Calculated: ${result}`);
+                            }
+                        }
+                        else {
+                            console.warn(`⚠️ Formula calculation failed, using stored score: ${score}`);
+                        }
+                    }
+                    else {
+                        console.log(`ℹ️ No jury results found, using stored score: ${score}`);
+                    }
+                }
+                else {
+                    console.log(`ℹ️ No formula found for discipline, using stored score: ${score}`);
+                }
                 console.log(`🔔 Emitting score-updated event for eventId ${eventId}`);
                 io.to(`competition-${eventId}`).emit('score-updated', {
                     scoreId: wertungenId,
@@ -703,12 +765,14 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
                     disciplineName: details.discipline_name,
                     disciplineShort: details.discipline_short,
                     squadName: details.squad_name,
-                    score: parseFloat(score),
-                    finalScore: parseFloat(score),
+                    score: calculatedScore, // Use calculated score
+                    finalScore: calculatedScore, // Use calculated score for live view
+                    storedScore: parseFloat(score), // Include original stored score for debugging
+                    hasFormula: !!formula,
                     timestamp: new Date().toISOString(),
                     updated: true
                 });
-                console.log(`✅ Socket.IO event emitted to competition-${eventId} with score: ${score} for ${details.firstname} ${details.lastname}`);
+                console.log(`✅ Socket.IO event emitted to competition-${eventId} with calculated score: ${calculatedScore} (stored: ${score}) for ${details.firstname} ${details.lastname}`);
             }
             catch (socketError) {
                 console.error('❌ Error fetching score details or emitting Socket.IO event:', socketError);
