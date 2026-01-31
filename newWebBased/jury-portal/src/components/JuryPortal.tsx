@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { getDisciplineIcon, getFallbackDeviceEmoji } from '../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder } from '../utils/scoreFormatter';
@@ -92,6 +92,7 @@ const JuryPortal: React.FC = () => {
   // Formula-related states
   const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
   const [formulaFieldValues, setFormulaFieldValues] = useState<Record<string, number>>({});
+  const [loadedJuryResults, setLoadedJuryResults] = useState<Record<string, number>>({});
   
   // Auto-filter settings - persist in localStorage
   const [filterToday, setFilterToday] = useState<boolean>(() => {
@@ -369,8 +370,18 @@ const JuryPortal: React.FC = () => {
             };
           });
           setDevices(fallbackDevices);
+          // Auto-select first device if none selected
+          if (!selectedDevice && fallbackDevices.length > 0) {
+            console.log('🔵 JURY: Auto-selecting first device (fallback):', fallbackDevices[0].name);
+            setSelectedDevice(fallbackDevices[0]);
+          }
         } else {
           setDevices(devicesList);
+          // Auto-select first device if none selected
+          if (!selectedDevice && devicesList.length > 0) {
+            console.log('🔵 JURY: Auto-selecting first device:', devicesList[0].name);
+            setSelectedDevice(devicesList[0]);
+          }
         }
         
         setCompetitions(competitionsResponse || []);
@@ -415,6 +426,7 @@ const JuryPortal: React.FC = () => {
         const formattedParticipantsPromises = uniqueSquadParticipants.map(async (participant: any, index: number) => {
           // Fetch existing scores for this participant and discipline using Score Capture's approach
           let existingScore = null;
+          let wertungenId = null;
           try {
             console.log(`🔍 JURY: Checking existing scores for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
             
@@ -433,7 +445,8 @@ const JuryPortal: React.FC = () => {
               
               if (existingScoreRecord) {
                 existingScore = existingScoreRecord.score;
-                console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore);
+                wertungenId = existingScoreRecord.id; // This is the wertungenId!
+                console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore, 'wertungenId:', wertungenId);
               } else {
                 console.log(`ℹ️ JURY: No existing score found for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
               }
@@ -459,18 +472,22 @@ const JuryPortal: React.FC = () => {
             startNumber: participant.startNumber || (index + 1),
             status: existingScore ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
             currentScore: existingScore,
-            wertungenId: participant.wertungenId
+            wertungenId: wertungenId
           };
         });
         
         const formattedParticipants = await Promise.all(formattedParticipantsPromises);
         
-        console.log('Formatted participants for scoring with scores:', formattedParticipants);
+        console.log('🟢 JURY: Formatted participants for scoring with scores:', formattedParticipants);
+        console.log('🟢 JURY: Participants array length:', formattedParticipants.length);
+        console.log('🟢 JURY: First participant:', formattedParticipants[0]);
         setParticipants(formattedParticipants);
         
         // Set current participant to first one without a score
         const firstUncompletedIndex = formattedParticipants.findIndex(p => !p.currentScore);
-        setCurrentParticipantIndex(firstUncompletedIndex >= 0 ? firstUncompletedIndex : 0);
+        const selectedIndex = firstUncompletedIndex >= 0 ? firstUncompletedIndex : 0;
+        console.log('🔵 JURY: Setting currentParticipantIndex to', selectedIndex, 'for participant:', formattedParticipants[selectedIndex]);
+        setCurrentParticipantIndex(selectedIndex);
       } catch (error) {
         console.error('Error processing participants:', error);
         setParticipants([]);
@@ -504,7 +521,11 @@ const JuryPortal: React.FC = () => {
         // Update the participant's score in the list
         setParticipants(prevParticipants => {
           return prevParticipants.map(participant => {
-            if (participant.participantId === data.participantId) {
+            // Match by participantId OR wertungenId (server sends both)
+            const matchesById = participant.participantId === data.participantId;
+            const matchesByWertungenId = participant.wertungenId && participant.wertungenId === data.wertungenId;
+            
+            if (matchesById || matchesByWertungenId) {
               console.log(`✅ JURY: Updating participant ${participant.name} with new score: ${data.score}`);
               return {
                 ...participant,
@@ -578,18 +599,38 @@ const JuryPortal: React.FC = () => {
     loadDisciplineFields();
   }, [selectedDevice]);
 
-  // Define currentParticipant BEFORE using it in useEffect
-  const currentParticipant = participants[currentParticipantIndex];
+  // Memoize currentParticipant to ensure it updates when participants or index changes
+  const currentParticipant = useMemo(() => {
+    return participants[currentParticipantIndex];
+  }, [participants, currentParticipantIndex]);
 
   // Load jury results when participant changes
   useEffect(() => {
     const loadJuryResults = async () => {
+      console.log('🔵 JURY: loadJuryResults useEffect triggered', {
+        hasCurrentParticipant: !!currentParticipant,
+        currentParticipantId: currentParticipant?.participantId,
+        hasSelectedDevice: !!selectedDevice,
+        selectedDeviceId: selectedDevice?.disciplineId,
+        disciplineFieldsLength: disciplineFields.length,
+        wertungenId: currentParticipant?.wertungenId,
+        disciplineFieldsDetails: disciplineFields.map(f => ({ id: f.id, name: f.name, sortOrder: f.sortOrder })),
+        participantsLength: participants.length,
+        currentParticipantIndex
+      });
+      
       if (!currentParticipant || !selectedDevice || disciplineFields.length === 0) {
+        console.log('🔵 JURY: Skipping jury results load - missing prerequisites', {
+          reason: !currentParticipant ? 'no participant' : !selectedDevice ? 'no device' : 'no fields'
+        });
         return;
       }
 
       if (!currentParticipant.wertungenId) {
-        console.log('🔵 JURY: No wertungenId for participant, skipping jury results load');
+        console.log('🔵 JURY: No wertungenId for participant, skipping jury results load', {
+          participantId: currentParticipant.participantId,
+          participantName: currentParticipant.name
+        });
         return;
       }
 
@@ -603,15 +644,35 @@ const JuryPortal: React.FC = () => {
         
         console.log('🔵 JURY: Loaded jury results:', data);
         
-        // Jury results can be used for formula calculation if needed
-        // Currently not implemented in simplified FormulaInput
+        // Map jury results to field symbols (A, B, C...)
+        if (data.results && Array.isArray(data.results)) {
+          const resultsMap: Record<string, number> = {};
+          
+          // Sort by field order and map to symbols - explicitly filter out final score
+          const sortedResults = data.results
+            .filter((r: any) => r.isFinalScore === false) // Only include non-final fields
+            .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0));
+          
+          console.log('🔵 JURY: Filtered results (non-final only):', sortedResults);
+          
+          sortedResults.forEach((result: any, index: number) => {
+            const symbol = String.fromCharCode(65 + index); // A, B, C...
+            if (result.performance !== null && result.performance !== undefined) {
+              resultsMap[symbol] = result.performance;
+              console.log(`🔵 JURY: Mapping ${symbol} = ${result.performance} (${result.fieldName})`);
+            }
+          });
+          
+          console.log('🔵 JURY: Mapped jury results to symbols:', resultsMap);
+          setLoadedJuryResults(resultsMap);
+        }
       } catch (error) {
         console.error('❌ JURY: Error loading jury results:', error);
       }
     };
 
     loadJuryResults();
-  }, [currentParticipant, selectedDevice, disciplineFields]);
+  }, [selectedDevice, disciplineFields, participants, currentParticipantIndex]);
 
   // Update score input when current participant changes
   useEffect(() => {
@@ -669,8 +730,47 @@ const JuryPortal: React.FC = () => {
       const hasFormula = selectedDevice.var_formel && Object.keys(formulaFieldValues).length > 0;
       
       if (hasFormula) {
+        // Ensure we have a wertungenId before saving formula fields
+        let wertungenId = currentParticipant.wertungenId;
+        
+        if (!wertungenId) {
+          console.log('🔵 JURY: No wertungenId yet, creating score entry first...');
+          
+          // Create a score entry to get a wertungenId
+          const createScoreResponse = await fetch(`${API_BASE_URL}/scores/save-value`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              competitionId: actualCompetitionId,
+              participantId: currentParticipant.participantId,
+              disciplineId: selectedDevice.disciplineId,
+              score: 0 // Temporary score, will be overwritten by calculate-final
+            })
+          });
+          
+          if (createScoreResponse.ok) {
+            const createScoreResult = await createScoreResponse.json();
+            wertungenId = createScoreResult.wertungenId || createScoreResult.id;
+            console.log('✅ JURY: Created score entry, got wertungenId:', wertungenId);
+            
+            // Update current participant with wertungenId for future saves
+            const updatedParticipants = [...participants];
+            if (updatedParticipants[currentParticipantIndex]) {
+              updatedParticipants[currentParticipantIndex].wertungenId = wertungenId;
+            }
+            setParticipants(updatedParticipants);
+          } else {
+            console.error('❌ JURY: Failed to create score entry');
+            alert('❌ Fehler beim Erstellen des Score-Eintrags');
+            setLoading(false);
+            return;
+          }
+        }
+        
         // Save formula field values to tfx_jury_results
-        console.log('🔵 JURY: Saving formula field values:', formulaFieldValues);
+        console.log('🔵 JURY: Saving formula field values:', formulaFieldValues, 'with wertungenId:', wertungenId);
         
         // Save each field value to tfx_jury_results
         for (const [symbol, value] of Object.entries(formulaFieldValues)) {
@@ -685,7 +785,7 @@ const JuryPortal: React.FC = () => {
           
           const juryResultData = {
             competitionId: actualCompetitionId,
-            participantId: currentParticipant.participantId,
+            participantId: wertungenId, // Use the wertungenId we ensured exists above
             disciplineId: selectedDevice.disciplineId,
             disciplineFieldId: disciplineField.id,
             performance: value,
@@ -714,68 +814,107 @@ const JuryPortal: React.FC = () => {
           }
         }
         
-        console.log('✅ JURY: All formula fields saved, backend will auto-calculate final score');
+        console.log('✅ JURY: All formula fields saved');
         
-        // Trigger final score calculation and get the result
+        // Calculate final score CLIENT-SIDE (same as ScoreCapture)
+        // The calculated score is already in the 'score' state from FormulaInput onChange
+        const finalScore = parseFloat(score);
+        
+        if (isNaN(finalScore)) {
+          console.error('❌ JURY: Invalid calculated score:', score);
+          alert('❌ Fehler: Ungültiger berechneter Wert');
+          setLoading(false);
+          return;
+        }
+        
+        // CRITICAL: Also save the final score to the "Endwert" field in tfx_jury_results!
+        // This ensures the score is consistent across both tables
+        const finalScoreField = disciplineFields.find(f => f.isEndValue);
+        if (finalScoreField) {
+          console.log('🔵 JURY: Saving final score to Endwert field:', finalScoreField.name);
+          try {
+            const finalScoreData = {
+              competitionId: actualCompetitionId,
+              participantId: wertungenId, // Use wertungenId for jury-results
+              disciplineId: selectedDevice.disciplineId,
+              disciplineFieldId: finalScoreField.id,
+              performance: finalScore,
+              attempt: 1
+            };
+            
+            const finalFieldResponse = await fetch(`${API_BASE_URL}/jury-results`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(finalScoreData)
+            });
+            
+            if (finalFieldResponse.ok) {
+              console.log('✅ JURY: Final score saved to Endwert field');
+            } else {
+              console.error('❌ JURY: Failed to save final score to Endwert field');
+            }
+          } catch (error) {
+            console.error('❌ JURY: Error saving final score to Endwert field:', error);
+          }
+        } else {
+          console.warn('⚠️ JURY: No final score field (bol_endwert=true) found in discipline fields');
+        }
+        
         try {
-          console.log('🔵 JURY: Triggering final score calculation...');
-          const calculateResponse = await fetch(`${API_BASE_URL}/scores/calculate-final`, {
+          console.log('🔵 JURY: Saving final score to tfx_wertungen_details:', finalScore);
+          console.log('🔵 JURY: Using participantId:', currentParticipant.participantId, 'wertungenId:', wertungenId);
+          
+          // Save the final calculated score using the same endpoint as ScoreCapture
+          // CRITICAL: save-value expects teilnehmerid (participantId), NOT wertungenid!
+          const saveScoreResponse = await fetch(`${API_BASE_URL}/scores/save-value`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               competitionId: actualCompetitionId,
-              participantId: currentParticipant.participantId,
-              disciplineId: selectedDevice.disciplineId
+              participantId: currentParticipant.participantId, // Use actual teilnehmerid, NOT wertungenId!
+              disciplineId: selectedDevice.disciplineId,
+              score: finalScore
             })
           });
           
-          if (calculateResponse.ok) {
-            const calculateResult = await calculateResponse.json();
-            console.log('✅ JURY: Final score calculated:', calculateResult);
+          if (saveScoreResponse.ok) {
+            const saveResult = await saveScoreResponse.json();
+            console.log('✅ JURY: Final score saved:', saveResult);
             
-            // Update score with calculated value
-            if (calculateResult.finalScore !== undefined) {
-              setScore(calculateResult.finalScore.toFixed(selectedDevice.int_berechnung || 2));
-              
-              // Update participant list with calculated score
-              const updatedParticipants = [...participants];
-              if (updatedParticipants[currentParticipantIndex]) {
-                updatedParticipants[currentParticipantIndex].status = 'completed';
-                updatedParticipants[currentParticipantIndex].currentScore = calculateResult.finalScore;
-              }
-              setParticipants(updatedParticipants);
+            // Update participant list with calculated score
+            const updatedParticipants = [...participants];
+            if (updatedParticipants[currentParticipantIndex]) {
+              updatedParticipants[currentParticipantIndex].status = 'completed';
+              updatedParticipants[currentParticipantIndex].currentScore = finalScore;
+              updatedParticipants[currentParticipantIndex].wertungenId = saveResult.wertungenId || updatedParticipants[currentParticipantIndex].wertungenId;
             }
+            setParticipants(updatedParticipants);
+            
+            // Show success feedback with calculated score
+            const successMsg = document.createElement('div');
+            successMsg.textContent = `✅ Bewertung gespeichert! Endwert: ${finalScore.toFixed(2)}`;
+            successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            document.body.appendChild(successMsg);
+            setTimeout(() => successMsg.remove(), 3000);
+            
+            console.log('✅ Formula-based score saved! Final score:', finalScore);
+            setLoading(false);
+            return;
           } else {
-            console.error('❌ JURY: Failed to calculate final score');
+            console.error('❌ JURY: Failed to save final score');
           }
         } catch (calcError) {
-          console.error('❌ JURY: Error calculating final score:', calcError);
+          console.error('❌ JURY: Error saving final score:', calcError);
         }
       }
       
-      // For formula-based disciplines, the backend auto-calculates the final score
-      // We don't need to save via /scores/save-value
-      // Instead, just update the participant list with the calculated score
+      // If we get here for a formula discipline, calculation failed - show error
       if (hasFormula) {
-        // Update participant status and score
-        const updatedParticipants = [...participants];
-        if (updatedParticipants[currentParticipantIndex]) {
-          updatedParticipants[currentParticipantIndex].status = 'completed';
-          updatedParticipants[currentParticipantIndex].currentScore = parseFloat(score);
-        }
-        
-        setParticipants(updatedParticipants);
-        
-        // Show success feedback
-        const successMsg = document.createElement('div');
-        successMsg.textContent = '✅ Bewertung gespeichert!';
-        successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
-        document.body.appendChild(successMsg);
-        setTimeout(() => successMsg.remove(), 3000);
-        
-        console.log('✅ Formula-based score saved! Final score auto-calculated by backend.');
+        alert('❌ Fehler beim Berechnen des Endwerts. Bitte versuchen Sie es erneut.');
         setLoading(false);
         return;
       }
@@ -1258,6 +1397,7 @@ const JuryPortal: React.FC = () => {
                       startValue={selectedDevice.maxScore}
                       decimals={selectedDevice.int_berechnung || 2}
                       disciplineFields={disciplineFields}
+                      initialValues={loadedJuryResults}
                       onScoreChange={(calculatedScore, fieldValues) => {
                         if (calculatedScore !== null) {
                           const formattedScore = calculatedScore.toFixed(selectedDevice.int_berechnung || 2);

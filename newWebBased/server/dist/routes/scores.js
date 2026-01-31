@@ -285,27 +285,30 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                         console.error('❌ [Server] Error calculating/saving final score:', error);
                     }
                 }
-                // ✨ Sync check: Ensure tfx_wertungen_details matches final score from jury results
-                if (!needsEndwertCalculation && juryResults.length > 0) {
+                // ✨ Sync check: Ensure tfx_jury_results final score matches tfx_wertungen_details
+                // CRITICAL: tfx_wertungen_details is the SOURCE OF TRUTH for final scores!
+                // If there's a mismatch, UPDATE jury_results to match wertungen_details, NOT the other way around!
+                if (!needsEndwertCalculation && juryResults.length > 0 && result.score !== null) {
                     const finalScoreResult = juryResults.find(jr => jr.isFinalScore);
                     if (finalScoreResult && finalScoreResult.performance !== null) {
-                        const finalScore = parseFloat(finalScoreResult.performance);
-                        const currentScore = result.score ? parseFloat(result.score) : null;
-                        if (currentScore !== finalScore) {
-                            console.log(`⚠️ [Server] Score mismatch detected! wertungenId=${result.id}, current=${currentScore}, expected=${finalScore}`);
-                            console.log(`💾 [Server] Syncing tfx_wertungen_details with jury results final score`);
+                        const juryFinalScore = parseFloat(finalScoreResult.performance);
+                        const wertungsDetailsScore = parseFloat(result.score);
+                        if (wertungsDetailsScore !== juryFinalScore) {
+                            console.log(`⚠️ [Server] Score mismatch detected! wertungenId=${result.id}, wertungen_details=${wertungsDetailsScore}, jury_results=${juryFinalScore}`);
+                            console.log(`💾 [Server] Syncing tfx_jury_results final score WITH tfx_wertungen_details (wertungen_details is SOURCE OF TRUTH)`);
                             try {
+                                // Update the Endwert field in tfx_jury_results to match tfx_wertungen_details
                                 await prisma_1.default.$executeRawUnsafe(`
-                  UPDATE tfx_wertungen_details
+                  UPDATE tfx_jury_results
                   SET rel_leistung = $1
-                  WHERE int_wertungenid = $2 AND int_disziplinenid = $3
-                `, finalScore, result.id, disciplineId);
-                                // Update in-memory result
-                                result.score = finalScore;
-                                console.log(`✅ [Server] Synced score: ${finalScore}`);
+                  WHERE int_wertungenid = $2 AND int_disziplinen_felderid = $3
+                `, wertungsDetailsScore, result.id, finalScoreResult.disciplineFieldId);
+                                // Update in-memory juryResults array
+                                finalScoreResult.performance = wertungsDetailsScore;
+                                console.log(`✅ [Server] Synced jury_results final score to: ${wertungsDetailsScore}`);
                             }
                             catch (error) {
-                                console.error('❌ [Server] Error syncing score:', error);
+                                console.error('❌ [Server] Error syncing jury results final score:', error);
                             }
                         }
                     }
@@ -703,20 +706,18 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
                     // Fetch jury results for this participant/discipline
                     const juryResultsQuery = `
             SELECT 
-              jr.flo_leistung as performance,
-              jr.int_reihenfolge as sort_order,
+              jr.rel_leistung as performance,
+              df.int_sortierung as sort_order,
               df.var_name as field_name,
-              df.var_kurz as field_short_name,
-              df.bol_ergebnis as is_final_score,
-              df.bol_startwert as is_starting_score
-            FROM tfx_wertungen_details jr
+              df.bol_endwert as is_final_score,
+              df.bol_ausgangswert as is_starting_score
+            FROM tfx_jury_results jr
             LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
             WHERE jr.int_wertungenid = $1
-              AND jr.int_disziplinenid = $2
               AND jr.int_versuch = 1
-            ORDER BY jr.int_reihenfolge ASC
+            ORDER BY df.int_sortierung ASC
           `;
-                    const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, wertungenId, actualDisciplineId);
+                    const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, wertungenId);
                     console.log(`🧮 Jury results:`, juryResults);
                     if (juryResults && juryResults.length > 0) {
                         // Build field symbols map
@@ -922,6 +923,7 @@ router.post('/calculate-final', authBypass_1.authenticateToken, async (req, res)
       WHERE jr.int_wertungenid = $1
         AND df.int_disziplinenid = $2
         AND jr.int_versuch = 1
+        AND df.bol_endwert = false
       ORDER BY df.int_sortierung ASC
     `;
         const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, wertungenId, disciplineId);
@@ -1012,11 +1014,12 @@ router.post('/calculate-final', authBypass_1.authenticateToken, async (req, res)
                     eventId,
                     competitionId,
                     disciplineId,
-                    participantId,
+                    participantId, // This is the teilnehmer_id from the request
+                    wertungenId, // This is the actual wertungen_id
                     score: result,
                     calculated: true
                 });
-                console.log('✅ Emitted Socket.IO event');
+                console.log('✅ Emitted Socket.IO event with participantId:', participantId, 'wertungenId:', wertungenId);
             }
         }
         catch (socketError) {

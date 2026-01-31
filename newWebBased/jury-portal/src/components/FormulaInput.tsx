@@ -27,6 +27,7 @@ interface FormulaInputProps {
   onScoreChange: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   disabled?: boolean;
   disciplineFields?: DisciplineField[];
+  initialValues?: Record<string, number>;
 }
 
 /**
@@ -40,14 +41,40 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
   decimals,
   onScoreChange,
   disabled = false,
-  disciplineFields = []
+  disciplineFields = [],
+  initialValues = {}
 }) => {
-  const [fieldValues, setFieldValues] = useState<Record<string, number>>({});
-  const [fieldInputs, setFieldInputs] = useState<Record<string, string>>({}); // String inputs for editing
+  const [fieldValues, setFieldValues] = useState<Record<string, number>>(initialValues);
+  const [fieldInputs, setFieldInputs] = useState<Record<string, string>>(() => {
+    // Format initial values for display
+    const formatted: Record<string, string> = {};
+    Object.entries(initialValues).forEach(([key, value]) => {
+      formatted[key] = value.toFixed(decimals);
+    });
+    return formatted;
+  });
   const [calculatedScore, setCalculatedScore] = useState<number | null>(null);
 
   // Extract symbols from formula
   const symbols = extractFormulaSymbols(formula);
+
+  // Update field values when initialValues change (on participant change)
+  useEffect(() => {
+    if (Object.keys(initialValues).length > 0) {
+      setFieldValues(initialValues);
+      
+      // Format for display
+      const formatted: Record<string, string> = {};
+      Object.entries(initialValues).forEach(([key, value]) => {
+        formatted[key] = value.toFixed(decimals);
+      });
+      setFieldInputs(formatted);
+    } else {
+      // Clear fields if no initial values
+      setFieldValues({});
+      setFieldInputs({});
+    }
+  }, [initialValues, decimals]);
 
   // Calculate score whenever field values change
   useEffect(() => {

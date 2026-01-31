@@ -7,7 +7,8 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
-        DEBUG: 'true'
+        DEBUG: 'true',
+        DATABASE_URL: 'postgresql://postgres:UG2-UA.de@localhost:5432/turnfix_2026_4?schema=public&connection_limit=20&pool_timeout=10'
       },
       instances: 1,
       exec_mode: 'fork',
@@ -25,7 +26,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3002,
         JURY_MODE: 'true',
-        DEBUG: 'true'
+        DEBUG: 'true',
+        DATABASE_URL: 'postgresql://postgres:UG2-UA.de@localhost:5432/turnfix_2026_4?schema=public&connection_limit=20&pool_timeout=10'
       },
       instances: 1,
       exec_mode: 'fork',

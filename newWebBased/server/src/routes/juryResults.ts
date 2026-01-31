@@ -91,6 +91,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         jr.int_kp as type,
         df.var_name as "fieldName",
         df.int_disziplinenid as "disciplineId",
+        df.bol_endwert as "isFinalScore",
+        df.int_sortierung as "sortOrder",
         d.var_name as "disciplineName",
         t.var_vorname as "participantFirstName",
         t.var_nachname as "participantLastName"
@@ -101,7 +103,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
       ${whereClause}
-      ORDER BY jr.int_juryresultsid DESC
+      ORDER BY df.int_sortierung ASC, jr.int_juryresultsid DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
