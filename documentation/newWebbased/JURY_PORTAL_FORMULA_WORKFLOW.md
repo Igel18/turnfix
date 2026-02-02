@@ -288,6 +288,122 @@ VALUES (116, 43, 13.10, 1, 0);
 
 ---
 
+### 🔴 **LIVE UPDATES** - Socket.IO Real-time Synchronization
+
+#### Socket.IO Events Overview
+**Two events emit `score-updated` for live view updates:**
+
+### Event 1: Field Save (`POST /api/jury-results`)
+**Trigger**: After saving each field (A, B) or updating any jury result
+**Route**: `server/src/routes/juryResults.ts`
+
+**Emitted Data**:
+```typescript
+io.to(`competition-${eventId}`).emit('score-updated', {
+  scoreId: wertungenId,              // int_wertungenid
+  eventId: eventId,
+  competitionId: competitionId,
+  disciplineId: disciplineId,
+  disciplineName: "Boden m. P1-P9",
+  firstname: "Luis",
+  lastname: "Bader",
+  gender: "männlich",
+  squadName: "zz",
+  finalScore: 14.65,                 // ← CALCULATED from current jury_results
+  score: 14.65,                      // ← CALCULATED (same value)
+  formula: "(10 + A) - B",
+  startValue: 10,
+  timestamp: "2026-01-31T17:49:23.000Z"
+});
+```
+
+**When**: Immediately after **each field save** (A, B, etc.)
+**Value Shown**: **Newly calculated** score from current jury_results (A + B values)
+
+---
+
+### Event 2: Final Score Save (`POST /api/scores/save-value`)
+**Trigger**: After saving final score to tfx_wertungen_details
+**Route**: `server/src/routes/scores.ts`
+
+**Emitted Data**:
+```typescript
+io.to(`competition-${eventId}`).emit('score-updated', {
+  scoreId: wertungenId,
+  eventId: eventId,
+  competitionId: actualCompetitionId,
+  participantId: participantId,      // int_teilnehmerid
+  disciplineId: actualDisciplineId,
+  disciplineName: "Boden m. P1-P9",
+  firstname: "Luis",
+  lastname: "Bader",
+  score: 14.65,                      // ← Calculated OR stored score
+  finalScore: 14.65,                 // ← Same value
+  storedScore: 14.65,                // ← Raw stored value (for debugging)
+  hasFormula: true,
+  timestamp: "2026-01-31T17:49:23.000Z"
+});
+```
+
+**When**: After **complete save** (all fields + wertungen_details)
+**Value Shown**: **Final score** from tfx_wertungen_details (with optional recalculation)
+
+---
+
+#### Client-Side Socket.IO Handler
+
+**Location**: `jury-portal/src/components/JuryPortal.tsx` (Line ~515)
+
+**Logic**:
+```typescript
+socket.on('score-updated', (data) => {
+  console.log('📡 JURY: Received score-updated:', data);
+  
+  // Only update if it's for our current event and discipline
+  if (data.eventId === selectedEvent && data.disciplineId === selectedDevice.disciplineId) {
+    setParticipants(prevParticipants => {
+      return prevParticipants.map(participant => {
+        // Match by participantId OR wertungenId
+        const matchesById = participant.participantId === data.participantId;
+        const matchesByWertungenId = participant.wertungenId === data.wertungenId;
+        
+        if (matchesById || matchesByWertungenId) {
+          return {
+            ...participant,
+            currentScore: data.score,    // ← Updates live view with new score
+            status: 'completed'
+          };
+        }
+        return participant;
+      });
+    });
+  }
+});
+```
+
+**What Updates**:
+- Participant list (left panel) → `currentScore` updates to new value
+- Status icon changes to ✓ (completed)
+
+**What Doesn't Update**:
+- Input fields (A, B) → Only update on explicit load (Step 1.3)
+- Calculated result field → Tied to input fields
+
+---
+
+#### Live View Display Timeline
+
+| Time | Action | Socket.IO Event | Displayed Value |
+|------|--------|-----------------|-----------------|
+| T+0s | Save A=6.15 | ✅ Event 1 | `score: 16.15` (calculated) |
+| T+1s | Save B=1.5 | ✅ Event 1 | `score: 14.65` (recalculated with B) |
+| T+2s | Save Final | ✅ Event 2 | `score: 14.65` (from wertungen_details) |
+| T+3s | Another jury saves | ✅ Event 1/2 | Live update for their participant |
+
+**Result**: Participant list shows **real-time updates** for all jury members working on the same event/discipline!
+
+---
+
 ### 4️⃣ **RELOAD PAGE** - Verify Persistence
 
 #### Step 4.1: Load Participants (with Scores)
