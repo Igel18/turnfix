@@ -261,22 +261,24 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         console.log('✅ Updated tfx_wertungen_details with final score');
       }
       
-      // ✨ Emit Socket.IO event with formula calculation for live updates
-      // DO THIS ALWAYS, not just for final score fields - formulas need all fields
-      try {
-        const { io } = await import('../index');
-        
-        console.log(`[JuryResults] 🔍 Starting Socket.IO emit for wertungenId=${wertungenId}, disciplineId=${disciplineId}`);
-        
-        // Get event ID for Socket.IO room
-        const eventQuery = `
-          SELECT wk.int_veranstaltungenid as event_id
-          FROM tfx_wertungen w
-          LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-          WHERE w.int_wertungenid = $1
-        `;
-        const eventResult = await prisma.$queryRawUnsafe(eventQuery, wertungenId) as any[];
-        const eventId = eventResult[0]?.event_id;
+      // ✨ Emit Socket.IO event ONLY for final score field to avoid duplicate events
+      // When saving A, B, C fields: Don't emit (jury portal will emit once at the end)
+      // When saving final score field (bol_endwert=true): Emit with calculated score
+      if (isFinalScoreField) {
+        try {
+          const { io } = await import('../index');
+          
+          console.log(`[JuryResults] 🔍 Starting Socket.IO emit for wertungenId=${wertungenId}, disciplineId=${disciplineId}`);
+          
+          // Get event ID for Socket.IO room
+          const eventQuery = `
+            SELECT wk.int_veranstaltungenid as event_id
+            FROM tfx_wertungen w
+            LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+            WHERE w.int_wertungenid = $1
+          `;
+          const eventResult = await prisma.$queryRawUnsafe(eventQuery, wertungenId) as any[];
+          const eventId = eventResult[0]?.event_id;
         
         console.log(`[JuryResults] 🔍 Found eventId: ${eventId}`);
         
@@ -404,6 +406,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
           console.error('[JuryResults] ⚠️ Socket.IO emit failed:', socketError);
           // Don't fail the request if Socket.IO fails
         }
+      } else {
+        console.log(`[JuryResults] ⏭️ Skipping Socket.IO emit for non-final field (only emit on final score field)`);
+      }
     } // Close the disciplineResult check
     
     res.status(existing && existing.length > 0 ? 200 : 201).json(result[0]);
