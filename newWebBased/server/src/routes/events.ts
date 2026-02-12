@@ -1,5 +1,13 @@
 import type { PrismaClient as PrismaClientType } from '@prisma/client';
+import { Router, Request, Response } from 'express';
+import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+import { z } from 'zod';
+import multer = require('multer');
+import { parseString } from 'xml2js';
+import { promisify } from 'util';
+import * as fs from 'fs';
 import prisma from '../lib/prisma';
+
 /**
  * Generalized discipline selection for a competition name using DB values.
  * @param {string} competitionName
@@ -26,15 +34,6 @@ export async function getDisciplinesForCompetition(competitionName: string, pris
     return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
   }
 }
-import { Router, Request, Response } from 'express';
-import { io } from '../index';
-import { authenticateToken, AuthRequest } from '../middleware/authBypass';
-import { z } from 'zod';
-import multer = require('multer');
-// Fixed var_bezeichnung field issue
-import { parseString } from 'xml2js';
-import { promisify } from 'util';
-import * as fs from 'fs';
 
 const router = Router();
 
@@ -337,9 +336,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     });
 
     // Get the venue name for the response
-    const venue = await prisma.tfx_wettkampforte.findUnique({
-      where: { int_wettkampforteid: newEvent.int_wettkampforteid }
-    });
+    const venue = newEvent.int_wettkampforteid !== null 
+      ? await prisma.tfx_wettkampforte.findUnique({
+          where: { int_wettkampforteid: newEvent.int_wettkampforteid }
+        })
+      : null;
 
     // Format the response to match the expected structure
     const response = {
@@ -495,11 +496,16 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     });
 
     // Emit Socket.IO event for real-time update
-    if (io) {
-      io.to(`competition-${updatedEvent.int_veranstaltungenid}`).emit('event-updated', {
-        eventId: updatedEvent.int_veranstaltungenid,
-        updated: true
-      });
+    try {
+      const { io } = await import('../index');
+      if (io) {
+        io.to(`competition-${updatedEvent.int_veranstaltungenid}`).emit('event-updated', {
+          eventId: updatedEvent.int_veranstaltungenid,
+          updated: true
+        });
+      }
+    } catch (err) {
+      // Socket.IO not available, skip notification
     }
     res.json({ event: response });
   } catch (error: any) {

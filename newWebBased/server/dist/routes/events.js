@@ -37,6 +37,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDisciplinesForCompetition = getDisciplinesForCompetition;
+const express_1 = require("express");
+const authBypass_1 = require("../middleware/authBypass");
+const zod_1 = require("zod");
+const multer = require("multer");
+const xml2js_1 = require("xml2js");
+const fs = __importStar(require("fs"));
 const prisma_1 = __importDefault(require("../lib/prisma"));
 /**
  * Generalized discipline selection for a competition name using DB values.
@@ -66,14 +72,6 @@ async function getDisciplinesForCompetition(competitionName, prismaInstance) {
         return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
     }
 }
-const express_1 = require("express");
-const index_1 = require("../index");
-const authBypass_1 = require("../middleware/authBypass");
-const zod_1 = require("zod");
-const multer = require("multer");
-// Fixed var_bezeichnung field issue
-const xml2js_1 = require("xml2js");
-const fs = __importStar(require("fs"));
 const router = (0, express_1.Router)();
 // Generate start numbers for all participants in an event
 router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async (req, res) => {
@@ -344,9 +342,11 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             }
         });
         // Get the venue name for the response
-        const venue = await prisma_1.default.tfx_wettkampforte.findUnique({
-            where: { int_wettkampforteid: newEvent.int_wettkampforteid }
-        });
+        const venue = newEvent.int_wettkampforteid !== null
+            ? await prisma_1.default.tfx_wettkampforte.findUnique({
+                where: { int_wettkampforteid: newEvent.int_wettkampforteid }
+            })
+            : null;
         // Format the response to match the expected structure
         const response = {
             int_eventid: newEvent.int_veranstaltungenid,
@@ -489,11 +489,17 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             name: updatedEvent.var_name
         });
         // Emit Socket.IO event for real-time update
-        if (index_1.io) {
-            index_1.io.to(`competition-${updatedEvent.int_veranstaltungenid}`).emit('event-updated', {
-                eventId: updatedEvent.int_veranstaltungenid,
-                updated: true
-            });
+        try {
+            const { io } = await Promise.resolve().then(() => __importStar(require('../index')));
+            if (io) {
+                io.to(`competition-${updatedEvent.int_veranstaltungenid}`).emit('event-updated', {
+                    eventId: updatedEvent.int_veranstaltungenid,
+                    updated: true
+                });
+            }
+        }
+        catch (err) {
+            // Socket.IO not available, skip notification
         }
         res.json({ event: response });
     }

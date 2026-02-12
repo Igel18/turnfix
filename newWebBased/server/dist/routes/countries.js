@@ -126,8 +126,8 @@ router.delete('/:id', async (req, res) => {
         if (error?.code === 'P2025') {
             return res.status(404).json({ error: 'Country not found' });
         }
-        if (error?.code === 'P2003') {
-            return res.status(400).json({ error: 'Cannot delete country with associated records' });
+        if (error?.code === 'P2003' || error?.code === 'P2014') {
+            return res.status(409).json({ error: 'Cannot delete country with associated records' });
         }
         console.error('Error deleting country:', error);
         res.status(500).json({ error: 'Internal server error' });

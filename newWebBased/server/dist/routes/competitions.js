@@ -63,11 +63,13 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Fetch competitions from the real database
         const competitions = await prisma.tfx_wettkaempfe.findMany({
-            where: whereClause,
+            where: selectedEventId && selectedEventId !== 'undefined'
+                ? { int_veranstaltungenid: parseInt(selectedEventId) }
+                : undefined,
             include: {
                 tfx_veranstaltungen: {
                     include: {
-                        tfx_wettkampforte: true
+                        tfx_wettkampforte: true // Now optional in schema
                     }
                 },
                 tfx_bereiche: true,
@@ -85,18 +87,11 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 }
             },
             orderBy: [
-                {
-                    tfx_wertungen: {
-                        _count: 'desc' // Competitions with more participants first
-                    }
-                },
-                {
-                    int_wettkaempfeid: 'desc' // Then by ID descending
-                }
+                { int_wettkaempfeid: 'desc' }
             ]
         });
         // Transform the data to match the expected format
-        const transformedCompetitions = competitions.map(comp => {
+        const transformedCompetitions = competitions.map((comp) => {
             // yer_von and yer_bis contain birth years - convert to ages based on event date
             const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
             const eventYear = eventDate.getFullYear();
@@ -117,7 +112,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                     comp.tfx_bereiche.bol_maennlich ? 'männlich' : 'weiblich',
                 ageFrom: Math.min(ageFrom, ageTo), // Ensure ageFrom is the smaller value
                 ageTo: Math.max(ageFrom, ageTo), // Ensure ageTo is the larger value
-                disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => ({
+                disciplines: comp.tfx_wettkaempfe_x_disziplinen.map((wd) => ({
                     disciplineId: wd.tfx_disziplinen.int_disziplinenid,
                     name: wd.tfx_disziplinen.var_name,
                     short_name: wd.tfx_disziplinen.var_kurz1,
@@ -176,8 +171,8 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         });
         // Debug: Log some sample competitions with their participant counts
         console.log('DEBUG: Sample competitions with participant counts:');
-        transformedCompetitions.slice(0, 5).forEach(comp => {
-            const originalComp = competitions.find(c => c.int_wettkaempfeid === comp.id);
+        transformedCompetitions.slice(0, 5).forEach((comp) => {
+            const originalComp = competitions.find((c) => c.int_wettkaempfeid === comp.id);
             console.log(`  - "${comp.name}" (ID: ${comp.id}, Event: ${originalComp?.int_veranstaltungenid}): ${comp.participantCount} participants`);
         });
         if (selectedEventId && selectedEventId !== 'undefined') {

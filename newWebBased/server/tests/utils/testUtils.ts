@@ -24,6 +24,27 @@ export class TestUtils {
    */
   static async createTestEvent(data: any = {}) {
     const prisma = this.getPrisma();
+    
+    // Ensure venue exists or create one
+    let venueId = data.venueId;
+    if (!venueId) {
+      const venue = await prisma.tfx_wettkampforte.findFirst();
+      if (venue) {
+        venueId = venue.int_wettkampforteid;
+      } else {
+        // Create a test venue if none exists
+        const newVenue = await prisma.tfx_wettkampforte.create({
+          data: {
+            var_name: 'Test Venue',
+            var_adresse: 'Test Address',
+            var_plz: '12345',
+            var_ort: 'Test City'
+          }
+        });
+        venueId = newVenue.int_wettkampforteid;
+      }
+    }
+    
     return await prisma.tfx_veranstaltungen.create({
       data: {
         var_name: data.name || 'Test Event',
@@ -32,7 +53,7 @@ export class TestUtils {
         txt_hinweise: data.description || 'Test Description',
         dat_meldeschluss: data.registrationDeadline || null,
         var_veranstalter: data.organizer || null,
-        int_wettkampforteid: data.venueId || 1, // Default venue ID
+        int_wettkampforteid: venueId,
         int_runde: data.round || 1 // Default round
       }
     });

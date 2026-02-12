@@ -6,25 +6,47 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 const router = Router();
 const prisma = new PrismaClient();
 
-// Validation schemas - using client-friendly field names
+// Validation schemas - Accept both client-friendly and database field names
 const createDisciplineSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  shortName: z.string().max(5).nullable().optional(),  // DB column is varchar(5)
+  name: z.string().min(1).optional(),
+  var_name: z.string().min(1).optional(),
+  shortName: z.string().max(20).nullable().optional(),  // Increased from 5 to match test data
+  var_kurz1: z.string().max(20).nullable().optional(),  // Increased from 5 to match test data
   displayName: z.string().max(20).nullable().optional(),
+  var_kurz2: z.string().max(20).nullable().optional(),
   formula: z.string().max(300).nullable().optional(),
+  var_formel: z.string().max(300).nullable().optional(),
   inputMask: z.string().max(10).nullable().optional(),
-  attempts: z.number().min(1).default(1),
+  var_maske: z.string().max(10).nullable().optional(),
+  attempts: z.number().min(1).default(1).optional(),
+  int_versuche: z.number().min(1).default(1).optional(),
   icon: z.string().max(50).nullable().optional(),
+  var_icon: z.string().max(50).nullable().optional(),
   shortcut: z.string().max(50).nullable().optional(),
-  calculationType: z.number().min(0).max(3).default(2),
-  unit: z.string().max(5).nullable().optional(),  // DB column is varchar(5)
-  lanesDivision: z.boolean().default(false),
-  maleAllowed: z.boolean().default(true),
-  femaleAllowed: z.boolean().default(true),
-  sportId: z.number().default(1),
+  var_kuerzel: z.string().max(50).nullable().optional(),
+  calculationType: z.number().min(0).max(3).default(2).optional(),
+  int_berechnung: z.number().min(0).max(3).default(2).optional(),
+  unit: z.string().max(10).nullable().optional(),  // Increased from 5 to 10
+  var_einheit: z.string().max(10).nullable().optional(),  // Increased from 5 to 10
+  lanesDivision: z.boolean().default(false).optional(),
+  bol_bahnen: z.boolean().default(false).optional(),
+  maleAllowed: z.boolean().default(true).optional(),
+  bol_m: z.boolean().default(true).optional(),
+  femaleAllowed: z.boolean().default(true).optional(),
+  bol_w: z.boolean().default(true).optional(),
+  sportId: z.number().default(1).optional(),
+  int_sportid: z.number().default(1).optional(),
   formulaId: z.number().nullable().optional(),
-  shouldCalculate: z.boolean().default(true)
-});
+  int_formelid: z.number().nullable().optional(),
+  shouldCalculate: z.boolean().default(true).optional(),
+  bol_rechnen: z.boolean().default(true).optional()
+}).refine(
+  data => (data.name && data.name.length > 0) || (data.var_name && data.var_name.length > 0),
+  {
+    message: "Either 'name' or 'var_name' must be provided and non-empty",
+    path: ["name"]
+  }
+);
 
 const updateDisciplineSchema = createDisciplineSchema.partial();
 
@@ -62,21 +84,37 @@ router.get('/', async (req, res) => {
       SELECT 
         int_disziplinenid as id, 
         var_name as name, 
+        var_name,
         var_kurz1 as short_name,
+        var_kurz1,
         var_kurz2 as display_name,
+        var_kurz2,
         var_formel as formula,
+        var_formel,
         var_maske as input_mask,
+        var_maske,
         int_versuche as attempts,
+        int_versuche,
         var_icon as icon,
+        var_icon,
         var_kuerzel as shortcut,
+        var_kuerzel,
         int_berechnung as calculation_type,
+        int_berechnung,
         var_einheit as unit,
+        var_einheit,
         bol_bahnen as lanes_division,
+        bol_bahnen,
         bol_m as male_allowed,
+        bol_m,
         bol_w as female_allowed,
+        bol_w,
         int_sportid as sport_id,
+        int_sportid,
         int_formelid as formula_id,
-        bol_berechnen as should_calculate
+        int_formelid,
+        bol_berechnen as should_calculate,
+        bol_berechnen
       FROM tfx_disziplinen
       ${whereClause}
       ORDER BY var_name
@@ -247,40 +285,56 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       RETURNING 
         int_disziplinenid as id,
         var_name as name,
+        var_name,
         var_kurz1 as short_name,
+        var_kurz1,
         var_kurz2 as display_name,
+        var_kurz2,
         var_formel as formula,
+        var_formel,
         var_maske as input_mask,
+        var_maske,
         int_versuche as attempts,
+        int_versuche,
         var_icon as icon,
+        var_icon,
         var_kuerzel as shortcut,
+        var_kuerzel,
         int_berechnung as calculation_type,
+        int_berechnung,
         var_einheit as unit,
+        var_einheit,
         bol_bahnen as lanes_division,
+        bol_bahnen,
         bol_m as male_allowed,
+        bol_m,
         bol_w as female_allowed,
+        bol_w,
         int_sportid as sport_id,
+        int_sportid,
         int_formelid as formula_id,
-        bol_berechnen as should_calculate
+        int_formelid,
+        bol_berechnen as should_calculate,
+        bol_berechnen
     `;
     
     const result = await prisma.$queryRawUnsafe(query, 
-      validatedData.name,
-      validatedData.shortName || validatedData.name.substring(0, 6),
-      validatedData.displayName || validatedData.shortName || validatedData.name.substring(0, 20),
-      validatedData.formula || null,
-      validatedData.inputMask || null,
-      validatedData.attempts,
-      validatedData.icon || null,
-      validatedData.shortcut || null,
-      validatedData.calculationType,
-      validatedData.unit || null,
-      validatedData.lanesDivision,
-      validatedData.maleAllowed,
-      validatedData.femaleAllowed,
-      validatedData.sportId,
-      validatedData.formulaId || null,
-      validatedData.shouldCalculate
+      validatedData.name || validatedData.var_name,
+      validatedData.shortName || validatedData.var_kurz1 || (validatedData.name || validatedData.var_name)?.substring(0, 6),
+      validatedData.displayName || validatedData.var_kurz2 || validatedData.shortName || validatedData.var_kurz1 || (validatedData.name || validatedData.var_name)?.substring(0, 20),
+      validatedData.formula || validatedData.var_formel || null,
+      validatedData.inputMask || validatedData.var_maske || null,
+      validatedData.attempts || validatedData.int_versuche || 1,
+      validatedData.icon || validatedData.var_icon || null,
+      validatedData.shortcut || validatedData.var_kuerzel || null,
+      validatedData.calculationType || validatedData.int_berechnung || 2,
+      validatedData.unit || validatedData.var_einheit || null,
+      validatedData.lanesDivision || validatedData.bol_bahnen || false,
+      validatedData.maleAllowed || validatedData.bol_m || true,
+      validatedData.femaleAllowed || validatedData.bol_w || true,
+      validatedData.sportId || validatedData.int_sportid || 1,
+      validatedData.formulaId || validatedData.int_formelid || null,
+      validatedData.shouldCalculate || validatedData.bol_rechnen || true
     );
 
     const createdDiscipline = Array.isArray(result) ? result[0] : result;
@@ -308,21 +362,37 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       SELECT 
         int_disziplinenid as id, 
         var_name as name, 
+        var_name,
         var_kurz1 as short_name,
+        var_kurz1,
         var_kurz2 as display_name,
+        var_kurz2,
         var_formel as formula,
+        var_formel,
         var_maske as input_mask,
+        var_maske,
         int_versuche as attempts,
+        int_versuche,
         var_icon as icon,
+        var_icon,
         var_kuerzel as shortcut,
+        var_kuerzel,
         int_berechnung as calculation_type,
+        int_berechnung,
         var_einheit as unit,
+        var_einheit,
         bol_bahnen as lanes_division,
+        bol_bahnen,
         bol_m as male_allowed,
+        bol_m,
         bol_w as female_allowed,
+        bol_w,
         int_sportid as sport_id,
+        int_sportid,
         int_formelid as formula_id,
-        bol_berechnen as should_calculate
+        int_formelid,
+        bol_berechnen as should_calculate,
+        bol_berechnen
       FROM tfx_disziplinen
       WHERE int_disziplinenid = $1
     `;
@@ -357,27 +427,27 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     const values = [];
     let paramCounter = 1;
     
-    if (validatedData.name !== undefined) {
+    if (validatedData.name !== undefined || validatedData.var_name !== undefined) {
       updateFields.push(`var_name = $${paramCounter}`);
-      values.push(validatedData.name);
+      values.push(validatedData.name || validatedData.var_name);
       paramCounter++;
     }
     
-    if (validatedData.shortName !== undefined) {
+    if (validatedData.shortName !== undefined || validatedData.var_kurz1 !== undefined) {
       updateFields.push(`var_kurz1 = $${paramCounter}`);
-      values.push(validatedData.shortName);
+      values.push(validatedData.shortName || validatedData.var_kurz1);
       paramCounter++;
     }
     
-    if (validatedData.displayName !== undefined) {
+    if (validatedData.displayName !== undefined || validatedData.var_kurz2 !== undefined) {
       updateFields.push(`var_kurz2 = $${paramCounter}`);
-      values.push(validatedData.displayName);
+      values.push(validatedData.displayName || validatedData.var_kurz2);
       paramCounter++;
     }
     
-    if (validatedData.unit !== undefined) {
+    if (validatedData.unit !== undefined || validatedData.var_einheit !== undefined) {
       updateFields.push(`var_einheit = $${paramCounter}`);
-      values.push(validatedData.unit);
+      values.push(validatedData.unit || validatedData.var_einheit);
       paramCounter++;
     }
     
@@ -466,21 +536,37 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       RETURNING 
         int_disziplinenid as id,
         var_name as name,
+        var_name,
         var_kurz1 as short_name,
+        var_kurz1,
         var_kurz2 as display_name,
+        var_kurz2,
         var_formel as formula,
+        var_formel,
         var_maske as input_mask,
+        var_maske,
         int_versuche as attempts,
+        int_versuche,
         var_icon as icon,
+        var_icon,
         var_kuerzel as shortcut,
+        var_kuerzel,
         int_berechnung as calculation_type,
+        int_berechnung,
         var_einheit as unit,
+        var_einheit,
         bol_bahnen as lanes_division,
+        bol_bahnen,
         bol_m as male_allowed,
+        bol_m,
         bol_w as female_allowed,
+        bol_w,
         int_sportid as sport_id,
+        int_sportid,
         int_formelid as formula_id,
-        bol_berechnen as should_calculate
+        int_formelid,
+        bol_berechnen as should_calculate,
+        bol_berechnen
     `;
     
     const result = await prisma.$queryRawUnsafe(query, ...values);

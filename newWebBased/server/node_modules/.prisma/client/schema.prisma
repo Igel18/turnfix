@@ -282,7 +282,7 @@ model tfx_teilnehmer {
 
 model tfx_veranstaltungen {
   int_veranstaltungenid                                              Int                        @id(map: "pky_veranstaltungenid") @default(autoincrement())
-  int_wettkampforteid                                                Int
+  int_wettkampforteid                                                Int?
   int_meldung_an                                                     Int?
   int_ansprechpartner                                                Int?
   int_kontenid                                                       Int?
@@ -316,7 +316,7 @@ model tfx_veranstaltungen {
   other_tfx_veranstaltungen                                          tfx_veranstaltungen[]      @relation("tfx_veranstaltungenTotfx_veranstaltungen")
   tfx_konten                                                         tfx_konten?                @relation(fields: [int_kontenid], references: [int_kontenid], onDelete: Restrict, onUpdate: Restrict, map: "fky_kontenid")
   tfx_personen_tfx_veranstaltungen_int_meldung_anTotfx_personen      tfx_personen?              @relation("tfx_veranstaltungen_int_meldung_anTotfx_personen", fields: [int_meldung_an], references: [int_personenid], onDelete: Restrict, onUpdate: Restrict, map: "fky_meldung_an")
-  tfx_wettkampforte                                                  tfx_wettkampforte          @relation(fields: [int_wettkampforteid], references: [int_wettkampforteid], onUpdate: Restrict, map: "fky_wettkampforteid")
+  tfx_wettkampforte                                                  tfx_wettkampforte?         @relation(fields: [int_wettkampforteid], references: [int_wettkampforteid], onUpdate: Restrict, map: "fky_wettkampforteid")
   tfx_wettkaempfe                                                    tfx_wettkaempfe[]
 }
 
