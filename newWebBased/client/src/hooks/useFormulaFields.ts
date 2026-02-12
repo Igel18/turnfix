@@ -100,70 +100,141 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
 
   // Load discipline fields for letter-based formulas
   useEffect(() => {
-    if (!disciplineId || hasLowercaseVariables) {
+    // Skip if formula uses lowercase variables (will be handled by variable-based logic)
+    if (hasLowercaseVariables) {
       return;
     }
 
-    fetch(`/api/discipline-fields?disciplineId=${disciplineId}`)
-      .then(res => res.json())
-      .then(data => {
-        const disciplineFields = Array.isArray(data) ? data : [];
-        
-        console.log('📋 [useFormulaFields] Loaded discipline fields from API:', disciplineFields);
-        
-        if (disciplineFields.length > 0) {
-          let loadedFields = disciplineFields.map((field: any) => {
-            // Apply initial value if available
-            const initialValue = _initialValues[field.id];
-            const valueToUse = initialValue !== undefined ? initialValue : '';
-            
-            return {
-              id: field.id,
-              name: field.name,
-              value: valueToUse,
-              normalizedValue: valueToUse,
-              isFinalScore: field.isFinalScore,
-              isStartingScore: field.isStartingScore
-            };
-          });
+    // Helper function to create generic fields from formula
+    const createGenericFieldsFromFormula = () => {
+      if (!effectiveFormula || formulaType !== 'letter') {
+        return [];
+      }
+      
+      const maxLetterIndex = getMaxLetterIndex(effectiveFormula);
+      console.log(`🔧 [useFormulaFields] Creating ${maxLetterIndex + 1} generic fields from formula`);
+      
+      const genericFields: FormulaField[] = [];
+      
+      // Create fields A, B, C, ... based on formula
+      for (let i = 0; i <= maxLetterIndex; i++) {
+        const letter = getFieldLetter(i);
+        genericFields.push({
+          id: 1000 + i,
+          name: `Field ${letter}`,
+          value: '',
+          normalizedValue: '',
+          isFinalScore: false,
+          isStartingScore: false
+        });
+      }
+      
+      // Add final score field
+      genericFields.push({
+        id: 9999,
+        name: 'Endwert',
+        value: '',
+        normalizedValue: '',
+        isFinalScore: true,
+        isStartingScore: false
+      });
+      
+      return genericFields;
+    };
+
+    // If we have a disciplineId, try to load fields from API
+    if (disciplineId) {
+      fetch(`/api/discipline-fields?disciplineId=${disciplineId}`)
+        .then(res => res.json())
+        .then(data => {
+          const disciplineFields = Array.isArray(data) ? data : [];
           
-          // Check if formula requires more fields than we have
-          if (effectiveFormula && formulaType === 'letter') {
-            const maxLetterIndex = getMaxLetterIndex(effectiveFormula);
-            const nonFinalFields = loadedFields.filter(f => !f.isFinalScore);
-            const missingFieldsCount = (maxLetterIndex + 1) - nonFinalFields.length;
-            
-            console.log(`🔍 [useFormulaFields] Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
-            
-            if (missingFieldsCount > 0) {
-              console.log(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields...`);
+          console.log('📋 [useFormulaFields] Loaded discipline fields from API:', disciplineFields);
+          
+          if (disciplineFields.length > 0) {
+            let loadedFields = disciplineFields.map((field: any) => {
+              // Apply initial value if available
+              const initialValue = _initialValues[field.id];
+              const valueToUse = initialValue !== undefined ? initialValue : '';
               
-              // Create missing fields
-              for (let i = nonFinalFields.length; i <= maxLetterIndex; i++) {
-                const letter = getFieldLetter(i);
-                loadedFields.splice(loadedFields.length - (loadedFields.filter(f => f.isFinalScore).length), 0, {
-                  id: 1000 + i,
-                  name: `Field ${letter}`,
-                  value: '',
-                  normalizedValue: '',
-                  isFinalScore: false,
-                  isStartingScore: false
-                });
+              return {
+                id: field.id,
+                name: field.name,
+                value: valueToUse,
+                normalizedValue: valueToUse,
+                isFinalScore: field.isFinalScore,
+                isStartingScore: field.isStartingScore
+              };
+            });
+            
+            // Check if formula requires more fields than we have
+            if (effectiveFormula && formulaType === 'letter') {
+              const maxLetterIndex = getMaxLetterIndex(effectiveFormula);
+              const nonFinalFields = loadedFields.filter(f => !f.isFinalScore);
+              const missingFieldsCount = (maxLetterIndex + 1) - nonFinalFields.length;
+              
+              console.log(`🔍 [useFormulaFields] Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
+              
+              if (missingFieldsCount > 0) {
+                console.log(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields...`);
+                
+                // Create missing fields
+                for (let i = nonFinalFields.length; i <= maxLetterIndex; i++) {
+                  const letter = getFieldLetter(i);
+                  loadedFields.splice(loadedFields.length - (loadedFields.filter(f => f.isFinalScore).length), 0, {
+                    id: 1000 + i,
+                    name: `Field ${letter}`,
+                    value: '',
+                    normalizedValue: '',
+                    isFinalScore: false,
+                    isStartingScore: false
+                  });
+                }
+              }
+            }
+            
+            console.log('✅ [useFormulaFields] Mapped fields:', loadedFields);
+            
+            setFields(loadedFields);
+            if (onFieldsLoaded) {
+              onFieldsLoaded(loadedFields);
+            }
+          } else {
+            // No fields from API - use generic fields
+            console.log('⚠️ [useFormulaFields] No discipline fields found in API response - using generic fields');
+            const genericFields = createGenericFieldsFromFormula();
+            if (genericFields.length > 0) {
+              console.log('✅ [useFormulaFields] Created generic fields:', genericFields);
+              setFields(genericFields);
+              if (onFieldsLoaded) {
+                onFieldsLoaded(genericFields);
               }
             }
           }
-          
-          console.log('✅ [useFormulaFields] Mapped fields:', loadedFields);
-          
-          setFields(loadedFields);
-          if (onFieldsLoaded) {
-            onFieldsLoaded(loadedFields);
+        })
+        .catch(error => {
+          console.error('[useFormulaFields] Error loading discipline fields:', error);
+          // On error - use generic fields as fallback
+          const genericFields = createGenericFieldsFromFormula();
+          if (genericFields.length > 0) {
+            console.log('✅ [useFormulaFields] Created generic fields after API error:', genericFields);
+            setFields(genericFields);
+            if (onFieldsLoaded) {
+              onFieldsLoaded(genericFields);
+            }
           }
+        });
+    } else {
+      // No disciplineId - create generic fields from formula
+      const genericFields = createGenericFieldsFromFormula();
+      if (genericFields.length > 0) {
+        console.log('✅ [useFormulaFields] Created generic fields (no disciplineId):', genericFields);
+        setFields(genericFields);
+        if (onFieldsLoaded) {
+          onFieldsLoaded(genericFields);
         }
-      })
-      .catch(error => {
-        console.error('[useFormulaFields] Error loading discipline fields:', error);
-      });
+      }
+    }
   }, [disciplineId, hasLowercaseVariables, effectiveFormula, formulaType, onFieldsLoaded, _initialValues]);
 
   // Parse variable-based formulas
