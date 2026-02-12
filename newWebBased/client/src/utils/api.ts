@@ -1,3 +1,5 @@
+import { debugLog } from './debug';
+
 // Simple cache for GET requests to avoid duplicate calls
 const requestCache = new Map<string, Promise<any>>();
 const cacheExpiry = new Map<string, number>();
@@ -22,7 +24,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     if (requestCache.has(cacheKey) && cacheExpiry.has(cacheKey)) {
       const expiry = cacheExpiry.get(cacheKey)!;
       if (now < expiry) {
-        console.log('Using cached request for:', cacheKey);
+        debugLog('Using cached request for:', cacheKey);
         return requestCache.get(cacheKey)!;
       } else {
         // Expired cache
@@ -55,7 +57,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
       if (response.status === 429) {
         const retryAfter = response.headers.get('Retry-After');
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(2000, 500 * Math.pow(2, 1)); // Exponential backoff starting at 1000ms
-        console.warn(`Rate limited for ${url}. Waiting ${waitTime}ms before retry...`);
+        debugLog(`Rate limited for ${url}. Waiting ${waitTime}ms before retry...`);
         await delay(waitTime);
         return makeRequest(); // Retry the request
       }
@@ -81,7 +83,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
       // Parse JSON response automatically
       return response.json();
     } catch (error) {
-      console.error('API request failed for', url, ':', error);
+      debugLog('API request failed for', url, ':', error);
       throw error;
     } finally {
       pendingRequests.delete(url);
@@ -151,5 +153,5 @@ export const invalidateCache = (pattern?: string) => {
     requestCache.clear();
     cacheExpiry.clear();
   }
-  console.log('Cache invalidated for:', pattern || 'all requests');
+  debugLog('Cache invalidated for:', pattern || 'all requests');
 };

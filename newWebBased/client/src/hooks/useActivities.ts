@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiGet } from '../utils/api';
+import { debugLog } from '../utils/debug';
 
 export interface ActivityItem {
   id: string;
@@ -46,7 +47,7 @@ export const useActivities = () => {
         setError(response.error || 'Failed to fetch activities');
       }
     } catch (err) {
-      console.error('Error fetching activities:', err);
+      debugLog('Error fetching activities:', err);
       setError('Network error while fetching activities');
     } finally {
       setLoading(false);
@@ -63,10 +64,10 @@ export const useActivities = () => {
           timestamp: new Date(response.statistics.timestamp)
         });
       } else {
-        console.error('Failed to fetch statistics:', response.error);
+        debugLog('Failed to fetch statistics:', response.error);
       }
     } catch (err) {
-      console.error('Error fetching statistics:', err);
+      debugLog('Error fetching statistics:', err);
     }
   };
 
