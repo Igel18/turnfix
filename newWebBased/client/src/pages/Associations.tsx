@@ -5,6 +5,7 @@ import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate'
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
 import UnifiedModal from '@/components/UnifiedModal';
+import { debugLog } from '@/utils/debug';
 
 interface Association {
   int_verbaendeid: number;
@@ -67,7 +68,7 @@ const Associations: React.FC = () => {
         setAssociations(associationsData.associations || associationsData);
         setCountries(countriesData.countries || countriesData);
       } catch (error) {
-        console.error('Error loading data:', error);
+        debugLog('Error loading data:', error);
       } finally {
         setLoading(false);
       }
@@ -137,7 +138,7 @@ const Associations: React.FC = () => {
 
       setAssociations(prev => prev.filter(a => a.int_verbaendeid !== associationId));
     } catch (error) {
-      console.error('Error deleting association:', error);
+      debugLog('Error deleting association:', error);
     }
   };
 
@@ -178,7 +179,7 @@ const Associations: React.FC = () => {
 
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Error saving association:', error);
+      debugLog('Error saving association:', error);
     }
   };
 

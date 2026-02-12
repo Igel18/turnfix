@@ -8,9 +8,6 @@
  * Used by:
  * - Groups (selectedGroup synced with groups from server)
  * - Squads (selectedSquad synced with squads from server)
- */
-
-import { debugLog } from '../utils/debug';
  * - Any M:N assignment pattern
  * 
  * Usage:
@@ -26,6 +23,8 @@ import { debugLog } from '../utils/debug';
  * updateSelectedItem(newGroups); // Auto-syncs selected group
  * ```
  */
+
+import { debugLog } from '../utils/debug';
 
 interface UseServerSyncedSelectionParams<T> {
   /** Currently selected item (can be null) */

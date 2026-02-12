@@ -13,6 +13,7 @@ import {
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import ClubFormModal from '../components/ClubFormModal';
+import { debugLog } from '../utils/debug';
 
 interface Club {
   int_vereineid: number;
@@ -88,7 +89,7 @@ const ClubsUnified: React.FC = () => {
         setClubs(Array.isArray(data.clubs) ? data.clubs : []);
       }
     } catch (error) {
-      console.error('Error fetching clubs:', error);
+      debugLog('Error fetching clubs:', error);
       setClubs([]);
     } finally {
       setIsLoading(false);
@@ -103,7 +104,7 @@ const ClubsUnified: React.FC = () => {
         setRegions(Array.isArray(data) ? data : []);
       }
     } catch (error) {
-      console.error('Error fetching regions:', error);
+      debugLog('Error fetching regions:', error);
       setRegions([]);
     }
   };
@@ -117,7 +118,7 @@ const ClubsUnified: React.FC = () => {
         setContacts(Array.isArray(data.persons) ? data.persons : []);
       }
     } catch (error) {
-      console.error('Error fetching contacts:', error);
+      debugLog('Error fetching contacts:', error);
       setContacts([]);
     }
   };
@@ -192,7 +193,7 @@ const ClubsUnified: React.FC = () => {
       setIsModalOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error saving club:', error);
+      debugLog('Error saving club:', error);
       alert(t('clubs.messages.createError'));
     }
   };
@@ -211,7 +212,7 @@ const ClubsUnified: React.FC = () => {
       
       await fetchClubs();
     } catch (error) {
-      console.error('Error deleting club:', error);
+      debugLog('Error deleting club:', error);
       alert(t('clubs.messages.deleteError'));
     }
   };

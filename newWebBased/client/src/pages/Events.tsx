@@ -13,6 +13,7 @@ import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemp
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
 import { exportToCSV, getEventCSVData } from '../utils/csvExport'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
+import { debugLog } from '../utils/debug'
 
 interface Event {
   int_eventid: number
@@ -141,21 +142,21 @@ const Events: React.FC = () => {
       if (selectedStatus) params.append('status', selectedStatus)
 
       const data = await apiGet(`/events?${params}`)
-      console.log('=== CLIENT DEBUG: Successfully received API response ===')
-      console.log('Events array length:', data.events?.length)
-      console.log('First event received:', data.events?.[0])
+      debugLog('=== CLIENT DEBUG: Successfully received API response ===')
+      debugLog('Events array length:', data.events?.length)
+      debugLog('First event received:', data.events?.[0])
         
       // Add status to each event based on dates
       const eventsWithStatus = (data.events || []).map((event: any) => ({
         ...event,
         status: getEventStatus(event.dat_eventstartdate, event.dat_eventenddate)
       }))
-      console.log('=== CLIENT DEBUG: Events with status added ===')
-      console.log('Setting events array with length:', eventsWithStatus.length)
+      debugLog('=== CLIENT DEBUG: Events with status added ===')
+      debugLog('Setting events array with length:', eventsWithStatus.length)
       setEvents(eventsWithStatus)
       // Total pages handled by template
     } catch (error) {
-      console.error('Error fetching events:', error)
+      debugLog('Error fetching events:', error)
     } finally {
       setIsLoading(false)
     }
@@ -167,7 +168,7 @@ const Events: React.FC = () => {
       const data = await apiGet('/venues?limit=1000')
       setVenues(data.venues || [])
     } catch (error) {
-      console.error('Error fetching venues:', error)
+      debugLog('Error fetching venues:', error)
       setVenues([])
     }
   }
@@ -185,30 +186,30 @@ const Events: React.FC = () => {
         var_description: formData.var_description || null
       }
 
-      console.log('=== CLIENT DEBUG: Saving event ===')
-      console.log('Editing event:', editingEvent)
-      console.log('Event data being sent:', eventData)
-      console.log('Form data state:', formData)
+      debugLog('=== CLIENT DEBUG: Saving event ===')
+      debugLog('Editing event:', editingEvent)
+      debugLog('Event data being sent:', eventData)
+      debugLog('Form data state:', formData)
 
       let response
       if (editingEvent) {
-        console.log(`Making PUT request to /events/${editingEvent.int_eventid}`)
+        debugLog(`Making PUT request to /events/${editingEvent.int_eventid}`)
         response = await apiPut(`/events/${editingEvent.int_eventid}`, eventData)
       } else {
-        console.log('Making POST request to /events')
+        debugLog('Making POST request to /events')
         response = await apiPost('/events', eventData)
       }
 
-      console.log('=== CLIENT DEBUG: Server response ===')
-      console.log('Response:', response)
+      debugLog('=== CLIENT DEBUG: Server response ===')
+      debugLog('Response:', response)
 
-      console.log('=== CLIENT DEBUG: Refreshing events list ===')
+      debugLog('=== CLIENT DEBUG: Refreshing events list ===')
       await fetchEvents()
       setIsModalOpen(false)
       resetForm()
-      console.log('=== CLIENT DEBUG: Save operation completed ===')
+      debugLog('=== CLIENT DEBUG: Save operation completed ===')
     } catch (error) {
-      console.error('Error saving event:', error)
+      debugLog('Error saving event:', error)
     }
   }
 
@@ -223,14 +224,14 @@ const Events: React.FC = () => {
       await apiDelete(url)
       await fetchEvents()
     } catch (error: any) {
-      console.error('Error deleting event:', error)
-      console.log('Error response status:', error.response?.status)
-      console.log('Error response data:', error.response?.data)
+      debugLog('Error deleting event:', error)
+      debugLog('Error response status:', error.response?.status)
+      debugLog('Error response data:', error.response?.data)
       
       // Handle specific error cases
       if (error.response?.status === 409) {
         const errorData = error.response.data
-        console.log('409 Error data:', errorData)
+        debugLog('409 Error data:', errorData)
         if (errorData.hasScores) {
           // Ask user if they want to force delete
           const forceConfirm = confirm(
@@ -412,7 +413,7 @@ const Events: React.FC = () => {
         throw new Error(result.message || 'Import failed')
       }
     } catch (error) {
-      console.error('Import error:', error)
+      debugLog('Import error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       setImportProgress({ step: `${t('events.import.progress.failed')} ${errorMessage}`, progress: 0 })
     }
