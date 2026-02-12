@@ -1,254 +1,320 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '../../i18n'
+import DisciplinesUnified from '../../pages/DisciplinesUnified'
 
-/**
- * Disciplines Edit Tests
- * 
- * Tests the complete Disciplines management workflow with:
- * 1. Discipline creation with all fields (name, short name, unit, gender flags)
- * 2. Formula configuration and validation
- * 3. Field ranges and constraints
- * 4. Gender-based filtering (männlich, weiblich, gemischt)
- * 5. Save/Cancel operations
- * 
- * These tests validate against:
- * - GET /api/disciplines (list)
- * - POST /api/disciplines (create)
- * - PUT /api/disciplines/:id (update)
- * - DELETE /api/disciplines/:id (delete)
- * - Formula validation logic
- */
+type FetchResponse = {
+  ok: boolean
+  json: () => Promise<any>
+}
+
+const mockDisciplines = [
+  {
+    id: 1,
+    name: 'Boden',
+    short_name: 'BO',
+    display_name: 'Bodenturnen',
+    formula: 'x*2',
+    input_mask: '00.00',
+    attempts: 1,
+    icon: '',
+    shortcut: '',
+    calculation_type: 2,
+    unit: 'P',
+    lanes_division: false,
+    male_allowed: true,
+    female_allowed: true,
+    sport_id: 1,
+    formula_id: undefined,
+    should_calculate: true,
+    gender_text: 'Gemischt'
+  }
+]
+
+const mockFormulas = [
+  {
+    int_formelid: 10,
+    var_name: 'Punkte Formel',
+    var_formel: 'x*2',
+    int_typ: 1,
+    discipline_count: 0
+  }
+]
+
+const mockSports = [
+  {
+    int_sportid: 1,
+    var_name: 'Geräteturnen',
+    discipline_count: 2
+  }
+]
+
+const mockDisciplineFields: any[] = []
 
 describe('Disciplines Edit & Formulas', () => {
   let queryClient: QueryClient
+  let fetchMock: ReturnType<typeof vi.fn>
+
+  const findAddDisciplineButton = () => {
+    const labelMatches = screen.queryAllByText(/(Disziplin (erstellen|hinzufügen)|Create Discipline|Add Discipline)/i)
+    for (const match of labelMatches) {
+      const button = match.closest('button')
+      if (button) return button
+    }
+
+    return screen.queryByRole('button', { name: /(disziplin|create discipline|add discipline)/i })
+  }
+
+  const findSelectByLabelText = (labelRegex: RegExp) => {
+    const labels = screen.queryAllByText(labelRegex)
+    const label = labels[0]
+    if (!label) return null
+
+    // Labels are not associated via htmlFor, so locate the nearest select after the label
+    const container = label.closest('div')
+    if (!container) return null
+
+    return container.querySelector('select') as HTMLSelectElement | null
+  }
+
+  const findSelectByOptionText = (optionRegex: RegExp) => {
+    const selectElements = Array.from(document.querySelectorAll('select')) as HTMLSelectElement[]
+    return selectElements.find(select =>
+      Array.from(select.options).some(option => optionRegex.test(option.text))
+    ) || null
+  }
+
+  const findInputByLabelText = (labelRegex: RegExp, scope?: HTMLElement | null) => {
+    const root = scope || document.body
+    const labels = Array.from(root.querySelectorAll('label')).filter(label =>
+      labelRegex.test(label.textContent || '')
+    )
+
+    const label = labels[0] || null
+    if (!label) return null
+
+    const container = label.closest('div') || label.parentElement
+    if (!container) return null
+
+    return container.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement | null
+  }
+
+  const findInputByPlaceholder = (placeholderRegex: RegExp, scope?: HTMLElement | null) => {
+    const root = scope || document.body
+    const inputs = Array.from(root.querySelectorAll('input, textarea')) as (HTMLInputElement | HTMLTextAreaElement)[]
+    return inputs.find(input => placeholderRegex.test(input.placeholder || '')) || null
+  }
+
+  const renderComponent = () => {
+    return render(
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <I18nextProvider i18n={i18n}>
+            <DisciplinesUnified />
+          </I18nextProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    )
+  }
 
   beforeAll(() => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false },
-      },
+        mutations: { retry: false }
+      }
     })
+  })
+
+  beforeEach(() => {
+    fetchMock = vi.fn(async (input: RequestInfo, init?: RequestInit): Promise<FetchResponse> => {
+      const url = typeof input === 'string' ? input : input.url
+      const method = init?.method || 'GET'
+
+      if (url.startsWith('/api/disciplines') && method === 'GET') {
+        return { ok: true, json: async () => mockDisciplines }
+      }
+      if (url.startsWith('/api/formulas') && method === 'GET') {
+        return { ok: true, json: async () => ({ formulas: mockFormulas }) }
+      }
+      if (url.startsWith('/api/sports') && method === 'GET') {
+        return { ok: true, json: async () => ({ sports: mockSports }) }
+      }
+      if (url.startsWith('/api/discipline-fields') && method === 'GET') {
+        return { ok: true, json: async () => ({ disciplineFields: mockDisciplineFields }) }
+      }
+      if (url === '/api/disciplines' && method === 'POST') {
+        return { ok: true, json: async () => ({ id: 99 }) }
+      }
+      if (url.startsWith('/api/disciplines/') && method === 'PUT') {
+        return { ok: true, json: async () => ({}) }
+      }
+
+      return { ok: true, json: async () => ({}) }
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    vi.spyOn(window, 'alert').mockImplementation(() => {})
   })
 
   afterAll(() => {
     vi.clearAllMocks()
   })
 
-  /**
-   * Mock Discipline data for testing
-   */
-  const mockDiscipline = {
-    int_disziplinenid: 1,
-    var_name: 'Test Discipline',
-    var_kurz1: 'TD',
-    var_einheit: 'Points',
-    bol_m: true,      // Male allowed
-    bol_w: false,     // Female not allowed
-    var_formel: 'value * 2',
-    int_sortierschluessel: 1,
-  }
+  it('renders existing disciplines and basic data', async () => {
+    renderComponent()
 
-  /**
-   * Test: Discipline fields are displayed correctly
-   */
-  it('should display all discipline fields', async () => {
-    // This test validates that the form has all required fields
-    const requiredFields = [
-      'var_name',        // Name
-      'var_kurz1',       // Short name
-      'var_einheit',     // Unit
-      'bol_m',           // Male allowed
-      'bol_w',           // Female allowed
-      'var_formel',      // Formula
-    ]
-
-    // Discipline component should render form with these fields
-    expect(requiredFields.length).toBeGreaterThan(0)
-  })
-
-  /**
-   * Test: Formula validation
-   */
-  it('should validate discipline formula syntax', async () => {
-    const user = userEvent.setup()
-
-    // Valid formulas that should be accepted:
-    const validFormulas = [
-      'value * 2',
-      'value + 10',
-      'value / 2',
-      'value - 5',
-      'Math.max(0, value)',
-      'value > 5 ? value : 0',
-    ]
-
-    // Invalid formulas that should be rejected:
-    const invalidFormulas = [
-      'undefined * 2',    // undefined variable
-      'value / 0',        // division by zero in logic
-      '',                  // empty
-      ';;;',               // syntax error
-    ]
-
-    expect(validFormulas.length).toBeGreaterThan(0)
-    expect(invalidFormulas.length).toBeGreaterThan(0)
-  })
-
-  /**
-   * Test: Gender filtering (männlich, weiblich, gemischt)
-   */
-  it('should handle gender flags (male, female, mixed)', async () => {
-    const user = userEvent.setup()
-
-    // Test cases for gender combinations
-    const genderCases = [
-      { bol_m: true, bol_w: false, label: 'männlich' },     // Male only
-      { bol_m: false, bol_w: true, label: 'weiblich' },     // Female only
-      { bol_m: true, bol_w: true, label: 'gemischt' },      // Mixed
-      { bol_m: false, bol_w: false, label: 'keine' },       // None (invalid)
-    ]
-
-    // Verify each gender combination is handled
-    genderCases.forEach(genderCase => {
-      expect(genderCase.label).toBeTruthy()
+    await waitFor(() => {
+      expect(screen.getByText('Boden')).toBeInTheDocument()
     })
   })
 
-  /**
-   * Test: Discipline name uniqueness and validation
-   */
-  it('should validate discipline name constraints', async () => {
+  it('creates a discipline with custom formula and gender flags', async () => {
     const user = userEvent.setup()
+    renderComponent()
 
-    const constraintTests = [
-      { name: 'Valid Discipline', valid: true },
-      { name: '', valid: false },                    // Empty
-      { name: 'X'.repeat(100), valid: false },       // Too long
-      { name: 'Test/Discipline', valid: true },      // With special chars
-    ]
-
-    constraintTests.forEach(test => {
-      if (test.valid) {
-        expect(test.name.length).toBeGreaterThan(0)
-      }
+    // Wait for data to load (loading = false) so handleCreate won't abort with alert
+    await waitFor(() => {
+      expect(screen.getByText('Boden')).toBeInTheDocument()
     })
-  })
 
-  /**
-   * Test: Unit field with standard values
-   */
-  it('should allow standard units (Points, Time, Count)', async () => {
-    const user = userEvent.setup()
+    // Find add button - may be in action buttons row below the header
+    let addButton = findAddDisciplineButton()
+    
+    // Fallback: look for any blue bg button (the add button has bg-blue-600)
+    if (!addButton) {
+      const allButtons = screen.getAllByRole('button')
+      addButton = allButtons.find(btn => btn.className.includes('bg-blue-600')) || null
+    }
+    if (!addButton) throw new Error('Add discipline button not found')
 
-    const standardUnits = ['Points', 'Sekunden', 'Millisekunden', 'Wiederholungen', 'Custom']
+    await user.click(addButton)
 
-    // Component should support these units
-    expect(standardUnits.length).toBeGreaterThan(0)
-  })
+    // Wait for modal form to render — the modal overlay has class "fixed inset-0"
+    await waitFor(() => {
+      const modalOverlay = document.querySelector('.fixed.inset-0')
+      if (!modalOverlay) throw new Error('Modal overlay not found')
+      const inputs = modalOverlay.querySelectorAll('input[type="text"]')
+      if (inputs.length === 0) throw new Error('No text inputs found in modal')
+    }, { timeout: 3000 })
 
-  /**
-   * Test: Short name validation (kurz1)
-   */
-  it('should validate short name (var_kurz1) format', async () => {
-    const user = userEvent.setup()
+    // Now find all inputs within the modal
+    // Note: i18n may load in English or German, use language-agnostic selectors
+    const modalOverlay = document.querySelector('.fixed.inset-0') as HTMLElement
+    
+    // Get all inputs in order — the form layout is: name, shortName, displayName, then formula section
+    const textInputs = Array.from(modalOverlay.querySelectorAll('input[type="text"]')) as HTMLInputElement[]
+    const textareas = Array.from(modalOverlay.querySelectorAll('textarea')) as HTMLTextAreaElement[]
+    const numberInputs = Array.from(modalOverlay.querySelectorAll('input[type="number"]')) as HTMLInputElement[]
+    const selects = Array.from(modalOverlay.querySelectorAll('select')) as HTMLSelectElement[]
+    
+    // First 3 text inputs are: name, shortName, displayName  
+    const nameInput = textInputs[0]
+    const shortNameInput = textInputs[1]
+    const displayNameInput = textInputs[2]
+    // The textarea is the formula input
+    const formulaInput = textareas[0]
+    // After the calculation selects, we have: inputMask, attempts(number), unit
+    // Find inputMask by placeholder containing "00"
+    const inputMaskInput = textInputs.find(input => /00/.test(input.placeholder)) || textInputs[3]
+    // Attempts is the only number input
+    const attemptsInput = numberInputs[0]
+    // Unit is the text input after inputMask with placeholder containing "Point" or "Punkte"
+    const unitInput = textInputs.find(input => /(point|punkte)/i.test(input.placeholder)) || textInputs[4]
+    // Sport select — the one with options containing "disciplines" text  
+    const sportSelect = selects.find(select =>
+      Array.from(select.options).some(opt => /disciplines|disziplinen|Geräteturnen/i.test(opt.text))
+    ) || selects[selects.length - 1]
 
-    const shortNameTests = [
-      { name: 'FL', valid: true },              // Valid abbreviation
-      { name: 'FloorExercise', valid: false },  // Too long
-      { name: '', valid: false },               // Empty
-      { name: 'F', valid: true },               // Single char ok
-    ]
-
-    shortNameTests.forEach(test => {
-      expect(test.name).toBeDefined()
-    })
-  })
-
-  /**
-   * Test: Formula field accepts JavaScript expressions
-   */
-  it('should accept and validate JavaScript formulas', async () => {
-    const user = userEvent.setup()
-
-    const formulaTests = [
-      { formula: 'value', shouldWork: true },
-      { formula: 'value * 1.5', shouldWork: true },
-      { formula: 'Math.floor(value)', shouldWork: true },
-      { formula: 'value < 0 ? 0 : value', shouldWork: true },
-      { formula: 'invalid syntax ][{', shouldWork: false },
-    ]
-
-    formulaTests.forEach(test => {
-      expect(test.formula).toBeDefined()
-    })
-  })
-
-  /**
-   * Test: Sort key (int_sortierschluessel) for discipline ordering
-   */
-  it('should handle sort key for discipline ordering', async () => {
-    const user = userEvent.setup()
-
-    const sortKeyTests = [
-      { sortKey: 1, valid: true },
-      { sortKey: 100, valid: true },
-      { sortKey: 0, valid: false },        // Invalid: must be > 0
-      { sortKey: -1, valid: false },       // Invalid: negative
-    ]
-
-    sortKeyTests.forEach(test => {
-      expect(typeof test.sortKey).toBe('number')
-    })
-  })
-
-  /**
-   * Test: Save operation with all fields populated
-   */
-  it('should save discipline with all fields', async () => {
-    const user = userEvent.setup()
-
-    // Mock complete discipline data
-    const completeDiscipline = {
-      var_name: 'Floor Exercise',
-      var_kurz1: 'FX',
-      var_einheit: 'Points',
-      bol_m: true,
-      bol_w: true,
-      var_formel: 'value * 2',
-      int_sortierschluessel: 1,
+    if (!nameInput || !shortNameInput || !displayNameInput || !formulaInput || !inputMaskInput || !attemptsInput || !unitInput || !sportSelect) {
+      throw new Error('Discipline form inputs not found')
     }
 
-    // Verify all fields are present
-    expect(Object.keys(completeDiscipline).length).toBeGreaterThan(0)
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Sprung')
+    await user.clear(shortNameInput)
+    await user.type(shortNameInput, 'SP')
+    await user.clear(displayNameInput)
+    await user.type(displayNameInput, 'Sprung Gerät')
+    await user.clear(formulaInput)
+    await user.type(formulaInput, 'x*2')
+    await user.clear(inputMaskInput)
+    await user.type(inputMaskInput, '00.00')
+    await user.clear(attemptsInput)
+    await user.type(attemptsInput, '3')
+    await user.clear(unitInput)
+    await user.type(unitInput, 'P')
+
+    await user.selectOptions(sportSelect, '1')
+
+    // Find gender checkboxes within the modal
+    const checkboxes = Array.from(modalOverlay.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[]
+    const maleCheckbox = checkboxes.find(cb => {
+      const label = cb.closest('label')
+      return label && /(männlich|male)/i.test(label.textContent || '')
+    })
+    const femaleCheckbox = checkboxes.find(cb => {
+      const label = cb.closest('label')
+      return label && /(weiblich|female)/i.test(label.textContent || '')
+    })
+
+    if (maleCheckbox && !maleCheckbox.checked) {
+      await user.click(maleCheckbox)
+    }
+    if (femaleCheckbox && femaleCheckbox.checked) {
+      await user.click(femaleCheckbox)
+    }
+
+    // Find save button in the modal
+    const saveButton = Array.from(modalOverlay.querySelectorAll('button')).find(btn =>
+      /(speichern|save)/i.test(btn.textContent || '')
+    )
+    if (!saveButton) throw new Error('Save button not found in modal')
+    await user.click(saveButton)
+
+    await waitFor(() => {
+      const postCall = fetchMock.mock.calls.find(
+        ([url, init]) => url === '/api/disciplines' && init?.method === 'POST'
+      )
+      expect(postCall).toBeTruthy()
+
+      const body = postCall?.[1]?.body as string
+      const payload = JSON.parse(body)
+
+      expect(payload.name).toBe('Sprung')
+      expect(payload.shortName).toBe('SP')
+      expect(payload.formula).toBe('x*2')
+      expect(payload.maleAllowed).toBe(true)
+      expect(payload.femaleAllowed).toBe(false)
+      expect(payload.sportId).toBe(1)
+    })
   })
 
-  /**
-   * Test: Cancel operation without saving
-   */
-  it('should cancel edit without saving changes', async () => {
+  it('shows predefined formula selection and marks custom formula as ignored', async () => {
     const user = userEvent.setup()
+    renderComponent()
 
-    // Component should have cancel button
-    // Clicking cancel should revert changes
-    expect(true).toBe(true) // Placeholder for UI assertion
-  })
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('Boden')).toBeInTheDocument()
+    })
 
-  /**
-   * Test: Delete discipline with confirmation
-   */
-  it('should delete discipline after confirmation', async () => {
-    const user = userEvent.setup()
+    const addButton = findAddDisciplineButton()
+    if (!addButton) throw new Error('Add discipline button not found')
 
-    // Component should:
-    // 1. Show delete button
-    // 2. Show confirmation dialog
-    // 3. Make DELETE request on confirm
-    expect(true).toBe(true) // Placeholder for UI assertion
+    await user.click(addButton)
+
+    const formulaSelect = findSelectByLabelText(/^Formel/i) || findSelectByOptionText(/Punkte Formel/i)
+    if (!formulaSelect) throw new Error('Formula select not found')
+
+    await user.selectOptions(formulaSelect, '10')
+
+    await waitFor(() => {
+      expect(screen.getByText(/(ignored|ignoriert)/i)).toBeInTheDocument()
+    })
   })
 })
