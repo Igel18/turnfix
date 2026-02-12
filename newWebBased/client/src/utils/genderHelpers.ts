@@ -20,6 +20,8 @@
  * ```
  */
 
+import { debugLog } from './debug';
+
 /**
  * Standard gender values used throughout the application
  * - 'male': Male/Männlich
@@ -123,7 +125,7 @@ export function normalizeGender(value: any): GenderValue {
 
   // Default to unknown if not recognized
   if (process.env.DEBUG === 'true') {
-    console.warn('⚠️ Unknown gender value, defaulting to unknown:', value);
+    debugLog('⚠️ Unknown gender value, defaulting to unknown:', value);
   }
   return 'unknown';
 }
@@ -142,7 +144,7 @@ export function normalizeGenderLegacy(value: any): 'male' | 'female' {
   // Legacy behavior: unknown defaults to male
   if (normalized === 'unknown' || normalized === 'both') {
     if (process.env.DEBUG === 'true') {
-      console.warn('⚠️ Unknown/both gender value, defaulting to male (legacy):', value);
+      debugLog('⚠️ Unknown/both gender value, defaulting to male (legacy):', value);
     }
     return 'male';
   }
@@ -175,7 +177,7 @@ export function mapDatabaseGenderValue(intGeschlecht: number | null | undefined)
       return 'female';
     default:
       if (process.env.DEBUG === 'true') {
-        console.warn('⚠️ Invalid database gender value:', intGeschlecht);
+        debugLog('⚠️ Invalid database gender value:', intGeschlecht);
       }
       return 'unknown';
   }

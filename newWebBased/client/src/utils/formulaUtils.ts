@@ -15,6 +15,7 @@
  */
 
 import { Parser } from 'expr-eval';
+import { debugLog } from './debug';
 
 export interface FormulaField {
   symbol: string;        // A, B, C, etc.
@@ -165,7 +166,7 @@ export function calculateFormula(
     
     // Validate expression (only allow numbers, operators, parentheses)
     if (!/^[0-9+\-*/.() ]+$/.test(evalFormula)) {
-      console.warn('[formulaUtils] Formula contains invalid characters:', evalFormula);
+      debugLog('[formulaUtils] Formula contains invalid characters:', evalFormula);
       return null;
     }
 
@@ -174,7 +175,7 @@ export function calculateFormula(
     const result = parser.evaluate(evalFormula);
     
     if (process.env.DEBUG === 'true') {
-      console.log(`[formulaUtils] Formula "${formula}" with values ${JSON.stringify(values)} = ${result}`);
+      debugLog(`[formulaUtils] Formula "${formula}" with values ${JSON.stringify(values)} = ${result}`);
     }
     
     return typeof result === 'number' && !isNaN(result) ? result : null;

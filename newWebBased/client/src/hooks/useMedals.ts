@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import getSocket from '../utils/socket';
+import { debugLog } from '../utils/debug';
 
 export interface MedalStanding {
   clubId: number;
@@ -70,7 +71,7 @@ export const useMedals = (eventId: number | null) => {
 
     const handleUpdate = (data: any) => {
       if (data.eventId === Number(eventId)) {
-        console.log('🔔 Medals or results updated, refetching medal data...');
+        debugLog('🔔 Medals or results updated, refetching medal data...');
         fetchMedals();
       }
     };

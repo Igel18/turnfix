@@ -34,14 +34,15 @@ export const getDisciplineIcon = (disciplineName: string, iconPath?: string): st
 
 // Function to get discipline short name for PDF headers
 export const getDisciplineShortName = (disciplineName: string, disciplineData?: any): string => {
-  // Debug logging when enabled
-  if (typeof window !== 'undefined' && (window as any).DEBUG) {
-    console.log('getDisciplineShortName called with:', { disciplineName, disciplineData })
-  }
+  // Debug logging - using localStorage flag
+  import('./debug').then(({ isDebugEnabled, debugLog }) => {
+    if (isDebugEnabled()) {
+      debugLog('getDisciplineShortName called with:', { disciplineName, disciplineData })
+    }
+  });
   
   // Use the actual short name from discipline data if available
   if (disciplineData?.var_kurz1) {
-    console.log(`Using var_kurz1: ${disciplineData.var_kurz1} for ${disciplineName}`)
     return disciplineData.var_kurz1
   }
   

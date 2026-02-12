@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { debugLog } from '../utils/debug';
 import {
   detectFormulaType,
   extractVariables,
@@ -112,7 +113,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
       }
       
       const maxLetterIndex = getMaxLetterIndex(effectiveFormula);
-      console.log(`🔧 [useFormulaFields] Creating ${maxLetterIndex + 1} generic fields from formula`);
+      debugLog(`🔧 [useFormulaFields] Creating ${maxLetterIndex + 1} generic fields from formula`);
       
       const genericFields: FormulaField[] = [];
       
@@ -149,7 +150,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
         .then(data => {
           const disciplineFields = Array.isArray(data) ? data : [];
           
-          console.log('📋 [useFormulaFields] Loaded discipline fields from API:', disciplineFields);
+          debugLog('📋 [useFormulaFields] Loaded discipline fields from API:', disciplineFields);
           
           if (disciplineFields.length > 0) {
             let loadedFields = disciplineFields.map((field: any) => {
@@ -173,10 +174,10 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
               const nonFinalFields = loadedFields.filter(f => !f.isFinalScore);
               const missingFieldsCount = (maxLetterIndex + 1) - nonFinalFields.length;
               
-              console.log(`🔍 [useFormulaFields] Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
+              debugLog(`🔍 [useFormulaFields] Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
               
               if (missingFieldsCount > 0) {
-                console.log(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields...`);
+                debugLog(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields...`);
                 
                 // Create missing fields
                 for (let i = nonFinalFields.length; i <= maxLetterIndex; i++) {
@@ -193,7 +194,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
               }
             }
             
-            console.log('✅ [useFormulaFields] Mapped fields:', loadedFields);
+            debugLog('✅ [useFormulaFields] Mapped fields:', loadedFields);
             
             setFields(loadedFields);
             if (onFieldsLoaded) {
@@ -201,10 +202,10 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
             }
           } else {
             // No fields from API - use generic fields
-            console.log('⚠️ [useFormulaFields] No discipline fields found in API response - using generic fields');
+            debugLog('⚠️ [useFormulaFields] No discipline fields found in API response - using generic fields');
             const genericFields = createGenericFieldsFromFormula();
             if (genericFields.length > 0) {
-              console.log('✅ [useFormulaFields] Created generic fields:', genericFields);
+              debugLog('✅ [useFormulaFields] Created generic fields:', genericFields);
               setFields(genericFields);
               if (onFieldsLoaded) {
                 onFieldsLoaded(genericFields);
@@ -217,7 +218,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
           // On error - use generic fields as fallback
           const genericFields = createGenericFieldsFromFormula();
           if (genericFields.length > 0) {
-            console.log('✅ [useFormulaFields] Created generic fields after API error:', genericFields);
+            debugLog('✅ [useFormulaFields] Created generic fields after API error:', genericFields);
             setFields(genericFields);
             if (onFieldsLoaded) {
               onFieldsLoaded(genericFields);
@@ -228,7 +229,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
       // No disciplineId - create generic fields from formula
       const genericFields = createGenericFieldsFromFormula();
       if (genericFields.length > 0) {
-        console.log('✅ [useFormulaFields] Created generic fields (no disciplineId):', genericFields);
+        debugLog('✅ [useFormulaFields] Created generic fields (no disciplineId):', genericFields);
         setFields(genericFields);
         if (onFieldsLoaded) {
           onFieldsLoaded(genericFields);
@@ -249,7 +250,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
     }
 
     const variables = extractVariables(effectiveFormula, 'variable');
-    console.log('🔍 [useFormulaFields] Variables found in formula:', variables);
+    debugLog('🔍 [useFormulaFields] Variables found in formula:', variables);
 
     // Create input fields for each used variable
     const variableFields = variables.map((variable, index) => ({

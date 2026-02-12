@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { debugLog } from '../utils/debug'
 
 export type ViewType = 'table' | 'cards'
 
@@ -25,7 +26,7 @@ export function useViewToggle({ key, defaultView = 'table' }: UseViewToggleProps
     try {
       localStorage.setItem(storageKey, viewType)
     } catch (error) {
-      console.warn('Failed to save view preference to localStorage:', error)
+      debugLog('Failed to save view preference to localStorage:', error)
     }
   }, [viewType, storageKey])
 

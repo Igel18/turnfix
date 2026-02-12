@@ -8,6 +8,9 @@
  * Used by:
  * - Groups (selectedGroup synced with groups from server)
  * - Squads (selectedSquad synced with squads from server)
+ */
+
+import { debugLog } from '../utils/debug';
  * - Any M:N assignment pattern
  * 
  * Usage:
@@ -60,10 +63,10 @@ export function useServerSyncedSelection<T>({
     const updatedItem = newItems.find(item => getId(item) === selectedId);
     
     if (updatedItem) {
-      console.log(`📝 Updating selected ${getName(selectedItem)} with fresh data from server`);
+      debugLog(`📝 Updating selected ${getName(selectedItem)} with fresh data from server`);
       onUpdate(updatedItem);
     } else {
-      console.log(`❌ Selected ${getName(selectedItem)} no longer exists, clearing selection`);
+      debugLog(`❌ Selected ${getName(selectedItem)} no longer exists, clearing selection`);
       onUpdate(null);
     }
   };
