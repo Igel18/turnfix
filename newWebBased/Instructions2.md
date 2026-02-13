@@ -3,6 +3,7 @@
 http://localhost:3001/configuration
 
 muss mit einem "zurückgesetzen" UI begonnen werden. 
+-> Erledigt ✅ 
 
 2. ✅ ERLEDIGT - Im DB Setup 
 http://localhost:3001/configuration
@@ -31,16 +32,19 @@ Invalid `prisma.tfx_disziplinen.create()` invocation:
 
 The provided value for the column is too long for the column's type. Column: (not available)
 Invalid `prisma.tfx_disziplinen.create()` invocation: The provided value for the column is too long for the column's type. Column: (not available)
+-> Erledigt ✅ 
 
 3. Im DB Setup 
 http://localhost:3001/configuration
 müssen für den Setup assistenten Tests geschrieben werden. 
+-> Erledigt ✅ 
 
 4. In dem Export PDF von Siegerlisten muss auch immer die Formel angezeigt werden. 
 Da jeder Teilnehmer in einem Wettkampf immer die gleiche Formel an einem Gerät hat reicht das in der Überschrift. 
 
 5. Im DatabaseSetupWizard.tsx 
 die Datei ist langsam sehr groß und es ist JS und HTML vermischt. Wäre hier eine Trennung nach dem in "myown" angegebenen pattern nicht sinnvoll? 
+-> Erledigt ✅ 
 
 6. Bezüglich den Formeln wäre eine kompakere darstellung schön. 
 Ich stelle mir das so vor: 
@@ -55,9 +59,11 @@ Die Sportart "Turnen" hat einige Geräte. Alle Felder sind Korrekt. Nur die "Ein
 Die Sportart "Turnen DTB": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen die Formeln. 
 Die Sportart "Turnen DTB P": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen fast überall die Formeln. Korrekt wäre hier die Formel "P-Wettkampf" 
 Die Sportart "Turnen DTB LK": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen fast überall die Formeln. Korrekt wäre hier die Formel "LK" 
+-> Erledigt ✅ 
 
 8. Nach dem Erzeugen einer neuen DB muss auch in der Konfiguration dieser neue DB Name verwendet werdeen. Ggf. auch mit zusätzlichem Button "Neue DB verwenden" oder so. Und dann auch reconnected. 
 Warum steht im Datenbank Host der DB-name? 
+-> Erledigt ✅ 
 
 9. Urkunden Layout Vorlage (Standard-Urkunde) 
 Es wäre gut wenn mit dem Datenbank-Setup-Assistent ein Layout für eine Urkunde mitkommt welches auch brauchbar ist. 
@@ -72,10 +78,49 @@ kannst du damit was anfangen? So ist ein Layout in einer anderen DB angelegt.
 292	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	98.4538	178.023	48.166	6.15336	"15"	0	7
 293	25	1	"Tahoma,12,-1,5,50,0,0,0,0,0"	73.416	177.811	43.9223	9.33613	"im Wettkampf Nr."	0	8
 294	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	63.867645	155.95589	80.63025	9.972689	"4"	0	9
--> OK 
+-> Erledigt 
 
 10. Es ist aktuell nicht möglich einen neuen Wettkampf anzulegen. Beim Speichern wird das Fenster geschlossen, aber es taucht kein Wettkampf in der Liste auf. 
+-> Erledigt ✅ 
 
 11. tfx_bereiche 
 Es muss eine neue UI geben um die Bereiche anzulegen und zu editieren. 
 Styleguide, Unified komponenten, Tests, Doku, 
+
+12. Mit dem DB-Wizard sollten es auch Disziplin gruppen angelegt werden. 
+4-Kampf w P 
+- Boden w. P1-P9
+- Par.-Barren P1-P9
+- Schwebebalken P1-P9 
+- Sprung w. P1-P9 
+
+4-Kampf m P 
+- Boden m. P1-P9
+- Reck m. P1-P9 
+- Sprung m. P1-P9
+- Barren m. P1-P9 
+
+6-Kampf m P
+- Boden m. P1-P9
+- Reck m. P1-P9 
+- Sprung m. P1-P9
+- Barren m. P1-P9 
+- Ringe P1-P9
+- Pauschenpferd P1-P9
+	
+4-Kampf w LK1
+- Boden w. LK1
+... 
+
+6-Kampf m LK1 
+- Boden m. LK1
+...
+	
+13. DIese Geräte sind Männlich, werden aber fälschlicherweise als Weiblich importiert 
+Par.-BarrenKür
+Par.-Barren LK1
+Par.-Barren LK2
+Par.-Barren LK3
+Par.-Barren P1-P9
+	
+	

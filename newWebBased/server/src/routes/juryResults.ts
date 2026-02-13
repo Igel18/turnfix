@@ -266,7 +266,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       // When saving final score field (bol_endwert=true): Emit with calculated score
       if (isFinalScoreField) {
         try {
-          const { io } = await import('../index');
+          const io = req.app.get('io');
           
           console.log(`[JuryResults] 🔍 Starting Socket.IO emit for wertungenId=${wertungenId}, disciplineId=${disciplineId}`);
           

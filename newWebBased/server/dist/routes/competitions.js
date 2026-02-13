@@ -61,6 +61,11 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         else {
             console.log('Returning all competitions (no event filter)');
         }
+        // Pre-load all bereiche (gender categories) for safe lookup.
+        // We do this separately because competitions may reference bereiche that
+        // don't exist yet (orphaned FK), which would crash Prisma's include.
+        const allBereiche = await prisma.tfx_bereiche.findMany();
+        const bereicheMap = new Map(allBereiche.map(b => [b.int_bereicheid, b]));
         // Fetch competitions from the real database
         const competitions = await prisma.tfx_wettkaempfe.findMany({
             where: selectedEventId && selectedEventId !== 'undefined'
@@ -72,7 +77,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                         tfx_wettkampforte: true // Now optional in schema
                     }
                 },
-                tfx_bereiche: true,
+                // tfx_bereiche loaded separately via bereicheMap to avoid crash on orphaned FKs
                 tfx_wettkaempfe_x_disziplinen: {
                     include: {
                         tfx_disziplinen: true
@@ -92,6 +97,8 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         });
         // Transform the data to match the expected format
         const transformedCompetitions = competitions.map((comp) => {
+            // Look up bereich from pre-loaded map (safe, won't crash on missing FK)
+            const bereich = bereicheMap.get(comp.int_bereicheid) || null;
             // yer_von and yer_bis contain birth years - convert to ages based on event date
             const eventDate = comp.tfx_veranstaltungen.dat_von || new Date();
             const eventYear = eventDate.getFullYear();
@@ -105,12 +112,12 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 id: comp.int_wettkaempfeid,
                 number: comp.var_nummer || null, // Competition number (waNr)
                 name: comp.var_name || 'Unnamed Competition', // Competition name (waBezeichnung)
-                description: `${comp.tfx_bereiche?.var_name || ''} - Age ${Math.min(ageFrom, ageTo)}-${Math.max(ageFrom, ageTo)}`,
+                description: `${bereich?.var_name || ''} - Age ${Math.min(ageFrom, ageTo)}-${Math.max(ageFrom, ageTo)}`,
                 date: comp.tfx_veranstaltungen.dat_von?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
                 location: comp.tfx_veranstaltungen.tfx_wettkampforte?.var_name || 'TBD',
-                gender: comp.tfx_bereiche?.bol_maennlich && comp.tfx_bereiche?.bol_weiblich ? 'gemischt' :
-                    comp.tfx_bereiche?.bol_maennlich ? 'männlich' :
-                        comp.tfx_bereiche?.bol_weiblich ? 'weiblich' : 'gemischt',
+                gender: bereich?.bol_maennlich && bereich?.bol_weiblich ? 'gemischt' :
+                    bereich?.bol_maennlich ? 'männlich' :
+                        bereich?.bol_weiblich ? 'weiblich' : 'gemischt',
                 ageFrom: Math.min(ageFrom, ageTo), // Ensure ageFrom is the smaller value
                 ageTo: Math.max(ageFrom, ageTo), // Ensure ageTo is the larger value
                 disciplines: comp.tfx_wettkaempfe_x_disziplinen.map((wd) => ({
@@ -208,7 +215,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
                         tfx_wettkampforte: true
                     }
                 },
-                tfx_bereiche: true,
+                // tfx_bereiche loaded separately to avoid crash on orphaned FKs
                 tfx_wettkaempfe_x_disziplinen: {
                     include: {
                         tfx_disziplinen: true
@@ -226,6 +233,10 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (!competition) {
             return res.status(404).json({ error: 'Competition not found' });
         }
+        // Safe bereich lookup
+        const bereich = await prisma.tfx_bereiche.findUnique({
+            where: { int_bereicheid: competition.int_bereicheid }
+        });
         // Calculate age range - convert birth years to ages based on event date
         const eventDate = competition.tfx_veranstaltungen.dat_von || new Date();
         const eventYear = eventDate.getFullYear();
@@ -238,11 +249,12 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
             id: competition.int_wettkaempfeid,
             number: competition.var_nummer || null, // Competition number (waNr)
             name: competition.var_name || 'Unnamed Competition', // Competition name (waBezeichnung)
-            description: `${competition.var_name} - ${competition.tfx_bereiche.var_name}`,
+            description: `${competition.var_name} - ${bereich?.var_name || ''}`,
             date: competition.tfx_veranstaltungen.dat_von.toISOString().split('T')[0],
             location: competition.tfx_veranstaltungen.tfx_wettkampforte?.var_name || 'TBD',
-            gender: competition.tfx_bereiche.bol_maennlich && competition.tfx_bereiche.bol_weiblich ? 'gemischt' :
-                competition.tfx_bereiche.bol_maennlich ? 'männlich' : 'weiblich',
+            gender: bereich?.bol_maennlich && bereich?.bol_weiblich ? 'gemischt' :
+                bereich?.bol_maennlich ? 'männlich' :
+                    bereich?.bol_weiblich ? 'weiblich' : 'gemischt',
             ageFrom: Math.min(ageFrom, ageTo),
             ageTo: Math.max(ageFrom, ageTo),
             disciplines: competition.tfx_wettkaempfe_x_disziplinen.map(wd => ({
@@ -919,6 +931,9 @@ router.get('/filter/search', authBypass_1.authenticateToken, async (req, res) =>
                 lte: parseInt(ageTo)
             };
         }
+        // Pre-load all bereiche for safe lookup (avoids crash on orphaned FKs)
+        const allFilterBereiche = await prisma.tfx_bereiche.findMany();
+        const filterBereicheMap = new Map(allFilterBereiche.map(b => [b.int_bereicheid, b]));
         // Fetch competitions from database with filters
         const competitions = await prisma.tfx_wettkaempfe.findMany({
             where: whereConditions,
@@ -928,7 +943,7 @@ router.get('/filter/search', authBypass_1.authenticateToken, async (req, res) =>
                         tfx_wettkampforte: true
                     }
                 },
-                tfx_bereiche: true,
+                // tfx_bereiche loaded separately via filterBereicheMap
                 tfx_wettkaempfe_x_disziplinen: {
                     include: {
                         tfx_disziplinen: true
@@ -948,16 +963,18 @@ router.get('/filter/search', authBypass_1.authenticateToken, async (req, res) =>
         });
         // Transform to expected format
         const transformedCompetitions = competitions.map(comp => {
+            const bereich = filterBereicheMap.get(comp.int_bereicheid) || null;
             const ageFrom = comp.yer_von;
             const ageTo = comp.yer_bis || comp.yer_von;
             return {
                 id: comp.int_wettkaempfeid,
                 name: comp.var_name || 'Unnamed Competition',
-                description: `${comp.var_name} - ${comp.tfx_bereiche.var_name}`,
+                description: `${comp.var_name} - ${bereich?.var_name || ''}`,
                 date: comp.tfx_veranstaltungen.dat_von.toISOString().split('T')[0],
                 location: comp.tfx_veranstaltungen.tfx_wettkampforte?.var_name || 'TBD',
-                gender: comp.tfx_bereiche.bol_maennlich && comp.tfx_bereiche.bol_weiblich ? 'gemischt' :
-                    comp.tfx_bereiche.bol_maennlich ? 'männlich' : 'weiblich',
+                gender: bereich?.bol_maennlich && bereich?.bol_weiblich ? 'gemischt' :
+                    bereich?.bol_maennlich ? 'männlich' :
+                        bereich?.bol_weiblich ? 'weiblich' : 'gemischt',
                 ageFrom: Math.min(ageFrom, ageTo),
                 ageTo: Math.max(ageFrom, ageTo),
                 disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => wd.tfx_disziplinen.int_disziplinenid),

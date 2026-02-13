@@ -490,7 +490,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         });
         // Emit Socket.IO event for real-time update
         try {
-            const { io } = await Promise.resolve().then(() => __importStar(require('../index')));
+            const io = req.app.get('io');
             if (io) {
                 io.to(`competition-${updatedEvent.int_veranstaltungenid}`).emit('event-updated', {
                     eventId: updatedEvent.int_veranstaltungenid,

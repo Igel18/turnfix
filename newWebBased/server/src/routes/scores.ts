@@ -742,7 +742,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
     // Emit Socket.IO events for real-time updates
     if (eventId) {
       try {
-        const { io } = await import('../index');
+        const io = req.app.get('io');
         
         console.log(`🔍 About to query score details with wertungenId=${wertungenId}, disciplineId=${actualDisciplineId}`);
         
@@ -1135,7 +1135,7 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
     
     // Emit Socket.IO event
     try {
-      const { io } = await import('../index');
+      const io = req.app.get('io');
       const eventQuery = `
         SELECT wk.int_veranstaltungenid as event_id
         FROM tfx_wertungen w
