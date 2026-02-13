@@ -39,6 +39,9 @@ const mockPrismaClient = {
     count: jest.fn(),
     create: jest.fn(),
   },
+  tfx_layout_felder: {
+    create: jest.fn(),
+  },
 };
 
 // Mock the default prisma client module - must come before import
@@ -81,6 +84,7 @@ describe('importSampleData', () => {
         .mockResolvedValueOnce({ int_teilnehmerid: 2, var_vorname: 'Erika', var_nachname: 'Musterfrau' });
       mockPrismaClient.tfx_wettkampforte.create.mockResolvedValue({ int_wettkampforteid: 1, var_name: 'Muster-Sporthalle' });
       mockPrismaClient.tfx_layouts.create.mockResolvedValue({ int_layoutid: 1, var_name: 'Standard-Urkunde' });
+      mockPrismaClient.tfx_layout_felder.create.mockResolvedValue({ int_layout_felderid: 1 });
     });
 
     it('should create all sample records successfully', async () => {
@@ -159,7 +163,7 @@ describe('importSampleData', () => {
       });
     });
 
-    it('should create exactly 1 certificate layout', async () => {
+    it('should create exactly 1 certificate layout with 9 fields', async () => {
       const result = await importSampleData();
       expect(result.stats.createdLayouts).toBe(1);
       expect(mockPrismaClient.tfx_layouts.create).toHaveBeenCalledWith({
@@ -167,6 +171,35 @@ describe('importSampleData', () => {
           var_name: 'Standard-Urkunde',
           txt_comment: expect.stringContaining('Muster-Layout'),
         },
+      });
+      // Should create 9 layout fields (5 DB fields + 4 static texts)
+      expect(mockPrismaClient.tfx_layout_felder.create).toHaveBeenCalledTimes(9);
+    });
+
+    it('should create layout fields with correct DB field references', async () => {
+      await importSampleData();
+      const calls = mockPrismaClient.tfx_layout_felder.create.mock.calls;
+      const fieldValues = calls.map((c: any) => c[0].data);
+      
+      // DB fields (int_typ=0): Name(3), Platz(5), Punkte(6), WK-Nr(15), Verein(4)
+      const dbFields = fieldValues.filter((f: any) => f.int_typ === 0);
+      const dbFieldValues = dbFields.map((f: any) => f.var_value).sort();
+      expect(dbFieldValues).toEqual(['15', '3', '4', '5', '6']);
+      
+      // Static text fields (int_typ=1): "Platz", "erreichte mit ", "Punkten", "im Wettkampf Nr."
+      const textFields = fieldValues.filter((f: any) => f.int_typ === 1);
+      expect(textFields.length).toBe(4);
+      const textValues = textFields.map((f: any) => f.var_value);
+      expect(textValues).toContain('Platz');
+      expect(textValues).toContain('Punkten');
+      expect(textValues).toContain('im Wettkampf Nr.');
+    });
+
+    it('should link all layout fields to the created layout ID', async () => {
+      await importSampleData();
+      const calls = mockPrismaClient.tfx_layout_felder.create.mock.calls;
+      calls.forEach((call: any) => {
+        expect(call[0].data.int_layoutid).toBe(1);
       });
     });
 
@@ -253,6 +286,7 @@ describe('importSampleData', () => {
       expect(mockPrismaClient.tfx_teilnehmer.create).not.toHaveBeenCalled();
       expect(mockPrismaClient.tfx_wettkampforte.create).not.toHaveBeenCalled();
       expect(mockPrismaClient.tfx_layouts.create).not.toHaveBeenCalled();
+      expect(mockPrismaClient.tfx_layout_felder.create).not.toHaveBeenCalled();
     });
   });
 
@@ -266,6 +300,7 @@ describe('importSampleData', () => {
         tfx_teilnehmer: { count: jest.fn().mockResolvedValue(0), create: jest.fn().mockResolvedValue({ int_teilnehmerid: 99 }) },
         tfx_wettkampforte: { count: jest.fn().mockResolvedValue(0), create: jest.fn().mockResolvedValue({ int_wettkampforteid: 99 }) },
         tfx_layouts: { count: jest.fn().mockResolvedValue(0), create: jest.fn().mockResolvedValue({ int_layoutid: 99 }) },
+        tfx_layout_felder: { create: jest.fn().mockResolvedValue({ int_layout_felderid: 99 }) },
       } as any;
 
       await importSampleData(customClient);
@@ -293,6 +328,7 @@ describe('importSampleData', () => {
       mockPrismaClient.tfx_teilnehmer.create.mockResolvedValue({ int_teilnehmerid: 1 });
       mockPrismaClient.tfx_wettkampforte.create.mockResolvedValue({ int_wettkampforteid: 1 });
       mockPrismaClient.tfx_layouts.create.mockResolvedValue({ int_layoutid: 1 });
+      mockPrismaClient.tfx_layout_felder.create.mockResolvedValue({ int_layout_felderid: 1 });
     });
 
     it('country name should fit in VarChar(150)', async () => {
@@ -347,6 +383,22 @@ describe('importSampleData', () => {
       await importSampleData();
       const call = mockPrismaClient.tfx_layouts.create.mock.calls[0][0];
       expect(call.data.var_name.length).toBeLessThanOrEqual(100);
+    });
+
+    it('layout field values should fit in VarChar(200)', async () => {
+      await importSampleData();
+      const calls = mockPrismaClient.tfx_layout_felder.create.mock.calls;
+      calls.forEach((call: any) => {
+        expect(call[0].data.var_value.length).toBeLessThanOrEqual(200);
+      });
+    });
+
+    it('layout field fonts should fit in VarChar(150)', async () => {
+      await importSampleData();
+      const calls = mockPrismaClient.tfx_layout_felder.create.mock.calls;
+      calls.forEach((call: any) => {
+        expect(call[0].data.var_font.length).toBeLessThanOrEqual(150);
+      });
     });
   });
 });

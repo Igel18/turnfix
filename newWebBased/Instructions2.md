@@ -59,5 +59,18 @@ Die Sportart "Turnen DTB LK": Hier fehlen die Icons. Wahrscheinlich ist überall
 8. Nach dem Erzeugen einer neuen DB muss auch in der Konfiguration dieser neue DB Name verwendet werdeen. Ggf. auch mit zusätzlichem Button "Neue DB verwenden" oder so. Und dann auch reconnected. 
 Warum steht im Datenbank Host der DB-name? 
 
-9. layout 
+9. Urkunden Layout Vorlage (Standard-Urkunde) 
+Es wäre gut wenn mit dem Datenbank-Setup-Assistent ein Layout für eine Urkunde mitkommt welches auch brauchbar ist. 
+kannst du damit was anfangen? So ist ein Layout in einer anderen DB angelegt. 
+285	25	0	"Tahoma,20,-1,5,50,0,0,0,0,0"	35.7882	144.635	137.012	9.95294	"3"	0	0
+286	25	0	"Tahoma,20,-1,5,75,0,0,0,0,0"	82.59	208.165	43.6235	11.0118	"5"	0	1
+287	25	1	"Tahoma,12,-1,5,50,0,0,0,0,0"	82.5882	187.624	43.2	6.98824	"Platz"	0	2
+288	25	1	"Tahoma,12,-1,5,50,0,0,0,0,0"	53.7882	169.835	43.4118	4.65882	"erreichte mit "	0	3
+289	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	82.3765	169.835	42.7765	4.65882	"6"	0	4
+290	25	1	"Tahoma,12,-1,5,50,0,0,0,0,0"	103.765	169.835	42.7765	5.92941	"Punkten"	0	5
+291	25	2	"Tahoma,12,-1,5,50,0,0,0,0,0"	0	0	209.85085	297.4832	"C:\\Users\\Turnuntergau2 UA\\Nextcloud\\Wettkämpfe\\Bestenkämpfe\\39\\Urkunden November\\Urkunde.png"	0	6
+292	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	98.4538	178.023	48.166	6.15336	"15"	0	7
+293	25	1	"Tahoma,12,-1,5,50,0,0,0,0,0"	73.416	177.811	43.9223	9.33613	"im Wettkampf Nr."	0	8
+294	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	63.867645	155.95589	80.63025	9.972689	"4"	0	9
 
+10. Es ist aktuell nicht möglich einen neuen Wettkampf anzulegen. Beim Speichern wird das Fenster geschlossen, aber es taucht kein Wettkampf in der Liste auf. 
