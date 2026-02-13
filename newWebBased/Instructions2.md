@@ -125,3 +125,8 @@ Par.-Barren LK3
 Par.-Barren P1-P9
 	-> Erledigt ✅ 
 	
+14. nach dem anlegen einer Veranstaltung, wird die Veranstaltungsverwaltung nicht aktualisiert 
+
+15. Bei den Gebieten wird auf der Management UI eine falsche anzahl angezeigt. 
+
+16. BEim Wettkampf erstellen werden die Disziplin-Gruppen nicht angezeigt. 
