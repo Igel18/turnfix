@@ -12,6 +12,7 @@ const router = express.Router();
 import { applyGymNetPreset } from '../utils/gymnetPreset';
 import { applyProductionDisciplines } from '../utils/productionDisciplinesImport';
 import { applyProductionStatuses } from '../utils/productionStatusesImport';
+import { importSampleData } from '../utils/sampleDataImport';
 
 // POST /api/configuration/gymnet-preset - Geräte/Formeln für GymNet anlegen
 router.post('/gymnet-preset', async (req, res) => {
@@ -108,6 +109,35 @@ router.post('/production-statuses', async (req, res) => {
   }
 });
 
+// POST /api/configuration/sample-data - Import sample/demo data (1 record per category)
+router.post('/sample-data', async (req, res) => {
+  let customClient = null;
+  try {
+    const { dbConfig } = req.body;
+    
+    // If custom DB config provided (from wizard), create temporary client
+    if (dbConfig) {
+      const { createDynamicPrismaClient } = require('../utils/dynamicPrismaClient');
+      customClient = createDynamicPrismaClient(dbConfig);
+      await customClient.$connect();
+      console.log('[Configuration] Using custom database connection for sample data');
+    }
+    
+    const result = await importSampleData(customClient);
+    res.json(result);
+  } catch (error: any) {
+    console.error('Sample data import failed:', error && (error.stack || error));
+    res.status(500).json({
+      error: 'Failed to import sample data',
+      details: error?.message || String(error),
+      stack: error?.stack || null
+    });
+  } finally {
+    if (customClient) {
+      await customClient.$disconnect();
+    }
+  }
+});
 
 
 // Configuration file path

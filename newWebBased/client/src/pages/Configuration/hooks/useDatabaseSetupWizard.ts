@@ -16,6 +16,7 @@ type WizardCallbacks = Pick<
   | 'onApplyGymNetPreset'
   | 'onImportProductionDisciplines'
   | 'onImportProductionStatuses'
+  | 'onImportSampleData'
   | 'onUpdateDatabaseName'
   | 'onSaveAndReconnect'
 >;
@@ -34,6 +35,7 @@ export function useDatabaseSetupWizard({
   onApplyGymNetPreset,
   onImportProductionDisciplines,
   onImportProductionStatuses,
+  onImportSampleData,
   onUpdateDatabaseName,
   onSaveAndReconnect,
 }: UseDatabaseSetupWizardParams) {
@@ -89,6 +91,14 @@ export function useDatabaseSetupWizard({
       id: 'gymnet-preset',
       title: t('configuration.wizard.gymnetPreset') || 'GymNet-Voreinstellungen',
       description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit zusätzlichen GymNet-spezifischen Geräten und Formeln (optional)',
+      status: 'pending',
+      optional: true,
+      output: [],
+    },
+    {
+      id: 'sample-data',
+      title: t('configuration.wizard.sampleData') || 'Muster-Daten anlegen',
+      description: t('configuration.wizard.sampleDataDesc') || 'Legt je einen Beispiel-Datensatz für Land, Verband, Gau, Verein, Teilnehmer, Wettkampfort und Urkunden-Layout an (optional)',
       status: 'pending',
       optional: true,
       output: [],
@@ -155,8 +165,8 @@ export function useDatabaseSetupWizard({
         }
       }
 
-      // Production disciplines/statuses and GymNet preset require schema to be successful
-      if (stepIndex === 3 || stepIndex === 4 || stepIndex === 5) {
+      // Production disciplines/statuses, GymNet preset, and sample data require schema to be successful
+      if (stepIndex === 3 || stepIndex === 4 || stepIndex === 5 || stepIndex === 6) {
         const schemaStep = steps[2];
         if (schemaStep.status !== 'success') {
           return false;
@@ -296,6 +306,34 @@ export function useDatabaseSetupWizard({
             break;
           }
 
+          case 'sample-data': {
+            addStepOutput(stepId, '⏳ Muster-Daten werden angelegt...');
+            result = await onImportSampleData(activeDbConfig);
+            if (result.success) {
+              addStepOutput(stepId, '✅ Muster-Daten erfolgreich angelegt');
+              if (result.stats) {
+                const created: string[] = [];
+                if (result.stats.createdCountries > 0) created.push(`${result.stats.createdCountries} Land`);
+                if (result.stats.createdAssociations > 0) created.push(`${result.stats.createdAssociations} Verband`);
+                if (result.stats.createdRegions > 0) created.push(`${result.stats.createdRegions} Gau`);
+                if (result.stats.createdClubs > 0) created.push(`${result.stats.createdClubs} Verein`);
+                if (result.stats.createdParticipants > 0) created.push(`${result.stats.createdParticipants} Teilnehmer`);
+                if (result.stats.createdVenues > 0) created.push(`${result.stats.createdVenues} Wettkampfort`);
+                if (result.stats.createdLayouts > 0) created.push(`${result.stats.createdLayouts} Urkunden-Layout`);
+                if (created.length > 0) {
+                  addStepOutput(stepId, `  📊 Angelegt: ${created.join(', ')}`);
+                }
+                if (result.stats.skipped.length > 0) {
+                  addStepOutput(stepId, `  ℹ️ Übersprungen (bereits vorhanden): ${result.stats.skipped.join(', ')}`);
+                }
+              }
+              updateStepStatus(stepId, 'success');
+            } else {
+              throw new Error(result.error || result.message || 'Fehler beim Anlegen der Muster-Daten');
+            }
+            break;
+          }
+
           default:
             console.warn(`Unknown step: ${stepId}`);
             break;
@@ -311,7 +349,7 @@ export function useDatabaseSetupWizard({
       steps, canExecuteStep, newDatabaseName, currentDbConfig, activeDbConfig,
       onCreateDatabase, onTestConnection, onCreateSchema,
       onApplyGymNetPreset, onImportProductionDisciplines, onImportProductionStatuses,
-      onUpdateDatabaseName, updateStepStatus, addStepOutput,
+      onImportSampleData, onUpdateDatabaseName, updateStepStatus, addStepOutput,
     ],
   );
 

@@ -40,6 +40,17 @@ export interface ProductionStatusesStats {
   totalStatuses: number;
 }
 
+export interface SampleDataStats {
+  createdCountries: number;
+  createdAssociations: number;
+  createdRegions: number;
+  createdClubs: number;
+  createdParticipants: number;
+  createdVenues: number;
+  createdLayouts: number;
+  skipped: string[];
+}
+
 export interface DatabaseSetupWizardProps {
   isOpen: boolean;
   onClose: () => void;
@@ -62,6 +73,12 @@ export interface DatabaseSetupWizardProps {
     success: boolean;
     message?: string;
     stats?: ProductionStatusesStats;
+    error?: string;
+  }>;
+  onImportSampleData: (dbConfig?: any) => Promise<{
+    success: boolean;
+    message?: string;
+    stats?: SampleDataStats;
     error?: string;
   }>;
   onUpdateDatabaseName: (newDbName: string) => Promise<void>;
