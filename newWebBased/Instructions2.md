@@ -130,3 +130,17 @@ Par.-Barren P1-P9
 15. Bei den Gebieten wird auf der Management UI eine falsche anzahl angezeigt. 
 
 16. BEim Wettkampf erstellen werden die Disziplin-Gruppen nicht angezeigt. 
+
+17. Bei den Wettkampfergebnissen http://localhost:3001/results?eventId=1&squadName=asdf
+
+werden bei den geräten immer alle Felder mit von allen Geräten bei jedem gerät angezeigt. 
+Es darf aber nur von dem dedizierten Gerät die Felder bei diesem gerät angezeigt werden. (und dann auch in die Auswertung)
+Bitte hier auch unbedingt tests schreiben! 
+
+18. es müssen noch mehr Disziplingruppen angelegt werden: 
+4-Kampf w LK1
+4-Kampf w LK2
+4-Kampf w LK3
+4-Kampf w LK4
+
+19. Das bearbeiten / hinzufügen von Disziplingruppen geht zwar, aber es können keine Geräte ausgewählt werden. http://localhost:3001/discipline-groups

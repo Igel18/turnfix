@@ -21,6 +21,17 @@ const regionQuerySchema = zod_1.z.object({
     limit: zod_1.z.string().transform(Number).default(50),
     offset: zod_1.z.string().transform(Number).default(0)
 });
+// Get regions count
+router.get('/count', async (req, res) => {
+    try {
+        const count = await prisma_1.default.tfx_gaue.count();
+        res.json({ count });
+    }
+    catch (error) {
+        console.error('Error counting regions:', error);
+        res.status(500).json({ error: 'Failed to count regions' });
+    }
+});
 // Get all regions with search and pagination
 router.get('/', async (req, res) => {
     try {

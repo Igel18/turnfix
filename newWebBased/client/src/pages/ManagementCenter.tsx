@@ -465,7 +465,7 @@ export function ManagementCenter() {
 
         // Fetch additional statistics for database management
         const additionalApis = [
-          '/areas/count',
+          '/regions/count',
           '/associations/count', 
           '/disciplines/count',
           '/venues/count',

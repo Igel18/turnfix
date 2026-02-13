@@ -12,7 +12,7 @@ import { useEvent } from '../contexts/EventContext'
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate'
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
 import { exportToCSV, getEventCSVData } from '../utils/csvExport'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
+import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../utils/api'
 import { debugLog } from '../utils/debug'
 
 interface Event {
@@ -204,6 +204,7 @@ const Events: React.FC = () => {
       debugLog('Response:', response)
 
       debugLog('=== CLIENT DEBUG: Refreshing events list ===')
+      invalidateCache('/events')
       await fetchEvents()
       setIsModalOpen(false)
       resetForm()
@@ -222,6 +223,7 @@ const Events: React.FC = () => {
     try {
       const url = forceDelete ? `/events/${eventId}?force=true` : `/events/${eventId}`
       await apiDelete(url)
+      invalidateCache('/events')
       await fetchEvents()
     } catch (error: any) {
       debugLog('Error deleting event:', error)
@@ -407,6 +409,7 @@ const Events: React.FC = () => {
             locationId: '',
             description: ''
           })
+          invalidateCache('/events')
           fetchEvents() // Reload events
         }, 8000) // Extended timeout to let user read the summary
       } else {
