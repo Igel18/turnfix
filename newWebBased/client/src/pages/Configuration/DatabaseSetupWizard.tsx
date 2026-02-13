@@ -1,392 +1,55 @@
-import { useState, useEffect } from 'react';
+/**
+ * DatabaseSetupWizard – Main component.
+ *
+ * Guides the user through database creation, schema setup,
+ * and optional data imports (statuses, disciplines, GymNet presets).
+ *
+ * Refactored using SoC (Point 122):
+ *  - Types         → DatabaseSetupWizard.types.ts
+ *  - State / Logic → hooks/useDatabaseSetupWizard.ts
+ *  - Step UI       → components/WizardStepItem.tsx
+ */
+
 import { useTranslation } from 'react-i18next';
 import UnifiedDialog from '@/components/UnifiedDialog';
-import { 
-  CheckCircleIcon, 
-  ClockIcon, 
-  XCircleIcon,
+import {
+  CheckCircleIcon,
   ExclamationTriangleIcon,
-  ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import type { DatabaseSetupWizardProps } from './DatabaseSetupWizard.types';
+import { useDatabaseSetupWizard } from './hooks/useDatabaseSetupWizard';
+import WizardStepItem from './components/WizardStepItem';
 
-interface DatabaseSetupWizardProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreateDatabase: (dbName: string, dbConfig: any) => Promise<{ success: boolean; message?: string; error?: string }>;
-  onTestConnection: (dbConfig: any) => Promise<{ success: boolean; message?: string; error?: string }>;
-  onCreateSchema: (dbConfig?: any) => Promise<{ success: boolean; message?: string; details?: string; error?: string }>;
-  onApplyGymNetPreset: (dbConfig?: any) => Promise<{ 
-    success: boolean; 
-    message?: string; 
-    stats?: { 
-      createdFormulas: number; 
-      totalFormulas: number;
-      createdDevices: number;
-      totalDevices: number;
-      createdFields: number;
-      totalFields: number;
-    };
-    error?: string;
-  }>;
-  onImportProductionDisciplines: (dbConfig?: any) => Promise<{
-    success: boolean;
-    message?: string;
-    stats?: {
-      createdSports: number;
-      createdFormulas: number;
-      totalFormulas: number;
-      createdDisciplines: number;
-      createdFields: number;
-      skippedDisciplines: number;
-      totalDisciplines: number;
-    };
-    error?: string;
-  }>;
-  onImportProductionStatuses: (dbConfig?: any) => Promise<{
-    success: boolean;
-    message?: string;
-    stats?: {
-      createdStatuses: number;
-      skippedStatuses: number;
-      totalStatuses: number;
-    };
-    error?: string;
-  }>;
-  onUpdateDatabaseName: (newDbName: string) => Promise<void>;
-  currentDbConfig: any;
-}
-
-type StepStatus = 'pending' | 'running' | 'success' | 'error' | 'skipped';
-
-interface Step {
-  id: string;
-  title: string;
-  description: string;
-  status: StepStatus;
-  optional: boolean;
-  output?: string[];
-  error?: string;
-}
-
-export default function DatabaseSetupWizard({
-  isOpen,
-  onClose,
-  onCreateDatabase,
-  onTestConnection,
-  onCreateSchema,
-  onApplyGymNetPreset,
-  onImportProductionDisciplines,
-  onImportProductionStatuses,
-  onUpdateDatabaseName,
-  currentDbConfig
-}: DatabaseSetupWizardProps) {
+export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
+  const { isOpen, onClose, currentDbConfig } = props;
   const { t } = useTranslation();
-  
-  const [newDatabaseName, setNewDatabaseName] = useState('');
-  const [activeDbConfig, setActiveDbConfig] = useState<any>(null); // Config for the new database after creation
-  
-  const [steps, setSteps] = useState<Step[]>([
-    {
-      id: 'create-db',
-      title: t('configuration.wizard.createDatabase') || 'Datenbank erstellen',
-      description: t('configuration.wizard.createDatabaseDesc') || 'Erstellt eine neue PostgreSQL-Datenbank',
-      status: 'pending',
-      optional: false,
-      output: []
-    },
-    {
-      id: 'test-connection',
-      title: t('configuration.wizard.testConnection') || 'Verbindung testen',
-      description: t('configuration.wizard.testConnectionDesc') || 'Prüft die Datenbankverbindung',
-      status: 'pending',
-      optional: false,
-      output: []
-    },
-    {
-      id: 'create-schema',
-      title: t('configuration.wizard.createSchema') || 'Schema erstellen',
-      description: t('configuration.wizard.createSchemaDesc') || 'Initialisiert alle Tabellen und Beziehungen',
-      status: 'pending',
-      optional: false,
-      output: []
-    },
-    {
-      id: 'production-statuses',
-      title: 'Status Management importieren',
-      description: 'Importiert 10 Status-Typen für Teilnehmer-Tracking (z.B. "Meldung erfasst", "Leistungen erfasst", "Urkunde gedruckt")',
-      status: 'pending',
-      optional: true,
-      output: []
-    },
-    {
-      id: 'production-disciplines',
-      title: 'Produktions-Disziplinen importieren',
-      description: 'Importiert alle 139 Disziplinen aus 12 Sportarten (Turnen, Leichtathletik, Schwimmen, etc.) - Empfohlen!',
-      status: 'pending',
-      optional: true,
-      output: []
-    },
-    {
-      id: 'gymnet-preset',
-      title: t('configuration.wizard.gymnetPreset') || 'GymNet-Voreinstellungen',
-      description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit zusätzlichen GymNet-spezifischen Geräten und Formeln (optional)',
-      status: 'pending',
-      optional: true,
-      output: []
-    }
-  ]);
 
-  // Check if database already exists when wizard opens
-  useEffect(() => {
-    if (isOpen) {
-      checkDatabaseExists();
-    }
-  }, [isOpen]);
-
-  const checkDatabaseExists = async () => {
-    try {
-      const result = await onTestConnection(currentDbConfig);
-      if (result.success) {
-        // Database exists and is accessible
-        updateStepStatus('create-db', 'skipped', ['ℹ️ Datenbank existiert bereits - Schritt übersprungen']);
-        addStepOutput('create-db', '✅ Datenbank ist bereits vorhanden');
-      }
-    } catch (error) {
-      // Database doesn't exist or connection failed - keep step as pending
-      console.log('Database check: DB not yet created or not accessible');
-    }
-  };
-
-  const updateStepStatus = (stepId: string, status: StepStatus, output?: string[], error?: string) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => 
-        step.id === stepId 
-          ? { ...step, status, output: output || step.output, error }
-          : step
-      )
-    );
-  };
-
-  const addStepOutput = (stepId: string, message: string) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => 
-        step.id === stepId 
-          ? { ...step, output: [...(step.output || []), message] }
-          : step
-      )
-    );
-  };
-
-  const canExecuteStep = (stepIndex: number): boolean => {
-    if (stepIndex === 0) return true;
-    
-    // Check if all previous non-optional steps are successful or skipped
-    for (let i = 0; i < stepIndex; i++) {
-      const prevStep = steps[i];
-      if (!prevStep.optional && prevStep.status !== 'success' && prevStep.status !== 'skipped') {
-        return false;
-      }
-    }
-    
-    // Special rule: Production disciplines (step 3) and GymNet preset (step 4) require schema (step 2) to be explicitly successful
-    if (stepIndex === 3 || stepIndex === 4) {
-      const schemaStep = steps[2];
-      if (schemaStep.status !== 'success') {
-        return false; // Schema must be successfully created, not skipped
-      }
-    }
-    
-    return true;
-  };
-
-  const executeStep = async (stepId: string) => {
-    const stepIndex = steps.findIndex(s => s.id === stepId);
-    if (stepIndex === -1 || !canExecuteStep(stepIndex)) return;
-
-    updateStepStatus(stepId, 'running');
-
-    try {
-      let result;
-      
-      switch (stepId) {
-        case 'create-db':
-          if (!newDatabaseName.trim()) {
-            throw new Error('Bitte geben Sie einen Datenbanknamen ein');
-          }
-          addStepOutput(stepId, `⏳ Datenbank "${newDatabaseName}" wird erstellt...`);
-          // Create database with new name
-          const dbConfigWithNewName = {
-            ...currentDbConfig,
-            db_name: newDatabaseName
-          };
-          result = await onCreateDatabase(newDatabaseName, dbConfigWithNewName);
-          if (result.success) {
-            addStepOutput(stepId, '✅ Datenbank erfolgreich erstellt');
-            addStepOutput(stepId, '⏳ Konfiguration wird aktualisiert...');
-            // Update configuration with new database name
-            await onUpdateDatabaseName(newDatabaseName);
-            addStepOutput(stepId, '✅ Konfiguration aktualisiert');
-            updateStepStatus(stepId, 'success');
-          } else if (result.error && result.error.includes('already exists')) {
-            // Database already exists - treat as success
-            addStepOutput(stepId, '⏳ Datenbank existiert bereits');
-            addStepOutput(stepId, '✅ Das ist ok - Schritt abgeschlossen');
-            // Still update configuration
-            await onUpdateDatabaseName(newDatabaseName);
-            addStepOutput(stepId, '✅ Konfiguration aktualisiert');
-            updateStepStatus(stepId, 'success');
-          } else {
-            throw new Error(result.error || result.message || 'Fehler beim Erstellen der Datenbank');
-          }
-          break;
-
-        case 'test-connection':
-          addStepOutput(stepId, '⏳ Verbindung wird getestet...');
-          // Test with current or new database name
-          const testDbConfig = newDatabaseName.trim() ? {
-            ...currentDbConfig,
-            db_name: newDatabaseName
-          } : currentDbConfig;
-          result = await onTestConnection(testDbConfig);
-          if (result.success) {
-            addStepOutput(stepId, '✅ Verbindung erfolgreich getestet');
-            // Save the active DB config for subsequent steps
-            setActiveDbConfig(testDbConfig);
-            updateStepStatus(stepId, 'success');
-          } else {
-            const errorMsg = result.error || 'Verbindungstest fehlgeschlagen';
-            throw new Error(errorMsg);
-          }
-          break;
-
-        case 'create-schema':
-          addStepOutput(stepId, '⏳ Datenbankschema wird erstellt...');
-          result = await onCreateSchema(activeDbConfig);
-          if (result.success) {
-            addStepOutput(stepId, '✅ Schema erfolgreich erstellt');
-            if (result.details) {
-              // Parse Prisma output for table creation info
-              const lines = result.details.split('\n').filter(line => line.trim());
-              lines.forEach(line => {
-                if (line.includes('table') || line.includes('migration') || line.includes('applied')) {
-                  addStepOutput(stepId, `  ℹ️ ${line.trim()}`);
-                }
-              });
-            }
-            updateStepStatus(stepId, 'success');
-          } else {
-            throw new Error(result.error || result.message || 'Fehler beim Erstellen des Schemas');
-          }
-          break;
-
-        case 'production-statuses':
-          addStepOutput(stepId, '⏳ Status Management wird importiert...');
-          result = await onImportProductionStatuses(activeDbConfig);
-          if (result.success) {
-            addStepOutput(stepId, '✅ Status Management erfolgreich importiert');
-            if (result.stats) {
-              addStepOutput(stepId, `  📊 ${result.stats.createdStatuses}/${result.stats.totalStatuses} Status-Typen angelegt`);
-              if (result.stats.skippedStatuses > 0) {
-                addStepOutput(stepId, `  ℹ️ ${result.stats.skippedStatuses} Status-Typen übersprungen (bereits vorhanden)`);
-              }
-            }
-            updateStepStatus(stepId, 'success');
-          } else {
-            throw new Error(result.error || result.message || 'Fehler beim Importieren der Status-Typen');
-          }
-          break;
-
-        case 'production-disciplines':
-          addStepOutput(stepId, '⏳ Produktions-Disziplinen werden importiert...');
-          result = await onImportProductionDisciplines(activeDbConfig);
-          if (result.success) {
-            addStepOutput(stepId, '✅ Produktions-Disziplinen erfolgreich importiert');
-            if (result.stats) {
-              addStepOutput(stepId, `  📊 ${result.stats.createdSports} neue Sportarten angelegt`);
-              addStepOutput(stepId, `  📊 ${result.stats.createdFormulas}/${result.stats.totalFormulas} Formeln angelegt`);
-              addStepOutput(stepId, `  📊 ${result.stats.createdDisciplines}/${result.stats.totalDisciplines} Disziplinen importiert`);
-              addStepOutput(stepId, `  📊 ${result.stats.createdFields} Felder angelegt`);
-              if (result.stats.skippedDisciplines > 0) {
-                addStepOutput(stepId, `  ℹ️ ${result.stats.skippedDisciplines} Disziplinen übersprungen (bereits vorhanden)`);
-              }
-            }
-            updateStepStatus(stepId, 'success');
-          } else {
-            throw new Error(result.error || result.message || 'Fehler beim Importieren der Produktions-Disziplinen');
-          }
-          break;
-
-        case 'gymnet-preset':
-          addStepOutput(stepId, '⏳ GymNet-Voreinstellungen werden angewendet...');
-          result = await onApplyGymNetPreset(activeDbConfig);
-          if (result.success) {
-            addStepOutput(stepId, '✅ GymNet-Voreinstellungen erfolgreich angewendet');
-            if (result.stats) {
-              addStepOutput(stepId, `  📊 ${result.stats.createdFormulas}/${result.stats.totalFormulas} Formeln angelegt`);
-              addStepOutput(stepId, `  📊 ${result.stats.createdDevices}/${result.stats.totalDevices} Geräte angelegt`);
-              addStepOutput(stepId, `  📊 ${result.stats.createdFields}/${result.stats.totalFields} Felder angelegt`);
-            }
-            updateStepStatus(stepId, 'success');
-          } else {
-            throw new Error(result.error || result.message || 'Fehler beim Anwenden der GymNet-Voreinstellungen');
-          }
-          break;
-
-        default:
-          console.warn(`Unknown step: ${stepId}`);
-          break;
-      }
-    } catch (error: any) {
-      console.error(`Error executing step ${stepId}:`, error);
-      const errorMessage = error.message || String(error);
-      addStepOutput(stepId, `❌ Fehler: ${errorMessage}`);
-      updateStepStatus(stepId, 'error', undefined, errorMessage);
-    }
-  };
-
-  const skipStep = (stepId: string) => {
-    updateStepStatus(stepId, 'skipped', ['⏭️ Schritt übersprungen']);
-  };
-
-  const resetWizard = () => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => ({
-        ...step,
-        status: 'pending',
-        output: [],
-        error: undefined
-      }))
-    );
-  };
-
-  const handleClose = () => {
-    onClose();
-    // Don't reset on close - user might want to review the results
-  };
-
-  const getStepIcon = (status: StepStatus) => {
-    switch (status) {
-      case 'success':
-        return <CheckCircleIcon className="h-6 w-6 text-green-500" />;
-      case 'running':
-        return <ClockIcon className="h-6 w-6 text-blue-500 animate-spin" />;
-      case 'error':
-        return <XCircleIcon className="h-6 w-6 text-red-500" />;
-      case 'skipped':
-        return <ChevronRightIcon className="h-6 w-6 text-gray-400" />;
-      default:
-        return <div className="h-6 w-6 rounded-full border-2 border-gray-300" />;
-    }
-  };
-
-  const allRequiredStepsComplete = steps
-    .filter(s => !s.optional)
-    .every(s => s.status === 'success');
+  const {
+    steps,
+    newDatabaseName,
+    setNewDatabaseName,
+    canExecuteStep,
+    executeStep,
+    skipStep,
+    retryStep,
+    resetWizard,
+    allRequiredStepsComplete,
+  } = useDatabaseSetupWizard({
+    isOpen,
+    currentDbConfig,
+    onCreateDatabase: props.onCreateDatabase,
+    onTestConnection: props.onTestConnection,
+    onCreateSchema: props.onCreateSchema,
+    onApplyGymNetPreset: props.onApplyGymNetPreset,
+    onImportProductionDisciplines: props.onImportProductionDisciplines,
+    onImportProductionStatuses: props.onImportProductionStatuses,
+    onUpdateDatabaseName: props.onUpdateDatabaseName,
+  });
 
   return (
     <UnifiedDialog
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title={t('configuration.wizard.title') || 'Datenbank-Setup-Assistent'}
       maxWidth="4xl"
     >
@@ -405,9 +68,12 @@ export default function DatabaseSetupWizard({
             disabled={steps[0].status === 'running' || steps[0].status === 'success'}
           />
           <p className="mt-1 text-xs text-gray-500">
-            Aktuell: <span className="font-medium">{currentDbConfig?.db_name || 'keine'}</span>
+            Aktuell:{' '}
+            <span className="font-medium">{currentDbConfig?.db_name || 'keine'}</span>
             {newDatabaseName.trim() && newDatabaseName !== currentDbConfig?.db_name && (
-              <span className="ml-2 text-blue-600">→ Neu: <span className="font-medium">{newDatabaseName}</span></span>
+              <span className="ml-2 text-blue-600">
+                → Neu: <span className="font-medium">{newDatabaseName}</span>
+              </span>
             )}
           </p>
         </div>
@@ -418,10 +84,11 @@ export default function DatabaseSetupWizard({
             <ExclamationTriangleIcon className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">
-                {t('configuration.wizard.info') || 'Dieser Assistent führt Sie durch die Datenbank-Einrichtung.'}
+                {t('configuration.wizard.info') ||
+                  'Dieser Assistent führt Sie durch die Datenbank-Einrichtung.'}
               </p>
               <p>
-                {t('configuration.wizard.infoDetail') || 
+                {t('configuration.wizard.infoDetail') ||
                   'Die Schritte müssen in der angegebenen Reihenfolge ausgeführt werden. Optional können Status-Typen, Disziplinen und GymNet-Presets importiert werden.'}
               </p>
             </div>
@@ -431,91 +98,15 @@ export default function DatabaseSetupWizard({
         {/* Steps */}
         <div className="space-y-4">
           {steps.map((step, index) => (
-            <div 
+            <WizardStepItem
               key={step.id}
-              className={`border rounded-lg p-4 ${
-                step.status === 'success' ? 'border-green-300 bg-green-50' :
-                step.status === 'error' ? 'border-red-300 bg-red-50' :
-                step.status === 'running' ? 'border-blue-300 bg-blue-50' :
-                step.status === 'skipped' ? 'border-gray-300 bg-gray-50' :
-                'border-gray-300 bg-white'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
-                  <div className="flex-shrink-0 mt-1">
-                    {getStepIcon(step.status)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {index + 1}. {step.title}
-                      </h3>
-                      {step.optional && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                          {t('configuration.wizard.optional') || 'Optional'}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{step.description}</p>
-                    
-                    {/* Output Log */}
-                    {step.output && step.output.length > 0 && (
-                      <div className="mt-3 bg-gray-900 rounded p-3 font-mono text-xs text-gray-100 max-h-40 overflow-y-auto">
-                        {step.output.map((line, i) => (
-                          <div key={i} className="whitespace-pre-wrap">{line}</div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Error Details */}
-                    {step.error && (
-                      <div className="mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
-                        {step.error}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-2 ml-4">
-                  {step.status === 'pending' && canExecuteStep(index) && (
-                    <>
-                      <button
-                        onClick={() => executeStep(step.id)}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {t('configuration.wizard.execute') || 'Ausführen'}
-                      </button>
-                      {step.optional && (
-                        <button
-                          onClick={() => skipStep(step.id)}
-                          className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                        >
-                          {t('configuration.wizard.skip') || 'Überspringen'}
-                        </button>
-                      )}
-                    </>
-                  )}
-                  {step.status === 'error' && (
-                    <button
-                      onClick={() => {
-                        updateStepStatus(step.id, 'pending', []);
-                        executeStep(step.id);
-                      }}
-                      className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      {t('configuration.wizard.retry') || 'Wiederholen'}
-                    </button>
-                  )}
-                  {step.status === 'running' && (
-                    <div className="px-3 py-1.5 text-sm text-blue-600">
-                      {t('configuration.wizard.running') || 'Wird ausgeführt...'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              step={step}
+              index={index}
+              canExecute={canExecuteStep(index)}
+              onExecute={executeStep}
+              onSkip={skipStep}
+              onRetry={retryStep}
+            />
           ))}
         </div>
 
@@ -526,10 +117,11 @@ export default function DatabaseSetupWizard({
               <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
               <div className="text-sm text-green-800">
                 <p className="font-medium">
-                  {t('configuration.wizard.complete') || 'Datenbank-Setup erfolgreich abgeschlossen!'}
+                  {t('configuration.wizard.complete') ||
+                    'Datenbank-Setup erfolgreich abgeschlossen!'}
                 </p>
                 <p className="mt-1">
-                  {t('configuration.wizard.completeDetail') || 
+                  {t('configuration.wizard.completeDetail') ||
                     'Ihre Datenbank ist nun einsatzbereit. Sie können diesen Dialog schließen und mit der Konfiguration fortfahren.'}
                 </p>
               </div>
@@ -546,7 +138,7 @@ export default function DatabaseSetupWizard({
             {t('configuration.wizard.reset') || 'Zurücksetzen'}
           </button>
           <button
-            onClick={handleClose}
+            onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {t('common.close') || 'Schließen'}

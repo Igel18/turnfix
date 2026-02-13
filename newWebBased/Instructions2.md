@@ -39,4 +39,12 @@ müssen für den Setup assistenten Tests geschrieben werden.
 4. In dem Export PDF von Siegerlisten muss auch immer die Formel angezeigt werden. 
 Da jeder Teilnehmer in einem Wettkampf immer die gleiche Formel an einem Gerät hat reicht das in der Überschrift. 
 
-5. Bezüglich den Formeln wäre eine kompakere darstellung schön. 
+5. Im DatabaseSetupWizard.tsx 
+die Datei ist langsam sehr groß und es ist JS und HTML vermischt. Wäre hier eine Trennung nach dem in "myown" angegebenen pattern nicht sinnvoll? 
+
+6. Bezüglich den Formeln wäre eine kompakere darstellung schön. 
+Ich stelle mir das so vor: 
+
+Beim Erfassen der wertungen: 1. wird die Riege ausgewählt 2. das Gerät. An dem Gerät hängt ja auch die Formel, daher kann immer nur 1 Formel aktiv sein. Daher wäre es ja möglich, wenn die Formel über der kompletten Teilnehmerliste steht. 
+
+Bei den Results: 

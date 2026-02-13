@@ -430,8 +430,8 @@ export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
       const created = await db.tfx_disziplinen.create({
         data: {
           var_name: geraet.name, // Name
-          var_kurz1: geraet.kurzname, // Kurzname (max 5 chars)
-          var_kurz2: geraet.anzeigename || geraet.name, // Anzeigename (fallback to name)
+          var_kurz1: geraet.kurzname.substring(0, 6), // DB constraint: VarChar(6)
+          var_kurz2: (geraet.anzeigename || geraet.name).substring(0, 20), // DB constraint: VarChar(20)
           var_maske: geraet.eingabemaske, // Eingabemaske
           var_einheit: geraet.einheit, // Einheit
           var_icon: geraet.symbol, // Symbol/Icon

@@ -127,8 +127,8 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
       const created = await db.tfx_disziplinen.create({
         data: {
           var_name: disc.name,
-          var_kurz1: disc.kurzname.substring(0, 5), // DB constraint: max 5 chars
-          var_kurz2: disc.anzeigename || disc.name, // Fallback to name if anzeigename is empty
+          var_kurz1: disc.kurzname.substring(0, 6), // DB constraint: VarChar(6)
+          var_kurz2: (disc.anzeigename || disc.name).substring(0, 20), // DB constraint: VarChar(20)
           var_maske: disc.maske,
           var_einheit: disc.einheit,
           var_icon: disc.icon,
