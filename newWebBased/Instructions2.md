@@ -78,7 +78,7 @@ kannst du damit was anfangen? So ist ein Layout in einer anderen DB angelegt.
 292	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	98.4538	178.023	48.166	6.15336	"15"	0	7
 293	25	1	"Tahoma,12,-1,5,50,0,0,0,0,0"	73.416	177.811	43.9223	9.33613	"im Wettkampf Nr."	0	8
 294	25	0	"Tahoma,12,-1,5,50,0,0,0,0,0"	63.867645	155.95589	80.63025	9.972689	"4"	0	9
--> Erledigt 
+-> Erledigt ✅ 
 
 10. Es ist aktuell nicht möglich einen neuen Wettkampf anzulegen. Beim Speichern wird das Fenster geschlossen, aber es taucht kein Wettkampf in der Liste auf. 
 -> Erledigt ✅ 
