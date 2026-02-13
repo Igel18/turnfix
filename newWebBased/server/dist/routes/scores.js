@@ -113,7 +113,28 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
             let startValue = 10.0; // Default starting value
             try {
                 console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
-                const juryResultsQuery = `
+                // Get discipline ID early so we can filter jury results by discipline
+                const disciplineIdForFilter = result.disciplineid ? parseInt(result.disciplineid) : null;
+                const juryResultsQuery = disciplineIdForFilter
+                    ? `
+          SELECT 
+            jr.int_juryresultsid as id,
+            jr.int_disziplinen_felderid as "disciplineFieldId",
+            jr.rel_leistung as performance,
+            jr.int_versuch as attempt,
+            jr.int_kp as kp,
+            df.var_name as "fieldName",
+            df.var_name as "fieldShortName",
+            df.bol_endwert as "isFinalScore",
+            df.bol_ausgangswert as "isStartingScore",
+            df.int_sortierung as "sortOrder"
+          FROM tfx_jury_results jr
+          LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+          WHERE jr.int_wertungenid = $1
+            AND df.int_disziplinenid = $2
+          ORDER BY df.int_sortierung ASC, df.bol_ausgangswert DESC, df.bol_endwert DESC, df.int_disziplinen_felderid
+          `
+                    : `
           SELECT 
             jr.int_juryresultsid as id,
             jr.int_disziplinen_felderid as "disciplineFieldId",
@@ -129,8 +150,10 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
           LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
           WHERE jr.int_wertungenid = $1
           ORDER BY df.int_sortierung ASC, df.bol_ausgangswert DESC, df.bol_endwert DESC, df.int_disziplinen_felderid
-        `;
-                const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, result.id);
+          `;
+                const juryResults = disciplineIdForFilter
+                    ? await prisma_1.default.$queryRawUnsafe(juryResultsQuery, result.id, disciplineIdForFilter)
+                    : await prisma_1.default.$queryRawUnsafe(juryResultsQuery, result.id);
                 console.log('✅ [Server] Found', juryResults.length, 'jury results for wertungenId', result.id);
                 if (juryResults.length > 0) {
                     console.log('📋 [Server] Sample jury result:', juryResults[0]);
@@ -138,7 +161,8 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 // Check if final score field exists but is missing from jury results
                 let needsEndwertCalculation = false;
                 let endwertFieldId = null;
-                const disciplineId = result.disciplineid ? parseInt(result.disciplineid) : null;
+                // Reuse disciplineIdForFilter parsed above
+                const disciplineId = disciplineIdForFilter;
                 if (disciplineId && juryResults.length > 0) {
                     // Check if there's a field with isFinalScore for this discipline
                     const finalScoreField = await prisma_1.default.$queryRawUnsafe(`
@@ -681,10 +705,11 @@ router.post('/save-value', authBypass_1.authenticateToken, async (req, res) => {
             FROM tfx_jury_results jr
             LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
             WHERE jr.int_wertungenid = $1
+              AND df.int_disziplinenid = $2
               AND jr.int_versuch = 1
             ORDER BY df.int_sortierung ASC
           `;
-                    const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, wertungenId);
+                    const juryResults = await prisma_1.default.$queryRawUnsafe(juryResultsQuery, wertungenId, actualDisciplineId);
                     console.log(`🧮 Jury results:`, juryResults);
                     if (juryResults && juryResults.length > 0) {
                         // Build field symbols map

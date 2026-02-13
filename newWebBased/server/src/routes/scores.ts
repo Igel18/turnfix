@@ -128,7 +128,29 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       try {
         console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
         
-        const juryResultsQuery = `
+        // Get discipline ID early so we can filter jury results by discipline
+        const disciplineIdForFilter = result.disciplineid ? parseInt(result.disciplineid) : null;
+        
+        const juryResultsQuery = disciplineIdForFilter
+          ? `
+          SELECT 
+            jr.int_juryresultsid as id,
+            jr.int_disziplinen_felderid as "disciplineFieldId",
+            jr.rel_leistung as performance,
+            jr.int_versuch as attempt,
+            jr.int_kp as kp,
+            df.var_name as "fieldName",
+            df.var_name as "fieldShortName",
+            df.bol_endwert as "isFinalScore",
+            df.bol_ausgangswert as "isStartingScore",
+            df.int_sortierung as "sortOrder"
+          FROM tfx_jury_results jr
+          LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+          WHERE jr.int_wertungenid = $1
+            AND df.int_disziplinenid = $2
+          ORDER BY df.int_sortierung ASC, df.bol_ausgangswert DESC, df.bol_endwert DESC, df.int_disziplinen_felderid
+          `
+          : `
           SELECT 
             jr.int_juryresultsid as id,
             jr.int_disziplinen_felderid as "disciplineFieldId",
@@ -144,9 +166,11 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
           LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
           WHERE jr.int_wertungenid = $1
           ORDER BY df.int_sortierung ASC, df.bol_ausgangswert DESC, df.bol_endwert DESC, df.int_disziplinen_felderid
-        `;
+          `;
         
-        const juryResults = await prisma.$queryRawUnsafe(juryResultsQuery, result.id) as any[];
+        const juryResults = disciplineIdForFilter
+          ? await prisma.$queryRawUnsafe(juryResultsQuery, result.id, disciplineIdForFilter) as any[]
+          : await prisma.$queryRawUnsafe(juryResultsQuery, result.id) as any[];
         
         console.log('✅ [Server] Found', juryResults.length, 'jury results for wertungenId', result.id);
         if (juryResults.length > 0) {
@@ -157,7 +181,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         let needsEndwertCalculation = false;
         let endwertFieldId = null;
         
-        const disciplineId = result.disciplineid ? parseInt(result.disciplineid) : null;
+        // Reuse disciplineIdForFilter parsed above
+        const disciplineId = disciplineIdForFilter;
         
         if (disciplineId && juryResults.length > 0) {
           // Check if there's a field with isFinalScore for this discipline
@@ -800,11 +825,12 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
             FROM tfx_jury_results jr
             LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
             WHERE jr.int_wertungenid = $1
+              AND df.int_disziplinenid = $2
               AND jr.int_versuch = 1
             ORDER BY df.int_sortierung ASC
           `;
           
-          const juryResults = await prisma.$queryRawUnsafe(juryResultsQuery, wertungenId) as any[];
+          const juryResults = await prisma.$queryRawUnsafe(juryResultsQuery, wertungenId, actualDisciplineId) as any[];
           console.log(`🧮 Jury results:`, juryResults);
           
           if (juryResults && juryResults.length > 0) {

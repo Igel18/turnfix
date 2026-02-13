@@ -126,17 +126,19 @@ Par.-Barren P1-P9
 	-> Erledigt ✅ 
 	
 14. nach dem anlegen einer Veranstaltung, wird die Veranstaltungsverwaltung nicht aktualisiert 
-
+	-> Erledigt ✅ 
 15. Bei den Gebieten wird auf der Management UI eine falsche anzahl angezeigt. 
-
+	-> Erledigt ✅ 
 16. BEim Wettkampf erstellen werden die Disziplin-Gruppen nicht angezeigt. 
+	-> Erledigt ✅ 
 
 17. Bei den Wettkampfergebnissen http://localhost:3001/results?eventId=1&squadName=asdf
 
 werden bei den geräten immer alle Felder mit von allen Geräten bei jedem gerät angezeigt. 
 Es darf aber nur von dem dedizierten Gerät die Felder bei diesem gerät angezeigt werden. (und dann auch in die Auswertung)
 Bitte hier auch unbedingt tests schreiben! 
-
+	-> Erledigt ✅ 
+    
 18. es müssen noch mehr Disziplingruppen angelegt werden: 
 4-Kampf w LK1
 4-Kampf w LK2
