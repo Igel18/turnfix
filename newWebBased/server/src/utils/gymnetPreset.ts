@@ -429,12 +429,12 @@ export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
       const formula = await db.tfx_formeln.findFirst({ where: { var_name: geraet.formula } });
       const created = await db.tfx_disziplinen.create({
         data: {
-          var_name: geraet.name, // Name
-          var_kurz1: geraet.kurzname.substring(0, 6), // DB constraint: VarChar(6)
-          var_kurz2: (geraet.anzeigename || geraet.name).substring(0, 20), // DB constraint: VarChar(20)
-          var_maske: geraet.eingabemaske, // Eingabemaske
-          var_einheit: geraet.einheit, // Einheit
-          var_icon: geraet.symbol, // Symbol/Icon
+          var_name: geraet.name?.substring(0, 100),                          // DB: VarChar(100)
+          var_kurz1: geraet.kurzname?.substring(0, 6),                        // DB: VarChar(6)
+          var_kurz2: (geraet.anzeigename || geraet.name)?.substring(0, 20),    // DB: VarChar(20)
+          var_maske: geraet.eingabemaske?.substring(0, 10),                    // DB: VarChar(10)
+          var_einheit: geraet.einheit?.substring(0, 5),                        // DB: VarChar(5)
+          var_icon: geraet.symbol?.substring(0, 50),                           // DB: VarChar(50)
           int_formelid: formula?.int_formelid || null,
           int_sportid: sportId,
           bol_m: geraet.bol_m,
@@ -463,7 +463,7 @@ export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
           await db.tfx_disziplinen_felder.create({
             data: {
               int_disziplinenid: disziplinId,
-              var_name: field.var_name,
+              var_name: field.var_name?.substring(0, 15),    // DB: VarChar(15)
               int_sortierung: field.int_sortierung,
               bol_endwert: field.var_name === 'Endwert',
               bol_ausgangswert: field.var_name === 'Ausgangswert',

@@ -4,9 +4,9 @@ http://localhost:3001/configuration
 
 muss mit einem "zurückgesetzen" UI begonnen werden. 
 
-2. Im DB Setup 
+2. ✅ ERLEDIGT - Im DB Setup 
 http://localhost:3001/configuration
-Gibt es diese Fehler: 
+Gab es diese Fehler (Fix: Defensive `.substring()` Truncation für alle String-Spalten, siehe `documentation/newWebbased/developer-guide/DATABASE_STRING_TRUNCATION.md`): 
 
 Produktions-Disziplinen importieren
 Optional
@@ -48,3 +48,13 @@ Ich stelle mir das so vor:
 Beim Erfassen der wertungen: 1. wird die Riege ausgewählt 2. das Gerät. An dem Gerät hängt ja auch die Formel, daher kann immer nur 1 Formel aktiv sein. Daher wäre es ja möglich, wenn die Formel über der kompletten Teilnehmerliste steht. 
 
 Bei den Results: 
+In einem Wettkampf gibt es auch nur eine definierte Gerätezahl welche bei jedem Turner gleich ist. Daher wäre es auch hier möglich die Formel im Kopf darzustellen und am Rand nur die Felder zur Eingabe und der Endwert. 
+
+7. der Import funktioniert jetz immerhin ohne fehler. Nach dem Import habe ich die disziplinen geprüft. 
+Die Sportart "Turnen" hat einige Geräte. Alle Felder sind Korrekt. Nur die "Einheit" fehlt bei fast allen. Das muss "Pkt." Sein. 
+Die Sportart "Turnen DTB": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen die Formeln. 
+Die Sportart "Turnen DTB P": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen fast überall die Formeln. Korrekt wäre hier die Formel "P-Wettkampf" 
+Die Sportart "Turnen DTB LK": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen fast überall die Formeln. Korrekt wäre hier die Formel "LK" 
+
+8. Nach dem Erzeugen einer neuen DB muss auch in der Konfiguration diese neue DB verwendet werdeen. Ggf. auch mit zusätzlichem Button "Neue DB verwenden" oder so. 
+

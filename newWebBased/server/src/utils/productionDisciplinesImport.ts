@@ -19,6 +19,19 @@ import {
   getAvailableSports 
 } from '../data/loaders/disciplineLoader';
 
+// Known formula definitions - used when JSON disciplines reference a formelName
+// but don't include the formula string themselves (e.g. Turnen DTB, DTB P, DTB LK).
+// These must match the formulas created by GymNet preset.
+const KNOWN_FORMULAS: Record<string, { formula: string; typ: number }> = {
+  'D+E-Neutral': { formula: '1*x', typ: 0 },
+  'P-Wettkampf': { formula: '(10 + A) - B', typ: 1 },
+  'AK':          { formula: 'A - B - C', typ: 1 },
+  'LK':          { formula: 'A + B - C', typ: 1 },
+};
+
+// Sports where the default einheit should be "Pkt." if not set
+const TURNEN_SPORTS = ['Turnen', 'Turnen DTB', 'Turnen DTB P', 'Turnen DTB LK', 'Turnen DTB Turn10'];
+
 export async function applyProductionDisciplines(customPrismaClient?: PrismaClient) {
   // Use custom client if provided (for wizard), otherwise use default
   const db = customPrismaClient || prisma;
@@ -46,11 +59,23 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
     let createdFields = 0;
     let skippedDisciplines = 0;
 
-    // First, create all unique formulas from the disciplines
-    const uniqueFormulas = new Map<string, { name: string; formula: string }>();
+    // First, collect all unique formulas referenced by disciplines.
+    // Use the formula string from the JSON if available, otherwise fall back
+    // to KNOWN_FORMULAS so that DTB formulas (LK, AK, P-Wettkampf) are also created.
+    const uniqueFormulas = new Map<string, { name: string; formula: string; typ: number }>();
     disciplines.forEach(d => {
-      if (d.formelName && d.formel) {
-        uniqueFormulas.set(d.formelName, { name: d.formelName, formula: d.formel });
+      if (d.formelName) {
+        if (d.formel) {
+          // Formula string from JSON data
+          uniqueFormulas.set(d.formelName, { name: d.formelName, formula: d.formel, typ: 0 });
+        } else if (KNOWN_FORMULAS[d.formelName] && !uniqueFormulas.has(d.formelName)) {
+          // Fallback to known formula definition
+          uniqueFormulas.set(d.formelName, {
+            name: d.formelName,
+            formula: KNOWN_FORMULAS[d.formelName].formula,
+            typ: KNOWN_FORMULAS[d.formelName].typ
+          });
+        }
       }
     });
 
@@ -65,7 +90,7 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
           data: {
             var_name: formula.name,
             var_formel: formula.formula,
-            int_typ: 0 // Default type
+            int_typ: formula.typ
           }
         });
         createdFormulas++;
@@ -121,18 +146,24 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
           where: { var_name: disc.formelName }
         });
         formelId = formel?.int_formelid || null;
+        if (!formelId) {
+          console.warn(`[ProductionDisciplines] Formula '${disc.formelName}' not found for discipline '${disc.name}' - will be imported without formula link`);
+        }
       }
+
+      // Default einheit to "Pkt." for all Turnen sports if not set in JSON
+      const einheit = disc.einheit || (TURNEN_SPORTS.includes(disc.sportart) ? 'Pkt.' : '');
 
       // Create discipline
       const created = await db.tfx_disziplinen.create({
         data: {
-          var_name: disc.name,
-          var_kurz1: disc.kurzname.substring(0, 6), // DB constraint: VarChar(6)
-          var_kurz2: (disc.anzeigename || disc.name).substring(0, 20), // DB constraint: VarChar(20)
-          var_maske: disc.maske,
-          var_einheit: disc.einheit,
-          var_icon: disc.icon,
-          var_kuerzel: disc.kuerzel,
+          var_name: disc.name?.substring(0, 100),                          // DB: VarChar(100)
+          var_kurz1: disc.kurzname?.substring(0, 6),                        // DB: VarChar(6)
+          var_kurz2: (disc.anzeigename || disc.name)?.substring(0, 20),     // DB: VarChar(20)
+          var_maske: disc.maske?.substring(0, 10),                          // DB: VarChar(10)
+          var_einheit: einheit?.substring(0, 5),                            // DB: VarChar(5)
+          var_icon: disc.icon?.substring(0, 50),                            // DB: VarChar(50)
+          var_kuerzel: disc.kuerzel?.substring(0, 50),                      // DB: VarChar(50)
           int_versuche: disc.versuche,
           int_formelid: formelId,
           int_sportid: sport.int_sportid,
@@ -152,7 +183,7 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
           await db.tfx_disziplinen_felder.create({
             data: {
               int_disziplinenid: created.int_disziplinenid,
-              var_name: field.name,
+              var_name: field.name?.substring(0, 15),    // DB: VarChar(15)
               int_sortierung: field.sortierung,
               bol_endwert: field.endwert,
               bol_ausgangswert: field.ausgangswert,
