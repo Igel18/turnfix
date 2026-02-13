@@ -70,12 +70,38 @@ export async function applyProductionStatuses(customPrismaClient?: PrismaClient)
       createdStatuses++;
     }
 
+    // Also create the 3 standard gender categories (Bereiche) if they don't exist.
+    // These are essential structural data needed for competition creation.
+    // Same as the old C++ app: männlich, weiblich, mixed
+    const standardBereiche = [
+      { var_name: 'Männlich', bol_maennlich: true, bol_weiblich: false },
+      { var_name: 'Weiblich', bol_maennlich: false, bol_weiblich: true },
+      { var_name: 'Gemischt', bol_maennlich: true, bol_weiblich: true },
+    ];
+
+    let createdBereiche = 0;
+    for (const bereich of standardBereiche) {
+      const existing = await db.tfx_bereiche.findFirst({
+        where: {
+          bol_maennlich: bereich.bol_maennlich,
+          bol_weiblich: bereich.bol_weiblich
+        }
+      });
+
+      if (!existing) {
+        await db.tfx_bereiche.create({ data: bereich });
+        createdBereiche++;
+        console.log(`[ProductionStatuses] Created bereich: ${bereich.var_name}`);
+      }
+    }
+
     const result = {
       success: true,
       stats: {
         createdStatuses: createdStatuses,
         skippedStatuses: skippedStatuses,
-        totalStatuses: statuses.length
+        totalStatuses: statuses.length,
+        createdBereiche: createdBereiche
       }
     };
 

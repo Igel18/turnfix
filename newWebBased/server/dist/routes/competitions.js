@@ -105,11 +105,12 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 id: comp.int_wettkaempfeid,
                 number: comp.var_nummer || null, // Competition number (waNr)
                 name: comp.var_name || 'Unnamed Competition', // Competition name (waBezeichnung)
-                description: `${comp.tfx_bereiche.var_name || ''} - Age ${Math.min(ageFrom, ageTo)}-${Math.max(ageFrom, ageTo)}`,
+                description: `${comp.tfx_bereiche?.var_name || ''} - Age ${Math.min(ageFrom, ageTo)}-${Math.max(ageFrom, ageTo)}`,
                 date: comp.tfx_veranstaltungen.dat_von?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
                 location: comp.tfx_veranstaltungen.tfx_wettkampforte?.var_name || 'TBD',
-                gender: comp.tfx_bereiche.bol_maennlich && comp.tfx_bereiche.bol_weiblich ? 'gemischt' :
-                    comp.tfx_bereiche.bol_maennlich ? 'männlich' : 'weiblich',
+                gender: comp.tfx_bereiche?.bol_maennlich && comp.tfx_bereiche?.bol_weiblich ? 'gemischt' :
+                    comp.tfx_bereiche?.bol_maennlich ? 'männlich' :
+                        comp.tfx_bereiche?.bol_weiblich ? 'weiblich' : 'gemischt',
                 ageFrom: Math.min(ageFrom, ageTo), // Ensure ageFrom is the smaller value
                 ageTo: Math.max(ageFrom, ageTo), // Ensure ageTo is the larger value
                 disciplines: comp.tfx_wettkaempfe_x_disziplinen.map((wd) => ({
@@ -421,7 +422,39 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             });
         }
         // Find or create appropriate bereich (gender category)
-        const bereichId = validatedData.gender === 'männlich' ? 1 : 2;
+        // DO NOT hardcode IDs - look up or create the correct bereich dynamically
+        let boolMaennlich = true;
+        let boolWeiblich = true;
+        let bereichName = 'Gemischt';
+        if (validatedData.gender === 'männlich' || validatedData.gender === 'male') {
+            boolMaennlich = true;
+            boolWeiblich = false;
+            bereichName = 'Männlich';
+        }
+        else if (validatedData.gender === 'weiblich' || validatedData.gender === 'female') {
+            boolMaennlich = false;
+            boolWeiblich = true;
+            bereichName = 'Weiblich';
+        }
+        // Try to find existing bereich matching the gender flags
+        let bereich = await prisma.tfx_bereiche.findFirst({
+            where: {
+                bol_maennlich: boolMaennlich,
+                bol_weiblich: boolWeiblich
+            }
+        });
+        // Create bereich if not found
+        if (!bereich) {
+            bereich = await prisma.tfx_bereiche.create({
+                data: {
+                    var_name: bereichName,
+                    bol_maennlich: boolMaennlich,
+                    bol_weiblich: boolWeiblich
+                }
+            });
+            console.log(`📍 Created new bereich: ${bereichName} (ID: ${bereich.int_bereicheid})`);
+        }
+        const bereichId = bereich.int_bereicheid;
         // Get event information to determine the correct year for age calculation
         const eventInfo = await prisma.tfx_veranstaltungen.findUnique({
             where: { int_veranstaltungenid: validatedData.eventId }
