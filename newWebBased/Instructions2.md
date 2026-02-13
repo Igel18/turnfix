@@ -87,7 +87,7 @@ kannst du damit was anfangen? So ist ein Layout in einer anderen DB angelegt.
 Es muss eine neue UI geben um die Bereiche anzulegen und zu editieren. 
 Styleguide, Unified komponenten, Tests, Doku, 
 
-12. Mit dem DB-Wizard sollten es auch Disziplin gruppen angelegt werden. 
+12. Mit dem DB-Wizard sollten es auch Disziplin gruppen (http://localhost:3001/discipline-groups) angelegt werden. 
 4-Kampf w P 
 - Boden w. P1-P9
 - Par.-Barren P1-P9
@@ -115,6 +115,7 @@ Styleguide, Unified komponenten, Tests, Doku,
 6-Kampf m LK1 
 - Boden m. LK1
 ...
+-> Erledigt ✅ 
 	
 13. DIese Geräte sind Männlich, werden aber fälschlicherweise als Weiblich importiert 
 Par.-BarrenKür
@@ -122,5 +123,5 @@ Par.-Barren LK1
 Par.-Barren LK2
 Par.-Barren LK3
 Par.-Barren P1-P9
-	
+	-> Erledigt ✅ 
 	

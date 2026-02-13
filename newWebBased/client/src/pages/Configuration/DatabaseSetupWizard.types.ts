@@ -51,6 +51,14 @@ export interface SampleDataStats {
   skipped: string[];
 }
 
+export interface DisciplineGroupsStats {
+  createdGroups: number;
+  createdAssignments: number;
+  skippedGroups: number;
+  missingDisciplines: string[];
+  totalGroups: number;
+}
+
 export interface DatabaseSetupWizardProps {
   isOpen: boolean;
   onClose: () => void;
@@ -79,6 +87,12 @@ export interface DatabaseSetupWizardProps {
     success: boolean;
     message?: string;
     stats?: SampleDataStats;
+    error?: string;
+  }>;
+  onImportDisciplineGroups: (dbConfig?: any) => Promise<{
+    success: boolean;
+    message?: string;
+    stats?: DisciplineGroupsStats;
     error?: string;
   }>;
   onUpdateDatabaseName: (newDbName: string) => Promise<void>;

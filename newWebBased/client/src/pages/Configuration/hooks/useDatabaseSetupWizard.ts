@@ -17,6 +17,7 @@ type WizardCallbacks = Pick<
   | 'onImportProductionDisciplines'
   | 'onImportProductionStatuses'
   | 'onImportSampleData'
+  | 'onImportDisciplineGroups'
   | 'onUpdateDatabaseName'
   | 'onSaveAndReconnect'
 >;
@@ -36,6 +37,7 @@ export function useDatabaseSetupWizard({
   onImportProductionDisciplines,
   onImportProductionStatuses,
   onImportSampleData,
+  onImportDisciplineGroups,
   onUpdateDatabaseName,
   onSaveAndReconnect,
 }: UseDatabaseSetupWizardParams) {
@@ -91,6 +93,14 @@ export function useDatabaseSetupWizard({
       id: 'gymnet-preset',
       title: t('configuration.wizard.gymnetPreset') || 'GymNet-Voreinstellungen',
       description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit zusätzlichen GymNet-spezifischen Geräten und Formeln (optional)',
+      status: 'pending',
+      optional: true,
+      output: [],
+    },
+    {
+      id: 'discipline-groups',
+      title: t('configuration.wizard.disciplineGroups') || 'Disziplin-Gruppen anlegen',
+      description: t('configuration.wizard.disciplineGroupsDesc') || 'Erstellt Standard-Gruppen (4-Kampf, 6-Kampf) für P-Wettkampf und Leistungsklassen (optional)',
       status: 'pending',
       optional: true,
       output: [],
@@ -165,10 +175,18 @@ export function useDatabaseSetupWizard({
         }
       }
 
-      // Production disciplines/statuses, GymNet preset, and sample data require schema to be successful
-      if (stepIndex === 3 || stepIndex === 4 || stepIndex === 5 || stepIndex === 6) {
+      // Production disciplines/statuses, GymNet preset, discipline groups, and sample data require schema to be successful
+      if (stepIndex >= 3 && stepIndex <= 7) {
         const schemaStep = steps[2];
         if (schemaStep.status !== 'success') {
+          return false;
+        }
+      }
+
+      // Discipline groups additionally require production disciplines to be imported
+      if (stepIndex === 6) {
+        const disciplinesStep = steps[4]; // production-disciplines
+        if (disciplinesStep.status !== 'success') {
           return false;
         }
       }
@@ -306,6 +324,31 @@ export function useDatabaseSetupWizard({
             break;
           }
 
+          case 'discipline-groups': {
+            addStepOutput(stepId, '⏳ Disziplin-Gruppen werden angelegt...');
+            result = await onImportDisciplineGroups(activeDbConfig);
+            if (result.success) {
+              addStepOutput(stepId, '✅ Disziplin-Gruppen erfolgreich angelegt');
+              if (result.stats) {
+                addStepOutput(stepId, `  📊 ${result.stats.createdGroups}/${result.stats.totalGroups} Gruppen angelegt`);
+                addStepOutput(stepId, `  📊 ${result.stats.createdAssignments} Disziplin-Zuordnungen erstellt`);
+                if (result.stats.skippedGroups > 0) {
+                  addStepOutput(stepId, `  ℹ️ ${result.stats.skippedGroups} Gruppen übersprungen (bereits vorhanden)`);
+                }
+                if (result.stats.missingDisciplines.length > 0) {
+                  addStepOutput(stepId, `  ⚠️ ${result.stats.missingDisciplines.length} Disziplinen nicht gefunden:`);
+                  result.stats.missingDisciplines.forEach((d: string) => {
+                    addStepOutput(stepId, `     - ${d}`);
+                  });
+                }
+              }
+              updateStepStatus(stepId, 'success');
+            } else {
+              throw new Error(result.error || result.message || 'Fehler beim Anlegen der Disziplin-Gruppen');
+            }
+            break;
+          }
+
           case 'sample-data': {
             addStepOutput(stepId, '⏳ Muster-Daten werden angelegt...');
             result = await onImportSampleData(activeDbConfig);
@@ -349,7 +392,7 @@ export function useDatabaseSetupWizard({
       steps, canExecuteStep, newDatabaseName, currentDbConfig, activeDbConfig,
       onCreateDatabase, onTestConnection, onCreateSchema,
       onApplyGymNetPreset, onImportProductionDisciplines, onImportProductionStatuses,
-      onImportSampleData, onUpdateDatabaseName, updateStepStatus, addStepOutput,
+      onImportSampleData, onImportDisciplineGroups, onUpdateDatabaseName, updateStepStatus, addStepOutput,
     ],
   );
 

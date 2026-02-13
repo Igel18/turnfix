@@ -13,6 +13,7 @@ import { applyGymNetPreset } from '../utils/gymnetPreset';
 import { applyProductionDisciplines } from '../utils/productionDisciplinesImport';
 import { applyProductionStatuses } from '../utils/productionStatusesImport';
 import { importSampleData } from '../utils/sampleDataImport';
+import { importDisciplineGroups } from '../utils/disciplineGroupsImport';
 
 // POST /api/configuration/gymnet-preset - Geräte/Formeln für GymNet anlegen
 router.post('/gymnet-preset', async (req, res) => {
@@ -129,6 +130,36 @@ router.post('/sample-data', async (req, res) => {
     console.error('Sample data import failed:', error && (error.stack || error));
     res.status(500).json({
       error: 'Failed to import sample data',
+      details: error?.message || String(error),
+      stack: error?.stack || null
+    });
+  } finally {
+    if (customClient) {
+      await customClient.$disconnect();
+    }
+  }
+});
+
+// POST /api/configuration/discipline-groups - Import standard discipline groups
+router.post('/discipline-groups', async (req, res) => {
+  let customClient = null;
+  try {
+    const { dbConfig } = req.body;
+    
+    // If custom DB config provided (from wizard), create temporary client
+    if (dbConfig) {
+      const { createDynamicPrismaClient } = require('../utils/dynamicPrismaClient');
+      customClient = createDynamicPrismaClient(dbConfig);
+      await customClient.$connect();
+      console.log('[Configuration] Using custom database connection for discipline groups');
+    }
+    
+    const result = await importDisciplineGroups(customClient);
+    res.json(result);
+  } catch (error: any) {
+    console.error('Discipline groups import failed:', error && (error.stack || error));
+    res.status(500).json({
+      error: 'Failed to import discipline groups',
       details: error?.message || String(error),
       stack: error?.stack || null
     });

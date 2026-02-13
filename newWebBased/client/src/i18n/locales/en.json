@@ -219,6 +219,8 @@
       "createSchemaDesc": "Initializes all 15+ tables with relationships and constraints (Prisma migrate deploy)",
       "gymnetPreset": "GymNet Presets",
       "gymnetPresetDesc": "Populates the database with 60+ devices, formulas, and fields for GymNet import (optional)",
+      "disciplineGroups": "Create Discipline Groups",
+      "disciplineGroupsDesc": "Creates standard groups (4-apparatus, 6-apparatus) for P-competition and performance classes (optional, requires production disciplines)",
       "sampleData": "Create Sample Data",
       "sampleDataDesc": "Creates one sample record each for country, association, region, club, participant, venue, and certificate layout (optional)",
       "optional": "Optional",
