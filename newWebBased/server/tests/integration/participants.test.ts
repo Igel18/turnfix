@@ -58,7 +58,7 @@ describe('Participants API', () => {
         
         if (participant) {
           expect(participant.var_vorname || participant.firstName).toBe('John');
-          expect(participant.var_name || participant.lastName).toBe('Doe');
+          expect(participant.var_nachname || participant.lastName).toBe('Doe');
         }
       }
     });
