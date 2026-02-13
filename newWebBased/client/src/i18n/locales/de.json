@@ -225,8 +225,12 @@
       "retry": "Wiederholen",
       "running": "Wird ausgeführt...",
       "complete": "Datenbank-Setup erfolgreich abgeschlossen!",
-      "completeDetail": "Ihre Datenbank ist nun einsatzbereit. Sie können diesen Dialog schließen und mit der Konfiguration fortfahren.",
-      "reset": "Zurücksetzen"
+      "completeDetail": "Ihre Datenbank ist nun einsatzbereit. Klicken Sie auf \"Neue DB verwenden & Speichern\" um die Konfiguration zu übernehmen und den Server neu zu verbinden.",
+      "reset": "Zurücksetzen",
+      "saveAndReconnect": "Neue DB verwenden & Speichern",
+      "saving": "Speichern...",
+      "savedAndReconnected": "Konfiguration gespeichert & Server wird neu verbunden!",
+      "savedAndReconnectedDetail": "Die neue Datenbank wird jetzt verwendet. Der Server startet neu – bitte warten Sie einen Moment und laden Sie die Seite dann neu."
     },
     "title": "Einstellungen",
     "subtitle": "Anwendungseinstellungen und Einstellungen verwalten",

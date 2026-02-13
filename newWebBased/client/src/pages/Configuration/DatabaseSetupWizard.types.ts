@@ -65,6 +65,7 @@ export interface DatabaseSetupWizardProps {
     error?: string;
   }>;
   onUpdateDatabaseName: (newDbName: string) => Promise<void>;
+  onSaveAndReconnect: () => Promise<{ success: boolean; error?: string }>;
   currentDbConfig: any;
 }
 

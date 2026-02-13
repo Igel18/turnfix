@@ -15,6 +15,7 @@ import UnifiedDialog from '@/components/UnifiedDialog';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import type { DatabaseSetupWizardProps } from './DatabaseSetupWizard.types';
 import { useDatabaseSetupWizard } from './hooks/useDatabaseSetupWizard';
@@ -34,6 +35,9 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
     retryStep,
     resetWizard,
     allRequiredStepsComplete,
+    isSaving,
+    saveCompleted,
+    handleSaveAndReconnect,
   } = useDatabaseSetupWizard({
     isOpen,
     currentDbConfig,
@@ -44,6 +48,7 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
     onImportProductionDisciplines: props.onImportProductionDisciplines,
     onImportProductionStatuses: props.onImportProductionStatuses,
     onUpdateDatabaseName: props.onUpdateDatabaseName,
+    onSaveAndReconnect: props.onSaveAndReconnect,
   });
 
   return (
@@ -111,7 +116,7 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
         </div>
 
         {/* Success Message */}
-        {allRequiredStepsComplete && (
+        {allRequiredStepsComplete && !saveCompleted && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex">
               <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
@@ -122,7 +127,26 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
                 </p>
                 <p className="mt-1">
                   {t('configuration.wizard.completeDetail') ||
-                    'Ihre Datenbank ist nun einsatzbereit. Sie können diesen Dialog schließen und mit der Konfiguration fortfahren.'}
+                    'Ihre Datenbank ist nun einsatzbereit. Klicken Sie auf "Neue DB verwenden & Speichern" um die Konfiguration zu übernehmen und den Server neu zu verbinden.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Save completed message */}
+        {saveCompleted && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex">
+              <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
+              <div className="text-sm text-green-800">
+                <p className="font-medium">
+                  {t('configuration.wizard.savedAndReconnected') ||
+                    'Konfiguration gespeichert & Server wird neu verbunden!'}
+                </p>
+                <p className="mt-1">
+                  {t('configuration.wizard.savedAndReconnectedDetail') ||
+                    'Die neue Datenbank wird jetzt verwendet. Der Server startet neu – bitte warten Sie einen Moment und laden Sie die Seite dann neu.'}
                 </p>
               </div>
             </div>
@@ -134,15 +158,34 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
           <button
             onClick={resetWizard}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isSaving}
           >
             {t('configuration.wizard.reset') || 'Zurücksetzen'}
           </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {t('common.close') || 'Schließen'}
-          </button>
+          <div className="flex gap-2">
+            {allRequiredStepsComplete && !saveCompleted && (
+              <button
+                onClick={handleSaveAndReconnect}
+                disabled={isSaving}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
+                    {t('configuration.wizard.saving') || 'Speichern...'}
+                  </>
+                ) : (
+                  t('configuration.wizard.saveAndReconnect') || 'Neue DB verwenden & Speichern'
+                )}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {t('common.close') || 'Schließen'}
+            </button>
+          </div>
         </div>
       </div>
     </UnifiedDialog>

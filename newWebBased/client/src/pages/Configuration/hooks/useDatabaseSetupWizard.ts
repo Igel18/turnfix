@@ -17,6 +17,7 @@ type WizardCallbacks = Pick<
   | 'onImportProductionDisciplines'
   | 'onImportProductionStatuses'
   | 'onUpdateDatabaseName'
+  | 'onSaveAndReconnect'
 >;
 
 interface UseDatabaseSetupWizardParams extends WizardCallbacks {
@@ -34,11 +35,14 @@ export function useDatabaseSetupWizard({
   onImportProductionDisciplines,
   onImportProductionStatuses,
   onUpdateDatabaseName,
+  onSaveAndReconnect,
 }: UseDatabaseSetupWizardParams) {
   const { t } = useTranslation();
 
   const [newDatabaseName, setNewDatabaseName] = useState('');
   const [activeDbConfig, setActiveDbConfig] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveCompleted, setSaveCompleted] = useState(false);
 
   const createInitialSteps = useCallback((): Step[] => [
     {
@@ -124,6 +128,8 @@ export function useDatabaseSetupWizard({
     if (isOpen) {
       setNewDatabaseName('');
       setActiveDbConfig(null);
+      setIsSaving(false);
+      setSaveCompleted(false);
       setSteps(prev =>
         prev.map(step => ({
           ...step,
@@ -328,6 +334,8 @@ export function useDatabaseSetupWizard({
   const resetWizard = useCallback(() => {
     setNewDatabaseName('');
     setActiveDbConfig(null);
+    setIsSaving(false);
+    setSaveCompleted(false);
     setSteps(prev =>
       prev.map(step => ({
         ...step,
@@ -337,6 +345,23 @@ export function useDatabaseSetupWizard({
       })),
     );
   }, []);
+
+  // Save configuration and reconnect to the new database
+  const handleSaveAndReconnect = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const result = await onSaveAndReconnect();
+      if (result.success) {
+        setSaveCompleted(true);
+      } else {
+        console.error('Save and reconnect failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Save and reconnect error:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [onSaveAndReconnect]);
 
   const allRequiredStepsComplete = steps
     .filter(s => !s.optional)
@@ -352,5 +377,8 @@ export function useDatabaseSetupWizard({
     retryStep,
     resetWizard,
     allRequiredStepsComplete,
+    isSaving,
+    saveCompleted,
+    handleSaveAndReconnect,
   };
 }

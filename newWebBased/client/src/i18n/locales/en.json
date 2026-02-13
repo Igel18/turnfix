@@ -225,8 +225,12 @@
       "retry": "Retry",
       "running": "Running...",
       "complete": "Database setup completed successfully!",
-      "completeDetail": "Your database is now ready to use. You can close this dialog and continue with the configuration.",
-      "reset": "Reset"
+      "completeDetail": "Your database is now ready to use. Click \"Use New DB & Save\" to apply the configuration and reconnect the server.",
+      "reset": "Reset",
+      "saveAndReconnect": "Use New DB & Save",
+      "saving": "Saving...",
+      "savedAndReconnected": "Configuration saved & server is reconnecting!",
+      "savedAndReconnectedDetail": "The new database is now in use. The server is restarting – please wait a moment and then reload the page."
     },
     "title": "Settings",
     "subtitle": "Manage application settings and preferences",

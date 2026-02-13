@@ -40,6 +40,7 @@ function createMockCallbacks() {
       stats: { createdStatuses: 10, skippedStatuses: 0, totalStatuses: 10 },
     }),
     onUpdateDatabaseName: vi.fn().mockResolvedValue(undefined),
+    onSaveAndReconnect: vi.fn().mockResolvedValue({ success: true }),
     onClose: vi.fn(),
   };
 }
@@ -417,6 +418,7 @@ describe('DatabaseSetupWizard (integration)', () => {
     onImportProductionDisciplines: cbs.onImportProductionDisciplines,
     onImportProductionStatuses: cbs.onImportProductionStatuses,
     onUpdateDatabaseName: cbs.onUpdateDatabaseName,
+    onSaveAndReconnect: cbs.onSaveAndReconnect,
     currentDbConfig: defaultDbConfig,
   });
 
@@ -519,5 +521,107 @@ describe('DatabaseSetupWizard (integration)', () => {
   it('does not show success message when required steps are not complete', () => {
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
     expect(screen.queryByText(/erfolgreich abgeschlossen/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show "Neue DB verwenden" button when required steps are incomplete', () => {
+    render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
+    const saveBtn = screen.queryByText(/Neue DB verwenden/i);
+    expect(saveBtn).not.toBeInTheDocument();
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  4) Item 8: Save & Reconnect after wizard
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('useDatabaseSetupWizard - Save & Reconnect (Item 8)', () => {
+  let cbs: ReturnType<typeof createMockCallbacks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    cbs = createMockCallbacks();
+  });
+
+  const hookParams = (overrides: Record<string, any> = {}) => ({
+    isOpen: true,
+    currentDbConfig: defaultDbConfig,
+    ...cbs,
+    ...overrides,
+  });
+
+  it('exposes isSaving and saveCompleted state', () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), {
+      wrapper: i18nWrapper,
+    });
+    expect(result.current.isSaving).toBe(false);
+    expect(result.current.saveCompleted).toBe(false);
+  });
+
+  it('handleSaveAndReconnect calls onSaveAndReconnect', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), {
+      wrapper: i18nWrapper,
+    });
+    await act(async () => {
+      await result.current.handleSaveAndReconnect();
+    });
+    expect(cbs.onSaveAndReconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('handleSaveAndReconnect sets saveCompleted on success', async () => {
+    cbs.onSaveAndReconnect.mockResolvedValue({ success: true });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), {
+      wrapper: i18nWrapper,
+    });
+    await act(async () => {
+      await result.current.handleSaveAndReconnect();
+    });
+    expect(result.current.saveCompleted).toBe(true);
+    expect(result.current.isSaving).toBe(false);
+  });
+
+  it('handleSaveAndReconnect does NOT set saveCompleted on failure', async () => {
+    cbs.onSaveAndReconnect.mockResolvedValue({ success: false, error: 'Failed' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), {
+      wrapper: i18nWrapper,
+    });
+    await act(async () => {
+      await result.current.handleSaveAndReconnect();
+    });
+    expect(result.current.saveCompleted).toBe(false);
+    expect(result.current.isSaving).toBe(false);
+  });
+
+  it('resetWizard clears saveCompleted and isSaving', async () => {
+    cbs.onSaveAndReconnect.mockResolvedValue({ success: true });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), {
+      wrapper: i18nWrapper,
+    });
+    await act(async () => {
+      await result.current.handleSaveAndReconnect();
+    });
+    expect(result.current.saveCompleted).toBe(true);
+
+    act(() => { result.current.resetWizard(); });
+    expect(result.current.saveCompleted).toBe(false);
+    expect(result.current.isSaving).toBe(false);
+  });
+
+  it('opening wizard resets saveCompleted', async () => {
+    cbs.onSaveAndReconnect.mockResolvedValue({ success: true });
+    const { result, rerender } = renderHook(
+      ({ isOpen }) => useDatabaseSetupWizard(hookParams({ isOpen })),
+      { wrapper: i18nWrapper, initialProps: { isOpen: true } },
+    );
+    await act(async () => {
+      await result.current.handleSaveAndReconnect();
+    });
+    expect(result.current.saveCompleted).toBe(true);
+
+    // Close and reopen
+    rerender({ isOpen: false });
+    rerender({ isOpen: true });
+    await waitFor(() => {
+      expect(result.current.saveCompleted).toBe(false);
+    });
   });
 });

@@ -528,6 +528,13 @@ router.post('/save', async (req, res) => {
         error: 'Missing required database configuration fields' 
       });
     }
+
+    // Safety check: db_host must not be the same as db_name (common misconfiguration)
+    // This can happen when the wizard updates db_name but the host accidentally gets overwritten
+    if (config.database.db_host === config.database.db_name && config.database.db_host !== 'localhost') {
+      console.warn(`⚠️ WARNING: db_host ("${config.database.db_host}") equals db_name — likely a misconfiguration. Resetting db_host to "localhost".`);
+      config.database.db_host = 'localhost';
+    }
     
     await saveConfig(config);
     

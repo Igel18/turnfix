@@ -56,5 +56,6 @@ Die Sportart "Turnen DTB": Hier fehlen die Icons. Wahrscheinlich ist überall de
 Die Sportart "Turnen DTB P": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen fast überall die Formeln. Korrekt wäre hier die Formel "P-Wettkampf" 
 Die Sportart "Turnen DTB LK": Hier fehlen die Icons. Wahrscheinlich ist überall der Pfad nicht ganz korrekt. Zudem Fehlen fast überall die Formeln. Korrekt wäre hier die Formel "LK" 
 
-8. Nach dem Erzeugen einer neuen DB muss auch in der Konfiguration diese neue DB verwendet werdeen. Ggf. auch mit zusätzlichem Button "Neue DB verwenden" oder so. 
+8. Nach dem Erzeugen einer neuen DB muss auch in der Konfiguration dieser neue DB Name verwendet werdeen. Ggf. auch mit zusätzlichem Button "Neue DB verwenden" oder so. Und dann auch reconnected. 
+Warum steht im Datenbank Host der DB-name? 
 

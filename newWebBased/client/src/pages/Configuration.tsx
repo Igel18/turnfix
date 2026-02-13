@@ -145,6 +145,50 @@ const Configuration: React.FC = () => {
       }
     };
 
+    // Save config and trigger server reconnect after wizard completes
+    const wizardSaveAndReconnect = async (): Promise<{ success: boolean; error?: string }> => {
+      try {
+        // Build config data from current configSections state (which already has the updated db_name)
+        const configData = configSections.reduce((acc, section) => {
+          if (section.id === 'participant-labels') {
+            if (!acc['printing']) acc['printing'] = {};
+            section.settings.forEach(setting => {
+              acc['printing'][setting.key] = setting.value;
+            });
+          } else if (section.id === 'scoreCapture') {
+            acc['scoreCapture'] = section.settings.reduce((sectionAcc, setting) => {
+              sectionAcc[setting.key] = setting.value;
+              return sectionAcc;
+            }, {} as any);
+          } else {
+            acc[section.id] = section.settings.reduce((sectionAcc, setting) => {
+              sectionAcc[setting.key] = setting.value;
+              return sectionAcc;
+            }, {} as any);
+          }
+          return acc;
+        }, {} as any);
+
+        // Save scoreCapture settings separately
+        if (configData.scoreCapture) {
+          await fetch('/api/app-settings/scoreCapture', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(configData.scoreCapture)
+          });
+          delete configData.scoreCapture;
+        }
+
+        await apiPost('/configuration/save', configData);
+        setMessage({ type: 'success', text: t('configuration.wizard.savedAndReconnected') || 'Konfiguration gespeichert & Server wird neu verbunden!' });
+        return { success: true };
+      } catch (error: any) {
+        console.error('Error saving configuration from wizard:', error);
+        setMessage({ type: 'error', text: t('configuration.messages.saveFailed') });
+        return { success: false, error: error?.message || 'Save failed' };
+      }
+    };
+
   const { t } = useTranslation()
   const [configSections, setConfigSections] = useState<ConfigSection[]>([])
   const [activeSection, setActiveSection] = useState<string>('database')
@@ -915,6 +959,7 @@ const Configuration: React.FC = () => {
         onImportProductionDisciplines={wizardImportProductionDisciplines}
         onImportProductionStatuses={wizardImportProductionStatuses}
         onUpdateDatabaseName={wizardUpdateDatabaseName}
+        onSaveAndReconnect={wizardSaveAndReconnect}
         currentDbConfig={configSections.find(s => s.id === 'database')?.settings.reduce((acc, setting) => {
           acc[setting.key] = setting.value;
           return acc;
