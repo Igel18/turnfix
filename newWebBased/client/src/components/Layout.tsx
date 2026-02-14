@@ -31,6 +31,7 @@ const databaseMenuItems = [
   { name: 'Participants', href: '/participants', icon: UserGroupIcon },
   { name: 'Regions', href: '/regions', icon: HomeIcon },
   { name: 'Associations', href: '/associations', icon: BuildingOfficeIcon },
+  { name: 'Areas', href: '/areas', icon: HomeIcon },
 ]
 
 export function Layout() {
@@ -62,7 +63,8 @@ export function Layout() {
       'Clubs': 'navigation.clubs',
       'Participants': 'navigation.participants',
       'Regions': 'navigation.regions',
-      'Associations': 'navigation.associations'
+      'Associations': 'navigation.associations',
+      'Areas': 'navigation.areas'
     }
     
     return menuTranslationMap[name] ? t(menuTranslationMap[name]) : name

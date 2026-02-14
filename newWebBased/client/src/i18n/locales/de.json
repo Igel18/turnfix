@@ -15,6 +15,7 @@
     "participants": "Teilnehmer",
     "regions": "Regionen",
     "associations": "Verbände",
+    "areas": "Bereiche",
     "configuration": "Einstellungen",
     "logout": "Abmelden"
   },
@@ -2085,6 +2086,36 @@
       "created": "Wettkampf erfolgreich erstellt",
       "updated": "Wettkampf erfolgreich aktualisiert",
       "error": "Fehler beim Speichern des Wettkampfs"
+    }
+  },
+  "areas": {
+    "title": "Bereiche",
+    "subtitle": "Bereiche verwalten ({{count}} Bereiche geladen)",
+    "searchPlaceholder": "Bereiche suchen...",
+    "addArea": "Bereich hinzufügen",
+    "editArea": "Bereich bearbeiten",
+    "unnamed": "Unbenannt",
+    "table": {
+      "name": "Name",
+      "gender": "Geschlecht",
+      "male": "Männlich",
+      "female": "Weiblich"
+    },
+    "filters": {
+      "gender": "Geschlecht"
+    },
+    "form": {
+      "name": "Bereichsname",
+      "namePlaceholder": "z.B. Kunstturnen männlich",
+      "genderAccess": "Geschlechterzuordnung"
+    },
+    "messages": {
+      "confirmDelete": "Möchten Sie den Bereich \"{{name}}\" wirklich löschen?",
+      "saveError": "Fehler beim Speichern des Bereichs",
+      "deleteError": "Fehler beim Löschen des Bereichs. Möglicherweise sind noch Wettkämpfe zugeordnet.",
+      "created": "Bereich erfolgreich erstellt",
+      "updated": "Bereich erfolgreich aktualisiert",
+      "deleted": "Bereich erfolgreich gelöscht"
     }
   },
   "login": {

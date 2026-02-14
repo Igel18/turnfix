@@ -23,6 +23,8 @@ export class TestUtils {
     associations: number[];
     disciplines: number[];
     competitions: number[];
+    bereiche: number[];
+    layouts: number[];
   } = {
     venues: [],
     events: [],
@@ -31,6 +33,8 @@ export class TestUtils {
     associations: [],
     disciplines: [],
     competitions: [],
+    bereiche: [],
+    layouts: [],
   };
 
   static getPrisma(): PrismaClient {
@@ -240,6 +244,20 @@ export class TestUtils {
         }).catch(() => {});
       }
 
+      // 8. Delete test bereiche (areas)
+      if (this.createdIds.bereiche.length > 0) {
+        await prisma.tfx_bereiche.deleteMany({
+          where: { int_bereicheid: { in: this.createdIds.bereiche } }
+        }).catch(() => {});
+      }
+
+      // 9. Delete test layouts (layout_felder cascade-deletes via FK)
+      if (this.createdIds.layouts.length > 0) {
+        await prisma.tfx_layouts.deleteMany({
+          where: { int_layoutid: { in: this.createdIds.layouts } }
+        }).catch(() => {});
+      }
+
     } catch (error) {
       console.warn('Cleanup warning:', error);
     }
@@ -268,6 +286,8 @@ export class TestUtils {
       associations: [],
       disciplines: [],
       competitions: [],
+      bereiche: [],
+      layouts: [],
     };
   }
 

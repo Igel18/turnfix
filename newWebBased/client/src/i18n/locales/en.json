@@ -15,6 +15,7 @@
     "participants": "Participants",
     "regions": "Regions",
     "associations": "Associations",
+    "areas": "Areas",
     "configuration": "Settings",
     "logout": "Logout"
   },
@@ -2052,6 +2053,36 @@
       "created": "Competition created successfully",
       "updated": "Competition updated successfully",
       "error": "Error saving competition"
+    }
+  },
+  "areas": {
+    "title": "Areas",
+    "subtitle": "Manage areas ({{count}} areas loaded)",
+    "searchPlaceholder": "Search areas...",
+    "addArea": "Add Area",
+    "editArea": "Edit Area",
+    "unnamed": "Unnamed",
+    "table": {
+      "name": "Name",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female"
+    },
+    "filters": {
+      "gender": "Gender"
+    },
+    "form": {
+      "name": "Area Name",
+      "namePlaceholder": "e.g. Artistic Gymnastics Male",
+      "genderAccess": "Gender Assignment"
+    },
+    "messages": {
+      "confirmDelete": "Are you sure you want to delete the area \"{{name}}\"?",
+      "saveError": "Error saving area",
+      "deleteError": "Error deleting area. There may be competitions still assigned.",
+      "created": "Area created successfully",
+      "updated": "Area updated successfully",
+      "deleted": "Area deleted successfully"
     }
   },
   "login": {

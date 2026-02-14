@@ -74,15 +74,15 @@ describe('useDatabaseSetupWizard', () => {
     ...overrides,
   });
 
-  it('initialises 6 steps, all pending', () => {
+  it('initialises 8 steps, all pending', () => {
     const { result } = renderHook(() => useDatabaseSetupWizard(hookParams({ isOpen: false })), {
       wrapper: i18nWrapper,
     });
-    expect(result.current.steps).toHaveLength(6);
+    expect(result.current.steps).toHaveLength(8);
     expect(result.current.steps.every(s => s.status === 'pending')).toBe(true);
   });
 
-  it('marks first 3 steps as non-optional and last 3 as optional', () => {
+  it('marks first 3 steps as non-optional and last 5 as optional', () => {
     const { result } = renderHook(() => useDatabaseSetupWizard(hookParams({ isOpen: false })), {
       wrapper: i18nWrapper,
     });
@@ -92,6 +92,8 @@ describe('useDatabaseSetupWizard', () => {
     expect(result.current.steps[3].optional).toBe(true);
     expect(result.current.steps[4].optional).toBe(true);
     expect(result.current.steps[5].optional).toBe(true);
+    expect(result.current.steps[6].optional).toBe(true);
+    expect(result.current.steps[7].optional).toBe(true);
   });
 
   it('canExecuteStep allows step 0 always', () => {
@@ -440,7 +442,7 @@ describe('DatabaseSetupWizard (integration)', () => {
     expect(screen.getByText('turnfix_test', { exact: false })).toBeInTheDocument();
   });
 
-  it('renders all 6 wizard steps', async () => {
+  it('renders all 8 wizard steps', async () => {
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
     // Wait for render
     await waitFor(() => {
@@ -451,14 +453,16 @@ describe('DatabaseSetupWizard (integration)', () => {
       expect(screen.getByText(/4\./)).toBeInTheDocument();
       expect(screen.getByText(/5\./)).toBeInTheDocument();
       expect(screen.getByText(/6\./)).toBeInTheDocument();
+      expect(screen.getByText(/7\./)).toBeInTheDocument();
+      expect(screen.getByText(/8\./)).toBeInTheDocument();
     });
   });
 
-  it('shows 3 "Optional" badges', async () => {
+  it('shows 5 "Optional" badges', async () => {
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
     await waitFor(() => {
       const optionalBadges = screen.getAllByText('Optional');
-      expect(optionalBadges.length).toBe(3);
+      expect(optionalBadges.length).toBe(5);
     });
   });
 

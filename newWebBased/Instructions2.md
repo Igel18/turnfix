@@ -86,6 +86,7 @@ kannst du damit was anfangen? So ist ein Layout in einer anderen DB angelegt.
 11. tfx_bereiche 
 Es muss eine neue UI geben um die Bereiche anzulegen und zu editieren. 
 Styleguide, Unified komponenten, Tests, Doku, 
+-> Erledigt ✅ 
 
 12. Mit dem DB-Wizard sollten es auch Disziplin gruppen (http://localhost:3001/discipline-groups) angelegt werden. 
 4-Kampf w P 
@@ -161,3 +162,6 @@ John Doe
 
 22. beim Erzeugen von Wettkämpfen ist die UI sehr voll. Insbesondere die Ganzen Geräte machen viel aus. Eine Darstellung wie bei Disziplingruppe bearbeiten wäre schön. mit Suchen, ausgewählt
 	-> Erledigt ✅ 
+
+23. Mannschaftswettkampf import 
+Wird eine gymnet xml importiert welche unter dem knoten "mannschaft" nicht nur eine Person hat, so ist dies eine Mannschaft und muss in der http://localhost:3001/teams?eventId=1&squadName=asdf hinzugefügt werden. Natürlich müssen dann auch die Personen unter dieser Mannschaft hinzugefügt werden. 

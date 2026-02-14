@@ -69,6 +69,33 @@ const ALL_REFERENCED_DISCIPLINES = [
   { int_disziplinenid: 25, var_name: 'Par.-Barren LK3' },
   { int_disziplinenid: 26, var_name: 'Ringe LK3' },
   { int_disziplinenid: 27, var_name: 'P.-Pferd LK3' },
+  // LK4 male disciplines
+  { int_disziplinenid: 28, var_name: 'Boden m. LK4' },
+  { int_disziplinenid: 29, var_name: 'Reck m. LK4' },
+  { int_disziplinenid: 30, var_name: 'Sprung m. LK4' },
+  { int_disziplinenid: 31, var_name: 'Par.-Barren LK4' },
+  { int_disziplinenid: 32, var_name: 'Ringe LK4' },
+  { int_disziplinenid: 33, var_name: 'P.-Pferd LK4' },
+  // Female LK1 disciplines
+  { int_disziplinenid: 34, var_name: 'Sprung w. LK1' },
+  { int_disziplinenid: 35, var_name: 'Reck/StuBa. LK1' },
+  { int_disziplinenid: 36, var_name: 'Schwebebalken LK1' },
+  { int_disziplinenid: 37, var_name: 'Boden w. LK1' },
+  // Female LK2 disciplines
+  { int_disziplinenid: 38, var_name: 'Sprung w. LK2' },
+  { int_disziplinenid: 39, var_name: 'Reck/StuBa. LK2' },
+  { int_disziplinenid: 40, var_name: 'Schwebebalken LK2' },
+  { int_disziplinenid: 41, var_name: 'Boden w. LK2' },
+  // Female LK3 disciplines
+  { int_disziplinenid: 42, var_name: 'Sprung w. LK3' },
+  { int_disziplinenid: 43, var_name: 'Reck/StuBa. LK3' },
+  { int_disziplinenid: 44, var_name: 'Schwebebalken LK3' },
+  { int_disziplinenid: 45, var_name: 'Boden w. LK3' },
+  // Female LK4 disciplines
+  { int_disziplinenid: 46, var_name: 'Sprung w. LK4' },
+  { int_disziplinenid: 47, var_name: 'Reck/StuBa. LK4' },
+  { int_disziplinenid: 48, var_name: 'Schwebebalken LK4' },
+  { int_disziplinenid: 49, var_name: 'Boden w. LK4' },
 ];
 
 describe('importDisciplineGroups', () => {
@@ -99,10 +126,10 @@ describe('importDisciplineGroups', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should create exactly 9 groups', async () => {
+    it('should create exactly 15 groups', async () => {
       const result = await importDisciplineGroups();
-      expect(result.stats.createdGroups).toBe(9);
-      expect(mockPrismaClient.tfx_disziplinen_gruppen.create).toHaveBeenCalledTimes(9);
+      expect(result.stats.createdGroups).toBe(15);
+      expect(mockPrismaClient.tfx_disziplinen_gruppen.create).toHaveBeenCalledTimes(15);
     });
 
     it('should have no skipped groups', async () => {
@@ -110,9 +137,9 @@ describe('importDisciplineGroups', () => {
       expect(result.stats.skippedGroups).toBe(0);
     });
 
-    it('should report totalGroups as 9', async () => {
+    it('should report totalGroups as 15', async () => {
       const result = await importDisciplineGroups();
-      expect(result.stats.totalGroups).toBe(9);
+      expect(result.stats.totalGroups).toBe(15);
     });
 
     it('should create correct group names in order', async () => {
@@ -130,6 +157,12 @@ describe('importDisciplineGroups', () => {
         '6-Kampf m LK2',
         '4-Kampf m LK3',
         '6-Kampf m LK3',
+        '4-Kampf m LK4',
+        '6-Kampf m LK4',
+        '4-Kampf w LK1',
+        '4-Kampf w LK2',
+        '4-Kampf w LK3',
+        '4-Kampf w LK4',
       ]);
     });
 
@@ -165,8 +198,8 @@ describe('importDisciplineGroups', () => {
 
     it('should create 4 discipline assignments for LK 4-Kampf groups', async () => {
       await importDisciplineGroups();
-      // LK1 4-Kampf = group 4 (ID=4), LK2 4-Kampf = group 6 (ID=6), LK3 4-Kampf = group 8 (ID=8)
-      for (const groupId of [4, 6, 8]) {
+      // Male: LK1=4, LK2=6, LK3=8, LK4=10; Female: LK1=12, LK2=13, LK3=14, LK4=15
+      for (const groupId of [4, 6, 8, 10, 12, 13, 14, 15]) {
         const assignments = mockPrismaClient.tfx_disgrp_x_disziplinen.create.mock.calls
           .filter((c: any) => c[0].data.int_disziplinen_gruppenid === groupId);
         expect(assignments.length).toBe(4);
@@ -175,8 +208,8 @@ describe('importDisciplineGroups', () => {
 
     it('should create 6 discipline assignments for LK 6-Kampf groups', async () => {
       await importDisciplineGroups();
-      // LK1 6-Kampf = group 5 (ID=5), LK2 6-Kampf = group 7 (ID=7), LK3 6-Kampf = group 9 (ID=9)
-      for (const groupId of [5, 7, 9]) {
+      // LK1 6-Kampf = group 5, LK2 6-Kampf = group 7, LK3 6-Kampf = group 9, LK4 6-Kampf = group 11
+      for (const groupId of [5, 7, 9, 11]) {
         const assignments = mockPrismaClient.tfx_disgrp_x_disziplinen.create.mock.calls
           .filter((c: any) => c[0].data.int_disziplinen_gruppenid === groupId);
         expect(assignments.length).toBe(6);
@@ -185,9 +218,9 @@ describe('importDisciplineGroups', () => {
 
     it('should assign correct total number of discipline assignments', async () => {
       const result = await importDisciplineGroups();
-      // P groups: 4+4+6 = 14, LK groups: (4+6)*3 = 30, Total = 44
-      // 9 groups total: 3 P-groups + 6 LK-groups
-      expect(result.stats.createdAssignments).toBe(44);
+      // P groups: 4+4+6 = 14, Male LK 4-Kampf: 4*4 = 16, Male LK 6-Kampf: 4*6 = 24
+      // Female LK 4-Kampf: 4*4 = 16, Total = 14 + 16 + 24 + 16 = 70
+      expect(result.stats.createdAssignments).toBe(70);
     });
 
     it('should assign position ordering starting from 1', async () => {
@@ -227,7 +260,7 @@ describe('importDisciplineGroups', () => {
 
     it('should skip all groups', async () => {
       const result = await importDisciplineGroups();
-      expect(result.stats.skippedGroups).toBe(9);
+      expect(result.stats.skippedGroups).toBe(15);
       expect(result.stats.createdGroups).toBe(0);
     });
 
@@ -288,9 +321,9 @@ describe('importDisciplineGroups', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should still create all 9 groups', async () => {
+    it('should still create all 15 groups', async () => {
       const result = await importDisciplineGroups();
-      expect(result.stats.createdGroups).toBe(9);
+      expect(result.stats.createdGroups).toBe(15);
     });
 
     it('should report missing disciplines', async () => {

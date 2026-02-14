@@ -3720,8 +3720,6 @@
     ]
   },
 
-  {"_comment": "=== Female LK Disciplines (Leistungsklassen 1-4) ==="},
-
   {
     "name": "Boden w. LK1",
     "kurzname": "BWLK1",
@@ -4106,8 +4104,6 @@
       { "name": "Endwert", "sortierung": 4, "endwert": true, "ausgangswert": false, "gruppe": 1, "enabled": true }
     ]
   },
-
-  {"_comment": "=== Male LK4 Disciplines (Leistungsklasse 4) ==="},
 
   {
     "name": "Boden m. LK4",
