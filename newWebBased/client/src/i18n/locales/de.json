@@ -2049,8 +2049,18 @@
         "of": "von",
         "disciplines": "Disziplinen",
         "filteredByGender": "gefiltert nach Geschlecht",
-        "filteredByGroup": "gefiltert nach Gruppe"
+        "filteredByGroup": "gefiltert nach Gruppe",
+        "shown": "angezeigt"
       },
+      "searchPlaceholder": "Disziplin suchen...",
+      "showAll": "Alle anzeigen",
+      "showSelected": "Ausgewählt ({{count}})",
+      "selectAllVisible": "Alle sichtbaren auswählen",
+      "deselectAllVisible": "Alle sichtbaren abwählen",
+      "selectedCount": "{{count}} Disziplinen ausgewählt",
+      "noDisciplines": "Keine Disziplinen verfügbar",
+      "noSearchResults": "Keine Disziplinen gefunden",
+      "noSelectedDisciplines": "Keine Disziplinen ausgewählt",
       "validation": {
         "incompatibleRemoved": "Inkompatible Disziplinen wurden automatisch entfernt",
         "noneSelected": "Mindestens eine Disziplin muss ausgewählt werden"

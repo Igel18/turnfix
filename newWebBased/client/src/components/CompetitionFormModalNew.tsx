@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import UnifiedModal from './UnifiedModal';
@@ -29,6 +29,7 @@ interface CompetitionFormData {
   // Additional competition settings
   round: number;                    // int_durchgang - Competition round/session
   track: number;                    // int_bahn - Track/lane number
+  competitionType: number;          // int_typ - Competition type (0=Individual, 1=Team, 2=Group)
   startTime?: string;               // tim_startzeit - Start time (HH:MM format)
   warmupTime?: string;              // tim_einturnen - Warm-up time (HH:MM format)
   qualifiers: number;               // int_qualifikation - Number of qualifiers
@@ -58,6 +59,7 @@ interface Competition {
   // Additional competition settings
   round: number;
   track: number;
+  competitionType: number;
   startTime?: string;
   warmupTime?: string;
   qualifiers: number;
@@ -111,6 +113,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
   const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
   const [showIncompatibleMessage, setShowIncompatibleMessage] = useState(false);
+  const [disciplineSearch, setDisciplineSearch] = useState('');
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false);
   
   // Track previous gender to detect changes
   const previousGenderRef = useRef<string>(formData.gender);
@@ -200,6 +204,49 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
     setSelectedDisciplineGroup(groupId);
   };
 
+  // Disciplines visible in the list (after search + showSelectedOnly filtering)
+  const displayedDisciplines = useMemo(() => {
+    let result = filteredDisciplines;
+
+    if (showSelectedOnly) {
+      const selectedIds = formData.disciplines.map(d => d.disciplineId);
+      result = result.filter(d => selectedIds.includes(d.id));
+    }
+
+    if (disciplineSearch.trim()) {
+      const search = disciplineSearch.toLowerCase().trim();
+      result = result.filter(d =>
+        d.name?.toLowerCase().includes(search) ||
+        d.short_name?.toLowerCase().includes(search) ||
+        d.display_name?.toLowerCase().includes(search)
+      );
+    }
+
+    return result;
+  }, [filteredDisciplines, disciplineSearch, showSelectedOnly, formData.disciplines]);
+
+  const handleSelectAllVisible = () => {
+    const visibleIds = displayedDisciplines.map(d => d.id);
+    const defaultMaxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
+    setFormData(prev => {
+      const existingMap = new Map(prev.disciplines.map(d => [d.disciplineId, d]));
+      visibleIds.forEach(id => {
+        if (!existingMap.has(id)) {
+          existingMap.set(id, { disciplineId: id, maxScore: defaultMaxScore });
+        }
+      });
+      return { ...prev, disciplines: Array.from(existingMap.values()) };
+    });
+  };
+
+  const handleDeselectAllVisible = () => {
+    const visibleIds = new Set(displayedDisciplines.map(d => d.id));
+    setFormData(prev => ({
+      ...prev,
+      disciplines: prev.disciplines.filter(d => !visibleIds.has(d.disciplineId))
+    }));
+  };
+
   const handleBulkSelectGroup = () => {
     // If no group is selected, just apply max score to already selected disciplines
     if (selectedDisciplineGroup === null) {
@@ -275,6 +322,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
       title={editingCompetition ? t('competitionForm.title.edit') : t('competitionForm.title.create')}
       size="4xl"
       showFooter={false}
+      fullHeight
     >
       <form onSubmit={onSubmit} className="space-y-6">
             {/* Debug Info */}
@@ -349,11 +397,27 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               </div>
             </div>
 
-            {/* Gender and Age Section */}
+            {/* Gender, Type and Age Section */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('competitionForm.fields.gender.label')} & Alter</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 {t('competitionForm.categorySettings.title')}</h3>
               
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    🏆 {t('competitionForm.categorySettings.competitionType.label')} *
+                  </label>
+                  <select
+                    value={formData.competitionType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, competitionType: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value={0}>{t('competitionForm.categorySettings.competitionType.individual')}</option>
+                    <option value={1}>{t('competitionForm.categorySettings.competitionType.team')}</option>
+                    <option value={2}>{t('competitionForm.categorySettings.competitionType.group')}</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.categorySettings.competitionType.description')}</p>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     👥 {t('competitionForm.fields.gender.label')} *
@@ -646,16 +710,16 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               <h3 className="text-lg font-semibold text-gray-900 mb-4">🏅 {t('competitionForm.disciplines.title')}</h3>
               <BlueInfoBox>{t('competitionForm.disciplines.description')}</BlueInfoBox>
 
-              {/* Filter and bulk operations */}
+              {/* Discipline group filter + bulk max score row */}
               <div className="grid gap-4 md:grid-cols-3 mt-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    🔍 {t('competitionForm.disciplines.filterByGroup')}
+                    {t('competitionForm.disciplines.filterByGroup')}
                   </label>
                   <select
                     value={selectedDisciplineGroup || ''}
                     onChange={(e) => handleDisciplineGroupChange(e.target.value ? parseInt(e.target.value) : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   >
                     <option value="">{t('competitionForm.disciplines.selectGroup')}</option>
                     {disciplineGroups.map(group => (
@@ -666,7 +730,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    🎯 {t('competitionForm.disciplines.bulkMaxScore')}
+                    {t('competitionForm.disciplines.bulkMaxScore')}
                   </label>
                   <input
                     type="number"
@@ -674,7 +738,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                     step="0.1"
                     value={bulkMaxScore}
                     onChange={(e) => setBulkMaxScore(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     placeholder="10.0"
                   />
                 </div>
@@ -683,7 +747,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   <button
                     type="button"
                     onClick={handleBulkSelectGroup}
-                    className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="w-full px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     {selectedDisciplineGroup 
                       ? t('competitionForm.disciplines.selectGroupAndApply') || 'Gruppe auswählen & Max-Punkte setzen'
@@ -694,80 +758,162 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 
               {/* Incompatible disciplines message */}
               {showIncompatibleMessage && (
-                <div className="mt-4 p-3 bg-orange-100 border border-orange-300 rounded-lg">
+                <div className="mt-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
                   <p className="text-orange-700 text-sm">
                     ⚠️ {t('competitionForm.disciplines.validation.incompatibleRemoved')}
                   </p>
                 </div>
               )}
 
-              {/* Filter status */}
-              <div className="mt-4 text-sm text-gray-600">
-                {t('competitionForm.disciplines.filterStatus.showing')} {filteredDisciplines.length} {t('competitionForm.disciplines.filterStatus.of')} {disciplines.length} {t('competitionForm.disciplines.filterStatus.disciplines')}
-                {formData.gender !== 'gemischt' && ` (${t('competitionForm.disciplines.filterStatus.filteredByGender')})`}
-                {selectedDisciplineGroup && ` (${t('competitionForm.disciplines.filterStatus.filteredByGroup')})`}
+              {/* Search and controls bar */}
+              <div className="flex items-center gap-2 mt-4 mb-2">
+                <div className="relative flex-1">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={disciplineSearch}
+                    onChange={(e) => setDisciplineSearch(e.target.value)}
+                    className="w-full pl-9 pr-8 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('competitionForm.disciplines.searchPlaceholder', 'Disziplin suchen...')}
+                  />
+                  {disciplineSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setDisciplineSearch('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSelectedOnly(!showSelectedOnly)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
+                    showSelectedOnly
+                      ? 'bg-blue-100 border-blue-300 text-blue-800'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {showSelectedOnly 
+                    ? t('competitionForm.disciplines.showAll', 'Alle anzeigen')
+                    : t('competitionForm.disciplines.showSelected', { count: formData.disciplines.length, defaultValue: `Ausgewählt (${formData.disciplines.length})` })
+                  }
+                </button>
               </div>
 
-              {/* Discipline selection grid */}
-              <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {filteredDisciplines.map(discipline => {
-                  const isSelected = formData.disciplines.some(d => d.disciplineId === discipline.id);
-                  const selectedDiscipline = formData.disciplines.find(d => d.disciplineId === discipline.id);
-                  
-                  return (
-                    <div
-                      key={discipline.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        isSelected 
-                          ? 'bg-blue-50 border-blue-300' 
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => handleDisciplineToggle(discipline.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {isSelected ? (
-                            <CheckCircle className="w-5 h-5 text-blue-500 mr-2" />
-                          ) : (
-                            <div className="w-5 h-5 border border-gray-300 rounded mr-2"></div>
-                          )}
-                          <div>
-                            <p className="font-medium text-gray-900">{discipline.display_name}</p>
-                            <p className="text-xs text-gray-500">
-                              ({getGenderText(discipline.male_allowed, discipline.female_allowed)})
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {isSelected && (
+              {/* Select/Deselect all for current filter */}
+              {displayedDisciplines.length > 0 && (
+                <div className="flex items-center gap-3 mb-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={handleSelectAllVisible}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {t('competitionForm.disciplines.selectAllVisible', 'Alle sichtbaren auswählen')}
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    type="button"
+                    onClick={handleDeselectAllVisible}
+                    className="text-gray-500 hover:text-gray-700 hover:underline"
+                  >
+                    {t('competitionForm.disciplines.deselectAllVisible', 'Alle sichtbaren abwählen')}
+                  </button>
+                  <span className="ml-auto text-gray-400">
+                    {displayedDisciplines.length} {t('competitionForm.disciplines.filterStatus.shown', 'angezeigt')}
+                    {formData.gender !== 'gemischt' && ` · ${t('competitionForm.disciplines.filterStatus.filteredByGender')}`}
+                    {selectedDisciplineGroup && ` · ${t('competitionForm.disciplines.filterStatus.filteredByGroup')}`}
+                  </span>
+                </div>
+              )}
+
+              {/* Discipline list (compact checkbox style) */}
+              <div className="border border-gray-300 rounded-md max-h-72 overflow-y-auto bg-gray-50">
+                {filteredDisciplines.length === 0 ? (
+                  <p className="text-gray-500 text-sm p-4">{t('competitionForm.disciplines.noDisciplines', 'Keine Disziplinen verfügbar')}</p>
+                ) : displayedDisciplines.length === 0 ? (
+                  <p className="text-gray-500 text-sm p-4">
+                    {disciplineSearch 
+                      ? t('competitionForm.disciplines.noSearchResults', 'Keine Disziplinen gefunden')
+                      : t('competitionForm.disciplines.noSelectedDisciplines', 'Keine Disziplinen ausgewählt')
+                    }
+                  </p>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {displayedDisciplines.map((discipline) => {
+                      const isSelected = formData.disciplines.some(d => d.disciplineId === discipline.id);
+                      const selectedDiscipline = formData.disciplines.find(d => d.disciplineId === discipline.id);
+
+                      return (
+                        <label
+                          key={discipline.id}
+                          className={`flex items-center gap-3 cursor-pointer px-3 py-2 transition-colors ${
+                            isSelected
+                              ? 'bg-blue-50 hover:bg-blue-100'
+                              : 'hover:bg-white'
+                          }`}
+                        >
                           <input
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={selectedDiscipline?.maxScore || 0}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              const maxScore = parseFloat(e.target.value) || 0;
-                              setFormData(prev => ({
-                                ...prev,
-                                disciplines: prev.disciplines.map(d =>
-                                  d.disciplineId === discipline.id ? { ...d, maxScore } : d
-                                )
-                              }));
-                            }}
-                            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                            placeholder="10.0"
-                            onClick={(e) => e.stopPropagation()}
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleDisciplineToggle(discipline.id)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                          <span className="text-sm text-gray-800 flex-1 min-w-0">
+                            <span className="font-medium">{discipline.display_name}</span>
+                            {discipline.short_name && (
+                              <span className="text-gray-400 ml-2 text-xs">[{discipline.short_name}]</span>
+                            )}
+                            <span className="text-gray-400 ml-2 text-xs">
+                              ({getGenderText(discipline.male_allowed, discipline.female_allowed)})
+                            </span>
+                          </span>
+                          {isSelected && (
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={selectedDiscipline?.maxScore || 0}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                const maxScore = parseFloat(e.target.value) || 0;
+                                setFormData(prev => ({
+                                  ...prev,
+                                  disciplines: prev.disciplines.map(d =>
+                                    d.disciplineId === discipline.id ? { ...d, maxScore } : d
+                                  )
+                                }));
+                              }}
+                              className="w-16 px-2 py-0.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                              placeholder="Max"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              
+
+              {/* Selected summary */}
+              {formData.disciplines.length > 0 && (
+                <div className="mt-2 p-2.5 bg-blue-50 rounded-md border border-blue-200">
+                  <p className="text-sm text-blue-800 font-medium">
+                    {t('competitionForm.disciplines.selectedCount', { count: formData.disciplines.length, defaultValue: `${formData.disciplines.length} Disziplinen ausgewählt` })}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1 line-clamp-2">
+                    {formData.disciplines
+                      .map(d => disciplines.find(disc => disc.id === d.disciplineId)?.display_name)
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                </div>
+              )}
+
               {formData.disciplines.length === 0 && (
-                <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                <div className="mt-2 p-3 bg-red-100 border border-red-300 rounded-lg">
                   <p className="text-red-700 text-sm">
                     ⚠️ {t('competitionForm.disciplines.validation.noneSelected')}
                   </p>

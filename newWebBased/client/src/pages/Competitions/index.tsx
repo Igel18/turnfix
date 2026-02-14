@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Trophy } from 'lucide-react';
 import { EventManagementTemplate } from '../../components/templates/EventManagementTemplate';
-import CompetitionFormModal from '../../components/CompetitionFormModal';
+import CompetitionFormModal from '../../components/CompetitionFormModalNew';
 import { useEvent } from '../../contexts/EventContext';
 import { useCompetitions } from './hooks/useCompetitions';
 import { CompetitionFilters } from './components/CompetitionFilters';

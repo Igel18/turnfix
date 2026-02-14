@@ -46,8 +46,8 @@ Da jeder Teilnehmer in einem Wettkampf immer die gleiche Formel an einem Gerät 
 die Datei ist langsam sehr groß und es ist JS und HTML vermischt. Wäre hier eine Trennung nach dem in "myown" angegebenen pattern nicht sinnvoll? 
 -> Erledigt ✅ 
 
-6. Bezüglich den Formeln wäre eine kompakere darstellung schön. 
-Ich stelle mir das so vor: 
+6. Bezüglich den Formeln wäre eine kompaktere darstellung schön. 
+Ich stelle mir das so vor: <>
 
 Beim Erfassen der wertungen: 1. wird die Riege ausgewählt 2. das Gerät. An dem Gerät hängt ja auch die Formel, daher kann immer nur 1 Formel aktiv sein. Daher wäre es ja möglich, wenn die Formel über der kompletten Teilnehmerliste steht. 
 

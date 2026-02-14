@@ -2016,8 +2016,18 @@
         "of": "of",
         "disciplines": "disciplines",
         "filteredByGender": "filtered by gender",
-        "filteredByGroup": "filtered by group"
+        "filteredByGroup": "filtered by group",
+        "shown": "shown"
       },
+      "searchPlaceholder": "Search disciplines...",
+      "showAll": "Show all",
+      "showSelected": "Selected ({{count}})",
+      "selectAllVisible": "Select all visible",
+      "deselectAllVisible": "Deselect all visible",
+      "selectedCount": "{{count}} disciplines selected",
+      "noDisciplines": "No disciplines available",
+      "noSearchResults": "No disciplines match your search",
+      "noSelectedDisciplines": "No disciplines selected",
       "validation": {
         "incompatibleRemoved": "Incompatible disciplines were automatically removed",
         "noneSelected": "At least one discipline must be selected"
