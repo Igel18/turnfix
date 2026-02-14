@@ -234,7 +234,9 @@
       "saveAndReconnect": "Neue DB verwenden & Speichern",
       "saving": "Speichern...",
       "savedAndReconnected": "Konfiguration gespeichert & Server wird neu verbunden!",
-      "savedAndReconnectedDetail": "Die neue Datenbank wird jetzt verwendet. Der Server startet neu – bitte warten Sie einen Moment und laden Sie die Seite dann neu."
+      "savedAndReconnectedDetail": "Die neue Datenbank wird jetzt verwendet. Der Server startet neu – bitte warten Sie einen Moment und laden Sie die Seite dann neu.",
+      "newDbOnly": "Nur für neue, leere Datenbanken",
+      "newDbOnlyDetail": "Dieser Assistent ist ausschließlich für die Ersteinrichtung neuer Datenbanken vorgesehen. Bestehende Datenbanken mit Daten werden nicht unterstützt. Disziplinen, Status-Typen und Disziplingruppen werden nur in leere Tabellen importiert."
     },
     "title": "Einstellungen",
     "subtitle": "Anwendungseinstellungen und Einstellungen verwalten",
@@ -1457,7 +1459,8 @@
     "subtitle": "Disziplingruppen verwalten",
     "searchPlaceholder": "Disziplingruppen suchen...",
     "addGroup": "Gruppe hinzufügen",
-    "editGroup": "Gruppe bearbeiten",
+    "editGroup": "Disziplingruppe bearbeiten",
+    "createGroup": "Neue Disziplingruppe erstellen",
     "deleteGroup": "Gruppe löschen",
     "groupsLoaded": "Gruppen geladen",
     "noComment": "Kein Kommentar",
@@ -1472,6 +1475,25 @@
       "fewDisciplines": "Wenige Disziplinen (1-5)",
       "manyDisciplines": "Viele Disziplinen (6+)"
     },
+    "form": {
+      "groupName": "Gruppenname",
+      "groupNamePlaceholder": "Gruppenname eingeben",
+      "comment": "Kommentar",
+      "commentPlaceholder": "Beschreibung oder Kommentar eingeben (optional)",
+      "assignDisciplines": "Disziplinen zuweisen",
+      "searchDisciplines": "Disziplinen suchen...",
+      "showAll": "Alle anzeigen",
+      "showSelected": "Ausgewählt ({{count}})",
+      "selectAllVisible": "Alle sichtbaren auswählen",
+      "deselectAllVisible": "Alle sichtbaren abwählen",
+      "disciplinesShown": "angezeigt",
+      "noDisciplines": "Keine Disziplinen verfügbar",
+      "noSearchResults": "Keine Disziplinen gefunden",
+      "noSelectedDisciplines": "Keine Disziplinen ausgewählt",
+      "selectedCount": "{{count}} Disziplinen ausgewählt",
+      "updateGroup": "Gruppe aktualisieren",
+      "createGroup": "Gruppe erstellen"
+    },
     "table": {
       "id": "ID",
       "groupName": "Gruppenname",
@@ -1481,7 +1503,8 @@
     },
     "messages": {
       "confirmDelete": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-      "deleteError": "Fehler beim Löschen der Gruppe"
+      "deleteError": "Fehler beim Löschen der Gruppe",
+      "enterName": "Bitte Gruppenname eingeben"
     }
   },
   "status": {

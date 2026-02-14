@@ -40,8 +40,7 @@ interface GroupDefinition {
  *   4-Kampf = 4 apparatus, 6-Kampf = 6 apparatus (men only)
  * 
  * LK (Leistungsklassen) groups:
- *   LK1, LK2, LK3 variants for men
- *   (Female LK disciplines are not yet in the production data)
+ *   LK1, LK2, LK3, LK4 variants for men and women
  */
 const STANDARD_GROUPS: GroupDefinition[] = [
   // === P-Wettkampf (Pflicht) Groups ===
@@ -165,6 +164,84 @@ const STANDARD_GROUPS: GroupDefinition[] = [
       'Par.-Barren LK3',
       'Ringe LK3',
       'P.-Pferd LK3',
+    ],
+  },
+  
+  // === LK4 (Leistungsklasse 4) Groups — Male ===
+  
+  // Men 4-Kampf LK4
+  {
+    name: '4-Kampf m LK4',
+    comment: 'Männlicher 4-Kampf Leistungsklasse 4: Boden, Reck, Sprung, Barren',
+    disciplines: [
+      'Boden m. LK4',
+      'Reck m. LK4',
+      'Sprung m. LK4',
+      'Par.-Barren LK4',
+    ],
+  },
+  
+  // Men 6-Kampf LK4
+  {
+    name: '6-Kampf m LK4',
+    comment: 'Männlicher 6-Kampf Leistungsklasse 4: Boden, Reck, Sprung, Barren, Ringe, Pauschenpferd',
+    disciplines: [
+      'Boden m. LK4',
+      'Reck m. LK4',
+      'Sprung m. LK4',
+      'Par.-Barren LK4',
+      'Ringe LK4',
+      'P.-Pferd LK4',
+    ],
+  },
+  
+  // === Female LK (Leistungsklassen) Groups ===
+  
+  // Women 4-Kampf LK1
+  {
+    name: '4-Kampf w LK1',
+    comment: 'Weiblicher 4-Kampf Leistungsklasse 1: Sprung, Reck/Stufenbarren, Schwebebalken, Boden',
+    disciplines: [
+      'Sprung w. LK1',
+      'Reck/StuBa. LK1',
+      'Schwebebalken LK1',
+      'Boden w. LK1',
+    ],
+  },
+  
+  // Women 4-Kampf LK2
+  {
+    name: '4-Kampf w LK2',
+    comment: 'Weiblicher 4-Kampf Leistungsklasse 2: Sprung, Reck/Stufenbarren, Schwebebalken, Boden',
+    disciplines: [
+      'Sprung w. LK2',
+      'Reck/StuBa. LK2',
+      'Schwebebalken LK2',
+      'Boden w. LK2',
+    ],
+  },
+  
+  // Women 4-Kampf LK3
+  {
+    name: '4-Kampf w LK3',
+    comment: 'Weiblicher 4-Kampf Leistungsklasse 3: Sprung, Reck/Stufenbarren, Schwebebalken, Boden',
+    disciplines: [
+      'Sprung w. LK3',
+      'Reck/StuBa. LK3',
+      'Schwebebalken LK3',
+      'Boden w. LK3',
+    ],
+  },
+  
+  // Women 4-Kampf LK4
+  {
+    name: '4-Kampf w LK4',
+    comment: 'Weiblicher 4-Kampf Leistungsklasse 4: Sprung, Reck/Stufenbarren, Schwebebalken, Boden',
+    disciplines: [
+      'Sprung w. LK4',
+      'Reck/StuBa. LK4',
+      'Schwebebalken LK4',
+      'Boden w. LK4',
     ],
   },
 ];

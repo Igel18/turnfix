@@ -223,20 +223,27 @@ describe('Events API', () => {
 
   describe('DELETE /api/events/:id', () => {
     it('should delete an existing event', async () => {
+      // Create a dedicated event for the delete test to avoid interference
+      // from other test suites creating related data (competitions, scores)
+      const isolatedEvent = await TestUtils.createTestEvent({
+        name: 'Delete Test Event (Isolated)',
+        organizer: 'Delete Test',
+        description: 'Event created specifically for delete test'
+      });
+
+      // Use ?force=true to handle any related data that might have been
+      // created by concurrent test suites sharing the database
       const response = await request(app)
-        .delete(`/api/events/${testEvent.int_veranstaltungenid}`)
+        .delete(`/api/events/${isolatedEvent.int_veranstaltungenid}?force=true`)
         .expect(200);
 
       expect(response.body.message).toBe('Event deleted successfully');
 
       // Verify the event is actually deleted
       const deletedEvent = await prisma.tfx_veranstaltungen.findUnique({
-        where: { int_veranstaltungenid: testEvent.int_veranstaltungenid }
+        where: { int_veranstaltungenid: isolatedEvent.int_veranstaltungenid }
       });
       expect(deletedEvent).toBeNull();
-
-      // Prevent cleanup from trying to delete again
-      testEvent = null;
     });
 
     it('should return 404 for non-existent event', async () => {

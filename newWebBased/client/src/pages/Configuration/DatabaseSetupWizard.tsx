@@ -102,6 +102,23 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
           </div>
         </div>
 
+        {/* Warning: Only for new databases */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex">
+            <ExclamationTriangleIcon className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-amber-800">
+              <p className="font-medium mb-1">
+                {t('configuration.wizard.newDbOnly') ||
+                  'Nur für neue, leere Datenbanken'}
+              </p>
+              <p>
+                {t('configuration.wizard.newDbOnlyDetail') ||
+                  'Dieser Assistent ist ausschließlich für die Ersteinrichtung neuer Datenbanken vorgesehen. Bestehende Datenbanken mit Daten werden nicht unterstützt. Disziplinen, Status-Typen und Disziplingruppen werden nur in leere Tabellen importiert.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Steps */}
         <div className="space-y-4">
           {steps.map((step, index) => (

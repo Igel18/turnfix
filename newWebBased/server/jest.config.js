@@ -23,5 +23,8 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testTimeout: 30000,
   clearMocks: true,
-  restoreMocks: true
+  restoreMocks: true,
+  // Run tests sequentially because integration tests share a real database.
+  // Parallel execution causes race conditions with FK constraints and shared state.
+  maxWorkers: 1
 };

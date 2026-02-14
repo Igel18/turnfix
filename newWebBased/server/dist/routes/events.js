@@ -2578,6 +2578,24 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         // If force delete, remove all associated data first
         if (forceDelete && scoresCount > 0) {
             console.log(`🗑️ Force deleting event ${existingEvent.var_name} with ${scoresCount} scores...`);
+            // Delete wertungen_details first (FK child of wertungen)
+            await prisma_1.default.$executeRawUnsafe(`
+        DELETE FROM tfx_wertungen_details
+        WHERE int_wertungenid IN (
+          SELECT w.int_wertungenid FROM tfx_wertungen w
+          JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+        )
+      `, eventId);
+            // Delete jury_results (FK child of wertungen via int_wertungenid)
+            await prisma_1.default.$executeRawUnsafe(`
+        DELETE FROM tfx_jury_results
+        WHERE int_wertungenid IN (
+          SELECT w.int_wertungenid FROM tfx_wertungen w
+          JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+        )
+      `, eventId);
             // Delete all scores for this event
             await prisma_1.default.tfx_wertungen.deleteMany({
                 where: {
@@ -2588,13 +2606,47 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
             });
             console.log(`🗑️ Deleted ${scoresCount} scores for event ${eventId}`);
         }
-        // Delete associated competitions
+        // Delete associated competitions and their child records
         const competitionsCount = await prisma_1.default.tfx_wettkaempfe.count({
             where: { int_veranstaltungenid: eventId }
         });
-        await prisma_1.default.tfx_wettkaempfe.deleteMany({
-            where: { int_veranstaltungenid: eventId }
-        });
+        if (competitionsCount > 0) {
+            // Delete mannschaften (teams) associated with competitions
+            await prisma_1.default.$executeRawUnsafe(`
+        DELETE FROM tfx_mannschaften
+        WHERE int_wettkaempfeid IN (
+          SELECT int_wettkaempfeid FROM tfx_wettkaempfe
+          WHERE int_veranstaltungenid = $1
+        )
+      `, eventId);
+            // Delete wettkaempfe_dispos via wettkaempfe_x_disziplinen
+            await prisma_1.default.$executeRawUnsafe(`
+        DELETE FROM tfx_wettkaempfe_dispos
+        WHERE int_wettkaempfe_x_disziplinenid IN (
+          SELECT wxd.int_wettkaempfe_x_disziplinenid 
+          FROM tfx_wettkaempfe_x_disziplinen wxd
+          JOIN tfx_wettkaempfe wk ON wxd.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+        )
+      `, eventId);
+            // Delete wettkaempfe_x_disziplinen
+            await prisma_1.default.$executeRawUnsafe(`
+        DELETE FROM tfx_wettkaempfe_x_disziplinen
+        WHERE int_wettkaempfeid IN (
+          SELECT int_wettkaempfeid FROM tfx_wettkaempfe
+          WHERE int_veranstaltungenid = $1
+        )
+      `, eventId);
+            // Now delete the competitions themselves
+            await prisma_1.default.tfx_wettkaempfe.deleteMany({
+                where: { int_veranstaltungenid: eventId }
+            });
+        }
+        // Delete riegen_x_disziplinen associated with the event
+        await prisma_1.default.$executeRawUnsafe(`
+      DELETE FROM tfx_riegen_x_disziplinen
+      WHERE int_veranstaltungenid = $1
+    `, eventId);
         // Delete the event
         await prisma_1.default.tfx_veranstaltungen.delete({
             where: { int_veranstaltungenid: eventId }

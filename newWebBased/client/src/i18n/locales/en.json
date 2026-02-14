@@ -234,7 +234,9 @@
       "saveAndReconnect": "Use New DB & Save",
       "saving": "Saving...",
       "savedAndReconnected": "Configuration saved & server is reconnecting!",
-      "savedAndReconnectedDetail": "The new database is now in use. The server is restarting – please wait a moment and then reload the page."
+      "savedAndReconnectedDetail": "The new database is now in use. The server is restarting – please wait a moment and then reload the page.",
+      "newDbOnly": "Only for new, empty databases",
+      "newDbOnlyDetail": "This wizard is intended for initial setup of new databases only. Existing databases with data are not supported. Disciplines, status types, and discipline groups are only imported into empty tables."
     },
     "title": "Settings",
     "subtitle": "Manage application settings and preferences",
@@ -1420,7 +1422,8 @@
     "subtitle": "Manage discipline groups",
     "searchPlaceholder": "Search discipline groups...",
     "addGroup": "Add Group",
-    "editGroup": "Edit Group",
+    "editGroup": "Edit Discipline Group",
+    "createGroup": "Create New Discipline Group",
     "deleteGroup": "Delete Group",
     "groupsLoaded": "groups loaded",
     "noComment": "No comment",
@@ -1435,6 +1438,25 @@
       "fewDisciplines": "Few Disciplines (1-5)",
       "manyDisciplines": "Many Disciplines (6+)"
     },
+    "form": {
+      "groupName": "Group Name",
+      "groupNamePlaceholder": "Enter group name",
+      "comment": "Comment",
+      "commentPlaceholder": "Enter description or comment (optional)",
+      "assignDisciplines": "Assign Disciplines",
+      "searchDisciplines": "Search disciplines...",
+      "showAll": "Show all",
+      "showSelected": "Selected ({{count}})",
+      "selectAllVisible": "Select all visible",
+      "deselectAllVisible": "Deselect all visible",
+      "disciplinesShown": "shown",
+      "noDisciplines": "No disciplines available",
+      "noSearchResults": "No disciplines match your search",
+      "noSelectedDisciplines": "No disciplines selected",
+      "selectedCount": "{{count}} disciplines selected",
+      "updateGroup": "Update Group",
+      "createGroup": "Create Group"
+    },
     "table": {
       "id": "ID",
       "groupName": "Group Name",
@@ -1444,7 +1466,8 @@
     },
     "messages": {
       "confirmDelete": "Are you sure you want to delete this discipline group? This action cannot be undone.",
-      "deleteError": "Failed to delete discipline group"
+      "deleteError": "Failed to delete discipline group",
+      "enterName": "Please enter a group name"
     }
   },
   "status": {
