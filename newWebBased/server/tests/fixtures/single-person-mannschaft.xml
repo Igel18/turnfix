@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wettkämpfe>
+  <Wettkampf>
+    <waID>999002</waID>
+    <waNr>0098</waNr>
+    <waBezeichnung>Test Single Competition</waBezeichnung>
+    <waFolge>0</waFolge>
+    <waGeschlecht>1</waGeschlecht>
+    <waAlterMin>10</waAlterMin>
+    <waAlterMax>18</waAlterMax>
+    <waAnzahlMin>1</waAnzahlMin>
+    <waAnzahlMax>1</waAnzahlMax>
+    <Mannschaften>
+      <Mannschaft>
+        <etID>9010</etID>
+        <etRiege>0</etRiege>
+        <etStartnummer>0</etStartnummer>
+        <etBezeichnung/>
+        <verID>30010</verID>
+        <verDTBKennung>0271700</verDTBKennung>
+        <verKurzname>FC Einzelstarter</verKurzname>
+        <Teilnehmer>
+          <TN>
+            <espID>100010</espID>
+            <espStartnummer>0</espStartnummer>
+            <espZusatz/>
+            <perID>200010</perID>
+            <perName>Einzelturner</perName>
+            <perVorname>Fritz</perVorname>
+            <perGeburt>01.06.2012</perGeburt>
+            <perGeschlecht>1</perGeschlecht>
+          </TN>
+        </Teilnehmer>
+      </Mannschaft>
+    </Mannschaften>
+  </Wettkampf>
+</Wettkämpfe>

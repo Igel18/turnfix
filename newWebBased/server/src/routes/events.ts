@@ -704,18 +704,55 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
 
     // Enhanced data extraction for clubs, competitions, participants, and devices
     const extractData = (obj: any): any => {
+      interface TeamData {
+        clubName: string;
+        competitionNumber: string | null;
+        participants: { firstName: string; lastName: string; birthDate?: string }[];
+      }
+
       interface ExtractedData {
         clubs: any[];
         competitions: any[];
         participants: any[];
         devices: any[];
+        teams: TeamData[];
       }
 
       const result: ExtractedData = {
         clubs: [],
         competitions: [],
         participants: [],
-        devices: []
+        devices: [],
+        teams: []
+      };
+
+      // Helper: Extract team data from a Mannschaft node
+      const extractTeamFromMannschaft = (team: any, competitionCtx: any) => {
+        let teamClubName: string | null = null;
+        if (team.verKurzname) teamClubName = team.verKurzname;
+        else if (team.verName) teamClubName = team.verName;
+        else if (team.var_name) teamClubName = team.var_name;
+
+        if (!teamClubName || !team.Teilnehmer) return;
+
+        const teilnehmerData = team.Teilnehmer;
+        if (!teilnehmerData.TN) return;
+
+        const participants = Array.isArray(teilnehmerData.TN) ? teilnehmerData.TN : [teilnehmerData.TN];
+        // Only create a team if there are multiple participants (team competition)
+        if (participants.length > 1) {
+          const teamEntry: TeamData = {
+            clubName: teamClubName,
+            competitionNumber: competitionCtx?.waNr || null,
+            participants: participants.map((p: any) => ({
+              firstName: p.perVorname?.trim() || '',
+              lastName: p.perName?.trim() || '',
+              birthDate: p.perGeburt || undefined
+            }))
+          };
+          result.teams.push(teamEntry);
+          console.log(`  🏅 Team detected: ${teamClubName} with ${participants.length} members (competition: ${competitionCtx?.waNr || 'unknown'})`);
+        }
       };
 
       // Extract clubs/teams/vereins
@@ -1246,6 +1283,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
               // Extract clubs and continue processing for participants
               extractClubs(value, currentPath);
               value.forEach((team: any, index: number) => {
+                // Track team data for Mannschaft import
+                extractTeamFromMannschaft(team, currentCompetitionContext);
                 // Extract club name from team/Mannschaft and pass it to participants
                 let teamClubName = null;
                 if (team.verKurzname) teamClubName = team.verKurzname;
@@ -1278,6 +1317,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
               if (Array.isArray(value.Mannschaft)) {
                 extractClubs(value.Mannschaft, `${currentPath}.Mannschaft`);
                 value.Mannschaft.forEach((team: any, index: number) => {
+                  // Track team data for Mannschaft import
+                  extractTeamFromMannschaft(team, currentCompetitionContext);
                   // Extract club name from team/Mannschaft and pass it to participants
                   let teamClubName = null;
                   if (team.verKurzname) teamClubName = team.verKurzname;
@@ -1308,6 +1349,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                 });
               } else {
                 extractClubs([value.Mannschaft], `${currentPath}.Mannschaft`);
+                // Track team data for Mannschaft import
+                extractTeamFromMannschaft(value.Mannschaft, currentCompetitionContext);
                 // Extract club name from team/Mannschaft and pass it to participants
                 let teamClubName = null;
                 if (value.Mannschaft.verKurzname) teamClubName = value.Mannschaft.verKurzname;
@@ -1338,6 +1381,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
               }
             } else {
               extractClubs([value], currentPath);
+              // Track team data for Mannschaft import
+              extractTeamFromMannschaft(value, currentCompetitionContext);
               // Extract club name from team/Mannschaft and pass it to participants
               let teamClubName = null;
               if (value.verKurzname) teamClubName = value.verKurzname;
@@ -1436,6 +1481,7 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
     console.log(`  🏆 Competitions: ${extractedData.competitions.length}`);
     console.log(`  👥 Participants: ${extractedData.participants.length}`);
     console.log(`  🏋️ Devices: ${extractedData.devices.length}`);
+    console.log(`  🏅 Teams: ${extractedData.teams.length}`);
 
     // Debug: Show the device extraction details
     if (extractedData.devices.length === 0) {
@@ -1684,7 +1730,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       clubs: { inserted: 0, updated: 0, errors: 0 },
       participants: { inserted: 0, updated: 0, errors: 0 },
       competitions: { inserted: 0, updated: 0, errors: 0 },
-      devices: { inserted: 0, updated: 0, errors: 0 }
+      devices: { inserted: 0, updated: 0, errors: 0 },
+      teams: { inserted: 0, members: 0, errors: 0 }
     };
 
     // 1. Insert/Update Clubs
@@ -2198,11 +2245,156 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       console.log('⚠️ Skipping discipline processing - event creation failed');
     }
 
+    // 5. Create Teams (Mannschaften) from extracted team data
+    if (createdEvent && extractedData.teams.length > 0) {
+      console.log(`🏅 Processing ${extractedData.teams.length} teams...`);
+      
+      // Group teams by competition number + club to handle numbering
+      const teamCounterByCompClub = new Map<string, number>();
+      
+      for (const teamData of extractedData.teams) {
+        try {
+          // Find the club in DB
+          const clubResult = await prisma.$queryRawUnsafe(`
+            SELECT int_vereineid FROM tfx_vereine 
+            WHERE LOWER(var_name) = LOWER($1)
+            LIMIT 1
+          `, teamData.clubName.trim()) as any[];
+
+          if (clubResult.length === 0) {
+            console.log(`  ⚠️ Skipping team: Club "${teamData.clubName}" not found in DB`);
+            insertionResults.teams.errors++;
+            continue;
+          }
+          const clubId = clubResult[0].int_vereineid;
+
+          // Find the competition
+          let competitionId: number | null = null;
+          if (teamData.competitionNumber) {
+            const compResult = await prisma.tfx_wettkaempfe.findFirst({
+              where: {
+                int_veranstaltungenid: createdEvent.int_veranstaltungenid,
+                var_nummer: teamData.competitionNumber
+              }
+            });
+            if (compResult) {
+              competitionId = compResult.int_wettkaempfeid;
+            }
+          }
+          // Fallback: first competition for this event
+          if (!competitionId) {
+            const fallbackComp = await prisma.tfx_wettkaempfe.findFirst({
+              where: { int_veranstaltungenid: createdEvent.int_veranstaltungenid },
+              orderBy: { int_wettkaempfeid: 'asc' }
+            });
+            if (fallbackComp) {
+              competitionId = fallbackComp.int_wettkaempfeid;
+            }
+          }
+
+          if (!competitionId) {
+            console.log(`  ⚠️ Skipping team: No competition found for event`);
+            insertionResults.teams.errors++;
+            continue;
+          }
+
+          // Determine team number (auto-increment per competition+club)
+          const counterKey = `${competitionId}_${clubId}`;
+          const teamNumber = (teamCounterByCompClub.get(counterKey) || 0) + 1;
+          teamCounterByCompClub.set(counterKey, teamNumber);
+
+          // Check if this team already exists
+          const existingTeam = await (prisma as any).tfx_mannschaften.findFirst({
+            where: {
+              int_wettkaempfeid: competitionId,
+              int_vereineid: clubId,
+              int_nummer: teamNumber
+            }
+          });
+
+          let mannschaftId: number;
+          if (existingTeam) {
+            mannschaftId = existingTeam.int_mannschaftenid;
+            console.log(`  📝 Team already exists: ${teamData.clubName} #${teamNumber} (ID: ${mannschaftId})`);
+          } else {
+            // Create the team
+            const newTeam = await (prisma as any).tfx_mannschaften.create({
+              data: {
+                int_wettkaempfeid: competitionId,
+                int_vereineid: clubId,
+                int_nummer: teamNumber,
+                var_riege: '',
+                int_startnummer: null
+              }
+            });
+            mannschaftId = newTeam.int_mannschaftenid;
+            insertionResults.teams.inserted++;
+            console.log(`  ✅ Created team: ${teamData.clubName} #${teamNumber} (ID: ${mannschaftId})`);
+          }
+
+          // Add members to the team
+          for (const member of teamData.participants) {
+            try {
+              if (!member.firstName || !member.lastName) continue;
+
+              // Find participant in DB
+              const participantResult = await prisma.$queryRawUnsafe(`
+                SELECT int_teilnehmerid FROM tfx_teilnehmer 
+                WHERE var_vorname = $1 AND var_nachname = $2 
+                ORDER BY int_teilnehmerid DESC LIMIT 1
+              `, member.firstName, member.lastName) as any[];
+
+              if (participantResult.length === 0) {
+                console.log(`    ⚠️ Participant ${member.firstName} ${member.lastName} not found in DB`);
+                continue;
+              }
+              const participantId = participantResult[0].int_teilnehmerid;
+
+              // Check if already a member
+              const existingMember = await (prisma as any).tfx_man_x_teilnehmer.findFirst({
+                where: {
+                  int_mannschaftenid: mannschaftId,
+                  int_teilnehmerid: participantId
+                }
+              });
+
+              if (!existingMember) {
+                await (prisma as any).tfx_man_x_teilnehmer.create({
+                  data: {
+                    int_mannschaftenid: mannschaftId,
+                    int_teilnehmerid: participantId
+                  }
+                });
+                insertionResults.teams.members++;
+                console.log(`    👤 Added member: ${member.firstName} ${member.lastName} → Team ${teamData.clubName} #${teamNumber}`);
+              } else {
+                console.log(`    📝 Member already in team: ${member.firstName} ${member.lastName}`);
+              }
+
+              // Link wertung to team (update existing score entry)
+              await prisma.$queryRawUnsafe(`
+                UPDATE tfx_wertungen 
+                SET int_mannschaftenid = $1
+                WHERE int_teilnehmerid = $2 AND int_wettkaempfeid = $3 AND (int_mannschaftenid IS NULL OR int_mannschaftenid = 0)
+              `, mannschaftId, participantId, competitionId);
+            } catch (memberError) {
+              console.log(`    ❌ Error adding member ${member.firstName} ${member.lastName}:`, memberError);
+            }
+          }
+        } catch (teamError) {
+          console.log(`  ❌ Error creating team for ${teamData.clubName}:`, teamError);
+          insertionResults.teams.errors++;
+        }
+      }
+      console.log(`  🏅 Team import complete: ${insertionResults.teams.inserted} teams created, ${insertionResults.teams.members} members assigned`);
+    }
+
     console.log('💾 Database insertion completed:');
     console.log(`  🏢 Clubs: ${insertionResults.clubs.inserted} inserted, ${insertionResults.clubs.updated} updated, ${insertionResults.clubs.errors} errors`);
     console.log(`  👥 Participants: ${insertionResults.participants.inserted} inserted, ${insertionResults.participants.updated} updated, ${insertionResults.participants.errors} errors`);
     console.log(`  🏆 Competitions: ${insertionResults.competitions.inserted} inserted, ${insertionResults.competitions.updated} updated, ${insertionResults.competitions.errors} errors`);
     console.log(`  🤸 Disciplines: ${insertionResults.devices.inserted} inserted, ${insertionResults.devices.updated} found/linked, ${insertionResults.devices.errors} errors`);
+    console.log(`  🏅 Teams: ${insertionResults.teams.inserted} created, ${insertionResults.teams.members} members, ${insertionResults.teams.errors} errors`);
 
     // Return structured response with extracted data
     const responseData = {
@@ -2231,11 +2423,13 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         competitions: extractedData.competitions,
         participants: extractedData.participants,
         devices: extractedData.devices,
+        teams: extractedData.teams,
         summary: {
           clubsCount: extractedData.clubs.length,
           competitionsCount: extractedData.competitions.length,
           participantsCount: extractedData.participants.length,
-          devicesCount: extractedData.devices.length
+          devicesCount: extractedData.devices.length,
+          teamsCount: extractedData.teams.length
         }
       },
       debug: debugData,
@@ -2250,11 +2444,13 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           `   - ${extractedData.competitions.length} Wettkämpfe`,
           `   - ${extractedData.participants.length} Teilnehmer`,
           `   - ${extractedData.devices.length} Disziplinen`,
+          `   - ${extractedData.teams.length} Mannschaften`,
           `💾 Datenbank-Import:`,
           `   - Vereine: ${insertionResults.clubs.inserted} neu, ${insertionResults.clubs.updated} aktualisiert`,
           `   - Teilnehmer: ${insertionResults.participants.inserted} neu, ${insertionResults.participants.updated} aktualisiert`,
           `   - Wettkämpfe: ${insertionResults.competitions.inserted} neu`,
           `   - Disziplinen: ${insertionResults.devices.inserted} neu, ${insertionResults.devices.updated} verknüpft`,
+          `   - Mannschaften: ${insertionResults.teams.inserted} erstellt, ${insertionResults.teams.members} Mitglieder zugewiesen`,
           createdEvent ? `✅ Event "${createdEvent.var_name}" (ID: ${createdEvent.int_veranstaltungenid}) erfolgreich erstellt` : '❌ Event-Erstellung fehlgeschlagen'
         ],
         nextSteps: createdEvent ? [

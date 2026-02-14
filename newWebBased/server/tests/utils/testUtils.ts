@@ -25,6 +25,7 @@ export class TestUtils {
     competitions: number[];
     bereiche: number[];
     layouts: number[];
+    teams: number[];
   } = {
     venues: [],
     events: [],
@@ -35,6 +36,7 @@ export class TestUtils {
     competitions: [],
     bereiche: [],
     layouts: [],
+    teams: [],
   };
 
   static getPrisma(): PrismaClient {
@@ -186,6 +188,14 @@ export class TestUtils {
     const prisma = this.getPrisma();
     
     try {
+      // 0. Delete test teams (and their members cascade via FK)
+      if (this.createdIds.teams.length > 0) {
+        // Members (tfx_man_x_teilnehmer) cascade-delete with tfx_mannschaften
+        await prisma.tfx_mannschaften.deleteMany({
+          where: { int_mannschaftenid: { in: this.createdIds.teams } }
+        }).catch(() => {});
+      }
+
       // 1. Delete scores/results referencing test competitions
       if (this.createdIds.competitions.length > 0) {
         await prisma.tfx_wertungen.deleteMany({
@@ -288,6 +298,7 @@ export class TestUtils {
       competitions: [],
       bereiche: [],
       layouts: [],
+      teams: [],
     };
   }
 
