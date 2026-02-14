@@ -160,4 +160,4 @@ John Doe
 21. Schreibe tests für alle Filter Menüs. Manchmal funktionieren die "Alle Filter zurücksetzen" Buttons nicht, manchmal werden beim "Geschlecht" nicht die Typen aus der DB tfx_bereiche und zusätzlich "Alle Geschlechter" (default) sondern auch "All Geschlecht" angezeigt. 
 
 22. beim Erzeugen von Wettkämpfen ist die UI sehr voll. Insbesondere die Ganzen Geräte machen viel aus. Eine Darstellung wie bei Disziplingruppe bearbeiten wäre schön. mit Suchen, ausgewählt
-
+	-> Erledigt ✅ 
