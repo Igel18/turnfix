@@ -9,6 +9,8 @@ export interface Competition {
   date: string;
   location: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
+  areaId: number | null;            // int_bereicheid - Bereich/Area ID
+  areaName: string | null;           // Bereich name from tfx_bereiche
   ageFrom: number;
   ageTo: number;
   disciplines: {
@@ -49,6 +51,7 @@ export interface CompetitionFormData {
   name: string;
   description: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
+  areaId: number | null;             // int_bereicheid - Bereich/Area ID
   ageFrom: number;
   ageTo: number;
   disciplines: { disciplineId: number; maxScore: number }[];

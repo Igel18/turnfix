@@ -62,6 +62,13 @@ export const CompetitionTable: React.FC<CompetitionTableProps> = ({
                 onSort={handleSort}
               />
               <SortableTableHeader
+                sortKey="areaName"
+                label={t('competitions.fields.area', 'Bereich')}
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableTableHeader
                 sortKey="competitionType"
                 label={t('competitions.fields.type')}
                 currentSortKey={sortKey}
@@ -133,6 +140,11 @@ export const CompetitionTable: React.FC<CompetitionTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <GenderBadge value={competition.gender} />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-700">
+                    {competition.areaName || '-'}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">

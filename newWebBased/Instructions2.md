@@ -165,5 +165,13 @@ John Doe
 
 23. Mannschaftswettkampf import 
 Wird eine gymnet xml importiert welche unter dem knoten "mannschaft" nicht nur eine Person hat, so ist dies eine Mannschaft und muss in der http://localhost:3001/teams?eventId=1&squadName=asdf hinzugefügt werden. Natürlich müssen dann auch die Personen unter dieser Mannschaft hinzugefügt werden. 
+	-> Erledigt ✅ 
 
 24. Die UI "Bereiche" für das Geschlecht wird noch nicht angezeigt. 
+	-> Erledigt ✅ 
+
+25. Ein MSI SEtup erstellen für Windows für das komplete turnfix Web. Ich denke diese schritte wären sinnvoll: 
+1. Admin rechte abfragen 
+2. PG installieren 
+3. Turnfix installieren 
+4. Service installieren welcher turnfix server startet 

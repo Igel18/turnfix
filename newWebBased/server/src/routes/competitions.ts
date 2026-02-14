@@ -14,6 +14,7 @@ const createCompetitionSchema = z.object({
   description: z.string().optional(),
   location: z.string().optional(), // Location is optional since it comes from event
   gender: z.enum(getCompetitionGenderValues() as [string, ...string[]]),
+  areaId: z.number().nullable().optional(),          // int_bereicheid - direct Bereich selection
   ageFrom: z.number().min(1).max(99),
   ageTo: z.number().min(1).max(99),
   disciplines: z.array(z.object({
@@ -129,6 +130,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         gender: bereich?.bol_maennlich && bereich?.bol_weiblich ? 'gemischt' : 
                 bereich?.bol_maennlich ? 'männlich' : 
                 bereich?.bol_weiblich ? 'weiblich' : 'gemischt',
+        areaId: bereich?.int_bereicheid || null,
+        areaName: bereich?.var_name || null,
         ageFrom: Math.min(ageFrom, ageTo), // Ensure ageFrom is the smaller value
         ageTo: Math.max(ageFrom, ageTo),   // Ensure ageTo is the larger value
         disciplines: comp.tfx_wettkaempfe_x_disziplinen.map((wd: any) => ({
@@ -276,6 +279,8 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       gender: bereich?.bol_maennlich && bereich?.bol_weiblich ? 'gemischt' : 
               bereich?.bol_maennlich ? 'männlich' : 
               bereich?.bol_weiblich ? 'weiblich' : 'gemischt',
+      areaId: bereich?.int_bereicheid || null,
+      areaName: bereich?.var_name || null,
       ageFrom: Math.min(ageFrom, ageTo),
       ageTo: Math.max(ageFrom, ageTo),
       disciplines: competition.tfx_wettkaempfe_x_disziplinen.map(wd => ({
@@ -471,39 +476,53 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     }
     
     // Find or create appropriate bereich (gender category)
-    // DO NOT hardcode IDs - look up or create the correct bereich dynamically
-    let boolMaennlich = true;
-    let boolWeiblich = true;
-    let bereichName = 'Gemischt';
+    // If areaId is provided, use it directly. Otherwise, find/create by gender flags.
+    let bereich: any = null;
     
-    if (validatedData.gender === 'männlich' || validatedData.gender === 'male') {
-      boolMaennlich = true;
-      boolWeiblich = false;
-      bereichName = 'Männlich';
-    } else if (validatedData.gender === 'weiblich' || validatedData.gender === 'female') {
-      boolMaennlich = false;
-      boolWeiblich = true;
-      bereichName = 'Weiblich';
-    }
-    
-    // Try to find existing bereich matching the gender flags
-    let bereich = await prisma.tfx_bereiche.findFirst({
-      where: {
-        bol_maennlich: boolMaennlich,
-        bol_weiblich: boolWeiblich
+    if (validatedData.areaId) {
+      // Direct Bereich selection from frontend
+      bereich = await prisma.tfx_bereiche.findUnique({
+        where: { int_bereicheid: validatedData.areaId }
+      });
+      if (!bereich) {
+        return res.status(400).json({ error: `Bereich with ID ${validatedData.areaId} not found` });
       }
-    });
-    
-    // Create bereich if not found
-    if (!bereich) {
-      bereich = await prisma.tfx_bereiche.create({
-        data: {
-          var_name: bereichName,
+      console.log(`📍 Using selected bereich: ${bereich.var_name} (ID: ${bereich.int_bereicheid})`);
+    } else {
+      // Fallback: Find or create bereich by gender flags
+      let boolMaennlich = true;
+      let boolWeiblich = true;
+      let bereichName = 'Gemischt';
+      
+      if (validatedData.gender === 'männlich' || validatedData.gender === 'male') {
+        boolMaennlich = true;
+        boolWeiblich = false;
+        bereichName = 'Männlich';
+      } else if (validatedData.gender === 'weiblich' || validatedData.gender === 'female') {
+        boolMaennlich = false;
+        boolWeiblich = true;
+        bereichName = 'Weiblich';
+      }
+      
+      // Try to find existing bereich matching the gender flags
+      bereich = await prisma.tfx_bereiche.findFirst({
+        where: {
           bol_maennlich: boolMaennlich,
           bol_weiblich: boolWeiblich
         }
       });
-      console.log(`📍 Created new bereich: ${bereichName} (ID: ${bereich.int_bereicheid})`);
+      
+      // Create bereich if not found
+      if (!bereich) {
+        bereich = await prisma.tfx_bereiche.create({
+          data: {
+            var_name: bereichName,
+            bol_maennlich: boolMaennlich,
+            bol_weiblich: boolWeiblich
+          }
+        });
+        console.log(`📍 Created new bereich: ${bereichName} (ID: ${bereich.int_bereicheid})`);
+      }
     }
     
     const bereichId = bereich.int_bereicheid;
@@ -849,6 +868,46 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       console.log(`🎂 DEBUG: Update ageTo ${validatedData.ageTo} -> birth year ${updateData.yer_bis} (event year: ${eventYear})`);
     }
     
+    // Update Bereich (gender category) if areaId or gender changed
+    if (validatedData.areaId !== undefined && validatedData.areaId !== null) {
+      // Direct Bereich selection from frontend
+      const bereich = await prisma.tfx_bereiche.findUnique({
+        where: { int_bereicheid: validatedData.areaId }
+      });
+      if (!bereich) {
+        return res.status(400).json({ error: `Bereich with ID ${validatedData.areaId} not found` });
+      }
+      updateData.int_bereicheid = validatedData.areaId;
+      console.log(`📍 Using selected bereich for update: ${bereich.var_name} (ID: ${bereich.int_bereicheid})`);
+    } else if (validatedData.gender) {
+      // Fallback: Find or create bereich by gender flags
+      let boolMaennlich = true;
+      let boolWeiblich = true;
+      let bereichName = 'Gemischt';
+      
+      if (validatedData.gender === 'männlich' || validatedData.gender === 'male') {
+        boolMaennlich = true;
+        boolWeiblich = false;
+        bereichName = 'Männlich';
+      } else if (validatedData.gender === 'weiblich' || validatedData.gender === 'female') {
+        boolMaennlich = false;
+        boolWeiblich = true;
+        bereichName = 'Weiblich';
+      }
+      
+      let bereich = await prisma.tfx_bereiche.findFirst({
+        where: { bol_maennlich: boolMaennlich, bol_weiblich: boolWeiblich }
+      });
+      
+      if (!bereich) {
+        bereich = await prisma.tfx_bereiche.create({
+          data: { var_name: bereichName, bol_maennlich: boolMaennlich, bol_weiblich: boolWeiblich }
+        });
+        console.log(`📍 Created new bereich for update: ${bereichName} (ID: ${bereich.int_bereicheid})`);
+      }
+      updateData.int_bereicheid = bereich.int_bereicheid;
+    }
+    
     console.log('📝 DEBUG: updateData BEFORE Prisma update:', JSON.stringify(updateData, null, 2));
     
     const updatedCompetition = await prisma.tfx_wettkaempfe.update({
@@ -1095,6 +1154,8 @@ router.get('/filter/search', authenticateToken, async (req: AuthRequest, res) =>
         gender: bereich?.bol_maennlich && bereich?.bol_weiblich ? 'gemischt' : 
                 bereich?.bol_maennlich ? 'männlich' : 
                 bereich?.bol_weiblich ? 'weiblich' : 'gemischt',
+        areaId: bereich?.int_bereicheid || null,
+        areaName: bereich?.var_name || null,
         ageFrom: Math.min(ageFrom, ageTo),
         ageTo: Math.max(ageFrom, ageTo),
         disciplines: comp.tfx_wettkaempfe_x_disziplinen.map(wd => wd.tfx_disziplinen.int_disziplinenid),

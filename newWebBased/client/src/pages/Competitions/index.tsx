@@ -34,6 +34,9 @@ const Competitions: React.FC = () => {
     setSearchTerm,
     genderFilter,
     setGenderFilter,
+    areaFilter,
+    setAreaFilter,
+    availableAreas,
     statusFilter,
     setStatusFilter,
     showFilters,
@@ -81,6 +84,9 @@ const Competitions: React.FC = () => {
             setSearchTerm={setSearchTerm}
             genderFilter={genderFilter}
             setGenderFilter={setGenderFilter}
+            areaFilter={areaFilter}
+            setAreaFilter={setAreaFilter}
+            availableAreas={availableAreas}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
             onClearAll={handleClearAllFilters}

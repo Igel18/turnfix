@@ -1904,6 +1904,11 @@
           "mixed": "Mixed"
         }
       },
+      "area": {
+        "label": "Area",
+        "placeholder": "-- Select area --",
+        "description": "The area determines the gender category of the competition"
+      },
       "ageFrom": {
         "label": "Age From",
         "description": "Minimum age for participation"
@@ -2824,6 +2829,8 @@
       "male": "Male",
       "female": "Female",
       "mixed": "Mixed",
+      "area": "Area",
+      "allAreas": "All Areas",
       "status": "Status",
       "allStatus": "All Status",
       "upcoming": "Upcoming",
@@ -2839,6 +2846,7 @@
       "disciplines": "Disciplines",
       "participants": "Participants",
       "gender": "Gender",
+      "area": "Area",
       "type": "Type",
       "ageGroup": "Age Group",
       "ageFrom": "Age From",

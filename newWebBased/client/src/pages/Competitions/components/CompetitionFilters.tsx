@@ -1,11 +1,19 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+interface AreaOption {
+  id: number;
+  name: string;
+}
+
 interface CompetitionFiltersProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   genderFilter: string;
   setGenderFilter: (value: string) => void;
+  areaFilter: string;
+  setAreaFilter: (value: string) => void;
+  availableAreas: AreaOption[];
   statusFilter: string;
   setStatusFilter: (value: string) => void;
   onClearAll: () => void;
@@ -16,6 +24,9 @@ export const CompetitionFilters: React.FC<CompetitionFiltersProps> = ({
   setSearchTerm,
   genderFilter,
   setGenderFilter,
+  areaFilter,
+  setAreaFilter,
+  availableAreas,
   statusFilter,
   setStatusFilter,
   onClearAll
@@ -23,7 +34,7 @@ export const CompetitionFilters: React.FC<CompetitionFiltersProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {t('competitions.filters.search')}
@@ -50,6 +61,24 @@ export const CompetitionFilters: React.FC<CompetitionFiltersProps> = ({
           <option value="männlich">{t('competitions.filters.male')}</option>
           <option value="weiblich">{t('competitions.filters.female')}</option>
           <option value="gemischt">{t('competitions.filters.mixed')}</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {t('competitions.filters.area', 'Bereich')}
+        </label>
+        <select
+          value={areaFilter}
+          onChange={(e) => setAreaFilter(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="">{t('competitions.filters.allAreas', 'Alle Bereiche')}</option>
+          {availableAreas.map(area => (
+            <option key={area.id} value={area.id.toString()}>
+              {area.name}
+            </option>
+          ))}
         </select>
       </div>
       

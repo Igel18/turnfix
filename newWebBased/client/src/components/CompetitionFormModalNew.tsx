@@ -22,6 +22,7 @@ interface CompetitionFormData {
   name: string;
   description: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
+  areaId: number | null;
   ageFrom: number;
   ageTo: number;
   disciplines: { disciplineId: number; maxScore: number }[];
@@ -52,6 +53,8 @@ interface Competition {
   name: string;
   description: string;
   gender: 'männlich' | 'weiblich' | 'gemischt';
+  areaId?: number | null;
+  areaName?: string | null;
   ageFrom: number;
   ageTo: number;
   disciplines: { disciplineId: number; name: string; maxScore: number }[];
@@ -105,6 +108,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   
   // State for modal-specific data
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [areas, setAreas] = useState<{ int_bereicheid: number; var_name: string | null; bol_maennlich: boolean | null; bol_weiblich: boolean | null }[]>([]);
   const [disciplineGroups, setDisciplineGroups] = useState<{ 
     int_disziplinen_gruppenid: number; 
     var_name: string; 
@@ -149,9 +153,20 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
       }
     };
 
+    const fetchAreas = async () => {
+      try {
+        const response = await fetch('/api/areas?limit=1000');
+        const data = await response.json();
+        setAreas(data.areas || []);
+      } catch (error) {
+        console.error('Error fetching areas:', error);
+      }
+    };
+
     if (isOpen) {
       fetchDisciplines();
       fetchDisciplineGroups();
+      fetchAreas();
     }
   }, [isOpen]);
 
@@ -420,19 +435,44 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    👥 {t('competitionForm.fields.gender.label')} *
+                    👥 {t('competitionForm.fields.area.label', 'Bereich')} *
                   </label>
                   <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value as 'männlich' | 'weiblich' | 'gemischt' }))}
+                    value={formData.areaId ?? ''}
+                    onChange={(e) => {
+                      const selectedAreaId = e.target.value ? parseInt(e.target.value) : null;
+                      const selectedArea = areas.find(a => a.int_bereicheid === selectedAreaId);
+                      // Derive gender from the selected Bereich
+                      let derivedGender: 'männlich' | 'weiblich' | 'gemischt' = 'gemischt';
+                      if (selectedArea) {
+                        const m = selectedArea.bol_maennlich ?? true;
+                        const w = selectedArea.bol_weiblich ?? true;
+                        if (m && w) derivedGender = 'gemischt';
+                        else if (m) derivedGender = 'männlich';
+                        else if (w) derivedGender = 'weiblich';
+                      }
+                      setFormData(prev => ({ ...prev, areaId: selectedAreaId, gender: derivedGender }));
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
-                    <option value="männlich">{t('competitionForm.fields.gender.options.male')}</option>
-                    <option value="weiblich">{t('competitionForm.fields.gender.options.female')}</option>
-                    <option value="gemischt">{t('competitionForm.fields.gender.options.mixed')}</option>
+                    <option value="">{t('competitionForm.fields.area.placeholder', '-- Bereich wählen --')}</option>
+                    {areas.map(area => {
+                      const m = area.bol_maennlich ?? true;
+                      const w = area.bol_weiblich ?? true;
+                      const genderLabel = m && w 
+                        ? t('competitionForm.fields.gender.options.mixed') 
+                        : m 
+                        ? t('competitionForm.fields.gender.options.male') 
+                        : t('competitionForm.fields.gender.options.female');
+                      return (
+                        <option key={area.int_bereicheid} value={area.int_bereicheid}>
+                          {area.var_name || t('areas.unnamed')} ({genderLabel})
+                        </option>
+                      );
+                    })}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.gender.description')}</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.area.description', 'Der Bereich bestimmt das Geschlecht des Wettkampfs')}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

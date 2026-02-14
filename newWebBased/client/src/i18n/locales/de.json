@@ -1937,6 +1937,11 @@
           "mixed": "Gemischt"
         }
       },
+      "area": {
+        "label": "Bereich",
+        "placeholder": "-- Bereich wählen --",
+        "description": "Der Bereich bestimmt das Geschlecht des Wettkampfs"
+      },
       "ageFrom": {
         "label": "Alter von",
         "description": "Mindestalter für die Teilnahme"
@@ -2861,6 +2866,8 @@
       "male": "Männlich",
       "female": "Weiblich",
       "mixed": "Gemischt",
+      "area": "Bereich",
+      "allAreas": "Alle Bereiche",
       "status": "Status",
       "allStatus": "Alle Status",
       "upcoming": "Bevorstehend",
@@ -2876,6 +2883,7 @@
       "disciplines": "Disziplinen",
       "participants": "Teilnehmer",
       "gender": "Geschlecht",
+      "area": "Bereich",
       "type": "Typ",
       "ageGroup": "Altersgruppe",
       "ageFrom": "Alter von",

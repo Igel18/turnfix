@@ -71,8 +71,13 @@ export const CompetitionGrid: React.FC<CompetitionGridProps> = ({
             </div>
 
             <div className="flex justify-between items-center">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <GenderBadge value={competition.gender} />
+                {competition.areaName && (
+                  <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                    {competition.areaName}
+                  </span>
+                )}
                 <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                   {competition.ageFrom}-{competition.ageTo} {t('competitions.fields.years')}
                 </span>

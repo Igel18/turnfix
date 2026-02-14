@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { debugLog } from '../../../utils/debug';
 import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../../../utils/api';
@@ -13,6 +13,7 @@ const getInitialFormData = (): CompetitionFormData => ({
   name: '',
   description: '',
   gender: 'gemischt',
+  areaId: null,
   ageFrom: 6,
   ageTo: 18,
   disciplines: [],
@@ -46,6 +47,7 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
+  const [areaFilter, setAreaFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   
@@ -250,6 +252,7 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
       name: competition.name,
       description: competition.description,
       gender: competition.gender,
+      areaId: competition.areaId ?? null,
       ageFrom: ageFromValue,
       ageTo: ageToValue,
       disciplines: Array.isArray(competition.disciplines) ? 
@@ -298,6 +301,7 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
   const handleClearAllFilters = useCallback(() => {
     setSearchTerm('');
     setGenderFilter('');
+    setAreaFilter('');
     setStatusFilter('');
   }, []);
 
@@ -307,9 +311,10 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
       const matchesSearch = competition.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            competition.location.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesGender = !genderFilter || competition.gender === genderFilter;
+      const matchesArea = !areaFilter || competition.areaId?.toString() === areaFilter;
       const matchesStatus = !statusFilter || competition.status === statusFilter;
       
-      return matchesSearch && matchesGender && matchesStatus;
+      return matchesSearch && matchesGender && matchesArea && matchesStatus;
     });
 
     const csvData = filteredCompetitions.map(competition => ({
@@ -350,10 +355,22 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
     const matchesSearch = competition.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          competition.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGender = !genderFilter || competition.gender === genderFilter;
+    const matchesArea = !areaFilter || competition.areaId?.toString() === areaFilter;
     const matchesStatus = !statusFilter || competition.status === statusFilter;
     
-    return matchesSearch && matchesGender && matchesStatus;
+    return matchesSearch && matchesGender && matchesArea && matchesStatus;
   });
+
+  // Extract unique areas from loaded competitions for filter dropdown
+  const availableAreas = useMemo(() => {
+    const areaMap = new Map<number, string>();
+    competitions.forEach(comp => {
+      if (comp.areaId && comp.areaName) {
+        areaMap.set(comp.areaId, comp.areaName);
+      }
+    });
+    return Array.from(areaMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [competitions]);
 
   return {
     // Data
@@ -376,6 +393,9 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
     setSearchTerm,
     genderFilter,
     setGenderFilter,
+    areaFilter,
+    setAreaFilter,
+    availableAreas,
     statusFilter,
     setStatusFilter,
     showFilters,
