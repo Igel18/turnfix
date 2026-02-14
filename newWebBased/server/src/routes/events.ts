@@ -851,6 +851,14 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                   if (!competition.ageInfo) competition.ageInfo = {};
                   competition.ageInfo.max = parseInt(item[key]) || 0;
                 }
+                else if (key === 'waAnzahlMin') {
+                  if (!competition.teamInfo) competition.teamInfo = {};
+                  competition.teamInfo.min = parseInt(item[key]) || 0;
+                }
+                else if (key === 'waAnzahlMax') {
+                  if (!competition.teamInfo) competition.teamInfo = {};
+                  competition.teamInfo.max = parseInt(item[key]) || 0;
+                }
                 // Generic field mappings (fallback)
                 else if (key.toLowerCase().includes('name') || 
                     key.toLowerCase().includes('title') ||
@@ -900,6 +908,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
                 if (key === 'waAlterMax') {
                   if (!competition.ageInfo) competition.ageInfo = {};
                   competition.ageInfo.max = parseInt(item[key]) || 0;
+                }
+
+                // Extract team size info from waAnzahlMin/waAnzahlMax (DTB standard)
+                if (key === 'waAnzahlMin') {
+                  if (!competition.teamInfo) competition.teamInfo = {};
+                  competition.teamInfo.min = parseInt(item[key]) || 0;
+                }
+                if (key === 'waAnzahlMax') {
+                  if (!competition.teamInfo) competition.teamInfo = {};
+                  competition.teamInfo.max = parseInt(item[key]) || 0;
                 }
                 
                 // Fallback: Extract gender information from other fields
@@ -987,6 +1005,16 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
             if (key === 'waAlterMax') {
               if (!competition.ageInfo) competition.ageInfo = {};
               competition.ageInfo.max = parseInt(data[key]) || 0;
+            }
+
+            // Extract team size info from waAnzahlMin/waAnzahlMax (DTB standard)
+            if (key === 'waAnzahlMin') {
+              if (!competition.teamInfo) competition.teamInfo = {};
+              competition.teamInfo.min = parseInt(data[key]) || 0;
+            }
+            if (key === 'waAnzahlMax') {
+              if (!competition.teamInfo) competition.teamInfo = {};
+              competition.teamInfo.max = parseInt(data[key]) || 0;
             }
             
             // Fallback: Extract gender information from other fields
@@ -2052,24 +2080,35 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           `, createdEvent.int_veranstaltungenid, competition.name.trim());
 
           if ((existingCompetition as any[]).length > 0) {
-            // Update existing competition with birth year ranges, bereich, and competition number
+            // Determine competition type: 1 = Mannschaft (team), 0 = Einzel (individual)
+            // Team if waAnzahlMax > 1 OR if extracted teams reference this competition number
+            const isTeamCompetition = (competition.teamInfo?.max > 1) || 
+              extractedData.teams.some((t: any) => t.competitionNumber === (competition.waNr || competition.number));
+            const competitionType = isTeamCompetition ? 1 : 0;
+
+            // Update existing competition with birth year ranges, bereich, competition number, and type
             await prisma.$queryRawUnsafe(`
               UPDATE tfx_wettkaempfe 
-              SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4, var_nummer = $5
-              WHERE int_wettkaempfeid = $6
-            `, competition.name.trim(), ageFrom, ageTo, bereichId, competition.waNr || competition.number || null, (existingCompetition as any[])[0].int_wettkaempfeid);
+              SET var_name = $1, yer_von = $2, yer_bis = $3, int_bereicheid = $4, var_nummer = $5, int_typ = $6
+              WHERE int_wettkaempfeid = $7
+            `, competition.name.trim(), ageFrom, ageTo, bereichId, competition.waNr || competition.number || null, competitionType, (existingCompetition as any[])[0].int_wettkaempfeid);
             
             insertionResults.competitions.updated++;
-            console.log(`  ✅ Updated: ${competition.name} (Birth years: ${ageFrom}-${ageTo}, Ages: ${displayAgeFrom}-${displayAgeTo}, Number: ${competition.waNr || competition.number || 'none'})`);
+            console.log(`  ✅ Updated: ${competition.name} (Birth years: ${ageFrom}-${ageTo}, Ages: ${displayAgeFrom}-${displayAgeTo}, Number: ${competition.waNr || competition.number || 'none'}, Type: ${isTeamCompetition ? 'Mannschaft' : 'Einzel'})`);
           } else {
-            // Insert new competition with birth year ranges, bereich, and competition number
+            // Determine competition type: 1 = Mannschaft (team), 0 = Einzel (individual)
+            const isTeamCompetition = (competition.teamInfo?.max > 1) || 
+              extractedData.teams.some((t: any) => t.competitionNumber === (competition.waNr || competition.number));
+            const competitionType = isTeamCompetition ? 1 : 0;
+
+            // Insert new competition with birth year ranges, bereich, competition number, and type
             await prisma.$queryRawUnsafe(`
-              INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis, var_nummer)
-              VALUES ($1, $2, $3, $4, $5, $6)
-            `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo, competition.waNr || competition.number || null);
+              INSERT INTO tfx_wettkaempfe (int_veranstaltungenid, int_bereicheid, var_name, yer_von, yer_bis, var_nummer, int_typ)
+              VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `, createdEvent.int_veranstaltungenid, bereichId, competition.name.trim(), ageFrom, ageTo, competition.waNr || competition.number || null, competitionType);
             
             insertionResults.competitions.inserted++;
-            console.log(`  ✅ Inserted: ${competition.name} (Birth years: ${ageFrom}-${ageTo}, Ages: ${displayAgeFrom}-${displayAgeTo}, Number: ${competition.waNr || competition.number || 'none'})`);
+            console.log(`  ✅ Inserted: ${competition.name} (Birth years: ${ageFrom}-${ageTo}, Ages: ${displayAgeFrom}-${displayAgeTo}, Number: ${competition.waNr || competition.number || 'none'}, Type: ${isTeamCompetition ? 'Mannschaft' : 'Einzel'})`);
           }
         } catch (error) {
           console.log(`  ❌ Error processing competition ${competition.name}:`, error);

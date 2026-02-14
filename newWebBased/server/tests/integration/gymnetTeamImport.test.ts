@@ -266,6 +266,22 @@ describe('GymNet Team Import', () => {
       expect(summary).toBeDefined();
       expect(summary.teamsCount).toBe(2);
     });
+
+    it('should set competition type (int_typ) to 1 for team competitions', async () => {
+      await importXmlAndTrack(teamFixturePath);
+
+      // Find the competition created for this event
+      expect(createdCompetitionIds.length).toBeGreaterThan(0);
+
+      for (const compId of createdCompetitionIds) {
+        const competition = await prisma.tfx_wettkaempfe.findUnique({
+          where: { int_wettkaempfeid: compId }
+        });
+        expect(competition).not.toBeNull();
+        // Competition with waAnzahlMax > 1 should be type 1 (Mannschaft)
+        expect(competition!.int_typ).toBe(1);
+      }
+    });
   });
 
   describe('Single-person Mannschaft does NOT create a team', () => {
@@ -301,6 +317,23 @@ describe('GymNet Team Import', () => {
         (p.lastName === 'Einzelturner' || p.perName === 'Einzelturner')
       );
       expect(fritz).toBeDefined();
+    });
+
+    it('should keep competition type 0 (Einzel) for single-person competitions', async () => {
+      await importXmlAndTrack(singleFixturePath, 'Single Type Check');
+
+      // Find competition for this event
+      if (createdEventId) {
+        const competitions = await prisma.tfx_wettkaempfe.findMany({
+          where: { int_veranstaltungenid: createdEventId }
+        });
+        expect(competitions.length).toBeGreaterThan(0);
+        
+        // waAnzahlMax=1, no multi-person teams → int_typ should be 0
+        for (const comp of competitions) {
+          expect(comp.int_typ).toBe(0);
+        }
+      }
     });
   });
 

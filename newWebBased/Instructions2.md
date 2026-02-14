@@ -166,4 +166,4 @@ John Doe
 23. Mannschaftswettkampf import 
 Wird eine gymnet xml importiert welche unter dem knoten "mannschaft" nicht nur eine Person hat, so ist dies eine Mannschaft und muss in der http://localhost:3001/teams?eventId=1&squadName=asdf hinzugefügt werden. Natürlich müssen dann auch die Personen unter dieser Mannschaft hinzugefügt werden. 
 
-24. Die UI Bereiche wird noch nicht angezeigt. 
+24. Die UI "Bereiche" für das Geschlecht wird noch nicht angezeigt. 
