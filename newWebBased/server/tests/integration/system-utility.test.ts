@@ -33,6 +33,10 @@ describe('System and Utility APIs', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     testEvent = await TestUtils.createTestEvent({
       name: 'Test Event for System APIs',

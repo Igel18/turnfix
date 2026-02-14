@@ -22,6 +22,11 @@ describe('Participants API', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    // Clean up the test participant and event created in beforeEach
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     // Create a test event first
     testEvent = await TestUtils.createTestEvent({

@@ -21,6 +21,11 @@ describe('Disciplines API', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    // Clean up the test discipline created in beforeEach
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     // Create a test discipline
     testDiscipline = await prisma.tfx_disziplinen.create({
@@ -33,6 +38,7 @@ describe('Disciplines API', () => {
         bol_w: false // Not female
       }
     });
+    TestUtils.trackCreated('disciplines', testDiscipline.int_disziplinenid);
   });
 
   describe('GET /api/disciplines', () => {

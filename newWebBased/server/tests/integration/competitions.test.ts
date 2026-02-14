@@ -22,6 +22,10 @@ describe('Competitions API', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     // Create a test event first
     testEvent = await TestUtils.createTestEvent({

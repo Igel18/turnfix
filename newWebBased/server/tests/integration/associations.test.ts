@@ -21,6 +21,11 @@ describe('Associations API', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    // Clean up the test association created in beforeEach (and any other tracked records)
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     // Create a test association
     testAssociation = await prisma.tfx_gaue.create({
@@ -30,6 +35,7 @@ describe('Associations API', () => {
         int_verbaendeid: 1 // Default federation ID
       }
     });
+    TestUtils.trackCreated('associations', testAssociation.int_gaueid);
   });
 
   describe('GET /api/associations', () => {

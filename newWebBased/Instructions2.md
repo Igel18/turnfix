@@ -146,14 +146,18 @@ Bitte hier auch unbedingt tests schreiben!
 4-Kampf w LK4
 
 und natürlich die geräte dazu hinzugefügt. 
+	-> Erledigt ✅ 
 
 19. Das bearbeiten / hinzufügen von Disziplingruppen geht zwar, aber es können keine Geräte ausgewählt werden. http://localhost:3001/discipline-groups
+	-> Erledigt ✅ 
 
 20. Es werden gerade massenhaft Gebiete und Veände und VEreine und Athleten angelegt aber woher kommen die??? 
 Test Gymnastics Association
 Test Gymnastics Club
 John Doe
+	-> Erledigt ✅ 
 
 21. Schreibe tests für alle Filter Menüs. Manchmal funktionieren die "Alle Filter zurücksetzen" Buttons nicht, manchmal werden beim "Geschlecht" nicht die Typen aus der DB tfx_bereiche und zusätzlich "Alle Geschlechter" (default) sondern auch "All Geschlecht" angezeigt. 
 
 22. beim Erzeugen von Wettkämpfen ist die UI sehr voll. Insbesondere die Ganzen Geräte machen viel aus. Eine Darstellung wie bei Disziplingruppe bearbeiten wäre schön. mit Suchen, ausgewählt
+

@@ -21,6 +21,11 @@ describe('Clubs API', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    // Clean up the test club created in beforeEach (and any other tracked records)
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     // Create a test club
     testClub = await prisma.tfx_vereine.create({
@@ -30,6 +35,7 @@ describe('Clubs API', () => {
         int_gaueid: 1 // Default association ID
       }
     });
+    TestUtils.trackCreated('clubs', testClub.int_vereineid);
   });
 
   describe('GET /api/clubs', () => {

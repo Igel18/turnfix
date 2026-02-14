@@ -21,6 +21,10 @@ describe('Scores API', () => {
     await TestUtils.disconnect();
   });
 
+  afterEach(async () => {
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   beforeEach(async () => {
     testEvent = await TestUtils.createTestEvent({
       name: 'Test Event for Scores',

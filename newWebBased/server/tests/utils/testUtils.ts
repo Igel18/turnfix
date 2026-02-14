@@ -1,10 +1,37 @@
 import { PrismaClient } from '@prisma/client';
 
 /**
- * Test utilities for database operations
+ * Test utilities for database operations.
+ * 
+ * IMPORTANT: All test data created via TestUtils is tracked by ID
+ * and cleaned up in cleanup(). This prevents test data from polluting
+ * the production database.
+ * 
+ * Tests MUST call TestUtils.cleanup() in afterAll() AND
+ * TestUtils.cleanupCreatedRecords() in afterEach() to ensure
+ * no test data is left behind.
  */
 export class TestUtils {
   private static prisma: PrismaClient;
+
+  // Track all records created during tests so we can clean them up precisely
+  private static createdIds: {
+    venues: number[];
+    events: number[];
+    participants: number[];
+    clubs: number[];
+    associations: number[];
+    disciplines: number[];
+    competitions: number[];
+  } = {
+    venues: [],
+    events: [],
+    participants: [],
+    clubs: [],
+    associations: [],
+    disciplines: [],
+    competitions: [],
+  };
 
   static getPrisma(): PrismaClient {
     if (!this.prisma) {
@@ -17,6 +44,16 @@ export class TestUtils {
       });
     }
     return this.prisma;
+  }
+
+  /**
+   * Track a created record ID for later cleanup.
+   * Call this whenever you create a record directly via Prisma in a test.
+   */
+  static trackCreated(table: keyof typeof TestUtils.createdIds, id: number) {
+    if (!this.createdIds[table].includes(id)) {
+      this.createdIds[table].push(id);
+    }
   }
 
   /**
@@ -42,10 +79,11 @@ export class TestUtils {
           }
         });
         venueId = newVenue.int_wettkampforteid;
+        this.createdIds.venues.push(newVenue.int_wettkampforteid);
       }
     }
     
-    return await prisma.tfx_veranstaltungen.create({
+    const event = await prisma.tfx_veranstaltungen.create({
       data: {
         var_name: data.name || 'Test Event',
         dat_von: data.startDate || new Date(),
@@ -57,6 +95,8 @@ export class TestUtils {
         int_runde: data.round || 1 // Default round
       }
     });
+    this.createdIds.events.push(event.int_veranstaltungenid);
+    return event;
   }
 
   /**
@@ -64,7 +104,7 @@ export class TestUtils {
    */
   static async createTestParticipant(data: any = {}) {
     const prisma = this.getPrisma();
-    return await prisma.tfx_teilnehmer.create({
+    const participant = await prisma.tfx_teilnehmer.create({
       data: {
         var_vorname: data.firstName || 'Test',
         var_nachname: data.lastName || 'Participant',
@@ -73,67 +113,162 @@ export class TestUtils {
         int_vereineid: data.clubId || 1 // Default club ID
       }
     });
+    this.createdIds.participants.push(participant.int_teilnehmerid);
+    return participant;
   }
 
   /**
-   * Create a test competition with valid data
+   * Create a test competition with valid data.
+   * Requires a valid int_veranstaltungenid and int_bereicheid.
    */
   static async createTestCompetition(data: any = {}) {
     const prisma = this.getPrisma();
-    return await prisma.tfx_wettkaempfe.create({
+
+    // Ensure we have a valid event
+    let eventId = data.int_veranstaltungenid;
+    if (!eventId) {
+      const event = await this.createTestEvent({ name: 'Test Event for Competition' });
+      eventId = event.int_veranstaltungenid;
+    }
+
+    // Ensure we have a valid bereich (area)
+    let bereichId = data.int_bereicheid;
+    if (!bereichId) {
+      const bereich = await prisma.tfx_bereiche.findFirst();
+      if (bereich) {
+        bereichId = bereich.int_bereicheid;
+      } else {
+        // Create a test bereich if none exists
+        const newBereich = await prisma.tfx_bereiche.create({
+          data: {
+            var_name: 'Test Bereich',
+            bol_maennlich: true,
+            bol_weiblich: true,
+          }
+        });
+        bereichId = newBereich.int_bereicheid;
+      }
+    }
+
+    const competition = await prisma.tfx_wettkaempfe.create({
       data: {
-        var_bezeichnung: data.name || 'Test Competition',
-        var_geschlecht: data.gender || 'M',
-        int_altersklassevon: data.ageFrom || 16,
-        int_altersklassebis: data.ageTo || 99,
-        ...data
+        var_name: data.name || 'Test Competition',
+        int_veranstaltungenid: eventId,
+        int_bereicheid: bereichId,
+        yer_von: data.ageFrom || 16,
+        yer_bis: data.ageTo || 99,
       }
     });
+    this.createdIds.competitions.push(competition.int_wettkaempfeid);
+    return competition;
   }
 
   /**
-   * Clean up test data - only delete records created during testing
+   * Clean up ALL tracked test records created during the test run.
+   * Respects foreign key constraints by deleting in the correct order:
+   * 1. Scores/results (reference competitions + participants)
+   * 2. Competitions (reference events)
+   * 3. Events (reference venues)
+   * 4. Participants (reference clubs)
+   * 5. Disciplines
+   * 6. Clubs (reference associations)
+   * 7. Associations
+   * 8. Venues
+   * 
+   * Call this in afterEach() to clean up per-test data,
+   * and in afterAll() as a safety net.
    */
-  static async cleanup() {
+  static async cleanupCreatedRecords() {
     const prisma = this.getPrisma();
     
     try {
-      // Only clean up test data by using specific test identifiers
-      // Don't clean up existing production data
-      
-      // Delete test competitions (those with test names)
-      await prisma.tfx_wertungen.deleteMany({
-        where: {
-          tfx_wettkaempfe: {
-            var_name: {
-              contains: 'Test'
-            }
-          }
-        }
-      });
-      
-      await prisma.tfx_wettkaempfe.deleteMany({
-        where: {
-          var_name: {
-            contains: 'Test'
-          }
-        }
-      });
-      
-      // Delete test events (those with test names)
-      await prisma.tfx_veranstaltungen.deleteMany({
-        where: {
-          var_name: {
-            contains: 'Test'
-          }
-        }
-      });
-      
-      // Don't delete participants as they may be referenced by existing data
-      
+      // 1. Delete scores/results referencing test competitions
+      if (this.createdIds.competitions.length > 0) {
+        await prisma.tfx_wertungen.deleteMany({
+          where: { int_wettkaempfeid: { in: this.createdIds.competitions } }
+        }).catch(() => {});
+        
+        await prisma.tfx_wettkaempfe.deleteMany({
+          where: { int_wettkaempfeid: { in: this.createdIds.competitions } }
+        }).catch(() => {});
+      }
+
+      // 2. Delete test events
+      if (this.createdIds.events.length > 0) {
+        await prisma.tfx_veranstaltungen.deleteMany({
+          where: { int_veranstaltungenid: { in: this.createdIds.events } }
+        }).catch(() => {});
+      }
+
+      // 3. Delete test participants
+      if (this.createdIds.participants.length > 0) {
+        await prisma.tfx_teilnehmer.deleteMany({
+          where: { int_teilnehmerid: { in: this.createdIds.participants } }
+        }).catch(() => {});
+      }
+
+      // 4. Delete test disciplines
+      if (this.createdIds.disciplines.length > 0) {
+        // Delete discipline fields first (FK constraint)
+        await prisma.tfx_disziplinen_felder.deleteMany({
+          where: { int_disziplinenid: { in: this.createdIds.disciplines } }
+        }).catch(() => {});
+        
+        await prisma.tfx_disziplinen.deleteMany({
+          where: { int_disziplinenid: { in: this.createdIds.disciplines } }
+        }).catch(() => {});
+      }
+
+      // 5. Delete test clubs
+      if (this.createdIds.clubs.length > 0) {
+        await prisma.tfx_vereine.deleteMany({
+          where: { int_vereineid: { in: this.createdIds.clubs } }
+        }).catch(() => {});
+      }
+
+      // 6. Delete test associations
+      if (this.createdIds.associations.length > 0) {
+        await prisma.tfx_gaue.deleteMany({
+          where: { int_gaueid: { in: this.createdIds.associations } }
+        }).catch(() => {});
+      }
+
+      // 7. Delete test venues
+      if (this.createdIds.venues.length > 0) {
+        await prisma.tfx_wettkampforte.deleteMany({
+          where: { int_wettkampforteid: { in: this.createdIds.venues } }
+        }).catch(() => {});
+      }
+
     } catch (error) {
       console.warn('Cleanup warning:', error);
     }
+
+    // Reset all tracking arrays
+    this.resetTracking();
+  }
+
+  /**
+   * Legacy cleanup method — now delegates to cleanupCreatedRecords().
+   * Kept for backward compatibility.
+   */
+  static async cleanup() {
+    await this.cleanupCreatedRecords();
+  }
+
+  /**
+   * Reset all ID tracking arrays (called automatically after cleanup)
+   */
+  private static resetTracking() {
+    this.createdIds = {
+      venues: [],
+      events: [],
+      participants: [],
+      clubs: [],
+      associations: [],
+      disciplines: [],
+      competitions: [],
+    };
   }
 
   /**
