@@ -41,6 +41,10 @@
         "title": "Athleten verwalten",
         "description": "Athleten in der Datenbank hinzufügen und verwalten"
       },
+      "areas": {
+        "title": "Bereiche verwalten",
+        "description": "Geschlechtskategorien und Bereiche verwalten"
+      },
       "disciplines": {
         "title": "Disziplinen verwalten",
         "description": "Turndisziplinen und Geräte konfigurieren"

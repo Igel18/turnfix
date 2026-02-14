@@ -22,7 +22,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowTopRightOnSquareIcon,
-  ClockIcon
+  ClockIcon,
+  RectangleGroupIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 
@@ -63,6 +64,15 @@ const getDatabaseManagementActions = (statistics: any) => [
     color: 'bg-purple-500',
     count: statistics.totalAthletes,
     countLabel: 'Athletes'
+  },
+  {
+    name: 'Manage Areas',
+    description: 'Manage gender categories and areas',
+    href: '/areas',
+    icon: RectangleGroupIcon,
+    color: 'bg-rose-500',
+    count: statistics.totalAreas,
+    countLabel: 'Areas'
   },
   {
     name: 'Manage Disciplines',
@@ -324,6 +334,7 @@ export function ManagementCenter() {
     activeEvents: 0,
     registeredClubs: 0,
     totalAthletes: 0,
+    totalAreas: 0,
     totalRegions: 0,
     totalAssociations: 0,
     totalDisciplines: 0,
@@ -364,6 +375,7 @@ export function ManagementCenter() {
       'Manage Associations': 'managementCenter.databaseManagement.associations.title',
       'Manage Clubs': 'managementCenter.databaseManagement.clubs.title',
       'Manage Athletes': 'managementCenter.databaseManagement.athletes.title',
+      'Manage Areas': 'managementCenter.databaseManagement.areas.title',
       'Manage Disciplines': 'managementCenter.databaseManagement.disciplines.title',
       'Manage Locations': 'managementCenter.databaseManagement.locations.title',
       'Manage Persons': 'managementCenter.databaseManagement.persons.title',
@@ -399,6 +411,7 @@ export function ManagementCenter() {
       'Manage Associations': 'managementCenter.databaseManagement.associations.description',
       'Manage Clubs': 'managementCenter.databaseManagement.clubs.description',
       'Manage Athletes': 'managementCenter.databaseManagement.athletes.description',
+      'Manage Areas': 'managementCenter.databaseManagement.areas.description',
       'Manage Disciplines': 'managementCenter.databaseManagement.disciplines.description',
       'Manage Locations': 'managementCenter.databaseManagement.locations.description',
       'Manage Persons': 'managementCenter.databaseManagement.persons.description',
@@ -475,7 +488,8 @@ export function ManagementCenter() {
           '/discipline-groups/count',
           '/discipline-fields/count',
           '/layouts/count',
-          '/statuses'
+          '/statuses',
+          '/areas/count'
         ]
 
         const additionalPromises = additionalApis.map(url => 
@@ -493,13 +507,15 @@ export function ManagementCenter() {
           disciplineGroupsData,
           disciplineFieldsData,
           layoutsData,
-          statusesData
+          statusesData,
+          areasCountData
         ] = await Promise.all(additionalPromises)
 
         setStatistics({
           activeEvents: (events as any).pagination?.total || 0,
           registeredClubs: (clubs as any).pagination?.total || 0,
           totalAthletes: (participants as any).pagination?.total || 0,
+          totalAreas: areasCountData?.count || 0,
           totalRegions: areasData?.count || 0,
           totalAssociations: associationsData?.count || 0,
           totalDisciplines: disciplinesData?.count || 0,

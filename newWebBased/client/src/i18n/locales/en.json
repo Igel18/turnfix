@@ -41,6 +41,10 @@
         "title": "Manage Athletes",
         "description": "Add and manage athletes in the database"
       },
+      "areas": {
+        "title": "Manage Areas",
+        "description": "Manage gender categories and areas"
+      },
       "disciplines": {
         "title": "Manage Disciplines",
         "description": "Configure gymnastics disciplines and apparatus"
