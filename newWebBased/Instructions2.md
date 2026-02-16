@@ -175,3 +175,14 @@ Wird eine gymnet xml importiert welche unter dem knoten "mannschaft" nicht nur e
     2. PG installieren 
     3. Turnfix installieren 
     4. Service installieren welcher turnfix server startet 
+	-> Erledigt ✅ 
+
+26. Beim Import waren 4 Geräte in der XML es sind aber nur 2 Geräte an dem Wettkampf. Zudem sind das nicht die richtigen Geräte: 
+Boden w. LK1
+Sch.-Balken LK1
+Stu.-Barren LK1
+Sprung w. LK1
+
+vielleicht können wir anhand der wedDisNr z.B. 161 bei Sprung in der XML den Match machen zu den Geräten im Turnfix. 
+Da müsste es auch schon eine Datei für geben. 
+Schreibe Tests, Doku und fixe den Code. 

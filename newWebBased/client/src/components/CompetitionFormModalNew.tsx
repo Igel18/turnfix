@@ -122,6 +122,18 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   
   // Track previous gender to detect changes
   const previousGenderRef = useRef<string>(formData.gender);
+  // Track whether disciplines have been loaded from API (prevents race condition)
+  const disciplinesLoadedRef = useRef<boolean>(false);
+
+  // Reset refs when modal opens to prevent stale state
+  useEffect(() => {
+    if (isOpen) {
+      // Sync previousGenderRef with current formData.gender to prevent
+      // the incompatibility effect from firing on modal open
+      previousGenderRef.current = formData.gender;
+      disciplinesLoadedRef.current = false;
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Age groups for dropdowns
   const ageGroups = Array.from({ length: 50 }, (_, i) => ({
@@ -136,6 +148,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
         const response = await fetch('/api/disciplines');
         const data = await response.json();
         setDisciplines(data);
+        disciplinesLoadedRef.current = true;
       } catch (error) {
         console.error('Error fetching disciplines:', error);
       }
@@ -197,10 +210,23 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
 
   // Remove incompatible disciplines when gender changes
   useEffect(() => {
+    // Guard: Don't run until disciplines have been loaded from API
+    // This prevents the race condition where gender changes before disciplines load,
+    // causing all disciplines to be wiped out
+    if (!disciplinesLoadedRef.current) return;
+    if (disciplines.length === 0) return;
+    
     if (previousGenderRef.current !== formData.gender) {
-      const currentDisciplineIds = formData.disciplines.map(d => d.disciplineId);
-      const compatibleDisciplineIds = filteredDisciplines.map(d => d.id);
+      // Compute compatible disciplines directly from source data instead of relying
+      // on filteredDisciplines state, which may be stale from the previous render
+      const compatibleDisciplines = disciplines.filter(discipline => {
+        return formData.gender === 'gemischt' || 
+          (formData.gender === 'männlich' && discipline.male_allowed) ||
+          (formData.gender === 'weiblich' && discipline.female_allowed);
+      });
+      const compatibleDisciplineIds = compatibleDisciplines.map(d => d.id);
       
+      const currentDisciplineIds = formData.disciplines.map(d => d.disciplineId);
       const incompatibleDisciplines = currentDisciplineIds.filter(id => !compatibleDisciplineIds.includes(id));
       
       if (incompatibleDisciplines.length > 0) {
@@ -213,7 +239,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
       
       previousGenderRef.current = formData.gender;
     }
-  }, [formData.gender, filteredDisciplines, formData.disciplines, setFormData]);
+  }, [formData.gender, disciplines, formData.disciplines, setFormData]);
 
   const handleDisciplineGroupChange = (groupId: number | null) => {
     setSelectedDisciplineGroup(groupId);
