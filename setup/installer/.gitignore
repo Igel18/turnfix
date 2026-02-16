@@ -1,0 +1,5 @@
+# Installer build artifacts - do not commit
+downloads/
+staging/
+output/
+*.exe

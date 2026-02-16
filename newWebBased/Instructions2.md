@@ -170,7 +170,7 @@ Wird eine gymnet xml importiert welche unter dem knoten "mannschaft" nicht nur e
 24. Die UI "Bereiche" für das Geschlecht wird noch nicht angezeigt. 
 	-> Erledigt ✅ 
 
-25. Ein MSI SEtup erstellen für Windows für das komplete turnfix Web. Ich denke diese schritte wären sinnvoll: 
+25. kannst du ein MSI SEtup erstellen für Windows für das komplete turnfix Web. Ich denke diese schritte wären sinnvoll: 
     1. Admin rechte abfragen 
     2. PG installieren 
     3. Turnfix installieren 
