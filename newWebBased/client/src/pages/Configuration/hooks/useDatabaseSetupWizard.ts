@@ -82,17 +82,17 @@ export function useDatabaseSetupWizard({
       output: [],
     },
     {
-      id: 'production-disciplines',
-      title: 'Produktions-Disziplinen importieren',
-      description: 'Importiert alle 139 Disziplinen aus 12 Sportarten (Turnen, Leichtathletik, Schwimmen, etc.) - Empfohlen!',
+      id: 'gymnet-preset',
+      title: t('configuration.wizard.gymnetPreset') || 'GymNet-Voreinstellungen',
+      description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit GymNet-Geräten, Formeln und Feldern mit festen IDs (empfohlen VOR Produktions-Disziplinen)',
       status: 'pending',
       optional: true,
       output: [],
     },
     {
-      id: 'gymnet-preset',
-      title: t('configuration.wizard.gymnetPreset') || 'GymNet-Voreinstellungen',
-      description: t('configuration.wizard.gymnetPresetDesc') || 'Befüllt DB mit zusätzlichen GymNet-spezifischen Geräten und Formeln (optional)',
+      id: 'production-disciplines',
+      title: 'Produktions-Disziplinen importieren',
+      description: 'Importiert alle 139 Disziplinen aus 12 Sportarten (Turnen, Leichtathletik, Schwimmen, etc.) - Empfohlen!',
       status: 'pending',
       optional: true,
       output: [],
@@ -185,7 +185,7 @@ export function useDatabaseSetupWizard({
 
       // Discipline groups additionally require production disciplines to be imported
       if (stepIndex === 6) {
-        const disciplinesStep = steps[4]; // production-disciplines
+        const disciplinesStep = steps[5]; // production-disciplines (after gymnet-preset swap)
         if (disciplinesStep.status !== 'success') {
           return false;
         }
