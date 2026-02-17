@@ -186,3 +186,6 @@ Sprung w. LK1
 vielleicht können wir anhand der wedDisNr z.B. 161 bei Sprung in der XML den Match machen zu den Geräten im Turnfix. 
 Da müsste es auch schon eine Datei für geben. 
 Schreibe Tests, Doku und fixe den Code. 
+	-> Erledigt ✅ 
+
+    

@@ -1,153 +1,296 @@
-# Point 38 Implementation Summary
+# GymNet XML-Import
 
-## ✅ IMPLEMENTIERT - Aber noch NICHT GETESTET!
+## Übersicht
+
+Der GymNet-Import ermöglicht es, Meldedaten aus dem DTB GymNet-System als XML-Datei in TurnFix zu importieren. Dabei werden Veranstaltungen, Wettkämpfe, Teilnehmer, Mannschaften und Disziplin-Zuordnungen automatisch übernommen.
+
+### Quelldateien
+
+| Datei | Beschreibung |
+|---|---|
+| `server/src/routes/events.ts` | Import-Endpoint (POST `/api/events/import/gymnet`) |
+| `server/src/utils/gymnetMapping.ts` | wedDisNr → TurnFix-Disziplin-ID Mapping |
+| `server/src/utils/gymnetDisciplineIds.ts` | Zentrale ID-Konstanten (78 Disziplinen) |
+| `server/src/utils/gymnetPreset.ts` | DB-Wizard: Erstellt Geräte mit festen IDs |
+| `server/tests/unit/wedDisNrMapping.test.ts` | 87 Tests für das Mapping |
+
+---
+
+## Disziplin-Zuordnung (wedDisNr → TurnFix)
+
+### Prinzip
+
+Jede Disziplin in der GymNet-XML hat ein `wedDisNr`-Attribut, das Gerät **und** Leistungsklasse kodiert. TurnFix nutzt **feste Disziplin-IDs**, die vom DB-Wizard beim Erstellen einer neuen Datenbank vergeben werden.
+
+### wedDisNr-Kodierung
+
+```
+wedDisNr = [Zehner][Einer]
+
+Zehner (Gerät):
+  10 = Boden (m)       16 = Sprung (w)
+  11 = Pauschenpferd    17 = Stufenbarren
+  12 = Ringe            18 = Schwebebalken
+  13 = Sprung (m)       19 = Boden (w)
+  14 = Barren
+  15 = Reck
+
+Einer (Leistungsklasse):
+  0 = Kür
+  1 = LK1
+  2 = LK2
+  3 = LK3
+
+Sondercodes:
+  x09 (209-299) = P-Übung (P1-P9)
+  630 = Minitrampolin
+  915 = Gerätebahn A
+  916 = Gerätebahn B
+```
+
+### Vollständige Zuordnungstabelle
+
+#### Männlich – Kür (wedDisNr x0)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 100 | Boden m. Kür | 21 | Boden m. Kür |
+| 110 | P.-Pferd Kür | 22 | P.-Pferd Kür |
+| 120 | Ringe m. | 23 | Ringe m. |
+| 130 | Sprung m. Kür | 24 | Sprung m. Kür |
+| 140 | Par.-Barren Kür | 25 | Par.-Barren Kür |
+| 150 | Reck m. Kür | 26 | Reck m. Kür |
+
+#### Weiblich – Kür (wedDisNr x0)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 160 | Sprung w. Kür | 28 | Sprung w. Kür |
+| 170 | Stufenbarren | 8 | Stufenbarren |
+| 180 | Schwebebalken | 9 | Schwebebalken |
+| 190 | Boden w. Kür | 27 | Boden w. Kür |
+
+#### Männlich – LK1 (wedDisNr x1)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 101 | Boden m. LK1 | 31 | Boden m. LK1 |
+| 111 | P.-Pferd LK1 | 32 | P.-Pferd LK1 |
+| 121 | Ringe LK1 | 33 | Ringe LK1 |
+| 131 | Sprung m. LK1 | 34 | Sprung m. LK1 |
+| 141 | Par.-Barren LK1 | 35 | Par.-Barren LK1 |
+| 151 | Reck m. LK1 | 36 | Reck m. LK1 |
+
+#### Weiblich – LK1 (wedDisNr x1)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 161 | Sprung w. LK1 | 37 | Sprung w. LK1 |
+| 171 | Stufenbarren LK1 | 38 | Stufenbarren LK1 |
+| 181 | Schwebebalken LK1 | 39 | Schwebebalken LK1 |
+| 191 | Boden w. LK1 | 40 | Boden w. LK1 |
+
+#### Männlich – LK2 (wedDisNr x2)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 102 | Boden m. LK2 | 41 | Boden m. LK2 |
+| 112 | P.-Pferd LK2 | 42 | P.-Pferd LK2 |
+| 122 | Ringe LK2 | 43 | Ringe LK2 |
+| 132 | Sprung m. LK2 | 44 | Sprung m. LK2 |
+| 142 | Par.-Barren LK2 | 45 | Par.-Barren LK2 |
+| 152 | Reck m. LK2 | 46 | Reck m. LK2 |
+
+#### Weiblich – LK2 (wedDisNr x2)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 162 | Sprung w. LK2 | 47 | Sprung w. LK2 |
+| 172 | Stufenbarren LK2 | 48 | Stufenbarren LK2 |
+| 182 | Schwebebalken LK2 | 49 | Schwebebalken LK2 |
+| 192 | Boden w. LK2 | 50 | Boden w. LK2 |
+
+#### Männlich – LK3 (wedDisNr x3)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 103 | Boden m. LK3 | 51 | Boden m. LK3 |
+| 113 | P.-Pferd LK3 | 52 | P.-Pferd LK3 |
+| 123 | Ringe LK3 | 53 | Ringe LK3 |
+| 133 | Sprung m. LK3 | 54 | Sprung m. LK3 |
+| 143 | Par.-Barren LK3 | 55 | Par.-Barren LK3 |
+| 153 | Reck m. LK3 | 56 | Reck m. LK3 |
+
+#### Weiblich – LK3 (wedDisNr x3)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 163 | Sprung w. LK3 | 57 | Sprung w. LK3 |
+| 173 | Stufenbarren LK3 | 58 | Stufenbarren LK3 |
+| 183 | Schwebebalken LK3 | 59 | Schwebebalken LK3 |
+| 193 | Boden w. LK3 | 60 | Boden w. LK3 |
+
+#### P-Übung (wedDisNr x09)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 209 | Boden m. P1-P9 | 61 | Boden m. P1-P9 |
+| 219 | Pauschenpferd P1-P9 | 62 | Pauschenpferd P1-P9 |
+| 229 | Ringe P1-P9 | 63 | Ringe P1-P9 |
+| 239 | Sprung m. P1-P9 | 64 | Sprung m. P1-P9 |
+| 249 | Par.-Barren P1-P9 | 65 | Par.-Barren P1-P9 |
+| 259 | Reck m. P1-P9 | 66 | Reck m. P1-P9 |
+| 269 | Sprung w. P1-P9 | 67 | Sprung w. P1-P9 |
+| 279 | Reck/StuBa. P1-P9 | 68 | Reck/StuBa. P1-P9 |
+| 289 | Schwebebalken P1-P9 | 69 | Schwebebalken P1-P9 |
+| 299 | Boden w. P1-P9 | 70 | Boden w. P1-P9 |
+
+#### Basis-DTB-Codes (Rückwärtskompatibilität)
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 200 | Boden | 1 | Boden |
+| 210 | Pauschenpferd | 2 | Pauschenpferd |
+| 220 | Ringe | 3 | Ringe |
+| 230 | Sprung | 4 | Sprung |
+| 240 | Barren | 5 | Barren |
+| 250 | Reck | 6 | Reck |
+| 260 | Sprung w | 7 | Sprung w |
+| 270 | Stufenbarren | 8 | Stufenbarren |
+| 280 | Schwebebalken | 9 | Schwebebalken |
+| 290 | Boden w | 10 | Boden w |
+
+#### Sondergeräte
+
+| wedDisNr | Gerät | TurnFix-ID | TurnFix-Name |
+|---|---|---|---|
+| 630 | Minitrampolin | 11 | Minitrampolin |
+| 915 | Gerätebahn A | 12 | Gerätebahn A |
+| 916 | Gerätebahn B | 13 | Gerätebahn B |
+
+---
+
+## Feste Disziplin-IDs (DB-Wizard)
+
+Der DB-Wizard (`gymnetPreset.ts`) erstellt alle 78 Disziplinen mit **festen IDs**. Da der Wizard immer in eine leere Datenbank importiert, sind die IDs deterministisch.
+
+### ID-Schema
+
+| Bereich | IDs | Beschreibung |
+|---|---|---|
+| Basis-Geräte | 1–13 | Generische Geräte (Boden, Reck, ...) |
+| Kategorien | 14–20 | LK1, LK2, LK3, AK, KM, KM2, KM3 |
+| Kür männlich | 21–26 | Boden m. Kür, P.-Pferd Kür, ... |
+| Kür weiblich | 27–28 | Boden w. Kür, Sprung w. Kür |
+| LK1 männlich | 31–36 | Boden m. LK1, P.-Pferd LK1, ... |
+| LK1 weiblich | 37–40 | Sprung w. LK1, Stufenbarren LK1, ... |
+| LK2 männlich | 41–46 | Boden m. LK2, P.-Pferd LK2, ... |
+| LK2 weiblich | 47–50 | Sprung w. LK2, Stufenbarren LK2, ... |
+| LK3 männlich | 51–56 | Boden m. LK3, P.-Pferd LK3, ... |
+| LK3 weiblich | 57–60 | Sprung w. LK3, Stufenbarren LK3, ... |
+| P-Übung | 61–70 | Boden m. P1-P9, Pauschenpferd P1-P9, ... |
+| Turn10 | 71–77 | Turn10 (Kategorie), Boden Turn10®, ... |
+| AK | 78 | Boden AK |
+
+Die zentrale Definitionsdatei ist `server/src/utils/gymnetDisciplineIds.ts`.
+
+Nach dem Einfügen aller Geräte wird die PostgreSQL-Sequence automatisch auf 78 zurückgesetzt, damit weitere manuell erstellte Geräte ab ID 79 beginnen.
+
+---
+
+## Import-Ablauf
+
+### 1. XML einlesen
+Die GymNet-XML wird geparst. Folgende Knoten werden ausgewertet:
+- `<veranstaltung>` → Veranstaltung (Event)
+- `<wettkampf>` → Wettkampf (Competition)
+- `<disziplin wedDisNr="...">` → Geräte-Zuordnung
+- `<person>` / `<mannschaft>` → Teilnehmer / Mannschaften
+
+### 2. Geräte zuordnen
+Für jede `<disziplin>` wird `wedDisNrToTurnFixId(wedDisNr)` aufgerufen:
+```typescript
+import { wedDisNrToTurnFixId } from '../utils/gymnetMapping';
+
+const turnfixId = wedDisNrToTurnFixId(161);  // → 37 (Sprung w. LK1)
+```
+
+Die Funktion nutzt eine **explizite Lookup-Tabelle** – kein Formel-basiertes Mapping.
+
+### 3. Fallback (kein wedDisNr)
+Wenn die XML kein `wedDisNr` enthält (ältere Exporte), greift `getDisciplinesForCompetition()`, das anhand des Wettkampfnamens passende Geräte aus der DB sucht.
+
+### 4. Mannschaften
+Enthält ein `<mannschaft>`-Knoten mehrere `<person>`-Einträge, wird eine Mannschaft in `tfx_mannschaften` angelegt und die Teilnehmer dort zugeordnet.
+
+---
+
+## Altersgruppen-Mapping (Point 38)
 
 ### Problem
-User berichtet: "Kann es sein, dass jeder Wettkampf der mittel GymNet importiert wird die Altersgruppe 6-18 Jahre bekommt?"
+Altersangaben aus der XML wurden früher nicht korrekt in Geburtsjahre umgerechnet.
 
-### Root Cause Analysis
-1. **events.ts Zeile 1931-1932**: Hardcoded defaults 2000/2030 für Birth Years
-2. **Fehlende Age-to-Birth-Year Konvertierung**: Ages aus XML wurden nicht in Birth Years umgewandelt
-3. **Display Fallback**: competitions.ts zeigt 6-18 Jahre wenn Birth Years fehlen/ungültig
-
-### Implementierte Lösung
-
-#### events.ts Änderungen (Zeilen 1920-2015)
-
-**Hinzugefügt:**
-```typescript
-// Get event year for age-to-birth-year conversion
-const eventYear = createdEvent.dat_von 
-  ? new Date(createdEvent.dat_von).getFullYear() 
-  : new Date().getFullYear();
-
-// Convert ages from XML to birth years for database storage
-let birthYearFrom: number | null = null;
-let birthYearTo: number | null = null;
-
-if (competition.ageInfo?.min && competition.ageInfo.min > 0) {
-  birthYearFrom = eventYear - competition.ageInfo.min;
-}
-if (competition.ageInfo?.max && competition.ageInfo.max > 0) {
-  birthYearTo = eventYear - competition.ageInfo.max;
-}
-
-// Fallback to defaults (age 6-18) if no age info
-if (!birthYearFrom && !birthYearTo) {
-  console.log(`  ⚠️ No age information - using default range (age 6-18)`);
-  birthYearFrom = eventYear - 18;  // Max age: 18
-  birthYearTo = eventYear - 6;     // Min age: 6
-}
-
-// Enhanced logging
-console.log(`  🔍 Processing: ${competition.name}`);
-console.log(`     - Event year: ${eventYear}`);
-console.log(`     - Ages from XML: ${competition.ageInfo?.min ?? 'none'} - ${competition.ageInfo?.max ?? 'none'}`);
-console.log(`     - Birth years (DB): ${birthYearFrom} - ${birthYearTo}`);
-console.log(`     - Display ages: ${displayAgeFrom} - ${displayAgeTo}`);
+### Lösung
 ```
+Age → Geburtsjahr: birthYear = eventYear - age
+Geburtsjahr → Age: age = eventYear - birthYear
 
-**Entfernt:**
-```typescript
-// OLD (WRONG):
-const ageFrom = competition.ageInfo?.min || 2000;
-const ageTo = competition.ageInfo?.max || 2030;
-```
-
-**Edge Cases:**
-- ✅ Keine Age-Info → Default 6-18 (als Birth Years)
-- ✅ Age = 0 → Als fehlend behandelt
-- ✅ Nur Min oder Max → Intelligente Defaults
-- ✅ Invalides Event-Datum → Aktuelles Jahr
-
-### Formel
-
-```
-Age → Birth Year: birthYear = eventYear - age
-Birth Year → Age: age = eventYear - birthYear
-
-Beispiel (Event Year 2025, Ages 11-12):
+Beispiel (Event 2025, Alter 11-12):
   waAlterMin = 11 → birthYearFrom = 2025 - 11 = 2014
-  waAlterMax = 12 → birthYearTo = 2025 - 12 = 2013
-  
-DB Speicherung: yer_von = 2014, yer_bis = 2013
-
-Display (competitions.ts):
-  ageFrom = 2025 - 2014 = 11 ✅
-  ageTo = 2025 - 2013 = 12 ✅
+  waAlterMax = 12 → birthYearTo   = 2025 - 12 = 2013
 ```
 
-### Test-Dateien erstellt
+### Edge Cases
+- Keine Age-Info → Default 6–18 Jahre
+- Age = 0 → als fehlend behandelt
+- Nur Min oder Max → intelligente Defaults
+- Kein Event-Datum → aktuelles Jahr
 
-1. **POINT-38-GYMNET-AGE-FIX.md**: Vollständige Analyse + Implementierung
-2. **POINT-38-TEST-CASES.md**: Test-Szenarien + erwartete Ergebnisse
-3. **server/test-age-conversion.xml**: Test XML mit 9 verschiedenen Age-Szenarien
+---
 
-### Build Status
-✅ Server kompiliert ohne Fehler (`npm run build` erfolgreich)
+## Geschlecht-Mapping
 
-### Nächste Schritte für User
+```xml
+<!-- Wettkampf -->
+<waGeschlecht>1</waGeschlecht>  →  männlich
+<waGeschlecht>2</waGeschlecht>  →  weiblich
 
-**WICHTIG**: Implementation ist vollständig, aber **NICHT GETESTET**!
-
-User muss folgendes testen:
-
-1. **Server neu starten** (falls noch nicht geschehen)
-   ```powershell
-   # In einem Terminal:
-   cd newWebBased/server
-   npm run dev
-   ```
-
-2. **GymNet Import testen**
-   - Gehe zu: http://localhost:5173/events
-   - Klicke "Import from Gymnet"
-   - Wähle `server/test-age-conversion.xml`
-   - Event-Details eingeben und Import starten
-
-3. **Console Logs überprüfen**
-   - Im Server-Terminal sollten detaillierte Logs erscheinen:
-     ```
-     🏆 Processing competitions...
-       🔍 Processing: Test Case 1: Ages 11-12
-          - Event year: 2025
-          - Ages from XML: 11 - 12
-          - Birth years (DB): 2014 - 2013
-          - Display ages: 11 - 12
-          - Gender: männlich
-       ✅ Inserted: Test Case 1: Ages 11-12 (Birth years: 2014-2013, Ages: 11-12, Number: TC01)
-     ```
-
-4. **UI überprüfen**
-   - Nach Import: Competitions-Seite öffnen
-   - Verify age ranges sind korrekt (11-12, 6-18, etc.)
-   - NICHT mehr alle 6-18!
-
-5. **Realen GymNet Import testen**
-   - Mit echtem GymNet XML-File importieren
-   - Verify ages sind korrekt
-   - Problem sollte behoben sein
-
-### Rollback (falls nötig)
-
-Falls die Implementierung Probleme verursacht:
-
-```typescript
-// In events.ts Zeile 1931 ersetzen durch:
-const ageFrom = competition.ageInfo?.min || 2000;
-const ageTo = competition.ageInfo?.max || 2030;
-
-// Alle neuen Zeilen (event year, conversion, logging) löschen
+<!-- Teilnehmer -->
+<perGeschlecht>1</perGeschlecht>  →  männlich
+<perGeschlecht>2</perGeschlecht>  →  weiblich
 ```
 
-Aber **ACHTUNG**: Das alte Verhalten war auch falsch! 
-Besser: Issue melden und gemeinsam debuggen.
+---
 
-### Potenzielle Probleme
+## Tests
 
-1. **Event-Datum nicht gesetzt**: Verwendet aktuelles Jahr (sollte OK sein)
-2. **Age-Reihenfolge vertauscht**: Display verwendet Math.min/max (sollte korrekt sein)
-3. **Null-Werte in DB**: `yer_bis` ist nullable, sollte OK sein
+**Datei**: `server/tests/unit/wedDisNrMapping.test.ts` (87 Tests)
+
+| Testgruppe | Anzahl | Beschreibung |
+|---|---|---|
+| Männlich Kür | 6 | wedDisNr 100–150 → IDs 21–26 |
+| Männlich LK1 | 6 | wedDisNr 101–151 → IDs 31–36 |
+| Männlich LK2 | 6 | wedDisNr 102–152 → IDs 41–46 |
+| Männlich LK3 | 6 | wedDisNr 103–153 → IDs 51–56 |
+| Weiblich Kür | 4 | wedDisNr 160–190 → IDs 8, 9, 27, 28 |
+| Weiblich LK1 | 4 | wedDisNr 161–191 → IDs 37–40 |
+| Weiblich LK2 | 4 | wedDisNr 162–192 → IDs 47–50 |
+| Weiblich LK3 | 4 | wedDisNr 163–193 → IDs 57–60 |
+| P-Übung | 10 | wedDisNr 209–299 → IDs 61–70 |
+| Basis-DTB | 10 | wedDisNr 200–290 → IDs 1–10 |
+| Sondergeräte | 3 | wedDisNr 630, 915, 916 → IDs 11–13 |
+| String-Input | 3 | String-Parameter akzeptiert |
+| Ungültige Codes | 7 | null für unbekannte Codes |
+| XML-Fixture | 5 | Reale Werte aus Test-XML |
+| Level-Differenzierung | 3 | Gleiches Gerät, verschiedene Level → verschiedene IDs |
+| Feste ID-Werte | 4 | Verifikation der ID-Bereiche |
+| wedDisNrToName | 2 | Name-Lookup für Debugging |
+
+```bash
+# Tests ausführen
+cd newWebBased/server
+npx jest tests/unit/wedDisNrMapping.test.ts
+```
 4. **Bestehende Competitions**: Diese behalten alte (falsche) Werte! 
    - Lösung: Competitions löschen und neu importieren
    - ODER: Migrations-Script schreiben (falls viele Daten)
