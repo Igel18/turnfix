@@ -36,7 +36,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDisciplinesForCompetition = getDisciplinesForCompetition;
 const express_1 = require("express");
 const authBypass_1 = require("../middleware/authBypass");
 const zod_1 = require("zod");
@@ -44,34 +43,7 @@ const multer = require("multer");
 const xml2js_1 = require("xml2js");
 const fs = __importStar(require("fs"));
 const prisma_1 = __importDefault(require("../lib/prisma"));
-/**
- * Generalized discipline selection for a competition name using DB values.
- * @param {string} competitionName
- * @param {PrismaClient} prisma
- * @returns {Promise<string[]>}
- */
-async function getDisciplinesForCompetition(competitionName, prismaInstance) {
-    const name = competitionName.toLowerCase();
-    // Query all discipline names from DB
-    const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
-    const disciplineNames = allDisciplines.map(d => d.var_name);
-    if (name.includes('vierkampf') && name.includes('w')) {
-        // Women's all-around: Boden, Sprung, Stufenbarren, Schwebebalken
-        return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'].filter(d => disciplineNames.includes(d));
-    }
-    else if (name.includes('sechskampf') && name.includes('m')) {
-        // Men's all-around: Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck
-        return ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'].filter(d => disciplineNames.includes(d));
-    }
-    else if (name.includes('geräte')) {
-        // Generic apparatus: all common disciplines
-        return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'].filter(d => disciplineNames.includes(d));
-    }
-    else {
-        // Default: Boden, Sprung
-        return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
-    }
-}
+const gymnetMapping_1 = require("../utils/gymnetMapping");
 const router = (0, express_1.Router)();
 // Generate start numbers for all participants in an event
 router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async (req, res) => {
@@ -1154,7 +1126,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                 }
             };
             // Extract devices/apparatus/geräte
-            const extractDevices = (data, currentPath) => {
+            const extractDevices = (data, currentPath, competitionCtx) => {
                 if (Array.isArray(data)) {
                     data.forEach((item, index) => {
                         if (item && typeof item === 'object') {
@@ -1191,6 +1163,11 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                             });
                             if (Object.keys(device).length > 0) {
                                 device._source = `${currentPath}[${index}]`;
+                                // Attach competition context so we know which competition this device belongs to
+                                if (competitionCtx) {
+                                    device.competitionWaNr = competitionCtx.waNr;
+                                    device.competitionName = competitionCtx.name;
+                                }
                                 result.devices.push(device);
                             }
                         }
@@ -1231,6 +1208,11 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                     });
                     if (Object.keys(device).length > 0) {
                         device._source = currentPath;
+                        // Attach competition context so we know which competition this device belongs to
+                        if (competitionCtx) {
+                            device.competitionWaNr = competitionCtx.waNr;
+                            device.competitionName = competitionCtx.name;
+                        }
                         result.devices.push(device);
                     }
                 }
@@ -1458,7 +1440,7 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         extractParticipants([participant], currentPath);
                     }
                     else if (key.toLowerCase() === 'disziplin') {
-                        extractDevices([value], currentPath);
+                        extractDevices([value], currentPath, currentCompetitionContext);
                     }
                     // Continue recursive processing with competition context
                     else if (Array.isArray(value)) {
@@ -1693,23 +1675,6 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
         }
         // Database insertion for extracted data
         console.log('💾 Starting database insertion process...');
-        // Discipline mapping from GymNet IDs to TurnFix database IDs (from TurnFixImport.exe.config)
-        // Using actual TurnFix database IDs for precise mapping instead of names
-        const disciplineMapping = {
-            '200': { id: 74, name: 'Boden', male: true, female: false }, // Men's Floor Exercise
-            '210': { id: 31, name: 'Pferd', male: true, female: false }, // Pommel Horse
-            '220': { id: 50, name: 'Ringe', male: true, female: false }, // Still Rings
-            '230': { id: 71, name: 'Sprung', male: true, female: false }, // Men's Vault
-            '240': { id: 72, name: 'Barren', male: true, female: false }, // Parallel Bars
-            '250': { id: 46, name: 'Reck', male: true, female: false }, // Horizontal Bar
-            '260': { id: 71, name: 'Sprung', male: false, female: true }, // Women's Vault (same ID as men's)
-            '270': { id: 68, name: 'Stufenbarren', male: false, female: true }, // Uneven Bars
-            '280': { id: 73, name: 'Schwebebalken', male: false, female: true }, // Balance Beam
-            '290': { id: 74, name: 'Boden', male: false, female: true }, // Women's Floor Exercise (same ID as men's)
-            '630': { id: 77, name: 'Minitrampolin', male: true, female: true }, // Mini Trampoline
-            '915': { id: 75, name: 'Gerätebahn A', male: true, female: true }, // Apparatus Track A
-            '916': { id: 76, name: 'Gerätebahn B', male: true, female: true } // Apparatus Track B
-        };
         let insertionResults = {
             clubs: { inserted: 0, updated: 0, errors: 0 },
             participants: { inserted: 0, updated: 0, errors: 0 },
@@ -2141,57 +2106,156 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             }
             console.log(`🎯 Participant assignment complete: ${assignedCount}/${extractedData.participants.length} participants assigned to event`);
         }
-        // 4. Insert/Update Devices/Disciplines and link them to competitions (enhanced with manual search)
+        // 4. Insert/Update Devices/Disciplines and link them to competitions
+        // Strategy: Use wedDisNr from extracted XML devices when available (precise matching),
+        // fall back to name-based guessing via getDisciplinesForCompetition() when no devices found.
         console.log('🤸 Starting comprehensive discipline processing...');
-        // Always try to find and link disciplines, regardless of extraction results
         if (createdEvent) {
-            // First, get all competitions created for this event
+            // Get all competitions created for this event
             const eventCompetitions = await prisma_1.default.$queryRawUnsafe(`
-        SELECT int_wettkaempfeid, var_name FROM tfx_wettkaempfe 
+        SELECT int_wettkaempfeid, var_name, var_nummer FROM tfx_wettkaempfe 
         WHERE int_veranstaltungenid = $1
       `, createdEvent.int_veranstaltungenid);
             console.log(`  📊 Found ${eventCompetitions.length} competitions for this event`);
+            // Group extracted devices by competition waNr
+            const devicesByCompetition = new Map();
+            for (const device of extractedData.devices) {
+                if (device.competitionWaNr) {
+                    const key = String(device.competitionWaNr);
+                    if (!devicesByCompetition.has(key))
+                        devicesByCompetition.set(key, []);
+                    devicesByCompetition.get(key).push(device);
+                }
+            }
+            console.log(`  📋 Devices grouped by competition: ${devicesByCompetition.size} competitions have device data`);
+            devicesByCompetition.forEach((devices, waNr) => {
+                console.log(`    waNr=${waNr}: ${devices.map((d) => `${d.name || 'unnamed'}(code=${d.code || 'none'})`).join(', ')}`);
+            });
             let linkedCount = 0;
-            // For each competition, link disciplines using the generalized function
             for (const competition of eventCompetitions) {
-                const disciplinesToLink = await getDisciplinesForCompetition(competition.var_name, prisma_1.default);
-                console.log(`  🔍 Processing competition: "${competition.var_name}"`);
-                console.log(`    📝 Will attempt to link disciplines: ${disciplinesToLink.join(', ')}`);
-                for (const disciplineName of disciplinesToLink) {
-                    try {
-                        const existingDiscipline = await prisma_1.default.$queryRawUnsafe(`
-              SELECT int_disziplinenid FROM tfx_disziplinen 
-              WHERE LOWER(var_name) = LOWER($1)
+                const compWaNr = competition.var_nummer || null;
+                const compDevices = compWaNr ? devicesByCompetition.get(String(compWaNr)) : null;
+                console.log(`  🔍 Processing competition: "${competition.var_name}" (waNr: ${compWaNr || 'none'})`);
+                if (compDevices && compDevices.length > 0) {
+                    // === PRECISE MATCHING: Use wedDisNr from XML devices ===
+                    console.log(`    📦 Found ${compDevices.length} devices from XML for this competition`);
+                    let sortOrder = 0;
+                    for (const device of compDevices) {
+                        sortOrder++;
+                        const wedDisNr = device.code;
+                        if (!wedDisNr) {
+                            console.log(`    ⚠️ Device "${device.name}" has no wedDisNr code, skipping`);
+                            continue;
+                        }
+                        const turnfixId = (0, gymnetMapping_1.wedDisNrToTurnFixId)(wedDisNr);
+                        if (turnfixId === null) {
+                            console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}"), trying name-based fallback`);
+                            // Try name-based fallback for unmapped codes
+                            const baseName = (0, gymnetMapping_1.normalizeGymNetDisciplineName)(device.name || '');
+                            if (baseName) {
+                                const nameResult = await prisma_1.default.$queryRawUnsafe(`
+                  SELECT int_disziplinenid FROM tfx_disziplinen 
+                  WHERE LOWER(var_name) = LOWER($1)
+                  LIMIT 1
+                `, baseName);
+                                if (nameResult.length > 0) {
+                                    const disciplineId = nameResult[0].int_disziplinenid;
+                                    const existingLink = await prisma_1.default.$queryRawUnsafe(`
+                    SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
+                    WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2 LIMIT 1
+                  `, competition.int_wettkaempfeid, disciplineId);
+                                    if (existingLink.length === 0) {
+                                        await prisma_1.default.$queryRawUnsafe(`
+                      INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
+                      VALUES ($1, $2, $3)
+                    `, competition.int_wettkaempfeid, disciplineId, sortOrder);
+                                        console.log(`    🔗 Linked "${baseName}" (name-fallback for wedDisNr=${wedDisNr}) to competition`);
+                                        linkedCount++;
+                                        insertionResults.devices.updated++;
+                                    }
+                                }
+                                else {
+                                    console.log(`    ❌ Name-fallback "${baseName}" not found in DB either`);
+                                    insertionResults.devices.errors++;
+                                }
+                            }
+                            continue;
+                        }
+                        // Verify the discipline ID exists in the database
+                        const disciplineCheck = await prisma_1.default.$queryRawUnsafe(`
+              SELECT int_disziplinenid, var_name FROM tfx_disziplinen 
+              WHERE int_disziplinenid = $1
               LIMIT 1
-            `, disciplineName);
-                        if (existingDiscipline.length > 0) {
-                            const disciplineId = existingDiscipline[0].int_disziplinenid;
-                            const existingLink = await prisma_1.default.$queryRawUnsafe(`
-                SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
-                WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
-                LIMIT 1
-              `, competition.int_wettkaempfeid, disciplineId);
-                            if (existingLink.length === 0) {
-                                await prisma_1.default.$queryRawUnsafe(`
-                  INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
-                  VALUES ($1, $2, $3)
-                `, competition.int_wettkaempfeid, disciplineId, linkedCount + 1);
-                                console.log(`    🔗 Linked discipline "${disciplineName}" to competition "${competition.var_name}"`);
-                                linkedCount++;
-                                insertionResults.devices.updated++;
-                            }
-                            else {
-                                console.log(`    ✅ Discipline "${disciplineName}" already linked to competition "${competition.var_name}"`);
-                            }
+            `, turnfixId);
+                        if (disciplineCheck.length === 0) {
+                            console.log(`    ⚠️ TurnFix discipline ID ${turnfixId} (from wedDisNr=${wedDisNr}) not found in DB`);
+                            insertionResults.devices.errors++;
+                            continue;
+                        }
+                        const disciplineName = disciplineCheck[0].var_name;
+                        // Check if already linked
+                        const existingLink = await prisma_1.default.$queryRawUnsafe(`
+              SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
+              WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
+              LIMIT 1
+            `, competition.int_wettkaempfeid, turnfixId);
+                        if (existingLink.length === 0) {
+                            await prisma_1.default.$queryRawUnsafe(`
+                INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
+                VALUES ($1, $2, $3)
+              `, competition.int_wettkaempfeid, turnfixId, sortOrder);
+                            console.log(`    🔗 Linked "${disciplineName}" (wedDisNr=${wedDisNr} → ID=${turnfixId}) to competition`);
+                            linkedCount++;
+                            insertionResults.devices.updated++;
                         }
                         else {
-                            console.log(`    ⚠️ Discipline "${disciplineName}" not found in database`);
-                            insertionResults.devices.errors++;
+                            console.log(`    ✅ "${disciplineName}" already linked to competition`);
                         }
                     }
-                    catch (linkError) {
-                        console.log(`    ❌ Error linking discipline ${disciplineName} to competition ${competition.var_name}:`, linkError);
-                        insertionResults.devices.errors++;
+                }
+                else {
+                    // === FALLBACK: Name-based guessing (no XML device data for this competition) ===
+                    console.log(`    ⚠️ No XML device data found, falling back to name-based discipline matching`);
+                    const disciplinesToLink = await (0, gymnetMapping_1.getDisciplinesForCompetition)(competition.var_name, prisma_1.default);
+                    console.log(`    📝 Name-based guess: ${disciplinesToLink.join(', ')}`);
+                    let sortOrder = 0;
+                    for (const disciplineName of disciplinesToLink) {
+                        sortOrder++;
+                        try {
+                            const existingDiscipline = await prisma_1.default.$queryRawUnsafe(`
+                SELECT int_disziplinenid FROM tfx_disziplinen 
+                WHERE LOWER(var_name) = LOWER($1)
+                LIMIT 1
+              `, disciplineName);
+                            if (existingDiscipline.length > 0) {
+                                const disciplineId = existingDiscipline[0].int_disziplinenid;
+                                const existingLink = await prisma_1.default.$queryRawUnsafe(`
+                  SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
+                  WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2
+                  LIMIT 1
+                `, competition.int_wettkaempfeid, disciplineId);
+                                if (existingLink.length === 0) {
+                                    await prisma_1.default.$queryRawUnsafe(`
+                    INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
+                    VALUES ($1, $2, $3)
+                  `, competition.int_wettkaempfeid, disciplineId, sortOrder);
+                                    console.log(`    🔗 Linked discipline "${disciplineName}" to competition (name-based)`);
+                                    linkedCount++;
+                                    insertionResults.devices.updated++;
+                                }
+                                else {
+                                    console.log(`    ✅ Discipline "${disciplineName}" already linked`);
+                                }
+                            }
+                            else {
+                                console.log(`    ⚠️ Discipline "${disciplineName}" not found in database`);
+                                insertionResults.devices.errors++;
+                            }
+                        }
+                        catch (linkError) {
+                            console.log(`    ❌ Error linking discipline ${disciplineName}:`, linkError);
+                            insertionResults.devices.errors++;
+                        }
                     }
                 }
             }

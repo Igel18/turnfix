@@ -8,7 +8,7 @@
  * - Special: 630=Minitrampolin, 915=Gerätebahn A, 916=Gerätebahn B
  */
 
-import { wedDisNrToTurnFixId } from '../../src/routes/events';
+import { wedDisNrToTurnFixId } from '../../src/utils/gymnetMapping';
 
 describe('wedDisNrToTurnFixId', () => {
   describe('Men\'s apparatus codes (100-159)', () => {

@@ -147,25 +147,3 @@ export async function getDisciplinesForCompetition(
   }
 }
 
-// ============================================================================
-// Name normalization for discipline matching
-// ============================================================================
-
-/**
- * Normalizes a GymNet discipline display name to the base TurnFix discipline name.
- * Strips LK/P/AK suffixes and maps abbreviations to full names.
- * 
- * @example
- * normalizeGymNetDisciplineName('Sprung w. LK1') → 'Sprung'
- * normalizeGymNetDisciplineName('Sch.-Balken LK1') → 'Schwebebalken'
- * normalizeGymNetDisciplineName('Stu.-Barren LK1') → 'Stufenbarren'
- */
-export function normalizeGymNetDisciplineName(name: string): string {
-  return name
-    .replace(/\s*(w\.|m\.|LK\d|P\d|AK).*$/i, '')
-    .trim()
-    .replace('Sch.-Balken', 'Schwebebalken')
-    .replace('Stu.-Barren', 'Stufenbarren')
-    .replace('P.-Pferd', 'Pauschenpferd')
-    .replace('Par.-Barren', 'Barren');
-}

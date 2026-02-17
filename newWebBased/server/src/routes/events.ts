@@ -1,4 +1,3 @@
-import type { PrismaClient as PrismaClientType } from '@prisma/client';
 import { Router, Request, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { z } from 'zod';
@@ -7,96 +6,7 @@ import { parseString } from 'xml2js';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import prisma from '../lib/prisma';
-
-/**
- * Generalized discipline selection for a competition name using DB values.
- * @param {string} competitionName
- * @param {PrismaClient} prisma
- * @returns {Promise<string[]>}
- */
-export async function getDisciplinesForCompetition(competitionName: string, prismaInstance: PrismaClientType): Promise<string[]> {
-  const name = competitionName.toLowerCase();
-  // Query all discipline names from DB
-  const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
-  const disciplineNames = allDisciplines.map(d => d.var_name);
-
-  if (name.includes('vierkampf') && name.includes('w')) {
-    // Women's all-around: Boden, Sprung, Stufenbarren, Schwebebalken
-    return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'].filter(d => disciplineNames.includes(d));
-  } else if (name.includes('sechskampf') && name.includes('m')) {
-    // Men's all-around: Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck
-    return ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'].filter(d => disciplineNames.includes(d));
-  } else if (name.includes('geräte')) {
-    // Generic apparatus: all common disciplines
-    return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'].filter(d => disciplineNames.includes(d));
-  } else {
-    // Default: Boden, Sprung
-    return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
-  }
-}
-
-/**
- * Maps a GymNet wedDisNr code to a TurnFix discipline database ID.
- * 
- * The wedDisNr numbering system:
- * - Tens digit identifies the apparatus (10=Boden m, 11=Pferd, ..., 19=Boden w)
- * - Ones digit identifies the competition level (0=Kür, 1=LK1, 2=LK2, 3=LK3)
- * - P-Übung codes: 209, 219, ..., 299 map to the base apparatus
- * - Special codes: 630=Minitrampolin, 915=Gerätebahn A, 916=Gerätebahn B
- * 
- * @param wedDisNr The GymNet discipline number (e.g. 161, 171, 181, 191)
- * @returns The TurnFix discipline database ID, or null if no mapping found
- */
-export function wedDisNrToTurnFixId(wedDisNr: string | number): number | null {
-  const nr = typeof wedDisNr === 'string' ? parseInt(wedDisNr, 10) : wedDisNr;
-  if (isNaN(nr)) return null;
-
-  // Special codes (not following the tens-digit pattern)
-  const specialMapping: Record<number, number> = {
-    630: 77,  // Minitrampolin
-    915: 75,  // Gerätebahn A
-    916: 76,  // Gerätebahn B
-  };
-  if (specialMapping[nr] !== undefined) return specialMapping[nr];
-
-  // Apparatus mapping by tens digit:
-  // 10x=Boden m(74), 11x=Pferd(31), 12x=Ringe(50), 13x=Sprung m(71),
-  // 14x=Barren(72), 15x=Reck(46), 16x=Sprung w(71), 17x=Stufenbarren(68),
-  // 18x=Schwebebalken(73), 19x=Boden w(74)
-  const tensDigitMapping: Record<number, number> = {
-    10: 74,  // Boden (m)
-    11: 31,  // Pauschenpferd
-    12: 50,  // Ringe
-    13: 71,  // Sprung (m)
-    14: 72,  // Barren
-    15: 46,  // Reck
-    16: 71,  // Sprung (w)
-    17: 68,  // Stufenbarren
-    18: 73,  // Schwebebalken
-    19: 74,  // Boden (w)
-  };
-
-  // P-Übung codes: 209, 219, 229, 239, 249, 259, 269, 279, 289, 299
-  if (nr >= 200 && nr <= 299 && nr % 10 === 9) {
-    const baseTens = Math.floor((nr - 100) / 10);
-    if (tensDigitMapping[baseTens] !== undefined) return tensDigitMapping[baseTens];
-  }
-
-  // Standard variant codes: 100-199 (tens digit = apparatus)
-  if (nr >= 100 && nr <= 199) {
-    const tens = Math.floor(nr / 10);
-    if (tensDigitMapping[tens] !== undefined) return tensDigitMapping[tens];
-  }
-
-  // Also support base DTB codes (200, 210, ..., 290) for backward compatibility
-  const baseDtbMapping: Record<number, number> = {
-    200: 74, 210: 31, 220: 50, 230: 71, 240: 72, 250: 46,
-    260: 71, 270: 68, 280: 73, 290: 74,
-  };
-  if (baseDtbMapping[nr] !== undefined) return baseDtbMapping[nr];
-
-  return null;
-}
+import { wedDisNrToTurnFixId, getDisciplinesForCompetition } from '../utils/gymnetMapping';
 
 const router = Router();
 
@@ -1809,24 +1719,6 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
     // Database insertion for extracted data
     console.log('💾 Starting database insertion process...');
     
-    // Discipline mapping from GymNet IDs to TurnFix database IDs (from TurnFixImport.exe.config)
-    // Using actual TurnFix database IDs for precise mapping instead of names
-    const disciplineMapping: Record<string, {id: number, name: string, male: boolean, female: boolean}> = {
-      '200': { id: 74, name: 'Boden', male: true, female: false },        // Men's Floor Exercise
-      '210': { id: 31, name: 'Pferd', male: true, female: false },        // Pommel Horse
-      '220': { id: 50, name: 'Ringe', male: true, female: false },        // Still Rings
-      '230': { id: 71, name: 'Sprung', male: true, female: false },       // Men's Vault
-      '240': { id: 72, name: 'Barren', male: true, female: false },       // Parallel Bars
-      '250': { id: 46, name: 'Reck', male: true, female: false },         // Horizontal Bar
-      '260': { id: 71, name: 'Sprung', male: false, female: true },       // Women's Vault (same ID as men's)
-      '270': { id: 68, name: 'Stufenbarren', male: false, female: true }, // Uneven Bars
-      '280': { id: 73, name: 'Schwebebalken', male: false, female: true }, // Balance Beam
-      '290': { id: 74, name: 'Boden', male: false, female: true },        // Women's Floor Exercise (same ID as men's)
-      '630': { id: 77, name: 'Minitrampolin', male: true, female: true }, // Mini Trampoline
-      '915': { id: 75, name: 'Gerätebahn A', male: true, female: true },  // Apparatus Track A
-      '916': { id: 76, name: 'Gerätebahn B', male: true, female: true }   // Apparatus Track B
-    };
-
     let insertionResults = {
       clubs: { inserted: 0, updated: 0, errors: 0 },
       participants: { inserted: 0, updated: 0, errors: 0 },
@@ -2346,39 +2238,8 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
 
             const turnfixId = wedDisNrToTurnFixId(wedDisNr);
             if (turnfixId === null) {
-              console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}"), trying name-based fallback`);
-              // Try name-based fallback for unmapped codes
-              const baseName = (device.name || '').replace(/\s*(w\.|m\.|LK\d|P\d|AK).*$/i, '').trim()
-                .replace('Sch.-Balken', 'Schwebebalken')
-                .replace('Stu.-Barren', 'Stufenbarren')
-                .replace('P.-Pferd', 'Pauschenpferd')
-                .replace('Par.-Barren', 'Barren');
-              if (baseName) {
-                const nameResult = await prisma.$queryRawUnsafe(`
-                  SELECT int_disziplinenid FROM tfx_disziplinen 
-                  WHERE LOWER(var_name) = LOWER($1)
-                  LIMIT 1
-                `, baseName) as any[];
-                if (nameResult.length > 0) {
-                  const disciplineId = nameResult[0].int_disziplinenid;
-                  const existingLink = await prisma.$queryRawUnsafe(`
-                    SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
-                    WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2 LIMIT 1
-                  `, competition.int_wettkaempfeid, disciplineId) as any[];
-                  if (existingLink.length === 0) {
-                    await prisma.$queryRawUnsafe(`
-                      INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
-                      VALUES ($1, $2, $3)
-                    `, competition.int_wettkaempfeid, disciplineId, sortOrder);
-                    console.log(`    🔗 Linked "${baseName}" (name-fallback for wedDisNr=${wedDisNr}) to competition`);
-                    linkedCount++;
-                    insertionResults.devices.updated++;
-                  }
-                } else {
-                  console.log(`    ❌ Name-fallback "${baseName}" not found in DB either`);
-                  insertionResults.devices.errors++;
-                }
-              }
+              console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}") - code not in mapping table`);
+              insertionResults.devices.errors++;
               continue;
             }
 

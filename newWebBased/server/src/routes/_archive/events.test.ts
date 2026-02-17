@@ -1,5 +1,5 @@
 
-import { getDisciplinesForCompetition } from '../events';
+import { getDisciplinesForCompetition } from '../../utils/gymnetMapping';
 
 // Mock Prisma client
 const mockPrisma = {
