@@ -507,6 +507,26 @@ export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
 
   let createdDevices = 0;
   let createdFields = 0;
+
+  // ZUERST: PostgreSQL Sequence auf mindestens MAX_PRESET_DISCIPLINE_ID setzen,
+  // damit auto-increment keine IDs im reservierten Bereich vergibt.
+  // Wichtig: Nur hochsetzen, nie runter (falls bereits höhere IDs existieren)
+  try {
+    const maxIdResult = await db.$queryRawUnsafe<Array<{ max: number | null }>>(
+      `SELECT MAX(int_disziplinenid) as max FROM tfx_disziplinen`
+    );
+    const currentMaxId = maxIdResult[0]?.max || 0;
+    const newSeqValue = Math.max(currentMaxId, MAX_PRESET_DISCIPLINE_ID);
+    await db.$executeRawUnsafe(
+      `SELECT setval(pg_get_serial_sequence('tfx_disziplinen', 'int_disziplinenid'), $1, true)`,
+      newSeqValue
+    );
+    console.log(`[GymNetPreset] PostgreSQL Sequence VOR Anlegen auf ${newSeqValue} gesetzt (MAX aus DB: ${currentMaxId}, Preset-Max: ${MAX_PRESET_DISCIPLINE_ID}).`);
+  } catch (seqError: any) {
+    console.warn(`[GymNetPreset] Sequence-Reset fehlgeschlagen (nicht kritisch): ${seqError.message}`);
+  }
+
+  // DANN: GymNet-Disziplinen mit festen IDs anlegen
   for (const geraet of geraete) {
     // Sportart anlegen oder abrufen
     let sport = await db.tfx_sport.findFirst({ where: { var_name: geraet.sport } });
@@ -516,30 +536,49 @@ export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
     }
     const sportId = sport.int_sportid;
     
-    const existing = await db.tfx_disziplinen.findFirst({ where: { var_name: geraet.name } });
+    // Prüfe sowohl nach Name als auch nach fester ID, um Unique-Constraint-Fehler zu vermeiden
+    // (Falls die Autoincrement-Sequenz die feste ID bereits vergeben hat)
+    const existingByName = await db.tfx_disziplinen.findFirst({ where: { var_name: geraet.name } });
+    const existingById = await db.tfx_disziplinen.findFirst({ where: { int_disziplinenid: geraet.id } });
     let disziplinId: number | null = null;
-    if (!existing) {
-      const formula = await db.tfx_formeln.findFirst({ where: { var_name: geraet.formula } });
+    
+    const formula = await db.tfx_formeln.findFirst({ where: { var_name: geraet.formula } });
+    const disziplinData = {
+      var_name: geraet.name?.substring(0, 100),                          // DB: VarChar(100)
+      var_kurz1: geraet.kurzname?.substring(0, 6),                        // DB: VarChar(6)
+      var_kurz2: (geraet.anzeigename || geraet.name)?.substring(0, 20),    // DB: VarChar(20)
+      var_maske: geraet.eingabemaske?.substring(0, 10),                    // DB: VarChar(10)
+      var_einheit: geraet.einheit?.substring(0, 5),                        // DB: VarChar(5)
+      var_icon: geraet.symbol?.substring(0, 50),                           // DB: VarChar(50)
+      int_formelid: formula?.int_formelid || null,
+      int_sportid: sportId,
+      bol_m: geraet.bol_m,
+      bol_w: geraet.bol_w
+    };
+
+    if (existingByName) {
+      // Disziplin mit gleichem Namen existiert bereits → nur ID merken, nicht neu anlegen
+      disziplinId = existingByName.int_disziplinenid;
+    } else if (existingById) {
+      // ID ist bereits belegt (andere Disziplin) → bestehenden Eintrag aktualisieren
+      await db.tfx_disziplinen.update({
+        where: { int_disziplinenid: geraet.id },
+        data: disziplinData
+      });
+      disziplinId = geraet.id;
+      console.log(`[GymNetPreset] Gerät aktualisiert (ID=${geraet.id} war belegt): ${geraet.name} (${geraet.kurzname})`);
+      createdDevices++;
+    } else {
+      // Weder Name noch ID existiert → neu anlegen
       const created = await db.tfx_disziplinen.create({
         data: {
           int_disziplinenid: geraet.id,                                        // Feste ID aus gymnetDisciplineIds.ts!
-          var_name: geraet.name?.substring(0, 100),                          // DB: VarChar(100)
-          var_kurz1: geraet.kurzname?.substring(0, 6),                        // DB: VarChar(6)
-          var_kurz2: (geraet.anzeigename || geraet.name)?.substring(0, 20),    // DB: VarChar(20)
-          var_maske: geraet.eingabemaske?.substring(0, 10),                    // DB: VarChar(10)
-          var_einheit: geraet.einheit?.substring(0, 5),                        // DB: VarChar(5)
-          var_icon: geraet.symbol?.substring(0, 50),                           // DB: VarChar(50)
-          int_formelid: formula?.int_formelid || null,
-          int_sportid: sportId,
-          bol_m: geraet.bol_m,
-          bol_w: geraet.bol_w
+          ...disziplinData
         }
       });
       disziplinId = created.int_disziplinenid;
       console.log(`[GymNetPreset] Gerät hinzugefügt: ${geraet.name} (ID=${geraet.id}, ${geraet.kurzname})`);
       createdDevices++;
-    } else {
-      disziplinId = existing.int_disziplinenid;
     }
     // Disziplin-Felder anlegen, falls noch nicht vorhanden (exakte Zuordnung)
     if (disziplinId) {
@@ -580,19 +619,7 @@ export async function applyGymNetPreset(customPrismaClient?: PrismaClient) {
   const totalDevices = geraete.length;
   let totalFields = 0;
   for (const fields of Object.values(deviceFieldMap)) totalFields += fields.length;
-  // PostgreSQL Sequence auf den höchsten verwendeten Wert setzen,
-  // damit auto-increment nach unseren festen IDs weitergeht.
-  if (createdDevices > 0) {
-    try {
-      await db.$executeRawUnsafe(
-        `SELECT setval(pg_get_serial_sequence('tfx_disziplinen', 'int_disziplinenid'), $1, true)`,
-        MAX_PRESET_DISCIPLINE_ID
-      );
-      console.log(`[GymNetPreset] PostgreSQL Sequence auf ${MAX_PRESET_DISCIPLINE_ID} gesetzt.`);
-    } catch (seqError: any) {
-      console.warn(`[GymNetPreset] Sequence-Reset fehlgeschlagen (nicht kritisch): ${seqError.message}`);
-    }
-  }
+
 
   console.log(`[GymNetPreset] Hinzugefügt: ${createdFormulas} neue Formeln, ${createdDevices} neue Geräte, ${createdFields} neue Felder.`);
   return {
