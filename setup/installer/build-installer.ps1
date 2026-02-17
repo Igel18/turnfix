@@ -389,6 +389,17 @@ if (Test-Path $managerBat) { Copy-Item $managerBat -Destination $StagingDir }
 if (Test-Path $managerPs1) { Copy-Item $managerPs1 -Destination $StagingDir }
 Write-Host "  ✓ TurnFix Manager copied" -ForegroundColor Green
 
+# -- Build Documentation --
+Write-Host "  📦 Building documentation..." -ForegroundColor Cyan
+$docsScript = Join-Path $ScriptDir "scripts\build-docs.ps1"
+$docsOutputDir = Join-Path $StagingDir "docs"
+if (Test-Path $docsScript) {
+    & $docsScript -OutputDir $docsOutputDir -DocsDir (Join-Path $RepoRoot "documentation\newWebbased")
+    Write-Host "  ✓ Documentation built" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ build-docs.ps1 not found, skipping documentation" -ForegroundColor Yellow
+}
+
 # === Step 4: Calculate staging size ===
 Write-Host ""
 $stagingSize = (Get-ChildItem -Path $StagingDir -Recurse | Measure-Object -Property Length -Sum).Sum

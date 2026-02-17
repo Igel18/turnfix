@@ -87,6 +87,7 @@ german.ConfiguringFirewall=Firewall-Regeln werden erstellt...
 german.InstallationComplete=Installation abgeschlossen!
 german.OpenBrowser=TurnFix im Browser öffnen
 german.OpenManager=TurnFix Manager öffnen
+german.OpenDocumentation=Dokumentation öffnen
 german.ServerPort=Server Port:
 german.JuryPort=Kampfrichter-Portal Port:
 german.WelcomeLabel=Willkommen beim TurnFix Setup-Assistenten
@@ -112,6 +113,7 @@ english.ConfiguringFirewall=Creating firewall rules...
 english.InstallationComplete=Installation complete!
 english.OpenBrowser=Open TurnFix in browser
 english.OpenManager=Open TurnFix Manager
+english.OpenDocumentation=Open Documentation
 english.ServerPort=Server Port:
 english.JuryPort=Jury Portal Port:
 english.WelcomeLabel=Welcome to TurnFix Setup
@@ -155,6 +157,9 @@ Source: "{#MyStagingDir}\client\public\*"; DestDir: "{app}\client\public"; Flags
 ; Jury Portal files
 Source: "{#MyStagingDir}\jury-portal\dist\*"; DestDir: "{app}\jury-portal\dist"; Flags: ignoreversion recursesubdirs; Components: app; Check: DirExists(ExpandConstant('{#MyStagingDir}\jury-portal'))
 
+; Documentation
+Source: "{#MyStagingDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs; Components: app; Check: DirExists(ExpandConstant('{#MyStagingDir}\docs'))
+
 ; Installer scripts
 Source: "{#MyStagingDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion; Components: app
 
@@ -166,10 +171,12 @@ Source: "{#MyStagingDir}\turnfix-manager.ps1"; DestDir: "{app}"; Flags: ignoreve
 Name: "{app}\server\logs"
 Name: "{app}\server\uploads"
 Name: "{app}\data"
+Name: "{app}\docs"
 
 [Icons]
 Name: "{group}\TurnFix Manager"; Filename: "{app}\TurnFix-Manager.bat"; WorkingDir: "{app}"; Comment: "TurnFix Verwaltung starten"
 Name: "{group}\TurnFix im Browser"; Filename: "http://localhost:3001"; Comment: "TurnFix Web-Interface"
+Name: "{group}\TurnFix Dokumentation"; Filename: "{app}\docs\TurnFix-Dokumentation.html"; Comment: "TurnFix Handbuch & Dokumentation"
 Name: "{group}\TurnFix deinstallieren"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\TurnFix"; Filename: "{app}\TurnFix-Manager.bat"; WorkingDir: "{app}"; Comment: "TurnFix Verwaltung"; Tasks: desktopicon
 Name: "{commondesktop}\TurnFix Web"; Filename: "http://localhost:3001"; Comment: "TurnFix im Browser öffnen"; Tasks: desktopicon
@@ -181,6 +188,7 @@ Name: "desktopicon"; Description: "Desktop-Verknüpfungen erstellen"; GroupDescr
 ; Post-installation: open browser
 Filename: "http://localhost:3001/configuration"; Description: "{cm:OpenBrowser}"; Flags: postinstall shellexec skipifsilent unchecked
 Filename: "{app}\TurnFix-Manager.bat"; Description: "{cm:OpenManager}"; Flags: postinstall skipifsilent nowait
+Filename: "{app}\docs\TurnFix-Dokumentation.html"; Description: "{cm:OpenDocumentation}"; Flags: postinstall shellexec skipifsilent unchecked nowait
 
 [UninstallRun]
 ; Stop and remove service before uninstall
