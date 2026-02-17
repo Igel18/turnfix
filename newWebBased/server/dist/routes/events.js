@@ -1129,6 +1129,11 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
             const extractDevices = (data, currentPath, competitionCtx) => {
                 if (Array.isArray(data)) {
                     data.forEach((item, index) => {
+                        if (Array.isArray(item)) {
+                            // Nested array – flatten and recurse
+                            extractDevices(item, `${currentPath}[${index}]`, competitionCtx);
+                            return;
+                        }
                         if (item && typeof item === 'object') {
                             const device = {};
                             Object.keys(item).forEach(key => {
@@ -1138,20 +1143,19 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                                     key.toLowerCase().includes('discipline') ||
                                     key.toLowerCase().includes('disziplin') ||
                                     key.toLowerCase().includes('bezeichnung') ||
-                                    key.toLowerCase().includes('wedDisName')) {
+                                    key.toLowerCase().includes('weddisname')) {
                                     device.name = item[key];
                                 }
-                                if (key.toLowerCase().includes('id') ||
-                                    key.toLowerCase().includes('disid') ||
+                                if (key.toLowerCase().includes('disid') ||
                                     key.toLowerCase().includes('gerid') ||
-                                    key.toLowerCase().includes('wedDisID')) {
+                                    key.toLowerCase().includes('weddisid')) {
                                     device.id = item[key];
                                 }
                                 if (key.toLowerCase().includes('code') ||
                                     key.toLowerCase().includes('abbreviation') ||
                                     key.toLowerCase().includes('kuerzel') ||
                                     key.toLowerCase().includes('kurz') ||
-                                    key.toLowerCase().includes('wedDisNr')) {
+                                    key.toLowerCase().includes('weddisnr')) {
                                     device.code = item[key];
                                 }
                                 if (key.toLowerCase().includes('reihenfolge') ||
@@ -1183,20 +1187,19 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                             key.toLowerCase().includes('discipline') ||
                             key.toLowerCase().includes('disziplin') ||
                             key.toLowerCase().includes('bezeichnung') ||
-                            key.toLowerCase().includes('wedDisName')) {
+                            key.toLowerCase().includes('weddisname')) {
                             device.name = data[key];
                         }
-                        if (key.toLowerCase().includes('id') ||
-                            key.toLowerCase().includes('disid') ||
+                        if (key.toLowerCase().includes('disid') ||
                             key.toLowerCase().includes('gerid') ||
-                            key.toLowerCase().includes('wedDisID')) {
+                            key.toLowerCase().includes('weddisid')) {
                             device.id = data[key];
                         }
                         if (key.toLowerCase().includes('code') ||
                             key.toLowerCase().includes('abbreviation') ||
                             key.toLowerCase().includes('kuerzel') ||
                             key.toLowerCase().includes('kurz') ||
-                            key.toLowerCase().includes('wedDisNr')) {
+                            key.toLowerCase().includes('weddisnr')) {
                             device.code = data[key];
                         }
                         if (key.toLowerCase().includes('reihenfolge') ||
@@ -1440,7 +1443,28 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         extractParticipants([participant], currentPath);
                     }
                     else if (key.toLowerCase() === 'disziplin') {
-                        extractDevices([value], currentPath, currentCompetitionContext);
+                        // Handle both single discipline object and array of disciplines
+                        if (Array.isArray(value)) {
+                            // Multiple Disziplin elements → array of discipline objects
+                            extractDevices(value, currentPath, currentCompetitionContext);
+                        }
+                        else {
+                            // Single Disziplin element → wrap in array
+                            extractDevices([value], currentPath, currentCompetitionContext);
+                        }
+                    }
+                    else if (key.toLowerCase() === 'disziplinen') {
+                        // Container element: Disziplinen > Disziplin (array or single)
+                        if (value && typeof value === 'object') {
+                            if (value.Disziplin) {
+                                const disziplinen = Array.isArray(value.Disziplin) ? value.Disziplin : [value.Disziplin];
+                                extractDevices(disziplinen, `${currentPath}.Disziplin`, currentCompetitionContext);
+                            }
+                            else {
+                                // No nested Disziplin key - process children recursively
+                                processNode(value, currentPath, currentCompetitionContext);
+                            }
+                        }
                     }
                     // Continue recursive processing with competition context
                     else if (Array.isArray(value)) {

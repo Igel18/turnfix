@@ -192,6 +192,10 @@ export function wedDisNrToName(wedDisNr: string | number): string | null {
  * Generalized discipline selection for a competition name using DB values.
  * Used as fallback when no wedDisNr data is available from the XML.
  * 
+ * Searches the database for disciplines whose names START WITH a base
+ * apparatus name, so it works with both legacy names ("Boden") and
+ * GymNet preset names ("Boden m.", "Boden m. LK1", "Boden w. Kür").
+ * 
  * @param competitionName The name of the competition (e.g. "Gerätvierkampf w")
  * @param prismaInstance The Prisma client instance
  * @returns Array of discipline names to link
@@ -202,16 +206,71 @@ export async function getDisciplinesForCompetition(
 ): Promise<string[]> {
   const name = competitionName.toLowerCase();
   const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
-  const disciplineNames = allDisciplines.map(d => d.var_name);
+  const disciplineNames = allDisciplines.map(d => d.var_name).filter((n): n is string => n !== null);
+
+  // Determine which base apparatus names to look for
+  let baseApparatus: string[];
 
   if (name.includes('vierkampf') && name.includes('w')) {
-    return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken'].filter(d => disciplineNames.includes(d));
-  } else if (name.includes('sechskampf') && name.includes('m')) {
-    return ['Boden', 'Pauschenpferd', 'Ringe', 'Sprung', 'Barren', 'Reck'].filter(d => disciplineNames.includes(d));
-  } else if (name.includes('geräte')) {
-    return ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'].filter(d => disciplineNames.includes(d));
+    // Female four-apparatus competition
+    baseApparatus = ['Sprung w', 'Stufenbarren', 'Schwebebalken', 'Boden w'];
+  } else if (name.includes('vierkampf') && name.includes('m')) {
+    // Male four-apparatus — pick 4 from 6 (use the most common default set)
+    baseApparatus = ['Boden m', 'Sprung m', 'Barren', 'Reck'];
+  } else if (name.includes('sechskampf') || (name.includes('mehrkampf') && name.includes('m'))) {
+    // Male six-apparatus competition
+    baseApparatus = ['Boden m', 'Pauschenpferd', 'Ringe', 'Sprung m', 'Barren', 'Reck'];
+  } else if (name.includes('mehrkampf') && name.includes('w')) {
+    // Female multi-apparatus
+    baseApparatus = ['Sprung w', 'Stufenbarren', 'Schwebebalken', 'Boden w'];
+  } else if (name.includes('geräte') || name.includes('gerate')) {
+    // Generic apparatus → all 10
+    baseApparatus = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
   } else {
-    return ['Boden', 'Sprung'].filter(d => disciplineNames.includes(d));
+    // Default fallback: all 10 base apparatus
+    baseApparatus = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
   }
+
+  // Try to determine competition level from name (LK1, LK2, LK3, P, Kür, AK, Turn10)
+  let levelSuffix = '';
+  if (name.includes('lk 1') || name.includes('lk1')) levelSuffix = 'LK1';
+  else if (name.includes('lk 2') || name.includes('lk2')) levelSuffix = 'LK2';
+  else if (name.includes('lk 3') || name.includes('lk3')) levelSuffix = 'LK3';
+  else if (name.includes('p-stufe') || name.includes('p1') || name.includes('p-wettkampf')) levelSuffix = 'P';
+  else if (name.includes('kür')) levelSuffix = 'Kür';
+
+  // Find matching disciplines in DB: prefer level-specific, then base name
+  const matched: string[] = [];
+  for (const base of baseApparatus) {
+    // First try: exact match with level suffix
+    if (levelSuffix) {
+      const withLevel = disciplineNames.find(d => 
+        d.toLowerCase().startsWith(base.toLowerCase()) && 
+        d.toLowerCase().includes(levelSuffix.toLowerCase())
+      );
+      if (withLevel) {
+        matched.push(withLevel);
+        continue;
+      }
+    }
+
+    // Second try: exact name match
+    const exact = disciplineNames.find(d => d === base);
+    if (exact) {
+      matched.push(exact);
+      continue;
+    }
+
+    // Third try: starts-with match (e.g. "Boden" matches "Boden m." or "Boden w.")
+    const startsWith = disciplineNames.find(d => 
+      d.toLowerCase().startsWith(base.toLowerCase())
+    );
+    if (startsWith) {
+      matched.push(startsWith);
+    }
+  }
+
+  console.log(`[getDisciplinesForCompetition] "${competitionName}" → base: [${baseApparatus.join(', ')}], level: "${levelSuffix}", matched: [${matched.join(', ')}]`);
+  return matched;
 }
 
