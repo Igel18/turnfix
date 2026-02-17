@@ -2149,36 +2149,8 @@ router.post('/import-gymnet', authBypass_1.authenticateToken, upload.single('xml
                         }
                         const turnfixId = (0, gymnetMapping_1.wedDisNrToTurnFixId)(wedDisNr);
                         if (turnfixId === null) {
-                            console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}"), trying name-based fallback`);
-                            // Try name-based fallback for unmapped codes
-                            const baseName = (0, gymnetMapping_1.normalizeGymNetDisciplineName)(device.name || '');
-                            if (baseName) {
-                                const nameResult = await prisma_1.default.$queryRawUnsafe(`
-                  SELECT int_disziplinenid FROM tfx_disziplinen 
-                  WHERE LOWER(var_name) = LOWER($1)
-                  LIMIT 1
-                `, baseName);
-                                if (nameResult.length > 0) {
-                                    const disciplineId = nameResult[0].int_disziplinenid;
-                                    const existingLink = await prisma_1.default.$queryRawUnsafe(`
-                    SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
-                    WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2 LIMIT 1
-                  `, competition.int_wettkaempfeid, disciplineId);
-                                    if (existingLink.length === 0) {
-                                        await prisma_1.default.$queryRawUnsafe(`
-                      INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
-                      VALUES ($1, $2, $3)
-                    `, competition.int_wettkaempfeid, disciplineId, sortOrder);
-                                        console.log(`    🔗 Linked "${baseName}" (name-fallback for wedDisNr=${wedDisNr}) to competition`);
-                                        linkedCount++;
-                                        insertionResults.devices.updated++;
-                                    }
-                                }
-                                else {
-                                    console.log(`    ❌ Name-fallback "${baseName}" not found in DB either`);
-                                    insertionResults.devices.errors++;
-                                }
-                            }
+                            console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}") - code not in mapping table`);
+                            insertionResults.devices.errors++;
                             continue;
                         }
                         // Verify the discipline ID exists in the database
