@@ -416,8 +416,41 @@ if (-not (Test-Path $issFile)) {
     exit 1
 }
 
+# === Read build-info.json for version info ===
+$buildInfoPath = Join-Path $StagingDir "server\dist\build-info.json"
+$gitHash = "dev"
+$buildDate = ""
+$buildNumber = "0"
+
+if (Test-Path $buildInfoPath) {
+    try {
+        $buildInfo = Get-Content $buildInfoPath -Raw | ConvertFrom-Json
+        $gitHash = $buildInfo.gitHash
+        if ($buildInfo.buildDate) {
+            $buildDate = $buildInfo.buildDate
+        }
+        Write-Host "  📋 Git Hash:    $gitHash" -ForegroundColor White
+        Write-Host "  📋 Build Date:  $buildDate" -ForegroundColor White
+    } catch {
+        Write-Host "  ⚠ Could not parse build-info.json: $_" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "  ⚠ build-info.json not found, using defaults" -ForegroundColor Yellow
+}
+
+# Get build number from git commit count
+try {
+    Push-Location $RepoRoot
+    $buildNumber = (git rev-list --count HEAD 2>$null)
+    if (-not $buildNumber) { $buildNumber = "0" }
+    Pop-Location
+    Write-Host "  📋 Build #:     $buildNumber" -ForegroundColor White
+} catch {
+    Write-Host "  ⚠ Could not get git commit count: $_" -ForegroundColor Yellow
+}
+
 Write-Host "  🔨 Compiling with Inno Setup..." -ForegroundColor Cyan
-& $ISCC /O"$OutputDir" /DMyStagingDir="$StagingDir" "$issFile"
+& $ISCC /O"$OutputDir" /DMyStagingDir="$StagingDir" /DMyGitHash="$gitHash" /DMyBuildDate="$buildDate" /DMyBuildNumber="$buildNumber" "$issFile"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""

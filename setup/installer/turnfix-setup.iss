@@ -27,11 +27,25 @@
   #define MyStagingDir "staging"
 #endif
 
+; Build info - passed from build-installer.ps1
+#ifndef MyGitHash
+  #define MyGitHash "dev"
+#endif
+#ifndef MyBuildDate
+  #define MyBuildDate ""
+#endif
+#ifndef MyBuildNumber
+  #define MyBuildNumber "0"
+#endif
+
+; Full version string: 2.0.BuildNumber
+#define MyFullVersion MyAppVersion + "." + MyBuildNumber
+
 [Setup]
 AppId={{A7F3B2C4-D5E6-4F78-9A0B-C1D2E3F4A5B6}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
-AppVerName={#MyAppName} {#MyAppVersion}
+AppVersion={#MyFullVersion}
+AppVerName={#MyAppName} {#MyAppVersion} (Build {#MyBuildNumber}, {#MyGitHash})
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -41,7 +55,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=
 OutputDir=output
-OutputBaseFilename=TurnFix-Setup-{#MyAppVersion}
+OutputBaseFilename=TurnFix-Setup-{#MyAppVersion}-build{#MyBuildNumber}-{#MyGitHash}
 SetupIconFile=
 Compression=lzma2/ultra64
 SolidCompression=yes
