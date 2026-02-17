@@ -2256,7 +2256,8 @@
       "notStarted": "Not Started",
       "gender": "Gender",
       "male": "Male",
-      "female": "Female"
+      "female": "Female",
+      "mixed": "Mixed"
     },
     "table": {
       "competition": "Competition",

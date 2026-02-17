@@ -286,7 +286,7 @@ const CompetitionStatusManagement = () => {
     if (filterStatus && !getAggregatedOverallStatus(item).toLowerCase().includes(filterStatus.toLowerCase())) {
       return false
     }
-    if (filterGender && !item.gender.toLowerCase().includes(filterGender.toLowerCase())) {
+    if (filterGender && item.gender.toLowerCase() !== filterGender.toLowerCase()) {
       return false
     }
     return true
@@ -366,6 +366,7 @@ const CompetitionStatusManagement = () => {
                 <option value="">{t('common.all')}</option>
                 <option value="männlich">{t('competitionStatus.filters.male')}</option>
                 <option value="weiblich">{t('competitionStatus.filters.female')}</option>
+                <option value="gemischt">{t('competitionStatus.filters.mixed')}</option>
               </select>
             </div>
             <div className="flex items-end">

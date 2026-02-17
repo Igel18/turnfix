@@ -2290,7 +2290,8 @@
       "notStarted": "Nicht gestartet",
       "gender": "Geschlecht",
       "male": "Männlich",
-      "female": "Weiblich"
+      "female": "Weiblich",
+      "mixed": "Gemischt"
     },
     "table": {
       "competition": "Wettkampf",

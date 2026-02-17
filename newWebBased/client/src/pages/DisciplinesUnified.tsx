@@ -314,6 +314,7 @@ const DisciplinesUnified: React.FC = () => {
 
   // Clear all filters
   const handleClearAllFilters = () => {
+    setSearchTerm('');
     setSportFilter('');
     setGenderFilter('');
     setFormulaFilter('');

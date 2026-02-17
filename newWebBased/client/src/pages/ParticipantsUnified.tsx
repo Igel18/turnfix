@@ -201,6 +201,7 @@ const ParticipantsUnified: React.FC = () => {
 
   // Clear all filters
   const handleClearAllFilters = () => {
+    setSearchTerm('');
     setClubFilter('');
     setGenderFilter('');
     setAgeFilter('');
