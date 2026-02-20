@@ -75,7 +75,7 @@ export interface DisciplineHint {
   competition: string
   competitionId: number
   type: 'suggestion' | 'linked' | 'missing'
-  disciplines: string[]
+  disciplines: { id: number; name: string }[]
   message: string
 }
 

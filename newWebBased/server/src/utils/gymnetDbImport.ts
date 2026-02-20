@@ -43,7 +43,7 @@ export interface DisciplineHint {
   competition: string;
   competitionId: number;
   type: 'suggestion' | 'linked' | 'missing';
-  disciplines: string[];
+  disciplines: { id: number; name: string }[];
   message: string;
 }
 
@@ -392,8 +392,11 @@ async function linkDisciplines(
   console.log('🤸 Starting comprehensive discipline processing...');
 
   const eventCompetitions = await prisma.$queryRawUnsafe(`
-    SELECT int_wettkaempfeid, var_name, var_nummer FROM tfx_wettkaempfe 
-    WHERE int_veranstaltungenid = $1
+    SELECT w.int_wettkaempfeid, w.var_name, w.var_nummer, w.int_bereicheid,
+           b.bol_maennlich, b.bol_weiblich
+    FROM tfx_wettkaempfe w
+    JOIN tfx_bereiche b ON w.int_bereicheid = b.int_bereicheid
+    WHERE w.int_veranstaltungenid = $1
   `, eventId) as any[];
 
   console.log(`  📊 Found ${eventCompetitions.length} competitions for this event`);
@@ -472,8 +475,15 @@ async function linkDisciplines(
     } else {
       // === NO AUTO-LINKING: Generate suggestions only ===
       console.log(`    💡 No XML device data found — generating discipline suggestions (not auto-linking)`);
-      const suggestedDisciplines = await getDisciplinesForCompetition(competition.var_name, prisma);
-      console.log(`    📝 Suggestions: ${suggestedDisciplines.join(', ')}`);
+
+      // Determine competition gender from bereich for gender-filtered suggestions
+      let compGender: 'male' | 'female' | 'mixed' | 'unknown' = 'unknown';
+      if (competition.bol_maennlich && !competition.bol_weiblich) compGender = 'male';
+      else if (!competition.bol_maennlich && competition.bol_weiblich) compGender = 'female';
+      else if (competition.bol_maennlich && competition.bol_weiblich) compGender = 'mixed';
+
+      const suggestedDisciplines = await getDisciplinesForCompetition(competition.var_name, prisma, undefined, compGender);
+      console.log(`    📝 Suggestions (gender=${compGender}): ${suggestedDisciplines.map(d => d.name).join(', ')}`);
 
       if (suggestedDisciplines.length > 0) {
         hints.push({
@@ -481,7 +491,7 @@ async function linkDisciplines(
           competitionId: competition.int_wettkaempfeid,
           type: 'suggestion',
           disciplines: suggestedDisciplines,
-          message: `Keine Disziplindaten in der XML-Datei vorhanden. Basierend auf dem Wettkampfnamen könnten folgende Disziplinen zutreffend sein: ${suggestedDisciplines.join(', ')}. Bitte manuell in der Wettkampfverwaltung zuweisen.`
+          message: `Keine Disziplindaten in der XML-Datei vorhanden. Basierend auf dem Wettkampfnamen könnten folgende Disziplinen zutreffend sein: ${suggestedDisciplines.map(d => d.name).join(', ')}. Bitte manuell in der Wettkampfverwaltung zuweisen.`
         });
       } else {
         hints.push({
@@ -497,7 +507,7 @@ async function linkDisciplines(
         type: 'warning',
         category: 'discipline',
         message: `Wettkampf "${competition.var_name}": Keine Disziplinen in XML — manuelle Zuweisung erforderlich`,
-        details: suggestedDisciplines.length > 0 ? `Vorschläge: ${suggestedDisciplines.join(', ')}` : undefined
+        details: suggestedDisciplines.length > 0 ? `Vorschläge: ${suggestedDisciplines.map(d => d.name).join(', ')}` : undefined
       });
     }
   }

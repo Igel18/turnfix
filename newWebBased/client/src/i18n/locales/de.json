@@ -809,7 +809,12 @@
         "errorsTitle": "Fehler beim Import",
         "errorsDescription": "Einige Datensätze konnten nicht importiert werden. Überprüfen Sie die Daten und versuchen Sie es ggf. manuell.",
         "close": "Schließen",
-        "tryAgain": "Erneut versuchen"
+        "tryAgain": "Erneut versuchen",
+        "acceptSuggestion": "Vorschläge übernehmen",
+        "accepting": "Wird übernommen...",
+        "accepted": "Disziplinen wurden zugewiesen",
+        "acceptedDisciplines": "Zugewiesene Disziplinen:",
+        "acceptAll": "Alle Vorschläge übernehmen"
       }
     },
     "organizerInfo": "Veranstalterinformationen",

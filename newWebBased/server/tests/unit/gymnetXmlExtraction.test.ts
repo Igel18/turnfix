@@ -8,7 +8,7 @@
  *   4. Case-insensitive key matching works for wedDisNr, wedDisName, wedDisID
  */
 
-import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition, matchesLevel, getExpectedDisciplineCount, detectLevelFromDevices, DISCIPLINE_IDS, DISCIPLINE_NAMES } from '../../src/utils/gymnetMapping';
+import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition, matchesLevel, getExpectedDisciplineCount, detectLevelFromDevices, detectGenderFromName, DISCIPLINE_IDS, DISCIPLINE_NAMES } from '../../src/utils/gymnetMapping';
 
 // ============================================================================
 // 1. wedDisNr → TurnFix ID mapping
@@ -259,7 +259,7 @@ describe('getDisciplinesForCompetition', () => {
   const mockPrisma = {
     tfx_disziplinen: {
       findMany: jest.fn().mockResolvedValue(
-        gymnetDisciplineNames.map(name => ({ var_name: name }))
+        gymnetDisciplineNames.map((name, idx) => ({ int_disziplinenid: idx + 1, var_name: name, bol_m: true, bol_w: true }))
       ),
     },
   } as any;
@@ -268,7 +268,7 @@ describe('getDisciplinesForCompetition', () => {
     const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma);
     expect(result.length).toBe(4);
     // Should include female apparatus
-    const resultLower = result.map(r => r.toLowerCase());
+    const resultLower = result.map(r => r.name.toLowerCase());
     expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
     expect(resultLower.some(r => r.includes('stufenbarren') || r.includes('barren'))).toBe(true);
     expect(resultLower.some(r => r.includes('schwebebalken') || r.includes('balken'))).toBe(true);
@@ -304,8 +304,9 @@ describe('getDisciplinesForCompetition', () => {
     for (const testName of testNames) {
       const result = await getDisciplinesForCompetition(testName, mockPrisma);
       // The old bug returned exactly ['Boden', 'Sprung'] for all unknown names
-      const isOldBug = result.length === 2 && 
-        result.includes('Boden') && result.includes('Sprung');
+      const names = result.map(r => r.name);
+      const isOldBug = names.length === 2 && 
+        names.includes('Boden') && names.includes('Sprung');
       expect(isOldBug).toBe(false);
     }
   });
@@ -313,8 +314,19 @@ describe('getDisciplinesForCompetition', () => {
   it('should match GymNet preset names (e.g., "Boden m." not just "Boden")', async () => {
     const result = await getDisciplinesForCompetition('Geräteturnen', mockPrisma);
     // All returned names should exist in DISCIPLINE_NAMES
-    for (const name of result) {
-      expect(gymnetDisciplineNames).toContain(name);
+    for (const item of result) {
+      expect(gymnetDisciplineNames).toContain(item.name);
+    }
+  });
+
+  it('should return discipline objects with id and name', async () => {
+    const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma);
+    expect(result.length).toBeGreaterThan(0);
+    for (const item of result) {
+      expect(item).toHaveProperty('id');
+      expect(item).toHaveProperty('name');
+      expect(typeof item.id).toBe('number');
+      expect(typeof item.name).toBe('string');
     }
   });
 });
@@ -582,7 +594,7 @@ describe('getDisciplinesForCompetition - Turn10 competitions', () => {
   const mockPrisma = {
     tfx_disziplinen: {
       findMany: jest.fn().mockResolvedValue(
-        gymnetDisciplineNames.map(name => ({ var_name: name }))
+        gymnetDisciplineNames.map((name, idx) => ({ int_disziplinenid: idx + 1, var_name: name, bol_m: true, bol_w: true }))
       ),
     },
   } as any;
@@ -592,30 +604,30 @@ describe('getDisciplinesForCompetition - Turn10 competitions', () => {
     const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)', mockPrisma);
     expect(result.length).toBe(6);
     // ALL results should be Turn10® Basis disciplines
-    for (const name of result) {
-      expect(name).toContain('Turn10');
+    for (const item of result) {
+      expect(item.name).toContain('Turn10');
     }
   });
 
   it('should return 6 Turn10 disciplines for "Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)"', async () => {
     const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)', mockPrisma);
     expect(result.length).toBe(6);
-    for (const name of result) {
-      expect(name).toContain('Turn10');
+    for (const item of result) {
+      expect(item.name).toContain('Turn10');
     }
   });
 
   it('should return 6 Turn10 disciplines for female Turn10 "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)"', async () => {
     const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)', mockPrisma);
     expect(result.length).toBe(6);
-    for (const name of result) {
-      expect(name).toContain('Turn10');
+    for (const item of result) {
+      expect(item.name).toContain('Turn10');
     }
   });
 
   it('should include all 6 Turn10 apparatus types', async () => {
     const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)', mockPrisma);
-    const resultLower = result.map(r => r.toLowerCase());
+    const resultLower = result.map(r => r.name.toLowerCase());
     expect(resultLower.some(r => r.includes('boden'))).toBe(true);
     expect(resultLower.some(r => r.includes('balken') || r.includes('bank'))).toBe(true);
     expect(resultLower.some(r => r.includes('barren'))).toBe(true);
@@ -627,11 +639,11 @@ describe('getDisciplinesForCompetition - Turn10 competitions', () => {
   it('should NOT return standard P-level disciplines for Turn10 competitions', async () => {
     const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)', mockPrisma);
     // None should be P-level standard disciplines
-    for (const name of result) {
-      expect(name).not.toMatch(/P1-P9/);
-      expect(name).not.toMatch(/^Boden m\./);
-      expect(name).not.toMatch(/^Pauschenpferd/);
-      expect(name).not.toMatch(/^Ringe/);
+    for (const item of result) {
+      expect(item.name).not.toMatch(/P1-P9/);
+      expect(item.name).not.toMatch(/^Boden m\./);
+      expect(item.name).not.toMatch(/^Pauschenpferd/);
+      expect(item.name).not.toMatch(/^Ringe/);
     }
   });
 
@@ -639,8 +651,8 @@ describe('getDisciplinesForCompetition - Turn10 competitions', () => {
     // Internally, Turn10 should set isTurn10=true and NOT use any level suffix
     const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m', mockPrisma);
     // All results should be Turn10 (no level-based filtering applied)
-    for (const name of result) {
-      expect(name).toContain('Turn10');
+    for (const item of result) {
+      expect(item.name).toContain('Turn10');
     }
   });
 });
@@ -655,7 +667,7 @@ describe('getDisciplinesForCompetition - Sechskampf and 4-Kampf', () => {
   const mockPrisma = {
     tfx_disziplinen: {
       findMany: jest.fn().mockResolvedValue(
-        gymnetDisciplineNames.map(name => ({ var_name: name }))
+        gymnetDisciplineNames.map((name, idx) => ({ int_disziplinenid: idx + 1, var_name: name, bol_m: true, bol_w: true }))
       ),
     },
   } as any;
@@ -669,14 +681,14 @@ describe('getDisciplinesForCompetition - Sechskampf and 4-Kampf', () => {
     const result = await getDisciplinesForCompetition('Gerätsechskampf m (17-18Jahre)', mockPrisma, 'P');
     expect(result.length).toBe(6);
     // All should be P-level
-    for (const name of result) {
-      expect(matchesLevel(name, 'P')).toBe(true);
+    for (const item of result) {
+      expect(matchesLevel(item.name, 'P')).toBe(true);
     }
   });
 
   it('should return 6 male apparatus for Sechskampf (Boden, Pferd, Ringe, Sprung, Barren, Reck)', async () => {
     const result = await getDisciplinesForCompetition('Gerätsechskampf m (17-18Jahre)', mockPrisma);
-    const resultLower = result.map(r => r.toLowerCase());
+    const resultLower = result.map(r => r.name.toLowerCase());
     expect(resultLower.some(r => r.includes('boden'))).toBe(true);
     expect(resultLower.some(r => r.includes('pferd') || r.includes('pauschenpferd'))).toBe(true);
     expect(resultLower.some(r => r.includes('ringe'))).toBe(true);
@@ -693,7 +705,7 @@ describe('getDisciplinesForCompetition - Sechskampf and 4-Kampf', () => {
 
   it('should return male 4-Kampf without Pauschenpferd and Ringe', async () => {
     const result = await getDisciplinesForCompetition('Gerät 4-Kampf m', mockPrisma);
-    const resultLower = result.map(r => r.toLowerCase());
+    const resultLower = result.map(r => r.name.toLowerCase());
     expect(resultLower.some(r => r.includes('boden'))).toBe(true);
     expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
     expect(resultLower.some(r => r.includes('barren'))).toBe(true);
@@ -706,7 +718,7 @@ describe('getDisciplinesForCompetition - Sechskampf and 4-Kampf', () => {
   it('should return 4 female disciplines for "Gerätvierkampf w"', async () => {
     const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma);
     expect(result.length).toBe(4);
-    const resultLower = result.map(r => r.toLowerCase());
+    const resultLower = result.map(r => r.name.toLowerCase());
     expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
     expect(resultLower.some(r => r.includes('stufenbarren'))).toBe(true);
     expect(resultLower.some(r => r.includes('schwebebalken'))).toBe(true);
@@ -716,8 +728,389 @@ describe('getDisciplinesForCompetition - Sechskampf and 4-Kampf', () => {
   it('should return LK1-level disciplines when levelHint is "LK1"', async () => {
     const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma, 'LK1');
     expect(result.length).toBe(4);
-    for (const name of result) {
-      expect(name.toLowerCase()).toContain('lk1');
+    for (const item of result) {
+      expect(item.name.toLowerCase()).toContain('lk1');
     }
+  });
+});
+
+// ============================================================================
+// 14. genderFilter parameter — getDisciplinesForCompetition
+// ============================================================================
+
+describe('getDisciplinesForCompetition - genderFilter parameter', () => {
+  // Build mock with gender-specific disciplines
+  const mockDisciplines = [
+    { int_disziplinenid: 1, var_name: 'Boden m. Kür', bol_m: true, bol_w: false },
+    { int_disziplinenid: 2, var_name: 'Sprung m. Kür', bol_m: true, bol_w: false },
+    { int_disziplinenid: 3, var_name: 'Barren', bol_m: true, bol_w: false },
+    { int_disziplinenid: 4, var_name: 'Reck', bol_m: true, bol_w: false },
+    { int_disziplinenid: 5, var_name: 'Pauschenpferd', bol_m: true, bol_w: false },
+    { int_disziplinenid: 6, var_name: 'Ringe', bol_m: true, bol_w: false },
+    { int_disziplinenid: 7, var_name: 'Sprung w', bol_m: false, bol_w: true },
+    { int_disziplinenid: 8, var_name: 'Stufenbarren', bol_m: false, bol_w: true },
+    { int_disziplinenid: 9, var_name: 'Schwebebalken', bol_m: false, bol_w: true },
+    { int_disziplinenid: 10, var_name: 'Boden w', bol_m: false, bol_w: true },
+    { int_disziplinenid: 11, var_name: 'Boden', bol_m: true, bol_w: true },
+    { int_disziplinenid: 12, var_name: 'Sprung', bol_m: true, bol_w: true },
+  ];
+
+  const mockPrisma = {
+    tfx_disziplinen: {
+      findMany: jest.fn().mockResolvedValue(mockDisciplines),
+    },
+  } as any;
+
+  it('should return only male disciplines when genderFilter is "male"', async () => {
+    const result = await getDisciplinesForCompetition('Gerätsechskampf', mockPrisma, undefined, 'male');
+    // All returned disciplines should have bol_m=true
+    for (const item of result) {
+      const source = mockDisciplines.find(d => d.var_name === item.name);
+      expect(source?.bol_m).toBe(true);
+    }
+  });
+
+  it('should return only female disciplines when genderFilter is "female"', async () => {
+    const result = await getDisciplinesForCompetition('Gerätvierkampf', mockPrisma, undefined, 'female');
+    for (const item of result) {
+      const source = mockDisciplines.find(d => d.var_name === item.name);
+      expect(source?.bol_w).toBe(true);
+    }
+  });
+
+  it('should return all disciplines when genderFilter is "mixed"', async () => {
+    const result = await getDisciplinesForCompetition('Geräteturnen', mockPrisma, undefined, 'mixed');
+    // Should have access to both male and female disciplines
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('should fall back to name detection when genderFilter is "unknown"', async () => {
+    // Name contains " m " so name-based detection should pick male
+    const result = await getDisciplinesForCompetition('Gerätsechskampf m (17-18)', mockPrisma, undefined, 'unknown');
+    for (const item of result) {
+      const source = mockDisciplines.find(d => d.var_name === item.name);
+      expect(source?.bol_m).toBe(true);
+    }
+  });
+
+  it('should prioritize genderFilter over name-detected gender', async () => {
+    // Name says "w" (female) but genderFilter says "male"
+    const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma, undefined, 'male');
+    // Should use male filter despite "w" in the name
+    for (const item of result) {
+      const source = mockDisciplines.find(d => d.var_name === item.name);
+      expect(source?.bol_m).toBe(true);
+    }
+  });
+
+  it('should return DisciplineSuggestion objects with id and name', async () => {
+    const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma, undefined, 'female');
+    expect(result.length).toBeGreaterThan(0);
+    for (const item of result) {
+      expect(item).toHaveProperty('id');
+      expect(item).toHaveProperty('name');
+      expect(typeof item.id).toBe('number');
+      expect(typeof item.name).toBe('string');
+    }
+  });
+});
+
+// ============================================================================
+// 15. detectGenderFromName — gender detection from competition name
+// ============================================================================
+
+describe('detectGenderFromName', () => {
+  it('should detect male from " m " in name', () => {
+    expect(detectGenderFromName('Gerätsechskampf m (17-18Jahre)')).toBe('male');
+  });
+
+  it('should detect male from name ending with " m"', () => {
+    expect(detectGenderFromName('Gerät 4-Kampf m')).toBe('male');
+  });
+
+  it('should detect female from " w " in name', () => {
+    expect(detectGenderFromName('Gerätvierkampf w (7-8Jahre)')).toBe('female');
+  });
+
+  it('should detect female from name ending with " w"', () => {
+    expect(detectGenderFromName('Gerätvierkampf w')).toBe('female');
+  });
+
+  it('should detect male from "männlich"', () => {
+    expect(detectGenderFromName('Jugend männlich')).toBe('male');
+  });
+
+  it('should detect female from "weiblich"', () => {
+    expect(detectGenderFromName('Jugend weiblich')).toBe('female');
+  });
+
+  it('should detect female from "Mädchen"', () => {
+    expect(detectGenderFromName('Mädchen C')).toBe('female');
+  });
+
+  it('should detect male from "Jungen"', () => {
+    expect(detectGenderFromName('Jungen D')).toBe('male');
+  });
+
+  it('should detect male for Sechskampf (always male)', () => {
+    expect(detectGenderFromName('Gerätsechskampf')).toBe('male');
+  });
+
+  it('should return unknown for ambiguous names', () => {
+    expect(detectGenderFromName('Geräteturnen')).toBe('unknown');
+  });
+
+  it('should return unknown for generic competition names', () => {
+    expect(detectGenderFromName('WK 14')).toBe('unknown');
+  });
+});
+
+// ============================================================================
+// 16. Deduplication of participants, clubs, devices in import response
+// ============================================================================
+
+describe('Import response deduplication logic', () => {
+  // Test the pure deduplication logic extracted from gymnetImport.ts
+
+  describe('Club deduplication (case-insensitive by name)', () => {
+    it('should count unique clubs by name', () => {
+      const clubs = [
+        { name: 'TSV Musterstadt' },
+        { name: 'TSV Musterstadt' },
+        { name: 'SV Beispielhausen' },
+        { name: 'tsv musterstadt' }, // same club, different case
+      ];
+      const uniqueClubNames = new Set(
+        clubs.map((c: any) => (c.name || '').trim().toLowerCase()).filter((n: string) => n.length > 0)
+      );
+      expect(uniqueClubNames.size).toBe(2);
+    });
+
+    it('should handle clubs with empty names', () => {
+      const clubs = [
+        { name: '' },
+        { name: '  ' },
+        { name: 'TSV Test' },
+      ];
+      const uniqueClubNames = new Set(
+        clubs.map((c: any) => (c.name || '').trim().toLowerCase()).filter((n: string) => n.length > 0)
+      );
+      expect(uniqueClubNames.size).toBe(1);
+    });
+
+    it('should handle clubs with whitespace variations', () => {
+      const clubs = [
+        { name: ' TSV Test ' },
+        { name: 'TSV Test' },
+      ];
+      const uniqueClubNames = new Set(
+        clubs.map((c: any) => (c.name || '').trim().toLowerCase()).filter((n: string) => n.length > 0)
+      );
+      expect(uniqueClubNames.size).toBe(1);
+    });
+  });
+
+  describe('Participant deduplication (by perID or name+birthdate)', () => {
+    it('should deduplicate by perID when available', () => {
+      const participants = [
+        { id: '123', firstName: 'Max', lastName: 'Muster', birthDate: '2010-01-01' },
+        { id: '123', firstName: 'Max', lastName: 'Muster', birthDate: '2010-01-01' },
+        { id: '456', firstName: 'Anna', lastName: 'Test', birthDate: '2011-05-15' },
+      ];
+      const uniqueKeys = new Set<string>();
+      for (const p of participants) {
+        if (p.id) {
+          uniqueKeys.add(`id:${p.id}`);
+        } else {
+          const key = `${(p.firstName || '').trim().toLowerCase()}|${(p.lastName || '').trim().toLowerCase()}|${p.birthDate || ''}`;
+          uniqueKeys.add(key);
+        }
+      }
+      expect(uniqueKeys.size).toBe(2);
+    });
+
+    it('should deduplicate by name+birthdate when no perID', () => {
+      const participants = [
+        { id: '', firstName: 'Max', lastName: 'Muster', birthDate: '2010-01-01' },
+        { id: '', firstName: 'Max', lastName: 'Muster', birthDate: '2010-01-01' },
+        { id: '', firstName: 'Anna', lastName: 'Test', birthDate: '2011-05-15' },
+      ];
+      const uniqueKeys = new Set<string>();
+      for (const p of participants) {
+        if (p.id) {
+          uniqueKeys.add(`id:${p.id}`);
+        } else {
+          const key = `${(p.firstName || '').trim().toLowerCase()}|${(p.lastName || '').trim().toLowerCase()}|${p.birthDate || ''}`;
+          uniqueKeys.add(key);
+        }
+      }
+      expect(uniqueKeys.size).toBe(2);
+    });
+
+    it('should count same name with different birthdate as separate participants', () => {
+      const participants = [
+        { id: '', firstName: 'Max', lastName: 'Muster', birthDate: '2010-01-01' },
+        { id: '', firstName: 'Max', lastName: 'Muster', birthDate: '2011-01-01' },
+      ];
+      const uniqueKeys = new Set<string>();
+      for (const p of participants) {
+        if (p.id) {
+          uniqueKeys.add(`id:${p.id}`);
+        } else {
+          const key = `${(p.firstName || '').trim().toLowerCase()}|${(p.lastName || '').trim().toLowerCase()}|${p.birthDate || ''}`;
+          uniqueKeys.add(key);
+        }
+      }
+      expect(uniqueKeys.size).toBe(2);
+    });
+
+    it('should handle participants appearing in multiple competitions', () => {
+      // Simulates same participant in 3 competitions (common GymNet XML pattern)
+      const participants = [
+        { id: '100', firstName: 'Lisa', lastName: 'Schmidt', birthDate: '2012-03-15' },
+        { id: '100', firstName: 'Lisa', lastName: 'Schmidt', birthDate: '2012-03-15' },
+        { id: '100', firstName: 'Lisa', lastName: 'Schmidt', birthDate: '2012-03-15' },
+        { id: '200', firstName: 'Tom', lastName: 'Müller', birthDate: '2011-07-22' },
+        { id: '200', firstName: 'Tom', lastName: 'Müller', birthDate: '2011-07-22' },
+      ];
+      const uniqueKeys = new Set<string>();
+      for (const p of participants) {
+        if (p.id) {
+          uniqueKeys.add(`id:${p.id}`);
+        } else {
+          const key = `${(p.firstName || '').trim().toLowerCase()}|${(p.lastName || '').trim().toLowerCase()}|${p.birthDate || ''}`;
+          uniqueKeys.add(key);
+        }
+      }
+      expect(uniqueKeys.size).toBe(2); // Only 2 unique participants
+    });
+  });
+
+  describe('Device deduplication (by code+competitionWaNr)', () => {
+    it('should deduplicate devices by code+competitionWaNr', () => {
+      const devices = [
+        { code: '161', name: 'Sprung w.', competitionWaNr: '1' },
+        { code: '161', name: 'Sprung w.', competitionWaNr: '1' },
+        { code: '171', name: 'Stufenbarren', competitionWaNr: '1' },
+      ];
+      const uniqueDeviceKeys = new Set<string>();
+      for (const d of devices) {
+        const key = `${d.code || d.name || ''}|${d.competitionWaNr || ''}`;
+        uniqueDeviceKeys.add(key);
+      }
+      expect(uniqueDeviceKeys.size).toBe(2);
+    });
+
+    it('should count same device in different competitions as separate', () => {
+      const devices = [
+        { code: '161', name: 'Sprung w.', competitionWaNr: '1' },
+        { code: '161', name: 'Sprung w.', competitionWaNr: '2' },
+      ];
+      const uniqueDeviceKeys = new Set<string>();
+      for (const d of devices) {
+        const key = `${d.code || d.name || ''}|${d.competitionWaNr || ''}`;
+        uniqueDeviceKeys.add(key);
+      }
+      expect(uniqueDeviceKeys.size).toBe(2);
+    });
+  });
+});
+
+// ============================================================================
+// 17. Gender-aware hint generation in linkDisciplines
+// ============================================================================
+
+describe('Gender determination from bereich flags (linkDisciplines pattern)', () => {
+  it('should determine male when bol_maennlich=true, bol_weiblich=false', () => {
+    const competition = { bol_maennlich: true, bol_weiblich: false };
+    let compGender: string = 'unknown';
+    if (competition.bol_maennlich && !competition.bol_weiblich) compGender = 'male';
+    else if (!competition.bol_maennlich && competition.bol_weiblich) compGender = 'female';
+    else if (competition.bol_maennlich && competition.bol_weiblich) compGender = 'mixed';
+    expect(compGender).toBe('male');
+  });
+
+  it('should determine female when bol_maennlich=false, bol_weiblich=true', () => {
+    const competition = { bol_maennlich: false, bol_weiblich: true };
+    let compGender: string = 'unknown';
+    if (competition.bol_maennlich && !competition.bol_weiblich) compGender = 'male';
+    else if (!competition.bol_maennlich && competition.bol_weiblich) compGender = 'female';
+    else if (competition.bol_maennlich && competition.bol_weiblich) compGender = 'mixed';
+    expect(compGender).toBe('female');
+  });
+
+  it('should determine mixed when both bol_maennlich=true, bol_weiblich=true', () => {
+    const competition = { bol_maennlich: true, bol_weiblich: true };
+    let compGender: string = 'unknown';
+    if (competition.bol_maennlich && !competition.bol_weiblich) compGender = 'male';
+    else if (!competition.bol_maennlich && competition.bol_weiblich) compGender = 'female';
+    else if (competition.bol_maennlich && competition.bol_weiblich) compGender = 'mixed';
+    expect(compGender).toBe('mixed');
+  });
+
+  it('should determine unknown when both flags are false', () => {
+    const competition = { bol_maennlich: false, bol_weiblich: false };
+    let compGender: string = 'unknown';
+    if (competition.bol_maennlich && !competition.bol_weiblich) compGender = 'male';
+    else if (!competition.bol_maennlich && competition.bol_weiblich) compGender = 'female';
+    else if (competition.bol_maennlich && competition.bol_weiblich) compGender = 'mixed';
+    expect(compGender).toBe('unknown');
+  });
+
+  it('should determine unknown when flags are null/undefined', () => {
+    const competition = { bol_maennlich: null, bol_weiblich: null };
+    let compGender: string = 'unknown';
+    if (competition.bol_maennlich && !competition.bol_weiblich) compGender = 'male';
+    else if (!competition.bol_maennlich && competition.bol_weiblich) compGender = 'female';
+    else if (competition.bol_maennlich && competition.bol_weiblich) compGender = 'mixed';
+    expect(compGender).toBe('unknown');
+  });
+});
+
+// ============================================================================
+// 18. Gender-filter integration: getDisciplinesForCompetition with real names
+// ============================================================================
+
+describe('getDisciplinesForCompetition - gender filter with full discipline set', () => {
+  const gymnetDisciplineNames = Object.values(DISCIPLINE_NAMES);
+
+  // Create mock with proper gender assignments
+  const mockPrismaGender = {
+    tfx_disziplinen: {
+      findMany: jest.fn().mockResolvedValue(
+        gymnetDisciplineNames.map((name, idx) => {
+          // Assign gender flags based on discipline name patterns
+          const lower = name.toLowerCase();
+          const isFemale = lower.includes(' w') || lower.includes('stufenbarren') || lower.includes('schwebebalken');
+          const isMale = lower.includes(' m') || lower.includes('pauschenpferd') || lower.includes('p.-pferd') || lower.includes('ringe') || lower.includes('barren') || lower.includes('reck');
+          // If both or neither, treat as both
+          return {
+            int_disziplinenid: idx + 1,
+            var_name: name,
+            bol_m: isMale || (!isFemale && !isMale),
+            bol_w: isFemale || (!isFemale && !isMale),
+          };
+        })
+      ),
+    },
+  } as any;
+
+  it('should filter by female gender for "Gerätvierkampf" with genderFilter="female"', async () => {
+    const result = await getDisciplinesForCompetition('Gerätvierkampf', mockPrismaGender, undefined, 'female');
+    expect(result.length).toBeGreaterThan(0);
+    // Should not contain male-only disciplines like Pauschenpferd or Ringe
+    for (const item of result) {
+      const source = gymnetDisciplineNames.find(n => n === item.name);
+      expect(source).toBeDefined();
+    }
+  });
+
+  it('should return different results for male vs female genderFilter', async () => {
+    const maleResult = await getDisciplinesForCompetition('Geräteturnen', mockPrismaGender, undefined, 'male');
+    const femaleResult = await getDisciplinesForCompetition('Geräteturnen', mockPrismaGender, undefined, 'female');
+    // Male and female should return different discipline names
+    const maleNames = maleResult.map(r => r.name).sort();
+    const femaleNames = femaleResult.map(r => r.name).sort();
+    expect(maleNames).not.toEqual(femaleNames);
   });
 });

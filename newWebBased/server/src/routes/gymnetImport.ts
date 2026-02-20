@@ -300,6 +300,30 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       teams: { inserted: 0, members: 0, errors: 0 }
     };
 
+    // --- Deduplicate counts for accurate summary ---
+    // Clubs: deduplicate by name (case-insensitive)
+    const uniqueClubNames = new Set(
+      extractedData.clubs
+        .map((c: any) => (c.name || '').trim().toLowerCase())
+        .filter((n: string) => n.length > 0)
+    );
+    // Participants: deduplicate by perID, or fallback to name+birthdate
+    const uniqueParticipantKeys = new Set<string>();
+    for (const p of extractedData.participants) {
+      if (p.id) {
+        uniqueParticipantKeys.add(`id:${p.id}`);
+      } else {
+        const key = `${(p.firstName || '').trim().toLowerCase()}|${(p.lastName || '').trim().toLowerCase()}|${p.birthDate || ''}`;
+        uniqueParticipantKeys.add(key);
+      }
+    }
+    // Devices: deduplicate by code+competitionWaNr (unique discipline per competition)
+    const uniqueDeviceKeys = new Set<string>();
+    for (const d of extractedData.devices) {
+      const key = `${d.code || d.name || ''}|${d.competitionWaNr || ''}`;
+      uniqueDeviceKeys.add(key);
+    }
+
     const responseData = {
       success: createdEvent !== null,
       message: createdEvent
@@ -330,10 +354,10 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         devices: extractedData.devices,
         teams: extractedData.teams,
         summary: {
-          clubsCount: extractedData.clubs.length,
+          clubsCount: uniqueClubNames.size,
           competitionsCount: extractedData.competitions.length,
-          participantsCount: extractedData.participants.length,
-          devicesCount: extractedData.devices.length,
+          participantsCount: uniqueParticipantKeys.size,
+          devicesCount: uniqueDeviceKeys.size,
           teamsCount: extractedData.teams.length
         }
       },
@@ -389,6 +413,108 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       error: 'XML Import Error',
       message: error.message,
       details: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+    });
+  }
+});
+
+// ============================================================================
+// Accept Discipline Suggestions — Link disciplines to a competition
+// ============================================================================
+
+router.post('/accept-discipline-suggestions', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { competitionId, disciplines } = req.body;
+
+    if (!competitionId || !Array.isArray(disciplines) || disciplines.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'competitionId and disciplines[] are required'
+      });
+    }
+
+    // Verify competition exists
+    const competition = await prisma.$queryRawUnsafe(`
+      SELECT int_wettkaempfeid, var_name FROM tfx_wettkaempfe WHERE int_wettkaempfeid = $1 LIMIT 1
+    `, competitionId) as any[];
+
+    if (competition.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `Wettkampf mit ID ${competitionId} nicht gefunden`
+      });
+    }
+
+    let linkedCount = 0;
+    let skippedCount = 0;
+    let errorCount = 0;
+
+    // Get current max sort order for this competition
+    const maxSortResult = await prisma.$queryRawUnsafe(`
+      SELECT COALESCE(MAX(int_sortierung), 0) as max_sort 
+      FROM tfx_wettkaempfe_x_disziplinen 
+      WHERE int_wettkaempfeid = $1
+    `, competitionId) as any[];
+    let sortOrder = maxSortResult[0]?.max_sort || 0;
+
+    for (const discipline of disciplines) {
+      try {
+        const disciplineId = discipline.id;
+        if (!disciplineId) {
+          errorCount++;
+          continue;
+        }
+
+        // Verify discipline exists
+        const discCheck = await prisma.$queryRawUnsafe(`
+          SELECT int_disziplinenid FROM tfx_disziplinen WHERE int_disziplinenid = $1 LIMIT 1
+        `, disciplineId) as any[];
+
+        if (discCheck.length === 0) {
+          console.log(`  ⚠️ Discipline ID ${disciplineId} not found in database`);
+          errorCount++;
+          continue;
+        }
+
+        // Check if already linked
+        const existingLink = await prisma.$queryRawUnsafe(`
+          SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
+          WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2 LIMIT 1
+        `, competitionId, disciplineId) as any[];
+
+        if (existingLink.length > 0) {
+          console.log(`  ✅ Discipline ${disciplineId} already linked to competition ${competitionId}`);
+          skippedCount++;
+          continue;
+        }
+
+        sortOrder++;
+        await prisma.$queryRawUnsafe(`
+          INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
+          VALUES ($1, $2, $3)
+        `, competitionId, disciplineId, sortOrder);
+
+        linkedCount++;
+        console.log(`  🔗 Linked discipline ${disciplineId} to competition ${competitionId} (sort: ${sortOrder})`);
+      } catch (error) {
+        console.error(`  ❌ Error linking discipline:`, error);
+        errorCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `${linkedCount} Disziplinen zugewiesen`,
+      linked: linkedCount,
+      skipped: skippedCount,
+      errors: errorCount,
+      competitionId,
+      competitionName: competition[0].var_name
+    });
+  } catch (error: any) {
+    console.error('❌ Accept discipline suggestions error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 });

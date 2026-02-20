@@ -325,16 +325,38 @@ export function detectGenderFromName(competitionName: string): 'male' | 'female'
  * @param levelHint Optional level detected from XML devices (e.g. "P", "Kür", "LK1")
  * @returns Array of discipline names to link
  */
+export interface DisciplineSuggestion {
+  id: number;
+  name: string;
+}
+
 export async function getDisciplinesForCompetition(
   competitionName: string,
   prismaInstance: PrismaClientType,
-  levelHint?: string
-): Promise<string[]> {
+  levelHint?: string,
+  genderFilter?: 'male' | 'female' | 'mixed' | 'unknown'
+): Promise<DisciplineSuggestion[]> {
   const name = competitionName.toLowerCase();
-  const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
-  const disciplineNames = allDisciplines.map(d => d.var_name).filter((n): n is string => n !== null);
+  const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({
+    select: { int_disziplinenid: true, var_name: true, bol_m: true, bol_w: true }
+  });
 
-  const gender = detectGenderFromName(competitionName);
+  // Determine effective gender: use explicit filter or detect from name
+  const detectedGender = detectGenderFromName(competitionName);
+  const effectiveGender = genderFilter && genderFilter !== 'unknown' ? genderFilter : detectedGender;
+
+  // Filter disciplines by gender (bol_m / bol_w)
+  const genderFilteredDisciplines = allDisciplines.filter(d => {
+    if (!d.var_name) return false;
+    if (effectiveGender === 'male') return d.bol_m === true;
+    if (effectiveGender === 'female') return d.bol_w === true;
+    return true; // unknown/mixed — show all
+  });
+
+  const disciplineMap = new Map(genderFilteredDisciplines.map(d => [d.var_name!, d.int_disziplinenid]));
+  const disciplineNames = Array.from(disciplineMap.keys());
+
+  const gender = effectiveGender;
 
   // Determine which base apparatus names to look for
   let baseApparatus: string[];
@@ -394,7 +416,7 @@ export async function getDisciplinesForCompetition(
   }
 
   // Find matching disciplines in DB: prefer level-specific, then base name
-  const matched: string[] = [];
+  const matched: DisciplineSuggestion[] = [];
   for (const base of baseApparatus) {
     // First try: exact match with level suffix (using precise matchesLevel)
     if (levelSuffix) {
@@ -419,7 +441,7 @@ export async function getDisciplinesForCompetition(
       }
 
       if (withLevel) {
-        matched.push(withLevel);
+        matched.push({ id: disciplineMap.get(withLevel)!, name: withLevel });
         continue;
       }
     }
@@ -427,7 +449,7 @@ export async function getDisciplinesForCompetition(
     // Second try: exact name match
     const exact = disciplineNames.find(d => d === base);
     if (exact) {
-      matched.push(exact);
+      matched.push({ id: disciplineMap.get(exact)!, name: exact });
       continue;
     }
 
@@ -436,11 +458,11 @@ export async function getDisciplinesForCompetition(
       d.toLowerCase().startsWith(base.toLowerCase())
     );
     if (startsWith) {
-      matched.push(startsWith);
+      matched.push({ id: disciplineMap.get(startsWith)!, name: startsWith });
     }
   }
 
-  console.log(`[getDisciplinesForCompetition] "${competitionName}" → base: [${baseApparatus.join(', ')}], level: "${levelSuffix}", matched: [${matched.join(', ')}]`);
+  console.log(`[getDisciplinesForCompetition] "${competitionName}" → gender: ${effectiveGender}, base: [${baseApparatus.join(', ')}], level: "${levelSuffix}", matched: [${matched.map(m => m.name).join(', ')}]`);
   return matched;
 }
 

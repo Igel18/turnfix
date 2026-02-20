@@ -41,6 +41,8 @@ const EventImportModal: React.FC<EventImportModalProps> = ({
   const [importResult, setImportResult] = useState<ImportApiResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [importEventData, setImportEventData] = useState<ImportEventData>({ ...EMPTY_IMPORT_DATA })
+  const [acceptedHints, setAcceptedHints] = useState<Set<number>>(new Set())
+  const [acceptingHint, setAcceptingHint] = useState<number | null>(null)
 
   const resetAndClose = () => {
     // Only invalidate cache and notify parent if import was successful
@@ -56,7 +58,37 @@ const EventImportModal: React.FC<EventImportModalProps> = ({
     setImportResult(null)
     setErrorMessage(null)
     setImportEventData({ ...EMPTY_IMPORT_DATA })
+    setAcceptedHints(new Set())
+    setAcceptingHint(null)
     onClose()
+  }
+
+  const handleAcceptHint = async (hint: DisciplineHint) => {
+    if (hint.disciplines.length === 0 || acceptedHints.has(hint.competitionId)) return
+
+    setAcceptingHint(hint.competitionId)
+    try {
+      const response = await fetch('/api/events/accept-discipline-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          competitionId: hint.competitionId,
+          disciplines: hint.disciplines,
+        }),
+      })
+
+      const result = await response.json()
+      if (response.ok && result.success) {
+        setAcceptedHints(prev => new Set([...prev, hint.competitionId]))
+        debugLog('Accepted hint:', result)
+      } else {
+        debugLog('Failed to accept hint:', result)
+      }
+    } catch (error) {
+      debugLog('Error accepting hint:', error)
+    } finally {
+      setAcceptingHint(null)
+    }
   }
 
   const handleImportFile = async () => {
@@ -383,9 +415,34 @@ const EventImportModal: React.FC<EventImportModalProps> = ({
             </p>
             <div className="space-y-2">
               {hints.map((hint, idx) => (
-                <HintItem key={idx} hint={hint} />
+                <HintItem
+                  key={idx}
+                  hint={hint}
+                  accepted={acceptedHints.has(hint.competitionId)}
+                  accepting={acceptingHint === hint.competitionId}
+                  onAccept={() => handleAcceptHint(hint)}
+                />
               ))}
             </div>
+            {/* Accept all suggestions button */}
+            {hints.some(h => h.type === 'suggestion' && h.disciplines.length > 0 && !acceptedHints.has(h.competitionId)) && (
+              <div className="mt-3 pt-2 border-t border-amber-200">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    for (const hint of hints) {
+                      if (hint.type === 'suggestion' && hint.disciplines.length > 0 && !acceptedHints.has(hint.competitionId)) {
+                        await handleAcceptHint(hint)
+                      }
+                    }
+                  }}
+                  disabled={acceptingHint !== null}
+                  className="w-full px-3 py-1.5 bg-amber-600 text-white text-xs rounded-lg hover:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('events.import.results.acceptAll', 'Alle Vorschläge übernehmen')}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -516,32 +573,66 @@ const ResultRow: React.FC<ResultRowProps> = ({ icon, label, result }) => {
 
 interface HintItemProps {
   hint: DisciplineHint
+  accepted: boolean
+  accepting: boolean
+  onAccept: () => void
 }
 
-const HintItem: React.FC<HintItemProps> = ({ hint }) => {
+const HintItem: React.FC<HintItemProps> = ({ hint, accepted, accepting, onAccept }) => {
   const { t } = useTranslation()
+
   return (
-    <div className="bg-white rounded border border-amber-100 p-2">
+    <div className={`rounded border p-2 ${accepted ? 'bg-green-50 border-green-200' : 'bg-white border-amber-100'}`}>
       <div className="flex items-start space-x-2">
-        <span className="text-amber-500 mt-0.5">
-          {hint.type === 'suggestion' ? '💡' : hint.type === 'linked' ? '✅' : '❓'}
+        <span className="mt-0.5">
+          {accepted ? '✅' : hint.type === 'suggestion' ? '💡' : hint.type === 'linked' ? '✅' : '❓'}
         </span>
         <div className="flex-1">
-          <p className="text-xs font-medium text-amber-900">
+          <p className={`text-xs font-medium ${accepted ? 'text-green-900' : 'text-amber-900'}`}>
             {hint.competition}
           </p>
           {hint.disciplines.length > 0 ? (
             <div className="mt-1">
-              <p className="text-xs text-amber-700 mb-1">
-                {t('events.import.results.suggestedDisciplines', 'Mögliche Disziplinen:')}
+              <p className={`text-xs mb-1 ${accepted ? 'text-green-700' : 'text-amber-700'}`}>
+                {accepted
+                  ? t('events.import.results.acceptedDisciplines', 'Zugewiesene Disziplinen:')
+                  : t('events.import.results.suggestedDisciplines', 'Mögliche Disziplinen:')}
               </p>
               <div className="flex flex-wrap gap-1">
                 {hint.disciplines.map((d, i) => (
-                  <span key={i} className="inline-block px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded">
-                    {d}
+                  <span
+                    key={i}
+                    className={`inline-block px-2 py-0.5 text-xs rounded ${
+                      accepted ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {d.name}
                   </span>
                 ))}
               </div>
+              {/* Accept button */}
+              {!accepted && hint.type === 'suggestion' && (
+                <button
+                  type="button"
+                  onClick={onAccept}
+                  disabled={accepting}
+                  className="mt-2 px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {accepting ? (
+                    <span className="flex items-center space-x-1">
+                      <span className="animate-spin h-3 w-3 border border-white border-t-transparent rounded-full inline-block" />
+                      <span>{t('events.import.results.accepting', 'Wird übernommen...')}</span>
+                    </span>
+                  ) : (
+                    t('events.import.results.acceptSuggestion', 'Vorschläge übernehmen')
+                  )}
+                </button>
+              )}
+              {accepted && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✅ {t('events.import.results.accepted', 'Disziplinen wurden zugewiesen')}
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-xs text-amber-600 mt-1">

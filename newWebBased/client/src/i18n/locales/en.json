@@ -809,7 +809,12 @@
         "errorsTitle": "Import Errors",
         "errorsDescription": "Some records could not be imported. Please check the data and try importing manually.",
         "close": "Close",
-        "tryAgain": "Try again"
+        "tryAgain": "Try again",
+        "acceptSuggestion": "Accept suggestions",
+        "accepting": "Applying...",
+        "accepted": "Disciplines have been assigned",
+        "acceptedDisciplines": "Assigned disciplines:",
+        "acceptAll": "Accept all suggestions"
       }
     },
     "organizerInfo": "Organizer Information",
