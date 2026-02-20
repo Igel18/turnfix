@@ -302,12 +302,17 @@ describe('Scores Jury Results Discipline Filter', () => {
     it('should have discipline filter in the recalculation jury results query', () => {
       const fs = require('fs');
       const path = require('path');
+      
+      // After SoC refactoring, scoring routes are split across scores.ts and scoresScoring.ts
       const scoresPath = path.join(__dirname, '../../src/routes/scores.ts');
+      const scoresScoringPath = path.join(__dirname, '../../src/routes/scoresScoring.ts');
       const scoresContent = fs.readFileSync(scoresPath, 'utf8');
+      const scoresScoringContent = fs.readFileSync(scoresScoringPath, 'utf8');
+      const allContent = scoresContent + '\n' + scoresScoringContent;
 
-      // Count how many times the discipline filter appears
-      // It should appear at least twice (main query + recalculation query)
-      const matches = scoresContent.match(/AND df\.int_disziplinenid = \$2/g);
+      // Count how many times the discipline filter appears across both files
+      // It should appear at least twice (main query in scores.ts + recalculation queries in scoresScoring.ts)
+      const matches = allContent.match(/AND df\.int_disziplinenid = \$2/g);
       expect(matches).not.toBeNull();
       expect(matches!.length).toBeGreaterThanOrEqual(2);
     });
