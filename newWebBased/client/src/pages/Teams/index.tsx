@@ -42,6 +42,10 @@ const Teams: React.FC = () => {
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+
+  // Filter State
+  const [filterClub, setFilterClub] = useState('');
+  const [filterCompetition, setFilterCompetition] = useState('');
   
   // Form Data
   const [formData, setFormData] = useState<TeamFormData>({
@@ -190,6 +194,33 @@ const Teams: React.FC = () => {
     onDeleteMaster: handleDeleteTeam,
   }), [config, teams, selectedTeam]);
 
+  // Filter teams by club and competition
+  const filteredTeams = useMemo(() => {
+    return teams.filter(team => {
+      if (filterClub && team.clubId.toString() !== filterClub) return false;
+      if (filterCompetition && team.competitionId.toString() !== filterCompetition) return false;
+      return true;
+    });
+  }, [teams, filterClub, filterCompetition]);
+
+  // Unique clubs and competitions for filter dropdowns (from loaded teams)
+  const uniqueClubs = useMemo(() => {
+    const clubMap = new Map<number, string>();
+    teams.forEach(team => clubMap.set(team.clubId, team.clubName));
+    return Array.from(clubMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [teams]);
+
+  const uniqueCompetitions = useMemo(() => {
+    const compMap = new Map<number, string>();
+    teams.forEach(team => compMap.set(team.competitionId, team.competitionName));
+    return Array.from(compMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [teams]);
+
+  const handleClearFilters = () => {
+    setFilterClub('');
+    setFilterCompetition('');
+  };
+
   // Column search placeholders (for UnifiedAssignmentModal)
   const columnSearchPlaceholders = useMemo(() => ({
     master: t('teams.columnSearch.master'),
@@ -218,8 +249,47 @@ const Teams: React.FC = () => {
       showAddButton={true}
       addButtonText={t('teams.addTeam')}
       filterSection={
-        <div className="p-4">
-          <p className="text-sm text-gray-500">{t('teams.filters.comingSoon')}</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('teams.filters.club')}
+              </label>
+              <select
+                value={filterClub}
+                onChange={(e) => setFilterClub(e.target.value)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{t('teams.filters.allClubs')}</option>
+                {uniqueClubs.map(club => (
+                  <option key={club.id} value={club.id.toString()}>{club.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('teams.filters.competition')}
+              </label>
+              <select
+                value={filterCompetition}
+                onChange={(e) => setFilterCompetition(e.target.value)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{t('teams.filters.allCompetitions')}</option>
+                {uniqueCompetitions.map(comp => (
+                  <option key={comp.id} value={comp.id.toString()}>{comp.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={handleClearFilters}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {t('common.resetFilters')}
+              </button>
+            </div>
+          </div>
         </div>
       }
     >
@@ -227,7 +297,7 @@ const Teams: React.FC = () => {
         {/* Unified Assignment Modal (three-column layout) */}
         <UnifiedAssignmentModal
           config={enhancedConfig as any} // Use enhanced config with edit/delete handlers
-          masterItems={teams}
+          masterItems={filteredTeams}
           availableItems={filteredAvailableParticipants}
           assignments={[]} // Not needed for Teams (members stored in team object)
           isLoading={teamsLoading || membersLoading}

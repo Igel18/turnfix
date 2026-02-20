@@ -1247,8 +1247,8 @@
       "hideOtherClubs": "Andere Vereine ausblenden",
       "club": "Verein",
       "allClubs": "Alle Vereine",
-      "allCompetitions": "Alle Wettkämpfe",
-      "comingSoon": "Filter werden bald verfügbar sein"
+      "competition": "Wettkampf",
+      "allCompetitions": "Alle Wettkämpfe"
     },
     "messages": {
       "createSuccess": "Mannschaft erfolgreich erstellt",

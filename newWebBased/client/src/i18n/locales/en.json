@@ -1247,8 +1247,8 @@
       "hideOtherClubs": "Hide Other Clubs",
       "club": "Club",
       "allClubs": "All Clubs",
-      "allCompetitions": "All Competitions",
-      "comingSoon": "Filters coming soon"
+      "competition": "Competition",
+      "allCompetitions": "All Competitions"
     },
     "messages": {
       "createSuccess": "Team created successfully",
