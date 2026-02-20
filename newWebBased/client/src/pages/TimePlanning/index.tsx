@@ -391,7 +391,7 @@ export default function TimePlanning() {
     }
 
     try {
-      const { jsPDF } = await import('jspdf');
+      const { default: jsPDF } = await import('jspdf');
       const { default: autoTable } = await import('jspdf-autotable');
       const { setupPDFWithHeaderFooter, addPDFHeaderFooter, getUnifiedTableStyles } = await import('../../utils/pdfUtils');
 

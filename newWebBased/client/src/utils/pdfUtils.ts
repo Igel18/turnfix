@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface Event {
   int_eventid: number
@@ -8,6 +9,15 @@ interface Event {
   var_location: string
   status: 'upcoming' | 'active' | 'completed'
 }
+
+/** Orientation type for PDF documents */
+export type PDFOrientation = 'portrait' | 'landscape'
+
+/** A4 page dimensions in mm */
+export const A4_DIMENSIONS = {
+  portrait: { width: 210, height: 297 },
+  landscape: { width: 297, height: 210 }
+} as const
 
 interface PDFHeaderFooterOptions {
   doc: jsPDF
@@ -467,4 +477,237 @@ export const resetPDFStyles = (doc: jsPDF) => {
   doc.setTextColor(...PDF_CONFIG.colors.text)
   doc.setDrawColor(0, 0, 0)
   doc.setFillColor(255, 255, 255)
+}
+
+/**
+ * Creates a new jsPDF document with the given orientation.
+ * Returns the doc along with page dimensions for convenience.
+ * 
+ * Usage:
+ *   const { doc, pageWidth, pageHeight } = createPDFDocument('landscape')
+ */
+export const createPDFDocument = (orientation: PDFOrientation = 'portrait') => {
+  const doc = new jsPDF({
+    orientation,
+    unit: 'mm',
+    format: 'a4'
+  })
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  return { doc, pageWidth, pageHeight }
+}
+
+/**
+ * Options for the wide-table column-splitting export
+ */
+export interface WideTableExportOptions {
+  /** The jsPDF document to draw into (if not provided, a new one will be created) */
+  doc?: jsPDF
+  /** Orientation for the document (default: 'landscape') */
+  orientation?: PDFOrientation
+  /** Event data for the header */
+  event: Event | null
+  /** Title shown in the header */
+  documentTitle: string
+  /** Full array of column header strings */
+  columns: string[]
+  /** Full 2D array of row data (each row must match columns length) */
+  data: string[][]
+  /** Number of leading columns that are "frozen" / repeated on every page (default: 1, e.g. the club-name column) */
+  frozenColumns?: number
+  /** Maximum column width in mm for data columns (default: auto-calculated) */
+  maxColumnWidth?: number
+  /** Minimum column width in mm for data columns (default: 15) */
+  minColumnWidth?: number
+  /** Width in mm reserved for frozen columns (default: auto-calculated, min 40) */
+  frozenColumnWidth?: number
+  /** Extra autoTable options merged into each table call */
+  tableOptions?: Record<string, any>
+  /** Starting Y position for the first table (default: 40) */
+  startY?: number
+  /** Filename to save – if provided, doc.save() is called automatically */
+  filename?: string
+}
+
+/**
+ * Exports a wide table to PDF, automatically splitting columns across multiple pages
+ * when the table would be wider than the available page width.
+ * 
+ * Frozen columns (e.g. club name) are repeated on every page for readability.
+ * Header & footer are added to every page via addPDFHeaderFooter.
+ * 
+ * This is the "allgemein verfügbar" solution for wide tables.
+ * 
+ * @returns The jsPDF document for further manipulation or saving.
+ */
+export const exportWideTablePDF = (options: WideTableExportOptions): jsPDF => {
+  const {
+    orientation = 'landscape',
+    event,
+    documentTitle,
+    columns,
+    data,
+    frozenColumns = 1,
+    minColumnWidth = 15,
+    tableOptions = {},
+    startY = 40,
+    filename,
+  } = options
+
+  // Create or reuse document
+  const doc = options.doc ?? createPDFDocument(orientation).doc
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const margin = PDF_CONFIG.margins.page
+
+  // Available width for table content
+  const availableWidth = pageWidth - 2 * margin
+
+  // Split columns into frozen (always shown) and data columns
+  const frozenCols = columns.slice(0, frozenColumns)
+  const dataCols = columns.slice(frozenColumns)
+
+  // Estimate width per frozen column (at least 40mm, or proportional)
+  const frozenColWidth = options.frozenColumnWidth ?? Math.max(40, availableWidth * 0.2)
+  const totalFrozenWidth = frozenColWidth // treated as one block for simplicity
+
+  // Available width for data columns on each page
+  const dataAreaWidth = availableWidth - totalFrozenWidth
+
+  // Calculate how many data columns fit per page
+  // Use equal distribution: each data column gets dataAreaWidth / colsPerPage
+  const maxColsPerPage = Math.max(1, Math.floor(dataAreaWidth / minColumnWidth))
+
+  // Check if all columns fit on a single page
+  if (dataCols.length <= maxColsPerPage) {
+    // Everything fits on one page – render normally
+    // Apply totalColumnStyle to the last column if provided
+    const mergedTableOptions = { ...tableOptions }
+    if (tableOptions.totalColumnStyle) {
+      mergedTableOptions.columnStyles = {
+        ...(tableOptions.columnStyles || {}),
+        [columns.length - 1]: tableOptions.totalColumnStyle,
+      }
+    }
+    _renderTablePage(doc, {
+      columns,
+      data,
+      event,
+      documentTitle,
+      pageWidth,
+      pageHeight,
+      startY,
+      tableOptions: mergedTableOptions,
+      isFirstPage: true,
+    })
+  } else {
+    // Split data columns into chunks
+    const chunks: string[][] = []
+    for (let i = 0; i < dataCols.length; i += maxColsPerPage) {
+      chunks.push(dataCols.slice(i, i + maxColsPerPage))
+    }
+
+    chunks.forEach((chunkCols, chunkIndex) => {
+      // Add new page for chunks after the first
+      if (chunkIndex > 0) {
+        doc.addPage()
+      }
+
+      // Build columns for this page: frozen + chunk
+      const pageColumns = [...frozenCols, ...chunkCols]
+
+      // Build data for this page: frozen data + chunk data
+      const pageData = data.map(row => {
+        const frozenData = row.slice(0, frozenColumns)
+        // Calculate the indices for this chunk's data columns
+        const chunkStartIndex = frozenColumns + chunkIndex * maxColsPerPage
+        const chunkEndIndex = chunkStartIndex + chunkCols.length
+        const chunkData = row.slice(chunkStartIndex, chunkEndIndex)
+        return [...frozenData, ...chunkData]
+      })
+
+      // Only apply totalColumnStyle on the last chunk (which contains the last data column)
+      const isLastChunk = chunkIndex === chunks.length - 1
+
+      _renderTablePage(doc, {
+        columns: pageColumns,
+        data: pageData,
+        event,
+        documentTitle: chunks.length > 1
+          ? `${documentTitle} (${chunkIndex + 1}/${chunks.length})`
+          : documentTitle,
+        pageWidth,
+        pageHeight,
+        startY,
+        tableOptions: {
+          ...tableOptions,
+          columnStyles: {
+            ...(tableOptions.columnStyles || {}),
+            0: {
+              halign: 'left' as const,
+              minCellWidth: frozenColWidth,
+              ...(tableOptions.columnStyles?.[0] || {}),
+            },
+            ...(isLastChunk && tableOptions.totalColumnStyle
+              ? { [pageColumns.length - 1]: tableOptions.totalColumnStyle }
+              : {}
+            ),
+          },
+        },
+        isFirstPage: chunkIndex === 0,
+      })
+    })
+  }
+
+  // Add header/footer to ALL pages (including ones created by autoTable row overflow)
+  const totalPages = (doc as any).internal.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
+    addPDFHeaderFooter({ doc, event, documentTitle, pageWidth, pageHeight })
+  }
+
+  // Save if filename provided
+  if (filename) {
+    doc.save(filename)
+  }
+
+  return doc
+}
+
+/**
+ * Internal helper: renders one table page (used by exportWideTablePDF)
+ */
+function _renderTablePage(
+  doc: jsPDF,
+  opts: {
+    columns: string[]
+    data: string[][]
+    event: Event | null
+    documentTitle: string
+    pageWidth: number
+    pageHeight: number
+    startY: number
+    tableOptions: Record<string, any>
+    isFirstPage: boolean
+  }
+) {
+  const unifiedStyles = getUnifiedTableStyles()
+
+  // Destructure didParseCell and didDrawPage from tableOptions so they can be composed
+  const { didParseCell, didDrawPage, columnStyles, totalColumnStyle, ...restTableOptions } = opts.tableOptions
+
+  autoTable(doc, {
+    head: [opts.columns],
+    body: opts.data,
+    startY: opts.startY,
+    ...unifiedStyles,
+    ...restTableOptions,
+    columnStyles: columnStyles || {},
+    didParseCell: didParseCell ? (data: any) => didParseCell(data) : undefined,
+    didDrawPage: () => {
+      // Header/footer is added after the full render via the loop in exportWideTablePDF
+      // But if consumer needs to do something on each page, call their handler
+      if (didDrawPage) didDrawPage()
+    },
+  })
 }

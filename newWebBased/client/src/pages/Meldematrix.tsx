@@ -7,19 +7,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { EventManagementTemplate } from '../components/templates/EventManagementTemplate'
 import MatrixView, { MatrixCountCell, MatrixColumn, MatrixRow } from '../components/MatrixView'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import { 
-  getUnifiedTableStyles,
-  addPDFHeaderFooter 
-} from '../utils/pdfUtils'
-
-// Extend jsPDF type to include autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: typeof autoTable
-  }
-}
+import { exportWideTablePDF } from '../utils/pdfUtils'
 
 interface Club {
   id: number
@@ -138,17 +126,6 @@ export default function Meldematrix() {
 
   const handleExportPDF = () => {
     try {
-      // Create new PDF document in landscape orientation
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      })
-
-      // Page dimensions
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const pageHeight = doc.internal.pageSize.getHeight()
-      
       // Convert event to format expected by pdfUtils
       const eventForPDF = selectedEvent ? {
         int_eventid: selectedEvent.int_eventid,
@@ -159,21 +136,7 @@ export default function Meldematrix() {
         status: 'active' as const
       } : null
 
-      // Add header and footer to first page
-      addPDFHeaderFooter({
-        doc,
-        event: eventForPDF,
-        documentTitle: t('pdf.documentTitles.meldematrix'),
-        pageWidth,
-        pageHeight
-      })
-
-      // Get content area (after header)
-      const contentArea = {
-        startY: 40
-      }
-
-      // Prepare table data
+      // Prepare table columns
       const tableColumns = [
         t('pdf.common.club'),
         ...filteredCompetitions.map(comp => 
@@ -182,18 +145,16 @@ export default function Meldematrix() {
         t('pdf.common.total')
       ]
 
+      // Prepare table data
       const tableData = filteredClubs.map(club => {
         const row = [club.name]
         
-        // Add data for each competition
         filteredCompetitions.forEach(competition => {
           const count = registrationData[club.id]?.[competition.id] || 0
           row.push(count > 0 ? count.toString() : '')
         })
         
-        // Add total for this club
         row.push(getClubTotal(club.id).toString())
-        
         return row
       })
 
@@ -203,48 +164,37 @@ export default function Meldematrix() {
         totalsRow.push(getCompetitionTotal(competition.id).toString())
       })
       totalsRow.push(getGrandTotal().toString())
-      
       tableData.push(totalsRow)
 
-      // Get unified table styles
-      const unifiedStyles = getUnifiedTableStyles()
-
-      // Create table with autoTable
-      autoTable(doc, {
-        head: [tableColumns],
-        body: tableData,
-        startY: contentArea.startY,
-        ...unifiedStyles,
-        columnStyles: {
-          0: { halign: 'left', minCellWidth: 40 }, // Verein column wider and left-aligned
-          [tableColumns.length - 1]: { 
+      // Use the general-purpose wide table export with automatic column splitting
+      exportWideTablePDF({
+        orientation: 'landscape',
+        event: eventForPDF,
+        documentTitle: t('pdf.documentTitles.meldematrix'),
+        columns: tableColumns,
+        data: tableData,
+        frozenColumns: 1,          // Club name is always visible
+        frozenColumnWidth: 40,
+        minColumnWidth: 15,
+        tableOptions: {
+          columnStyles: {
+            0: { halign: 'left', minCellWidth: 40 },
+          },
+          totalColumnStyle: {
             halign: 'center',
             fillColor: [240, 248, 255],
-            fontStyle: 'bold'
-          } // Gesamt column - same style as Total in Results
+            fontStyle: 'bold',
+          },
+          didParseCell: (data: any) => {
+            // Highlight last row (totals row)
+            if (data.section === 'body' && data.row.index === tableData.length - 1) {
+              data.cell.styles.fillColor = [240, 248, 255]
+              data.cell.styles.fontStyle = 'bold'
+            }
+          },
         },
-        didParseCell: function(data: any) {
-          // Highlight last row (totals row) - same style as Total column
-          if (data.section === 'body' && data.row.index === tableData.length - 1) {
-            data.cell.styles.fillColor = [240, 248, 255]
-            data.cell.styles.fontStyle = 'bold'
-          }
-        },
-        didDrawPage: () => {
-          // Add header and footer to every page
-          addPDFHeaderFooter({
-            doc,
-            event: eventForPDF,
-            documentTitle: t('pdf.documentTitles.meldematrix'),
-            pageWidth,
-            pageHeight
-          })
-        }
+        filename: `Meldematrix_${selectedEvent?.var_eventname || 'Event'}_${new Date().toISOString().split('T')[0]}.pdf`,
       })
-
-      // Save the PDF
-      const filename = `Meldematrix_${selectedEvent?.var_eventname || 'Event'}_${new Date().toISOString().split('T')[0]}.pdf`
-      doc.save(filename)
 
     } catch (error) {
       console.error('Error generating PDF:', error)

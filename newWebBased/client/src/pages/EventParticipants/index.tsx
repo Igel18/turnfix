@@ -11,7 +11,6 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
 import { TagIcon } from '@heroicons/react/24/outline';
-import jsPDF from 'jspdf';
 
 // Context & Hooks
 import { useEvent } from '@/contexts/EventContext';
@@ -35,7 +34,7 @@ import {
 } from './components';
 
 // Utilities
-import { setupPDFWithHeaderFooter, addPDFHeaderFooter, getUnifiedTableStyles } from '@/utils/pdfUtils';
+import { setupPDFWithHeaderFooter, addPDFHeaderFooter, getUnifiedTableStyles, createPDFDocument } from '@/utils/pdfUtils';
 import autoTable from 'jspdf-autotable';
 
 /**
@@ -158,11 +157,11 @@ export default function EventParticipants() {
     }
   };
 
-  // PDF Export: Participants List
+  // PDF Export: Participants List (landscape for wider tables)
   const exportParticipantsListPDF = () => {
     if (!selectedEvent) return;
 
-    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const { doc } = createPDFDocument('landscape');
     
     // Setup PDF with header/footer
     setupPDFWithHeaderFooter(doc, selectedEvent, t('eventParticipants.pageTitle'));
@@ -192,9 +191,13 @@ export default function EventParticipants() {
       body: tableData,
       ...getUnifiedTableStyles(),
       startY: 40,
+      didDrawPage: () => {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        addPDFHeaderFooter({ doc, event: selectedEvent, documentTitle: t('eventParticipants.pageTitle'), pageWidth, pageHeight });
+      },
     });
 
-    addPDFHeaderFooter({ doc, event: selectedEvent, documentTitle: t('eventParticipants.pageTitle') });
     doc.save(`participants-${eventId}-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 

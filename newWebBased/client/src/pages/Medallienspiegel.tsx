@@ -210,7 +210,7 @@ export default function Medallienspiegel() {
       })
 
       // After table is complete, update all pages with correct page numbers
-      const finalPageCount = doc.getNumberOfPages()
+      const finalPageCount = (doc as any).internal.getNumberOfPages()
       for (let i = 1; i <= finalPageCount; i++) {
         doc.setPage(i)
         // Clear previous footer area
