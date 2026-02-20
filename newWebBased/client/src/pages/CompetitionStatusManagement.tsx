@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixColumn, MatrixRow } from '@/components/MatrixView'
+import { exportToCSV, getCompetitionStatusCSVData } from '@/utils/csvExport'
 import { GenderBadge } from '@/components/GenderBadge'
 import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import { useEvent } from '@/contexts/EventContext'
@@ -382,8 +383,7 @@ const CompetitionStatusManagement = () => {
       }
       showExportCSV={true}
       onExportCSV={() => {
-        // TODO: Implement CSV export
-        console.log('Export CSV')
+        exportToCSV(getCompetitionStatusCSVData(sortedFilteredCompetitions))
       }}
       showAddButton={false}
       showImportButton={false}

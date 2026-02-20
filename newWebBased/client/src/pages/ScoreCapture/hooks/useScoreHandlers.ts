@@ -10,6 +10,7 @@
  */
 
 import { useEvent } from '@/contexts/EventContext';
+import { exportToCSV, getScoreCaptureCSVData } from '@/utils/csvExport';
 import type { 
   Participant, 
   Discipline, 
@@ -139,27 +140,8 @@ export function useScoreHandlers({
       return;
     }
 
-    // Prepare CSV content
-    const csvData = participants.map(participant => {
-      const row: any = {
-        'Start Number': participant.startNumber || '',
-        'Participant': `${participant.firstname} ${participant.lastname}`,
-        'Club': participant.club,
-        'Gender': participant.gender,
-        'Age': participant.age
-      };
-      
-      disciplines.forEach((discipline, index) => {
-        const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
-        const key = `${participant.id}-${disciplineId}`;
-        row[discipline.var_name] = scoreMatrix[key] || '';
-      });
-      
-      return row;
-    });
-    
-    console.log('Export score data as CSV', csvData);
-    // TODO: Implement actual CSV download
+    // Generate and download CSV
+    exportToCSV(getScoreCaptureCSVData(participants, disciplines, scoreMatrix));
   };
 
   return {

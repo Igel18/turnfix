@@ -107,4 +107,80 @@ export const getCompetitionCSVData = (competitions: any[]) => ({
   numberFields: ['id', 'round', 'event_id', 'participant_count', 'discipline_count']
 })
 
+/**
+ * CSV data mapping for Squad Status (Riegen-Disziplinen-Status)
+ */
+export const getSquadStatusCSVData = (squadDisciplines: any[]) => ({
+  filename: 'riegen_status',
+  headers: ['squadName', 'disciplineName', 'status', 'round'],
+  data: squadDisciplines.map(sd => ({
+    squadName: sd.squadName || '',
+    disciplineName: sd.disciplineName || '',
+    status: sd.status?.name || '',
+    round: sd.round || ''
+  })),
+  numberFields: ['round']
+})
+
+/**
+ * CSV data mapping for Competition Status (Wettkampf-Status-Übersicht)
+ */
+export const getCompetitionStatusCSVData = (competitions: any[]) => ({
+  filename: 'wettkampf_status',
+  headers: ['name', 'number', 'gender', 'ageFrom', 'ageTo', 'participantCount', 'totalSquadDisciplines', 'completedSquadDisciplines', 'inProgressSquadDisciplines', 'notStartedSquadDisciplines', 'overallStatus'],
+  data: competitions.map(c => ({
+    name: c.name || '',
+    number: c.number || '',
+    gender: c.gender || '',
+    ageFrom: c.ageFrom || '',
+    ageTo: c.ageTo || '',
+    participantCount: c.participantCount || 0,
+    totalSquadDisciplines: c.totalSquadDisciplines || 0,
+    completedSquadDisciplines: c.completedSquadDisciplines || 0,
+    inProgressSquadDisciplines: c.inProgressSquadDisciplines || 0,
+    notStartedSquadDisciplines: c.notStartedSquadDisciplines || 0,
+    overallStatus: c.overallStatus || ''
+  })),
+  numberFields: ['ageFrom', 'ageTo', 'participantCount', 'totalSquadDisciplines', 'completedSquadDisciplines', 'inProgressSquadDisciplines', 'notStartedSquadDisciplines']
+})
+
+/**
+ * CSV data mapping for Score Capture (Wertungserfassung)
+ * Generates a matrix with participants as rows and disciplines as columns
+ */
+export const getScoreCaptureCSVData = (
+  participants: any[],
+  disciplines: any[],
+  scoreMatrix: {[key: string]: string}
+) => {
+  const disciplineHeaders = disciplines.map(d => d.var_name || d.name || `Discipline ${d.int_disziplinid}`)
+  const headers = ['startNumber', 'participant', 'club', 'gender', 'age', ...disciplineHeaders]
+  
+  const data = participants.map(participant => {
+    const row: Record<string, any> = {
+      startNumber: participant.startNumber || '',
+      participant: `${participant.firstname || ''} ${participant.lastname || ''}`.trim(),
+      club: participant.club || '',
+      gender: participant.gender || '',
+      age: participant.age || ''
+    }
+    
+    disciplines.forEach((discipline, index) => {
+      const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index
+      const key = `${participant.id}-${disciplineId}`
+      const headerName = disciplineHeaders[index]
+      row[headerName] = scoreMatrix[key] || ''
+    })
+    
+    return row
+  })
+  
+  return {
+    filename: 'wertungen',
+    headers,
+    data,
+    numberFields: ['startNumber', 'age', ...disciplineHeaders]
+  }
+}
+
 export default exportToCSV

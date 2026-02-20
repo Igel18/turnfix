@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixStatusBadge, MatrixColumn, MatrixRow, MatrixCellProps } from '@/components/MatrixView'
+import { exportToCSV, getSquadStatusCSVData } from '@/utils/csvExport'
 import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiPost } from '@/utils/api'
 import getSocket from '@/utils/socket'
@@ -455,8 +456,7 @@ export function SquadStatusManagement() {
       }
       showExportCSV={true}
       onExportCSV={() => {
-        // TODO: Implement CSV export
-        console.log('Export CSV')
+        exportToCSV(getSquadStatusCSVData(sortedFilteredData))
       }}
       showAddButton={false}
       showImportButton={false}

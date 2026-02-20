@@ -38,6 +38,15 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
             paramIndex++;
         }
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+        // Count query for proper pagination
+        const countQuery = `
+      SELECT COUNT(*)::int as total
+      FROM tfx_wertungen w
+      ${whereClause}
+    `;
+        const countParams = params.slice(); // Copy params without limit/offset
+        const countResult = await prisma.$queryRawUnsafe(countQuery, ...countParams);
+        const total = countResult.length > 0 ? countResult[0].total : 0;
         const query = `
       SELECT 
         w.int_wertungenid,
@@ -64,9 +73,10 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         res.json({
             results: results,
             pagination: {
+                total,
                 limit,
                 offset,
-                total: 0 // TODO: Add count query
+                hasMore: offset + limit < total
             }
         });
     }
