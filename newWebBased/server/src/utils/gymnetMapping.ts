@@ -185,69 +185,239 @@ export function wedDisNrToName(wedDisNr: string | number): string | null {
 }
 
 // ============================================================================
+// Multi-apparatus competition helpers
+// ============================================================================
+
+// Standard apparatus sets
+const MALE_APPARATUS = ['Boden m', 'Pauschenpferd', 'Ringe', 'Sprung m', 'Barren', 'Reck'];
+const FEMALE_APPARATUS = ['Sprung w', 'Stufenbarren', 'Schwebebalken', 'Boden w'];
+const ALL_APPARATUS = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
+// Turn10® Basisstufe apparatus (IDs 72-77)
+const TURN10_APPARATUS = ['Boden Turn10', 'Balken/Bank Turn10', 'P-Barren Turn10', 'Minitrampolin Turn10', 'Reck/St-Barren Turn10', 'Sprung Turn10'];
+// Standard 4-Kampf male: 4 base apparatus (without Pauschenpferd and Ringe)
+const MALE_4KAMPF_APPARATUS = ['Boden m', 'Sprung m', 'Barren', 'Reck'];
+
+// DB naming inconsistencies: base name vs level-specific name prefix.
+// "Barren" (base, ID 5) → "Par.-Barren Kür/LK1/P1-P9" (all leveled variants)
+// "Pauschenpferd" (base, ID 2) → "P.-Pferd Kür/LK1/LK2/LK3" (Kür/LK variants)
+const APPARATUS_ALIASES: Record<string, string[]> = {
+  'barren': ['par.-barren'],
+  'pauschenpferd': ['p.-pferd'],
+};
+
+/**
+ * Determines how many disciplines a competition should have based on its name.
+ *
+ * Returns 0 when the count cannot be inferred (generic/unknown name).
+ *
+ * Examples:
+ *   "Gerätsechskampf m (17-18Jahre)" → 6
+ *   "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" → 4
+ *   "Gerätvierkampf w (1-6Jahre)" → 4
+ *   "Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)" → 3
+ *   "Unknown Competition" → 0
+ */
+export function getExpectedDisciplineCount(competitionName: string): number {
+  const name = competitionName.toLowerCase();
+
+  if (name.includes('sechskampf') || name.includes('6-kampf') || name.includes('6kampf')) return 6;
+  if (name.includes('fünfkampf') || name.includes('5-kampf') || name.includes('5kampf')) return 5;
+  if (name.includes('vierkampf') || name.includes('4-kampf') || name.includes('4kampf')) return 4;
+  if (name.includes('dreikampf') || name.includes('3-kampf') || name.includes('3kampf')) return 3;
+  if (name.includes('zweikampf') || name.includes('2-kampf') || name.includes('2kampf')) return 2;
+  if (name.includes('mehrkampf')) return name.includes(' m') ? 6 : 4;
+
+  return 0; // unknown — caller decides
+}
+
+/**
+ * Detects the competition level (P, Kür, LK1, LK2, LK3) from XML device data.
+ *
+ * Checks device names (e.g. "Par.-Barren P 1 > P 9" → "P") and wedDisNr
+ * codes (ones digit: 0=Kür, 1=LK1, 2=LK2, 3=LK3; x09=P).
+ *
+ * @returns A level suffix like "P", "Kür", "LK1" etc., or empty string.
+ */
+export function detectLevelFromDevices(devices: Array<{ name?: string; code?: string | number }>): string {
+  for (const d of devices) {
+    // --- Check device name ---
+    const deviceName = (d.name || '').toLowerCase();
+    if (deviceName.includes('p 1') || deviceName.includes('p1-p9') || deviceName.includes('p1>') || deviceName.includes('p1 >') || deviceName.includes('p-stufe')) return 'P';
+    if (deviceName.includes('kür')) return 'Kür';
+    if (deviceName.includes('lk 1') || deviceName.includes('lk1')) return 'LK1';
+    if (deviceName.includes('lk 2') || deviceName.includes('lk2')) return 'LK2';
+    if (deviceName.includes('lk 3') || deviceName.includes('lk3')) return 'LK3';
+
+    // --- Check wedDisNr code pattern ---
+    const code = typeof d.code === 'string' ? parseInt(d.code, 10) : d.code;
+    if (code === undefined || code === null || isNaN(code)) continue;
+
+    if (code >= 200 && code < 300) {
+      // P-Übung codes end in 9 (209, 219, ..., 299)
+      if (code % 10 === 9) return 'P';
+      // Base DTB codes end in 0 (200, 210, ..., 290) — no level info
+    } else if (code >= 100 && code < 200) {
+      // New codes: ones digit = level
+      const ones = code % 10;
+      if (ones === 0) return 'Kür';
+      if (ones === 1) return 'LK1';
+      if (ones === 2) return 'LK2';
+      if (ones === 3) return 'LK3';
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Checks if a discipline name matches a specific level suffix precisely.
+ * 
+ * The old `includes('p')` check falsely matched 'p' in words like
+ * "Sprung", "Pauschenpferd". This function uses patterns that only
+ * match actual level markers like "P1-P9", "Kür", "LK1" etc.
+ */
+export function matchesLevel(disciplineName: string, level: string): boolean {
+  const lower = disciplineName.toLowerCase();
+  const lLevel = level.toLowerCase();
+
+  if (lLevel === 'p') {
+    // P-level: look for "P1", "P 1", "P1-P9", "P-Stufe" patterns
+    // NOT just any 'p' in the name (which would match "Sprung", "Pauschenpferd")
+    return /(?:^|[\s.])p\s*[1-9]/.test(lower) || lower.includes('p-stufe');
+  }
+  // For Kür, LK1, LK2, LK3 — simple includes is unambiguous
+  return lower.includes(lLevel);
+}
+
+/**
+ * Determines the gender context from a competition name.
+ * Returns 'male', 'female', or 'unknown'.
+ */
+export function detectGenderFromName(competitionName: string): 'male' | 'female' | 'unknown' {
+  const name = competitionName.toLowerCase();
+
+  // Check for standalone gender markers: " m ", " m(", ends with " m"
+  // Also match German gender words
+  if (/ m[ (]/.test(name) || name.endsWith(' m') || name.includes('männlich') || name.includes('jungen')) return 'male';
+  if (/ w[ (]/.test(name) || name.endsWith(' w') || name.includes('weiblich') || name.includes('mädchen')) return 'female';
+
+  // Sechskampf is always male (6 apparatus is only male gymnastics)
+  if (name.includes('sechskampf')) return 'male';
+
+  return 'unknown';
+}
+
+// ============================================================================
 // Name-based discipline matching (fallback when no wedDisNr available)
 // ============================================================================
 
 /**
  * Generalized discipline selection for a competition name using DB values.
- * Used as fallback when no wedDisNr data is available from the XML.
- * 
+ * Used as fallback when no wedDisNr data is available from the XML, or when
+ * XML data is incomplete (e.g. only 1 of 6 disciplines listed).
+ *
  * Searches the database for disciplines whose names START WITH a base
  * apparatus name, so it works with both legacy names ("Boden") and
  * GymNet preset names ("Boden m.", "Boden m. LK1", "Boden w. Kür").
- * 
+ *
  * @param competitionName The name of the competition (e.g. "Gerätvierkampf w")
  * @param prismaInstance The Prisma client instance
+ * @param levelHint Optional level detected from XML devices (e.g. "P", "Kür", "LK1")
  * @returns Array of discipline names to link
  */
 export async function getDisciplinesForCompetition(
   competitionName: string,
-  prismaInstance: PrismaClientType
+  prismaInstance: PrismaClientType,
+  levelHint?: string
 ): Promise<string[]> {
   const name = competitionName.toLowerCase();
   const allDisciplines = await prismaInstance.tfx_disziplinen.findMany({ select: { var_name: true } });
   const disciplineNames = allDisciplines.map(d => d.var_name).filter((n): n is string => n !== null);
 
+  const gender = detectGenderFromName(competitionName);
+
   // Determine which base apparatus names to look for
   let baseApparatus: string[];
+  // Flag: Turn10 disciplines don't use level suffixes (they ARE the level)
+  let isTurn10 = false;
 
-  if (name.includes('vierkampf') && name.includes('w')) {
-    // Female four-apparatus competition
-    baseApparatus = ['Sprung w', 'Stufenbarren', 'Schwebebalken', 'Boden w'];
-  } else if (name.includes('vierkampf') && name.includes('m')) {
-    // Male four-apparatus — pick 4 from 6 (use the most common default set)
-    baseApparatus = ['Boden m', 'Sprung m', 'Barren', 'Reck'];
-  } else if (name.includes('sechskampf') || (name.includes('mehrkampf') && name.includes('m'))) {
-    // Male six-apparatus competition
-    baseApparatus = ['Boden m', 'Pauschenpferd', 'Ringe', 'Sprung m', 'Barren', 'Reck'];
-  } else if (name.includes('mehrkampf') && name.includes('w')) {
-    // Female multi-apparatus
-    baseApparatus = ['Sprung w', 'Stufenbarren', 'Schwebebalken', 'Boden w'];
-  } else if (name.includes('geräte') || name.includes('gerate')) {
-    // Generic apparatus → all 10
-    baseApparatus = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
+  // ── Turn10 detection (must come first!) ──
+  if (name.includes('turn10') || name.includes('basisstufe')) {
+    // Turn10 Basisstufe competitions use dedicated Turn10® apparatus (IDs 72-77)
+    baseApparatus = TURN10_APPARATUS;
+    isTurn10 = true;
+  } else if (name.includes('sechskampf') || name.includes('6-kampf') || name.includes('6kampf')) {
+    // Sechskampf = all 6 male apparatus
+    baseApparatus = MALE_APPARATUS;
+  } else if (name.includes('vierkampf') || name.includes('4-kampf') || name.includes('4kampf')) {
+    if (gender === 'female') {
+      baseApparatus = FEMALE_APPARATUS;
+    } else if (gender === 'male') {
+      // Male 4-Kampf: standard 4 apparatus (without Pauschenpferd and Ringe)
+      baseApparatus = MALE_4KAMPF_APPARATUS;
+    } else {
+      baseApparatus = FEMALE_APPARATUS;
+    }
+  } else if (name.includes('3-kampf') || name.includes('3kampf') || name.includes('dreikampf')) {
+    // 3-Kampf: athlete picks 3 from available set, competition has full set
+    baseApparatus = gender === 'male' ? MALE_APPARATUS : FEMALE_APPARATUS;
+  } else if (name.includes('5-kampf') || name.includes('5kampf') || name.includes('fünfkampf')) {
+    baseApparatus = gender === 'male' ? MALE_APPARATUS : FEMALE_APPARATUS;
+  } else if (name.includes('mehrkampf')) {
+    baseApparatus = gender === 'male' ? MALE_APPARATUS : FEMALE_APPARATUS;
+  } else if (name.includes('geräte') || name.includes('gerate') || name.includes('gerät')) {
+    // Generic apparatus — gender-aware
+    if (gender === 'male') {
+      baseApparatus = MALE_APPARATUS;
+    } else if (gender === 'female') {
+      baseApparatus = FEMALE_APPARATUS;
+    } else {
+      baseApparatus = ALL_APPARATUS;
+    }
   } else {
-    // Default fallback: all 10 base apparatus
-    baseApparatus = ['Boden', 'Sprung', 'Stufenbarren', 'Schwebebalken', 'Reck', 'Pauschenpferd', 'Ringe', 'Barren'];
+    // Default fallback: all base apparatus
+    baseApparatus = ALL_APPARATUS;
   }
 
-  // Try to determine competition level from name (LK1, LK2, LK3, P, Kür, AK, Turn10)
+  // Try to determine competition level from name or levelHint
+  // (Not used for Turn10 — Turn10 disciplines don't have level suffixes)
   let levelSuffix = '';
-  if (name.includes('lk 1') || name.includes('lk1')) levelSuffix = 'LK1';
-  else if (name.includes('lk 2') || name.includes('lk2')) levelSuffix = 'LK2';
-  else if (name.includes('lk 3') || name.includes('lk3')) levelSuffix = 'LK3';
-  else if (name.includes('p-stufe') || name.includes('p1') || name.includes('p-wettkampf')) levelSuffix = 'P';
-  else if (name.includes('kür')) levelSuffix = 'Kür';
+  if (!isTurn10) {
+    levelSuffix = levelHint || '';
+    if (!levelSuffix) {
+      if (name.includes('lk 1') || name.includes('lk1')) levelSuffix = 'LK1';
+      else if (name.includes('lk 2') || name.includes('lk2')) levelSuffix = 'LK2';
+      else if (name.includes('lk 3') || name.includes('lk3')) levelSuffix = 'LK3';
+      else if (name.includes('p-stufe') || name.includes('p1') || name.includes('p-wettkampf')) levelSuffix = 'P';
+      else if (name.includes('kür')) levelSuffix = 'Kür';
+    }
+  }
 
   // Find matching disciplines in DB: prefer level-specific, then base name
   const matched: string[] = [];
   for (const base of baseApparatus) {
-    // First try: exact match with level suffix
+    // First try: exact match with level suffix (using precise matchesLevel)
     if (levelSuffix) {
-      const withLevel = disciplineNames.find(d => 
+      let withLevel = disciplineNames.find(d => 
         d.toLowerCase().startsWith(base.toLowerCase()) && 
-        d.toLowerCase().includes(levelSuffix.toLowerCase())
+        matchesLevel(d, levelSuffix)
       );
+
+      // Try alternative prefixes for DB naming inconsistencies
+      // e.g. "Barren" (base) → "Par.-Barren P1-P9" (P-level has different prefix)
+      if (!withLevel) {
+        const aliases = APPARATUS_ALIASES[base.toLowerCase()];
+        if (aliases) {
+          for (const alias of aliases) {
+            withLevel = disciplineNames.find(d => 
+              d.toLowerCase().startsWith(alias) && 
+              matchesLevel(d, levelSuffix)
+            );
+            if (withLevel) break;
+          }
+        }
+      }
+
       if (withLevel) {
         matched.push(withLevel);
         continue;

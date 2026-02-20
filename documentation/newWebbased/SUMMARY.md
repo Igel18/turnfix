@@ -148,6 +148,7 @@
 
 ## 🚀 Deployment
 
+* [Installer erstellen (Build-Anleitung)](deployment/installer-build.md)
 * [Produktiv-Deployment](deployment/production.md)
 * [Netzwerk-Konfiguration](deployment/network.md)
 * [PM2 Setup](deployment/pm2.md)

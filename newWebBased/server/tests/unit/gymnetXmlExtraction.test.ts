@@ -8,7 +8,7 @@
  *   4. Case-insensitive key matching works for wedDisNr, wedDisName, wedDisID
  */
 
-import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition, DISCIPLINE_IDS, DISCIPLINE_NAMES } from '../../src/utils/gymnetMapping';
+import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition, matchesLevel, getExpectedDisciplineCount, detectLevelFromDevices, DISCIPLINE_IDS, DISCIPLINE_NAMES } from '../../src/utils/gymnetMapping';
 
 // ============================================================================
 // 1. wedDisNr → TurnFix ID mapping
@@ -407,5 +407,317 @@ describe('Female Kür wedDisNr codes', () => {
     it(`should map code ${code} to ${name} (ID=${id})`, () => {
       expect(wedDisNrToTurnFixId(code)).toBe(id);
     });
+  });
+});
+
+// ============================================================================
+// 9. matchesLevel — precise level matching (bug fix for includes('p'))
+// ============================================================================
+
+describe('matchesLevel', () => {
+  describe('P-level matching', () => {
+    it('should match "Boden m. P1-P9" for level "P"', () => {
+      expect(matchesLevel('Boden m. P1-P9', 'P')).toBe(true);
+    });
+
+    it('should match "Par.-Barren P 1 > P 9" for level "P"', () => {
+      expect(matchesLevel('Par.-Barren P 1 > P 9', 'P')).toBe(true);
+    });
+
+    it('should match "Schwebebalken P1-P9" for level "P"', () => {
+      expect(matchesLevel('Schwebebalken P1-P9', 'P')).toBe(true);
+    });
+
+    it('should match "Reck m. P1-P9" for level "P"', () => {
+      expect(matchesLevel('Reck m. P1-P9', 'P')).toBe(true);
+    });
+
+    it('should NOT match "Sprung m. Kür" for level "P" (contains "p" in "Sprung")', () => {
+      expect(matchesLevel('Sprung m. Kür', 'P')).toBe(false);
+    });
+
+    it('should NOT match "Pauschenpferd" for level "P" (contains "p" in name)', () => {
+      expect(matchesLevel('Pauschenpferd', 'P')).toBe(false);
+    });
+
+    it('should NOT match "P.-Pferd Kür" for level "P" (apparatus name starts with P)', () => {
+      // "P.-Pferd" has P at start but it's not a P-level marker
+      expect(matchesLevel('P.-Pferd Kür', 'P')).toBe(false);
+    });
+
+    it('should NOT match "Sprung w. LK1" for level "P"', () => {
+      expect(matchesLevel('Sprung w. LK1', 'P')).toBe(false);
+    });
+
+    it('should NOT match "P-Barren Turn10® Basis" for level "P" (Turn10 apparatus)', () => {
+      // P-Barren has P in the name but it's not a P-level competition
+      expect(matchesLevel('P-Barren Turn10® Basis', 'P')).toBe(false);
+    });
+  });
+
+  describe('LK matching', () => {
+    it('should match "Boden m. LK1" for level "LK1"', () => {
+      expect(matchesLevel('Boden m. LK1', 'LK1')).toBe(true);
+    });
+
+    it('should match "Sprung w. LK2" for level "LK2"', () => {
+      expect(matchesLevel('Sprung w. LK2', 'LK2')).toBe(true);
+    });
+
+    it('should NOT match "Boden m. LK1" for level "LK2"', () => {
+      expect(matchesLevel('Boden m. LK1', 'LK2')).toBe(false);
+    });
+
+    it('should NOT match "Boden m. Kür" for level "LK1"', () => {
+      expect(matchesLevel('Boden m. Kür', 'LK1')).toBe(false);
+    });
+  });
+
+  describe('Kür matching', () => {
+    it('should match "Boden m. Kür" for level "Kür"', () => {
+      expect(matchesLevel('Boden m. Kür', 'Kür')).toBe(true);
+    });
+
+    it('should NOT match "Boden m. LK1" for level "Kür"', () => {
+      expect(matchesLevel('Boden m. LK1', 'Kür')).toBe(false);
+    });
+  });
+});
+
+// ============================================================================
+// 10. getExpectedDisciplineCount
+// ============================================================================
+
+describe('getExpectedDisciplineCount', () => {
+  it('should return 6 for "Gerätsechskampf m (17-18Jahre)"', () => {
+    expect(getExpectedDisciplineCount('Gerätsechskampf m (17-18Jahre)')).toBe(6);
+  });
+
+  it('should return 6 for "6-Kampf m"', () => {
+    expect(getExpectedDisciplineCount('6-Kampf m')).toBe(6);
+  });
+
+  it('should return 4 for "Gerätvierkampf w (1-6Jahre)"', () => {
+    expect(getExpectedDisciplineCount('Gerätvierkampf w (1-6Jahre)')).toBe(4);
+  });
+
+  it('should return 4 for "Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)"', () => {
+    expect(getExpectedDisciplineCount('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)')).toBe(4);
+  });
+
+  it('should return 3 for "Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)"', () => {
+    expect(getExpectedDisciplineCount('Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)')).toBe(3);
+  });
+
+  it('should return 5 for "Fünfkampf m"', () => {
+    expect(getExpectedDisciplineCount('Fünfkampf m')).toBe(5);
+  });
+
+  it('should return 6 for "Mehrkampf m" (male = 6 apparatus)', () => {
+    expect(getExpectedDisciplineCount('Mehrkampf m')).toBe(6);
+  });
+
+  it('should return 4 for "Mehrkampf w" (female = 4 apparatus)', () => {
+    expect(getExpectedDisciplineCount('Mehrkampf w')).toBe(4);
+  });
+
+  it('should return 0 for unknown competition name', () => {
+    expect(getExpectedDisciplineCount('Unknown Competition 2025')).toBe(0);
+  });
+});
+
+// ============================================================================
+// 11. detectLevelFromDevices
+// ============================================================================
+
+describe('detectLevelFromDevices', () => {
+  it('should detect P-level from device name "Par.-Barren P 1 > P 9"', () => {
+    const devices = [{ name: 'Par.-Barren P 1 > P 9', code: '240' }];
+    expect(detectLevelFromDevices(devices)).toBe('P');
+  });
+
+  it('should detect P-level from wedDisNr code ending in 9 (e.g. 209)', () => {
+    const devices = [{ name: 'Boden', code: '209' }];
+    expect(detectLevelFromDevices(devices)).toBe('P');
+  });
+
+  it('should detect Kür from device name', () => {
+    const devices = [{ name: 'Boden m. Kür', code: '100' }];
+    expect(detectLevelFromDevices(devices)).toBe('Kür');
+  });
+
+  it('should detect LK1 from code pattern (ones=1)', () => {
+    const devices = [{ name: 'Sprung w.', code: '161' }];
+    expect(detectLevelFromDevices(devices)).toBe('LK1');
+  });
+
+  it('should detect LK2 from code pattern (ones=2)', () => {
+    const devices = [{ name: 'Boden m.', code: '102' }];
+    expect(detectLevelFromDevices(devices)).toBe('LK2');
+  });
+
+  it('should detect LK3 from code pattern (ones=3)', () => {
+    const devices = [{ name: 'Reck m.', code: '153' }];
+    expect(detectLevelFromDevices(devices)).toBe('LK3');
+  });
+
+  it('should return empty string when no level can be detected', () => {
+    const devices = [{ name: 'Unknown', code: 'abc' }];
+    expect(detectLevelFromDevices(devices)).toBe('');
+  });
+
+  it('should detect P-level from "P1-P9" in name', () => {
+    const devices = [{ name: 'Reck m. P1-P9', code: '259' }];
+    expect(detectLevelFromDevices(devices)).toBe('P');
+  });
+});
+
+// ============================================================================
+// 12. Turn10 discipline matching (bug fix: used wrong P-level disciplines)
+// ============================================================================
+
+describe('getDisciplinesForCompetition - Turn10 competitions', () => {
+  const gymnetDisciplineNames = Object.values(DISCIPLINE_NAMES);
+
+  const mockPrisma = {
+    tfx_disziplinen: {
+      findMany: jest.fn().mockResolvedValue(
+        gymnetDisciplineNames.map(name => ({ var_name: name }))
+      ),
+    },
+  } as any;
+
+  it('should return 6 Turn10 disciplines for "Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)"', async () => {
+    // Turn10 4-Kampf: all 6 Turn10 apparatus available (athlete picks 4)
+    const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)', mockPrisma);
+    expect(result.length).toBe(6);
+    // ALL results should be Turn10® Basis disciplines
+    for (const name of result) {
+      expect(name).toContain('Turn10');
+    }
+  });
+
+  it('should return 6 Turn10 disciplines for "Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)"', async () => {
+    const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 3-Kampf m (7-8Jahre)', mockPrisma);
+    expect(result.length).toBe(6);
+    for (const name of result) {
+      expect(name).toContain('Turn10');
+    }
+  });
+
+  it('should return 6 Turn10 disciplines for female Turn10 "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)"', async () => {
+    const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)', mockPrisma);
+    expect(result.length).toBe(6);
+    for (const name of result) {
+      expect(name).toContain('Turn10');
+    }
+  });
+
+  it('should include all 6 Turn10 apparatus types', async () => {
+    const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)', mockPrisma);
+    const resultLower = result.map(r => r.toLowerCase());
+    expect(resultLower.some(r => r.includes('boden'))).toBe(true);
+    expect(resultLower.some(r => r.includes('balken') || r.includes('bank'))).toBe(true);
+    expect(resultLower.some(r => r.includes('barren'))).toBe(true);
+    expect(resultLower.some(r => r.includes('minitrampolin'))).toBe(true);
+    expect(resultLower.some(r => r.includes('reck') || r.includes('st-barren'))).toBe(true);
+    expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
+  });
+
+  it('should NOT return standard P-level disciplines for Turn10 competitions', async () => {
+    const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m (15-16Jahre)', mockPrisma);
+    // None should be P-level standard disciplines
+    for (const name of result) {
+      expect(name).not.toMatch(/P1-P9/);
+      expect(name).not.toMatch(/^Boden m\./);
+      expect(name).not.toMatch(/^Pauschenpferd/);
+      expect(name).not.toMatch(/^Ringe/);
+    }
+  });
+
+  it('should NOT return "Basisstufe" keyword as level suffix for Turn10', async () => {
+    // Internally, Turn10 should set isTurn10=true and NOT use any level suffix
+    const result = await getDisciplinesForCompetition('Turn10 Basisstufe Gerät 4-Kampf m', mockPrisma);
+    // All results should be Turn10 (no level-based filtering applied)
+    for (const name of result) {
+      expect(name).toContain('Turn10');
+    }
+  });
+});
+
+// ============================================================================
+// 13. Sechskampf & 4-Kampf discipline matching (bug fix: wrong counts)
+// ============================================================================
+
+describe('getDisciplinesForCompetition - Sechskampf and 4-Kampf', () => {
+  const gymnetDisciplineNames = Object.values(DISCIPLINE_NAMES);
+
+  const mockPrisma = {
+    tfx_disziplinen: {
+      findMany: jest.fn().mockResolvedValue(
+        gymnetDisciplineNames.map(name => ({ var_name: name }))
+      ),
+    },
+  } as any;
+
+  it('should return 6 disciplines for "Gerätsechskampf m (17-18Jahre)"', async () => {
+    const result = await getDisciplinesForCompetition('Gerätsechskampf m (17-18Jahre)', mockPrisma);
+    expect(result.length).toBe(6);
+  });
+
+  it('should return 6 P-level disciplines for Sechskampf with P-level hint', async () => {
+    const result = await getDisciplinesForCompetition('Gerätsechskampf m (17-18Jahre)', mockPrisma, 'P');
+    expect(result.length).toBe(6);
+    // All should be P-level
+    for (const name of result) {
+      expect(matchesLevel(name, 'P')).toBe(true);
+    }
+  });
+
+  it('should return 6 male apparatus for Sechskampf (Boden, Pferd, Ringe, Sprung, Barren, Reck)', async () => {
+    const result = await getDisciplinesForCompetition('Gerätsechskampf m (17-18Jahre)', mockPrisma);
+    const resultLower = result.map(r => r.toLowerCase());
+    expect(resultLower.some(r => r.includes('boden'))).toBe(true);
+    expect(resultLower.some(r => r.includes('pferd') || r.includes('pauschenpferd'))).toBe(true);
+    expect(resultLower.some(r => r.includes('ringe'))).toBe(true);
+    expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
+    expect(resultLower.some(r => r.includes('barren') && !r.includes('stufenbarren'))).toBe(true);
+    expect(resultLower.some(r => r.includes('reck'))).toBe(true);
+  });
+
+  it('should return exactly 4 disciplines for "Gerät 4-Kampf m" (non-Turn10)', async () => {
+    // Non-Turn10 4-Kampf m: Boden, Sprung, Barren, Reck (no Pauschenpferd, no Ringe)
+    const result = await getDisciplinesForCompetition('Gerät 4-Kampf m', mockPrisma);
+    expect(result.length).toBe(4);
+  });
+
+  it('should return male 4-Kampf without Pauschenpferd and Ringe', async () => {
+    const result = await getDisciplinesForCompetition('Gerät 4-Kampf m', mockPrisma);
+    const resultLower = result.map(r => r.toLowerCase());
+    expect(resultLower.some(r => r.includes('boden'))).toBe(true);
+    expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
+    expect(resultLower.some(r => r.includes('barren'))).toBe(true);
+    expect(resultLower.some(r => r.includes('reck'))).toBe(true);
+    // Should NOT have Pauschenpferd or Ringe
+    expect(resultLower.some(r => r.includes('pauschenpferd') || r.includes('pferd'))).toBe(false);
+    expect(resultLower.some(r => r.includes('ringe'))).toBe(false);
+  });
+
+  it('should return 4 female disciplines for "Gerätvierkampf w"', async () => {
+    const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma);
+    expect(result.length).toBe(4);
+    const resultLower = result.map(r => r.toLowerCase());
+    expect(resultLower.some(r => r.includes('sprung'))).toBe(true);
+    expect(resultLower.some(r => r.includes('stufenbarren'))).toBe(true);
+    expect(resultLower.some(r => r.includes('schwebebalken'))).toBe(true);
+    expect(resultLower.some(r => r.includes('boden'))).toBe(true);
+  });
+
+  it('should return LK1-level disciplines when levelHint is "LK1"', async () => {
+    const result = await getDisciplinesForCompetition('Gerätvierkampf w', mockPrisma, 'LK1');
+    expect(result.length).toBe(4);
+    for (const name of result) {
+      expect(name.toLowerCase()).toContain('lk1');
+    }
   });
 });
