@@ -17,6 +17,7 @@
 
 import prisma from '../lib/prisma';
 import { wedDisNrToTurnFixId, getDisciplinesForCompetition } from './gymnetMapping';
+import { resolveBereich } from './competitionHelpers';
 import type { ExtractedData } from './gymnetXmlParser';
 
 // ============================================================================
@@ -44,38 +45,7 @@ export interface ImportResult {
   warnings: ImportWarning[];
 }
 
-// ============================================================================
-// Helper: Gender Area (Bereich)
-// ============================================================================
-
-async function getOrCreateBereich(gender: string): Promise<number> {
-  let boolMaennlich = true;
-  let boolWeiblich = true;
-  let bereichName = 'Mixed';
-
-  if (gender === 'männlich' || gender === 'male') {
-    boolMaennlich = true;
-    boolWeiblich = false;
-    bereichName = 'Männlich';
-  } else if (gender === 'weiblich' || gender === 'female') {
-    boolMaennlich = false;
-    boolWeiblich = true;
-    bereichName = 'Weiblich';
-  }
-
-  const existingBereich = await prisma.tfx_bereiche.findFirst({
-    where: { bol_maennlich: boolMaennlich, bol_weiblich: boolWeiblich }
-  });
-
-  if (existingBereich) return existingBereich.int_bereicheid;
-
-  const newBereich = await prisma.tfx_bereiche.create({
-    data: { var_name: bereichName, bol_maennlich: boolMaennlich, bol_weiblich: boolWeiblich }
-  });
-
-  console.log(`  📍 Created new bereich: ${bereichName} (ID: ${newBereich.int_bereicheid})`);
-  return newBereich.int_bereicheid;
-}
+// Bereich (gender area) resolution uses shared helper from competitionHelpers.ts
 
 // ============================================================================
 // 1. Club Insertion
@@ -284,7 +254,8 @@ async function importCompetitions(
         birthYearTo = eventYear - 100;
       }
 
-      const bereichId = await getOrCreateBereich(gender);
+      const bereich = await resolveBereich(prisma, { gender });
+      const bereichId = bereich.int_bereicheid;
       const isTeamCompetition = (competition.teamInfo?.max > 1) ||
         teams.some((t: any) => t.competitionNumber === (competition.waNr || competition.number));
       const competitionType = isTeamCompetition ? 1 : 0;
