@@ -519,6 +519,8 @@ export interface WideTableExportOptions {
   maxColumnWidth?: number
   /** Minimum column width in mm for data columns (default: 15) */
   minColumnWidth?: number
+  /** Fixed width in mm for each data column. When set, text wraps within this width and page-break calculation uses this value. */
+  dataColumnWidth?: number
   /** Width in mm reserved for frozen columns (default: auto-calculated, min 40) */
   frozenColumnWidth?: number
   /** Extra autoTable options merged into each table call */
@@ -549,6 +551,7 @@ export const exportWideTablePDF = (options: WideTableExportOptions): jsPDF => {
     data,
     frozenColumns = 1,
     minColumnWidth = 15,
+    dataColumnWidth,
     tableOptions = {},
     startY = 40,
     filename,
@@ -575,19 +578,34 @@ export const exportWideTablePDF = (options: WideTableExportOptions): jsPDF => {
   const dataAreaWidth = availableWidth - totalFrozenWidth
 
   // Calculate how many data columns fit per page
-  // Use equal distribution: each data column gets dataAreaWidth / colsPerPage
-  const maxColsPerPage = Math.max(1, Math.floor(dataAreaWidth / minColumnWidth))
+  const effectiveColWidth = dataColumnWidth ?? minColumnWidth
+  const maxColsPerPage = Math.max(1, Math.floor(dataAreaWidth / effectiveColWidth))
+
+  // Build column styles for data columns with fixed width (if dataColumnWidth is set)
+  const buildDataColumnStyles = (colCount: number, frozenCount: number, extraStyles?: Record<string, any>) => {
+    const styles: Record<number, any> = { ...(extraStyles || {}) }
+    if (dataColumnWidth) {
+      for (let i = frozenCount; i < colCount; i++) {
+        styles[i] = {
+          cellWidth: dataColumnWidth,
+          halign: 'center' as const,
+          ...(styles[i] || {}),
+        }
+      }
+    }
+    return styles
+  }
 
   // Check if all columns fit on a single page
   if (dataCols.length <= maxColsPerPage) {
     // Everything fits on one page – render normally
-    // Apply totalColumnStyle to the last column if provided
-    const mergedTableOptions = { ...tableOptions }
+    const baseStyles = { ...(tableOptions.columnStyles || {}) }
     if (tableOptions.totalColumnStyle) {
-      mergedTableOptions.columnStyles = {
-        ...(tableOptions.columnStyles || {}),
-        [columns.length - 1]: tableOptions.totalColumnStyle,
-      }
+      baseStyles[columns.length - 1] = tableOptions.totalColumnStyle
+    }
+    const mergedTableOptions = {
+      ...tableOptions,
+      columnStyles: buildDataColumnStyles(columns.length, frozenColumns, baseStyles),
     }
     _renderTablePage(doc, {
       columns,
@@ -629,6 +647,19 @@ export const exportWideTablePDF = (options: WideTableExportOptions): jsPDF => {
       // Only apply totalColumnStyle on the last chunk (which contains the last data column)
       const isLastChunk = chunkIndex === chunks.length - 1
 
+      const chunkBaseStyles: Record<number, any> = {
+            ...(tableOptions.columnStyles || {}),
+            0: {
+              halign: 'left' as const,
+              minCellWidth: frozenColWidth,
+              ...(tableOptions.columnStyles?.[0] || {}),
+            },
+            ...(isLastChunk && tableOptions.totalColumnStyle
+              ? { [pageColumns.length - 1]: tableOptions.totalColumnStyle }
+              : {}
+            ),
+          }
+
       _renderTablePage(doc, {
         columns: pageColumns,
         data: pageData,
@@ -641,18 +672,7 @@ export const exportWideTablePDF = (options: WideTableExportOptions): jsPDF => {
         startY,
         tableOptions: {
           ...tableOptions,
-          columnStyles: {
-            ...(tableOptions.columnStyles || {}),
-            0: {
-              halign: 'left' as const,
-              minCellWidth: frozenColWidth,
-              ...(tableOptions.columnStyles?.[0] || {}),
-            },
-            ...(isLastChunk && tableOptions.totalColumnStyle
-              ? { [pageColumns.length - 1]: tableOptions.totalColumnStyle }
-              : {}
-            ),
-          },
+          columnStyles: buildDataColumnStyles(pageColumns.length, frozenColumns, chunkBaseStyles),
         },
         isFirstPage: chunkIndex === 0,
       })

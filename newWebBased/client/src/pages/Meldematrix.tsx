@@ -136,12 +136,19 @@ export default function Meldematrix() {
         status: 'active' as const
       } : null
 
-      // Prepare table columns
+      // Prepare table columns: show competition name + number + gender/age on separate lines
       const tableColumns = [
         t('pdf.common.club'),
-        ...filteredCompetitions.map(comp => 
-          comp.number ? `${t('pdf.tableHeaders.number')}\n${comp.number.toString().padStart(4, '0')}` : `${t('pdf.tableHeaders.number')}\n${comp.id.toString().padStart(4, '0')}`
-        ),
+        ...filteredCompetitions.map(comp => {
+          const num = comp.number ? comp.number.toString().padStart(4, '0') : comp.id.toString().padStart(4, '0')
+          const genderAge = comp.gender && comp.gender !== 'unbekannt'
+            ? `${comp.gender.charAt(0).toUpperCase()} ${comp.ageFrom ?? ''}${comp.ageTo ? `-${comp.ageTo}` : ''}${comp.ageFrom || comp.ageTo ? 'J' : ''}`
+            : (comp.ageFrom || comp.ageTo)
+              ? `${comp.ageFrom ?? ''}${comp.ageTo ? `-${comp.ageTo}` : ''}J`
+              : ''
+          const line2 = genderAge ? `${num} · ${genderAge}` : num
+          return `${comp.name}\n${line2}`
+        }),
         t('pdf.common.total')
       ]
 
@@ -175,7 +182,7 @@ export default function Meldematrix() {
         data: tableData,
         frozenColumns: 1,          // Club name is always visible
         frozenColumnWidth: 40,
-        minColumnWidth: 15,
+        dataColumnWidth: 25,       // Fixed width for all competition columns (same as Gesamt)
         tableOptions: {
           columnStyles: {
             0: { halign: 'left', minCellWidth: 40 },
@@ -200,10 +207,6 @@ export default function Meldematrix() {
       console.error('Error generating PDF:', error)
       alert(t('meldematrix.pdfError'))
     }
-  }
-
-  const handlePrint = () => {
-    window.print()
   }
 
   const clearFilters = () => {
@@ -258,8 +261,6 @@ export default function Meldematrix() {
       searchTerm={clubFilter}
       onSearchChange={setClubFilter}
       searchPlaceholder={t('meldematrix.searchPlaceholder')}
-      showPrint={true}
-      onPrint={handlePrint}
       showExportPDF={true}
       onExportPDF={handleExportPDF}
       showEventContext={true}
@@ -299,14 +300,18 @@ export default function Meldematrix() {
         columns={[
           ...filteredCompetitions.map((competition): MatrixColumn => ({
             id: competition.id,
-            label: competition.number ? competition.number : competition.id.toString(),
+            label: competition.name,
             // FIX Point 100: Handle undefined ageFrom to prevent "undefinedJ"
-            subLabel: competition.gender && competition.gender !== 'unbekannt' 
-              ? `${competition.gender.charAt(0).toUpperCase()} ${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}${competition.ageFrom || competition.ageTo ? 'J' : ''}`
-              : (competition.ageFrom || competition.ageTo)
-                ? `${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
-                : '',
-            minWidth: '60px'
+            subLabel: (() => {
+              const num = competition.number ? competition.number : competition.id.toString()
+              const genderAge = competition.gender && competition.gender !== 'unbekannt' 
+                ? `${competition.gender.charAt(0).toUpperCase()} ${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}${competition.ageFrom || competition.ageTo ? 'J' : ''}`
+                : (competition.ageFrom || competition.ageTo)
+                  ? `${competition.ageFrom ?? ''}${competition.ageTo ? `-${competition.ageTo}` : ''}J`
+                  : ''
+              return genderAge ? `${num} · ${genderAge}` : num
+            })(),
+            minWidth: '80px'
           })),
           // Total column
           {
@@ -386,21 +391,6 @@ export default function Meldematrix() {
           <div className="text-sm text-gray-600">{t('meldematrix.statistics.totalRegistrations')}</div>
         </div>
       </div>
-
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          table {
-            font-size: 8px;
-          }
-          th, td {
-            padding: 2px !important;
-          }
-        }
-      `}</style>
     </EventManagementTemplate>
   )
 }
