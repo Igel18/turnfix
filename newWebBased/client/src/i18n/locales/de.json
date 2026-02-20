@@ -771,9 +771,12 @@
         "competitions": "Wettkämpfe und Disziplinen werden importiert",
         "participants": "Teilnehmer werden zur Datenbank hinzugefügt",
         "clubsUpdate": "Bestehende Vereine werden aktualisiert, falls vorhanden",
-        "participantsUpdate": "Bestehende Teilnehmer werden aktualisiert, falls vorhanden"
+        "participantsUpdate": "Bestehende Teilnehmer werden aktualisiert, falls vorhanden",
+        "noDisciplineGuessing": "Disziplinen werden nur zugewiesen, wenn sie explizit in der XML-Datei enthalten sind. Andernfalls werden Vorschläge angezeigt."
       },
       "progress": {
+        "parsing": "XML-Datei wird geparst...",
+        "uploading": "Datei wird hochgeladen und verarbeitet...",
         "completed": "Import erfolgreich abgeschlossen!",
         "failed": "Import fehlgeschlagen:",
         "eventCreated": "Veranstaltung erstellt: \"{name}\" (ID: {id})",
@@ -782,6 +785,31 @@
         "participants": "Teilnehmer: {inserted} neu, {updated} aktualisiert, {errors} Fehler",
         "competitions": "Wettkämpfe: {inserted} neu, {updated} aktualisiert, {errors} Fehler",
         "disciplines": "Disziplinen: {inserted} neu, {updated} aktualisiert, {errors} Fehler"
+      },
+      "results": {
+        "extractedData": "Extrahierte Daten aus XML",
+        "databaseResults": "Datenbank-Import",
+        "clubsLabel": "Vereine",
+        "competitionsLabel": "Wettkämpfe",
+        "participantsLabel": "Teilnehmer",
+        "disciplinesLabel": "Disziplinen",
+        "teamsLabel": "Mannschaften",
+        "new": "neu",
+        "updated": "aktualisiert",
+        "created": "erstellt",
+        "membersLabel": "Mitglieder",
+        "errorsCount": "Fehler",
+        "none": "keine",
+        "eventCreated": "Veranstaltung \"{{name}}\" erstellt (ID: {{id}})",
+        "hintsTitle": "Hinweise & Vorschläge",
+        "hintsDescription": "Für folgende Wettkämpfe konnten keine Disziplinen aus der XML-Datei zugeordnet werden. Bitte manuell in der Wettkampfverwaltung zuweisen.",
+        "suggestedDisciplines": "Mögliche Disziplinen:",
+        "noSuggestions": "Keine Vorschläge möglich — bitte manuell zuweisen.",
+        "warningsTitle": "Warnungen",
+        "errorsTitle": "Fehler beim Import",
+        "errorsDescription": "Einige Datensätze konnten nicht importiert werden. Überprüfen Sie die Daten und versuchen Sie es ggf. manuell.",
+        "close": "Schließen",
+        "tryAgain": "Erneut versuchen"
       }
     },
     "organizerInfo": "Veranstalterinformationen",

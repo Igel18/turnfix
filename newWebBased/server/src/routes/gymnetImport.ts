@@ -321,6 +321,7 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
         details: 'Check server logs for detailed error information'
       } : null,
       warnings: importResult?.warnings || [],
+      hints: importResult?.hints || [],
       insertionResults,
       extractedData: {
         clubs: extractedData.clubs,

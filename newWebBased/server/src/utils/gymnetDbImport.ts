@@ -33,16 +33,24 @@ export interface InsertionResults {
 }
 
 export interface ImportWarning {
+  type: 'info' | 'warning' | 'error';
+  category: 'club' | 'participant' | 'competition' | 'discipline' | 'team' | 'general';
+  message: string;
+  details?: string;
+}
+
+export interface DisciplineHint {
   competition: string;
-  waNr: string | null;
-  xmlDisciplines: number;
-  expectedDisciplines: number | null;
+  competitionId: number;
+  type: 'suggestion' | 'linked' | 'missing';
+  disciplines: string[];
   message: string;
 }
 
 export interface ImportResult {
   insertionResults: InsertionResults;
   warnings: ImportWarning[];
+  hints: DisciplineHint[];
 }
 
 // Bereich (gender area) resolution uses shared helper from competitionHelpers.ts
@@ -378,7 +386,8 @@ async function linkDisciplines(
   extractedData: ExtractedData,
   eventId: number,
   results: InsertionResults,
-  warnings: ImportWarning[]
+  warnings: ImportWarning[],
+  hints: DisciplineHint[]
 ): Promise<void> {
   console.log('🤸 Starting comprehensive discipline processing...');
 
@@ -461,44 +470,35 @@ async function linkDisciplines(
         }
       }
     } else {
-      // === FALLBACK: Name-based guessing (no XML device data) ===
-      console.log(`    ⚠️ No XML device data found, falling back to name-based discipline matching`);
-      const disciplinesToLink = await getDisciplinesForCompetition(competition.var_name, prisma);
-      console.log(`    📝 Name-based guess: ${disciplinesToLink.join(', ')}`);
+      // === NO AUTO-LINKING: Generate suggestions only ===
+      console.log(`    💡 No XML device data found — generating discipline suggestions (not auto-linking)`);
+      const suggestedDisciplines = await getDisciplinesForCompetition(competition.var_name, prisma);
+      console.log(`    📝 Suggestions: ${suggestedDisciplines.join(', ')}`);
 
-      let sortOrder = 0;
-      for (const disciplineName of disciplinesToLink) {
-        sortOrder++;
-        try {
-          const existingDiscipline = await prisma.$queryRawUnsafe(`
-            SELECT int_disziplinenid FROM tfx_disziplinen WHERE LOWER(var_name) = LOWER($1) LIMIT 1
-          `, disciplineName) as any[];
-
-          if (existingDiscipline.length > 0) {
-            const disciplineId = existingDiscipline[0].int_disziplinenid;
-            const existingLink = await prisma.$queryRawUnsafe(`
-              SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
-              WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2 LIMIT 1
-            `, competition.int_wettkaempfeid, disciplineId) as any[];
-
-            if (existingLink.length === 0) {
-              await prisma.$queryRawUnsafe(`
-                INSERT INTO tfx_wettkaempfe_x_disziplinen (int_wettkaempfeid, int_disziplinenid, int_sortierung)
-                VALUES ($1, $2, $3)
-              `, competition.int_wettkaempfeid, disciplineId, sortOrder);
-              console.log(`    🔗 Linked "${disciplineName}" (name-based)`);
-              linkedCount++;
-              results.devices.updated++;
-            }
-          } else {
-            console.log(`    ⚠️ Discipline "${disciplineName}" not found in database`);
-            results.devices.errors++;
-          }
-        } catch (linkError) {
-          console.log(`    ❌ Error linking discipline ${disciplineName}:`, linkError);
-          results.devices.errors++;
-        }
+      if (suggestedDisciplines.length > 0) {
+        hints.push({
+          competition: competition.var_name,
+          competitionId: competition.int_wettkaempfeid,
+          type: 'suggestion',
+          disciplines: suggestedDisciplines,
+          message: `Keine Disziplindaten in der XML-Datei vorhanden. Basierend auf dem Wettkampfnamen könnten folgende Disziplinen zutreffend sein: ${suggestedDisciplines.join(', ')}. Bitte manuell in der Wettkampfverwaltung zuweisen.`
+        });
+      } else {
+        hints.push({
+          competition: competition.var_name,
+          competitionId: competition.int_wettkaempfeid,
+          type: 'missing',
+          disciplines: [],
+          message: `Keine Disziplindaten in der XML-Datei und keine Vorschläge möglich. Bitte manuell in der Wettkampfverwaltung zuweisen.`
+        });
       }
+
+      warnings.push({
+        type: 'warning',
+        category: 'discipline',
+        message: `Wettkampf "${competition.var_name}": Keine Disziplinen in XML — manuelle Zuweisung erforderlich`,
+        details: suggestedDisciplines.length > 0 ? `Vorschläge: ${suggestedDisciplines.join(', ')}` : undefined
+      });
     }
   }
 
@@ -653,6 +653,7 @@ export async function importGymnetData(
   };
 
   const warnings: ImportWarning[] = [];
+  const hints: DisciplineHint[] = [];
 
   // 1. Clubs
   await importClubs(extractedData.clubs, results);
@@ -671,8 +672,8 @@ export async function importGymnetData(
     await assignParticipantsToEvent(extractedData.participants, eventId, results);
   }
 
-  // 4. Discipline linking
-  await linkDisciplines(extractedData, eventId, results, warnings);
+  // 4. Discipline linking (precise only, suggestions for name-based)
+  await linkDisciplines(extractedData, eventId, results, warnings, hints);
 
   // 5. Teams
   if (extractedData.teams.length > 0) {
@@ -686,5 +687,5 @@ export async function importGymnetData(
   console.log(`  🤸 Disciplines: ${results.devices.inserted} inserted, ${results.devices.updated} linked, ${results.devices.errors} errors`);
   console.log(`  🏅 Teams: ${results.teams.inserted} created, ${results.teams.members} members, ${results.teams.errors} errors`);
 
-  return { insertionResults: results, warnings };
+  return { insertionResults: results, warnings, hints };
 }

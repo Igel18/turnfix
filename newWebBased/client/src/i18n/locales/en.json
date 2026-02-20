@@ -771,9 +771,12 @@
         "competitions": "Competitions and disciplines will be imported",
         "participants": "Participants will be added to the database",
         "clubsUpdate": "Existing clubs will be updated if found",
-        "participantsUpdate": "Existing participants will be updated if found"
+        "participantsUpdate": "Existing participants will be updated if found",
+        "noDisciplineGuessing": "Disciplines are only assigned when explicitly listed in the XML file. Otherwise, suggestions will be shown."
       },
       "progress": {
+        "parsing": "Parsing XML file...",
+        "uploading": "Uploading and processing file...",
         "completed": "Import completed successfully!",
         "failed": "Import failed:",
         "eventCreated": "Event Created: \"{name}\" (ID: {id})",
@@ -782,6 +785,31 @@
         "participants": "Participants: {inserted} new, {updated} updated, {errors} errors",
         "competitions": "Competitions: {inserted} new, {updated} updated, {errors} errors",
         "disciplines": "Disciplines: {inserted} new, {updated} updated, {errors} errors"
+      },
+      "results": {
+        "extractedData": "Data extracted from XML",
+        "databaseResults": "Database Import",
+        "clubsLabel": "Clubs",
+        "competitionsLabel": "Competitions",
+        "participantsLabel": "Participants",
+        "disciplinesLabel": "Disciplines",
+        "teamsLabel": "Teams",
+        "new": "new",
+        "updated": "updated",
+        "created": "created",
+        "membersLabel": "members",
+        "errorsCount": "errors",
+        "none": "none",
+        "eventCreated": "Event \"{{name}}\" created (ID: {{id}})",
+        "hintsTitle": "Hints & Suggestions",
+        "hintsDescription": "Disciplines could not be assigned from the XML file for the following competitions. Please assign them manually in competition management.",
+        "suggestedDisciplines": "Suggested disciplines:",
+        "noSuggestions": "No suggestions available — please assign manually.",
+        "warningsTitle": "Warnings",
+        "errorsTitle": "Import Errors",
+        "errorsDescription": "Some records could not be imported. Please check the data and try importing manually.",
+        "close": "Close",
+        "tryAgain": "Try again"
       }
     },
     "organizerInfo": "Organizer Information",

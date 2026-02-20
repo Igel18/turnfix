@@ -44,6 +44,69 @@ export interface ImportProgress {
   progress: number
 }
 
+export interface ImportInsertionResult {
+  inserted: number
+  updated: number
+  errors: number
+}
+
+export interface ImportTeamResult {
+  inserted: number
+  members: number
+  errors: number
+}
+
+export interface ImportInsertionResults {
+  clubs: ImportInsertionResult
+  participants: ImportInsertionResult
+  competitions: ImportInsertionResult
+  devices: ImportInsertionResult
+  teams: ImportTeamResult
+}
+
+export interface ImportWarning {
+  type: 'info' | 'warning' | 'error'
+  category: 'club' | 'participant' | 'competition' | 'discipline' | 'team' | 'general'
+  message: string
+  details?: string
+}
+
+export interface DisciplineHint {
+  competition: string
+  competitionId: number
+  type: 'suggestion' | 'linked' | 'missing'
+  disciplines: string[]
+  message: string
+}
+
+export interface ImportApiResult {
+  success: boolean
+  message: string
+  createdEvent?: {
+    id: number
+    name: string
+    startDate: string
+    endDate: string
+  }
+  insertionResults: ImportInsertionResults
+  warnings: ImportWarning[]
+  hints: DisciplineHint[]
+  extractedData: {
+    clubs: any[]
+    competitions: any[]
+    participants: any[]
+    devices: any[]
+    teams: any[]
+    summary: {
+      clubsCount: number
+      competitionsCount: number
+      participantsCount: number
+      devicesCount: number
+      teamsCount: number
+    }
+  }
+}
+
 export const EMPTY_FORM_DATA: EventFormData = {
   var_eventname: '',
   dat_eventstartdate: '',
