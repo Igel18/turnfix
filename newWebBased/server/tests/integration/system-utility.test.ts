@@ -231,6 +231,11 @@ describe('System and Utility APIs', () => {
         .expect((res) => {
           expect([200, 201, 400, 422]).toContain(res.status);
         });
+
+      // Track created layout for cleanup
+      if (response.body?.int_layoutid) {
+        TestUtils.trackCreated('layouts', response.body.int_layoutid);
+      }
     });
 
     it('should validate layout templates', async () => {
@@ -246,6 +251,11 @@ describe('System and Utility APIs', () => {
         .expect((res) => {
           expect([200, 201, 400, 422]).toContain(res.status);
         });
+
+      // Track created layout for cleanup
+      if (response.body?.int_layoutid) {
+        TestUtils.trackCreated('layouts', response.body.int_layoutid);
+      }
     });
 
     it('should preview layout', async () => {
