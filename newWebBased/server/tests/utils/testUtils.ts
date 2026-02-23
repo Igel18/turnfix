@@ -1,11 +1,19 @@
 import { PrismaClient } from '@prisma/client';
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Ensure test environment is loaded
+dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 
 /**
  * Test utilities for database operations.
  * 
+ * Uses the dedicated test database (turnfix_test) configured via .env.test.
+ * The test DB is created/seeded by globalSetup and dropped by globalTeardown.
+ * 
  * IMPORTANT: All test data created via TestUtils is tracked by ID
  * and cleaned up in cleanup(). This prevents test data from polluting
- * the production database.
+ * the seed data.
  * 
  * Tests MUST call TestUtils.cleanup() in afterAll() AND
  * TestUtils.cleanupCreatedRecords() in afterEach() to ensure
@@ -44,9 +52,11 @@ export class TestUtils {
       this.prisma = new PrismaClient({
         datasources: {
           db: {
-            url: process.env.DATABASE_URL || process.env.TEST_DATABASE_URL,
+            // Always use the test DB URL from .env.test
+            url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL,
           },
         },
+        log: ['error'], // quiet during tests
       });
     }
     return this.prisma;
