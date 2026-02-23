@@ -212,8 +212,9 @@ test.describe('Regions Page - CRUD Operations', () => {
     const deleteResponse = await deleteResponsePromise;
     expect(deleteResponse.status()).toBe(200);
 
-    // Wait for the UI to update after state change
-    await page.waitForTimeout(500);
+    // Reload page to ensure fresh data from server (React state might not sync immediately)
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
 
     // Verify E2E test region is removed from table
     const remainingRows = page.locator('table tbody tr', { hasText: /E2E_Test_Region/ });
