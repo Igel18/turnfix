@@ -289,6 +289,13 @@ if (process.env.DEBUG === 'true') {
 
 ## 🧪 Testing & Quality
 
+## Unit tests ##
+
+## Integration tests ##
+
+## End-to-end tests ##
+create end-to-end tests with Playwright for critical user flows (e.g., creating a competition, adding participants, generating PDFs, check score input validation, check score input jury-server, check placement of participants,  etc.)
+
 ### Test Strategy
 ```bash
 # Run all tests with coverage

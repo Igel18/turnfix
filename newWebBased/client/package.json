@@ -17,7 +17,12 @@
     "test:real": "node test-runner.js --mode=real",
     "test:integration": "vitest run --config vitest.config.ts src/test/integration/",
     "test:pages": "vitest run --config vitest.config.ts src/test/pages/",
-    "test:components": "vitest run --config vitest.config.ts src/test/components/"
+    "test:components": "vitest run --config vitest.config.ts src/test/components/",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui",
+    "e2e:debug": "playwright test --debug",
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -54,6 +59,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

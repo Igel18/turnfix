@@ -162,3 +162,8 @@ ecosystem.config.js
 
 # Webpack bundle analyzer
 bundle-analyzer-report.html
+
+# Playwright
+client/playwright-report/
+client/test-results/
+client/blob-report/
