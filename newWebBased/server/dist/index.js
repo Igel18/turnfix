@@ -5,9 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.io = void 0;
 const dotenv_1 = require("dotenv");
-// Load environment variables first
-(0, dotenv_1.config)();
+const path_1 = require("path");
+// Load environment variables from server/.env (not CWD) 
+// This ensures PM2 (which sets cwd to project root) still finds the .env file
+(0, dotenv_1.config)({ path: (0, path_1.resolve)(__dirname, '../.env') });
 console.log('🚀 Starting TurnFix server...');
+// Debug: Log database URL availability (mask the actual value for security)
+const dbUrl = process.env.DATABASE_URL;
+if (dbUrl) {
+    const dbName = dbUrl.match(/\/([^?]+)\?/)?.[1] || 'unknown';
+    console.log(`🔧 DATABASE_URL configured (database: ${dbName})`);
+}
+else {
+    console.error('❌ DATABASE_URL is NOT SET! Database connections will fail.');
+}
 console.log('🔧 Importing express...');
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -156,16 +167,16 @@ app.use('/uploads', express_1.default.static('uploads', {
     }
 }));
 // Serve assets (icons, images) from client public directory for Jury Portal
-const path_1 = __importDefault(require("path"));
+const path_2 = __importDefault(require("path"));
 // Serve static files from public directory (including icons)
-const serverPublicPath = path_1.default.join(__dirname, '../public');
+const serverPublicPath = path_2.default.join(__dirname, '../public');
 app.use('/public', express_1.default.static(serverPublicPath, {
     setHeaders: (res, path, stat) => {
         res.set('Cross-Origin-Resource-Policy', 'cross-origin');
         res.set('Access-Control-Allow-Origin', '*');
     }
 }));
-const clientPublicPath = path_1.default.join(__dirname, '../../client/public');
+const clientPublicPath = path_2.default.join(__dirname, '../../client/public');
 app.use('/assets', express_1.default.static(clientPublicPath, {
     setHeaders: (res, path, stat) => {
         res.set('Cross-Origin-Resource-Policy', 'cross-origin');

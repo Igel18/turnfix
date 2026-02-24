@@ -1,8 +1,18 @@
 import { config } from 'dotenv';
-// Load environment variables first
-config();
+import { resolve } from 'path';
+// Load environment variables from server/.env (not CWD) 
+// This ensures PM2 (which sets cwd to project root) still finds the .env file
+config({ path: resolve(__dirname, '../.env') });
 
 console.log('🚀 Starting TurnFix server...');
+// Debug: Log database URL availability (mask the actual value for security)
+const dbUrl = process.env.DATABASE_URL;
+if (dbUrl) {
+  const dbName = dbUrl.match(/\/([^?]+)\?/)?.[1] || 'unknown';
+  console.log(`🔧 DATABASE_URL configured (database: ${dbName})`);
+} else {
+  console.error('❌ DATABASE_URL is NOT SET! Database connections will fail.');
+}
 
 console.log('🔧 Importing express...');
 import express from 'express';

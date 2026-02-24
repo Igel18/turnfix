@@ -7,8 +7,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
-        DEBUG: 'true',
-        DATABASE_URL: 'postgresql://postgres:UG2-UA.de@localhost:5432/turnfix_2026_4?schema=public&connection_limit=20&pool_timeout=10'
+        DEBUG: 'true'
       },
       instances: 1,
       exec_mode: 'fork',
@@ -20,14 +19,13 @@ module.exports = {
     },
     {
       name: 'turnfix-jury-server',
-      script: './newWebBased/server/dist/index.js',
+      script: './newWebBased/jury-server/src/index.js',
       cwd: __dirname,
       env: {
         NODE_ENV: 'production',
-        PORT: 3002,
-        JURY_MODE: 'true',
-        DEBUG: 'true',
-        DATABASE_URL: 'postgresql://postgres:UG2-UA.de@localhost:5432/turnfix_2026_4?schema=public&connection_limit=20&pool_timeout=10'
+        JURY_PORT: 3002,
+        MAIN_SERVER_URL: 'http://localhost:3001',
+        DEBUG: 'true'
       },
       instances: 1,
       exec_mode: 'fork',
