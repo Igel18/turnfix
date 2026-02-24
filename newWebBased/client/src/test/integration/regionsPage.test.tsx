@@ -28,7 +28,8 @@ describe('Regions Page (MSW Integration)', () => {
     renderWithProviders(<Regions />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Region Management/i)).toBeInTheDocument();
+      // Mock t() returns keys as-is, so title renders as 'regions.title'
+      expect(screen.getByText('regions.title')).toBeInTheDocument();
     });
   });
 
@@ -45,7 +46,9 @@ describe('Regions Page (MSW Integration)', () => {
     renderWithProviders(<Regions />);
 
     await waitFor(() => {
-      expect(screen.getByText(/2 regions loaded/i)).toBeInTheDocument();
+      // Mock t() returns keys, subtitle built as: `${t('regions.subtitle')} (${t('regions.subtitleCount', ...)})`
+      // which renders as 'regions.subtitle (regions.subtitleCount)'
+      expect(screen.getByText(/regions\.subtitleCount/)).toBeInTheDocument();
     });
   });
 
@@ -66,8 +69,8 @@ describe('Regions Page (MSW Integration)', () => {
       await user.click(filterToggle);
     }
 
-    // Find search input by placeholder text
-    const searchInput = screen.queryByPlaceholderText('Search regions...') ||
+    // Find search input by placeholder text (mock t returns key)
+    const searchInput = screen.queryByPlaceholderText('regions.searchPlaceholder') ||
       screen.queryByPlaceholderText(/search/i);
 
     // If search input exists, test filtering
@@ -103,7 +106,7 @@ describe('Regions Page (MSW Integration)', () => {
     await waitFor(
       () => {
         // Eventually the page should finish loading (even with empty data)
-        expect(screen.queryByText(/Region Management/i)).toBeInTheDocument();
+        expect(screen.queryByText('regions.title')).toBeInTheDocument();
       },
       { timeout: 2000 }
     );
@@ -120,12 +123,12 @@ describe('Regions Page (MSW Integration)', () => {
 
     // Page should still render (not crash) even with API error
     await waitFor(() => {
-      expect(screen.getByText(/Region Management/i)).toBeInTheDocument();
+      expect(screen.getByText('regions.title')).toBeInTheDocument();
     });
 
-    // Should show 0 regions (error state)
+    // Should show 0 regions in subtitle
     await waitFor(() => {
-      expect(screen.getByText(/0 regions loaded/i)).toBeInTheDocument();
+      expect(screen.getByText(/regions\.subtitleCount/)).toBeInTheDocument();
     });
   });
 
@@ -136,7 +139,8 @@ describe('Regions Page (MSW Integration)', () => {
       expect(screen.getByText('Berlin')).toBeInTheDocument();
     });
 
-    const addButton = screen.getByText(/Add Region/i);
+    // Mock t() returns key 'regions.addRegion'
+    const addButton = screen.getByText('regions.addRegion');
     expect(addButton).toBeInTheDocument();
   });
 });

@@ -41,6 +41,9 @@ function createMockCallbacks() {
     }),
     onUpdateDatabaseName: vi.fn().mockResolvedValue(undefined),
     onSaveAndReconnect: vi.fn().mockResolvedValue({ success: true }),
+    onImportSampleData: vi.fn().mockResolvedValue({ success: true, stats: { created: 7, skipped: 0 } }),
+    onImportDisciplineGroups: vi.fn().mockResolvedValue({ success: true, stats: { created: 2, skipped: 0 } }),
+    onImportStandardCountries: vi.fn().mockResolvedValue({ success: true, stats: { created: 34, skipped: 0 } }),
     onClose: vi.fn(),
   };
 }
@@ -74,15 +77,15 @@ describe('useDatabaseSetupWizard', () => {
     ...overrides,
   });
 
-  it('initialises 8 steps, all pending', () => {
+  it('initialises 9 steps, all pending', () => {
     const { result } = renderHook(() => useDatabaseSetupWizard(hookParams({ isOpen: false })), {
       wrapper: i18nWrapper,
     });
-    expect(result.current.steps).toHaveLength(8);
+    expect(result.current.steps).toHaveLength(9);
     expect(result.current.steps.every(s => s.status === 'pending')).toBe(true);
   });
 
-  it('marks first 3 steps as non-optional and last 5 as optional', () => {
+  it('marks first 3 steps as non-optional and last 6 as optional', () => {
     const { result } = renderHook(() => useDatabaseSetupWizard(hookParams({ isOpen: false })), {
       wrapper: i18nWrapper,
     });
@@ -94,6 +97,7 @@ describe('useDatabaseSetupWizard', () => {
     expect(result.current.steps[5].optional).toBe(true);
     expect(result.current.steps[6].optional).toBe(true);
     expect(result.current.steps[7].optional).toBe(true);
+    expect(result.current.steps[8].optional).toBe(true);
   });
 
   it('canExecuteStep allows step 0 always', () => {
@@ -419,6 +423,9 @@ describe('DatabaseSetupWizard (integration)', () => {
     onApplyGymNetPreset: cbs.onApplyGymNetPreset,
     onImportProductionDisciplines: cbs.onImportProductionDisciplines,
     onImportProductionStatuses: cbs.onImportProductionStatuses,
+    onImportSampleData: cbs.onImportSampleData,
+    onImportDisciplineGroups: cbs.onImportDisciplineGroups,
+    onImportStandardCountries: cbs.onImportStandardCountries,
     onUpdateDatabaseName: cbs.onUpdateDatabaseName,
     onSaveAndReconnect: cbs.onSaveAndReconnect,
     currentDbConfig: defaultDbConfig,
@@ -442,7 +449,7 @@ describe('DatabaseSetupWizard (integration)', () => {
     expect(screen.getByText('turnfix_test', { exact: false })).toBeInTheDocument();
   });
 
-  it('renders all 8 wizard steps', async () => {
+  it('renders all 9 wizard steps', async () => {
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
     // Wait for render
     await waitFor(() => {
@@ -455,14 +462,15 @@ describe('DatabaseSetupWizard (integration)', () => {
       expect(screen.getByText(/6\./)).toBeInTheDocument();
       expect(screen.getByText(/7\./)).toBeInTheDocument();
       expect(screen.getByText(/8\./)).toBeInTheDocument();
+      expect(screen.getByText(/9\./)).toBeInTheDocument();
     });
   });
 
-  it('shows 5 "Optional" badges', async () => {
+  it('shows 6 "Optional" badges', async () => {
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
     await waitFor(() => {
       const optionalBadges = screen.getAllByText('Optional');
-      expect(optionalBadges.length).toBe(5);
+      expect(optionalBadges.length).toBe(6);
     });
   });
 
