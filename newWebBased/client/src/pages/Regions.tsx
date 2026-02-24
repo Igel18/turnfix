@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, MapIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
 import UnifiedModal from '@/components/UnifiedModal';
+import { debugLog } from '@/utils/debug';
 
 interface Region {
   int_gaueid: number;
@@ -20,6 +22,7 @@ interface Verband {
 }
 
 const Regions: React.FC = () => {
+  const { t } = useTranslation();
   const [regions, setRegions] = useState<Region[]>([]);
   const [verbaende, setVerbaende] = useState<Verband[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +73,7 @@ const Regions: React.FC = () => {
   // Get filter options
   const getFilterOptions = () => [
     {
-      label: 'Association',
+      label: t('regions.filter.association'),
       value: '',
       selectedValue: selectedVerband.toString(),
       options: [
@@ -82,17 +85,16 @@ const Regions: React.FC = () => {
       onChange: (value: string) => setSelectedVerband(value === '' ? '' : parseInt(value))
     },
     {
-      label: 'Region Type',
+      label: t('regions.filter.regionType'),
       value: '',
       selectedValue: '',
       options: [
-        { value: 'all', label: 'All Types' },
-        { value: 'district', label: 'Districts' },
-        { value: 'region', label: 'Regions' }
+        { value: 'all', label: t('regions.filter.allTypes') },
+        { value: 'district', label: t('regions.filter.districts') },
+        { value: 'region', label: t('regions.filter.regions') }
       ],
       onChange: (value: string) => {
-        // This could filter by region type if we had that data
-        console.log('Region type filter:', value);
+        debugLog('Region type filter:', value);
       }
     }
   ];
@@ -159,12 +161,12 @@ const Regions: React.FC = () => {
 
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Error saving region:', error);
+      debugLog('Error saving region:', error);
     }
   };
 
   const handleDelete = async (region: Region) => {
-    if (!window.confirm(`Are you sure you want to delete "${region.var_name}"?`)) {
+    if (!window.confirm(t('regions.messages.confirmDelete', { name: region.var_name }))) {
       return;
     }
 
@@ -177,20 +179,20 @@ const Regions: React.FC = () => {
 
       setRegions(prev => prev.filter(r => r.int_gaueid !== region.int_gaueid));
     } catch (error) {
-      console.error('Error deleting region:', error);
+      debugLog('Error deleting region:', error);
     }
   };
 
   const handleExportCSV = () => {
     exportToCSV({
       filename: 'regions.csv',
-      headers: ['Region Name', 'Abbreviation', 'Association'],
+      headers: [t('regions.table.name'), t('regions.table.abbreviation'), t('regions.table.association')],
       data: filteredRegions.map(region => {
         const verband = verbaende.find(v => v.int_verbaendeid === region.int_verbaendeid);
         return {
-          'Region Name': region.var_name,
-          'Abbreviation': region.var_kuerzel,
-          'Association': verband?.var_name || 'No Association'
+          [t('regions.table.name')]: region.var_name,
+          [t('regions.table.abbreviation')]: region.var_kuerzel,
+          [t('regions.table.association')]: verband?.var_name || t('regions.noAssociation')
         };
       })
     });
@@ -212,17 +214,17 @@ const Regions: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-2">{region.var_name}</h3>
             <div className="space-y-2">
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 w-20">Code:</span>
+                <span className="text-sm text-gray-500 w-20">{t('regions.table.abbreviation')}:</span>
                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
                   {region.var_kuerzel}
                 </span>
               </div>
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 w-20">Association:</span>
+                <span className="text-sm text-gray-500 w-20">{t('regions.table.association')}:</span>
                 <span className={`px-2 py-1 text-xs font-medium rounded ${
                   verband ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
                 }`}>
-                  {verband?.var_name || 'No Association'}
+                  {verband?.var_name || t('regions.noAssociation')}
                 </span>
               </div>
             </div>
@@ -231,14 +233,14 @@ const Regions: React.FC = () => {
             <button
               onClick={() => handleEdit(region)}
               className="p-1 text-blue-600 hover:text-blue-900"
-              title="Edit region"
+              title={t('regions.editRegion')}
             >
               <PencilIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => handleDelete(region)}
               className="p-1 text-red-600 hover:text-red-900"
-              title="Delete region"
+              title={t('regions.deleteRegion')}
             >
               <TrashIcon className="h-4 w-4" />
             </button>
@@ -251,46 +253,46 @@ const Regions: React.FC = () => {
   return (
     <>
       <DatabaseManagementTemplate
-        title="Region Management"
-        subtitle={`Manage gymnastics regions and districts (${regions.length} regions loaded)`}
+        title={t('regions.title')}
+        subtitle={`${t('regions.subtitle')} (${t('regions.subtitleCount', { count: regions.length })})`}
         icon={MapIcon}
         data={filteredRegions}
         isLoading={loading}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search regions..."
+        searchPlaceholder={t('regions.searchPlaceholder')}
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExportCSV}
         onAdd={handleCreate}
-        addLabel="Add Region"
+        addLabel={t('regions.addRegion')}
         viewStorageKey="regions-view"
         itemsPerPage={20}
         renderTableHeaders={() => (
           <tr>
             <SortableTableHeader
-              label="Region Name"
+              label={t('regions.table.name')}
               sortKey="var_name"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <SortableTableHeader
-              label="Abbreviation"
+              label={t('regions.table.abbreviation')}
               sortKey="var_kuerzel"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <SortableTableHeader
-              label="Association"
+              label={t('regions.table.association')}
               sortKey="verband_name"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
+              {t('common.actions')}
             </th>
           </tr>
         )}
@@ -311,7 +313,7 @@ const Regions: React.FC = () => {
                   <span className={`px-2 py-1 text-xs font-medium rounded ${
                     verband ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
                   }`}>
-                    {verband?.var_name || 'No Association'}
+                    {verband?.var_name || t('regions.noAssociation')}
                   </span>
                 );
               })()}
@@ -321,14 +323,14 @@ const Regions: React.FC = () => {
                 <button
                   onClick={() => handleEdit(region)}
                   className="p-1 text-blue-600 hover:text-blue-900"
-                  title="Edit region"
+                  title={t('regions.editRegion')}
                 >
                   <PencilIcon className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(region)}
                   className="p-1 text-red-600 hover:text-red-900"
-                  title="Delete region"
+                  title={t('regions.deleteRegion')}
                 >
                   <TrashIcon className="h-4 w-4" />
                 </button>
@@ -343,48 +345,50 @@ const Regions: React.FC = () => {
       <UnifiedModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingRegion ? 'Edit Region' : 'Add New Region'}
+        title={editingRegion ? t('regions.editRegion') : t('regions.addNewRegion')}
         onSave={handleSave}
-        saveLabel={editingRegion ? 'Update' : 'Create'}
+        saveLabel={editingRegion ? t('common.update') : t('common.create')}
         size="md"
       >
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Region Name
+              {t('regions.form.name')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.var_name}
               onChange={(e) => setFormData({...formData, var_name: e.target.value})}
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter region name"
+              placeholder={t('regions.form.namePlaceholder')}
+              required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Abbreviation
+              {t('regions.form.abbreviation')}
             </label>
             <input
               type="text"
               value={formData.var_kurz}
               onChange={(e) => setFormData({...formData, var_kurz: e.target.value})}
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter abbreviation"
+              placeholder={t('regions.form.abbreviationPlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Association
+              {t('regions.form.association')} <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.int_verbaendeid}
               onChange={(e) => setFormData({...formData, int_verbaendeid: e.target.value})}
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
             >
-              <option value="">Select Association</option>
+              <option value="">{t('regions.form.selectAssociation')}</option>
               {verbaende.map(verband => (
                 <option key={verband.int_verbaendeid} value={verband.int_verbaendeid}>
                   {verband.var_name}

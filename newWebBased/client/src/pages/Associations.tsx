@@ -346,7 +346,7 @@ const Associations: React.FC = () => {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('associations.form.name')} *
+              {t('associations.form.name')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -374,12 +374,13 @@ const Associations: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('associations.form.country')}
+              {t('associations.form.country')} <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.int_laenderid || ''}
               onChange={(e) => setFormData({...formData, int_laenderid: e.target.value === '' ? null : parseInt(e.target.value)})}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
+              required
             >
               <option value="">{t('associations.noCountry')}</option>
               {countries.map(country => (

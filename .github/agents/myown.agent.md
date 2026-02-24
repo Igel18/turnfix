@@ -165,6 +165,12 @@ eg use Card component for cards.
 - Use high API limits when needed
 - Smart pagination for large datasets
 
+#### Necessary vs Optional UI Fields #### 
+- Only show fields that are necessary for the user to see in the UI. Do not show all fields from the database if they are not needed. For example, only show the age of a participant, not their birthdate. Only show the name of a club, not its address or contact information. This keeps the UI clean and focused on what the user needs to know.
+
+#### Necessary database fields ####
+- If a field is necessary in the database (e.g. marked as not nullable) for examle the name of a club, then it should be shown in the UI and the field must be marked as required in the UI. If a field is optional in the database (e.g. nullable) then it should be shown as optional in the UI and it should be possible to leave it empty. This ensures consistency between the database and the UI and prevents confusion for the user.
+- required fields markt is a red star and optional fields don't have a mark.
 ---
 
 ## 🔧 Technical Specifications

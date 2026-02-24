@@ -19,6 +19,7 @@ import { applyProductionDisciplines } from '../utils/productionDisciplinesImport
 import { applyProductionStatuses } from '../utils/productionStatusesImport';
 import { importSampleData } from '../utils/sampleDataImport';
 import { importDisciplineGroups } from '../utils/disciplineGroupsImport';
+import { importStandardCountries } from '../utils/standardCountriesImport';
 
 const router = express.Router();
 
@@ -82,5 +83,8 @@ router.post('/sample-data', withDynamicClient('sample data', importSampleData));
 
 // POST /api/configuration/discipline-groups - Import standard discipline groups
 router.post('/discipline-groups', withDynamicClient('discipline groups', importDisciplineGroups));
+
+// POST /api/configuration/standard-countries - Import standard countries (DACH + Europe + FIG)
+router.post('/standard-countries', withDynamicClient('standard countries', importStandardCountries));
 
 export default router;

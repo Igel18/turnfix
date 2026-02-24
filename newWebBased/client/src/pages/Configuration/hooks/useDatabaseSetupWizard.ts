@@ -18,6 +18,7 @@ type WizardCallbacks = Pick<
   | 'onImportProductionStatuses'
   | 'onImportSampleData'
   | 'onImportDisciplineGroups'
+  | 'onImportStandardCountries'
   | 'onUpdateDatabaseName'
   | 'onSaveAndReconnect'
 >;
@@ -38,6 +39,7 @@ export function useDatabaseSetupWizard({
   onImportProductionStatuses,
   onImportSampleData,
   onImportDisciplineGroups,
+  onImportStandardCountries,
   onUpdateDatabaseName,
   onSaveAndReconnect,
 }: UseDatabaseSetupWizardParams) {
@@ -77,6 +79,14 @@ export function useDatabaseSetupWizard({
       id: 'production-statuses',
       title: 'Status Management importieren',
       description: 'Importiert 10 Status-Typen für Teilnehmer-Tracking (z.B. "Meldung erfasst", "Leistungen erfasst", "Urkunde gedruckt")',
+      status: 'pending',
+      optional: true,
+      output: [],
+    },
+    {
+      id: 'standard-countries',
+      title: t('configuration.wizard.standardCountries') || 'Standardländer importieren',
+      description: t('configuration.wizard.standardCountriesDesc') || 'Importiert 34 Länder (DACH, Europa, FIG) für die Länderliste bei Verbänden',
       status: 'pending',
       optional: true,
       output: [],
@@ -175,8 +185,8 @@ export function useDatabaseSetupWizard({
         }
       }
 
-      // Production disciplines/statuses, GymNet preset, discipline groups, and sample data require schema to be successful
-      if (stepIndex >= 3 && stepIndex <= 7) {
+      // Production statuses, standard countries, GymNet preset, disciplines, groups, and sample data require schema
+      if (stepIndex >= 3 && stepIndex <= 8) {
         const schemaStep = steps[2];
         if (schemaStep.status !== 'success') {
           return false;
@@ -184,8 +194,8 @@ export function useDatabaseSetupWizard({
       }
 
       // Discipline groups additionally require production disciplines to be imported
-      if (stepIndex === 6) {
-        const disciplinesStep = steps[5]; // production-disciplines (after gymnet-preset swap)
+      if (stepIndex === 7) {
+        const disciplinesStep = steps[6]; // production-disciplines
         if (disciplinesStep.status !== 'success') {
           return false;
         }
@@ -282,6 +292,24 @@ export function useDatabaseSetupWizard({
               updateStepStatus(stepId, 'success');
             } else {
               throw new Error(result.error || result.message || 'Fehler beim Importieren der Status-Typen');
+            }
+            break;
+          }
+
+          case 'standard-countries': {
+            addStepOutput(stepId, '⏳ Standardländer werden importiert...');
+            result = await onImportStandardCountries(activeDbConfig);
+            if (result.success) {
+              addStepOutput(stepId, '✅ Standardländer erfolgreich importiert');
+              if (result.stats) {
+                addStepOutput(stepId, `  📊 ${result.stats.createdCountries}/${result.stats.totalCountries} Länder angelegt`);
+                if (result.stats.skippedCountries > 0) {
+                  addStepOutput(stepId, `  ℹ️ ${result.stats.skippedCountries} Länder übersprungen (bereits vorhanden)`);
+                }
+              }
+              updateStepStatus(stepId, 'success');
+            } else {
+              throw new Error(result.error || result.message || 'Fehler beim Importieren der Standardländer');
             }
             break;
           }
@@ -392,7 +420,7 @@ export function useDatabaseSetupWizard({
       steps, canExecuteStep, newDatabaseName, currentDbConfig, activeDbConfig,
       onCreateDatabase, onTestConnection, onCreateSchema,
       onApplyGymNetPreset, onImportProductionDisciplines, onImportProductionStatuses,
-      onImportSampleData, onImportDisciplineGroups, onUpdateDatabaseName, updateStepStatus, addStepOutput,
+      onImportSampleData, onImportDisciplineGroups, onImportStandardCountries, onUpdateDatabaseName, updateStepStatus, addStepOutput,
     ],
   );
 

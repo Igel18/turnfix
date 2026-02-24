@@ -30,15 +30,6 @@ import { useState, useEffect } from 'react'
 // Group 1: Database Management - Athletes, Clubs, Organizations
 const getDatabaseManagementActions = (statistics: any) => [
   {
-    name: 'Manage Regions',
-    description: 'Manage gymnastics regions and districts',
-    href: '/regions',
-    icon: MapIcon,
-    color: 'bg-indigo-500',
-    count: statistics.totalRegions,
-    countLabel: 'Regions'
-  },
-  {
     name: 'Manage Associations',
     description: 'Manage gymnastics associations and federations',
     href: '/associations',
@@ -46,6 +37,15 @@ const getDatabaseManagementActions = (statistics: any) => [
     color: 'bg-teal-500',
     count: statistics.totalAssociations,
     countLabel: 'Associations'
+  },
+  {
+    name: 'Manage Regions',
+    description: 'Manage gymnastics regions and districts',
+    href: '/regions',
+    icon: MapIcon,
+    color: 'bg-indigo-500',
+    count: statistics.totalRegions,
+    countLabel: 'Regions'
   },
   {
     name: 'Manage Clubs',

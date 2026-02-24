@@ -59,6 +59,13 @@ export interface DisciplineGroupsStats {
   totalGroups: number;
 }
 
+export interface StandardCountriesStats {
+  totalCountries: number;
+  createdCountries: number;
+  skippedCountries: number;
+  existingCountries: string[];
+}
+
 export interface DatabaseSetupWizardProps {
   isOpen: boolean;
   onClose: () => void;
@@ -93,6 +100,12 @@ export interface DatabaseSetupWizardProps {
     success: boolean;
     message?: string;
     stats?: DisciplineGroupsStats;
+    error?: string;
+  }>;
+  onImportStandardCountries: (dbConfig?: any) => Promise<{
+    success: boolean;
+    message?: string;
+    stats?: StandardCountriesStats;
     error?: string;
   }>;
   onUpdateDatabaseName: (newDbName: string) => Promise<void>;

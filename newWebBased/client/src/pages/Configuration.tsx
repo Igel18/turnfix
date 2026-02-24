@@ -177,6 +177,22 @@ const Configuration: React.FC = () => {
       }
     };
 
+    const wizardImportStandardCountries = async (dbConfig?: any) => {
+      try {
+        const response = await apiPost('/configuration/standard-countries', { dbConfig });
+        if (response?.success && response?.stats) {
+          return {
+            success: true,
+            message: 'Standard countries imported',
+            stats: response.stats
+          };
+        }
+        return { success: false, error: response?.error || 'Standard countries import failed' };
+      } catch (error: any) {
+        return { success: false, error: error?.response?.data?.details || error?.response?.data?.error || error.message };
+      }
+    };
+
     // Save config and trigger server reconnect after wizard completes
     const wizardSaveAndReconnect = async (): Promise<{ success: boolean; error?: string }> => {
       try {
@@ -992,6 +1008,7 @@ const Configuration: React.FC = () => {
         onImportProductionStatuses={wizardImportProductionStatuses}
         onImportSampleData={wizardImportSampleData}
         onImportDisciplineGroups={wizardImportDisciplineGroups}
+        onImportStandardCountries={wizardImportStandardCountries}
         onUpdateDatabaseName={wizardUpdateDatabaseName}
         onSaveAndReconnect={wizardSaveAndReconnect}
         currentDbConfig={configSections.find(s => s.id === 'database')?.settings.reduce((acc, setting) => {

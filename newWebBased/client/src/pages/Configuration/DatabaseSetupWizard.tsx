@@ -47,6 +47,7 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
     onApplyGymNetPreset: props.onApplyGymNetPreset,
     onImportProductionDisciplines: props.onImportProductionDisciplines,
     onImportProductionStatuses: props.onImportProductionStatuses,
+    onImportStandardCountries: props.onImportStandardCountries,
     onImportSampleData: props.onImportSampleData,
     onImportDisciplineGroups: props.onImportDisciplineGroups,
     onUpdateDatabaseName: props.onUpdateDatabaseName,

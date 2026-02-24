@@ -228,6 +228,8 @@
       "disciplineGroupsDesc": "Erstellt Standard-Gruppen (4-Kampf, 6-Kampf) für P-Wettkampf und Leistungsklassen (optional, benötigt Produktions-Disziplinen)",
       "sampleData": "Muster-Daten anlegen",
       "sampleDataDesc": "Legt je einen Beispiel-Datensatz für Land, Verband, Gau, Verein, Teilnehmer, Wettkampfort und Urkunden-Layout an (optional)",
+      "standardCountries": "Standardländer importieren",
+      "standardCountriesDesc": "Importiert 34 Standardländer (DACH, Europa, FIG-Nationen) für die Länderliste bei Verbänden",
       "optional": "Optional",
       "execute": "Ausführen",
       "skip": "Überspringen",
@@ -1815,21 +1817,37 @@
   "regions": {
     "title": "Regionenverwaltung",
     "subtitle": "Turngebiete und Bezirke verwalten",
+    "subtitleCount": "{{count}} Regionen geladen",
     "searchPlaceholder": "Regionen suchen...",
     "addRegion": "Region hinzufügen",
     "editRegion": "Region bearbeiten",
+    "addNewRegion": "Neue Region hinzufügen",
     "deleteRegion": "Region löschen",
     "noRegions": "Keine Regionen gefunden",
     "loadingRegions": "Lade Regionen...",
+    "noAssociation": "Kein Verband",
     "table": {
       "name": "Regionname",
+      "abbreviation": "Kürzel",
+      "association": "Verband",
       "code": "Code",
       "description": "Beschreibung",
       "actions": "Aktionen"
     },
+    "filter": {
+      "association": "Verband",
+      "regionType": "Regionstyp",
+      "allTypes": "Alle Typen",
+      "districts": "Bezirke",
+      "regions": "Regionen"
+    },
     "form": {
       "name": "Regionname",
       "namePlaceholder": "Regionname eingeben",
+      "abbreviation": "Kürzel",
+      "abbreviationPlaceholder": "Kürzel eingeben",
+      "association": "Verband",
+      "selectAssociation": "Verband auswählen",
       "code": "Code",
       "codePlaceholder": "Regionscode eingeben",
       "description": "Beschreibung",
@@ -1845,7 +1863,7 @@
       "updateError": "Fehler beim Aktualisieren der Region",
       "deleteError": "Fehler beim Löschen der Region",
       "loadError": "Fehler beim Laden der Regionen",
-      "confirmDelete": "Sind Sie sicher, dass Sie diese Region löschen möchten?"
+      "confirmDelete": "Sind Sie sicher, dass Sie die Region \"{{name}}\" löschen möchten?"
     }
   },
   "associations": {
