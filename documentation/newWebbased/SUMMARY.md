@@ -138,6 +138,11 @@
 * [Test-Strategie](developer-guide/testing/strategy.md)
 * [Unit Tests](developer-guide/testing/unit-tests.md)
 * [Integration Tests](developer-guide/testing/integration-tests.md)
+* [Test-Abdeckung](test-coverage-overview.md)
+
+### Build & Release
+
+* [Build → Test → Release Workflow](developer-guide/build-test-release.md)
 
 ### Contributing
 

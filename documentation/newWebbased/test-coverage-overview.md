@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
 **Stand**: 24. Februar 2026  
-**Gesamt**: ~1.430+ Tests in ~87 Dateien
+**Gesamt**: ~2.380 Tests in ~95 Dateien
 
 ---
 
@@ -9,24 +9,20 @@
 
 | Kategorie | Dateien | Tests |
 |-----------|---------|-------|
-| E2E Specs (Playwright) | 14 | 169 |
-| E2E Setup | 3 | 25 |
-| Integration (Vitest + MSW) | 8 | ~70 |
-| Component (Vitest) | 4 | 117 |
-| Hook (Vitest) | 5 | 92 |
-| Utility (Vitest) | 11 | 397 |
-| Sonstige Client | 2 | ~11 |
-| **Client Gesamt** | **47** | **~881** |
-| Server Unit | ~20 | ~300+ |
-| Server Integration | ~20 | ~250+ |
-| **Server Gesamt** | **~40** | **~550+** |
-| **Gesamt** | **~87** | **~1.430+** |
+| E2E Specs (Playwright) | 18 | 258 |
+| E2E Setup/Teardown | 3 | 26 |
+| Client Unit/Integration/Component (Vitest) | 30 | 786 |
+| **Client Gesamt** | **51** | **1.070** |
+| Server Unit (Jest) | ~22 | ~550+ |
+| Server Integration (Jest) | ~22 | ~760+ |
+| **Server Gesamt** | **~44** | **~1.309** |
+| **Gesamt** | **~95** | **~2.380** |
 
 ---
 
 ## Seiten/Routen — Abdeckungsstatus
 
-### ✅ Abgedeckt (21 von 37 Routen = 57%)
+### ✅ Abgedeckt (22 von 37 Routen = 59%)
 
 | Route | Seite | E2E | Integration | Component/Unit |
 |-------|-------|:---:|:-----------:|:--------------:|
@@ -47,16 +43,16 @@
 | `/score-capture` | ScoreCapture | ✅ | — | — |
 | `/results` | Results | ✅ | — | ✅ FilterMenus |
 | `/configuration` | Configuration | ✅ | ✅ | — |
+| `/jury` | JuryPortal | ✅ | — | — |
 | `/groups` | GroupsUnified | — | ✅ | — |
 | `/teams` | Teams | — | ✅ | ✅ teamsFilter |
 | `/formulas` | FormulasUnified | 🟡 Smoke | — | — |
 | `/locations` | LocationsUnified | 🟡 Smoke | — | — |
 
-### ❌ Nicht abgedeckt (16 von 37 Routen = 43%)
+### ❌ Nicht abgedeckt (15 von 37 Routen = 41%)
 
 | Route | Seite | Risiko | Beschreibung |
 |-------|-------|:------:|-------------|
-| `/jury` | JuryPortal | 🔴 HOCH | Externe Jury-Oberfläche, kritisch für Wettkampf |
 | `/group-scoring` | GroupScoreCapture | 🔴 HOCH | Mannschafts-Wertungseingabe |
 | `/team-scoring` | TeamScoreCapture | 🔴 HOCH | Team-Wertungseingabe |
 | `/time-planning` | TimePlanning | 🟠 MITTEL | Komplexe Zeitplanung mit Durchgängen |
@@ -80,19 +76,23 @@
 | Datei | Tests | Abgedeckte Seiten |
 |-------|:-----:|-------------------|
 | `navigation.spec.ts` | 16 | Smoke-Tests für 13 Routen, Navigationsfluss |
-| `master-data.spec.ts` | 9 | `/regions` — CRUD, Suche, Ansichtswechsel |
+| `master-data.spec.ts` | 13 | `/regions` — CRUD, Suche, Ansichtswechsel |
 | `master-data-sports.spec.ts` | 10 | `/sports` — CRUD, Filter, Ansichtswechsel |
 | `master-data-participants.spec.ts` | 10 | `/participants` — CRUD, Filter, Ansichtswechsel |
 | `master-data-disciplines.spec.ts` | 10 | `/disciplines` — CRUD, Filter, Ansichtswechsel |
 | `master-data-clubs.spec.ts` | 10 | `/clubs` — CRUD, Filter, Ansichtswechsel |
 | `master-data-associations.spec.ts` | 11 | `/associations` — CRUD, CSV-Export, Filter |
-| `event-management.spec.ts` | 14 | `/events`, `/management`, `/event-management`, `/configuration` |
-| `competition.spec.ts` | 10 | `/competitions`, `/event-participants`, `/squads` |
-| `import-verification.spec.ts` | 14 | `/configuration`, `/events` — DB-Wizard, Seeding, XML-Import |
-| `statistical.spec.ts` | 17 | API-Tests: Score-Counts, Duplikate, Isolation |
+| `event-management.spec.ts` | 13 | `/events`, `/management`, `/event-management`, `/configuration` |
+| `competition.spec.ts` | 12 | `/competitions`, `/event-participants`, `/squads` |
+| `import-verification.spec.ts` | 17 | `/configuration`, `/events` — DB-Wizard, Seeding, XML-Import |
+| `statistical.spec.ts` | 19 | API-Tests: Score-Counts, Duplikate, Isolation |
 | `score-entry.spec.ts` | 11 | `/score-capture` — Damen/Herren Wertungseingabe |
-| `results.spec.ts` | 13 | `/results` — Rankings, Gruppenansicht, Medaillenspiegel |
-| `placement.spec.ts` | 14 | API-Tests: Platzierungen, Tie-Breaking, Score-Änderungen |
+| `results.spec.ts` | 14 | `/results` — Rankings, Gruppenansicht, Medaillenspiegel |
+| `placement.spec.ts` | 17 | API-Tests: Platzierungen, Tie-Breaking, Score-Änderungen |
+| `jury-portal.spec.ts` | 26 | `/jury` — Navigation, Score-Anzeige, Eingabe, Live-Updates |
+| `status.spec.ts` | 19 | Riegen-/Wettkampfstatus-Übergänge, Workflow-Validierung |
+| `pdf-export.spec.ts` | 13 | PDF-Export für 6 Seiten: Ergebnisse, Teilnehmer, Urkunden |
+| `load-test.spec.ts` | 17 | Last-/Stresstests: Concurrent Writes, Race Conditions, Benchmarks |
 
 ---
 
@@ -147,20 +147,21 @@
 
 ## Server Tests — Überblick
 
-### Unit Tests (~20 Dateien, ~300+ Tests)
-Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter
+### Unit Tests (~22 Dateien, ~550+ Tests)
+Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter, Score-Synchronisation
 
-### Integration Tests (~20 Dateien, ~250+ Tests)
+### Integration Tests (~22 Dateien, ~760+ Tests)
 API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas
+
+> **Letzte bestätigte Zahlen**: 44 Test-Suites, 1.309 Tests (alle bestanden)
 
 ---
 
 ## Empfohlene nächste Tests (nach Risiko-Priorität)
 
 ### 🔴 Höchste Priorität
-1. **`/jury`** — Jury-Portal: Authentifizierung, Score-Eingabe-Flow, Echtzeit-Updates
-2. **`/group-scoring`** — Mannschaftswertung: Eingabe, Berechnung, Validierung
-3. **`/team-scoring`** — Teamwertung: Eingabe, Berechnung, Validierung
+1. **`/group-scoring`** — Mannschaftswertung: Eingabe, Berechnung, Validierung
+2. **`/team-scoring`** — Teamwertung: Eingabe, Berechnung, Validierung
 
 ### 🟠 Mittlere Priorität
 4. **`/time-planning`** — Zeitplanung: Durchgänge erstellen, Zeitstrahl, Rotation
