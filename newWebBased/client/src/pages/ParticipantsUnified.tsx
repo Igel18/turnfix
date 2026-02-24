@@ -249,7 +249,6 @@ const ParticipantsUnified: React.FC = () => {
       selectedValue: clubFilter,
       onChange: setClubFilter,
       options: [
-        { value: '', label: t('participants.filters.allClubs') },
         ...(Array.isArray(clubs) ? clubs.map(club => ({ 
           value: club.int_vereineid.toString(), 
           label: club.var_name 
@@ -262,7 +261,6 @@ const ParticipantsUnified: React.FC = () => {
       selectedValue: genderFilter,
       onChange: setGenderFilter,
       options: [
-        { value: '', label: t('participants.gender.all') },
         { value: '1', label: t('participants.gender.male') },
         { value: '2', label: t('participants.gender.female') },
         { value: '0', label: t('participants.gender.unknown') }
@@ -274,7 +272,6 @@ const ParticipantsUnified: React.FC = () => {
       selectedValue: ageFilter,
       onChange: setAgeFilter,
       options: [
-        { value: '', label: t('participants.filters.allAges') },
         { value: 'child', label: t('participants.filters.children') },
         { value: 'youth', label: t('participants.filters.youth') },
         { value: 'adult', label: t('participants.filters.adults') }

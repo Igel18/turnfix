@@ -46,9 +46,9 @@ const DisciplineFieldsUnified: React.FC = () => {
   });
 
   // Filter states
-  const [disciplineFilter, setDisciplineFilter] = useState('all');
-  const [fieldTypeFilter, setFieldTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [disciplineFilter, setDisciplineFilter] = useState('');
+  const [fieldTypeFilter, setFieldTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   
   // Sorting
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort('disciplineName', 'asc');
@@ -191,9 +191,9 @@ const DisciplineFieldsUnified: React.FC = () => {
   };
 
   const handleClearAllFilters = () => {
-    setDisciplineFilter('all');
-    setFieldTypeFilter('all');
-    setStatusFilter('all');
+    setDisciplineFilter('');
+    setFieldTypeFilter('');
+    setStatusFilter('');
     setSearchTerm('');
   };
 
@@ -214,18 +214,18 @@ const DisciplineFieldsUnified: React.FC = () => {
         field.disciplineShort?.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Discipline filter
-      const matchesDiscipline = disciplineFilter === 'all' || 
+      const matchesDiscipline = disciplineFilter === '' || 
         field.disciplineId.toString() === disciplineFilter;
 
       // Field type filter
-      const matchesFieldType = fieldTypeFilter === 'all' ||
+      const matchesFieldType = fieldTypeFilter === '' ||
         (fieldTypeFilter === 'final' && field.isFinalScore) ||
         (fieldTypeFilter === 'starting' && field.isStartingScore) ||
         (fieldTypeFilter === 'both' && field.isFinalScore && field.isStartingScore) ||
         (fieldTypeFilter === 'neither' && !field.isFinalScore && !field.isStartingScore);
 
       // Status filter
-      const matchesStatus = statusFilter === 'all' ||
+      const matchesStatus = statusFilter === '' ||
         (statusFilter === 'enabled' && field.enabled) ||
         (statusFilter === 'disabled' && !field.enabled);
 
@@ -480,7 +480,6 @@ const DisciplineFieldsUnified: React.FC = () => {
       selectedValue: disciplineFilter,
       onChange: setDisciplineFilter,
       options: [
-        { value: 'all', label: t('disciplineFields.filter.allDisciplines') },
         ...disciplines.map(discipline => ({
           value: discipline.id.toString(),
           label: `${discipline.name} (${discipline.short_name || 'N/A'})`
@@ -493,7 +492,6 @@ const DisciplineFieldsUnified: React.FC = () => {
       selectedValue: fieldTypeFilter,
       onChange: setFieldTypeFilter,
       options: [
-        { value: 'all', label: t('disciplineFields.filter.allScoreTypes') },
         { value: 'final', label: t('disciplineFields.filter.finalScoreOnly') },
         { value: 'starting', label: t('disciplineFields.filter.startingScoreOnly') },
         { value: 'both', label: t('disciplineFields.filter.bothFinalAndStarting') },
@@ -506,7 +504,6 @@ const DisciplineFieldsUnified: React.FC = () => {
       selectedValue: statusFilter,
       onChange: setStatusFilter,
       options: [
-        { value: 'all', label: t('disciplineFields.filter.allStatuses') },
         { value: 'enabled', label: t('disciplineFields.filter.enabledOnly') },
         { value: 'disabled', label: t('disciplineFields.filter.disabledOnly') }
       ]

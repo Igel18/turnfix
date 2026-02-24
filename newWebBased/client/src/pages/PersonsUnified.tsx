@@ -210,7 +210,6 @@ const PersonsUnified: React.FC = () => {
       selectedValue: cityFilter,
       onChange: setCityFilter,
       options: [
-        { value: '', label: t('persons.filters.allCities') },
         ...uniqueCities.map(city => ({
           value: city!,
           label: city!
@@ -223,7 +222,6 @@ const PersonsUnified: React.FC = () => {
       selectedValue: statusFilter,
       onChange: setStatusFilter,
       options: [
-        { value: '', label: t('persons.filters.allProfiles') },
         { value: 'complete', label: t('persons.filters.complete') },
         { value: 'incomplete', label: t('persons.filters.incomplete') }
       ]

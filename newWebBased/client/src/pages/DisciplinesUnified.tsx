@@ -371,7 +371,6 @@ const DisciplinesUnified: React.FC = () => {
       selectedValue: sportFilter,
       onChange: setSportFilter,
       options: [
-        { value: '', label: t('disciplines.filter.allSports') },
         ...(Array.isArray(sports) ? sports.map(sport => ({ 
           value: sport.int_sportid.toString(), 
           label: sport.var_name 
@@ -384,7 +383,6 @@ const DisciplinesUnified: React.FC = () => {
       selectedValue: genderFilter,
       onChange: setGenderFilter,
       options: [
-        { value: '', label: t('disciplines.filter.allGenders') },
         { value: 'male', label: t('disciplines.filter.maleOnly') },
         { value: 'female', label: t('disciplines.filter.femaleOnly') },
         { value: 'both', label: t('disciplines.filter.bothGenders') }
@@ -396,7 +394,6 @@ const DisciplinesUnified: React.FC = () => {
       selectedValue: formulaFilter,
       onChange: setFormulaFilter,
       options: [
-        { value: '', label: t('disciplines.filter.allDisciplines') },
         { value: 'yes', label: t('disciplines.filter.hasFormulaYes') },
         { value: 'no', label: t('disciplines.filter.hasFormulaNo') }
       ]
@@ -754,7 +751,7 @@ const DisciplinesUnified: React.FC = () => {
         filterOptions={getFilterOptions()}
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
-        addLabel={t('disciplines.createDiscipline')}
+        addLabel={t('disciplines.addDiscipline')}
         onEdit={handleEdit}
         onDelete={(discipline) => handleDelete(discipline.id)}
         viewStorageKey="disciplines-view"

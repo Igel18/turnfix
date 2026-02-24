@@ -215,7 +215,6 @@ const GroupsUnified: React.FC = () => {
       selectedValue: clubFilter,
       onChange: setClubFilter,
       options: [
-        { value: '', label: t('common.all') },
         ...clubs.map(club => ({ 
           value: club.int_vereineid.toString(), 
           label: club.var_name 

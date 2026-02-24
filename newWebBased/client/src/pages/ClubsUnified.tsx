@@ -260,7 +260,6 @@ const ClubsUnified: React.FC = () => {
       selectedValue: regionFilter,
       onChange: setRegionFilter,
       options: [
-        { value: '', label: t('clubs.filters.allRegions') },
         ...regions
           .filter(region => region && region.id && region.name)
           .map(region => ({
@@ -275,7 +274,6 @@ const ClubsUnified: React.FC = () => {
       selectedValue: statusFilter,
       onChange: setStatusFilter,
       options: [
-        { value: '', label: t('clubs.filters.allClubs') },
         { value: 'active', label: t('clubs.filters.active') },
         { value: 'inactive', label: t('clubs.filters.inactive') },
         { value: 'with_contact', label: t('clubs.filters.withContact') },

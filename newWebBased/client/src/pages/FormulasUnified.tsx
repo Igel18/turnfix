@@ -219,7 +219,6 @@ const FormulasUnified: React.FC = () => {
       selectedValue: formulaTypeFilter,
       onChange: setFormulaTypeFilter,
       options: [
-        { value: '', label: 'All Types' },
         { value: '0', label: 'Standard' },
         { value: '1', label: 'Custom' },
         { value: '2', label: 'Advanced' }
@@ -231,7 +230,6 @@ const FormulasUnified: React.FC = () => {
       selectedValue: usageFilter,
       onChange: setUsageFilter,
       options: [
-        { value: '', label: 'All Formulas' },
         { value: 'with-disciplines', label: 'Used by Disciplines' },
         { value: 'no-disciplines', label: 'Not Used' },
         { value: 'with-code', label: 'Has Formula Code' },

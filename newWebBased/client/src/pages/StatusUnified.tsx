@@ -23,8 +23,8 @@ const StatusUnified: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter states
-  const [visibilityFilter, setVisibilityFilter] = useState('all');
-  const [colorTypeFilter, setColorTypeFilter] = useState('all');
+  const [visibilityFilter, setVisibilityFilter] = useState('');
+  const [colorTypeFilter, setColorTypeFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
   // Help panel state
@@ -110,8 +110,8 @@ const StatusUnified: React.FC = () => {
   };
 
   const handleClearAllFilters = () => {
-    setVisibilityFilter('all');
-    setColorTypeFilter('all');
+    setVisibilityFilter('');
+    setColorTypeFilter('');
     setSearchTerm('');
   };
 
@@ -158,14 +158,14 @@ const StatusUnified: React.FC = () => {
         status.ary_colorcode?.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Visibility filter
-      const matchesVisibility = visibilityFilter === 'all' ||
+      const matchesVisibility = visibilityFilter === '' ||
         (visibilityFilter === 'both' && status.bol_bogen && status.bol_karte) ||
         (visibilityFilter === 'bogen-only' && status.bol_bogen && !status.bol_karte) ||
         (visibilityFilter === 'karte-only' && !status.bol_bogen && status.bol_karte) ||
         (visibilityFilter === 'neither' && !status.bol_bogen && !status.bol_karte);
 
       // Color type filter
-      const matchesColorType = colorTypeFilter === 'all' || getColorCategory(status.ary_colorcode) === colorTypeFilter;
+      const matchesColorType = colorTypeFilter === '' || getColorCategory(status.ary_colorcode) === colorTypeFilter;
 
       return matchesSearch && matchesVisibility && matchesColorType;
     });
@@ -389,7 +389,6 @@ const StatusUnified: React.FC = () => {
       selectedValue: visibilityFilter,
       onChange: setVisibilityFilter,
       options: [
-        { value: 'all', label: 'All Visibility Settings' },
         { value: 'both', label: 'Show in Both' },
         { value: 'bogen-only', label: 'Results Sheet Only' },
         { value: 'karte-only', label: 'Score Card Only' },
@@ -402,7 +401,6 @@ const StatusUnified: React.FC = () => {
       selectedValue: colorTypeFilter,
       onChange: setColorTypeFilter,
       options: [
-        { value: 'all', label: 'All Colors' },
         { value: 'red', label: 'Red Colors' },
         { value: 'green', label: 'Green Colors' },
         { value: 'blue', label: 'Blue Colors' },

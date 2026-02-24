@@ -189,7 +189,6 @@ const LocationsUnified: React.FC = () => {
       selectedValue: cityFilter,
       onChange: setCityFilter,
       options: [
-        { value: '', label: t('venues.filters.allCities') },
         ...uniqueCities.map(city => ({
           value: city!,
           label: city!

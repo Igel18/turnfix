@@ -89,7 +89,6 @@ const Regions: React.FC = () => {
       value: '',
       selectedValue: '',
       options: [
-        { value: 'all', label: t('regions.filter.allTypes') },
         { value: 'district', label: t('regions.filter.districts') },
         { value: 'region', label: t('regions.filter.regions') }
       ],

@@ -204,7 +204,6 @@ const SportsUnified: React.FC = () => {
       selectedValue: disciplineCountFilter,
       onChange: setDisciplineCountFilter,
       options: [
-        { value: '', label: 'All Sports' },
         { value: 'with-disciplines', label: 'Has Disciplines' },
         { value: 'without-disciplines', label: 'No Disciplines' }
       ]

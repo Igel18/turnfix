@@ -37,8 +37,8 @@ const DisciplineGroupsUnified: React.FC = () => {
 
   // Search and filter states
   const [searchFilter, setSearchFilter] = useState('');
-  const [hasCommentFilter, setHasCommentFilter] = useState<string>('all');
-  const [disciplineCountFilter, setDisciplineCountFilter] = useState<string>('all');
+  const [hasCommentFilter, setHasCommentFilter] = useState<string>('');
+  const [disciplineCountFilter, setDisciplineCountFilter] = useState<string>('');
 
   const fetchDisciplineGroups = async () => {
     try {
@@ -132,7 +132,6 @@ const DisciplineGroupsUnified: React.FC = () => {
       selectedValue: hasCommentFilter,
       onChange: setHasCommentFilter,
       options: [
-        { value: 'all', label: t('disciplineGroups.filters.allGroups') },
         { value: 'with-comment', label: t('disciplineGroups.filters.withComment') },
         { value: 'no-comment', label: t('disciplineGroups.filters.noComment') },
       ]
@@ -143,7 +142,6 @@ const DisciplineGroupsUnified: React.FC = () => {
       selectedValue: disciplineCountFilter,
       onChange: setDisciplineCountFilter,
       options: [
-        { value: 'all', label: t('disciplineGroups.filters.allCounts') },
         { value: 'empty', label: t('disciplineGroups.filters.noDisciplines') },
         { value: 'few', label: t('disciplineGroups.filters.fewDisciplines') },
         { value: 'many', label: t('disciplineGroups.filters.manyDisciplines') },
@@ -160,13 +158,13 @@ const DisciplineGroupsUnified: React.FC = () => {
         group.txt_comment?.toLowerCase().includes(searchFilter.toLowerCase());
 
       // Comment filter
-      const matchesComment = hasCommentFilter === 'all' ||
+      const matchesComment = hasCommentFilter === '' ||
         (hasCommentFilter === 'with-comment' && group.txt_comment && group.txt_comment.trim()) ||
         (hasCommentFilter === 'no-comment' && (!group.txt_comment || !group.txt_comment.trim()));
 
       // Discipline count filter
       const disciplineCount = group.discipline_count || 0;
-      const matchesDisciplineCount = disciplineCountFilter === 'all' ||
+      const matchesDisciplineCount = disciplineCountFilter === '' ||
         (disciplineCountFilter === 'empty' && disciplineCount === 0) ||
         (disciplineCountFilter === 'few' && disciplineCount >= 1 && disciplineCount <= 5) ||
         (disciplineCountFilter === 'many' && disciplineCount >= 6);
@@ -179,8 +177,8 @@ const DisciplineGroupsUnified: React.FC = () => {
 
   const resetFilters = () => {
     setSearchFilter('');
-    setHasCommentFilter('all');
-    setDisciplineCountFilter('all');
+    setHasCommentFilter('');
+    setDisciplineCountFilter('');
   };
 
   // Custom table row renderer

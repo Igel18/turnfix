@@ -374,7 +374,7 @@ export default function UnifiedPageHeader({
                   onChange={(e) => option.onChange && option.onChange(e.target.value)}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">All {option.label}</option>
+                  <option value="">{t('common.all')} {option.label}</option>
                   {option.options?.map((opt, optIndex) => (
                     <option key={`${index}-${opt.value}-${optIndex}`} value={opt.value}>
                       {opt.label}
