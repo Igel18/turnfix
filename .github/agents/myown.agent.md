@@ -290,11 +290,31 @@ if (process.env.DEBUG === 'true') {
 ## 🧪 Testing & Quality
 
 ## Unit tests ##
+- Use Vitest for unit testing
 
 ## Integration tests ##
+- Use Vitest for integration testing of API routes and database interactions
 
 ## End-to-end tests ##
-create end-to-end tests with Playwright for critical user flows (e.g., creating a competition, adding participants, generating PDFs, check score input validation, check score input jury-server, check placement of participants,  etc.)
+- Use Playwright for end-to-end testing of critical user flows (e.g., creating a competition, adding participants, generating PDFs, check score input validation, check score input jury-server, check placement of participants, etc.)
+- Test files located in `client/e2e/`
+- Use `test-runner.js` for running tests in different modes (real, integration, pages, components)
+- Use `npm run e2e` to run all end-to-end tests, and `npm run e2e:headed` for debugging with a visible browser
+- Check for correct localization, field mapping, and UI behavior in tests
+- check for correct sign of fields, field is necessarry, field is not necessarry, field is only
+- check for correct handling of edge cases (e.g., missing data, invalid input, etc.)
+- folder structure for e2e tests:
+e2e/
+  setup/
+    create-event.setup.ts       # ← Event A: via API erstellen (immer gleiche Daten)
+    import-event.setup.ts       # ← Event B: via GymNet-XML Import
+  fixtures/
+    test-data.ts                # Konstanten: Namen, Scores, erwartete Ergebnisse
+    state.ts                    # Typen + Lade-Helfer für gespeicherten State
+  tests/
+    score-entry.spec.ts         # Nutzt Event A oder B
+    results.spec.ts             # Prüft Platzierungen
+    navigation.spec.ts          # UI-Navigation
 
 ### Test Strategy
 ```bash

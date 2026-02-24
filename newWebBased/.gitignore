@@ -167,3 +167,4 @@ bundle-analyzer-report.html
 client/playwright-report/
 client/test-results/
 client/blob-report/
+client/.e2e-state/
