@@ -99,6 +99,29 @@ export async function closeDialog(page: Page) {
 // ─── Filter Helpers ────────────────────────────────────────────────
 
 /**
+ * Open the filter panel (if closed) and fill the search input.
+ * The search input is hidden behind the "Filter" toggle button
+ * in DatabaseManagementTemplate / UnifiedPageHeader.
+ */
+export async function openFilterAndSearch(page: Page, searchText: string) {
+  // Check if the search input is already visible
+  let searchInput = page.locator('input[type="text"], input[type="search"]').first();
+  if (!(await searchInput.isVisible({ timeout: 500 }).catch(() => false))) {
+    // Open filter panel
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    if (await filterButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await filterButton.click();
+      await page.waitForTimeout(500);
+    }
+  }
+  searchInput = page.locator('input[type="text"], input[type="search"]').first();
+  if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await searchInput.fill(searchText);
+    await page.waitForTimeout(1000);
+  }
+}
+
+/**
  * Type into a search/filter input field.
  */
 export async function searchFor(page: Page, searchText: string) {

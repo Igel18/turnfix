@@ -225,11 +225,11 @@ const ParticipantsUnified: React.FC = () => {
   // Filter and search participants
   const filteredParticipants = sortedParticipants.filter(participant => {
     const matchesSearch = searchTerm === '' || 
-      participant.var_vorname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.var_nachname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.verein_name.toLowerCase().includes(searchTerm.toLowerCase());
+      (participant.var_vorname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (participant.var_nachname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (participant.verein_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesClub = !clubFilter || participant.int_vereineid.toString() === clubFilter;
+    const matchesClub = !clubFilter || (participant.int_vereineid ?? '').toString() === clubFilter;
     
     const matchesGender = !genderFilter || participant.int_geschlecht.toString() === genderFilter;
     

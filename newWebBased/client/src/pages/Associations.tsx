@@ -52,7 +52,7 @@ const Associations: React.FC = () => {
       try {
         setLoading(true);
         const [associationsResponse, countriesResponse] = await Promise.all([
-          fetch('/api/associations'),
+          fetch('/api/associations/data/verbaende'),
           fetch('/api/countries')
         ]);
 
@@ -130,7 +130,7 @@ const Associations: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/associations/${associationId}`, {
+      const response = await fetch(`/api/associations/data/verbaende/${associationId}`, {
         method: 'DELETE'
       });
 
@@ -151,8 +151,8 @@ const Associations: React.FC = () => {
       };
       
       const url = editingAssociation 
-        ? `/api/associations/${editingAssociation.int_verbaendeid}`
-        : '/api/associations';
+        ? `/api/associations/data/verbaende/${editingAssociation.int_verbaendeid}`
+        : '/api/associations/data/verbaende';
       
       const method = editingAssociation ? 'PUT' : 'POST';
       

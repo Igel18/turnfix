@@ -312,9 +312,11 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 router.get('/data/verbaende', async (req: Request, res: Response) => {
   try {
     const query = `
-      SELECT int_verbaendeid, var_name, var_kuerzel, int_laenderid
-      FROM tfx_verbaende
-      ORDER BY var_name ASC
+      SELECT v.int_verbaendeid, v.var_name, v.var_kuerzel, v.int_laenderid,
+             l.var_name as country_name, l.var_kuerzel as country_kuerzel
+      FROM tfx_verbaende v
+      LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
+      ORDER BY v.var_name ASC
     `;
     
     const federations = await prisma.$queryRawUnsafe(query) as any[];
@@ -346,6 +348,58 @@ router.post('/data/verbaende', authenticateToken, async (req: Request, res: Resp
   } catch (error) {
     console.error('Error creating federation:', error);
     res.status(500).json({ error: 'Failed to create federation' });
+  }
+});
+
+// Update a federation (Verband)
+router.put('/data/verbaende/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid federation ID' });
+    }
+
+    const { var_name, var_kuerzel, int_laenderid } = req.body;
+
+    const updates: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (var_name !== undefined) {
+      updates.push(`var_name = $${paramIndex++}`);
+      params.push(var_name);
+    }
+    if (var_kuerzel !== undefined) {
+      updates.push(`var_kuerzel = $${paramIndex++}`);
+      params.push(var_kuerzel || null);
+    }
+    if (int_laenderid !== undefined) {
+      updates.push(`int_laenderid = $${paramIndex++}`);
+      params.push(int_laenderid);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const updateQuery = `
+      UPDATE tfx_verbaende 
+      SET ${updates.join(', ')}
+      WHERE int_verbaendeid = $${paramIndex}
+      RETURNING int_verbaendeid, var_name, var_kuerzel, int_laenderid
+    `;
+    params.push(id);
+
+    const result = await prisma.$queryRawUnsafe(updateQuery, ...params) as any[];
+
+    if (!result || result.length === 0) {
+      return res.status(404).json({ error: 'Federation not found' });
+    }
+
+    res.json(result[0]);
+  } catch (error) {
+    console.error('Error updating federation:', error);
+    res.status(500).json({ error: 'Failed to update federation' });
   }
 });
 
