@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { isDebugEnabled } from '@/utils/debug';
 import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
 import type { Participant } from '../EventParticipants.types';
@@ -44,7 +45,7 @@ export const ParticipantCardView: React.FC<ParticipantCardViewProps> = ({
               <h3 className="font-medium text-gray-900">
                 {participant.firstname} {participant.lastname}
               </h3>
-              {process.env.DEBUG === 'true' && (
+              {isDebugEnabled() && (
                 <p className="text-xs text-gray-500">ID: {participant.id}</p>
               )}
             </div>

@@ -5,6 +5,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { mapEnglishGenderToGerman, type GenderValue } from '@/utils/genderHelpers';
+import { debugLog } from '@/utils/debug';
 import type { Competition, CompetitionValidation } from '../EventParticipants.types';
 
 export function useParticipantValidation() {
@@ -59,19 +60,17 @@ export function useParticipantValidation() {
     if (gender === 'male' || gender === 'female') {
       const participantGender = mapEnglishGenderToGerman(gender);
 
-      if (process.env.DEBUG === 'true') {
-        console.log('🔍 Gender Validation:', {
-          formDataGender: gender,
-          participantGender,
-          competitionGender: competition.gender,
-          competitionName: competition.name,
-          isGemischt: competition.gender === 'gemischt',
-          gendersMatch: competition.gender === participantGender,
-          shouldWarn:
-            competition.gender !== 'gemischt' &&
-            competition.gender !== participantGender,
-        });
-      }
+      debugLog('🔍 Gender Validation:', {
+        formDataGender: gender,
+        participantGender,
+        competitionGender: competition.gender,
+        competitionName: competition.name,
+        isGemischt: competition.gender === 'gemischt',
+        gendersMatch: competition.gender === participantGender,
+        shouldWarn:
+          competition.gender !== 'gemischt' &&
+          competition.gender !== participantGender,
+      });
 
       // Only warn if competition is NOT mixed AND genders don't match
       if (

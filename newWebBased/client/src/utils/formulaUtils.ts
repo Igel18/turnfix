@@ -174,9 +174,7 @@ export function calculateFormula(
     const parser = new Parser();
     const result = parser.evaluate(evalFormula);
     
-    if (process.env.DEBUG === 'true') {
-      debugLog(`[formulaUtils] Formula "${formula}" with values ${JSON.stringify(values)} = ${result}`);
-    }
+    debugLog(`[formulaUtils] Formula "${formula}" with values ${JSON.stringify(values)} = ${result}`);
     
     return typeof result === 'number' && !isNaN(result) ? result : null;
   } catch (error) {

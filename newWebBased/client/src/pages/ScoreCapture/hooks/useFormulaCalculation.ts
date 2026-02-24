@@ -11,6 +11,7 @@ import {
   FORMULA_VARIABLES, 
   calculateFormula
 } from '@/utils/formulaUtils';
+import { debugLog } from '@/utils/debug';
 import type { DisciplineField } from '@/types/ScoreCapture.types';
 
 interface UseFormulaCalculationReturn {
@@ -84,9 +85,7 @@ export function useFormulaCalculation(): UseFormulaCalculationReturn {
           const symbol = FORMULA_VARIABLES[index];
           symbolValueMap[symbol] = fieldValues[field.name];
           
-          if (process.env.DEBUG === 'true') {
-            console.log(`[useFormulaCalculation] ${symbol} = ${field.name} (sortOrder: ${field.sortOrder}) = ${fieldValues[field.name]}`);
-          }
+          debugLog(`[useFormulaCalculation] ${symbol} = ${field.name} (sortOrder: ${field.sortOrder}) = ${fieldValues[field.name]}`);
         }
       });
     } else {
@@ -99,9 +98,7 @@ export function useFormulaCalculation(): UseFormulaCalculationReturn {
       });
     }
 
-    if (process.env.DEBUG === 'true') {
-      console.log('[useFormulaCalculation] Formula evaluation:', { formula, fieldValues, symbolValueMap });
-    }
+    debugLog('[useFormulaCalculation] Formula evaluation:', { formula, fieldValues, symbolValueMap });
 
     // Use centralized calculation function
     const result = calculateFormula(formula, symbolValueMap);

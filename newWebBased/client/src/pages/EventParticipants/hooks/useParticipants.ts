@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/utils/api';
 import { normalizeGender } from '@/utils/genderHelpers';
+import { debugLog } from '@/utils/debug';
 import type {
   Participant,
   Competition,
@@ -70,11 +71,9 @@ export function useParticipants({ eventId }: UseParticipantsProps): UseParticipa
       setAllParticipants(normalizedParticipants);
       setTotalInEvent(data.totalInEvent || 0);
 
-      if (process.env.DEBUG === 'true') {
-        console.log(
-          `Loaded ${normalizedParticipants.length} participants (${data.totalInEvent || 0} in event)`
-        );
-      }
+      debugLog(
+        `Loaded ${normalizedParticipants.length} participants (${data.totalInEvent || 0} in event)`
+      );
     } catch (error: any) {
       console.error('Error loading participants:', error);
 

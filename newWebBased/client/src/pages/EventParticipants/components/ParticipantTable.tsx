@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { isDebugEnabled } from '@/utils/debug';
 import { SortableTableHeader } from '@/components/SortableTableHeader';
 import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
@@ -106,7 +107,7 @@ export const ParticipantTable: React.FC<ParticipantTableProps> = ({
                 <div className="text-sm font-medium text-gray-900">
                   {participant.firstname} {participant.lastname}
                 </div>
-                {process.env.DEBUG === 'true' && (
+                {isDebugEnabled() && (
                   <div className="text-sm text-gray-500">ID: {participant.id}</div>
                 )}
               </td>
