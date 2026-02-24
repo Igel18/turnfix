@@ -312,7 +312,7 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 router.get('/data/verbaende', async (req: Request, res: Response) => {
   try {
     const query = `
-      SELECT int_verbaendeid, var_name, var_kuerzel
+      SELECT int_verbaendeid, var_name, var_kuerzel, int_laenderid
       FROM tfx_verbaende
       ORDER BY var_name ASC
     `;
@@ -322,6 +322,50 @@ router.get('/data/verbaende', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching federations:', error);
     res.status(500).json({ error: 'Failed to fetch federations' });
+  }
+});
+
+// Create a new federation (Verband)
+router.post('/data/verbaende', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { var_name, var_kuerzel, int_laenderid } = req.body;
+    if (!int_laenderid) {
+      return res.status(400).json({ error: 'int_laenderid is required' });
+    }
+
+    const result = await prisma.$queryRawUnsafe(
+      `INSERT INTO tfx_verbaende (var_name, var_kuerzel, int_laenderid)
+       VALUES ($1, $2, $3)
+       RETURNING int_verbaendeid, var_name, var_kuerzel, int_laenderid`,
+      var_name || null,
+      var_kuerzel || null,
+      int_laenderid
+    ) as any[];
+
+    res.status(201).json(result[0]);
+  } catch (error) {
+    console.error('Error creating federation:', error);
+    res.status(500).json({ error: 'Failed to create federation' });
+  }
+});
+
+// Delete a federation (Verband)
+router.delete('/data/verbaende/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid federation ID' });
+    }
+
+    await prisma.$queryRawUnsafe(
+      `DELETE FROM tfx_verbaende WHERE int_verbaendeid = $1`,
+      id
+    );
+
+    res.json({ message: 'Federation deleted' });
+  } catch (error) {
+    console.error('Error deleting federation:', error);
+    res.status(500).json({ error: 'Failed to delete federation' });
   }
 });
 
