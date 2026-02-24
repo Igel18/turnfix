@@ -83,7 +83,7 @@ export default defineConfig({
     {
       name: 'tests',
       dependencies: ['setup'],
-      testMatch: /tests\/(score-entry|results|competition|import-verification|placement|statistical|jury-portal)\.spec\.ts/,
+      testMatch: /tests\/(score-entry|results|competition|import-verification|placement|statistical|jury-portal|status)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
   ],
