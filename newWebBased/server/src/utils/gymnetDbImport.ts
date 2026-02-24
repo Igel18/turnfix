@@ -445,7 +445,7 @@ async function linkDisciplines(
         }
 
         const disciplineCheck = await prisma.$queryRawUnsafe(`
-          SELECT int_disziplinenid, var_name FROM tfx_disziplinen WHERE int_disziplinenid = $1 LIMIT 1
+          SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen WHERE int_disziplinenid = $1 LIMIT 1
         `, turnfixId) as any[];
 
         if (disciplineCheck.length === 0) {
@@ -455,6 +455,41 @@ async function linkDisciplines(
         }
 
         const disciplineName = disciplineCheck[0].var_name;
+        const discMale = disciplineCheck[0].bol_m === true;
+        const discFemale = disciplineCheck[0].bol_w === true;
+
+        // Gender validation: Check if discipline gender matches competition gender
+        const compIsMale = competition.bol_maennlich === true;
+        const compIsFemale = competition.bol_weiblich === true;
+        let genderMismatch = false;
+
+        if (compIsMale && !compIsFemale && !discMale) {
+          // Male-only competition but discipline is female-only
+          genderMismatch = true;
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Wettkampf "${competition.var_name}" (männlich): Disziplin "${disciplineName}" ist nur für weiblich zugelassen — Zuweisung übersprungen`,
+            details: `wedDisNr=${wedDisNr}, Disziplin erlaubt: m=${discMale}, w=${discFemale}`
+          });
+          console.log(`    ⚠️ Gender mismatch: "${disciplineName}" (w-only) cannot be assigned to male competition "${competition.var_name}" — skipping`);
+        } else if (compIsFemale && !compIsMale && !discFemale) {
+          // Female-only competition but discipline is male-only
+          genderMismatch = true;
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Wettkampf "${competition.var_name}" (weiblich): Disziplin "${disciplineName}" ist nur für männlich zugelassen — Zuweisung übersprungen`,
+            details: `wedDisNr=${wedDisNr}, Disziplin erlaubt: m=${discMale}, w=${discFemale}`
+          });
+          console.log(`    ⚠️ Gender mismatch: "${disciplineName}" (m-only) cannot be assigned to female competition "${competition.var_name}" — skipping`);
+        }
+
+        if (genderMismatch) {
+          results.devices.errors++;
+          continue;
+        }
+
         const existingLink = await prisma.$queryRawUnsafe(`
           SELECT int_wettkaempfe_x_disziplinenid FROM tfx_wettkaempfe_x_disziplinen 
           WHERE int_wettkaempfeid = $1 AND int_disziplinenid = $2 LIMIT 1

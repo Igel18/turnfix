@@ -160,7 +160,7 @@ router.get('/:id/disciplines', authBypass_1.authenticateToken, async (req, res) 
         d.bol_m,
         d.bol_w,
         d.var_icon,
-        COALESCE(d.var_formel, f.var_formel) as var_formel,
+        COALESCE(f.var_formel, d.var_formel) as var_formel,
         d.int_formelid,
         d.var_maske,
         d.var_einheit,
