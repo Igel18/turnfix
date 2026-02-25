@@ -371,7 +371,8 @@ $scriptFiles = @(
     "setup-database.ps1",
     "configure-service.ps1",
     "configure-firewall.ps1",
-    "uninstall-service.ps1"
+    "uninstall-service.ps1",
+    "turnfix-tray.ps1"
 )
 foreach ($sf in $scriptFiles) {
     $src = Join-Path $ScriptDir "scripts\$sf"
@@ -450,7 +451,7 @@ try {
 }
 
 Write-Host "  🔨 Compiling with Inno Setup..." -ForegroundColor Cyan
-& $ISCC /O"$OutputDir" /DMyStagingDir="$StagingDir" /DMyGitHash="$gitHash" /DMyBuildDate="$buildDate" /DMyBuildNumber="$buildNumber" "$issFile"
+& $ISCC /O"$OutputDir" /DMyStagingDir="$StagingDir" /DMyGitHash="$gitHash" /DMyBuildDate="$buildDate" "/DMyBuildNumber=$buildNumber" "$issFile"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""

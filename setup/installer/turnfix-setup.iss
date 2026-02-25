@@ -39,7 +39,7 @@
 #endif
 
 ; Full version string: 2.0.BuildNumber
-#define MyFullVersion MyAppVersion + "." + MyBuildNumber
+#define MyFullVersion MyAppVersion + "." + Str(MyBuildNumber)
 
 [Setup]
 AppId={{A7F3B2C4-D5E6-4F78-9A0B-C1D2E3F4A5B6}
@@ -92,6 +92,8 @@ german.InstallService=TurnFix als Windows-Dienst installieren
 german.ServiceDescription=TurnFix startet automatisch mit Windows
 german.ConfigureFirewall=Windows-Firewall für Netzwerkzugriff konfigurieren
 german.FirewallDescription=Ermöglicht Zugriff von Tablets und anderen Geräten im Netzwerk
+german.InstallTrayIcon=TurnFix Tray-Icon (Statusanzeige im Infobereich)
+german.TrayIconDescription=Zeigt den Server-Status im Windows-Infobereich an
 german.InstallingNodeJS=Node.js Runtime wird installiert...
 german.InstallingPostgreSQL=PostgreSQL wird installiert...
 german.ConfiguringDatabase=Datenbank wird eingerichtet...
@@ -118,6 +120,8 @@ english.InstallService=Install TurnFix as Windows Service
 english.ServiceDescription=TurnFix starts automatically with Windows
 english.ConfigureFirewall=Configure Windows Firewall for network access
 english.FirewallDescription=Allows access from tablets and other devices on the network
+english.InstallTrayIcon=TurnFix Tray Icon (status indicator in system tray)
+english.TrayIconDescription=Shows server status in the Windows system tray
 english.InstallingNodeJS=Installing Node.js Runtime...
 english.InstallingPostgreSQL=Installing PostgreSQL...
 english.ConfiguringDatabase=Setting up database...
@@ -141,9 +145,10 @@ Name: "custom"; Description: "Benutzerdefiniert / Custom"; Flags: iscustom
 [Components]
 Name: "app"; Description: "TurnFix Anwendung"; Types: full compact custom; Flags: fixed
 Name: "nodejs"; Description: "Node.js Runtime (eingebettet)"; Types: full compact custom; Flags: fixed
-Name: "postgresql"; Description: "{cm:InstallPostgreSQL}"; Types: full; Check: not IsPostgreSQLInstalled
-Name: "service"; Description: "{cm:InstallService}"; Types: full
-Name: "firewall"; Description: "{cm:ConfigureFirewall}"; Types: full
+Name: "postgresql"; Description: "{cm:InstallPostgreSQL}"; Types: full custom
+Name: "service"; Description: "{cm:InstallService}"; Types: full custom
+Name: "firewall"; Description: "{cm:ConfigureFirewall}"; Types: full custom
+Name: "trayicon"; Description: "{cm:InstallTrayIcon}"; Types: full custom
 
 [Files]
 ; Node.js embedded runtime
@@ -153,7 +158,7 @@ Source: "{#MyStagingDir}\nodejs\*"; DestDir: "{app}\nodejs"; Flags: ignoreversio
 Source: "{#MyStagingDir}\nssm\nssm.exe"; DestDir: "{app}\nssm"; Flags: ignoreversion skipifsourcedoesntexist; Components: service
 
 ; PostgreSQL installer (large file, only if component selected)
-Source: "{#MyStagingDir}\postgresql\postgresql-installer.exe"; DestDir: "{tmp}"; Flags: ignoreversion deleteafterinstall; Components: postgresql; Check: FileExists(ExpandConstant('{#MyStagingDir}\postgresql\postgresql-installer.exe'))
+Source: "{#MyStagingDir}\postgresql\postgresql-installer.exe"; DestDir: "{tmp}"; Flags: ignoreversion deleteafterinstall skipifsourcedoesntexist; Components: postgresql
 
 ; Server files
 Source: "{#MyStagingDir}\server\dist\*"; DestDir: "{app}\server\dist"; Flags: ignoreversion recursesubdirs; Components: app
@@ -162,24 +167,24 @@ Source: "{#MyStagingDir}\server\node_modules\*"; DestDir: "{app}\server\node_mod
 Source: "{#MyStagingDir}\server\package.json"; DestDir: "{app}\server"; Flags: ignoreversion; Components: app
 Source: "{#MyStagingDir}\server\ecosystem.config.js"; DestDir: "{app}\server"; Flags: ignoreversion; Components: app
 Source: "{#MyStagingDir}\server\.env.example"; DestDir: "{app}\server"; Flags: ignoreversion; Components: app
-Source: "{#MyStagingDir}\server\public\*"; DestDir: "{app}\server\public"; Flags: ignoreversion recursesubdirs; Components: app; Check: DirExists(ExpandConstant('{#MyStagingDir}\server\public'))
+Source: "{#MyStagingDir}\server\public\*"; DestDir: "{app}\server\public"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 
 ; Client files
 Source: "{#MyStagingDir}\client\dist\*"; DestDir: "{app}\client\dist"; Flags: ignoreversion recursesubdirs; Components: app
-Source: "{#MyStagingDir}\client\public\*"; DestDir: "{app}\client\public"; Flags: ignoreversion recursesubdirs; Components: app; Check: DirExists(ExpandConstant('{#MyStagingDir}\client\public'))
+Source: "{#MyStagingDir}\client\public\*"; DestDir: "{app}\client\public"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 
 ; Jury Portal files
-Source: "{#MyStagingDir}\jury-portal\dist\*"; DestDir: "{app}\jury-portal\dist"; Flags: ignoreversion recursesubdirs; Components: app; Check: DirExists(ExpandConstant('{#MyStagingDir}\jury-portal'))
+Source: "{#MyStagingDir}\jury-portal\dist\*"; DestDir: "{app}\jury-portal\dist"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 
 ; Documentation
-Source: "{#MyStagingDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs; Components: app; Check: DirExists(ExpandConstant('{#MyStagingDir}\docs'))
+Source: "{#MyStagingDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 
-; Installer scripts
+; Installer scripts (including tray icon)
 Source: "{#MyStagingDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion; Components: app
 
 ; TurnFix Manager
-Source: "{#MyStagingDir}\TurnFix-Manager.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: app; Check: FileExists(ExpandConstant('{#MyStagingDir}\TurnFix-Manager.bat'))
-Source: "{#MyStagingDir}\turnfix-manager.ps1"; DestDir: "{app}"; Flags: ignoreversion; Components: app; Check: FileExists(ExpandConstant('{#MyStagingDir}\turnfix-manager.ps1'))
+Source: "{#MyStagingDir}\TurnFix-Manager.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
+Source: "{#MyStagingDir}\turnfix-manager.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
 
 [Dirs]
 Name: "{app}\server\logs"
@@ -194,9 +199,12 @@ Name: "{group}\TurnFix Dokumentation"; Filename: "{app}\docs\TurnFix-Dokumentati
 Name: "{group}\TurnFix deinstallieren"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\TurnFix"; Filename: "{app}\TurnFix-Manager.bat"; WorkingDir: "{app}"; Comment: "TurnFix Verwaltung"; Tasks: desktopicon
 Name: "{commondesktop}\TurnFix Web"; Filename: "http://localhost:3001"; Comment: "TurnFix im Browser öffnen"; Tasks: desktopicon
+; Tray icon autostart
+Name: "{commonstartup}\TurnFix Tray"; Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\scripts\turnfix-tray.ps1"""; WorkingDir: "{app}"; Comment: "TurnFix Status-Anzeige"; Components: trayicon; Tasks: autostarttray
 
 [Tasks]
 Name: "desktopicon"; Description: "Desktop-Verknüpfungen erstellen"; GroupDescription: "Zusätzliche Verknüpfungen:"
+Name: "autostarttray"; Description: "TurnFix Tray-Icon bei Windows-Anmeldung starten"; GroupDescription: "Autostart:"; Components: trayicon
 
 [Run]
 ; Post-installation: open browser
@@ -433,6 +441,14 @@ begin
     // === Install PostgreSQL (if selected) ===
     if IsComponentSelected('postgresql') then
     begin
+      if IsPostgreSQLInstalled then
+      begin
+        // PostgreSQL is already installed, skip
+        WizardForm.StatusLabel.Caption := CustomMessage('PostgreSQLAlreadyInstalled');
+        MsgBox(CustomMessage('PostgreSQLAlreadyInstalled'), mbInformation, MB_OK);
+      end
+      else
+      begin
       WizardForm.StatusLabel.Caption := CustomMessage('InstallingPostgreSQL');
       
       PgInstaller := ExpandConstant('{tmp}\postgresql-installer.exe');
@@ -452,6 +468,7 @@ begin
           MsgBox('PostgreSQL Installation hatte Probleme (Code: ' + IntToStr(ResultCode) + ').' + #13#10 +
                  'Bitte prüfen Sie die PostgreSQL-Installation manuell.', mbInformation, MB_OK);
       end;
+      end;  // end else (not already installed)
     end;
     
     // === Create .env file ===
@@ -493,6 +510,14 @@ begin
         ' -JuryPort "' + JuryPort + '"',
         AppPath, SW_HIDE, ewWaitUntilTerminated, ResultCode);
     end;
+
+    // === Start Tray Icon (if selected) ===
+    if IsComponentSelected('trayicon') then
+    begin
+      Exec('powershell.exe',
+        '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + AppPath + '\scripts\turnfix-tray.ps1"',
+        AppPath, SW_HIDE, ewNoWait, ResultCode);
+    end;
     
     WizardForm.StatusLabel.Caption := CustomMessage('InstallationComplete');
   end;
@@ -507,6 +532,12 @@ begin
   if CurUninstallStep = usUninstall then
   begin
     AppPath := ExpandConstant('{app}');
+    
+    // Kill tray icon process
+    Exec('taskkill', '/F /FI "WindowTitle eq TurnFix*" /IM powershell.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    
+    // Remove tray icon autostart shortcut
+    DeleteFile(ExpandConstant('{commonstartup}\TurnFix Tray.lnk'));
     
     // Remove firewall rules
     Exec('netsh', 'advfirewall firewall delete rule name="TurnFix Server"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
