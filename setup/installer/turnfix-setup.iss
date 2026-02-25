@@ -229,6 +229,81 @@ var
   DbPassword: String;
   ServerPort: String;
   JuryPort: String;
+  PowerShellPath: String;
+
+// Find PowerShell executable - checks PATH and known system locations
+function FindPowerShell: String;
+var
+  ResultCode: Integer;
+  SysPath: String;
+begin
+  // 1. Try pwsh (PowerShell Core 7+)
+  if Exec('cmd.exe', '/C where pwsh >nul 2>&1', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if ResultCode = 0 then
+    begin
+      Result := 'pwsh.exe';
+      Exit;
+    end;
+  end;
+  
+  // 2. Try powershell.exe via PATH
+  if Exec('cmd.exe', '/C where powershell >nul 2>&1', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if ResultCode = 0 then
+    begin
+      Result := 'powershell.exe';
+      Exit;
+    end;
+  end;
+  
+  // 3. Try known system path
+  SysPath := ExpandConstant('{sys}') + '\WindowsPowerShell\v1.0\powershell.exe';
+  if FileExists(SysPath) then
+  begin
+    Result := SysPath;
+    Exit;
+  end;
+  
+  // 4. Try hardcoded common path
+  if FileExists('C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe') then
+  begin
+    Result := 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe';
+    Exit;
+  end;
+  
+  Result := '';
+end;
+
+// Execute a PowerShell script with parameters, returns True on success
+function RunPowerShellScript(ScriptPath: String; Arguments: String): Boolean;
+var
+  ResultCode: Integer;
+  Params: String;
+begin
+  Result := False;
+  if PowerShellPath = '' then
+  begin
+    Log('ERROR: PowerShell not found, cannot run: ' + ScriptPath);
+    Exit;
+  end;
+  
+  Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '"';
+  if Arguments <> '' then
+    Params := Params + ' ' + Arguments;
+  
+  Log('Running PowerShell: ' + PowerShellPath + ' ' + Params);
+  
+  if Exec(PowerShellPath, Params, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if ResultCode = 0 then
+      Result := True
+    else
+      Log('PowerShell script exited with code: ' + IntToStr(ResultCode));
+  end
+  else
+    Log('Failed to execute PowerShell');
+end;
 
 // Check if PostgreSQL is already installed
 function IsPostgreSQLInstalled: Boolean;
@@ -424,6 +499,29 @@ begin
   SaveStringToFile(ExpandConstant('{app}\server\ecosystem.config.js'), Content, False);
 end;
 
+// Check PowerShell availability before installation begins
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  NeedsRestart := False;
+  
+  // Find PowerShell and cache the path
+  PowerShellPath := FindPowerShell();
+  
+  if PowerShellPath = '' then
+  begin
+    Result := 'PowerShell konnte nicht gefunden werden!' + #13#10 + #13#10 +
+              'TurnFix benötigt PowerShell für die Installation.' + #13#10 +
+              'Windows PowerShell 5.1 sollte auf Windows 10 vorinstalliert sein.' + #13#10 + #13#10 +
+              'Mögliche Lösungen:' + #13#10 +
+              '- Starten Sie den Computer neu und versuchen Sie es erneut' + #13#10 +
+              '- Prüfen Sie ob C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe existiert' + #13#10 +
+              '- Installieren Sie PowerShell von https://aka.ms/powershell';
+  end
+  else
+    Log('PowerShell found at: ' + PowerShellPath);
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;
@@ -478,45 +576,67 @@ begin
     
     // === Setup Database ===
     WizardForm.StatusLabel.Caption := CustomMessage('ConfiguringDatabase');
-    Exec('powershell.exe',
-      '-ExecutionPolicy Bypass -File "' + AppPath + '\scripts\setup-database.ps1"' +
-      ' -InstallDir "' + AppPath + '"' +
-      ' -DbName "' + DbName + '"' +
-      ' -DbPassword "' + DbPassword + '"' +
-      ' -NodePath "' + NodePath + '"',
-      AppPath, SW_SHOW, ewWaitUntilTerminated, ResultCode);
+    if PowerShellPath <> '' then
+    begin
+      if not Exec(PowerShellPath,
+        '-NoProfile -ExecutionPolicy Bypass -File "' + AppPath + '\scripts\setup-database.ps1"' +
+        ' -InstallDir "' + AppPath + '"' +
+        ' -DbName "' + DbName + '"' +
+        ' -DbPassword "' + DbPassword + '"' +
+        ' -NodePath "' + NodePath + '"',
+        AppPath, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+        Log('ERROR: Failed to run setup-database.ps1')
+      else if ResultCode <> 0 then
+        Log('WARNING: setup-database.ps1 exited with code ' + IntToStr(ResultCode));
+    end
+    else
+      Log('SKIP: setup-database.ps1 - PowerShell not available');
     
     // === Install Windows Service (if selected) ===
     if IsComponentSelected('service') then
     begin
       WizardForm.StatusLabel.Caption := CustomMessage('ConfiguringService');
-      Exec('powershell.exe',
-        '-ExecutionPolicy Bypass -File "' + AppPath + '\scripts\configure-service.ps1"' +
-        ' -InstallDir "' + AppPath + '"' +
-        ' -NodePath "' + NodePath + '"' +
-        ' -NssmPath "' + NssmPath + '"' +
-        ' -ServerPort "' + ServerPort + '"' +
-        ' -JuryPort "' + JuryPort + '"',
-        AppPath, SW_SHOW, ewWaitUntilTerminated, ResultCode);
+      if PowerShellPath <> '' then
+      begin
+        if not Exec(PowerShellPath,
+          '-NoProfile -ExecutionPolicy Bypass -File "' + AppPath + '\scripts\configure-service.ps1"' +
+          ' -InstallDir "' + AppPath + '"' +
+          ' -NodePath "' + NodePath + '"' +
+          ' -NssmPath "' + NssmPath + '"' +
+          ' -ServerPort "' + ServerPort + '"' +
+          ' -JuryPort "' + JuryPort + '"',
+          AppPath, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+          Log('ERROR: Failed to run configure-service.ps1')
+        else if ResultCode <> 0 then
+          MsgBox('Service-Konfiguration hatte Probleme (Code: ' + IntToStr(ResultCode) + ').' + #13#10 +
+                 'Bitte prüfen Sie die Dienste manuell.', mbInformation, MB_OK);
+      end;
     end;
     
     // === Configure Firewall (if selected) ===
     if IsComponentSelected('firewall') then
     begin
       WizardForm.StatusLabel.Caption := CustomMessage('ConfiguringFirewall');
-      Exec('powershell.exe',
-        '-ExecutionPolicy Bypass -File "' + AppPath + '\scripts\configure-firewall.ps1"' +
-        ' -ServerPort "' + ServerPort + '"' +
-        ' -JuryPort "' + JuryPort + '"',
-        AppPath, SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      if PowerShellPath <> '' then
+      begin
+        if not Exec(PowerShellPath,
+          '-NoProfile -ExecutionPolicy Bypass -File "' + AppPath + '\scripts\configure-firewall.ps1"' +
+          ' -ServerPort "' + ServerPort + '"' +
+          ' -JuryPort "' + JuryPort + '"',
+          AppPath, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+          Log('ERROR: Failed to run configure-firewall.ps1');
+      end;
     end;
 
     // === Start Tray Icon (if selected) ===
     if IsComponentSelected('trayicon') then
     begin
-      Exec('powershell.exe',
-        '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + AppPath + '\scripts\turnfix-tray.ps1"',
-        AppPath, SW_HIDE, ewNoWait, ResultCode);
+      if PowerShellPath <> '' then
+      begin
+        Exec(PowerShellPath,
+          '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + AppPath + '\scripts\turnfix-tray.ps1"',
+          AppPath, SW_HIDE, ewNoWait, ResultCode);
+      end;
     end;
     
     WizardForm.StatusLabel.Caption := CustomMessage('InstallationComplete');
