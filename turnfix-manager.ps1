@@ -20,6 +20,35 @@ if ($psVersion -lt 5) {
     exit 1
 }
 
+# ── Auto-detect environment (production vs development) ──
+$scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+
+# Production (installed): server is at $scriptRoot\server
+# Development: server is at $scriptRoot\newWebBased\server
+if (Test-Path (Join-Path $scriptRoot "server\package.json")) {
+    $global:BasePath = $scriptRoot
+    $global:IsProduction = $true
+} elseif (Test-Path (Join-Path $scriptRoot "newWebBased\server")) {
+    $global:BasePath = Join-Path $scriptRoot "newWebBased"
+    $global:IsProduction = $false
+} else {
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+    Write-Host "║               VERZEICHNIS NICHT GEFUNDEN!                  ║" -ForegroundColor Red
+    Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Server-Verzeichnis konnte nicht gefunden werden!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Gesucht in:" -ForegroundColor Yellow
+    Write-Host "  - $(Join-Path $scriptRoot 'server')" -ForegroundColor White
+    Write-Host "  - $(Join-Path $scriptRoot 'newWebBased\server')" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Bitte stellen Sie sicher, dass TurnFix korrekt installiert ist." -ForegroundColor Yellow
+    Write-Host ""
+    Read-Host "Drücken Sie Enter zum Beenden"
+    exit 1
+}
+
 # Farben und Formatierung
 function Show-Header {
     Clear-Host
@@ -59,7 +88,7 @@ function Show-Status {
             Write-Host "├─────────────────────────────────────────────────────┤" -ForegroundColor Green
             
             if ($mainServer) {
-                $status = if ($mainServer.pm2_env.status -eq "online") { "✓ LÄUFT" } else { "✗ GESTOPPT" }
+                $status = if ($mainServer.pm2_env.status -eq "online") { "L�UFT" } else { "✗ GESTOPPT" }
                 $color = if ($mainServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
                 $uptime = [math]::Round($mainServer.pm2_env.pm_uptime / 1000 / 60, 1)
                 $memory = [math]::Round($mainServer.monit.memory / 1024 / 1024, 1)
@@ -76,7 +105,7 @@ function Show-Status {
             Write-Host "│" -ForegroundColor Green
             
             if ($juryServer) {
-                $status = if ($juryServer.pm2_env.status -eq "online") { "✓ LÄUFT" } else { "✗ GESTOPPT" }
+                $status = if ($juryServer.pm2_env.status -eq "online") { "L�UFT" } else { "✗ GESTOPPT" }
                 $color = if ($juryServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
                 $uptime = [math]::Round($juryServer.pm2_env.pm_uptime / 1000 / 60, 1)
                 $memory = [math]::Round($juryServer.monit.memory / 1024 / 1024, 1)
@@ -105,10 +134,10 @@ function Show-Status {
         Write-Host "│  Wählen Sie Option 1 zum ersten Start:             │" -ForegroundColor Yellow
         Write-Host "│  • Baut die Anwendung falls nötig                  │" -ForegroundColor White
         Write-Host "│  • Startet Haupt-Server (Port 3001)                │" -ForegroundColor White
-        Write-Host "│  • Startet Kampfrichter-Portal (Port 3002)         │" -ForegroundColor White
+        Write-Host "│  • Startet Kampfrichter-Portal (Port 3002)        │" -ForegroundColor White
         Write-Host "│                                                     │" -ForegroundColor Yellow
         Write-Host "│  Dies kann beim ersten Mal einige Minuten dauern.  │" -ForegroundColor DarkGray
-        Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
+        Write-Host "-" -ForegroundColor Yellow
     }
     Write-Host ""
 }
@@ -145,7 +174,7 @@ function Start-TurnFix {
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     
     # Prüfe ob Server-Verzeichnis existiert
-    $serverPath = Join-Path $scriptRoot "newWebBased\server"
+    $serverPath = Join-Path $global:BasePath "server"
     if (-not (Test-Path $serverPath)) {
         Write-Host "✗ Fehler: Server-Verzeichnis nicht gefunden!" -ForegroundColor Red
         Write-Host "  Erwartet: $serverPath" -ForegroundColor Yellow
@@ -157,9 +186,9 @@ function Start-TurnFix {
     
     # Prüfe ob node_modules existiert (Server, Client, Jury-Portal)
     $serverNodeModules = Join-Path $serverPath "node_modules"
-    $clientPath = Join-Path $scriptRoot "newWebBased\client"
+    $clientPath = Join-Path $global:BasePath "client"
     $clientNodeModules = Join-Path $clientPath "node_modules"
-    $juryPath = Join-Path $scriptRoot "newWebBased\jury-portal"
+    $juryPath = Join-Path $global:BasePath "jury-portal"
     $juryNodeModules = Join-Path $juryPath "node_modules"
     
     $installNeeded = $false
@@ -233,9 +262,9 @@ function Start-TurnFix {
     
     # Prüfe ob Build existiert und aktuell ist
     $distPath = Join-Path $serverPath "dist"
-    $clientPath = Join-Path $scriptRoot "newWebBased\client"
+    $clientPath = Join-Path $global:BasePath "client"
     $clientDistPath = Join-Path $clientPath "dist"
-    $juryPath = Join-Path $scriptRoot "newWebBased\jury-portal"
+    $juryPath = Join-Path $global:BasePath "jury-portal"
     $juryDistPath = Join-Path $juryPath "dist"
     
     $buildRequired = $false
@@ -423,7 +452,7 @@ function Stop-TurnFix {
     # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     
-    $serverPath = Join-Path $scriptRoot "newWebBased\server"
+    $serverPath = Join-Path $global:BasePath "server"
     Set-Location $serverPath
     
     # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
@@ -446,7 +475,7 @@ function Restart-TurnFix {
     # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     
-    $serverPath = Join-Path $scriptRoot "newWebBased\server"
+    $serverPath = Join-Path $global:BasePath "server"
     Set-Location $serverPath
     
     # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
@@ -469,7 +498,7 @@ function Show-DetailedStatus {
     # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     
-    $serverPath = Join-Path $scriptRoot "newWebBased\server"
+    $serverPath = Join-Path $global:BasePath "server"
     Set-Location $serverPath
     
     # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
@@ -492,7 +521,7 @@ function Show-LiveLogs {
     # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     
-    $serverPath = Join-Path $scriptRoot "newWebBased\server"
+    $serverPath = Join-Path $global:BasePath "server"
     Set-Location $serverPath
     
     # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
@@ -504,7 +533,7 @@ function Show-SystemMonitor {
     Write-Host "Drücken Sie STRG+C zum Beenden" -ForegroundColor Yellow
     Write-Host ""
     
-    $serverPath = Join-Path $PSScriptRoot "newWebBased\server"
+    $serverPath = Join-Path $global:BasePath "server"
     Set-Location $serverPath
     
     npm run pm2:monit
@@ -563,9 +592,9 @@ function Force-Rebuild {
     # Bestimme Script-Root
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     
-    $serverPath = Join-Path $scriptRoot "newWebBased\server"
-    $clientPath = Join-Path $scriptRoot "newWebBased\client"
-    $juryPath = Join-Path $scriptRoot "newWebBased\jury-portal"
+    $serverPath = Join-Path $global:BasePath "server"
+    $clientPath = Join-Path $global:BasePath "client"
+    $juryPath = Join-Path $global:BasePath "jury-portal"
     
     $totalSteps = 3
     $currentStep = 0
@@ -604,9 +633,9 @@ function Force-Rebuild {
     Pop-Location
     
     if ($clientExitCode -eq 0) {
-        Write-Host "   ✓ Client Build erfolgreich!" -ForegroundColor Green
+        Write-Host "   Client Build erfolgreich!" -ForegroundColor Green
     } else {
-        Write-Host "   ✗ Client Build fehlgeschlagen!" -ForegroundColor Red
+        Write-Host "   Client Build fehlgeschlagen!" -ForegroundColor Red
         $allSuccess = $false
     }
     
@@ -614,10 +643,10 @@ function Force-Rebuild {
     $currentStep++
     Write-Host ""
     Write-Host "[$currentStep/$totalSteps] 🔨 Jury-Portal Build..." -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "-�" -ForegroundColor Cyan
     
     Push-Location $juryPath
-    Write-Host "   → React/Vite Build läuft..." -ForegroundColor White
+    Write-Host "   at React/Vite Build l�uft..." -ForegroundColor White
     npm run build
     $juryExitCode = $LASTEXITCODE
     Pop-Location
@@ -642,8 +671,8 @@ function Force-Rebuild {
         Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
         Write-Host ""
         Write-Host "💡 Nächster Schritt:" -ForegroundColor Cyan
-        Write-Host "   → Hauptmenü → Option 3 (TurnFix NEU STARTEN)" -ForegroundColor Yellow
-        Write-Host "   → oder Option 1 falls Server nicht läuft" -ForegroundColor Yellow
+        Write-Host "   at Hauptmen� at Option 3 (TurnFix NEU STARTEN)" -ForegroundColor Yellow
+        Write-Host "   at oder Option 1 falls Server nicht l�uft" -ForegroundColor Yellow
     } else {
         Write-Host ""
         Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
@@ -683,7 +712,7 @@ function Show-AdvancedMenu {
             Write-Host "Logs werden gelöscht..." -ForegroundColor Yellow
             # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
             $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-            $serverPath = Join-Path $scriptRoot "newWebBased\server"
+            $serverPath = Join-Path $global:BasePath "server"
             Set-Location $serverPath
             npm run pm2:flush
             Write-Host "✓ Logs gelöscht!" -ForegroundColor Green
@@ -693,7 +722,7 @@ function Show-AdvancedMenu {
             Write-Host "PM2 wird komplett neu gestartet..." -ForegroundColor Yellow
             # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
             $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-            $serverPath = Join-Path $scriptRoot "newWebBased\server"
+            $serverPath = Join-Path $global:BasePath "server"
             Set-Location $serverPath
             npx pm2 kill
             npm run pm2:start:prod
@@ -760,9 +789,9 @@ function Show-AdvancedMenu {
             Write-Host "Datenbank-Verbindung wird geprüft..." -ForegroundColor Cyan
             try {
                 $response = Invoke-WebRequest -Uri "http://localhost:3001/api/configuration" -UseBasicParsing -TimeoutSec 5
-                Write-Host "✓ Datenbank-Verbindung OK!" -ForegroundColor Green
+                Write-Host " Datenbank-Verbindung OK!" -ForegroundColor Green
             } catch {
-                Write-Host "✗ Datenbank-Verbindung fehlgeschlagen!" -ForegroundColor Red
+                Write-Host " Datenbank-Verbindung fehlgeschlagen!" -ForegroundColor Red
                 Write-Host "  Prüfen Sie ob PostgreSQL läuft" -ForegroundColor Yellow
             }
             Read-Host "Drücken Sie Enter zum Fortfahren"

@@ -156,8 +156,9 @@ Write-Host "  Starting TurnFix Server..." -ForegroundColor Cyan
 if ($LASTEXITCODE -eq 0) {
     Write-Host "  ✓ TurnFix Server gestartet!" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠ Server konnte nicht gestartet werden." -ForegroundColor Yellow
-    Write-Host "    Bitte starten Sie den Service manuell über die Windows-Dienstverwaltung." -ForegroundColor Yellow
+    Write-Host "  ⚠ Server konnte noch nicht gestartet werden." -ForegroundColor Yellow
+    Write-Host "    Dies kann normal sein, wenn PostgreSQL noch initialisiert wird." -ForegroundColor Yellow
+    Write-Host "    Der Service startet automatisch beim nächsten Systemstart." -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -169,3 +170,6 @@ Write-Host "  Verwaltung über:" -ForegroundColor DarkGray
 Write-Host "    services.msc (Windows-Dienstverwaltung)" -ForegroundColor DarkGray
 Write-Host "    oder TurnFix-Manager.bat" -ForegroundColor DarkGray
 Write-Host ""
+
+# Service installation was successful, exit 0 even if start failed
+exit 0
