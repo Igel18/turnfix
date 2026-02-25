@@ -348,8 +348,8 @@ begin
     'DATABASE_URL="postgresql://postgres:' + DbPassword + '@localhost:5432/' + DbName + '?schema=public&connection_limit=20&pool_timeout=10"' + #13#10 +
     '' + #13#10 +
     '# JWT' + #13#10 +
-    'JWT_SECRET="turnfix-' + GetDateTimeString('yyyymmddhhnnss', '', '') + '-secret"' + #13#10 +
-    'JWT_REFRESH_SECRET="turnfix-' + GetDateTimeString('yyyymmddhhnnss', '', '') + '-refresh"' + #13#10 +
+    'JWT_SECRET="turnfix-' + GetDateTimeString('yyyymmddhhnnss', '-', ':') + '-secret"' + #13#10 +
+    'JWT_REFRESH_SECRET="turnfix-' + GetDateTimeString('yyyymmddhhnnss', '-', ':') + '-refresh"' + #13#10 +
     'JWT_EXPIRE="15m"' + #13#10 +
     'JWT_REFRESH_EXPIRE="7d"' + #13#10 +
     '' + #13#10 +

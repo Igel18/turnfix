@@ -19,10 +19,14 @@ if %ERRORLEVEL% EQU 0 (
     pwsh.exe -NoProfile -ExecutionPolicy Bypass -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; & '%~dp0turnfix-manager.ps1'"
 ) else (
     REM PowerShell Core nicht gefunden - nutze Windows PowerShell
+    REM Prüfe zuerst über where, dann über bekannten Systempfad
     where powershell >nul 2>&1
     if %ERRORLEVEL% EQU 0 (
         echo Windows PowerShell wird gestartet...
         powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; & '%~dp0turnfix-manager.ps1'"
+    ) else if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
+        echo Windows PowerShell wird gestartet (Systempfad)...
+        "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; & '%~dp0turnfix-manager.ps1'"
     ) else (
         echo.
         echo FEHLER: Keine PowerShell-Installation gefunden!
