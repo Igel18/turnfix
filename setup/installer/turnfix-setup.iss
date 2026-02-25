@@ -251,12 +251,6 @@ begin
     Result := True;
 end;
 
-// Check if a file exists (for conditional file copying)
-function FileExists(Path: String): Boolean;
-begin
-  Result := FileExists(Path);
-end;
-
 procedure InitializeWizard();
 begin
   // Database configuration page
