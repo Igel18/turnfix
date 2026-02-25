@@ -88,7 +88,7 @@ function Show-Status {
             Write-Host "├─────────────────────────────────────────────────────┤" -ForegroundColor Green
             
             if ($mainServer) {
-                $status = if ($mainServer.pm2_env.status -eq "online") { "L�UFT" } else { "✗ GESTOPPT" }
+                $status = if ($mainServer.pm2_env.status -eq "online") { "LÄUFT" } else { "✗ GESTOPPT" }
                 $color = if ($mainServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
                 $uptime = [math]::Round($mainServer.pm2_env.pm_uptime / 1000 / 60, 1)
                 $memory = [math]::Round($mainServer.monit.memory / 1024 / 1024, 1)
@@ -105,7 +105,7 @@ function Show-Status {
             Write-Host "│" -ForegroundColor Green
             
             if ($juryServer) {
-                $status = if ($juryServer.pm2_env.status -eq "online") { "L�UFT" } else { "✗ GESTOPPT" }
+                $status = if ($juryServer.pm2_env.status -eq "online") { "LÄUFT" } else { "✗ GESTOPPT" }
                 $color = if ($juryServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
                 $uptime = [math]::Round($juryServer.pm2_env.pm_uptime / 1000 / 60, 1)
                 $memory = [math]::Round($juryServer.monit.memory / 1024 / 1024, 1)
@@ -137,7 +137,7 @@ function Show-Status {
         Write-Host "│  • Startet Kampfrichter-Portal (Port 3002)        │" -ForegroundColor White
         Write-Host "│                                                     │" -ForegroundColor Yellow
         Write-Host "│  Dies kann beim ersten Mal einige Minuten dauern.  │" -ForegroundColor DarkGray
-        Write-Host "-" -ForegroundColor Yellow
+        Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     }
     Write-Host ""
 }
@@ -643,10 +643,10 @@ function Force-Rebuild {
     $currentStep++
     Write-Host ""
     Write-Host "[$currentStep/$totalSteps] 🔨 Jury-Portal Build..." -ForegroundColor Cyan
-    Write-Host "-�" -ForegroundColor Cyan
+    Write-Host "────────────────────────────────────────────────────────────" -ForegroundColor Cyan
     
     Push-Location $juryPath
-    Write-Host "   at React/Vite Build l�uft..." -ForegroundColor White
+    Write-Host "   → React/Vite Build läuft..." -ForegroundColor White
     npm run build
     $juryExitCode = $LASTEXITCODE
     Pop-Location
@@ -671,8 +671,8 @@ function Force-Rebuild {
         Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
         Write-Host ""
         Write-Host "💡 Nächster Schritt:" -ForegroundColor Cyan
-        Write-Host "   at Hauptmen� at Option 3 (TurnFix NEU STARTEN)" -ForegroundColor Yellow
-        Write-Host "   at oder Option 1 falls Server nicht l�uft" -ForegroundColor Yellow
+        Write-Host "   → Hauptmenü → Option 3 (TurnFix NEU STARTEN)" -ForegroundColor Yellow
+        Write-Host "   → oder Option 1 falls Server nicht läuft" -ForegroundColor Yellow
     } else {
         Write-Host ""
         Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
