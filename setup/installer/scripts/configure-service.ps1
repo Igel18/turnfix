@@ -22,7 +22,7 @@ param(
 $ErrorActionPreference = "Continue"
 
 Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║         TurnFix Windows Service Configuration             ║" -ForegroundColor Cyan
+Write-Host "║         TurnFix Windows Service Configuration              ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 
@@ -75,8 +75,10 @@ if ($existingService) {
     Start-Sleep -Seconds 2
 }
 
-# Install service - use quoted paths to handle spaces in "C:\Program Files\"
-$installOutput = & $NssmPath install $serviceName "`"$NodePath`"" 2>&1
+# Install service with minimal nssm install, then configure via registry
+# PowerShell's argument quoting to external commands is unreliable with paths containing spaces
+# So we install with just the service name and set paths directly in the registry
+$installOutput = & $NssmPath install $serviceName $NodePath 2>&1
 Write-Host "  NSSM install output: $installOutput" -ForegroundColor DarkGray
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to install service $serviceName (exit code: $LASTEXITCODE)" -ForegroundColor Red
@@ -85,13 +87,16 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Set the script arguments separately with proper quoting
-& $NssmPath set $serviceName AppParameters "`"$ServerScript`"" 2>&1 | Out-Null
+# Set paths directly via registry to guarantee correct quoting for paths with spaces
+$regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName\Parameters"
+Set-ItemProperty -Path $regPath -Name "Application" -Value $NodePath
+Set-ItemProperty -Path $regPath -Name "AppParameters" -Value "`"$ServerScript`""
+Set-ItemProperty -Path $regPath -Name "AppDirectory" -Value $ServerDir
+Write-Host "  Registry paths set (Application, AppParameters, AppDirectory)" -ForegroundColor DarkGray
 
 # Configure service - redirect stderr to avoid false failures
 & $NssmPath set $serviceName DisplayName $serviceDisplayName 2>&1 | Out-Null
 & $NssmPath set $serviceName Description $serviceDescription 2>&1 | Out-Null
-& $NssmPath set $serviceName AppDirectory $ServerDir 2>&1 | Out-Null
 & $NssmPath set $serviceName Start SERVICE_AUTO_START 2>&1 | Out-Null
 & $NssmPath set $serviceName ObjectName LocalSystem 2>&1 | Out-Null
 
@@ -111,23 +116,26 @@ if (Test-Path $EnvFile) {
     }
 }
 & $NssmPath set $serviceName AppEnvironmentExtra $envVars 2>&1 | Out-Null
+# Also write via registry as MultiString to ensure correct handling
+Set-ItemProperty -Path $regPath -Name "AppEnvironmentExtra" -Value $envVars -Type MultiString
 
-# Logging
+# Logging - set paths via registry to handle spaces in paths
 $logsDir = Join-Path $ServerDir "logs"
 if (-not (Test-Path $logsDir)) {
     New-Item -Path $logsDir -ItemType Directory -Force | Out-Null
 }
-& $NssmPath set $serviceName AppStdout (Join-Path $logsDir "service-out.log") 2>&1 | Out-Null
-& $NssmPath set $serviceName AppStderr (Join-Path $logsDir "service-err.log") 2>&1 | Out-Null
-& $NssmPath set $serviceName AppStdoutCreationDisposition 4 2>&1 | Out-Null
-& $NssmPath set $serviceName AppStderrCreationDisposition 4 2>&1 | Out-Null
-& $NssmPath set $serviceName AppRotateFiles 1 2>&1 | Out-Null
-& $NssmPath set $serviceName AppRotateBytes 5242880 2>&1 | Out-Null
+Set-ItemProperty -Path $regPath -Name "AppStdout" -Value (Join-Path $logsDir "service-out.log")
+Set-ItemProperty -Path $regPath -Name "AppStderr" -Value (Join-Path $logsDir "service-err.log")
+Set-ItemProperty -Path $regPath -Name "AppStdoutCreationDisposition" -Value 4 -Type DWord
+Set-ItemProperty -Path $regPath -Name "AppStderrCreationDisposition" -Value 4 -Type DWord
+Set-ItemProperty -Path $regPath -Name "AppRotateFiles" -Value 1 -Type DWord
+Set-ItemProperty -Path $regPath -Name "AppRotateBytes" -Value 5242880 -Type DWord
 
 # Restart settings
+Set-ItemProperty -Path $regPath -Name "AppRestartDelay" -Value 5000 -Type DWord
+Set-ItemProperty -Path $regPath -Name "AppThrottle" -Value 10000 -Type DWord
+# AppExit still via nssm (it takes a special format)
 & $NssmPath set $serviceName AppExit Default Restart 2>&1 | Out-Null
-& $NssmPath set $serviceName AppRestartDelay 5000 2>&1 | Out-Null
-& $NssmPath set $serviceName AppThrottle 10000 2>&1 | Out-Null
 
 Write-Host "  ✓ Service $serviceDisplayName installed" -ForegroundColor Green
 
@@ -146,21 +154,24 @@ if ($existingJury) {
     Start-Sleep -Seconds 2
 }
 
-# Install jury service - use quoted paths to handle spaces in "C:\Program Files\"
-$installOutput = & $NssmPath install $juryServiceName "`"$NodePath`"" 2>&1
+# Install jury service, then configure paths via registry
+$installOutput = & $NssmPath install $juryServiceName $NodePath 2>&1
 Write-Host "  NSSM install output: $installOutput" -ForegroundColor DarkGray
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to install service $juryServiceName (exit code: $LASTEXITCODE)" -ForegroundColor Red
     exit 1
 }
 
-# Set the script arguments separately with proper quoting
-& $NssmPath set $juryServiceName AppParameters "`"$ServerScript`"" 2>&1 | Out-Null
+# Set paths directly via registry to guarantee correct quoting for paths with spaces
+$juryRegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$juryServiceName\Parameters"
+Set-ItemProperty -Path $juryRegPath -Name "Application" -Value $NodePath
+Set-ItemProperty -Path $juryRegPath -Name "AppParameters" -Value "`"$ServerScript`""
+Set-ItemProperty -Path $juryRegPath -Name "AppDirectory" -Value $ServerDir
+Write-Host "  Registry paths set (Application, AppParameters, AppDirectory)" -ForegroundColor DarkGray
 
 # Configure
 & $NssmPath set $juryServiceName DisplayName $juryDisplayName 2>&1 | Out-Null
 & $NssmPath set $juryServiceName Description $juryDescription 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppDirectory $ServerDir 2>&1 | Out-Null
 & $NssmPath set $juryServiceName Start SERVICE_DEMAND_START 2>&1 | Out-Null
 & $NssmPath set $juryServiceName ObjectName LocalSystem 2>&1 | Out-Null
 
@@ -180,18 +191,20 @@ if (Test-Path $EnvFile) {
     }
 }
 & $NssmPath set $juryServiceName AppEnvironmentExtra $juryEnvVars 2>&1 | Out-Null
+# Also write via registry as MultiString to ensure correct handling
+Set-ItemProperty -Path $juryRegPath -Name "AppEnvironmentExtra" -Value $juryEnvVars -Type MultiString
 
-# Logging
-& $NssmPath set $juryServiceName AppStdout (Join-Path $logsDir "jury-service-out.log") 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppStderr (Join-Path $logsDir "jury-service-err.log") 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppStdoutCreationDisposition 4 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppStderrCreationDisposition 4 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppRotateFiles 1 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppRotateBytes 5242880 2>&1 | Out-Null
+# Logging - set paths via registry to handle spaces in paths
+Set-ItemProperty -Path $juryRegPath -Name "AppStdout" -Value (Join-Path $logsDir "jury-service-out.log")
+Set-ItemProperty -Path $juryRegPath -Name "AppStderr" -Value (Join-Path $logsDir "jury-service-err.log")
+Set-ItemProperty -Path $juryRegPath -Name "AppStdoutCreationDisposition" -Value 4 -Type DWord
+Set-ItemProperty -Path $juryRegPath -Name "AppStderrCreationDisposition" -Value 4 -Type DWord
+Set-ItemProperty -Path $juryRegPath -Name "AppRotateFiles" -Value 1 -Type DWord
+Set-ItemProperty -Path $juryRegPath -Name "AppRotateBytes" -Value 5242880 -Type DWord
 
 # Restart settings
+Set-ItemProperty -Path $juryRegPath -Name "AppRestartDelay" -Value 5000 -Type DWord
 & $NssmPath set $juryServiceName AppExit Default Restart 2>&1 | Out-Null
-& $NssmPath set $juryServiceName AppRestartDelay 5000 2>&1 | Out-Null
 
 Write-Host "  ✓ Service $juryDisplayName installed" -ForegroundColor Green
 

@@ -18,7 +18,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║           TurnFix Post-Installation                       ║" -ForegroundColor Cyan
+Write-Host "║           TurnFix Post-Installation                        ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 
@@ -89,7 +89,7 @@ try {
 # === Summary ===
 Write-Host ""
 Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║            ✓ Post-Installation Complete!                  ║" -ForegroundColor Green
+Write-Host "║            ✓ Post-Installation Complete!                   ║" -ForegroundColor Green
 Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Installation: $InstallDir" -ForegroundColor White
