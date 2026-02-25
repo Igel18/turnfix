@@ -75,8 +75,8 @@ if ($existingService) {
     Start-Sleep -Seconds 2
 }
 
-# Install service
-$installOutput = & $NssmPath install $serviceName $NodePath $ServerScript 2>&1
+# Install service - use quoted paths to handle spaces in "C:\Program Files\"
+$installOutput = & $NssmPath install $serviceName "`"$NodePath`"" 2>&1
 Write-Host "  NSSM install output: $installOutput" -ForegroundColor DarkGray
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to install service $serviceName (exit code: $LASTEXITCODE)" -ForegroundColor Red
@@ -84,6 +84,9 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "  ServerScript: $ServerScript" -ForegroundColor Yellow
     exit 1
 }
+
+# Set the script arguments separately with proper quoting
+& $NssmPath set $serviceName AppParameters "`"$ServerScript`"" 2>&1 | Out-Null
 
 # Configure service - redirect stderr to avoid false failures
 & $NssmPath set $serviceName DisplayName $serviceDisplayName 2>&1 | Out-Null
@@ -143,13 +146,16 @@ if ($existingJury) {
     Start-Sleep -Seconds 2
 }
 
-# Install jury service
-$installOutput = & $NssmPath install $juryServiceName $NodePath $ServerScript 2>&1
+# Install jury service - use quoted paths to handle spaces in "C:\Program Files\"
+$installOutput = & $NssmPath install $juryServiceName "`"$NodePath`"" 2>&1
 Write-Host "  NSSM install output: $installOutput" -ForegroundColor DarkGray
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to install service $juryServiceName (exit code: $LASTEXITCODE)" -ForegroundColor Red
     exit 1
 }
+
+# Set the script arguments separately with proper quoting
+& $NssmPath set $juryServiceName AppParameters "`"$ServerScript`"" 2>&1 | Out-Null
 
 # Configure
 & $NssmPath set $juryServiceName DisplayName $juryDisplayName 2>&1 | Out-Null
