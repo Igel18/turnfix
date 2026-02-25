@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # TurnFix - Windows Service Configuration Script
 # ============================================================================
 # Uses NSSM to install TurnFix as a Windows Service
@@ -19,7 +19,7 @@ param(
     [string]$JuryPort = "3002"
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║         TurnFix Windows Service Configuration             ║" -ForegroundColor Cyan
@@ -33,6 +33,8 @@ $EnvFile = Join-Path $ServerDir ".env"
 # Verify files exist
 if (-not (Test-Path $NodePath)) {
     Write-Host "❌ Node.js not found at: $NodePath" -ForegroundColor Red
+    Write-Host "  Available files in install dir:" -ForegroundColor Yellow
+    Get-ChildItem $InstallDir -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "    $($_.Name)" }
     exit 1
 }
 if (-not (Test-Path $NssmPath)) {
@@ -48,6 +50,12 @@ if (-not (Test-Path $NssmPath)) {
 }
 if (-not (Test-Path $ServerScript)) {
     Write-Host "❌ Server script not found at: $ServerScript" -ForegroundColor Red
+    Write-Host "  Contents of server dir:" -ForegroundColor Yellow
+    Get-ChildItem $ServerDir -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "    $($_.Name)" }
+    if (Test-Path (Join-Path $ServerDir "dist")) {
+        Write-Host "  Contents of dist/:" -ForegroundColor Yellow
+        Get-ChildItem (Join-Path $ServerDir "dist") -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "    $($_.Name)" }
+    }
     exit 1
 }
 
@@ -68,38 +76,55 @@ if ($existingService) {
 }
 
 # Install service
-& $NssmPath install $serviceName $NodePath $ServerScript
+$installOutput = & $NssmPath install $serviceName $NodePath $ServerScript 2>&1
+Write-Host "  NSSM install output: $installOutput" -ForegroundColor DarkGray
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to install service $serviceName" -ForegroundColor Red
+    Write-Host "❌ Failed to install service $serviceName (exit code: $LASTEXITCODE)" -ForegroundColor Red
+    Write-Host "  NodePath: $NodePath" -ForegroundColor Yellow
+    Write-Host "  ServerScript: $ServerScript" -ForegroundColor Yellow
     exit 1
 }
 
-# Configure service
-& $NssmPath set $serviceName DisplayName $serviceDisplayName
-& $NssmPath set $serviceName Description $serviceDescription
-& $NssmPath set $serviceName AppDirectory $ServerDir
-& $NssmPath set $serviceName Start SERVICE_AUTO_START
-& $NssmPath set $serviceName ObjectName LocalSystem
+# Configure service - redirect stderr to avoid false failures
+& $NssmPath set $serviceName DisplayName $serviceDisplayName 2>&1 | Out-Null
+& $NssmPath set $serviceName Description $serviceDescription 2>&1 | Out-Null
+& $NssmPath set $serviceName AppDirectory $ServerDir 2>&1 | Out-Null
+& $NssmPath set $serviceName Start SERVICE_AUTO_START 2>&1 | Out-Null
+& $NssmPath set $serviceName ObjectName LocalSystem 2>&1 | Out-Null
 
-# Environment variables
-& $NssmPath set $serviceName AppEnvironmentExtra "NODE_ENV=production" "PORT=$ServerPort"
+# Environment variables - include DATABASE_URL from .env file
+$envVars = @("NODE_ENV=production", "PORT=$ServerPort")
+if (Test-Path $EnvFile) {
+    foreach ($line in (Get-Content $EnvFile)) {
+        if ($line -match '^\s*DATABASE_URL\s*=\s*"?(.+?)"?\s*$') {
+            $envVars += "DATABASE_URL=$($Matches[1])"
+        }
+        if ($line -match '^\s*JWT_SECRET\s*=\s*"?(.+?)"?\s*$') {
+            $envVars += "JWT_SECRET=$($Matches[1])"
+        }
+        if ($line -match '^\s*JWT_REFRESH_SECRET\s*=\s*"?(.+?)"?\s*$') {
+            $envVars += "JWT_REFRESH_SECRET=$($Matches[1])"
+        }
+    }
+}
+& $NssmPath set $serviceName AppEnvironmentExtra $envVars 2>&1 | Out-Null
 
 # Logging
 $logsDir = Join-Path $ServerDir "logs"
 if (-not (Test-Path $logsDir)) {
     New-Item -Path $logsDir -ItemType Directory -Force | Out-Null
 }
-& $NssmPath set $serviceName AppStdout (Join-Path $logsDir "service-out.log")
-& $NssmPath set $serviceName AppStderr (Join-Path $logsDir "service-err.log")
-& $NssmPath set $serviceName AppStdoutCreationDisposition 4
-& $NssmPath set $serviceName AppStderrCreationDisposition 4
-& $NssmPath set $serviceName AppRotateFiles 1
-& $NssmPath set $serviceName AppRotateBytes 5242880
+& $NssmPath set $serviceName AppStdout (Join-Path $logsDir "service-out.log") 2>&1 | Out-Null
+& $NssmPath set $serviceName AppStderr (Join-Path $logsDir "service-err.log") 2>&1 | Out-Null
+& $NssmPath set $serviceName AppStdoutCreationDisposition 4 2>&1 | Out-Null
+& $NssmPath set $serviceName AppStderrCreationDisposition 4 2>&1 | Out-Null
+& $NssmPath set $serviceName AppRotateFiles 1 2>&1 | Out-Null
+& $NssmPath set $serviceName AppRotateBytes 5242880 2>&1 | Out-Null
 
 # Restart settings
-& $NssmPath set $serviceName AppExit Default Restart
-& $NssmPath set $serviceName AppRestartDelay 5000
-& $NssmPath set $serviceName AppThrottle 10000
+& $NssmPath set $serviceName AppExit Default Restart 2>&1 | Out-Null
+& $NssmPath set $serviceName AppRestartDelay 5000 2>&1 | Out-Null
+& $NssmPath set $serviceName AppThrottle 10000 2>&1 | Out-Null
 
 Write-Host "  ✓ Service $serviceDisplayName installed" -ForegroundColor Green
 
@@ -119,33 +144,48 @@ if ($existingJury) {
 }
 
 # Install jury service
-& $NssmPath install $juryServiceName $NodePath $ServerScript
+$installOutput = & $NssmPath install $juryServiceName $NodePath $ServerScript 2>&1
+Write-Host "  NSSM install output: $installOutput" -ForegroundColor DarkGray
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to install service $juryServiceName" -ForegroundColor Red
+    Write-Host "❌ Failed to install service $juryServiceName (exit code: $LASTEXITCODE)" -ForegroundColor Red
     exit 1
 }
 
 # Configure
-& $NssmPath set $juryServiceName DisplayName $juryDisplayName
-& $NssmPath set $juryServiceName Description $juryDescription
-& $NssmPath set $juryServiceName AppDirectory $ServerDir
-& $NssmPath set $juryServiceName Start SERVICE_DEMAND_START
-& $NssmPath set $juryServiceName ObjectName LocalSystem
+& $NssmPath set $juryServiceName DisplayName $juryDisplayName 2>&1 | Out-Null
+& $NssmPath set $juryServiceName Description $juryDescription 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppDirectory $ServerDir 2>&1 | Out-Null
+& $NssmPath set $juryServiceName Start SERVICE_DEMAND_START 2>&1 | Out-Null
+& $NssmPath set $juryServiceName ObjectName LocalSystem 2>&1 | Out-Null
 
-# Environment
-& $NssmPath set $juryServiceName AppEnvironmentExtra "NODE_ENV=production" "PORT=$JuryPort" "JURY_MODE=true"
+# Environment variables - include DATABASE_URL from .env file
+$juryEnvVars = @("NODE_ENV=production", "PORT=$JuryPort", "JURY_MODE=true")
+if (Test-Path $EnvFile) {
+    foreach ($line in (Get-Content $EnvFile)) {
+        if ($line -match '^\s*DATABASE_URL\s*=\s*"?(.+?)"?\s*$') {
+            $juryEnvVars += "DATABASE_URL=$($Matches[1])"
+        }
+        if ($line -match '^\s*JWT_SECRET\s*=\s*"?(.+?)"?\s*$') {
+            $juryEnvVars += "JWT_SECRET=$($Matches[1])"
+        }
+        if ($line -match '^\s*JWT_REFRESH_SECRET\s*=\s*"?(.+?)"?\s*$') {
+            $juryEnvVars += "JWT_REFRESH_SECRET=$($Matches[1])"
+        }
+    }
+}
+& $NssmPath set $juryServiceName AppEnvironmentExtra $juryEnvVars 2>&1 | Out-Null
 
 # Logging
-& $NssmPath set $juryServiceName AppStdout (Join-Path $logsDir "jury-service-out.log")
-& $NssmPath set $juryServiceName AppStderr (Join-Path $logsDir "jury-service-err.log")
-& $NssmPath set $juryServiceName AppStdoutCreationDisposition 4
-& $NssmPath set $juryServiceName AppStderrCreationDisposition 4
-& $NssmPath set $juryServiceName AppRotateFiles 1
-& $NssmPath set $juryServiceName AppRotateBytes 5242880
+& $NssmPath set $juryServiceName AppStdout (Join-Path $logsDir "jury-service-out.log") 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppStderr (Join-Path $logsDir "jury-service-err.log") 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppStdoutCreationDisposition 4 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppStderrCreationDisposition 4 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppRotateFiles 1 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppRotateBytes 5242880 2>&1 | Out-Null
 
 # Restart settings
-& $NssmPath set $juryServiceName AppExit Default Restart
-& $NssmPath set $juryServiceName AppRestartDelay 5000
+& $NssmPath set $juryServiceName AppExit Default Restart 2>&1 | Out-Null
+& $NssmPath set $juryServiceName AppRestartDelay 5000 2>&1 | Out-Null
 
 Write-Host "  ✓ Service $juryDisplayName installed" -ForegroundColor Green
 

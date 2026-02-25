@@ -49,6 +49,44 @@ if (Test-Path (Join-Path $scriptRoot "server\package.json")) {
     exit 1
 }
 
+# ── Helper: Get NSSM path (production only) ──
+function Get-NssmPath {
+    $nssmPath = Join-Path $global:BasePath "nssm\nssm.exe"
+    if (Test-Path $nssmPath) { return $nssmPath }
+    # Fallback: try parent directory (if BasePath is the install root)
+    $nssmPath2 = Join-Path $scriptRoot "nssm\nssm.exe"
+    if (Test-Path $nssmPath2) { return $nssmPath2 }
+    return $null
+}
+
+# ── Helper: Run a PM2 command using bundled or system node ──
+function Invoke-PM2 {
+    param([string]$Arguments)
+    $serverPath = Join-Path $global:BasePath "server"
+    Push-Location $serverPath
+    try {
+        if ($global:IsProduction) {
+            # In production, use bundled node + local pm2
+            $nodePath = Join-Path $scriptRoot "nodejs\node.exe"
+            $pm2Bin = Join-Path $serverPath "node_modules\.bin\pm2.cmd"
+            $pm2Js = Join-Path $serverPath "node_modules\pm2\bin\pm2"
+            if (Test-Path $pm2Bin) {
+                & $pm2Bin $Arguments.Split(' ')
+            } elseif (Test-Path $pm2Js) {
+                & $nodePath $pm2Js $Arguments.Split(' ')
+            } else {
+                # Fallback to npx
+                npx pm2 $Arguments.Split(' ')
+            }
+        } else {
+            npx pm2 $Arguments.Split(' ')
+        }
+        return $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
+}
+
 # Farben und Formatierung
 function Show-Header {
     Clear-Host
@@ -64,80 +102,96 @@ function Show-Status {
     Write-Host "Status wird geprüft..." -ForegroundColor Yellow
     Write-Host ""
     
-    # Prüfe PM2 Status
-    try {
-        # Unterdrücke Fehlerausgabe und prüfe ob PM2 verfügbar ist
-        $ErrorActionPreference = 'SilentlyContinue'
-        # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-        $pm2Output = npx pm2 jlist 2>&1
-        $ErrorActionPreference = 'Continue'
+    if ($global:IsProduction) {
+        # Production: Check Windows Services
+        $mainSvc = Get-Service -Name "TurnFixServer" -ErrorAction SilentlyContinue
+        $jurySvc = Get-Service -Name "TurnFixJuryServer" -ErrorAction SilentlyContinue
         
-        # Prüfe ob die Ausgabe gültiges JSON ist
-        if (-not $pm2Output) {
-            throw "PM2 nicht initialisiert"
-        }
-        
-        $pm2Status = $pm2Output | ConvertFrom-Json
-        
-        if ($pm2Status -and $pm2Status.Count -gt 0) {
-            $mainServer = $pm2Status | Where-Object { $_.name -eq "turnfix-server" }
-            $juryServer = $pm2Status | Where-Object { $_.name -eq "turnfix-jury-server" }
-            
+        if ($mainSvc -or $jurySvc) {
             Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Green
             Write-Host "│             TurnFix Server Status                   │" -ForegroundColor Green
             Write-Host "├─────────────────────────────────────────────────────┤" -ForegroundColor Green
             
-            if ($mainServer) {
-                $status = if ($mainServer.pm2_env.status -eq "online") { "LÄUFT" } else { "✗ GESTOPPT" }
-                $color = if ($mainServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
-                $uptime = [math]::Round($mainServer.pm2_env.pm_uptime / 1000 / 60, 1)
-                $memory = [math]::Round($mainServer.monit.memory / 1024 / 1024, 1)
-                
+            if ($mainSvc) {
+                $status = if ($mainSvc.Status -eq 'Running') { "LÄUFT" } else { "GESTOPPT" }
+                $color = if ($mainSvc.Status -eq 'Running') { "Green" } else { "Red" }
                 Write-Host "│ Haupt-Server:     $status" -ForegroundColor $color
                 Write-Host "│   Adresse:        http://localhost:3001" -ForegroundColor White
-                Write-Host "│   Laufzeit:       $uptime Minuten" -ForegroundColor White
-                Write-Host "│   Speicher:       $memory MB" -ForegroundColor White
-                Write-Host "│   Neustarts:      $($mainServer.pm2_env.restart_time)" -ForegroundColor White
+                Write-Host "│   Dienst:         $($mainSvc.Name) ($($mainSvc.StartType))" -ForegroundColor White
             } else {
-                Write-Host "│ Haupt-Server:     ✗ NICHT GESTARTET" -ForegroundColor Red
+                Write-Host "│ Haupt-Server:     NICHT INSTALLIERT" -ForegroundColor Red
             }
             
             Write-Host "│" -ForegroundColor Green
             
-            if ($juryServer) {
-                $status = if ($juryServer.pm2_env.status -eq "online") { "LÄUFT" } else { "✗ GESTOPPT" }
-                $color = if ($juryServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
-                $uptime = [math]::Round($juryServer.pm2_env.pm_uptime / 1000 / 60, 1)
-                $memory = [math]::Round($juryServer.monit.memory / 1024 / 1024, 1)
-                
+            if ($jurySvc) {
+                $status = if ($jurySvc.Status -eq 'Running') { "LÄUFT" } else { "GESTOPPT" }
+                $color = if ($jurySvc.Status -eq 'Running') { "Green" } else { "Red" }
                 Write-Host "│ Kampfrichter:     $status" -ForegroundColor $color
                 Write-Host "│   Adresse:        http://localhost:3002" -ForegroundColor White
-                Write-Host "│   Laufzeit:       $uptime Minuten" -ForegroundColor White
-                Write-Host "│   Speicher:       $memory MB" -ForegroundColor White
-                Write-Host "│   Neustarts:      $($juryServer.pm2_env.restart_time)" -ForegroundColor White
+                Write-Host "│   Dienst:         $($jurySvc.Name) ($($jurySvc.StartType))" -ForegroundColor White
             } else {
-                Write-Host "│ Kampfrichter:     ✗ NICHT GESTARTET" -ForegroundColor Red
+                Write-Host "│ Kampfrichter:     NICHT INSTALLIERT" -ForegroundColor Red
             }
             
             Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Green
         } else {
             Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
-            Write-Host "│  ⚠ Keine Server gestartet                          │" -ForegroundColor Yellow
+            Write-Host "│  ⚠ Keine Dienste installiert                       │" -ForegroundColor Yellow
+            Write-Host "│  Bitte TurnFix erneut installieren                 │" -ForegroundColor Yellow
+            Write-Host "│  oder Option 1 zum direkten Starten wählen         │" -ForegroundColor Yellow
+            Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
+        }
+    } else {
+        # Development: Check PM2
+        try {
+            $ErrorActionPreference = 'SilentlyContinue'
+            $pm2Output = npx pm2 jlist 2>&1
+            $ErrorActionPreference = 'Continue'
+            
+            if (-not $pm2Output) { throw "PM2 nicht initialisiert" }
+            
+            $pm2Status = $pm2Output | ConvertFrom-Json
+            
+            if ($pm2Status -and $pm2Status.Count -gt 0) {
+                $mainServer = $pm2Status | Where-Object { $_.name -eq "turnfix-server" }
+                $juryServer = $pm2Status | Where-Object { $_.name -eq "turnfix-jury-server" }
+                
+                Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Green
+                Write-Host "│             TurnFix Server Status (PM2)             │" -ForegroundColor Green
+                Write-Host "├─────────────────────────────────────────────────────┤" -ForegroundColor Green
+                
+                if ($mainServer) {
+                    $status = if ($mainServer.pm2_env.status -eq "online") { "LÄUFT" } else { "GESTOPPT" }
+                    $color = if ($mainServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
+                    $uptime = [math]::Round($mainServer.pm2_env.pm_uptime / 1000 / 60, 1)
+                    $memory = [math]::Round($mainServer.monit.memory / 1024 / 1024, 1)
+                    Write-Host "│ Haupt-Server:     $status" -ForegroundColor $color
+                    Write-Host "│   Laufzeit: $uptime Min | Speicher: $memory MB" -ForegroundColor White
+                } else {
+                    Write-Host "│ Haupt-Server:     NICHT GESTARTET" -ForegroundColor Red
+                }
+                Write-Host "│" -ForegroundColor Green
+                if ($juryServer) {
+                    $status = if ($juryServer.pm2_env.status -eq "online") { "LÄUFT" } else { "GESTOPPT" }
+                    $color = if ($juryServer.pm2_env.status -eq "online") { "Green" } else { "Red" }
+                    Write-Host "│ Kampfrichter:     $status" -ForegroundColor $color
+                } else {
+                    Write-Host "│ Kampfrichter:     NICHT GESTARTET" -ForegroundColor Red
+                }
+                Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Green
+            } else {
+                Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
+                Write-Host "│  ⚠ Keine Server gestartet                          │" -ForegroundColor Yellow
+                Write-Host "│  Wählen Sie Option 1 zum ersten Start              │" -ForegroundColor Yellow
+                Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
+            Write-Host "│  TurnFix ist noch nicht gestartet                  │" -ForegroundColor Yellow
             Write-Host "│  Wählen Sie Option 1 zum ersten Start              │" -ForegroundColor Yellow
             Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
         }
-    } catch {
-        # PM2 ist nicht initialisiert oder es gibt keine Prozesse
-        Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Yellow
-        Write-Host "│  ℹ TurnFix ist noch nicht gestartet                │" -ForegroundColor Yellow
-        Write-Host "│                                                     │" -ForegroundColor Yellow
-        Write-Host "│  Wählen Sie Option 1 zum ersten Start:             │" -ForegroundColor Yellow
-        Write-Host "│  • Baut die Anwendung falls nötig                  │" -ForegroundColor White
-        Write-Host "│  • Startet Haupt-Server (Port 3001)                │" -ForegroundColor White
-        Write-Host "│  • Startet Kampfrichter-Portal (Port 3002)        │" -ForegroundColor White
-        Write-Host "│                                                     │" -ForegroundColor Yellow
-        Write-Host "│  Dies kann beim ersten Mal einige Minuten dauern.  │" -ForegroundColor DarkGray
-        Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     }
     Write-Host ""
 }
@@ -186,10 +240,16 @@ function Start-TurnFix {
     
     # Prüfe ob node_modules existiert (Server, Client, Jury-Portal)
     $serverNodeModules = Join-Path $serverPath "node_modules"
-    $clientPath = Join-Path $global:BasePath "client"
-    $clientNodeModules = Join-Path $clientPath "node_modules"
-    $juryPath = Join-Path $global:BasePath "jury-portal"
-    $juryNodeModules = Join-Path $juryPath "node_modules"
+    
+    # In production, client & jury-portal are pre-built and served from server
+    # Only in development do we need separate client/jury-portal directories
+    if ($global:IsProduction) {
+        $clientPath = $null
+        $juryPath = $null
+    } else {
+        $clientPath = Join-Path $global:BasePath "client"
+        $juryPath = Join-Path $global:BasePath "jury-portal"
+    }
     
     $installNeeded = $false
     
@@ -197,11 +257,11 @@ function Start-TurnFix {
         Write-Host "⚠ Server node_modules nicht gefunden" -ForegroundColor Yellow
         $installNeeded = $true
     }
-    if (-not (Test-Path $clientNodeModules)) {
+    if ($clientPath -and -not (Test-Path (Join-Path $clientPath "node_modules"))) {
         Write-Host "⚠ Client node_modules nicht gefunden" -ForegroundColor Yellow
         $installNeeded = $true
     }
-    if (-not (Test-Path $juryNodeModules)) {
+    if ($juryPath -and -not (Test-Path (Join-Path $juryPath "node_modules"))) {
         Write-Host "⚠ Jury-Portal node_modules nicht gefunden" -ForegroundColor Yellow
         $installNeeded = $true
     }
@@ -222,8 +282,8 @@ function Start-TurnFix {
             }
         }
         
-        # Client Dependencies
-        if (-not (Test-Path $clientNodeModules)) {
+        # Client Dependencies (development only)
+        if ($clientPath -and -not (Test-Path (Join-Path $clientPath "node_modules"))) {
             Write-Host "  [2/3] Client Dependencies..." -ForegroundColor Cyan
             Push-Location $clientPath
             try {
@@ -239,8 +299,8 @@ function Start-TurnFix {
             }
         }
         
-        # Jury-Portal Dependencies
-        if (-not (Test-Path $juryNodeModules)) {
+        # Jury-Portal Dependencies (development only)
+        if ($juryPath -and -not (Test-Path (Join-Path $juryPath "node_modules"))) {
             Write-Host "  [3/3] Jury-Portal Dependencies..." -ForegroundColor Cyan
             Push-Location $juryPath
             try {
@@ -262,10 +322,6 @@ function Start-TurnFix {
     
     # Prüfe ob Build existiert und aktuell ist
     $distPath = Join-Path $serverPath "dist"
-    $clientPath = Join-Path $global:BasePath "client"
-    $clientDistPath = Join-Path $clientPath "dist"
-    $juryPath = Join-Path $global:BasePath "jury-portal"
-    $juryDistPath = Join-Path $juryPath "dist"
     
     $buildRequired = $false
     $buildReason = ""
@@ -275,15 +331,23 @@ function Start-TurnFix {
         $buildRequired = $true
         $buildReason = "Backend dist/ Ordner fehlt"
     }
-    elseif (-not (Test-Path $clientDistPath)) {
-        $buildRequired = $true
-        $buildReason = "Client dist/ Ordner fehlt"
+    
+    # In development mode, also check client and jury-portal builds
+    if (-not $global:IsProduction) {
+        $clientDistPath = Join-Path $global:BasePath "client\dist"
+        $juryDistPath = Join-Path $global:BasePath "jury-portal\dist"
+        
+        if (-not $buildRequired -and -not (Test-Path $clientDistPath)) {
+            $buildRequired = $true
+            $buildReason = "Client dist/ Ordner fehlt"
+        }
+        if (-not $buildRequired -and -not (Test-Path $juryDistPath)) {
+            $buildRequired = $true
+            $buildReason = "Jury-Portal dist/ Ordner fehlt"
+        }
     }
-    elseif (-not (Test-Path $juryDistPath)) {
-        $buildRequired = $true
-        $buildReason = "Jury-Portal dist/ Ordner fehlt"
-    }
-    else {
+    
+    if (-not $buildRequired) {
         # Prüfe ob Source-Dateien neuer sind als dist
         $srcIndexPath = Join-Path $serverPath "src\index.ts"
         $distIndexPath = Join-Path $distPath "index.js"
@@ -300,10 +364,16 @@ function Start-TurnFix {
     }
     
     if ($buildRequired) {
+        if ($global:IsProduction) {
+            # In production, we cannot rebuild - show error
+            Write-Host "✗ Build fehlt: $buildReason" -ForegroundColor Red
+            Write-Host "  In der Produktionsumgebung kann nicht gebaut werden." -ForegroundColor Yellow
+            Write-Host "  Bitte installieren Sie TurnFix erneut." -ForegroundColor Yellow
+            Read-Host "Drücken Sie Enter zum Fortfahren"
+            return
+        }
+        
         Write-Host "⚠ Build erforderlich: $buildReason" -ForegroundColor Yellow
-        Write-Host "  Backend wird kompiliert..." -ForegroundColor DarkGray
-        Write-Host "  Client wird gebaut..." -ForegroundColor DarkGray
-        Write-Host "  Jury-Portal wird gebaut..." -ForegroundColor DarkGray
         Write-Host "  Dies kann einige Minuten dauern..." -ForegroundColor DarkGray
         Write-Host ""
         
@@ -317,34 +387,38 @@ function Start-TurnFix {
             return
         }
         
-        # Baue Client
-        Write-Host "  [2/3] Client Build..." -ForegroundColor Cyan
-        Push-Location $clientPath
-        try {
-            npm run build
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "✗ Client Build fehlgeschlagen!" -ForegroundColor Red
+        # Baue Client (development only)
+        if ($clientPath) {
+            Write-Host "  [2/3] Client Build..." -ForegroundColor Cyan
+            Push-Location $clientPath
+            try {
+                npm run build
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "✗ Client Build fehlgeschlagen!" -ForegroundColor Red
+                    Pop-Location
+                    Read-Host "Drücken Sie Enter zum Fortfahren"
+                    return
+                }
+            } finally {
                 Pop-Location
-                Read-Host "Drücken Sie Enter zum Fortfahren"
-                return
             }
-        } finally {
-            Pop-Location
         }
         
-        # Baue Jury-Portal
-        Write-Host "  [3/3] Jury-Portal Build..." -ForegroundColor Cyan
-        Push-Location $juryPath
-        try {
-            npm run build
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "✗ Jury-Portal Build fehlgeschlagen!" -ForegroundColor Red
+        # Baue Jury-Portal (development only)
+        if ($juryPath) {
+            Write-Host "  [3/3] Jury-Portal Build..." -ForegroundColor Cyan
+            Push-Location $juryPath
+            try {
+                npm run build
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "✗ Jury-Portal Build fehlgeschlagen!" -ForegroundColor Red
+                    Pop-Location
+                    Read-Host "Drücken Sie Enter zum Fortfahren"
+                    return
+                }
+            } finally {
                 Pop-Location
-                Read-Host "Drücken Sie Enter zum Fortfahren"
-                return
             }
-        } finally {
-            Pop-Location
         }
         
         # Zurück zum Server-Verzeichnis
@@ -377,20 +451,49 @@ function Start-TurnFix {
     }
     Write-Host ""
     
-    # Wechsle ins Server-Verzeichnis (wichtig für PM2 und relative Pfade)
-    Push-Location $serverPath
+    # Starte Server
+    $startSuccess = $false
     
-    try {
-        # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-        # Verwende relativen Pfad da wir im Server-Verzeichnis sind
-        npx pm2 start ecosystem.config.js --env production
-        $pm2ExitCode = $LASTEXITCODE
-    } finally {
-        # Kehre zum ursprünglichen Verzeichnis zurück
-        Pop-Location
+    if ($global:IsProduction) {
+        # Production: Use Windows Services (NSSM)
+        $mainSvc = Get-Service -Name "TurnFixServer" -ErrorAction SilentlyContinue
+        $jurySvc = Get-Service -Name "TurnFixJuryServer" -ErrorAction SilentlyContinue
+        
+        if ($mainSvc) {
+            Write-Host "  Starte TurnFixServer Dienst..." -ForegroundColor Cyan
+            try {
+                Start-Service -Name "TurnFixServer" -ErrorAction Stop
+                Write-Host "  ✓ Haupt-Server gestartet" -ForegroundColor Green
+                $startSuccess = $true
+            } catch {
+                Write-Host "  ✗ Haupt-Server konnte nicht gestartet werden: $($_.Exception.Message)" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "  ⚠ TurnFixServer Dienst nicht installiert" -ForegroundColor Yellow
+            Write-Host "    Bitte TurnFix erneut installieren mit Dienst-Komponente" -ForegroundColor Yellow
+        }
+        
+        if ($jurySvc) {
+            Write-Host "  Starte TurnFixJuryServer Dienst..." -ForegroundColor Cyan
+            try {
+                Start-Service -Name "TurnFixJuryServer" -ErrorAction Stop
+                Write-Host "  ✓ Kampfrichter-Portal gestartet" -ForegroundColor Green
+            } catch {
+                Write-Host "  ⚠ Kampfrichter-Portal konnte nicht gestartet werden" -ForegroundColor Yellow
+            }
+        }
+    } else {
+        # Development: Use PM2
+        Push-Location $serverPath
+        try {
+            npx pm2 start ecosystem.config.js --env production
+            if ($LASTEXITCODE -eq 0) { $startSuccess = $true }
+        } finally {
+            Pop-Location
+        }
     }
     
-    if ($pm2ExitCode -eq 0) {
+    if ($startSuccess) {
         Start-Sleep -Seconds 2  # Kurze Pause damit PM2 hochfährt
         
         # Hole lokale IP-Adresse
@@ -449,20 +552,48 @@ function Stop-TurnFix {
     Write-Host "TurnFix wird gestoppt..." -ForegroundColor Red
     Write-Host ""
     
-    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-    
-    $serverPath = Join-Path $global:BasePath "server"
-    Set-Location $serverPath
-    
-    # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-    npx pm2 stop all
-    
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host ""
-        Write-Host "✓ TurnFix erfolgreich gestoppt!" -ForegroundColor Green
+    if ($global:IsProduction) {
+        # Production: Stop Windows Services
+        $stopped = $false
+        $mainSvc = Get-Service -Name "TurnFixServer" -ErrorAction SilentlyContinue
+        if ($mainSvc -and $mainSvc.Status -eq 'Running') {
+            try {
+                Stop-Service -Name "TurnFixServer" -Force -ErrorAction Stop
+                Write-Host "  ✓ Haupt-Server gestoppt" -ForegroundColor Green
+                $stopped = $true
+            } catch {
+                Write-Host "  ✗ Haupt-Server konnte nicht gestoppt werden" -ForegroundColor Red
+            }
+        } elseif ($mainSvc) {
+            Write-Host "  Haupt-Server war bereits gestoppt" -ForegroundColor Yellow
+            $stopped = $true
+        }
+        
+        $jurySvc = Get-Service -Name "TurnFixJuryServer" -ErrorAction SilentlyContinue
+        if ($jurySvc -and $jurySvc.Status -eq 'Running') {
+            try {
+                Stop-Service -Name "TurnFixJuryServer" -Force -ErrorAction Stop
+                Write-Host "  ✓ Kampfrichter-Portal gestoppt" -ForegroundColor Green
+            } catch {
+                Write-Host "  ✗ Kampfrichter-Portal konnte nicht gestoppt werden" -ForegroundColor Red
+            }
+        }
+        
+        if ($stopped) {
+            Write-Host ""
+            Write-Host "✓ TurnFix erfolgreich gestoppt!" -ForegroundColor Green
+        }
     } else {
-        Write-Host "✗ Fehler beim Stoppen!" -ForegroundColor Red
+        # Development: Stop PM2
+        $serverPath = Join-Path $global:BasePath "server"
+        Set-Location $serverPath
+        npx pm2 stop all
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host ""
+            Write-Host "✓ TurnFix erfolgreich gestoppt!" -ForegroundColor Green
+        } else {
+            Write-Host "✗ Fehler beim Stoppen!" -ForegroundColor Red
+        }
     }
     
     Read-Host "Drücken Sie Enter zum Fortfahren"
@@ -472,20 +603,39 @@ function Restart-TurnFix {
     Write-Host "TurnFix wird neu gestartet..." -ForegroundColor Yellow
     Write-Host ""
     
-    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-    
-    $serverPath = Join-Path $global:BasePath "server"
-    Set-Location $serverPath
-    
-    # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-    npx pm2 restart all
-    
-    if ($LASTEXITCODE -eq 0) {
+    if ($global:IsProduction) {
+        # Production: Restart Windows Services
+        $mainSvc = Get-Service -Name "TurnFixServer" -ErrorAction SilentlyContinue
+        if ($mainSvc) {
+            try {
+                Restart-Service -Name "TurnFixServer" -Force -ErrorAction Stop
+                Write-Host "  ✓ Haupt-Server neu gestartet" -ForegroundColor Green
+            } catch {
+                Write-Host "  ✗ Haupt-Server Neustart fehlgeschlagen: $($_.Exception.Message)" -ForegroundColor Red
+            }
+        }
+        $jurySvc = Get-Service -Name "TurnFixJuryServer" -ErrorAction SilentlyContinue
+        if ($jurySvc -and $jurySvc.Status -eq 'Running') {
+            try {
+                Restart-Service -Name "TurnFixJuryServer" -Force -ErrorAction Stop
+                Write-Host "  ✓ Kampfrichter-Portal neu gestartet" -ForegroundColor Green
+            } catch {
+                Write-Host "  ✗ Kampfrichter-Portal Neustart fehlgeschlagen" -ForegroundColor Red
+            }
+        }
         Write-Host ""
         Write-Host "✓ TurnFix erfolgreich neu gestartet!" -ForegroundColor Green
     } else {
-        Write-Host "✗ Fehler beim Neustart!" -ForegroundColor Red
+        # Development: Restart PM2
+        $serverPath = Join-Path $global:BasePath "server"
+        Set-Location $serverPath
+        npx pm2 restart all
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host ""
+            Write-Host "✓ TurnFix erfolgreich neu gestartet!" -ForegroundColor Green
+        } else {
+            Write-Host "✗ Fehler beim Neustart!" -ForegroundColor Red
+        }
     }
     
     Read-Host "Drücken Sie Enter zum Fortfahren"
@@ -495,21 +645,54 @@ function Show-DetailedStatus {
     Write-Host "Detaillierter Status wird geladen..." -ForegroundColor Cyan
     Write-Host ""
     
-    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-    
-    $serverPath = Join-Path $global:BasePath "server"
-    Set-Location $serverPath
-    
-    # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-    npx pm2 status
+    if ($global:IsProduction) {
+        # Production: Show Windows Service details
+        Write-Host "┌─────────────────────────────────────────────────────┐" -ForegroundColor Cyan
+        Write-Host "│          Windows Dienste - Detailstatus             │" -ForegroundColor Cyan
+        Write-Host "├─────────────────────────────────────────────────────┤" -ForegroundColor Cyan
+        
+        foreach ($svcName in @("TurnFixServer", "TurnFixJuryServer")) {
+            $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+            if ($svc) {
+                $color = if ($svc.Status -eq 'Running') { "Green" } else { "Yellow" }
+                Write-Host "│" -ForegroundColor Cyan
+                Write-Host "│ Dienst:     $($svc.DisplayName)" -ForegroundColor $color
+                Write-Host "│   Name:     $($svc.Name)" -ForegroundColor White
+                Write-Host "│   Status:   $($svc.Status)" -ForegroundColor $color
+                Write-Host "│   Starttyp: $($svc.StartType)" -ForegroundColor White
+            } else {
+                Write-Host "│ ${svcName}: NICHT INSTALLIERT" -ForegroundColor Red
+            }
+        }
+        Write-Host "│" -ForegroundColor Cyan
+        Write-Host "└─────────────────────────────────────────────────────┘" -ForegroundColor Cyan
+        
+        # Also check HTTP connectivity
+        Write-Host ""
+        Write-Host "HTTP-Erreichbarkeit:" -ForegroundColor Cyan
+        try {
+            $r = Invoke-WebRequest -Uri "http://localhost:3001/api/configuration" -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+            Write-Host "  ✓ Haupt-Server auf Port 3001 erreichbar" -ForegroundColor Green
+        } catch {
+            Write-Host "  ✗ Haupt-Server auf Port 3001 NICHT erreichbar" -ForegroundColor Red
+        }
+        try {
+            $r = Invoke-WebRequest -Uri "http://localhost:3002/api/health" -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+            Write-Host "  ✓ Jury-Portal auf Port 3002 erreichbar" -ForegroundColor Green
+        } catch {
+            Write-Host "  ✗ Jury-Portal auf Port 3002 NICHT erreichbar" -ForegroundColor Red
+        }
+    } else {
+        # Development: PM2 status
+        $serverPath = Join-Path $global:BasePath "server"
+        Set-Location $serverPath
+        npx pm2 status
+        Write-Host ""
+        Write-Host "Für detaillierte Informationen:" -ForegroundColor Yellow
+        Write-Host "  npx pm2 describe turnfix-server" -ForegroundColor White
+    }
     
     Write-Host ""
-    Write-Host "Für detaillierte Informationen über einen Server:" -ForegroundColor Yellow
-    Write-Host "  npx pm2 describe turnfix-server" -ForegroundColor White
-    Write-Host "  npx pm2 describe turnfix-jury-server" -ForegroundColor White
-    Write-Host ""
-    
     Read-Host "Drücken Sie Enter zum Fortfahren"
 }
 
@@ -518,25 +701,66 @@ function Show-LiveLogs {
     Write-Host "Drücken Sie STRG+C zum Beenden" -ForegroundColor Yellow
     Write-Host ""
     
-    # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-    $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-    
     $serverPath = Join-Path $global:BasePath "server"
-    Set-Location $serverPath
+    $logsDir = Join-Path $serverPath "logs"
     
-    # PM2 über npx aufrufen (funktioniert auch wenn PM2 nicht im PATH ist)
-    npx pm2 logs
+    if ($global:IsProduction) {
+        # Production: Show service log files
+        if (Test-Path $logsDir) {
+            Write-Host "Log-Dateien in: $logsDir" -ForegroundColor Cyan
+            Write-Host ""
+            # Show last 50 lines of each log
+            foreach ($logFile in @("service-out.log", "service-err.log", "jury-service-out.log", "jury-service-err.log")) {
+                $logPath = Join-Path $logsDir $logFile
+                if (Test-Path $logPath) {
+                    Write-Host "━━━ $logFile ━━━" -ForegroundColor Yellow
+                    Get-Content $logPath -Tail 30
+                    Write-Host ""
+                }
+            }
+        } else {
+            Write-Host "Keine Logs gefunden in: $logsDir" -ForegroundColor Yellow
+        }
+        Read-Host "Drücken Sie Enter zum Fortfahren"
+    } else {
+        # Development: PM2 live logs
+        Set-Location $serverPath
+        npx pm2 logs
+    }
 }
 
 function Show-SystemMonitor {
     Write-Host "System-Monitor wird geöffnet..." -ForegroundColor Cyan
-    Write-Host "Drücken Sie STRG+C zum Beenden" -ForegroundColor Yellow
     Write-Host ""
     
-    $serverPath = Join-Path $global:BasePath "server"
-    Set-Location $serverPath
-    
-    npm run pm2:monit
+    if ($global:IsProduction) {
+        # Production: Show Windows service process info
+        Write-Host "Prozess-Informationen:" -ForegroundColor Cyan
+        Write-Host ""
+        foreach ($svcName in @("TurnFixServer", "TurnFixJuryServer")) {
+            $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+            if ($svc -and $svc.Status -eq 'Running') {
+                $wmiSvc = Get-CimInstance Win32_Service -Filter "Name='$svcName'" -ErrorAction SilentlyContinue
+                if ($wmiSvc) {
+                    $proc = Get-Process -Id $wmiSvc.ProcessId -ErrorAction SilentlyContinue
+                    if ($proc) {
+                        $memMB = [math]::Round($proc.WorkingSet64 / 1MB, 1)
+                        Write-Host "  $($svc.DisplayName):" -ForegroundColor Green
+                        Write-Host "    PID: $($proc.Id) | Speicher: $memMB MB | CPU: $([math]::Round($proc.CPU, 1))s" -ForegroundColor White
+                    }
+                }
+            }
+        }
+        Write-Host ""
+        Read-Host "Drücken Sie Enter zum Fortfahren"
+    } else {
+        # Development: PM2 monit
+        Write-Host "Drücken Sie STRG+C zum Beenden" -ForegroundColor Yellow
+        Write-Host ""
+        $serverPath = Join-Path $global:BasePath "server"
+        Set-Location $serverPath
+        npx pm2 monit
+    }
 }
 
 function Open-Websites {
@@ -568,6 +792,15 @@ function Open-Websites {
 }
 
 function Force-Rebuild {
+    if ($global:IsProduction) {
+        Write-Host ""
+        Write-Host "⚠️  In der Produktionsumgebung kann kein Rebuild durchgeführt werden." -ForegroundColor Yellow
+        Write-Host "  Bitte TurnFix erneut installieren, um die Anwendung zu aktualisieren." -ForegroundColor Yellow
+        Write-Host ""
+        Read-Host "Drücken Sie Enter zum Fortfahren"
+        return
+    }
+    
     Write-Host ""
     Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
     Write-Host "║           ERZWUNGENER REBUILD ALLER KOMPONENTEN           ║" -ForegroundColor Magenta
@@ -710,23 +943,44 @@ function Show-AdvancedMenu {
     switch ($choice) {
         "1" {
             Write-Host "Logs werden gelöscht..." -ForegroundColor Yellow
-            # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-            $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
             $serverPath = Join-Path $global:BasePath "server"
-            Set-Location $serverPath
-            npm run pm2:flush
+            $logsDir = Join-Path $serverPath "logs"
+            if ($global:IsProduction) {
+                # Production: Clear service log files
+                if (Test-Path $logsDir) {
+                    Get-ChildItem $logsDir -Filter "*.log" | ForEach-Object {
+                        Clear-Content $_.FullName -ErrorAction SilentlyContinue
+                    }
+                }
+            } else {
+                Set-Location $serverPath
+                npx pm2 flush
+            }
             Write-Host "✓ Logs gelöscht!" -ForegroundColor Green
             Read-Host "Drücken Sie Enter zum Fortfahren"
         }
         "2" {
-            Write-Host "PM2 wird komplett neu gestartet..." -ForegroundColor Yellow
-            # Bestimme Script-Root (funktioniert auch wenn von .bat gestartet)
-            $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-            $serverPath = Join-Path $global:BasePath "server"
-            Set-Location $serverPath
-            npx pm2 kill
-            npm run pm2:start:prod
-            Write-Host "✓ PM2 neu gestartet!" -ForegroundColor Green
+            if ($global:IsProduction) {
+                Write-Host "Dienste werden komplett neu gestartet..." -ForegroundColor Yellow
+                foreach ($svcName in @("TurnFixServer", "TurnFixJuryServer")) {
+                    $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+                    if ($svc) {
+                        try {
+                            Restart-Service -Name $svcName -Force -ErrorAction Stop
+                            Write-Host "  ✓ $svcName neu gestartet" -ForegroundColor Green
+                        } catch {
+                            Write-Host "  ✗ $svcName Fehler: $($_.Exception.Message)" -ForegroundColor Red
+                        }
+                    }
+                }
+            } else {
+                Write-Host "PM2 wird komplett neu gestartet..." -ForegroundColor Yellow
+                $serverPath = Join-Path $global:BasePath "server"
+                Set-Location $serverPath
+                npx pm2 kill
+                npx pm2 start ecosystem.config.js --env production
+            }
+            Write-Host "✓ Neu gestartet!" -ForegroundColor Green
             Read-Host "Drücken Sie Enter zum Fortfahren"
         }
         "3" {
