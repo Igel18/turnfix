@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { mapDatabaseGenderToGerman, getGermanGenderCaseStatement } from '../utils/genderHelpers';
+import { getNextStartNumber } from '../utils/startNumberUtils';
 import assignmentRouter from './eventParticipantAssignments';
 
 const router = Router();
@@ -286,13 +287,16 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       });
     }
 
+    // Generate unique start number for this event
+    const nextStartNumber = await getNextStartNumber(validatedData.eventId);
+
     // Create basic score entry to register participant for event
     const newEntry = await prisma.tfx_wertungen.create({
       data: {
         int_teilnehmerid: validatedData.participantId,
         int_wettkaempfeid: firstCompetition.int_wettkaempfeid,
         // Default values
-        int_startnummer: 1, // Basic start number 
+        int_startnummer: nextStartNumber, // Auto-assigned unique start number
         var_riege: '', // No squad assigned yet
         int_statusid: 1 // Default status
       }

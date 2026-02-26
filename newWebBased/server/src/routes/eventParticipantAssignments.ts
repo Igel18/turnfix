@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { mapStringGenderToDatabase } from '../utils/genderHelpers';
+import { getNextStartNumberForCompetition } from '../utils/startNumberUtils';
 
 const router = Router();
 
@@ -145,12 +146,15 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'Participant is already assigned to this competition' });
     }
 
+    // Generate unique start number for this event
+    const nextStartNumber = await getNextStartNumberForCompetition(validatedData.competitionId);
+
     // Create score entry for the specific competition
     const scoreEntry = await prisma.tfx_wertungen.create({
       data: {
         int_teilnehmerid: validatedData.participantId,
         int_wettkaempfeid: validatedData.competitionId,
-        int_startnummer: 0, // Will be assigned later
+        int_startnummer: nextStartNumber, // Auto-assigned unique start number
         var_riege: '', // Will be assigned later
         int_statusid: 1 // Default status
       }

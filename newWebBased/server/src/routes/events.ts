@@ -22,6 +22,7 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
 import gymnetImportRouter from './gymnetImport';
+import { generateStartNumbersForEvent } from '../utils/startNumberUtils';
 
 const router = Router();
 
@@ -39,26 +40,9 @@ router.put('/:id/generate-start-numbers', authenticateToken, async (req: AuthReq
       return res.status(400).json({ error: 'Invalid event ID' });
     }
 
-    const participants = await prisma.$queryRawUnsafe(
-      `SELECT wr.int_wertungenid, wr.int_teilnehmerid
-         FROM tfx_wertungen wr
-         JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
-        WHERE w.int_veranstaltungenid = $1
-        ORDER BY wr.int_teilnehmerid ASC`,
-      eventId
-    ) as Array<{ int_wertungenid: number; int_teilnehmerid: number }>;
+    const count = await generateStartNumbersForEvent(eventId);
 
-    let startNumber = 1;
-    for (const p of participants) {
-      await prisma.$queryRawUnsafe(
-        `UPDATE tfx_wertungen SET int_startnummer = $1 WHERE int_wertungenid = $2`,
-        startNumber,
-        p.int_wertungenid
-      );
-      startNumber++;
-    }
-
-    return res.json({ success: true, count: participants.length });
+    return res.json({ success: true, count });
   } catch (error) {
     console.error('Error generating start numbers:', error);
     return res.status(500).json({ error: 'Failed to generate start numbers' });

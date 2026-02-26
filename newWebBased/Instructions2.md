@@ -193,5 +193,7 @@ Schreibe Tests, Doku und fixe den Code.
 
 28. Tests: Bei den Disziplinen lassen sich allerhand sachen einstellen: Icons, Kürzel, Einheiten, Sportarten, Eingabemaske, Formel. Es muss geprüft werden, ob sich diese Einstellungen auch in den anderen UIs (Jury-Portal und Management-Server) richtig auswirken. Aktualisier am ende die Datei Test-coverage-overview.md
 
-29. Startnummern vergeben: Beim Import eines Events sollten per Default Startnummern für die Teilnehmer vergeben werden. Eine Funktion gibt es Bereits in der Veranstaltung. Beim Hinzufügen von Teilnehmern zu einem Event müssen diese auch eine Startnummer erhalten. 
+29. Startnummern vergeben: Beim Import eines Gymnet-Events sollten per Default Startnummern für die Teilnehmer vergeben werden. Eine Funktion gibt es Bereits in der Veranstaltung. Beim Hinzufügen von Teilnehmern zu einem Event müssen diese auch eine Startnummer erhalten. 
 Bitte auch Tests hierfür schreiben. 
+
+29.a Wenn ich das richtig sehe, hast du die funktion aus events.ts entfernt um startnummern zu vergeben. Dann sollte doch auch die UI demtentsprechend angepasst werden. 

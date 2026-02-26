@@ -18,6 +18,7 @@
 import prisma from '../lib/prisma';
 import { wedDisNrToTurnFixId, getDisciplinesForCompetition } from './gymnetMapping';
 import { resolveBereich } from './competitionHelpers';
+import { generateStartNumbersForEvent } from './startNumberUtils';
 import type { ExtractedData } from './gymnetXmlParser';
 
 // ============================================================================
@@ -723,6 +724,20 @@ export async function importGymnetData(
   // 5. Teams
   if (extractedData.teams.length > 0) {
     await importTeams(extractedData.teams, eventId, results);
+  }
+
+  // 6. Auto-assign start numbers for all participants in the event
+  try {
+    const assignedCount = await generateStartNumbersForEvent(eventId);
+    console.log(`🔢 Auto-assigned start numbers for ${assignedCount} participants`);
+  } catch (error) {
+    console.error('⚠️ Failed to auto-assign start numbers:', error);
+    warnings.push({
+      type: 'warning',
+      category: 'general',
+      message: 'Startnummern konnten nicht automatisch vergeben werden',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 
   console.log('💾 Database insertion completed:');

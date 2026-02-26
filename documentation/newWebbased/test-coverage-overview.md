@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
-**Stand**: 24. Februar 2026  
-**Gesamt**: ~2.380 Tests in ~95 Dateien
+**Stand**: 26. Februar 2026  
+**Gesamt**: ~2.404 Tests in ~97 Dateien
 
 ---
 
@@ -13,10 +13,9 @@
 | E2E Setup/Teardown | 3 | 26 |
 | Client Unit/Integration/Component (Vitest) | 30 | 786 |
 | **Client Gesamt** | **51** | **1.070** |
-| Server Unit (Jest) | ~22 | ~550+ |
-| Server Integration (Jest) | ~22 | ~760+ |
-| **Server Gesamt** | **~44** | **~1.309** |
-| **Gesamt** | **~95** | **~2.380** |
+| Server Unit/Integration/Component (Jest) | ~46 | ~1.333+ |
+| **Server Gesamt** | **~46** | **~1.333** |
+| **Gesamt** | **~97** | **~2.404** |
 
 ---
 
@@ -147,13 +146,13 @@
 
 ## Server Tests — Überblick
 
-### Unit Tests (~22 Dateien, ~550+ Tests)
-Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter, Score-Synchronisation
+### Unit Tests (~23 Dateien, ~560+ Tests)
+Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter, Score-Synchronisation, **Startnummer-Utilities**
 
-### Integration Tests (~22 Dateien, ~760+ Tests)
-API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas
+### Integration Tests (~23 Dateien, ~774+ Tests)
+API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**
 
-> **Letzte bestätigte Zahlen**: 44 Test-Suites, 1.309 Tests (alle bestanden)
+> **Letzte bestätigte Zahlen**: 46 Test-Suites, 1.333 Tests (alle bestanden)
 
 ---
 
