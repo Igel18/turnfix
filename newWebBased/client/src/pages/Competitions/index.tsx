@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Trophy } from 'lucide-react';
@@ -50,6 +50,12 @@ const Competitions: React.FC = () => {
     openCreateModal,
     loadCompetitions
   } = useCompetitions({ eventId });
+
+  // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
+  useEffect(() => {
+    const prefill = searchParams.get('prefillSearch');
+    if (prefill) setSearchTerm(prefill);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getStatusBadge = (status: string) => {
     const statusStyles = {

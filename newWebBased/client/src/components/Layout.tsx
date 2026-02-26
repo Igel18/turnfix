@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useRef } from 'react'
-import { 
+import {
   HomeIcon,
   CalendarDaysIcon,
   BuildingOfficeIcon,
@@ -14,8 +14,11 @@ import {
   XMarkIcon,
   UserCircleIcon,
   CircleStackIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
+import { useOptionalEvent } from '../contexts/EventContext'
+import EventSearchPalette from './EventSearchPalette'
 
 const menuItems = [
   { name: 'Management Center', href: '/management', icon: HomeIcon },
@@ -40,7 +43,10 @@ export function Layout() {
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const eventContext = useOptionalEvent()
+  const selectedEvent = eventContext?.selectedEvent ?? null
 
   const isActivePath = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/')
@@ -83,6 +89,18 @@ export function Layout() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  // Open search palette on Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        if (selectedEvent) setIsSearchOpen(true)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [selectedEvent])
 
   // Authentication is disabled - always show the main layout
   return (
@@ -172,6 +190,17 @@ export function Layout() {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
+              {/* Search button — only shown when an event is selected */}
+              {selectedEvent && (
+                <button
+                  onClick={() => setIsSearchOpen(true)}
+                  title="Suche (Ctrl+K)"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm text-gray-500 hover:text-blue-600 hover:bg-gray-100 transition-colors"
+                >
+                  <MagnifyingGlassIcon className="h-4 w-4" />
+                  <span className="hidden lg:inline text-xs text-gray-400">Ctrl+K</span>
+                </button>
+              )}
               <div className="flex items-center text-sm text-gray-700">
                 <UserCircleIcon className="h-5 w-5 mr-2" />
                 <span className="hidden sm:inline">{user?.username || 'Guest'}</span>
@@ -239,6 +268,12 @@ export function Layout() {
       <main className="container mx-auto px-4 py-6">
         <Outlet />
       </main>
+
+      {/* Global Event Search Palette */}
+      <EventSearchPalette
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </div>
   )
 }

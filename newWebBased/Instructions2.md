@@ -204,3 +204,11 @@ Bitte auch Tests hierfür schreiben.
 
 30. Suchfenster: In der Veranstaltung sollte es übergeordnet (z.B. unter dem Dropdown der Veranstaltung-Auswahl) die Möglichkeit geben nach Personen / Wettkämpfen / Riegen / Geräten usw. zu suchen. Quasi ein Suchfenster auf Veranstaltungsebene. Wenn man hier was eintippt (egal ob Startnummer, Teilnehmername, Verein, Wettkampfnummer, Wettkampfname) bekommt man die Suchergebnisse als Vorschlag ("intellisense-Fenster") geliefert. Sortiert nach der eigentlichen Eingabe zu den abstrakteren (z.B. "TSV Musterstadt" liefert zuerst den Verein, dann die Wettkampfteilnehmer. Wobei der Verein nicht ausgewählt werden kann, da er sich nicht in der Veranstaltung befindet, sondern im Datenmanagement. Beim Name "Max Mustermann" sollte zuerst der Wettkampfteilnehmer (ggf. Mannschaft) , dann der Wettkampf angezeigt werden in dem dieser turnt, dann die Riege). Bei einem klick darauf springt die UI direkt zu dem Eintrag zum editieren. 
 Außer du hast einen besseren UI-Vorschlag. 
+	-> Erledigt ✅ 
+
+31. Über den port 3002 wird ein Kampfrichter Portal geöffnet. Aber es wird wieder eine Seite mit der Überschrift "Willkommen im Kampfrichter Portal" angezeigt. Beim Klick auf "Wertungserfassung" und danach auf zurück wird die gewünschte Start-Seite mit der überschrift "Jury Portal" angezeigt. Die URL bleibt immer identisch. Diese "falsche" zwischen-seite sollte gelöscht werden und es muss direkt die Seite mit "Jury Portal" angezeigt werden. 
+
+32. kannst du ein skript schreiben welches folgende schritte vornimmt: 
+Tests laufen lassen (alle Unit Tests, alle integrationss Test, alle UI Tests -> newwebbased\client\npx playwright test), dann bauen des kompletten projekt (newwebbased\npm run build), dann setup erzeugen (turnfix\setup\installer\build-installer.ps1). 
+
+33. beim setup muss immer geprüft werden, ob der Server/Dienst und node.js und nssm.exe schon läuft und diesen ggf. beenden. Sonst können die neuen Datein nicht überschrieben werden. 

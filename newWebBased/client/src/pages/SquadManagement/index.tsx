@@ -4,7 +4,7 @@
  * Reduced from 298 lines to ~150 lines (50% reduction)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
@@ -68,6 +68,12 @@ const SquadManagementUnified: React.FC = () => {
     forceLoadAvailableParticipants,
     participantHasSelectedCompetition
   } = useParticipants(eventId);
+
+  // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
+  useEffect(() => {
+    const prefill = searchParams.get('prefillSearch');
+    if (prefill) setSearchTerm(prefill);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     isLoading: assignmentLoading,

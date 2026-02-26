@@ -6,7 +6,7 @@
  * All business logic, validation, and UI components are extracted to separate files.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
@@ -62,6 +62,12 @@ export default function EventParticipants() {
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
+
+  // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
+  useEffect(() => {
+    const prefill = searchParams.get('prefillSearch');
+    if (prefill) setSearchTerm(prefill);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [clubFilter, setClubFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);

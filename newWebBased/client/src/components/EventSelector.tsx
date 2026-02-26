@@ -1,8 +1,39 @@
-import { useState, useEffect } from 'react'
-import { ChevronDownIcon, CalendarDaysIcon, TrophyIcon, UserGroupIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  ChevronDownIcon,
+  CalendarDaysIcon,
+  TrophyIcon,
+  UserGroupIcon,
+  MagnifyingGlassIcon,
+  UserIcon,
+  UsersIcon,
+  WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline'
 import { useEvent } from '../contexts/EventContext'
 import { apiGet } from '../utils/api'
 import { useTranslation } from 'react-i18next'
+import { useEventSearch, SearchResult } from '../hooks/useEventSearch'
+
+// ── Search helpers ────────────────────────────────────────────────────────────
+
+const TYPE_ORDER: SearchResult['type'][] = ['participant', 'competition', 'squad', 'discipline']
+const TYPE_LABELS: Record<SearchResult['type'], string> = {
+  participant: 'Teilnehmer',
+  competition: 'Wettkämpfe',
+  squad: 'Riegen',
+  discipline: 'Disziplinen',
+}
+
+function TypeIcon({ type }: { type: SearchResult['type'] }) {
+  const cls = 'h-4 w-4 flex-shrink-0'
+  switch (type) {
+    case 'participant':  return <UserIcon className={cls} />
+    case 'competition':  return <TrophyIcon className={cls} />
+    case 'squad':        return <UsersIcon className={cls} />
+    case 'discipline':   return <WrenchScrewdriverIcon className={cls} />
+  }
+}
 
 interface Event {
   int_eventid: number
@@ -45,28 +76,64 @@ export function EventSelector({
   className = "" 
 }: EventSelectorProps) {
   const { t } = useTranslation()
-  
+  const navigate = useNavigate()
+
   // Use context if available, otherwise fall back to callback mode
   const eventContext = useEvent()
-  
+
   const [events, setEvents] = useState<Event[]>([])
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [squads, setSquads] = useState<Squad[]>([])
-  
+
   const [localSelectedEvent, setLocalSelectedEvent] = useState<Event | null>(null)
   const [localSelectedCompetition, setLocalSelectedCompetition] = useState<Competition | null>(null)
   const [localSelectedSquad, setLocalSelectedSquad] = useState<Squad | null>(null)
-  
+
   const [loading, setLoading] = useState({
     events: false,
     competitions: false,
     squads: false
   })
 
+  // ── Search state ────────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+
   // Determine which state to use - context or local
   const selectedEvent = eventContext?.selectedEvent || localSelectedEvent
   const selectedCompetition = eventContext?.selectedCompetition || localSelectedCompetition
   const selectedSquad = eventContext?.selectedSquad || localSelectedSquad
+
+  // Search hook — only fires when query.length >= 2
+  const { results, isLoading: searchLoading } = useEventSearch(selectedEvent?.int_eventid, searchQuery)
+
+  // Group results by type
+  const grouped: Partial<Record<SearchResult['type'], SearchResult[]>> = {}
+  for (const r of results) {
+    if (!grouped[r.type]) grouped[r.type] = []
+    grouped[r.type]!.push(r)
+  }
+
+  // Close results dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Navigate to the target page with prefillSearch URL param
+  const handleResultClick = (result: SearchResult) => {
+    const eventId = selectedEvent?.int_eventid
+    const url = `${result.navigationPath}?prefillSearch=${encodeURIComponent(result.prefillSearch)}${eventId ? `&eventId=${eventId}` : ''}`
+    navigate(url)
+    setSearchQuery('')
+    setSearchOpen(false)
+  }
 
   // Fetch events
   const fetchEvents = async () => {
@@ -246,6 +313,77 @@ export function EventSelector({
           <ChevronDownIcon className="absolute right-2 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
         </div>
       </div>
+
+      {/* Inline Event Search */}
+      {selectedEvent && (
+        <div ref={searchRef} className="relative">
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true) }}
+              onFocus={() => searchQuery.length >= 2 && setSearchOpen(true)}
+              onKeyDown={e => e.key === 'Escape' && setSearchOpen(false)}
+              placeholder={`Suche in „${selectedEvent.var_eventname}" …`}
+              className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            {searchLoading && (
+              <div className="absolute right-3 top-2.5 h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
+
+          {/* Results dropdown */}
+          {searchOpen && (results.length > 0 || (searchQuery.length >= 2 && !searchLoading)) && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+              {results.length === 0 && searchQuery.length >= 2 && !searchLoading && (
+                <div className="px-4 py-3 text-sm text-gray-400">
+                  Keine Ergebnisse für „{searchQuery}"
+                </div>
+              )}
+              {TYPE_ORDER.map(type => {
+                const items = grouped[type]
+                if (!items || items.length === 0) return null
+                return (
+                  <div key={type}>
+                    <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                      {TYPE_LABELS[type]}
+                    </div>
+                    {items.map((result, i) => (
+                      <button
+                        key={`${result.type}:${result.id}:${i}`}
+                        onClick={() => handleResultClick(result)}
+                        className="w-full flex items-start gap-3 px-3 py-2 text-left hover:bg-blue-50 transition-colors"
+                      >
+                        <div className="mt-0.5 text-gray-400">
+                          <TypeIcon type={result.type} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {result.title}
+                            </span>
+                            {result.badge && (
+                              <span className="flex-shrink-0 text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono">
+                                {result.badge}
+                              </span>
+                            )}
+                          </div>
+                          {result.subtitle && (
+                            <div className="text-xs text-gray-400 truncate mt-0.5">
+                              {result.subtitle}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Competition Selection */}
       {showCompetitions && selectedEvent && (
