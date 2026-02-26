@@ -58,6 +58,38 @@ export interface EventBState {
   importResult: any;          // Full import API response
 }
 
+/** State from create-team-event.setup.ts (Team Competition — created via API) */
+export interface TeamEventState {
+  /** Timestamp used for unique naming */
+  timestamp: number;
+
+  // Master data IDs
+  sportId: number;
+  venueId: number;
+  countryId: number;
+  federationId: number;
+  regionId: number;
+  clubIds: number[];          // [alpha, beta, gamma]
+
+  // Participant IDs (12 total: 4 per team)
+  participantIds: number[];   // all 12 participant IDs ordered by team (alpha[0-3], beta[4-7], gamma[8-11])
+
+  // Discipline IDs
+  disciplineIds: number[];    // 4 discipline IDs [TDA, TDB, TDC, TDD]
+
+  // Event + Competition IDs
+  eventId: number;
+  eventName: string;
+  competitionId: number;      // Team competition (competitionType=1)
+  competitionName: string;
+
+  // Team IDs
+  teamIds: number[];          // [teamAlpha, teamBeta, teamGamma]
+
+  // Scores entered?
+  scoresEntered: boolean;
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // STATE FILE PATHS
 // ═══════════════════════════════════════════════════════════════════════
@@ -65,6 +97,7 @@ export interface EventBState {
 const STATE_DIR = path.resolve(process.cwd(), '.e2e-state');
 const EVENT_A_FILE = path.join(STATE_DIR, 'event-a.json');
 const EVENT_B_FILE = path.join(STATE_DIR, 'event-b.json');
+const TEAM_EVENT_FILE = path.join(STATE_DIR, 'team-event.json');
 
 function ensureStateDir() {
   if (!fs.existsSync(STATE_DIR)) {
@@ -114,10 +147,30 @@ export function loadEventBState(): EventBState {
   return JSON.parse(fs.readFileSync(EVENT_B_FILE, 'utf-8'));
 }
 
+/** Save Team Event state (called by create-team-event.setup.ts) */
+export function saveTeamEventState(state: TeamEventState): void {
+  ensureStateDir();
+  fs.writeFileSync(TEAM_EVENT_FILE, JSON.stringify(state, null, 2));
+  console.log(`💾 Team Event state saved to ${TEAM_EVENT_FILE}`);
+}
+
+/** Load Team Event state (called by team test files) */
+export function loadTeamEventState(): TeamEventState {
+  if (!fs.existsSync(TEAM_EVENT_FILE)) {
+    throw new Error(
+      'Team Event state not found. Did the create-team-event setup run?\n' +
+      `Expected file: ${TEAM_EVENT_FILE}\n` +
+      'Run: npx playwright test --project=setup'
+    );
+  }
+  return JSON.parse(fs.readFileSync(TEAM_EVENT_FILE, 'utf-8'));
+}
+
 /** Clean up state files (called by teardown) */
 export function cleanupStateFiles(): void {
   if (fs.existsSync(EVENT_A_FILE)) fs.unlinkSync(EVENT_A_FILE);
   if (fs.existsSync(EVENT_B_FILE)) fs.unlinkSync(EVENT_B_FILE);
+  if (fs.existsSync(TEAM_EVENT_FILE)) fs.unlinkSync(TEAM_EVENT_FILE);
   if (fs.existsSync(STATE_DIR)) {
     try { fs.rmdirSync(STATE_DIR); } catch { /* non-empty dir, ignore */ }
   }

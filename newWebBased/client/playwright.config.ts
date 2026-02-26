@@ -57,10 +57,10 @@ export default defineConfig({
 
   /* Project dependency chain: setup → tests → teardown */
   projects: [
-    // ── Setup: Creates test data (Event A + Event B) ──
+    // ── Setup: Creates test data (Event A + Event B + Team Event) ──
     {
       name: 'setup',
-      testMatch: /setup\/(create|import)-event\.setup\.ts/,
+      testMatch: /setup\/(create|import)-(team-)?event\.setup\.ts/,
       teardown: 'teardown',
       use: { ...devices['Desktop Chrome'] },
     },
@@ -83,14 +83,40 @@ export default defineConfig({
     {
       name: 'tests',
       dependencies: ['setup'],
-      testMatch: /tests\/(score-entry|results|competition|import-verification|placement|statistical|jury-portal|status|pdf-export|load-test)\.spec\.ts/,
+      testMatch: /tests\/(score-entry|results|competition|import-verification|placement|statistical|jury-portal|status|pdf-export|load-test|team-competition)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       timeout: 60_000, // Load tests need more time
     },
   ],
 
-  /* No webServer config — servers must be running externally.
-   * Start backend: cd server && npm run dev
-   * Start frontend: cd client && npm run dev
-   */
+  /* Auto-start backend + frontend servers before tests */
+  webServer: [
+    {
+      command: 'npx ts-node src/index.ts',
+      cwd: '../server',
+      port: 3001,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: 'node src/index.js',
+      cwd: '../jury-server',
+      port: 3002,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: 'npx vite',
+      cwd: '.',
+      port: 5173,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+  ],
 });

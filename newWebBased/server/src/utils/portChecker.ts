@@ -23,17 +23,18 @@ export interface PortBlocker {
 export async function isPortInUse(port: number): Promise<boolean> {
   try {
     if (process.platform === 'win32') {
-      // Windows: Use netstat to check port
-      const { stdout } = await execAsync(`netstat -ano | findstr :${port}`);
+      // Windows: Use netstat to check for LISTENING state only
+      // TIME_WAIT connections should NOT count as "in use" since we can still bind
+      const { stdout } = await execAsync(`netstat -ano | findstr :${port} | findstr LISTENING`);
       return stdout.trim().length > 0;
     } else {
       // Linux/Mac: Use lsof or netstat
       try {
-        const { stdout } = await execAsync(`lsof -i :${port}`);
+        const { stdout } = await execAsync(`lsof -i :${port} -sTCP:LISTEN`);
         return stdout.trim().length > 0;
       } catch {
         // Fallback to netstat
-        const { stdout } = await execAsync(`netstat -an | grep ${port}`);
+        const { stdout } = await execAsync(`netstat -an | grep ${port} | grep LISTEN`);
         return stdout.trim().length > 0;
       }
     }
