@@ -190,6 +190,7 @@ Schreibe Tests, Doku und fixe den Code.
 	-> Erledigt ✅ 
 
 27. Tests: In den Veranstaltungen bei Wettkämpfen und Teilnehmern lassen sich allerhand sachen einstellen: insbesondere "Nimmt nicht Teil", "Außer Konkurenz", "Qualifizierende", "Streichwertungen", "Gerätepunkte verwenden". Diese beeinflussen Statistiken wie in der Veranstaltungsverwaltung und Meldematrix aber auch die Plazierungen. Aktualisier am ende die Datei Test-coverage-overview.md
+	-> Erledigt ✅
 
 28. Tests: Bei den Disziplinen lassen sich allerhand sachen einstellen: Icons, Kürzel, Einheiten, Sportarten, Eingabemaske, Formel. Es muss geprüft werden, ob sich diese Einstellungen auch in den anderen UIs (Jury-Portal und Management-Server) richtig auswirken. Aktualisier am ende die Datei Test-coverage-overview.md
 

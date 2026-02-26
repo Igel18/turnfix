@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
-**Stand**: 26. Februar 2026  
-**Gesamt**: ~2.404 Tests in ~97 Dateien
+**Stand**: 26. Februar 2026
+**Gesamt**: ~2.444 Tests in ~99 Dateien
 
 ---
 
@@ -13,15 +13,15 @@
 | E2E Setup/Teardown | 3 | 26 |
 | Client Unit/Integration/Component (Vitest) | 30 | 786 |
 | **Client Gesamt** | **51** | **1.070** |
-| Server Unit/Integration/Component (Jest) | ~46 | ~1.333+ |
-| **Server Gesamt** | **~46** | **~1.333** |
-| **Gesamt** | **~97** | **~2.404** |
+| Server Unit/Integration/Component (Jest) | ~48 | ~1.373+ |
+| **Server Gesamt** | **~48** | **~1.373** |
+| **Gesamt** | **~99** | **~2.444** |
 
 ---
 
 ## Seiten/Routen — Abdeckungsstatus
 
-### ✅ Abgedeckt (22 von 37 Routen = 59%)
+### ✅ Abgedeckt (24 von 37 Routen = 65%)
 
 | Route | Seite | E2E | Integration | Component/Unit |
 |-------|-------|:---:|:-----------:|:--------------:|
@@ -45,10 +45,12 @@
 | `/jury` | JuryPortal | ✅ | — | — |
 | `/groups` | GroupsUnified | — | ✅ | — |
 | `/teams` | Teams | — | ✅ | ✅ teamsFilter |
+| `/competition-status` | CompetitionStatusManagement | — | ✅ | — |
+| `/meldematrix` | Meldematrix | — | ✅ | — |
 | `/formulas` | FormulasUnified | 🟡 Smoke | — | — |
 | `/locations` | LocationsUnified | 🟡 Smoke | — | — |
 
-### ❌ Nicht abgedeckt (15 von 37 Routen = 41%)
+### ❌ Nicht abgedeckt (13 von 37 Routen = 35%)
 
 | Route | Seite | Risiko | Beschreibung |
 |-------|-------|:------:|-------------|
@@ -56,9 +58,7 @@
 | `/team-scoring` | TeamScoreCapture | 🔴 HOCH | Team-Wertungseingabe |
 | `/time-planning` | TimePlanning | 🟠 MITTEL | Komplexe Zeitplanung mit Durchgängen |
 | `/squad-status` | SquadStatusManagement | 🟠 MITTEL | Riegen-Status-Verwaltung |
-| `/competition-status` | CompetitionStatusManagement | 🟠 MITTEL | Wettkampf-Status-Verwaltung |
 | `/live-scores` | LiveScoresPage | 🟠 MITTEL | Echtzeit-Ergebnisanzeige |
-| `/meldematrix` | Meldematrix | 🟠 MITTEL | Meldungs-Übersichtsmatrix |
 | `/medallienspiegel` | Medallienspiegel | 🟢 NIEDRIG | Nur Lesezugriff |
 | `/areas` | Areas | 🟢 NIEDRIG | Stammdaten-CRUD |
 | `/discipline-fields` | DisciplineFieldsUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
@@ -149,10 +149,17 @@
 ### Unit Tests (~23 Dateien, ~560+ Tests)
 Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter, Score-Synchronisation, **Startnummer-Utilities**
 
-### Integration Tests (~23 Dateien, ~774+ Tests)
-API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**
+### Integration Tests (~25 Dateien, ~814+ Tests)
+API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**, **Teilnehmer-Einstellungen (participantSettings)**, **Wettkampf-Einstellungen (competitionSettings)**
 
-> **Letzte bestätigte Zahlen**: 46 Test-Suites, 1.333 Tests (alle bestanden)
+**Neu hinzugekommen:**
+
+| Datei | Tests | Was wird getestet |
+|-------|:-----:|-------------------|
+| `participantSettings.test.ts` | 23 | `bol_startet_nicht`: update-status, update-details, Effekt auf competition-status participantCount, Meldematrix/Statistiken. `bol_ak`: POST/PUT scores, DB-Verifikation, AK vs. Nicht-AK |
+| `competitionSettings.test.ts` | 17 | `qualifiers` (int_qualifikation): Erstellen, Default, Update, Listenabruf. `dropWorstScore`+`dropCount` (bol_streichwertung+int_anz_streich): Alle CRUD-Szenarien. `useApparatusPoints` (bol_gerpkt): Alle CRUD-Szenarien. Kombinierte Einstellungen, Isolation zwischen Wettkämpfen |
+
+> **Letzte bestätigte Zahlen**: 48 Test-Suites, ~1.373 Tests (alle bestanden)
 
 ---
 
@@ -163,17 +170,15 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 2. **`/team-scoring`** — Teamwertung: Eingabe, Berechnung, Validierung
 
 ### 🟠 Mittlere Priorität
-4. **`/time-planning`** — Zeitplanung: Durchgänge erstellen, Zeitstrahl, Rotation
-5. **`/squad-status`** — Riegen-Status: Status setzen, Workflow
-6. **`/competition-status`** — Wettkampf-Status: Status-Übergänge
-7. **`/live-scores`** — Live-Ergebnisse: WebSocket-Verbindung, Echtzeit-Updates
-8. **`/meldematrix`** — Meldematrix: Korrekte Darstellung, Filter
+3. **`/time-planning`** — Zeitplanung: Durchgänge erstellen, Zeitstrahl, Rotation
+4. **`/squad-status`** — Riegen-Status: Status setzen, Workflow
+5. **`/live-scores`** — Live-Ergebnisse: WebSocket-Verbindung, Echtzeit-Updates
 
 ### 🟢 Niedrige Priorität
-9. **`/areas`** — CRUD analog zu anderen Stammdaten-Tests
-10. **`/discipline-fields`** — CRUD analog
-11. **`/discipline-groups`** — CRUD analog
-12. **`/persons`** — CRUD analog
-13. **`/certificate-layouts`** — Layout-Konfiguration
-14. **`/status-management`** — CRUD analog
-15. **`/medallienspiegel`** — Nur Lesezugriff, geringe Fehleranfälligkeit
+6. **`/areas`** — CRUD analog zu anderen Stammdaten-Tests
+7. **`/discipline-fields`** — CRUD analog
+8. **`/discipline-groups`** — CRUD analog
+9. **`/persons`** — CRUD analog
+10. **`/certificate-layouts`** — Layout-Konfiguration
+11. **`/status-management`** — CRUD analog
+12. **`/medallienspiegel`** — Nur Lesezugriff, geringe Fehleranfälligkeit
