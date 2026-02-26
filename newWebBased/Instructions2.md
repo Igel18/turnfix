@@ -192,7 +192,8 @@ Schreibe Tests, Doku und fixe den Code.
 27. Tests: In den Veranstaltungen bei Wettkämpfen und Teilnehmern lassen sich allerhand sachen einstellen: insbesondere "Nimmt nicht Teil", "Außer Konkurenz", "Qualifizierende", "Streichwertungen", "Gerätepunkte verwenden". Diese beeinflussen Statistiken wie in der Veranstaltungsverwaltung und Meldematrix aber auch die Plazierungen. Aktualisier am ende die Datei Test-coverage-overview.md
 	-> Erledigt ✅
 
-28. Tests: Bei den Disziplinen lassen sich allerhand sachen einstellen: Icons, Kürzel, Einheiten, Sportarten, Eingabemaske, Formel. Es muss geprüft werden, ob sich diese Einstellungen auch in den anderen UIs (Jury-Portal und Management-Server) richtig auswirken. Aktualisier am ende die Datei Test-coverage-overview.md
+28. Tests: Bei den Disziplinen lassen sich allerhand sachen einstellen: Icons, Kürzel, Einheiten, Sportarten, Eingabemaske, Formel. Es muss geprüft werden, ob sich diese Einstellungen auch in den anderen UIs (Jury-Portal und Management-Server) richtig auswirken. Aktualisier am ende die Datei Test-coverage-overview.md im Documentation ordner
+	-> Erledigt ✅ 
 
 29. Startnummern vergeben: Beim Import eines Gymnet-Events sollten per Default Startnummern für die Teilnehmer vergeben werden. Eine Funktion gibt es Bereits in der Veranstaltung. Beim Hinzufügen von Teilnehmern zu einem Event müssen diese auch eine Startnummer erhalten. 
 Bitte auch Tests hierfür schreiben. 
@@ -201,4 +202,5 @@ Bitte auch Tests hierfür schreiben.
 29. a Wenn ich das richtig sehe, hast du die funktion aus events.ts entfernt um startnummern zu vergeben. Dann sollte doch auch die UI demtentsprechend angepasst werden. 
 	-> Erledigt ✅ 
 
-30. Suchfenster: In der Veranstaltung sollte es übergeordnet die Möglichkeit geben nach Personen / Wettkämpfen / Riegen usw. zu suchen. Quasi ein Suchfenster auf Veranstaltungsebene. Wenn man hier was eintippt bekommt man die suchergebnisse als Vorschlag geliefert. Bei einem klick darauf springt die UI direkt zu dem Eintrag zum editieren. 
+30. Suchfenster: In der Veranstaltung sollte es übergeordnet (z.B. unter dem Dropdown der Veranstaltung-Auswahl) die Möglichkeit geben nach Personen / Wettkämpfen / Riegen / Geräten usw. zu suchen. Quasi ein Suchfenster auf Veranstaltungsebene. Wenn man hier was eintippt (egal ob Startnummer, Teilnehmername, Verein, Wettkampfnummer, Wettkampfname) bekommt man die Suchergebnisse als Vorschlag ("intellisense-Fenster") geliefert. Sortiert nach der eigentlichen Eingabe zu den abstrakteren (z.B. "TSV Musterstadt" liefert zuerst den Verein, dann die Wettkampfteilnehmer. Wobei der Verein nicht ausgewählt werden kann, da er sich nicht in der Veranstaltung befindet, sondern im Datenmanagement. Beim Name "Max Mustermann" sollte zuerst der Wettkampfteilnehmer (ggf. Mannschaft) , dann der Wettkampf angezeigt werden in dem dieser turnt, dann die Riege). Bei einem klick darauf springt die UI direkt zu dem Eintrag zum editieren. 
+Außer du hast einen besseren UI-Vorschlag. 

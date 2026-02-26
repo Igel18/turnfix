@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
 **Stand**: 26. Februar 2026
-**Gesamt**: ~2.444 Tests in ~99 Dateien
+**Gesamt**: ~2.473 Tests in ~100 Dateien
 
 ---
 
@@ -13,15 +13,15 @@
 | E2E Setup/Teardown | 3 | 26 |
 | Client Unit/Integration/Component (Vitest) | 30 | 786 |
 | **Client Gesamt** | **51** | **1.070** |
-| Server Unit/Integration/Component (Jest) | ~48 | ~1.373+ |
-| **Server Gesamt** | **~48** | **~1.373** |
-| **Gesamt** | **~99** | **~2.444** |
+| Server Unit/Integration/Component (Jest) | ~49 | ~1.402+ |
+| **Server Gesamt** | **~49** | **~1.402** |
+| **Gesamt** | **~100** | **~2.473** |
 
 ---
 
 ## Seiten/Routen — Abdeckungsstatus
 
-### ✅ Abgedeckt (24 von 37 Routen = 65%)
+### ✅ Abgedeckt (25 von 37 Routen = 67%)
 
 | Route | Seite | E2E | Integration | Component/Unit |
 |-------|-------|:---:|:-----------:|:--------------:|
@@ -35,6 +35,7 @@
 | `/associations` | Associations | ✅ | — | — |
 | `/participants` | ParticipantsUnified | ✅ | — | ✅ FilterMenus |
 | `/disciplines` | DisciplinesUnified | ✅ | ✅ | ✅ FilterMenus |
+| `/discipline-fields` | DisciplineFieldsUnified | — | ✅ disciplineSettings | — |
 | `/sports` | SportsUnified | ✅ | — | — |
 | `/competitions` | Competitions | ✅ | ✅ | ✅ FilterMenus, CompetitionFormModal |
 | `/event-participants` | EventParticipants | ✅ | ✅ | ✅ FilterMenus |
@@ -50,7 +51,7 @@
 | `/formulas` | FormulasUnified | 🟡 Smoke | — | — |
 | `/locations` | LocationsUnified | 🟡 Smoke | — | — |
 
-### ❌ Nicht abgedeckt (13 von 37 Routen = 35%)
+### ❌ Nicht abgedeckt (12 von 37 Routen = 32%)
 
 | Route | Seite | Risiko | Beschreibung |
 |-------|-------|:------:|-------------|
@@ -61,7 +62,6 @@
 | `/live-scores` | LiveScoresPage | 🟠 MITTEL | Echtzeit-Ergebnisanzeige |
 | `/medallienspiegel` | Medallienspiegel | 🟢 NIEDRIG | Nur Lesezugriff |
 | `/areas` | Areas | 🟢 NIEDRIG | Stammdaten-CRUD |
-| `/discipline-fields` | DisciplineFieldsUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
 | `/discipline-groups` | DisciplineGroupsUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
 | `/persons` | PersonsUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
 | `/certificate-layouts` | CertificateLayouts | 🟢 NIEDRIG | Urkunden-Layout-Konfiguration |
@@ -149,8 +149,8 @@
 ### Unit Tests (~23 Dateien, ~560+ Tests)
 Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter, Score-Synchronisation, **Startnummer-Utilities**
 
-### Integration Tests (~25 Dateien, ~814+ Tests)
-API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**, **Teilnehmer-Einstellungen (participantSettings)**, **Wettkampf-Einstellungen (competitionSettings)**
+### Integration Tests (~26 Dateien, ~843+ Tests)
+API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**, **Teilnehmer-Einstellungen (participantSettings)**, **Wettkampf-Einstellungen (competitionSettings)**, **Disziplin-Einstellungen (disciplineSettings)**
 
 **Neu hinzugekommen:**
 
@@ -158,8 +158,9 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 |-------|:-----:|-------------------|
 | `participantSettings.test.ts` | 23 | `bol_startet_nicht`: update-status, update-details, Effekt auf competition-status participantCount, Meldematrix/Statistiken. `bol_ak`: POST/PUT scores, DB-Verifikation, AK vs. Nicht-AK |
 | `competitionSettings.test.ts` | 17 | `qualifiers` (int_qualifikation): Erstellen, Default, Update, Listenabruf. `dropWorstScore`+`dropCount` (bol_streichwertung+int_anz_streich): Alle CRUD-Szenarien. `useApparatusPoints` (bol_gerpkt): Alle CRUD-Szenarien. Kombinierte Einstellungen, Isolation zwischen Wettkämpfen |
+| `disciplineSettings.test.ts` | 29 | `var_icon`, `var_kurz1/2/kuerzel`, `var_einheit`, `int_sportid`, `var_maske`, `tfx_disziplinen_felder`, `var_formel`+`int_formelid` (COALESCE-Priorität), `bol_m`/`bol_w`. Propagation: GET /disciplines/:id (Management) und GET /competitions/:id/disciplines (Jury-Portal) |
 
-> **Letzte bestätigte Zahlen**: 48 Test-Suites, ~1.373 Tests (alle bestanden)
+> **Letzte bestätigte Zahlen**: 49 Test-Suites, ~1.402 Tests (alle bestanden)
 
 ---
 
@@ -176,9 +177,8 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 
 ### 🟢 Niedrige Priorität
 6. **`/areas`** — CRUD analog zu anderen Stammdaten-Tests
-7. **`/discipline-fields`** — CRUD analog
-8. **`/discipline-groups`** — CRUD analog
-9. **`/persons`** — CRUD analog
-10. **`/certificate-layouts`** — Layout-Konfiguration
-11. **`/status-management`** — CRUD analog
-12. **`/medallienspiegel`** — Nur Lesezugriff, geringe Fehleranfälligkeit
+7. **`/discipline-groups`** — CRUD analog
+8. **`/persons`** — CRUD analog
+9. **`/certificate-layouts`** — Layout-Konfiguration
+10. **`/status-management`** — CRUD analog
+11. **`/medallienspiegel`** — Nur Lesezugriff, geringe Fehleranfälligkeit
