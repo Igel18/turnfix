@@ -195,5 +195,9 @@ Schreibe Tests, Doku und fixe den Code.
 
 29. Startnummern vergeben: Beim Import eines Gymnet-Events sollten per Default Startnummern für die Teilnehmer vergeben werden. Eine Funktion gibt es Bereits in der Veranstaltung. Beim Hinzufügen von Teilnehmern zu einem Event müssen diese auch eine Startnummer erhalten. 
 Bitte auch Tests hierfür schreiben. 
+	-> Erledigt ✅ 
 
-29.a Wenn ich das richtig sehe, hast du die funktion aus events.ts entfernt um startnummern zu vergeben. Dann sollte doch auch die UI demtentsprechend angepasst werden. 
+29. a Wenn ich das richtig sehe, hast du die funktion aus events.ts entfernt um startnummern zu vergeben. Dann sollte doch auch die UI demtentsprechend angepasst werden. 
+	-> Erledigt ✅ 
+
+30. Suchfenster: In der Veranstaltung sollte es übergeordnet die Möglichkeit geben nach Personen / Wettkämpfen / Riegen usw. zu suchen. Quasi ein Suchfenster auf Veranstaltungsebene. Wenn man hier was eintippt bekommt man die suchergebnisse als Vorschlag geliefert. Bei einem klick darauf springt die UI direkt zu dem Eintrag zum editieren. 

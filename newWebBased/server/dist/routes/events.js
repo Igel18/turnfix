@@ -26,6 +26,7 @@ const authBypass_1 = require("../middleware/authBypass");
 const zod_1 = require("zod");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const gymnetImport_1 = __importDefault(require("./gymnetImport"));
+const startNumberUtils_1 = require("../utils/startNumberUtils");
 const router = (0, express_1.Router)();
 // Mount GymNet import routes (POST /import-gymnet, GET /import-gymnet-test, POST /import-test)
 router.use('/', gymnetImport_1.default);
@@ -38,17 +39,8 @@ router.put('/:id/generate-start-numbers', authBypass_1.authenticateToken, async 
         if (isNaN(eventId)) {
             return res.status(400).json({ error: 'Invalid event ID' });
         }
-        const participants = await prisma_1.default.$queryRawUnsafe(`SELECT wr.int_wertungenid, wr.int_teilnehmerid
-         FROM tfx_wertungen wr
-         JOIN tfx_wettkaempfe w ON wr.int_wettkaempfeid = w.int_wettkaempfeid
-        WHERE w.int_veranstaltungenid = $1
-        ORDER BY wr.int_teilnehmerid ASC`, eventId);
-        let startNumber = 1;
-        for (const p of participants) {
-            await prisma_1.default.$queryRawUnsafe(`UPDATE tfx_wertungen SET int_startnummer = $1 WHERE int_wertungenid = $2`, startNumber, p.int_wertungenid);
-            startNumber++;
-        }
-        return res.json({ success: true, count: participants.length });
+        const count = await (0, startNumberUtils_1.generateStartNumbersForEvent)(eventId);
+        return res.json({ success: true, count });
     }
     catch (error) {
         console.error('Error generating start numbers:', error);
