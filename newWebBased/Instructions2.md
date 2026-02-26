@@ -207,8 +207,13 @@ Außer du hast einen besseren UI-Vorschlag.
 	-> Erledigt ✅ 
 
 31. Über den port 3002 wird ein Kampfrichter Portal geöffnet. Aber es wird wieder eine Seite mit der Überschrift "Willkommen im Kampfrichter Portal" angezeigt. Beim Klick auf "Wertungserfassung" und danach auf zurück wird die gewünschte Start-Seite mit der überschrift "Jury Portal" angezeigt. Die URL bleibt immer identisch. Diese "falsche" zwischen-seite sollte gelöscht werden und es muss direkt die Seite mit "Jury Portal" angezeigt werden. 
+	-> Erledigt ✅ 
 
 32. kannst du ein skript schreiben welches folgende schritte vornimmt: 
-Tests laufen lassen (alle Unit Tests, alle integrationss Test, alle UI Tests -> newwebbased\client\npx playwright test), dann bauen des kompletten projekt (newwebbased\npm run build), dann setup erzeugen (turnfix\setup\installer\build-installer.ps1). 
+Tests laufen lassen (alle Unit Tests, alle integrationss Test, alle UI Tests -> newwebbased\client\npx playwright 
+test), dann bauen des kompletten projekt (newwebbased\npm run build), dann setup erzeugen (turnfix\setup\installer\build-installer.ps1). 
 
 33. beim setup muss immer geprüft werden, ob der Server/Dienst und node.js und nssm.exe schon läuft und diesen ggf. beenden. Sonst können die neuen Datein nicht überschrieben werden. 
+Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestartet werden. 
+
+34. Bei den Filtern werden keine Leerzeichen unterstützt. Das ist ein Problem denn wenn bei dem Veranstaltungsübergreifenden Suchfenster ein suchergebnis ausgewählt wird dann werden hier mit Leerzeichen in die Filter übertragen. Also müssten in den Filtern Leerzeichen unterstützt werden. 

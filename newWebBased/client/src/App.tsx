@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { EventProvider } from '@/contexts/EventContext'
 import { CertificateLayoutProvider } from '@/contexts/CertificateLayoutContext'
@@ -18,7 +18,6 @@ import Associations from '@/pages/Associations'
 import ParticipantsUnified from '@/pages/ParticipantsUnified'
 import Results from '@/pages/Results'
 import ScoreCapture from '@/pages/ScoreCapture'
-import JuryPortal from '@/pages/JuryPortal'
 import Competitions from '@/pages/Competitions'
 import Areas from '@/pages/Areas'
 import DisciplinesUnified from '@/pages/DisciplinesUnified'
@@ -43,9 +42,6 @@ import LiveScoresPage from '@/pages/LiveScoresPage'
 import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
 import TeamScoreCapture from '@/pages/GroupTeamScoring/TeamScoreCapture'
 
-// Check if we're running on the Jury Portal (port 3002)
-const isJuryPortal = window.location.port === '3002';
-
 function App() {
   return (
     <ErrorBoundary>
@@ -55,9 +51,7 @@ function App() {
             <CertificateLayoutProvider>
               <div className="min-h-screen bg-background">
                 <Routes>
-            {/* Redirect to Jury Portal if on port 3002 */}
-            <Route path="/" element={isJuryPortal ? <Navigate to="/jury" replace /> : <Home />} />
-            <Route path="/jury" element={<JuryPortal />} />
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/management" element={<ManagementCenter />} />
             <Route path="/events" element={<Events />} />
