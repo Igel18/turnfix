@@ -217,6 +217,7 @@ Falls es das nicht schon gibt. Also das mann nur noch ein skript ausführen muss
 
 33. beim setup muss immer geprüft werden, ob der Server/Dienst und node.js und nssm.exe schon läuft und diesen ggf. beenden. Sonst können die neuen Datein nicht überschrieben werden. 
 Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestartet werden. 
+	-> Erledigt ✅ 
 
 34. Bei den Filtern werden keine Leerzeichen unterstützt. Das ist ein Problem denn wenn bei dem Veranstaltungsübergreifenden Suchfenster ein suchergebnis ausgewählt wird dann werden hier mit Leerzeichen in die Filter übertragen. Also müssten in den Filtern Leerzeichen unterstützt werden. 
 	-> Erledigt ✅ 
