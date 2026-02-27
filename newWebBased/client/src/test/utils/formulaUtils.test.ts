@@ -45,9 +45,9 @@ describe('extractFormulaSymbols', () => {
     expect(result).toEqual(['A', 'B', 'C', 'D', 'E']);
   });
 
-  it('does not match lowercase letters', () => {
-    // Only uppercase single-letter tokens
-    expect(extractFormulaSymbols('a + b')).toEqual([]);
+  it('also matches lowercase letters (custom formulas like 1*x)', () => {
+    // Updated: lowercase single-letter variables are now supported for custom formulas
+    expect(extractFormulaSymbols('a + b')).toEqual(['a', 'b']);
   });
 
   it('does not match multi-character words', () => {

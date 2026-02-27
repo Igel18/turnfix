@@ -231,7 +231,8 @@ Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestart
 Also: Beim Score-Capture müssen auch die Wertungen kopiert werden, wie beim Jury-Portal. 
 
 3. Hierfür müssen auch UI-Tests erstellt werden, am besten zuerst die Tests erstellen, die dann Rot sein müssen, dann die Fehler beheben und dann die Tests nochmal laufen lassen, die dann grün sein müssen. 
-
+	-> Erledigt ✅  
+	
 37. Ist an einer Disziplin nur eine "Benutzerdefinierte Formel" konfiguriert so darf die Check-Box beim Score-Capture "Jury-Wertungen anzeigen" nicht auswählbar sein. Ein Tooltip mit dem Grund wäre gut. 
 
-38. 
+38. Wie kann man sicherstellen, dass die 3 Dateien src\utils\formulaUtils.ts im client, server und Jury-Portal identisch sind? 

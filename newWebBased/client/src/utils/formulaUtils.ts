@@ -46,13 +46,16 @@ export const FORMULA_VARIABLES = [
 ];
 
 /**
- * Extract symbols (A, B, C...) from formula string
+ * Extract symbols (A, B, C... or x, y, z...) from formula string
  * Example: "(10 + A) - B" → ["A", "B"]
+ * Example: "1*x" → ["x"]
+ * Supports both uppercase (letter-based) and lowercase (variable-based/custom) formulas
  */
 export function extractFormulaSymbols(formula: string): string[] {
   if (!formula) return [];
   
-  const matches = formula.match(/\b[A-Z]\b/g);
+  // Match both uppercase AND lowercase single-letter variables
+  const matches = formula.match(/\b[A-Za-z]\b/g);
   return matches ? [...new Set(matches)] : [];
 }
 
@@ -116,10 +119,20 @@ export function formatFormulaWithValues(
   }
 
   // Replace each symbol with its value (same logic as ScoreCapture)
+  // Support both uppercase (A, B, C) and lowercase (x, y, z) variables
   FORMULA_VARIABLES.forEach(variable => {
     if (values[variable] !== undefined) {
       const formattedValue = values[variable].toFixed(decimals);
       const regex = new RegExp(`\\b${variable}\\b`, 'g');
+      result = result.replace(regex, formattedValue);
+    }
+  });
+
+  // Also replace lowercase variable keys (custom formulas like "1*x")
+  Object.keys(values).forEach(key => {
+    if (key.length === 1 && /^[a-z]$/.test(key) && values[key] !== undefined) {
+      const formattedValue = values[key].toFixed(decimals);
+      const regex = new RegExp(`\\b${key}\\b`, 'g');
       result = result.replace(regex, formattedValue);
     }
   });
@@ -150,6 +163,7 @@ export function calculateFormula(
     }
 
     // Replace symbols with values (same logic as ScoreCapture)
+    // Support both uppercase (A, B, C) and lowercase (x, y, z) variables
     FORMULA_VARIABLES.forEach(variable => {
       if (values[variable] !== undefined) {
         const regex = new RegExp(`\\b${variable}\\b`, 'g');
@@ -160,6 +174,17 @@ export function calculateFormula(
         evalFormula = evalFormula.replace(regex, '0');
       }
     });
+
+    // Also replace lowercase variable keys (custom formulas like "1*x")
+    Object.keys(values).forEach(key => {
+      if (key.length === 1 && /^[a-z]$/.test(key) && values[key] !== undefined) {
+        const regex = new RegExp(`\\b${key}\\b`, 'g');
+        evalFormula = evalFormula.replace(regex, values[key].toString());
+      }
+    });
+
+    // Replace any remaining lowercase single-letter variables with 0
+    evalFormula = evalFormula.replace(/\b[a-z]\b/g, '0');
 
     // Remove whitespace
     evalFormula = evalFormula.replace(/\s+/g, '');
@@ -191,8 +216,8 @@ export function validateFormula(formula: string): { valid: boolean; error?: stri
     return { valid: false, error: 'Formula is empty' };
   }
 
-  // Check for valid characters
-  if (!/^[\d\s+\-*/()A-Z.]+$/.test(formula)) {
+  // Check for valid characters (allow both uppercase A-Z and lowercase a-z for custom formulas)
+  if (!/^[\d\s+\-*/()A-Za-z.]+$/.test(formula)) {
     return { valid: false, error: 'Formula contains invalid characters' };
   }
 
