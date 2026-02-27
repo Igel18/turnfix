@@ -59,9 +59,10 @@ export function useScoreValidation({
   const filteredParticipants = useMemo(() => {
     return Array.isArray(participants) 
       ? participants.filter(participant => {
-          const matchesSearch = 
+          const matchesSearch =
             participant.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             participant.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            `${participant.firstname || ''} ${participant.lastname || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
             participant.club?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (participant.startNumber && participant.startNumber.toString().includes(searchTerm));
           

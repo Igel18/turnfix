@@ -98,6 +98,7 @@ export default function EventParticipants() {
         (p) =>
           p.firstname.toLowerCase().includes(term) ||
           p.lastname.toLowerCase().includes(term) ||
+          `${p.firstname} ${p.lastname}`.toLowerCase().includes(term) ||
           p.club.toLowerCase().includes(term)
       );
     }

@@ -110,9 +110,10 @@ export const useParticipants = (eventId: string | null): UseParticipantsReturn =
    */
   const filteredParticipants = useMemo(() => {
     return availableParticipants.filter(participant => {
-      const matchesSearch = 
+      const matchesSearch =
         participant.firstname.toLowerCase().includes(filterState.searchTerm.toLowerCase()) ||
         participant.lastname.toLowerCase().includes(filterState.searchTerm.toLowerCase()) ||
+        `${participant.firstname} ${participant.lastname}`.toLowerCase().includes(filterState.searchTerm.toLowerCase()) ||
         participant.club.toLowerCase().includes(filterState.searchTerm.toLowerCase()) ||
         (participant.competitionNames && participant.competitionNames.toLowerCase().includes(filterState.searchTerm.toLowerCase()));
       

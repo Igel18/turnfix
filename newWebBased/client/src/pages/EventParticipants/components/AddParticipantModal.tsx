@@ -102,6 +102,7 @@ export function AddParticipantModal({ isOpen, onClose, eventId, onParticipantAdd
     const matchesSearch =
       firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${firstname} ${lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       club.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesSearch;

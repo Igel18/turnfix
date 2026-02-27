@@ -227,11 +227,12 @@ const ClubsUnified: React.FC = () => {
   });
 
   const filteredData = sortedClubs.filter(club => {
-    const matchesSearch = !searchFilter || 
+    const matchesSearch = !searchFilter ||
       club.var_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
       (club.gaue_name && club.gaue_name.toLowerCase().includes(searchFilter.toLowerCase())) ||
       (club.var_vorname && club.var_vorname.toLowerCase().includes(searchFilter.toLowerCase())) ||
-      (club.var_nachname && club.var_nachname.toLowerCase().includes(searchFilter.toLowerCase()));
+      (club.var_nachname && club.var_nachname.toLowerCase().includes(searchFilter.toLowerCase())) ||
+      (club.var_vorname && club.var_nachname && `${club.var_vorname} ${club.var_nachname}`.toLowerCase().includes(searchFilter.toLowerCase()));
     
     const matchesRegion = !regionFilter || 
       club.int_gaueid.toString() === regionFilter;
