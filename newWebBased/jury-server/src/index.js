@@ -51,8 +51,43 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'jury-portal', port: PORT });
 });
 
-// Simple proxy for all other /api requests
+// ─── Jury API Allowlist ───────────────────────────────────────────────
+// Only proxy endpoints that the Jury Portal actually needs.
+// All other /api/* requests are blocked to prevent access to the
+// management API (admin, firewall, configuration, etc.) via port 3002.
+const ALLOWED_API_PATTERNS = [
+  { method: 'GET',  pattern: /^\/api\/events(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/squad-management(\?.*)?$/ },
+  { method: 'POST', pattern: /^\/api\/squad-management\/complete$/ },
+  { method: 'GET',  pattern: /^\/api\/competitions(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/competitions\/\d+\/disciplines(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/scores(\?.*)?$/ },
+  { method: 'POST', pattern: /^\/api\/scores\/save-value$/ },
+  { method: 'GET',  pattern: /^\/api\/discipline-fields(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/jury-results(\?.*)?$/ },
+  { method: 'POST', pattern: /^\/api\/jury-results$/ },
+  { method: 'GET',  pattern: /^\/api\/app-settings(\?.*)?$/ },
+];
+
+function isAllowedApiRequest(method, url) {
+  // Strip hash/fragment if present
+  const cleanUrl = url.split('#')[0];
+  return ALLOWED_API_PATTERNS.some(
+    rule => rule.method === method.toUpperCase() && rule.pattern.test(cleanUrl)
+  );
+}
+
+// Proxy ONLY allowed /api requests to the main server
 app.use('/api', async (req, res) => {
+  // Check if this request is in the allowlist
+  if (!isAllowedApiRequest(req.method, req.originalUrl)) {
+    console.log(`[Proxy BLOCKED] ${req.method} ${req.originalUrl} — not in jury allowlist`);
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'This API endpoint is not available on the Jury Portal.'
+    });
+  }
+
   try {
     const targetUrl = `${MAIN_SERVER_URL}${req.originalUrl}`;
     console.log(`[Proxy] ${req.method} ${req.originalUrl} -> ${targetUrl}`);
@@ -89,6 +124,17 @@ app.get('/', (req, res) => {
 // This must come AFTER static file serving to allow assets to load
 app.get('/jury/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../../jury-portal/dist/index.html'));
+});
+
+// Block all other routes — redirect to /jury
+// This prevents the management UI from being accessible on port 3002
+app.use('*', (req, res) => {
+  // For API routes that weren't matched, return 404
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  // For all other paths, redirect to the jury portal
+  res.redirect('/jury');
 });
 
 app.listen(PORT, '0.0.0.0', () => {

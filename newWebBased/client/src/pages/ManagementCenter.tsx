@@ -276,7 +276,7 @@ const competitionDayActions = [
   {
     name: 'Jury Portal',
     description: 'Simplified jury interface for competition day (opens in new window on port 3002)',
-    href: `${window.location.protocol}//${window.location.hostname}:3002`,
+    href: `${window.location.protocol}//${window.location.hostname}:3002/jury`,
     icon: TrophyIcon,
     color: 'bg-blue-600',
     external: true
