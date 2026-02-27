@@ -530,6 +530,22 @@ var
   AppPath: String;
   PgInstaller: String;
 begin
+  // === Stop running services before file copy (upgrade scenario) ===
+  // Files in server/dist/ are locked while node.exe runs the service.
+  // We stop both services here (ssInstall fires before Inno Setup copies files).
+  if CurStep = ssInstall then
+  begin
+    Log('Stopping TurnFix services before file installation...');
+    Exec(ExpandConstant('{sys}\sc.exe'), 'stop TurnFixJuryServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('sc stop TurnFixJuryServer: ' + IntToStr(ResultCode));
+    Exec(ExpandConstant('{sys}\sc.exe'), 'stop TurnFixServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('sc stop TurnFixServer: ' + IntToStr(ResultCode));
+    // Kill lingering node.exe/nssm.exe processes attached to these services
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "SERVICES eq TurnFixServer"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "SERVICES eq TurnFixJuryServer"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Sleep(2000);
+  end;
+
   if CurStep = ssPostInstall then
   begin
     AppPath := ExpandConstant('{app}');

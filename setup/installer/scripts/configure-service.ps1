@@ -172,7 +172,7 @@ Write-Host "  Registry paths set (Application, AppParameters, AppDirectory)" -Fo
 # Configure
 & $NssmPath set $juryServiceName DisplayName $juryDisplayName 2>&1 | Out-Null
 & $NssmPath set $juryServiceName Description $juryDescription 2>&1 | Out-Null
-& $NssmPath set $juryServiceName Start SERVICE_DEMAND_START 2>&1 | Out-Null
+& $NssmPath set $juryServiceName Start SERVICE_AUTO_START 2>&1 | Out-Null
 & $NssmPath set $juryServiceName ObjectName LocalSystem 2>&1 | Out-Null
 
 # Environment variables - include DATABASE_URL from .env file
@@ -220,10 +220,21 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "    Der Service startet automatisch beim nächsten Systemstart." -ForegroundColor Yellow
 }
 
+# === Start jury service ===
+Write-Host ""
+Write-Host "  Starting TurnFix Jury Server..." -ForegroundColor Cyan
+& $NssmPath start $juryServiceName
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "  ✓ TurnFix Jury Server gestartet!" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ Jury Server konnte noch nicht gestartet werden." -ForegroundColor Yellow
+    Write-Host "    Der Service startet automatisch beim nächsten Systemstart." -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "  Services installiert:" -ForegroundColor White
 Write-Host "    • $serviceDisplayName (Port $ServerPort) - Autostart" -ForegroundColor White
-Write-Host "    • $juryDisplayName (Port $JuryPort) - Manueller Start" -ForegroundColor White
+Write-Host "    • $juryDisplayName (Port $JuryPort) - Autostart" -ForegroundColor White
 Write-Host ""
 Write-Host "  Verwaltung über:" -ForegroundColor DarkGray
 Write-Host "    services.msc (Windows-Dienstverwaltung)" -ForegroundColor DarkGray
