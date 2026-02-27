@@ -21,7 +21,8 @@ export default defineConfig({
       '**/dist/**',
       '**/.{idea,git,cache,output,temp}/**',
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
-      '**/src/test/_archive_old/**'
+      '**/src/test/_archive_old/**',
+      'e2e/**'
     ],
     coverage: {
       reporter: ['text', 'json', 'html'],

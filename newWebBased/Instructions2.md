@@ -212,7 +212,9 @@ Außer du hast einen besseren UI-Vorschlag.
 32. kannst du ein skript schreiben welches folgende schritte vornimmt: 
 Tests laufen lassen (alle Unit Tests, alle integrationss Test, alle UI Tests -> newwebbased\client\npx playwright 
 test), dann bauen des kompletten projekt (newwebbased\npm run build), dann setup erzeugen (turnfix\setup\installer\build-installer.ps1). 
-
+Falls es das nicht schon gibt. Also das mann nur noch ein skript ausführen muss und nicht mehrere. 
+	-> Erledigt ✅ 
+	
 33. beim setup muss immer geprüft werden, ob der Server/Dienst und node.js und nssm.exe schon läuft und diesen ggf. beenden. Sonst können die neuen Datein nicht überschrieben werden. 
 Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestartet werden. 
 
