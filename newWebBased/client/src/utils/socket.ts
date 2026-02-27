@@ -1,50 +1,40 @@
+/**
+ * Socket.IO client — uses shared config from @turnfix/shared
+ *
+ * URL resolution is client-specific; connection options are shared.
+ */
 import { io, Socket } from 'socket.io-client';
+import { SOCKET_OPTIONS } from '@turnfix/shared';
 
-// Use relative URL in production (served from same server) or VITE_SOCKET_URL for dev
 const getSocketUrl = () => {
-  // In production, always use the current page's origin for Socket.IO
-  // This ensures it works both on localhost and network IP
   if (import.meta.env.PROD) {
     const origin = window.location.origin;
     console.log('🔌 Socket.IO: Using production origin:', origin);
     return origin;
   }
-  // In development, use environment variable or default
   const devUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
   console.log('🔌 Socket.IO: Using development URL:', devUrl);
   return devUrl;
 };
 
 const SOCKET_URL = getSocketUrl();
-
 let socket: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socket || !socket.connected) {
-    // Only create new socket if none exists or it's disconnected
     if (!socket) {
       console.log('🔌 Creating new Socket.IO connection to:', SOCKET_URL);
-      socket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
-        autoConnect: true,
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-      });
+      socket = io(SOCKET_URL, { ...SOCKET_OPTIONS });
 
       socket.on('connect', () => {
         console.log('✅ Socket.IO connected with ID:', socket?.id);
       });
-
       socket.on('disconnect', (reason) => {
         console.log('❌ Socket.IO disconnected:', reason);
-        // Don't reset socket to null on disconnect, allow reconnection
       });
-
       socket.on('connect_error', (error) => {
         console.error('❌ Socket.IO connection error:', error);
       });
-
       socket.on('reconnect', (attemptNumber) => {
         console.log('🔄 Socket.IO reconnected after', attemptNumber, 'attempts');
       });

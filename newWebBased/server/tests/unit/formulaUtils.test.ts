@@ -43,8 +43,8 @@ describe('formulaUtils', () => {
       expect(extractFormulaSymbols('')).toEqual([]);
     });
 
-    it('should not match lowercase letters', () => {
-      expect(extractFormulaSymbols('a + b')).toEqual([]);
+    it('should match lowercase letters (used in custom formulas like "1*x")', () => {
+      expect(extractFormulaSymbols('a + b')).toEqual(['a', 'b']);
     });
 
     it('should handle D+E-Neutral pattern', () => {

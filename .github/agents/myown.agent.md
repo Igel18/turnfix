@@ -67,6 +67,9 @@ bol_w → femaleAllowed
 - http://localhost:5173/events
 
 ---
+### Shared code and logic ###
+Shared code and logic should be used across the application. For example, if there is a function that calculates the age of a participant based on their birthdate, this function should be defined in a utility file and used wherever the age needs to be calculated. This ensures consistency and reduces code duplication.
+Shared code across server, client and jury-portal should be placed in the `turnfix/newWebbased/shared` folder. This can include utility functions, types, constants, etc. that are used in multiple parts of the application. For example, a function to calculate the age of a participant based on their birthdate could be defined in `shared/utils/ageCalculator.ts` and imported wherever needed.
 
 ## 🎨 UI Design System
 

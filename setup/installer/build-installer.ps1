@@ -169,6 +169,18 @@ if (-not $SkipBuild) {
     Write-Host ""
     Write-Host "━━━ Step 2: Build Application ━━━" -ForegroundColor Yellow
     
+    # Shared package build (must be built before server/client/jury-portal)
+    Write-Host "  [0/3] Building Shared Package..." -ForegroundColor Cyan
+    $SharedDir = Join-Path $WebDir "shared"
+    if (Test-Path $SharedDir) {
+        Push-Location $SharedDir
+        try {
+            npm run build
+            if ($LASTEXITCODE -ne 0) { throw "Shared package build failed" }
+            Write-Host "  ✓ Shared package built" -ForegroundColor Green
+        } finally { Pop-Location }
+    }
+    
     # Server build
     Write-Host "  [1/3] Building Server..." -ForegroundColor Cyan
     Push-Location $ServerDir

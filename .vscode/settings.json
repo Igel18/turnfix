@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "cmath": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/Dominik Prudlo/Documents/GitHub/turnfix/libs/QtPropertyBrowser"
 }

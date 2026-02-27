@@ -91,6 +91,7 @@
 * [System-Architektur](developer-guide/architecture/overview.md)
 * [Backend-Struktur](developer-guide/architecture/backend.md)
 * [Frontend-Struktur](developer-guide/architecture/frontend.md)
+* [Shared-Paket (@turnfix/shared)](developer-guide/SHARED_PACKAGE.md)
 * [Datenbank-Schema](developer-guide/architecture/database.md)
 * [Real-time Updates](developer-guide/architecture/socket-io.md)
 * [Gender Helpers System](developer-guide/architecture/gender-helpers.md)

@@ -1,0 +1,20 @@
+{
+  "name": "@turnfix/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities for TurnFix (client, server, jury-portal)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "expr-eval": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.35",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  }
+}

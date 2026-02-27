@@ -10,6 +10,10 @@ export default defineConfig({
       "@": path.resolve('./src'),
     },
   },
+  // Pre-bundle @turnfix/shared so Vite converts CJS → ESM properly
+  optimizeDeps: {
+    include: ['@turnfix/shared', '@turnfix/shared/dist/scoreFormatter'],
+  },
   server: {
     port: 5173,
     host: '0.0.0.0', // Allow network access

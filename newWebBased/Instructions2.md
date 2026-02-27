@@ -235,4 +235,22 @@ Also: Beim Score-Capture müssen auch die Wertungen kopiert werden, wie beim Jur
 	
 37. Ist an einer Disziplin nur eine "Benutzerdefinierte Formel" konfiguriert so darf die Check-Box beim Score-Capture "Jury-Wertungen anzeigen" nicht auswählbar sein. Ein Tooltip mit dem Grund wäre gut. 
 
-38. Wie kann man sicherstellen, dass die 3 Dateien src\utils\formulaUtils.ts im client, server und Jury-Portal identisch sind? 
+38. Wie kann man sicherstellen, dass die 3 Dateien src\utils\formulaUtils.ts im client, server und Jury-Portal identisch sind? Aktuell sind diese ja nicht identisch.
+	-> Erledigt ✅  
+
+39. Duplicate in Shared auslagern 
+	-> Erledigt ✅  
+
+40. beim letzen durchlauf von .\run-pipeline.ps1 sind viele fehler aufgetreten. Hauptsächlich in den UI-Tests. 
+	-> Erledigt ✅  
+
+41. Die Fallback Icons löschen und schauen warum in dem shared iconUtis.ts ein mapping drin ist. Das steht doch eigentlich in der DB ob und welche Disziplin welches Icon hat. Von mir aus kann beim fehlen eines icons in der DB (z.B. bei falschem namen) oder bei keiner angabe eines Icons in der Disziplin ein "Fehler" icon angezeigt werden. Auch testen.  
+
+42. Icons für Geräte 
+Eine UI um Icons für Geräte hinzuzufügen, zu löschen wäre hilfreich. 
+Und um Hintergrundbilder von Layouts hinzuzufügen/Löschen. 
+Beim LayoutEditor gibt es schon eine Upload Möglichkeit. Diese sollte wiederverwendbar gemacht werden. 
+Beim Editieren der Geräte wäre ein DropDown menü gut, um die vorhandenen Icons auswählen zu können. 
+
+43. Benutzerdefinierte Formeln 
+Bei den Sportarten Leichtathletik, Schwimmen, Rope-Skipping, Gymnastik, Turnen bei denen keine Formel aus der anderen DB-Tabelle hinterlegt ist müssen Benutzerdefinierte Formeln hinterlegt sein. Dies muss über den DB-Wizard erfolgen. 

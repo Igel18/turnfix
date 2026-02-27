@@ -1,55 +1,33 @@
 /**
- * Client-side utility functions for handling discipline icons
+ * Client-side icon utilities — delegates to @turnfix/shared
+ *
+ * getIconFilename is shared; getIconUrl + checkIconExists are client-specific.
  */
+// Re-export shared helpers
+export { getIconFilename, stripQtPrefix, DISCIPLINE_ICON_MAP, DISCIPLINE_EMOJI_MAP, getFallbackDeviceEmoji, DISCIPLINE_SHORT_NAME_MAP } from '@turnfix/shared';
 
 /**
- * Converts Qt resource icon path to web-accessible URL
- * @param iconPath - Qt resource path like ":/icons/100.png"
- * @returns Web-accessible icon URL or null if no icon
+ * Converts Qt resource icon path to web-accessible URL (client-specific)
  */
 export function getIconUrl(iconPath?: string): string | null {
   if (!iconPath) return null;
-  
-  // Handle Qt resource paths that start with ":/"
+
   if (iconPath.startsWith(':/icons/')) {
-    const filename = iconPath.substring(':/icons/'.length); // Remove ":/icons/" prefix
+    const filename = iconPath.substring(':/icons/'.length);
     return `http://localhost:3001/public/icons/${filename}`;
   }
-  
   if (iconPath.startsWith(':/')) {
-    const filename = iconPath.substring(2); // Remove ":/" prefix
+    const filename = iconPath.substring(2);
     return `http://localhost:3001/public/${filename}`;
   }
-  
-  // Handle already formatted paths
   if (iconPath.startsWith('/') || iconPath.startsWith('http')) {
     return iconPath;
   }
-  
-  // Default handling - assume it's a filename in the icons directory
   return `http://localhost:3001/public/icons/${iconPath}`;
 }
 
 /**
- * Extracts filename from Qt resource path
- * @param iconPath - Qt resource path like ":/icons/100.png"
- * @returns Filename like "100.png" or null
- */
-export function getIconFilename(iconPath?: string): string | null {
-  if (!iconPath) return null;
-  
-  if (iconPath.startsWith(':/')) {
-    const path = iconPath.substring(2); // Remove ":/" prefix
-    return path.split('/').pop() || null;
-  }
-  
-  return iconPath.split('/').pop() || null;
-}
-
-/**
- * Check if an icon exists by attempting to load it
- * @param iconUrl - URL to check
- * @returns Promise<boolean> indicating if the icon exists
+ * Check if an icon exists by attempting to load it (browser-only)
  */
 export function checkIconExists(iconUrl: string): Promise<boolean> {
   return new Promise((resolve) => {

@@ -78,8 +78,8 @@ describe('iconUtils', () => {
       expect(getIconFilename('')).toBeNull();
     });
 
-    it('should return null for non-Qt paths', () => {
-      expect(getIconFilename('random.png')).toBeNull();
+    it('should extract filename from non-Qt paths too', () => {
+      expect(getIconFilename('random.png')).toBe('random.png');
     });
 
     it('should return null for whitespace-only', () => {

@@ -104,21 +104,20 @@ const Results = () => {
     formatScore
   })
 
-  // Initial data load
+  // Data loading: always fetch competitions first, then ranking
+  // Single effect to prevent race conditions between parallel fetches
   useEffect(() => {
-    if (eventId) {
-      fetchCompetitions().then((competitionsData) => {
-        fetchEventRanking(competitionsData)
-      })
-    }
-  }, [eventId])
+    if (!eventId) return
+    let cancelled = false
 
-  // Reload when competition changes
-  useEffect(() => {
-    if (eventId) {
-      fetchEventRanking()
-    }
-  }, [selectedCompetition])
+    fetchCompetitions().then((competitionsData) => {
+      if (!cancelled) {
+        fetchEventRanking(competitionsData)
+      }
+    })
+
+    return () => { cancelled = true }
+  }, [eventId, selectedCompetition])
 
   // Live updates via Socket.IO
   useEffect(() => {
