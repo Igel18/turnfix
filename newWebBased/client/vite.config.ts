@@ -14,6 +14,12 @@ export default defineConfig({
   optimizeDeps: {
     include: ['@turnfix/shared', '@turnfix/shared/dist/scoreFormatter'],
   },
+  // Also handle CJS → ESM for production builds (Rollup)
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/, /shared[\\/]dist/],
+    },
+  },
   server: {
     port: 5173,
     host: '0.0.0.0', // Allow network access

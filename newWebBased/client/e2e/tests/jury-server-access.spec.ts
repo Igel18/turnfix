@@ -39,8 +39,33 @@ test.describe('Jury Portal Links in Management UI', () => {
     }
   });
 
-  test('ManagementCenter jury portal link includes /jury path', async ({ page }) => {
-    await page.goto(`${MANAGEMENT_SERVER}/management`, { waitUntil: 'networkidle' });
+  test('ManagementCenter jury portal link includes /jury path', async ({ page, request }) => {
+    // The Jury Portal link on /management is inside the "Competition Day" section,
+    // which only renders when an event is selected. Fetch the first event from the API
+    // and set it in localStorage so the section becomes visible.
+    const eventsRes = await request.get('http://localhost:3001/api/events?limit=1');
+    const eventsBody = await eventsRes.json();
+    const firstEvent = eventsBody?.results?.[0] || eventsBody?.[0];
+
+    if (firstEvent) {
+      // Navigate first so we have a page context for localStorage
+      await page.goto(`${MANAGEMENT_SERVER}/management`, { waitUntil: 'domcontentloaded' });
+      await page.evaluate((evt) => {
+        localStorage.setItem('turnfix-selected-event', JSON.stringify({
+          int_eventid: evt.id || evt.int_eventid,
+          var_eventname: evt.name || evt.var_eventname || 'E2E Event',
+          dat_eventstartdate: evt.startDate || new Date().toISOString().split('T')[0],
+          dat_eventenddate: evt.endDate || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          var_location: evt.location || 'E2E Halle',
+          status: evt.status || 'upcoming',
+        }));
+      }, firstEvent);
+      // Reload so React picks up the localStorage value
+      await page.goto(`${MANAGEMENT_SERVER}/management`, { waitUntil: 'networkidle' });
+    } else {
+      // No events in DB — skip gracefully
+      test.skip(true, 'No events in database; cannot test ManagementCenter jury link');
+    }
 
     // Find all links that point to port 3002
     const juryLinks = page.locator('a[href*=":3002"]');
