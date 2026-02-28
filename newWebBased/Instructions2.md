@@ -257,3 +257,4 @@ Bei den Sportarten Leichtathletik, Schwimmen, Rope-Skipping, Gymnastik, Turnen b
 Wenn du in der Datenbank "turnfix" die Tabelle "tfx_disziplinen" anschaust siehts du in der Spalte "var_formeln" die gewünschten Formeln. 
 Auch die Maske und die Anzahl der Versuche ist in dieser Tabelle richtig hinterlegt. 
 Bitte auch Tests hierfür schreiben. 
+	-> Erledigt ✅  

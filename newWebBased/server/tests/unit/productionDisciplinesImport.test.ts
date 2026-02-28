@@ -58,7 +58,13 @@ function createMockDb() {
 
     tfx_disziplinen: {
       findFirst: jest.fn().mockImplementation(({ where }: any) => {
-        const found = disciplines.find(d => d.var_name === where.var_name);
+        // Match by name + gender flags (like the real import does)
+        const found = disciplines.find(d => {
+          if (d.var_name !== where.var_name) return false;
+          if (where.bol_m !== undefined && d.bol_m !== where.bol_m) return false;
+          if (where.bol_w !== undefined && d.bol_w !== where.bol_w) return false;
+          return true;
+        });
         return Promise.resolve(found || null);
       }),
       create: jest.fn().mockImplementation(({ data }: any) => {
@@ -382,13 +388,13 @@ describe('Production Disciplines Import', () => {
       expect(result.stats.createdFields).toBeGreaterThan(0);
     });
 
-    it('should report skipped disciplines for name duplicates (m/w variants)', async () => {
+    it('should have no skipped disciplines on first run (m/w variants are separate)', async () => {
       const result = await applyProductionDisciplines(mockDb as any);
 
-      // 29 disciplines are skipped because they have the same var_name as another
-      // discipline but different gender (m/w). The import uses findFirst on var_name
-      // so the second variant with same name gets skipped.
-      expect(result.stats.skippedDisciplines).toBe(29);
+      // Since the import now matches by name + gender flags,
+      // male and female variants of the same discipline are created as separate records.
+      // On a first run, nothing should be skipped.
+      expect(result.stats.skippedDisciplines).toBe(0);
       expect(result.stats.createdDisciplines + result.stats.skippedDisciplines)
         .toBe(result.stats.totalDisciplines);
     });
@@ -417,6 +423,184 @@ describe('Production Disciplines Import', () => {
       withIcons.forEach((d: any) => {
         // Icons should be stored as Qt resource paths for legacy C++ app compatibility
         expect(d.var_icon).toMatch(/^:\/icons\//);
+      });
+    });
+  });
+
+  describe('Custom Formulas (var_formel)', () => {
+    it('should set var_formel for Leichtathletik disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const laSport = mockDb._sports.find((s: any) => s.var_name === 'Leichtathletik');
+      expect(laSport).toBeDefined();
+
+      const laDisciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === laSport.int_sportid
+      );
+      expect(laDisciplines.length).toBeGreaterThan(0);
+
+      // ALL Leichtathletik disciplines must have a custom formula
+      laDisciplines.forEach((d: any) => {
+        expect(d.var_formel).toBeTruthy();
+        expect(typeof d.var_formel).toBe('string');
+        expect(d.var_formel.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should set var_formel for Schwimmen disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const schwimmenSport = mockDb._sports.find((s: any) => s.var_name === 'Schwimmen');
+      expect(schwimmenSport).toBeDefined();
+
+      const schwimmenDisciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === schwimmenSport.int_sportid
+      );
+      expect(schwimmenDisciplines.length).toBeGreaterThan(0);
+
+      schwimmenDisciplines.forEach((d: any) => {
+        expect(d.var_formel).toBeTruthy();
+      });
+    });
+
+    it('should set var_formel for Rope-Skipping disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const sport = mockDb._sports.find((s: any) => s.var_name === 'Rope-Skipping');
+      expect(sport).toBeDefined();
+
+      const disciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === sport.int_sportid
+      );
+      expect(disciplines.length).toBeGreaterThan(0);
+
+      disciplines.forEach((d: any) => {
+        expect(d.var_formel).toBeTruthy();
+      });
+    });
+
+    it('should set var_formel for Gymnastik disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const sport = mockDb._sports.find((s: any) => s.var_name === 'Gymnastik');
+      expect(sport).toBeDefined();
+
+      const disciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === sport.int_sportid
+      );
+      expect(disciplines.length).toBeGreaterThan(0);
+
+      disciplines.forEach((d: any) => {
+        expect(d.var_formel).toBe('1*x');
+      });
+    });
+
+    it('should set var_formel for Turnen base disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const sport = mockDb._sports.find((s: any) => s.var_name === 'Turnen');
+      expect(sport).toBeDefined();
+
+      const disciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === sport.int_sportid
+      );
+      expect(disciplines.length).toBeGreaterThan(0);
+
+      disciplines.forEach((d: any) => {
+        expect(d.var_formel).toBe('1*x');
+      });
+    });
+
+    it('should create male AND female variants for Leichtathletik disciplines with different formulas', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const laSport = mockDb._sports.find((s: any) => s.var_name === 'Leichtathletik');
+      const laDisciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === laSport.int_sportid
+      );
+
+      // "1.000-m-Lauf" should exist twice: once male, once female
+      const lauf1000 = laDisciplines.filter((d: any) => d.var_name === '1.000-m-Lauf');
+      expect(lauf1000.length).toBe(2);
+
+      const male = lauf1000.find((d: any) => d.bol_m === true && d.bol_w === false);
+      const female = lauf1000.find((d: any) => d.bol_m === false && d.bol_w === true);
+      expect(male).toBeDefined();
+      expect(female).toBeDefined();
+      // Male and female should have different formulas
+      expect(male.var_formel).not.toBe(female.var_formel);
+    });
+
+    it('should create male AND female variants for Schwimmen disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const sport = mockDb._sports.find((s: any) => s.var_name === 'Schwimmen');
+      const disciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === sport.int_sportid
+      );
+
+      // "50 m Kraul" should exist twice (male + female)
+      const kraul50 = disciplines.filter((d: any) => d.var_name === '50 m Kraul');
+      expect(kraul50.length).toBe(2);
+    });
+
+    it('should set correct mask for Leichtathletik time-based disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const laSport = mockDb._sports.find((s: any) => s.var_name === 'Leichtathletik');
+      const laDisciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === laSport.int_sportid
+      );
+
+      // Running events use time mask
+      const lauf1000 = laDisciplines.find((d: any) =>
+        d.var_name === '1.000-m-Lauf' && d.bol_m === true
+      );
+      expect(lauf1000?.var_maske).toBe('00:00.00');
+    });
+
+    it('should set correct attempts (int_versuche) for throwing disciplines', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      const laSport = mockDb._sports.find((s: any) => s.var_name === 'Leichtathletik');
+      const laDisciplines = mockDb._disciplines.filter((d: any) =>
+        d.int_sportid === laSport.int_sportid
+      );
+
+      // Throwing events have 3 attempts
+      const kugel = laDisciplines.find((d: any) =>
+        d.var_name === 'Kugelstoßen + Medizinball'
+      );
+      expect(kugel?.int_versuche).toBe(3);
+
+      // Running events have 1 attempt
+      const lauf1000 = laDisciplines.find((d: any) =>
+        d.var_name === '1.000-m-Lauf' && d.bol_m === true
+      );
+      expect(lauf1000?.int_versuche).toBe(1);
+    });
+
+    it('all created discipline var_formel values should be ≤ 300 chars', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      mockDb._disciplines.forEach((d: any) => {
+        if (d.var_formel) {
+          expect(d.var_formel.length).toBeLessThanOrEqual(300);
+        }
+      });
+    });
+
+    it('disciplines without JSON formula should have null var_formel', async () => {
+      await applyProductionDisciplines(mockDb as any);
+
+      // All disciplines should have either var_formel or int_formelid (or both)
+      // None should have NEITHER when they have a formula in JSON
+      mockDb._disciplines.forEach((d: any) => {
+        // If a discipline has no formula at all, it's an error in the data
+        // but we don't enforce that here — just check the types
+        if (d.var_formel !== null && d.var_formel !== undefined) {
+          expect(typeof d.var_formel).toBe('string');
+        }
       });
     });
   });

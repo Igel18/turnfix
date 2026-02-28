@@ -119,9 +119,15 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
     // Now import all disciplines
     console.log(`[ProductionDisciplines] Importing disciplines...`);
     for (const disc of disciplines) {
-      // Check if discipline already exists
+      // Check if discipline already exists – match by name AND gender flags
+      // because some sports (e.g. Leichtathletik, Schwimmen) have male/female
+      // variants of the same discipline with different formulas.
       const existing = await db.tfx_disziplinen.findFirst({
-        where: { var_name: disc.name }
+        where: {
+          var_name: disc.name,
+          bol_m: disc.maennlich,
+          bol_w: disc.weiblich,
+        }
       });
 
       if (existing) {
@@ -155,11 +161,15 @@ export async function applyProductionDisciplines(customPrismaClient?: PrismaClie
       const einheit = disc.einheit || (TURNEN_SPORTS.includes(disc.sportart) ? 'Pkt.' : '');
 
       // Create discipline
+      // var_formel: the custom/inline formula string (e.g. "1*x", "(((...)/49)")
+      // int_formelid: link to tfx_formeln table (for formula types like D+E-Neutral, P-Wettkampf, LK, AK)
+      // Both can be set simultaneously – var_formel is the actual calculation string.
       const created = await db.tfx_disziplinen.create({
         data: {
           var_name: disc.name?.substring(0, 100),                          // DB: VarChar(100)
           var_kurz1: disc.kurzname?.substring(0, 6),                        // DB: VarChar(6)
           var_kurz2: (disc.anzeigename || disc.name)?.substring(0, 20),     // DB: VarChar(20)
+          var_formel: disc.formel?.substring(0, 300) || null,               // DB: VarChar(300) — custom formula
           var_maske: disc.maske?.substring(0, 10),                          // DB: VarChar(10)
           var_einheit: einheit?.substring(0, 5),                            // DB: VarChar(5)
           var_icon: disc.icon?.substring(0, 50),                            // DB: VarChar(50)
