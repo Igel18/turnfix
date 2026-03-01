@@ -16,9 +16,16 @@ export default async function globalTeardown(): Promise<void> {
   console.log('🧹 Jest Global Teardown — Cleaning up');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  // Wait for Prisma connections to close gracefully
-  // (avoids "connection aborted by administrator" noise)
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Disconnect all Prisma clients before dropping the database.
+  // On Windows, Prisma's connection pool takes a while to fully close.
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    await prisma.$disconnect();
+  } catch { /* ignore */ }
+
+  // Wait a bit longer for all connection pools to drain
+  await new Promise(resolve => setTimeout(resolve, 3000));
 
   const { dropTestDatabase } = require('./scripts/setup-test-db');
   await dropTestDatabase();

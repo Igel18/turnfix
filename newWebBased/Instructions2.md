@@ -231,7 +231,7 @@ Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestart
 2. Im Jury-Portal werden in dem Fall "Benutzerdefinierte Formel" die richtigen Wertungen aus der DB ausgelesen. Und ich vermute auch irgendwo hin Kopiert. Im Management Portal werden Felder für die Eingabe angezeigt und auch Wertungen, aber nur die vom Jury-Portal kopierten... 
 Also: Beim Score-Capture müssen auch die Wertungen kopiert werden, wie beim Jury-Portal. 
 Auch dokumentieren & tests schreiben! 
-	-> In Arbeit...
+	-> Erledigt ✅  
 
 3. Hierfür müssen auch UI-Tests erstellt werden, am besten zuerst die Tests erstellen, die dann Rot sein müssen, dann die Fehler beheben und dann die Tests nochmal laufen lassen, die dann grün sein müssen. 
 	-> Erledigt ✅  
@@ -255,6 +255,7 @@ Eine UI um Icons für Geräte hinzuzufügen, zu löschen wäre hilfreich.
 Und um Hintergrundbilder von Layouts hinzuzufügen/Löschen. 
 Beim LayoutEditor gibt es schon eine Upload Möglichkeit. Diese sollte wiederverwendbar gemacht werden. 
 Beim Editieren der Geräte wäre ein DropDown menü gut, um die vorhandenen Icons auswählen zu können. 
+
 
 43. Benutzerdefinierte Formeln 
 Bei den Sportarten Leichtathletik, Schwimmen, Rope-Skipping, Gymnastik, Turnen bei denen keine Formel aus der anderen DB-Tabelle hinterlegt ist müssen Benutzerdefinierte Formeln hinterlegt sein. Dies muss über den DB-Wizard erfolgen der bereits die Disziplinen anlegt. 
@@ -281,4 +282,4 @@ Ist dies erfolgt soll nun mittels einem Klick auf einen Button "erstellen" eine 
 Ist das soweit verständlich oder gibt es noch Unklarheiten? Hast du noch Verbesserungsvorschläge zum Workflow bzw. den Kriterien? 
 Bitte dokumentieren und tests erstellen. 
 Für die Kriterien soll in den Einstellungen default werte definiert werden können. Es gibt ja bereits eine Datei in der die Einstellungen gespeichert sind. Die Default werte für die Kriterien sollen hier auch gespeichert werden. 
-
+	-> In Arbeit...

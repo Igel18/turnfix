@@ -5,7 +5,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, getTableRowCount } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, getTableRowCount, openFilterAndSearch } from '../helpers';
 
 const TEST_REGION_NAME = `E2E_Region_CRUD_${Date.now()}`;
 const EDITED_NAME = `${TEST_REGION_NAME}_edited`;
@@ -90,11 +90,7 @@ test.describe.serial('Master Data: Regions', () => {
     // Verify region appears — search for it to handle pagination
     await page.reload({ waitUntil: 'networkidle' });
     await waitForLoadingToFinish(page);
-    const searchInput = page.locator('input[type="text"], input[type="search"]').first();
-    if (await searchInput.isVisible()) {
-      await searchInput.fill(TEST_REGION_NAME);
-      await page.waitForTimeout(1000);
-    }
+    await openFilterAndSearch(page, TEST_REGION_NAME);
     await expect(page.locator('body')).toContainText(TEST_REGION_NAME, { timeout: 10_000 });
   });
 
@@ -102,12 +98,8 @@ test.describe.serial('Master Data: Regions', () => {
     await navigateTo(page, '/regions');
     await waitForLoadingToFinish(page);
 
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible()) {
-      await searchInput.fill(TEST_REGION_NAME);
-      await page.waitForTimeout(500);
-      await expect(page.locator('body')).toContainText(TEST_REGION_NAME);
-    }
+    await openFilterAndSearch(page, TEST_REGION_NAME);
+    await expect(page.locator('body')).toContainText(TEST_REGION_NAME, { timeout: 10_000 });
   });
 
   test('view toggle works', async ({ page }) => {
@@ -133,11 +125,7 @@ test.describe.serial('Master Data: Regions', () => {
     await waitForLoadingToFinish(page);
 
     // Search for the test region to handle pagination
-    const searchInput = page.locator('input[type="text"], input[type="search"]').first();
-    if (await searchInput.isVisible()) {
-      await searchInput.fill(TEST_REGION_NAME);
-      await page.waitForTimeout(1000);
-    }
+    await openFilterAndSearch(page, TEST_REGION_NAME);
 
     // Find the row with our test region
     const row = page.locator('tr', { hasText: TEST_REGION_NAME });
@@ -157,7 +145,9 @@ test.describe.serial('Master Data: Regions', () => {
       await page.waitForTimeout(1000);
 
       await page.reload({ waitUntil: 'networkidle' });
-      await expect(page.locator('body')).toContainText(EDITED_NAME);
+      await waitForLoadingToFinish(page);
+      await openFilterAndSearch(page, EDITED_NAME);
+      await expect(page.locator('body')).toContainText(EDITED_NAME, { timeout: 10_000 });
     }
   });
 
@@ -166,11 +156,7 @@ test.describe.serial('Master Data: Regions', () => {
     await waitForLoadingToFinish(page);
 
     // Search for the edited region to handle pagination
-    const searchInput = page.locator('input[type="text"], input[type="search"]').first();
-    if (await searchInput.isVisible()) {
-      await searchInput.fill(EDITED_NAME);
-      await page.waitForTimeout(1000);
-    }
+    await openFilterAndSearch(page, EDITED_NAME);
 
     // Find the row with our edited region
     const row = page.locator('tr', { hasText: EDITED_NAME });
@@ -183,9 +169,11 @@ test.describe.serial('Master Data: Regions', () => {
 
       await page.waitForTimeout(2000);
       await page.reload({ waitUntil: 'networkidle' });
+      await waitForLoadingToFinish(page);
+      await openFilterAndSearch(page, EDITED_NAME);
 
-      // Should no longer appear
-      await expect(page.locator('body')).not.toContainText(EDITED_NAME);
+      // Should no longer appear (search should return no results)
+      await expect(page.locator('body')).not.toContainText(EDITED_NAME, { timeout: 10_000 });
     }
   });
 

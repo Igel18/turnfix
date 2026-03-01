@@ -83,15 +83,36 @@ export async function applySchema(): Promise<void> {
     stdio: 'pipe', // suppress verbose output
   });
 
-  // Also generate the Prisma client (needed if not done yet)
-  execSync(`npx prisma generate`, {
-    cwd: serverDir,
-    env: {
-      ...process.env,
-      DATABASE_URL: testDbUrl,
-    },
-    stdio: 'pipe',
-  });
+  // Generate the Prisma client only if it doesn't exist yet.
+  // Skip if the query engine DLL is already present — on Windows, the file
+  // is locked by any running Node process that imported @prisma/client,
+  // causing EPERM errors when prisma generate tries to overwrite it.
+  const enginePath = path.join(serverDir, 'node_modules', '.prisma', 'client', 'query_engine-windows.dll.node');
+  const clientIndexPath = path.join(serverDir, 'node_modules', '.prisma', 'client', 'index.js');
+  const fs = require('fs');
+
+  if (fs.existsSync(enginePath) && fs.existsSync(clientIndexPath)) {
+    console.log('⏭️  Prisma client already generated, skipping prisma generate');
+  } else {
+    try {
+      execSync(`npx prisma generate`, {
+        cwd: serverDir,
+        env: {
+          ...process.env,
+          DATABASE_URL: testDbUrl,
+        },
+        stdio: 'pipe',
+      });
+    } catch (err: any) {
+      // On Windows, EPERM can occur if the query engine DLL is locked by another process.
+      // This is non-fatal if the client was already generated previously.
+      if (fs.existsSync(clientIndexPath)) {
+        console.warn('⚠️  prisma generate failed (file locked?), but client exists — continuing');
+      } else {
+        throw err;
+      }
+    }
+  }
 
   console.log('✅ Schema applied successfully');
 }

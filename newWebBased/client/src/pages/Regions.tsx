@@ -105,8 +105,8 @@ const Regions: React.FC = () => {
   });
 
   const filteredRegions = sortedRegions.filter(region => {
-    const matchesSearch = region.var_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         region.var_kuerzel.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (region.var_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (region.var_kuerzel || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesVerband = selectedVerband === '' || region.int_verbaendeid === selectedVerband;
     return matchesSearch && matchesVerband;
   });
