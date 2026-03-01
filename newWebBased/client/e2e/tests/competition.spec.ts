@@ -18,6 +18,31 @@ test.describe('Competition: Setup Verification', () => {
   test('event appears on Events page', async ({ page }) => {
     await page.goto('/events', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
+
+    // The event may be on a later page (pagination). Use the search box to find it.
+    const searchInput = page.locator('input[type="text"][placeholder*="uch"], input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]').first();
+    if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await searchInput.fill(state.eventName);
+      await page.waitForTimeout(1000);
+    } else {
+      // If no search box, click through pagination until we find it
+      let found = false;
+      for (let i = 0; i < 10 && !found; i++) {
+        const bodyText = await page.locator('body').textContent();
+        if (bodyText?.includes(state.eventName)) {
+          found = true;
+          break;
+        }
+        const nextBtn = page.locator('button', { hasText: /Weiter|Next|»/ }).first();
+        if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false) && await nextBtn.isEnabled()) {
+          await nextBtn.click();
+          await page.waitForTimeout(1000);
+        } else {
+          break;
+        }
+      }
+    }
+
     await expect(page.locator('body')).toContainText(state.eventName);
   });
 

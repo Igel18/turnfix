@@ -595,3 +595,37 @@ test.describe('Jury Portal: Device Completion', () => {
     await expect(finishBtn).toBeVisible({ timeout: 10_000 });
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+// SECTION 8: Score Restoration (ensures clean data for subsequent tests)
+// ═══════════════════════════════════════════════════════════════════════
+
+test.describe('Jury Portal: Score Restoration', () => {
+
+  test('8.1 Restore all women scores modified by UI tests', async ({ request }) => {
+    // Tests 3.1 and 4.x modify women's scores (especially womenPids[0] + disciplineIds[0]).
+    // Restore all women's scores to their expected values.
+    let restored = 0;
+    for (let wi = 0; wi < state.womenPids.length; wi++) {
+      for (let di = 0; di < state.disciplineIds.length; di++) {
+        const res = await apiPost(request, '/scores/save-value', {
+          competitionId: state.comp1Id,
+          participantId: state.womenPids[wi],
+          disciplineId: state.disciplineIds[di],
+          score: WOMEN_SCORES[wi][di],
+        });
+        expect(res.status).toBeLessThan(300);
+        restored++;
+      }
+    }
+    console.log(`✓ Restored ${restored} women's scores to expected values`);
+  });
+
+  test('8.2 Verify women scores are correct after restoration', async ({ request }) => {
+    const res = await apiGet(request, `/scores?competitionId=${state.comp1Id}&limit=2000`);
+    const scores = res.body.results || [];
+    const womenScores = scores.filter((s: any) => s.score !== null && s.score !== undefined);
+    expect(womenScores.length).toBe(40);
+    console.log(`✓ Verified ${womenScores.length} women's scores restored correctly`);
+  });
+});

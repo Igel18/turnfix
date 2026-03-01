@@ -231,6 +231,7 @@ Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestart
 2. Im Jury-Portal werden in dem Fall "Benutzerdefinierte Formel" die richtigen Wertungen aus der DB ausgelesen. Und ich vermute auch irgendwo hin Kopiert. Im Management Portal werden Felder für die Eingabe angezeigt und auch Wertungen, aber nur die vom Jury-Portal kopierten... 
 Also: Beim Score-Capture müssen auch die Wertungen kopiert werden, wie beim Jury-Portal. 
 Auch dokumentieren & tests schreiben! 
+	-> In Arbeit...
 
 3. Hierfür müssen auch UI-Tests erstellt werden, am besten zuerst die Tests erstellen, die dann Rot sein müssen, dann die Fehler beheben und dann die Tests nochmal laufen lassen, die dann grün sein müssen. 
 	-> Erledigt ✅  
@@ -261,3 +262,23 @@ Wenn du in der Datenbank "turnfix" die Tabelle "tfx_disziplinen" anschaust sieht
 Auch die Maske und die Anzahl der Versuche ist in dieser Tabelle richtig hinterlegt. 
 Bitte auch Tests hierfür schreiben. 
 	-> Erledigt ✅  
+
+44. Riegeneinteilung 
+Es gibt bei den Veranstaltungen eine Seite um Riegen zu erstellen und Personen zuzuordnen. 
+Nun ist die Zuordnung der Personen zu Riegen nicht ganz einfach und hat verschiedene Kriterien: 
+a) Die Riege sollte nur eine gewisse Anzahl an Personen haben, da sonst der Wettkampf zu lange dauert 
+b) Die Anzahl der Riegen richtet sich nach der Anzahl der Kampfrichter bzw. Kampfgerichte (wenn immer jede Riege gleichzeitig turnen soll)
+c) Es ist möglich "Pausen" einzurichten. Diese Werden dann wie Geräte behandelt aber die Riege muss in der Zeit nicht turnen 
+d) Teilnehmer eines Vereins sollten nicht auf verschiedene Riegen aufgeteilt werden (da sich sonst die Trainer zerreisen müssen) 
+e) Gleiche Altersstufen sollten zusammen bleiben 
+f) Gleiche Geschlechter sollten zusammen bleiben 
+g) Gleiche Geräte sollten zusammen bleiben 
+Anhand dieser Kriterien werden die Riegen eingeteilt. Und mit einem Namen erstellt. Der Name hat idr. den Prefix des Geschlechts (m, w) und dann die Kurzform einer Farbe. So gibt es dann z.B. "wGlb" für "weiblich gelb" oder "mSchw" für "männlich schwarz". Die Kurzform daher, weil die DB nur eine begrenzte 
+Anzahl an Zeichen unterstützt. 
+Nun wäre es gut wenn du mir in der Seite der Riegeneinteilung einen neuen Button hinzufügst mit der Beschriftung "automatische Zuweisung" (oder etwas in der Art). Beim Klick auf diesen Button soll sich ein Modaler Dialog öffnen. Bei dem die Kriterien einstellbar sein sollen (z.B. Geschlechter trennen, einstellen der Altersstufen, Größe der Riegen, Anzahl der Riegen usw.) 
+Ist dies erfolgt soll nun mittels einem Klick auf einen Button "erstellen" eine vorher einstellbare Anzahl an Vorschlägen für diese Riegeneinteilung erstellt werden. Einer dieser Vorschläge kann sodann akzeptiert werden um den Vorschlag zu übernehmen, die Riegen werden dann anhand des Vorschlages erstellt und die Teilnehmer zugeordnet. 
+
+Ist das soweit verständlich oder gibt es noch Unklarheiten? Hast du noch Verbesserungsvorschläge zum Workflow bzw. den Kriterien? 
+Bitte dokumentieren und tests erstellen. 
+Für die Kriterien soll in den Einstellungen default werte definiert werden können. Es gibt ja bereits eine Datei in der die Einstellungen gespeichert sind. Die Default werte für die Kriterien sollen hier auch gespeichert werden. 
+

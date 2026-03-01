@@ -11,7 +11,8 @@ export class ScoreSynchronizer {
   
   /**
    * Ensures that when a jury result is saved, a corresponding entry exists in wertungen_details
-   * This is required for the Qt app's complex JOIN query to work correctly
+   * This is required for the Qt app's complex JOIN query to work correctly.
+   * Uses pg_advisory_xact_lock to prevent duplicate creation under concurrent access.
    */
   static async ensureWertungsDetailsEntry(
     wertungenId: number,
@@ -22,46 +23,34 @@ export class ScoreSynchronizer {
     try {
       console.log(`🔄 Synchronizing: Ensuring wertungen_details entry for wertungenId=${wertungenId}, disciplineId=${disciplineId}`);
       
-      // Check if entry already exists in tfx_wertungen_details
-      const existingQuery = `
-        SELECT int_wertungen_detailsid 
-        FROM tfx_wertungen_details 
-        WHERE int_wertungenid = $1 
-          AND int_disziplinenid = $2 
-          AND int_versuch = $3
-          AND int_kp = $4
-      `;
-      
-      const existing = await prisma.$queryRawUnsafe(
-        existingQuery,
-        wertungenId,
-        disciplineId,
-        attempt,
-        kp
-      ) as any[];
-      
-      if (existing.length === 0) {
-        // Create placeholder entry in tfx_wertungen_details with null score
-        // This ensures the Qt JOIN will work even if only jury results exist
-        const insertQuery = `
-          INSERT INTO tfx_wertungen_details 
-            (int_wertungenid, int_disziplinenid, int_versuch, rel_leistung, int_kp)
-          VALUES ($1, $2, $3, $4, $5)
-        `;
+      await prisma.$transaction(async (tx) => {
+        // Advisory lock prevents concurrent duplicate creation
+        // Lock key: combination of wertungenId and disciplineId
+        const lockKey = wertungenId * 100000 + disciplineId * 100 + (attempt || 0) * 10 + (kp || 0);
+        await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
         
-        await prisma.$queryRawUnsafe(
-          insertQuery,
-          wertungenId,
-          disciplineId,
-          attempt,
-          null, // null score as placeholder
-          kp
-        );
+        const existing = await tx.$queryRawUnsafe(
+          `SELECT int_wertungen_detailsid 
+           FROM tfx_wertungen_details 
+           WHERE int_wertungenid = $1 
+             AND int_disziplinenid = $2 
+             AND int_versuch = $3
+             AND int_kp = $4`,
+          wertungenId, disciplineId, attempt, kp
+        ) as any[];
         
-        console.log(`✅ Created placeholder wertungen_details entry for Qt compatibility`);
-      } else {
-        console.log(`✅ Wertungen_details entry already exists`);
-      }
+        if (existing.length === 0) {
+          await tx.$queryRawUnsafe(
+            `INSERT INTO tfx_wertungen_details 
+               (int_wertungenid, int_disziplinenid, int_versuch, rel_leistung, int_kp)
+             VALUES ($1, $2, $3, $4, $5)`,
+            wertungenId, disciplineId, attempt, null, kp
+          );
+          console.log(`✅ Created placeholder wertungen_details entry for Qt compatibility`);
+        } else {
+          console.log(`✅ Wertungen_details entry already exists`);
+        }
+      });
       
     } catch (error) {
       console.error('❌ Error in ensureWertungsDetailsEntry:', error);
@@ -71,7 +60,8 @@ export class ScoreSynchronizer {
   
   /**
    * Updates the regular score in tfx_wertungen_details when saving normal discipline scores
-   * Ensures that the entry is compatible with jury results
+   * Ensures that the entry is compatible with jury results.
+   * Uses pg_advisory_xact_lock to prevent duplicate creation under concurrent access.
    */
   static async updateWertungsDetailsScore(
     wertungenId: number,
@@ -83,58 +73,53 @@ export class ScoreSynchronizer {
     try {
       console.log(`🔄 Synchronizing: Updating wertungen_details score for wertungenId=${wertungenId}, disciplineId=${disciplineId}, score=${score}`);
       
-      // Check if entry exists
-      const existingQuery = `
-        SELECT int_wertungen_detailsid 
-        FROM tfx_wertungen_details 
-        WHERE int_wertungenid = $1 
-          AND int_disziplinenid = $2 
-          AND int_versuch = $3
-          AND int_kp = $4
-      `;
-      
-      const existing = await prisma.$queryRawUnsafe(
-        existingQuery,
-        wertungenId,
-        disciplineId,
-        attempt,
-        kp
-      ) as any[];
-      
-      if (existing.length > 0) {
-        // Update existing entry
-        const updateQuery = `
-          UPDATE tfx_wertungen_details 
-          SET rel_leistung = $1
-          WHERE int_wertungen_detailsid = $2
-        `;
+      await prisma.$transaction(async (tx) => {
+        // Advisory lock prevents concurrent duplicate creation (same key space as ensureWertungsDetailsEntry)
+        const lockKey = wertungenId * 100000 + disciplineId * 100 + (attempt || 0) * 10 + (kp || 0);
+        await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
         
-        await prisma.$queryRawUnsafe(
-          updateQuery,
-          score,
-          existing[0].int_wertungen_detailsid
-        );
+        const existing = await tx.$queryRawUnsafe(
+          `SELECT int_wertungen_detailsid 
+           FROM tfx_wertungen_details 
+           WHERE int_wertungenid = $1 
+             AND int_disziplinenid = $2 
+             AND int_versuch = $3
+             AND int_kp = $4`,
+          wertungenId, disciplineId, attempt, kp
+        ) as any[];
         
-        console.log(`✅ Updated existing wertungen_details score`);
-      } else {
-        // Create new entry
-        const insertQuery = `
-          INSERT INTO tfx_wertungen_details 
-            (int_wertungenid, int_disziplinenid, int_versuch, rel_leistung, int_kp)
-          VALUES ($1, $2, $3, $4, $5)
-        `;
-        
-        await prisma.$queryRawUnsafe(
-          insertQuery,
-          wertungenId,
-          disciplineId,
-          attempt,
-          score,
-          kp
-        );
-        
-        console.log(`✅ Created new wertungen_details entry`);
-      }
+        if (existing.length > 0) {
+          // Update existing entry (use first match if duplicates somehow exist)
+          await tx.$queryRawUnsafe(
+            `UPDATE tfx_wertungen_details 
+             SET rel_leistung = $1
+             WHERE int_wertungen_detailsid = $2`,
+            score, existing[0].int_wertungen_detailsid
+          );
+          
+          // Clean up any duplicates (defensive: remove extras if they exist)
+          if (existing.length > 1) {
+            const extraIds = existing.slice(1).map((e: any) => e.int_wertungen_detailsid);
+            console.warn(`⚠️ Found ${existing.length} duplicate wertungen_details entries, cleaning up ${extraIds.length} extras`);
+            await tx.$queryRawUnsafe(
+              `DELETE FROM tfx_wertungen_details WHERE int_wertungen_detailsid = ANY($1::int[])`,
+              extraIds
+            );
+          }
+          
+          console.log(`✅ Updated existing wertungen_details score`);
+        } else {
+          // Create new entry
+          await tx.$queryRawUnsafe(
+            `INSERT INTO tfx_wertungen_details 
+               (int_wertungenid, int_disziplinenid, int_versuch, rel_leistung, int_kp)
+             VALUES ($1, $2, $3, $4, $5)`,
+            wertungenId, disciplineId, attempt, score, kp
+          );
+          
+          console.log(`✅ Created new wertungen_details entry`);
+        }
+      });
       
     } catch (error) {
       console.error('❌ Error in updateWertungsDetailsScore:', error);

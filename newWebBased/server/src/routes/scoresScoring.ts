@@ -66,44 +66,33 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
 
     console.log(`✅ Using competition ID: ${actualCompetitionId}`);
 
-    // Find the wertungen record for this competition/participant
-    const wertungenQuery = `
-      SELECT int_wertungenid 
-      FROM tfx_wertungen 
-      WHERE int_wettkaempfeid = $1 
-        AND int_teilnehmerid = $2
-    `;
+    // Find or create the wertungen record (using advisory lock to prevent duplicates under concurrent access)
+    let wertungenId: number;
     
-    const wertungenResults = await prisma.$queryRawUnsafe(
-      wertungenQuery, 
-      actualCompetitionId, 
-      participantId
-    ) as any[];
-
-    let wertungenId;
-
-    if (wertungenResults.length === 0) {
-      // Create new wertungen record first
-      const createWertungenQuery = `
-        INSERT INTO tfx_wertungen 
-          (int_wettkaempfeid, int_teilnehmerid, int_statusid)
-        VALUES ($1, $2, $3)
-        RETURNING int_wertungenid
-      `;
+    const wertungenResult = await prisma.$transaction(async (tx) => {
+      // Advisory lock based on competition+participant to prevent duplicate wertungen creation
+      const lockKey = actualCompetitionId * 1000000 + participantId;
+      await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
       
-      const newWertungen = await prisma.$queryRawUnsafe(
-        createWertungenQuery,
-        actualCompetitionId,
-        participantId,
-        1 // Default status ID
+      const existing = await tx.$queryRawUnsafe(
+        `SELECT int_wertungenid FROM tfx_wertungen WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2`,
+        actualCompetitionId, participantId
       ) as any[];
       
-      wertungenId = newWertungen[0].int_wertungenid;
-      console.log('Created new wertungen record with ID:', wertungenId);
-    } else {
-      wertungenId = wertungenResults[0].int_wertungenid;
-      console.log('Using existing wertungen record with ID:', wertungenId);
-    }
+      if (existing.length === 0) {
+        const created = await tx.$queryRawUnsafe(
+          `INSERT INTO tfx_wertungen (int_wettkaempfeid, int_teilnehmerid, int_statusid) VALUES ($1, $2, $3) RETURNING int_wertungenid`,
+          actualCompetitionId, participantId, 1
+        ) as any[];
+        console.log('Created new wertungen record with ID:', created[0].int_wertungenid);
+        return created[0].int_wertungenid;
+      } else {
+        console.log('Using existing wertungen record with ID:', existing[0].int_wertungenid);
+        return existing[0].int_wertungenid;
+      }
+    });
+    
+    wertungenId = wertungenResult;
 
     // Use ScoreSynchronizer to update the score and ensure consistency
     await ScoreSynchronizer.updateWertungsDetailsScore(
@@ -295,51 +284,38 @@ router.post('/create-wertung', authenticateToken, async (req: AuthRequest, res: 
     
     console.log('📝 Creating wertungen entry:', { competitionId, participantId, disciplineId });
     
-    // Check if wertungen entry already exists
-    const existingQuery = `
-      SELECT int_wertungenid 
-      FROM tfx_wertungen 
-      WHERE int_wettkaempfeid = $1 
-        AND int_teilnehmerid = $2
-      LIMIT 1
-    `;
-    
-    const existing = await prisma.$queryRawUnsafe(existingQuery, competitionId, participantId) as any[];
-    
-    if (existing && existing.length > 0) {
-      console.log('✅ Wertungen entry already exists:', existing[0].int_wertungenid);
-      return res.json({
-        success: true,
-        wertungenId: existing[0].int_wertungenid,
-        message: 'Existing wertungen entry found'
-      });
-    }
-    
-    // Create new wertungen entry
-    const insertQuery = `
-      INSERT INTO tfx_wertungen (
-        int_wettkaempfeid,
-        int_teilnehmerid,
-        int_statusid,
-        var_riege
-      ) VALUES ($1, $2, 1, '')
-      RETURNING int_wertungenid
-    `;
-    
-    const result = await prisma.$queryRawUnsafe(insertQuery, competitionId, participantId) as any[];
-    
-    if (result && result.length > 0) {
-      const wertungenId = result[0].int_wertungenid;
-      console.log('✅ Created new wertungen entry:', wertungenId);
+    // Use advisory lock to prevent duplicate wertungen creation under concurrent access
+    const result = await prisma.$transaction(async (tx) => {
+      const lockKey = competitionId * 1000000 + participantId;
+      await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
       
-      res.json({
-        success: true,
-        wertungenId: wertungenId,
-        message: 'Wertungen entry created successfully'
-      });
-    } else {
+      const existing = await tx.$queryRawUnsafe(
+        `SELECT int_wertungenid FROM tfx_wertungen WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2 LIMIT 1`,
+        competitionId, participantId
+      ) as any[];
+      
+      if (existing && existing.length > 0) {
+        console.log('✅ Wertungen entry already exists:', existing[0].int_wertungenid);
+        return { wertungenId: existing[0].int_wertungenid, created: false };
+      }
+      
+      const inserted = await tx.$queryRawUnsafe(
+        `INSERT INTO tfx_wertungen (int_wettkaempfeid, int_teilnehmerid, int_statusid, var_riege) VALUES ($1, $2, 1, '') RETURNING int_wertungenid`,
+        competitionId, participantId
+      ) as any[];
+      
+      if (inserted && inserted.length > 0) {
+        console.log('✅ Created new wertungen entry:', inserted[0].int_wertungenid);
+        return { wertungenId: inserted[0].int_wertungenid, created: true };
+      }
       throw new Error('Failed to create wertungen entry');
-    }
+    });
+    
+    res.json({
+      success: true,
+      wertungenId: result.wertungenId,
+      message: result.created ? 'Wertungen entry created successfully' : 'Existing wertungen entry found'
+    });
     
   } catch (error) {
     console.error('❌ Error creating wertungen entry:', error);
