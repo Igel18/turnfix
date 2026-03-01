@@ -1,34 +1,32 @@
 /**
- * Discipline icon helpers — uses shared maps from @turnfix/shared
+ * Discipline icon helpers — uses shared utilities from @turnfix/shared
  *
- * Name-to-filename and short-name maps are shared.
- * URL construction & PDF helpers are client-specific.
+ * Icon data comes from the DATABASE (`tfx_disziplinen.var_icon`).
+ * When no icon is set in the DB, a "missing icon" placeholder is shown.
+ * There are NO hardcoded fallback mappings.
  */
-import { DISCIPLINE_ICON_MAP, DISCIPLINE_SHORT_NAME_MAP } from '@turnfix/shared';
+import { MISSING_ICON_FILENAME } from '@turnfix/shared';
 
-// Re-export shared maps for consumers
-export { DISCIPLINE_ICON_MAP, DISCIPLINE_SHORT_NAME_MAP } from '@turnfix/shared';
+// Re-export shared constants for consumers
+export { MISSING_ICON_FILENAME, MISSING_ICON_EMOJI } from '@turnfix/shared';
 
 // Function to convert Qt resource path to web-accessible path
 export const getWebIconPath = (qtIconPath: string): string => {
-  if (!qtIconPath || qtIconPath === '') return '/assets/icons/default.png';
+  if (!qtIconPath || qtIconPath === '') return `/assets/icons/${MISSING_ICON_FILENAME}`;
   const iconFileName = qtIconPath.replace(':/icons/', '');
   return `/assets/icons/${iconFileName}`;
 };
 
-// Function to get icon path for a discipline
-export const getDisciplineIcon = (disciplineName: string, iconPath?: string): string => {
+// Function to get icon path for a discipline (DB icon only, no hardcoded fallback)
+export const getDisciplineIcon = (_disciplineName: string, iconPath?: string): string => {
   if (iconPath) {
     return getWebIconPath(iconPath);
   }
-  const filename = DISCIPLINE_ICON_MAP[disciplineName];
-  if (filename) {
-    return `/assets/icons/${filename}`;
-  }
-  return '/assets/icons/default.png';
+  // No DB icon → show missing-icon placeholder
+  return `/assets/icons/${MISSING_ICON_FILENAME}`;
 };
 
-// Function to get discipline short name for PDF headers
+// Function to get discipline short name for PDF headers (from DB data, no hardcoded map)
 export const getDisciplineShortName = (disciplineName: string, disciplineData?: any): string => {
   import('./debug').then(({ isDebugEnabled, debugLog }) => {
     if (isDebugEnabled()) {
@@ -36,12 +34,14 @@ export const getDisciplineShortName = (disciplineName: string, disciplineData?: 
     }
   });
 
+  // Use DB field if available
   if (disciplineData?.var_kurz1) {
     return disciplineData.var_kurz1;
   }
 
-  const result = DISCIPLINE_SHORT_NAME_MAP[disciplineName] || disciplineName.substring(0, 5).toUpperCase();
-  console.log(`Using fallback: ${result} for ${disciplineName}`);
+  // Auto-generate from name (max 5 chars, uppercase)
+  const result = disciplineName.substring(0, 5).toUpperCase();
+  console.log(`No var_kurz1 in DB for "${disciplineName}", auto-generated: ${result}`);
   return result;
 };
 

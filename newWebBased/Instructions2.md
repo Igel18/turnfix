@@ -226,9 +226,11 @@ Und nach dem Setup muss nicht nur der Server sonder auch der Jury-Server gestart
 3. Für die Fälle wären Tests ganz gut, wahrscheinlich UI-tests.
 	-> Erledigt ✅  
 
-36. 1. ist bei den Disziplinen eine "Benutzerdefinierte Formel" (z.B. 1*x) angelegt und keine "Formel" aus einer anderen Tabelle, dann funktioniert die Eingabe der Wertungen nicht (im Jury-Portal). Es wird dann kein Feld für die Eingabe angezeigt! 
+36. haben wird das schon gemacht? 
+1. ist bei den Disziplinen eine "Benutzerdefinierte Formel" (z.B. 1*x) angelegt und keine "Formel" aus einer anderen Tabelle, dann funktioniert die Eingabe der Wertungen nicht (im Jury-Portal). Es wird dann kein Feld für die Eingabe angezeigt! 
 2. Im Jury-Portal werden in dem Fall "Benutzerdefinierte Formel" die richtigen Wertungen aus der DB ausgelesen. Und ich vermute auch irgendwo hin Kopiert. Im Management Portal werden Felder für die Eingabe angezeigt und auch Wertungen, aber nur die vom Jury-Portal kopierten... 
 Also: Beim Score-Capture müssen auch die Wertungen kopiert werden, wie beim Jury-Portal. 
+Auch dokumentieren & tests schreiben! 
 
 3. Hierfür müssen auch UI-Tests erstellt werden, am besten zuerst die Tests erstellen, die dann Rot sein müssen, dann die Fehler beheben und dann die Tests nochmal laufen lassen, die dann grün sein müssen. 
 	-> Erledigt ✅  
@@ -245,6 +247,7 @@ Also: Beim Score-Capture müssen auch die Wertungen kopiert werden, wie beim Jur
 	-> Erledigt ✅  
 
 41. Die Fallback Icons löschen und schauen warum in dem shared iconUtis.ts ein mapping drin ist. Das steht doch eigentlich in der DB ob und welche Disziplin welches Icon hat. Von mir aus kann beim fehlen eines icons in der DB (z.B. bei falschem namen) oder bei keiner angabe eines Icons in der Disziplin ein "Fehler" icon angezeigt werden. Auch testen.  
+	-> Erledigt ✅  
 
 42. Icons für Geräte 
 Eine UI um Icons für Geräte hinzuzufügen, zu löschen wäre hilfreich. 

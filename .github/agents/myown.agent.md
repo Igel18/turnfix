@@ -299,7 +299,9 @@ if (process.env.DEBUG === 'true') {
 ## 🧪 Testing & Quality
 
 ## Unit tests ##
-- Use Vitest for unit testing
+- Use Vitest for unit testing of client components and utilities
+- Use Jest for unit testing of server components
+
 
 ## Integration tests ##
 - Use Vitest for integration testing of API routes and database interactions

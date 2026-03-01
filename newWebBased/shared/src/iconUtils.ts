@@ -1,11 +1,31 @@
 /**
  * Icon Utilities (Shared)
  *
- * SINGLE SOURCE OF TRUTH for icon path parsing &amp; discipline icon mappings.
+ * SINGLE SOURCE OF TRUTH for icon path parsing.
  * Do NOT duplicate. Import from @turnfix/shared.
+ *
+ * Icon data (which discipline has which icon) comes from the **database**
+ * (`tfx_disziplinen.var_icon`). There are NO hardcoded fallback mappings.
+ * When a discipline has no icon in the DB, an error/missing icon is shown.
  *
  * Environment-specific URL construction stays in the per-project wrappers.
  */
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/**
+ * Filename of the "missing icon" placeholder shown when a discipline
+ * has no `var_icon` value in the database.
+ */
+export const MISSING_ICON_FILENAME = 'missing-icon.svg';
+
+/**
+ * Emoji placeholder for contexts where an image cannot be rendered
+ * (e.g. plain-text fallbacks). Shown when no DB icon is available.
+ */
+export const MISSING_ICON_EMOJI = '❓';
 
 // ---------------------------------------------------------------------------
 // Qt resource path handling
@@ -36,81 +56,3 @@ export function stripQtPrefix(iconPath: string): string {
   if (iconPath.startsWith(':/')) return iconPath.substring(2);
   return iconPath;
 }
-
-// ---------------------------------------------------------------------------
-// Discipline icon / name mappings  (domain knowledge)
-// ---------------------------------------------------------------------------
-
-/**
- * Fallback mapping: discipline name → icon filename.
- * Used when the database icon path is empty or missing.
- */
-export const DISCIPLINE_ICON_MAP: Record<string, string> = {
-  'Balken': 'balken.png',
-  'Schwebebalken': 'balken.png',
-  'Sch.-Balken': 'balken.png',
-  'Boden': 'boden.png',
-  'Sprung': 'sprung.png',
-  'Stufenbarren': 'barren.png',
-  'Stu.-Barren': 'barren.png',
-  'Barren': 'barren.png',
-  'Par.-Barren': 'barren.png',
-  'Reck': 'reck.png',
-  'Pferd': 'seitpferd.png',
-  'Seitpferd': 'seitpferd.png',
-  'Pauschenpferd': 'seitpferd.png',
-  'Ringe': 'ringe.png',
-  'Minitrampolin': 'minitrampolin.png',
-  'Gerätebahn A': 'geraetebahn.png',
-  'Gerätebahn B': 'geraetebahn.png',
-};
-
-/**
- * Fallback mapping: discipline name → emoji.
- * Used when no icon image is available at all.
- */
-export const DISCIPLINE_EMOJI_MAP: Record<string, string> = {
-  'Boden': '🤸',
-  'Reck': '🏃',
-  'Barren': '💪',
-  'Par.-Barren': '💪',
-  'Pferd': '🏇',
-  'Pauschenpferd': '🏇',
-  'Seitpferd': '🏇',
-  'Stufenbarren': '🤸‍♀️',
-  'Stu.-Barren': '🤸‍♀️',
-  'Schwebebalken': '⚖️',
-  'Sch.-Balken': '⚖️',
-  'Balken': '⚖️',
-  'Sprung': '🤾',
-  'Ringe': '💍',
-  'Minitrampolin': '🤾',
-  'Gerätebahn A': '🏃',
-  'Gerätebahn B': '🏃',
-};
-
-/**
- * Get a fallback emoji for a discipline when no icon image is available.
- */
-export function getFallbackDeviceEmoji(deviceName: string): string {
-  return DISCIPLINE_EMOJI_MAP[deviceName] || '🏆';
-}
-
-/**
- * Fallback short-name mapping for PDF headers.
- */
-export const DISCIPLINE_SHORT_NAME_MAP: Record<string, string> = {
-  'Balken': 'BALK',
-  'Schwebebalken': 'BALK',
-  'Boden': 'BODEN',
-  'Sprung': 'SPRU',
-  'Stufenbarren': 'STBARR',
-  'Barren': 'BARR',
-  'Reck': 'RECK',
-  'Pferd': 'PFERD',
-  'Seitpferd': 'PFERD',
-  'Ringe': 'RINGE',
-  'Minitrampolin': 'MINITR',
-  'Gerätebahn A': 'GERA',
-  'Gerätebahn B': 'GERB',
-};

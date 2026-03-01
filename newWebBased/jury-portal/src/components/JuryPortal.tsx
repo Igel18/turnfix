@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Trophy } from 'lucide-react';
-import { getDisciplineIcon, getFallbackDeviceEmoji } from '../utils/iconUtils';
+import { getDisciplineIcon, MISSING_ICON_EMOJI, getMissingIconUrl } from '../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder } from '../utils/scoreFormatter';
 import getSocket from '../utils/socket';
 import FormulaInput from './FormulaInput';
@@ -332,15 +332,15 @@ const JuryPortal: React.FC = () => {
         
         console.log('🔍 JURY: Filtered disciplines using Score Capture logic:', filteredDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
         
-        // Transform to Device format - use database icon if available, fallback to emoji
+        // Transform to Device format - use database icon, missing-icon placeholder if none
         const devicesList = filteredDisciplines.map((discipline: any) => {
           const iconUrl = getDisciplineIcon(discipline.var_name, discipline.var_icon);
           return {
             id: discipline.int_disziplinid,
             name: discipline.var_name,
             disciplineId: discipline.int_disziplinid,
-            icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
-            iconPath: iconUrl, // Web-accessible icon path or null
+            icon: '', // Icons come from iconPath (DB or missing-icon placeholder)
+            iconPath: iconUrl, // Always set: DB icon URL or missing-icon.svg
             maxScore: discipline.maxScore || 0, // Maximum allowed score
             int_berechnung: discipline.int_berechnung, // Decimal places configuration
             var_maske: discipline.var_maske, // Format mask
@@ -360,8 +360,8 @@ const JuryPortal: React.FC = () => {
               id: discipline.int_disziplinid,
               name: discipline.var_name,
               disciplineId: discipline.int_disziplinid,
-              icon: iconUrl ? '' : getFallbackDeviceEmoji(discipline.var_name), // Emoji if no icon URL
-              iconPath: iconUrl, // Web-accessible icon path or null
+              icon: '', // Icons come from iconPath (DB or missing-icon placeholder)
+              iconPath: iconUrl, // Always set: DB icon URL or missing-icon.svg
               maxScore: discipline.maxScore || 0, // Maximum allowed score
               int_berechnung: discipline.int_berechnung, // Decimal places configuration
               var_maske: discipline.var_maske, // Format mask
@@ -1203,17 +1203,21 @@ const JuryPortal: React.FC = () => {
                           alt={`${device.name} icon`}
                           className="w-16 h-16 object-contain"
                           onError={(e) => {
-                            // Fallback to emoji if image fails to load
-                            e.currentTarget.style.display = 'none';
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              const emoji = getFallbackDeviceEmoji(device.name);
-                              parent.innerHTML = `<div class="text-4xl">${emoji}</div>`;
+                            // Fallback to missing-icon SVG, then emoji
+                            const missingUrl = getMissingIconUrl();
+                            if (e.currentTarget.src !== missingUrl) {
+                              e.currentTarget.src = missingUrl;
+                            } else {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<div class="text-4xl">${MISSING_ICON_EMOJI}</div>`;
+                              }
                             }
                           }}
                         />
                       ) : (
-                        <div className="text-4xl">{device.icon || getFallbackDeviceEmoji(device.name)}</div>
+                        <div className="text-4xl">{MISSING_ICON_EMOJI}</div>
                       )}
                     </div>
                     <h3 className="text-xl font-semibold">{device.name}</h3>
@@ -1247,19 +1251,23 @@ const JuryPortal: React.FC = () => {
                   alt={`${selectedDevice.name} icon`}
                   className="w-6 h-6 sm:w-10 sm:h-10 object-contain bg-white bg-opacity-20 rounded-lg p-1"
                   onError={(e) => {
-                    // Fallback to emoji if image fails to load
-                    e.currentTarget.style.display = 'none';
-                    const parent = e.currentTarget.parentElement;
-                    if (parent && selectedDevice?.name) {
-                      const emoji = getFallbackDeviceEmoji(selectedDevice.name);
-                      parent.innerHTML = `<div class="text-xl sm:text-3xl">${emoji}</div>`;
+                    // Fallback to missing-icon SVG, then emoji
+                    const missingUrl = getMissingIconUrl();
+                    if (e.currentTarget.src !== missingUrl) {
+                      e.currentTarget.src = missingUrl;
+                    } else {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<div class="text-xl sm:text-3xl">${MISSING_ICON_EMOJI}</div>`;
+                      }
                     }
                   }}
                 />
               ) : selectedDevice?.icon ? (
                 <div className="text-xl sm:text-3xl">{selectedDevice.icon}</div>
-              ) : selectedDevice?.name && (
-                <div className="text-xl sm:text-3xl">{getFallbackDeviceEmoji(selectedDevice.name)}</div>
+              ) : (
+                <div className="text-xl sm:text-3xl">{MISSING_ICON_EMOJI}</div>
               )}
               <div>
                 <h1 className="text-sm sm:text-xl font-bold">{selectedDevice?.name}</h1>

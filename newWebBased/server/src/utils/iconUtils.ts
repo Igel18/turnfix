@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-export { getIconFilename, stripQtPrefix, DISCIPLINE_ICON_MAP, DISCIPLINE_EMOJI_MAP, getFallbackDeviceEmoji, DISCIPLINE_SHORT_NAME_MAP } from '@turnfix/shared';
+export { getIconFilename, stripQtPrefix, MISSING_ICON_FILENAME, MISSING_ICON_EMOJI } from '@turnfix/shared';
 
 /**
  * Converts Qt resource icon path to web-accessible URL (server-specific)
