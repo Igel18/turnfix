@@ -315,3 +315,9 @@ Rechter Rand (mm) 8
 Papierformat Din-A4 
 b.) Zudem wird keine Vorschau-Info beim Drucken/Pdf-Erzeugen der Etiketten angezeigt. 
 c.) Ein Start in Zeile wäre gut. Dann hat man nicht so viel Ausschuss. 
+
+49. Jury-Portal Werte berechnen 
+Ist bei einer Disziplin eine Formel hinterlegt (ohne DB-Felder), dann werden jetzt die Variablen (z.B. x) korrekt in dem Jury-Portal angezeigt. Aber nach der Eingabe des Werts sollte ein Ergebnis berechnet werden (anhand der Formel). Aber das passiert nicht. 
+Bitte prüfen, beheben, Tests schreiben, Doku erstellen. Und prüfen ob dies im management score capture richtig funktioniert. 
+	-> Erledigt ✅  
+

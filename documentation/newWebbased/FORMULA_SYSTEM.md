@@ -1,7 +1,7 @@
 # Formula System Documentation
 
-**Version**: 2.0  
-**Last Updated**: 2025-11-18  
+**Version**: 2.1  
+**Last Updated**: 2026-02-07  
 **Author**: TurnFix Development Team
 
 ---
@@ -85,9 +85,10 @@ bol_endwert    → TRUE für Endwert-Feld
 **Feld-Zuordnung**: Variablen werden aus der Formel extrahiert
 
 ```typescript
-// Beispiel: Formel "(((1000/x)-2.158)/0.006)/49"
+// Beispiel: Formel "(((1000/x)-2,158)/0,006)/49"
 // x = Einziges Eingabefeld "X"
 // Ergebnis = Automatisch berechnet
+// ⚠️ Deutsche Dezimalkommas (2,158 statt 2.158) werden automatisch normalisiert
 ```
 
 **Variable Map**:
@@ -103,7 +104,8 @@ const variableMap = ['x', 'y', 'z', 'a', 'b', 'c']; // Max. 6 Felder
 
 **Beispiel-Formeln**:
 - `1*x` - Einfache Multiplikation
-- `(((1000/x)-2.158)/0.006)/49` - Komplexe Berechnung (Zielwurf)
+- `(((1000/x)-2,158)/0,006)/49` - 1000m-Lauf (mit deutschen Dezimalkommas)
+- `12*(((100/(1,2*(15*x-16,5)))-0,3))` - 10m Streckentauchen
 - `x+y*z` - Mehrere Variablen
 - `(x+y)/2` - Durchschnitt
 
@@ -186,13 +188,20 @@ handleFieldChange(id, "5,5")    // Roh-Eingabe
 ```
 client/src/
 ├── utils/
-│   ├── formulaCalculator.ts    # 13 Core Functions
+│   ├── formulaCalculator.ts    # Client Engine: 13 Core Functions (CSP-safe)
 │   └── inputMaskUtils.ts       # InputMask Parsing & Normalisierung
 ├── hooks/
-│   └── useFormulaFields.ts     # State Management Hook
+│   ├── useFormulaFields.ts     # State Management Hook (nutzt formulaCalculator)
+│   └── useFormulaCalculation.ts # Display/Evaluation (nutzt shared Engine)
 └── components/
-    ├── FormulaInput.tsx        # Wiederverwendbare UI
+    ├── FormulaInput.tsx         # Wiederverwendbare UI (Management)
     └── DisciplineConfigTester.tsx  # Legacy Wrapper
+
+shared/src/
+└── formulaUtils.ts             # Shared Engine: calculateFormula, formatFormula (expr-eval)
+
+jury-portal/src/components/
+└── FormulaInput.tsx             # Jury-Portal FormulaInput (nutzt shared Engine)
 ```
 
 ### 1. `formulaCalculator.ts` (Core Utils)
@@ -691,6 +700,178 @@ if (op === '/') {
 - **API Routes**: 
   - `/api/discipline-fields` - Field Loading
   - `/api/formulas/:id` - Formula Loading
+
+---
+
+## Dual-Engine Architektur & Bugfix-Dokumentation
+
+### Überblick: Zwei Formel-Engines
+
+TurnFix verwendet **zwei unterschiedliche Formel-Engines**, die in verschiedenen Kontexten eingesetzt werden:
+
+| Engine | Datei | Verwendet von | Parser | Komma-Handling |
+|--------|-------|---------------|--------|----------------|
+| **Client Engine** | `client/src/utils/formulaCalculator.ts` | Management-App (FormulaInput, Score Capture) | Recursive Descent (CSP-safe) | Aggressiv: `formula.replace(/,/g, '.')` |
+| **Shared Engine** | `shared/src/formulaUtils.ts` | Jury-Portal, Server, Client (Display) | `expr-eval` Library | Präzise: `formula.replace(/(\d),(\d)/g, '$1.$2')` |
+
+#### Client Engine (`formulaCalculator.ts`)
+- **Einsatz**: `useFormulaFields` Hook → Management-App FormulaInput
+- **Stärken**: CSP-safe (kein `eval()`), kein `startValue`-Konzept
+- **Komma-Handling**: Globale Ersetzung aller Kommas → funktioniert immer
+- **Kein `startValue`**: Verwendet Formel wie geschrieben (kein Ersetzen der führenden Zahl)
+
+#### Shared Engine (`shared/src/formulaUtils.ts`)
+- **Einsatz**: Jury-Portal `FormulaInput`, Server-seitige Berechnung, Client `useFormulaCalculation` Hook
+- **Stärken**: Zentraler Code für alle drei Projekte (shared package)
+- **`startValue`-Konzept**: Kann die führende Zahl einer Formel durch `maxScore` ersetzen (z.B. `10 + A - B` → `15 + A - B`)
+
+---
+
+### Bugfix: German Decimal Commas + startValue (2026-02)
+
+#### Problem 1: Deutsche Dezimalkommas in Formeln
+
+**Symptom**: Jury-Portal zeigte Formel-Variablen korrekt an, berechnet nach Eingabe aber kein Ergebnis.
+
+**Ursache**: Produktionsformeln verwenden **deutsches Dezimalkomma**:
+```
+(((1000/x)-2,158)/0,006)/49          ← 1000m-Lauf
+12*(((100/(1,2*(15*x-16,5)))-0,3))   ← 10m Streckentauchen
+```
+
+Die `calculateFormula()` in der Shared Engine validierte mit Regex:
+```typescript
+// ALT: Komma nicht erlaubt → Formel wird abgelehnt → return null
+if (!/^[0-9+\-*/.() ]+$/.test(evalFormula)) return null;
+```
+
+**Fix in `shared/src/formulaUtils.ts`**:
+```typescript
+// Deutsche Dezimalkommas normalisieren BEVOR Validierung
+// Nur zwischen Ziffern ersetzen (z.B. "2,158" → "2.158")
+evalFormula = evalFormula.replace(/(\d),(\d)/g, '$1.$2');
+
+// Validierung erfolgt danach mit normalisierten Punkten
+if (!/^[0-9+\-*/.() ]+$/.test(evalFormula)) return null;
+```
+
+**Warum `(\d),(\d)` statt `/,/g`?**
+- Präziser: Ersetzt nur Kommas zwischen Ziffern
+- Vermeidet Probleme mit Kommas in anderen Kontexten
+- Behandelt korrekt: `2,158` → `2.158`  aber nicht `,5` oder `5,`
+
+#### Problem 2: startValue überschreibt Formel-Konstanten
+
+**Symptom**: Formel `1*x` mit `x=5` ergab `0` statt `5`.
+
+**Ursache**: `startValue` (= `maxScore` der Disziplin, oft `0`) ersetzte die führende `1`:
+```typescript
+// ALT: Immer ersetzen
+evalFormula = evalFormula.replace(/^(\d+(\.\d+)?)/, startValue.toString());
+// "1*x" mit startValue=0 → "0*x" → 0 ❌
+```
+
+**Fix**: Erkennung von Custom-Formeln (lowercase Variables):
+```typescript
+// Custom-Formeln (lowercase vars: x, y, z) → kein startValue ersetzen
+const hasLowercaseVars = /\b[a-z]\b/.test(formula);
+
+if (startValue !== undefined && !hasLowercaseVars) {
+  evalFormula = evalFormula.replace(/^(\d+(\.\d+)?)/, startValue.toString());
+}
+// "1*x" → bleibt "1*x" → mit x=5 → "1*5" → 5 ✓
+// "10+A-B" mit startValue=15 → "15+A-B" ✓ (letter-based, kein lowercase var)
+```
+
+**Gleiche Logik in `formatFormulaWithValues()`**:
+```typescript
+const hasLowercaseVars = /\b[a-z]\b/.test(formula);
+if (replaceStartValue && startValue !== undefined && !hasLowercaseVars) {
+  displayFormula = displayFormula.replace(/^(\d+(\.\d+)?)/, startValue.toString());
+}
+```
+
+#### Problem 3: Infinite Re-Render im Jury-Portal FormulaInput
+
+**Symptom**: Potentieller Infinite-Loop in Jury-Portal `FormulaInput.tsx`.
+
+**Ursache**: `onScoreChange` (inline arrow function) war in der `useEffect`-Dependency-Array:
+```tsx
+// ALT: Inline arrow erstellt neue Referenz bei jedem Render
+useEffect(() => {
+  onScoreChange(result, fieldValues);
+}, [fieldValues, formula, startValue, onScoreChange]); // ← neue Referenz → re-render → neue Ref → ...
+```
+
+**Fix mit `useRef`**:
+```tsx
+const onScoreChangeRef = useRef(onScoreChange);
+onScoreChangeRef.current = onScoreChange;
+
+useEffect(() => {
+  const result = calculateFormula(formula, fieldValues, startValue);
+  setCalculatedScore(result);
+  onScoreChangeRef.current(result, fieldValues);
+}, [fieldValues, formula, startValue]); // ← stabile Referenz, kein Loop
+```
+
+---
+
+### Verifikation
+
+#### Manuelle Tests
+```
+Test 1: 1*x mit x=5             → 5   ✓ (war 0 vor Fix)
+Test 2: (((1000/x)-2,158)/0,006)/49 mit x=300 → 3.998 ✓ (war null vor Fix)
+Test 3: (10+A)-B mit {A:6, B:3.5}             → 12.5  ✓ (unverändert)
+```
+
+#### Unit Tests
+
+| Test-Suite | Datei | Tests | Status |
+|------------|-------|-------|--------|
+| Shared formulaUtils | `client/src/test/utils/formulaUtils.test.ts` | 65 (9 neu) | ✅ Pass |
+| Server formulaUtils | `server/src/test/utils/formulaUtils.test.ts` | 51 | ✅ Pass |
+| Client formulaCalculator | `client/src/test/utils/formulaCalculator.test.ts` | 66 (5 neu) | ✅ Pass |
+
+**Neue Tests (formulaUtils.test.ts)**:
+- Deutsche Dezimalkommas: 3 Tests
+  - `(((1000/x)-2,158)/0,006)/49` mit x=300
+  - `x * 1,5` mit x=4
+  - Schwimm-Formel mit komplexen Kommas
+- startValue-Schutz: 4 Tests
+  - `1*x` wird nicht durch `startValue=0` zerstört
+  - Letter-Formeln verwenden weiterhin `startValue`
+- formatFormulaWithValues: 2 Tests
+  - Variable-Formeln: kein startValue in Display
+  - Letter-Formeln: startValue korrekt in Display
+
+**Neue Tests (formulaCalculator.test.ts)**:
+- `1*x` mit Variable-Typ → 5
+- `(((1000/x)-2,158)/0,006)/49` mit x=300 → ≈3.998
+- Schwimm-Formel mit Kommas
+- `x * 1,5` mit x=4 → 6
+- Kombination: Komma in Eingabe UND Formel
+
+#### Management ScoreCapture: Kein Bugfix nötig
+
+Die Management-App verwendet die **Client Engine** (`formulaCalculator.ts`), die:
+- ✅ Kommas bereits aggressiv ersetzt (`/,/g`)
+- ✅ Kein `startValue`-Konzept hat
+- ✅ Custom-Formeln korrekt berechnet
+
+→ **Kein Bugfix erforderlich** für Management ScoreCapture.
+
+---
+
+### Betroffene Dateien
+
+| Datei | Änderung |
+|-------|----------|
+| `shared/src/formulaUtils.ts` | Komma-Normalisierung + startValue-Schutz |
+| `jury-portal/src/components/FormulaInput.tsx` | useRef für onScoreChange |
+| `client/src/test/utils/formulaUtils.test.ts` | 9 neue Tests |
+| `client/src/test/utils/formulaCalculator.test.ts` | 5 neue Tests |
 
 ---
 

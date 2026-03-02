@@ -6,7 +6,7 @@
  * Displays formula fields (A, B, C...) and calculates result automatically
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   extractFormulaSymbols, 
   calculateFormula, 
@@ -55,6 +55,11 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
   });
   const [calculatedScore, setCalculatedScore] = useState<number | null>(null);
 
+  // Stable ref for onScoreChange to avoid infinite re-render loops
+  // (parent passes inline arrow function that changes every render)
+  const onScoreChangeRef = useRef(onScoreChange);
+  onScoreChangeRef.current = onScoreChange;
+
   // Extract symbols from formula
   const symbols = extractFormulaSymbols(formula);
 
@@ -80,8 +85,8 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
   useEffect(() => {
     const result = calculateFormula(formula, fieldValues, startValue);
     setCalculatedScore(result);
-    onScoreChange(result, fieldValues);
-  }, [fieldValues, formula, startValue, onScoreChange]);
+    onScoreChangeRef.current(result, fieldValues);
+  }, [fieldValues, formula, startValue]);
 
   const handleFieldChange = (symbol: string, value: string) => {
     // Allow typing with decimal separators (both . and ,)

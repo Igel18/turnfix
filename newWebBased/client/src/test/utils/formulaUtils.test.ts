@@ -152,6 +152,17 @@ describe('formatFormulaWithValues', () => {
     const result = formatFormulaWithValues('A + B', { A: 5 });
     expect(result).toBe('5.00 + B');
   });
+
+  it('does NOT replace leading number in custom formulas (lowercase vars)', () => {
+    // "1*x" — the "1" should stay as-is, not be replaced by replaceStartValue
+    const result = formatFormulaWithValues('1*x', { x: 5 }, { replaceStartValue: 0, decimals: 2 });
+    expect(result).toBe('1*5.00');
+  });
+
+  it('replaces lowercase values in custom formulas', () => {
+    const result = formatFormulaWithValues('(((1000/x)-2,158)/0,006)/49', { x: 300 }, { decimals: 2 });
+    expect(result).toContain('300.00');
+  });
 });
 
 // ────────────────────────────────────────────────────────────
@@ -199,6 +210,48 @@ describe('calculateFormula', () => {
     // After substitution, if invalid chars remain, should return null
     const result = calculateFormula('A + B', { A: 5, B: 3 });
     expect(result).toBe(8); // Valid
+  });
+
+  // ── German decimal comma handling ──────────────────────────
+  it('handles German decimal commas in custom formulas', () => {
+    // Formula from production: (((1000/x)-2,158)/0,006)/49
+    const result = calculateFormula('(((1000/x)-2,158)/0,006)/49', { x: 300 });
+    expect(result).toBeCloseTo(3.998, 2);
+  });
+
+  it('handles multiple German commas in a formula', () => {
+    // Swimming formula: 12*(((100/(1,2*(15*x-16,5)))-0,3))
+    const result = calculateFormula('12*(((100/(1,2*(15*x-16,5)))-0,3))', { x: 10 });
+    expect(result).not.toBeNull();
+    expect(typeof result).toBe('number');
+  });
+
+  it('handles simple formula with German comma', () => {
+    const result = calculateFormula('x * 1,5', { x: 4 });
+    expect(result).toBe(6);
+  });
+
+  // ── Custom formula startValue protection ──────────────────
+  it('does NOT replace leading number in custom formulas (lowercase vars)', () => {
+    // Formula "1*x" — the "1" is part of the formula, not a start value
+    const result = calculateFormula('1*x', { x: 5 }, 0);
+    expect(result).toBe(5); // NOT 0 (which would happen if "1" was replaced by startValue=0)
+  });
+
+  it('does NOT replace leading number when startValue provided for lowercase formula', () => {
+    const result = calculateFormula('2*x', { x: 3 }, 10);
+    expect(result).toBe(6); // NOT 10*3=30
+  });
+
+  it('DOES replace start value for uppercase DB formulas', () => {
+    const result = calculateFormula('10 + A', { A: 5 }, 20);
+    expect(result).toBe(25); // 20 replaces 10, + 5
+  });
+
+  it('does NOT apply startValue to custom formula starting with parenthesis', () => {
+    const result = calculateFormula('(((1000/x)-2,158)/0,006)/49', { x: 300 }, 0);
+    // startValue should be ignored because formula has lowercase vars
+    expect(result).toBeCloseTo(3.998, 2);
   });
 });
 

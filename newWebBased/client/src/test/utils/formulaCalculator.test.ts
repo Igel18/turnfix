@@ -338,4 +338,39 @@ describe('calculateFormulaResult', () => {
     expect(result).toBeNull();
     expect(error).toBeTruthy();
   });
+
+  // ── Custom formulas with lowercase variables ──────────────
+  it('calculates custom formula 1*x with variable type', () => {
+    const { result, error } = calculateFormulaResult('1*x', ['5'], 'variable');
+    expect(error).toBeNull();
+    expect(result).toBe(5);
+  });
+
+  it('calculates custom formula with German decimal commas in formula', () => {
+    // Production formula: (((1000/x)-2,158)/0,006)/49
+    const { result, error } = calculateFormulaResult('(((1000/x)-2,158)/0,006)/49', ['300'], 'variable');
+    expect(error).toBeNull();
+    expect(result).toBeCloseTo(3.998, 2);
+  });
+
+  it('calculates swimming formula with commas', () => {
+    // 12*(((100/(1,2*(15*x-16,5)))-0,3))
+    const { result, error } = calculateFormulaResult('12*(((100/(1,2*(15*x-16,5)))-0,3))', ['10'], 'variable');
+    expect(error).toBeNull();
+    expect(result).not.toBeNull();
+    expect(typeof result).toBe('number');
+  });
+
+  it('calculates simple custom formula x * 1,5', () => {
+    const { result, error } = calculateFormulaResult('x * 1,5', ['4'], 'variable');
+    expect(error).toBeNull();
+    expect(result).toBe(6);
+  });
+
+  it('handles variable formula with comma input AND comma in formula', () => {
+    // Input "83,5" (German comma for 83.5) in formula with "2,158" (German comma for 2.158)
+    const { result, error } = calculateFormulaResult('(((1000/x)-2,158)/0,006)/49', ['83,5'], 'variable');
+    expect(error).toBeNull();
+    expect(result).not.toBeNull();
+  });
 });

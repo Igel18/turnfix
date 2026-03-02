@@ -120,8 +120,11 @@ export function formatFormulaWithValues(
   const { decimals = 2, replaceStartValue } = options;
   let result = formula;
 
-  // Replace start value if provided
-  if (replaceStartValue !== undefined) {
+  // Detect if this is a custom formula (lowercase variables like x, y, z)
+  const hasLowercaseVars = /\b[a-z]\b/.test(formula);
+
+  // Replace start value if provided — only for DB formulas (uppercase vars)
+  if (replaceStartValue !== undefined && !hasLowercaseVars) {
     result = result.replace(/^(\d+(\.\d+)?)/, replaceStartValue.toFixed(decimals));
   }
 
@@ -166,8 +169,13 @@ export function calculateFormula(
   try {
     let evalFormula = formula;
 
-    // Replace start value if provided
-    if (startValue !== undefined) {
+    // Detect if this is a custom formula (contains lowercase variables like x, y, z)
+    // Custom formulas should NOT have their leading number replaced by startValue,
+    // because the number is part of the formula itself (e.g., "1*x", "(((1000/x)-2,158)/0,006)/49")
+    const hasLowercaseVars = /\b[a-z]\b/.test(formula);
+
+    // Replace start value if provided — only for DB formulas (uppercase vars like A, B, C)
+    if (startValue !== undefined && !hasLowercaseVars) {
       evalFormula = evalFormula.replace(/^(\d+(\.\d+)?)/, startValue.toString());
     }
 
@@ -193,6 +201,10 @@ export function calculateFormula(
 
     // Replace any remaining lowercase single-letter variables with 0
     evalFormula = evalFormula.replace(/\b[a-z]\b/g, '0');
+
+    // Normalize German decimal commas to periods (e.g., "2,158" → "2.158")
+    // Pattern: digit,digit — this safely targets decimal commas without affecting other uses
+    evalFormula = evalFormula.replace(/(\d),(\d)/g, '$1.$2');
 
     // Remove whitespace
     evalFormula = evalFormula.replace(/\s+/g, '');
