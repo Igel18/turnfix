@@ -476,6 +476,12 @@ export function useDatabaseSetupWizard({
     .filter(s => !s.optional)
     .every(s => s.status === 'success');
 
+  // Check if critical optional steps (GymNet preset, production disciplines) were skipped
+  // This affects GymNet import mapping, gender assignments, and various features
+  const skippedCriticalSteps = steps.filter(
+    s => s.optional && s.status === 'skipped' && ['gymnet-preset', 'production-disciplines', 'production-statuses'].includes(s.id)
+  );
+
   return {
     steps,
     newDatabaseName,
@@ -486,6 +492,7 @@ export function useDatabaseSetupWizard({
     retryStep,
     resetWizard,
     allRequiredStepsComplete,
+    skippedCriticalSteps,
     isSaving,
     saveCompleted,
     handleSaveAndReconnect,

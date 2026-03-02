@@ -108,6 +108,8 @@ german.ServerPort=Server Port:
 german.JuryPort=Kampfrichter-Portal Port:
 german.WelcomeLabel=Willkommen beim TurnFix Setup-Assistenten
 german.WelcomeDescription=Dieses Setup installiert TurnFix auf Ihrem Computer.%n%nTurnFix ist ein modernes Verwaltungssystem für Turnwettkämpfe.%n%nFolgende Komponenten werden installiert:%n  • TurnFix Anwendung (Server + Web-Frontend)%n  • Node.js Runtime (eingebettet)%n  • PostgreSQL Datenbank (optional)%n  • Windows-Dienst für Autostart
+german.DbWizardWarningTitle=Wichtiger Hinweis zum Datenbank-Setup
+german.DbWizardWarning=Wenn Sie eine bestehende Datenbank verwenden und den Datenbank-Setup-Assistenten nicht durchlaufen, beachten Sie bitte:%n%n1. Der GymNet-Import kann das Mapping der Geräte nicht korrekt durchführen%n     (fehlende Geräte-IDs und Formeln)%n%n2. Geschlechter können als "unbekannt" gekennzeichnet sein%n     (fehlende Bereiche/Gender-Zuordnungen)%n%n3. Infolgedessen können einige Funktionen nicht korrekt arbeiten:%n     • Statistiken%n     • Zuweisungen von Geräten%n     • Automatische Riegeneinteilung%n     • Disziplingruppen-Filter%n%nEmpfehlung: Öffnen Sie nach der Installation die Konfigurationsseite%nim Browser (http://localhost:3001/configuration) und führen Sie den%nDatenbank-Setup-Assistenten aus.
 
 ; English
 english.InstallPostgreSQL=Install PostgreSQL 16 (Database Server)
@@ -136,6 +138,8 @@ english.ServerPort=Server Port:
 english.JuryPort=Jury Portal Port:
 english.WelcomeLabel=Welcome to TurnFix Setup
 english.WelcomeDescription=This setup will install TurnFix on your computer.%n%nTurnFix is a modern gymnastics competition management system.%n%nThe following components will be installed:%n  • TurnFix Application (Server + Web Frontend)%n  • Node.js Runtime (embedded)%n  • PostgreSQL Database (optional)%n  • Windows Service for auto-start
+english.DbWizardWarningTitle=Important Note About Database Setup
+english.DbWizardWarning=If you are using an existing database and do not run the Database Setup Wizard, please note:%n%n1. GymNet import cannot correctly map apparatus/disciplines%n     (missing device IDs and formulas)%n%n2. Genders may be marked as "unknown"%n     (missing area/gender assignments)%n%n3. As a result, some features may not work correctly:%n     • Statistics%n     • Apparatus assignments%n     • Automatic squad assignment%n     • Discipline group filters%n%nRecommendation: After installation, open the configuration page%nin your browser (http://localhost:3001/configuration) and run the%nDatabase Setup Wizard.
 
 [Types]
 Name: "full"; Description: "Vollständige Installation / Full Installation"
@@ -657,6 +661,9 @@ begin
           AppPath, SW_HIDE, ewNoWait, ResultCode);
       end;
     end;
+    
+    // === Show DB Wizard warning ===
+    MsgBox(CustomMessage('DbWizardWarning'), mbInformation, MB_OK);
     
     WizardForm.StatusLabel.Caption := CustomMessage('InstallationComplete');
   end;

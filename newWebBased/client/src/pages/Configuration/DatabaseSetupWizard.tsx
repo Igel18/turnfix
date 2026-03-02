@@ -35,6 +35,7 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
     retryStep,
     resetWizard,
     allRequiredStepsComplete,
+    skippedCriticalSteps,
     isSaving,
     saveCompleted,
     handleSaveAndReconnect,
@@ -134,6 +135,43 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
             />
           ))}
         </div>
+
+        {/* Warning: Skipped critical steps */}
+        {skippedCriticalSteps.length > 0 && allRequiredStepsComplete && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                <p className="font-semibold mb-2">
+                  {t('configuration.wizard.skippedWarningTitle') ||
+                    'Wichtiger Hinweis: Optionale Schritte wurden übersprungen'}
+                </p>
+                <p className="mb-2">
+                  {t('configuration.wizard.skippedWarningIntro') ||
+                    'Ohne die übersprungenen Schritte kann es zu folgenden Einschränkungen kommen:'}
+                </p>
+                <ul className="list-disc list-inside space-y-1 ml-1">
+                  <li>
+                    {t('configuration.wizard.skippedWarning1') ||
+                      'Der GymNet-Import kann das Mapping der Geräte nicht korrekt durchführen (fehlende Geräte-IDs und Formeln)'}
+                  </li>
+                  <li>
+                    {t('configuration.wizard.skippedWarning2') ||
+                      'Geschlechter können als „unbekannt" gekennzeichnet sein (fehlende Bereiche/Gender-Zuordnungen)'}
+                  </li>
+                  <li>
+                    {t('configuration.wizard.skippedWarning3') ||
+                      'Einige Funktionen arbeiten möglicherweise nicht korrekt: Statistiken, Gerätezuweisungen, automatische Riegeneinteilung, Disziplingruppen-Filter'}
+                  </li>
+                </ul>
+                <p className="mt-2 text-xs text-red-600">
+                  {t('configuration.wizard.skippedWarningHint') ||
+                    'Empfehlung: Setzen Sie den Assistenten zurück und führen Sie alle Schritte aus, um volle Funktionalität zu gewährleisten.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Success Message */}
         {allRequiredStepsComplete && !saveCompleted && (

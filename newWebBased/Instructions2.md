@@ -301,6 +301,8 @@ Beim Setup sollte auf folgendes hingewiesen werden wenn keine neue DB erstellt w
 1. Der GymNet-Import kann das Mapping der Geräte nicht richtig machen 
 2. Die Geschlechter können mit unbekannt gekennzeichnet sein 
 3. Infolge von 2. können einige Funktionen nicht richtig sein (z.B. Statistiken, zuweisungen von Geräten, Automatische Riegeneinteilung, usw.)
+	-> Erledigt ✅
+	-> Erledigt ✅  
 
 48. Etiketten-Konfiguration
 a.) Die Etiketten-Konfiguration soll per Setup andere Default-Werte erhalten: 

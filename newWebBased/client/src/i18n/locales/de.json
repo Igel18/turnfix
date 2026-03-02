@@ -243,7 +243,13 @@
       "savedAndReconnected": "Konfiguration gespeichert & Server wird neu verbunden!",
       "savedAndReconnectedDetail": "Die neue Datenbank wird jetzt verwendet. Der Server startet neu – bitte warten Sie einen Moment und laden Sie die Seite dann neu.",
       "newDbOnly": "Nur für neue, leere Datenbanken",
-      "newDbOnlyDetail": "Dieser Assistent ist ausschließlich für die Ersteinrichtung neuer Datenbanken vorgesehen. Bestehende Datenbanken mit Daten werden nicht unterstützt. Disziplinen, Status-Typen und Disziplingruppen werden nur in leere Tabellen importiert."
+      "newDbOnlyDetail": "Dieser Assistent ist ausschließlich für die Ersteinrichtung neuer Datenbanken vorgesehen. Bestehende Datenbanken mit Daten werden nicht unterstützt. Disziplinen, Status-Typen und Disziplingruppen werden nur in leere Tabellen importiert.",
+      "skippedWarningTitle": "Wichtiger Hinweis: Optionale Schritte wurden übersprungen",
+      "skippedWarningIntro": "Ohne die übersprungenen Schritte kann es zu folgenden Einschränkungen kommen:",
+      "skippedWarning1": "Der GymNet-Import kann das Mapping der Geräte nicht korrekt durchführen (fehlende Geräte-IDs und Formeln)",
+      "skippedWarning2": "Geschlechter können als \"unbekannt\" gekennzeichnet sein (fehlende Bereiche/Gender-Zuordnungen)",
+      "skippedWarning3": "Einige Funktionen arbeiten möglicherweise nicht korrekt: Statistiken, Gerätezuweisungen, automatische Riegeneinteilung, Disziplingruppen-Filter",
+      "skippedWarningHint": "Empfehlung: Setzen Sie den Assistenten zurück und führen Sie alle Schritte aus, um volle Funktionalität zu gewährleisten."
     },
     "title": "Einstellungen",
     "subtitle": "Anwendungseinstellungen und Einstellungen verwalten",

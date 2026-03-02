@@ -243,7 +243,13 @@
       "savedAndReconnected": "Configuration saved & server is reconnecting!",
       "savedAndReconnectedDetail": "The new database is now in use. The server is restarting – please wait a moment and then reload the page.",
       "newDbOnly": "Only for new, empty databases",
-      "newDbOnlyDetail": "This wizard is intended for initial setup of new databases only. Existing databases with data are not supported. Disciplines, status types, and discipline groups are only imported into empty tables."
+      "newDbOnlyDetail": "This wizard is intended for initial setup of new databases only. Existing databases with data are not supported. Disciplines, status types, and discipline groups are only imported into empty tables.",
+      "skippedWarningTitle": "Important: Optional steps were skipped",
+      "skippedWarningIntro": "Without the skipped steps, the following limitations may occur:",
+      "skippedWarning1": "GymNet import cannot correctly map apparatus/disciplines (missing device IDs and formulas)",
+      "skippedWarning2": "Genders may be marked as \"unknown\" (missing area/gender assignments)",
+      "skippedWarning3": "Some features may not work correctly: statistics, apparatus assignments, automatic squad assignment, discipline group filters",
+      "skippedWarningHint": "Recommendation: Reset the wizard and execute all steps to ensure full functionality."
     },
     "title": "Settings",
     "subtitle": "Manage application settings and preferences",
