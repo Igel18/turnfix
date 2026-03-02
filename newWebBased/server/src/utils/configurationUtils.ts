@@ -59,6 +59,15 @@ export interface AppConfig {
     default_orientation: string;
     pdf_quality: string;
     include_watermark: boolean;
+    label_rows?: number;
+    label_columns?: number;
+    label_width?: number;
+    label_height?: number;
+    label_margin_top?: number;
+    label_margin_bottom?: number;
+    label_margin_left?: number;
+    label_margin_right?: number;
+    label_show_borders?: boolean;
   };
   logging: {
     log_level: string;
@@ -231,7 +240,16 @@ export const getDefaultConfig = (): AppConfig => {
       default_page_size: 'A4',
       default_orientation: 'portrait',
       pdf_quality: 'high',
-      include_watermark: false
+      include_watermark: false,
+      label_rows: 16,
+      label_columns: 4,
+      label_width: 48.5,
+      label_height: 16.9,
+      label_margin_top: 13,
+      label_margin_bottom: 13,
+      label_margin_left: 8,
+      label_margin_right: 8,
+      label_show_borders: true
     },
     logging: {
       log_level: 'info',

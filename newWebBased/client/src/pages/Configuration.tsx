@@ -544,63 +544,63 @@ const Configuration: React.FC = () => {
               key: 'label_rows',
               label: t('configuration.sections.participantLabels.rows.label'),
               type: 'number',
-              value: response?.printing?.labelRows || 8,
+              value: response?.printing?.label_rows ?? 16,
               description: t('configuration.sections.participantLabels.rows.description')
             },
             {
               key: 'label_columns',
               label: t('configuration.sections.participantLabels.columns.label'),
               type: 'number',
-              value: response?.printing?.labelColumns || 4,
+              value: response?.printing?.label_columns ?? 4,
               description: t('configuration.sections.participantLabels.columns.description')
             },
             {
               key: 'label_width',
               label: t('configuration.sections.participantLabels.width.label'),
               type: 'number',
-              value: response?.printing?.labelWidth || 48.5,
+              value: response?.printing?.label_width ?? 48.5,
               description: t('configuration.sections.participantLabels.width.description')
             },
             {
               key: 'label_height',
               label: t('configuration.sections.participantLabels.height.label'),
               type: 'number',
-              value: response?.printing?.labelHeight || 16.9,
+              value: response?.printing?.label_height ?? 16.9,
               description: t('configuration.sections.participantLabels.height.description')
             },
             {
               key: 'label_margin_top',
               label: t('configuration.sections.participantLabels.marginTop.label'),
               type: 'number',
-              value: response?.printing?.labelMarginTop || 15,
+              value: response?.printing?.label_margin_top ?? 13,
               description: t('configuration.sections.participantLabels.marginTop.description')
             },
             {
               key: 'label_margin_bottom',
               label: t('configuration.sections.participantLabels.marginBottom.label'),
               type: 'number',
-              value: response?.printing?.labelMarginBottom || 15,
+              value: response?.printing?.label_margin_bottom ?? 13,
               description: t('configuration.sections.participantLabels.marginBottom.description')
             },
             {
               key: 'label_margin_left',
               label: t('configuration.sections.participantLabels.marginLeft.label'),
               type: 'number',
-              value: response?.printing?.labelMarginLeft || 10,
+              value: response?.printing?.label_margin_left ?? 8,
               description: t('configuration.sections.participantLabels.marginLeft.description')
             },
             {
               key: 'label_margin_right',
               label: t('configuration.sections.participantLabels.marginRight.label'),
               type: 'number',
-              value: response?.printing?.labelMarginRight || 10,
+              value: response?.printing?.label_margin_right ?? 8,
               description: t('configuration.sections.participantLabels.marginRight.description')
             },
             {
               key: 'label_show_borders',
               label: t('configuration.sections.participantLabels.showBorders.label'),
               type: 'boolean',
-              value: response?.printing?.labelShowBorders !== undefined ? response.printing.labelShowBorders : true,
+              value: response?.printing?.label_show_borders ?? true,
               description: t('configuration.sections.participantLabels.showBorders.description')
             }
           ]

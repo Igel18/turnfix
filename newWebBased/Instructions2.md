@@ -313,6 +313,7 @@ Unterer Rand (mm) 13
 Linker Rand (mm) 8
 Rechter Rand (mm) 8
 Papierformat Din-A4 
+	-> Erledigt ✅  
 b.) Zudem wird keine Vorschau-Info beim Drucken/Pdf-Erzeugen der Etiketten angezeigt. 
 c.) Ein Start in Zeile wäre gut. Dann hat man nicht so viel Ausschuss. 
 
@@ -321,3 +322,5 @@ Ist bei einer Disziplin eine Formel hinterlegt (ohne DB-Felder), dann werden jet
 Bitte prüfen, beheben, Tests schreiben, Doku erstellen. Und prüfen ob dies im management score capture richtig funktioniert. 
 	-> Erledigt ✅  
 
+50. Lizenzbestimmungen 
+Für die Software sollen beim Setup Lizenzbestimmungen abgefragt werden. Diese sollen jegliche Haftung ausschließen. Die Software ist (aktuell) open source und darf (aktuell) kostenlos verwendet werden. Wird diese modifiziert, verbessert, erweitert, fehler behoben so sind diese auch als open source zur Verfügung zu stellen. Lizenzinhaber von Turnfix Web ist Dominik Prudlo. 

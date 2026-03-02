@@ -32,14 +32,14 @@ export function LabelConfigModal({ isOpen, onClose, onPrint }: LabelConfigModalP
   const { t } = useTranslation();
   
   const [config, setConfig] = useState<LabelConfig>({
-    rows: 8,
+    rows: 16,
     columns: 4,
     width: 48.5, // mm
     height: 16.9, // mm
-    marginTop: 15, // mm
-    marginLeft: 10, // mm
-    marginRight: 10, // mm
-    marginBottom: 15, // mm
+    marginTop: 13, // mm
+    marginLeft: 8, // mm
+    marginRight: 8, // mm
+    marginBottom: 13, // mm
     showBorders: true,
   });
 
@@ -54,19 +54,17 @@ export function LabelConfigModal({ isOpen, onClose, onPrint }: LabelConfigModalP
     try {
       const serverConfig = await apiGet('/configuration');
       if (serverConfig?.printing) {
+        const p = serverConfig.printing;
         setConfig({
-          rows: serverConfig.printing.labelRows || 8,
-          columns: serverConfig.printing.labelColumns || 4,
-          width: serverConfig.printing.labelWidth || 48.5,
-          height: serverConfig.printing.labelHeight || 16.9,
-          marginTop: serverConfig.printing.labelMarginTop || 15,
-          marginLeft: serverConfig.printing.labelMarginLeft || 10,
-          marginRight: serverConfig.printing.labelMarginRight || 10,
-          marginBottom: serverConfig.printing.labelMarginBottom || 15,
-          showBorders:
-            serverConfig.printing.labelShowBorders !== undefined
-              ? serverConfig.printing.labelShowBorders
-              : true,
+          rows: p.label_rows ?? 16,
+          columns: p.label_columns ?? 4,
+          width: p.label_width ?? 48.5,
+          height: p.label_height ?? 16.9,
+          marginTop: p.label_margin_top ?? 13,
+          marginLeft: p.label_margin_left ?? 8,
+          marginRight: p.label_margin_right ?? 8,
+          marginBottom: p.label_margin_bottom ?? 13,
+          showBorders: p.label_show_borders ?? true,
         });
       }
     } catch (error) {

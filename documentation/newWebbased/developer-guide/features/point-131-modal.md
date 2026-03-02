@@ -74,14 +74,15 @@ client/src/pages/EventParticipants/
 **Features**:
 - Loads saved configuration from `/configuration` API
 - 8 configurable inputs:
-  - Rows (1-20, default: 8)
+  - Rows (1-20, default: 16)
   - Columns (1-10, default: 4)
   - Width (mm, default: 48.5)
   - Height (mm, default: 16.9)
-  - Margins: Top, Left, Right, Bottom (mm)
+  - Margins: Top 13mm, Bottom 13mm, Left 8mm, Right 8mm
   - Show Borders (boolean)
 - Real-time preview calculation
 - Passes configuration to PDF generation hook
+- Defaults optimized for standard label sheets (DIN A4, 16×4 = 64 labels per page)
 
 **Props**:
 ```typescript
