@@ -428,6 +428,16 @@ if (Test-Path $managerBat) { Copy-Item $managerBat -Destination $StagingDir }
 if (Test-Path $managerPs1) { Copy-Item $managerPs1 -Destination $StagingDir }
 Write-Host "  ✓ TurnFix Manager copied" -ForegroundColor Green
 
+# -- Copy LICENSE file --
+Write-Host "  📦 Copying LICENSE..." -ForegroundColor Cyan
+$licenseFile = Join-Path $RepoRoot "LICENSE"
+if (Test-Path $licenseFile) {
+    Copy-Item $licenseFile -Destination $StagingDir
+    Write-Host "  ✓ LICENSE copied" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ LICENSE file not found in repo root, skipping" -ForegroundColor Yellow
+}
+
 # -- Build Documentation --
 Write-Host "  📦 Building documentation..." -ForegroundColor Cyan
 $docsScript = Join-Path $ScriptDir "scripts\build-docs.ps1"

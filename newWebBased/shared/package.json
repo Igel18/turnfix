@@ -2,6 +2,8 @@
   "name": "@turnfix/shared",
   "version": "1.0.0",
   "description": "Shared utilities for TurnFix (client, server, jury-portal)",
+  "author": "Dominik Prudlo",
+  "license": "AGPL-3.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

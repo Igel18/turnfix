@@ -2,6 +2,8 @@
   "name": "turnfix-api-dummy",
   "version": "1.0.0",
   "description": "Dummy API server for TurnFix testing",
+  "author": "Dominik Prudlo",
+  "license": "AGPL-3.0",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js"

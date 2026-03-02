@@ -23,8 +23,8 @@
     "management",
     "turnfix"
   ],
-  "author": "TurnFix Team",
-  "license": "MIT",
+  "author": "Dominik Prudlo",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "concurrently": "^8.2.2"
   },

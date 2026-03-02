@@ -297,7 +297,7 @@ d) Es soll eine Möglichkeit geben bestehende Riegen so zu lassen, wie sie sind.
 	-> Erledigt ✅  
 
 47. Setup 
-Beim Setup sollte auf folgendes hingewiesen werden wenn keine neue DB erstellt wird: 
+Beim Setup sollte auf folgendes hingewiesen werden wenn keine neue DB erstellt wird und der DB-Wizard nicht durchlaufen wird: 
 1. Der GymNet-Import kann das Mapping der Geräte nicht richtig machen 
 2. Die Geschlechter können mit unbekannt gekennzeichnet sein 
 3. Infolge von 2. können einige Funktionen nicht richtig sein (z.B. Statistiken, zuweisungen von Geräten, Automatische Riegeneinteilung, usw.)
@@ -323,4 +323,6 @@ Bitte prüfen, beheben, Tests schreiben, Doku erstellen. Und prüfen ob dies im 
 	-> Erledigt ✅  
 
 50. Lizenzbestimmungen 
-Für die Software sollen beim Setup Lizenzbestimmungen abgefragt werden. Diese sollen jegliche Haftung ausschließen. Die Software ist (aktuell) open source und darf (aktuell) kostenlos verwendet werden. Wird diese modifiziert, verbessert, erweitert, fehler behoben so sind diese auch als open source zur Verfügung zu stellen. Lizenzinhaber von Turnfix Web ist Dominik Prudlo. 
+Für die Software sollen beim Setup Lizenzbestimmungen abgefragt werden. Ggf. ist ein anhängen einer bestehende Lizenz Apache, MIT oder so sinnvoll? Diese sollen jegliche Haftung ausschließen. Die Software ist (aktuell) open source und darf (aktuell) kostenlos verwendet werden. Wird diese modifiziert, verbessert, erweitert, fehler behoben so sind diese auch als open source zur Verfügung zu stellen. Lizenzinhaber von Turnfix Web ist Dominik Prudlo. Was ist hier sinnvoll? 
+	-> Erledigt ✅  
+

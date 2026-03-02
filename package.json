@@ -1,4 +1,7 @@
 {
+  "name": "turnfix",
+  "author": "Dominik Prudlo",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "chai": "^6.2.0",
     "typescript": "^5.9.3"

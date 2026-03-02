@@ -1,6 +1,8 @@
 {
   "name": "turnfix-client",
   "version": "1.0.0",
+  "author": "Dominik Prudlo",
+  "license": "AGPL-3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

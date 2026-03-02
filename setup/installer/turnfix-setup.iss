@@ -53,7 +53,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={commonpf}\TurnFix
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=
+LicenseFile={#MyStagingDir}\LICENSE
 OutputDir=output
 OutputBaseFilename=TurnFix-Setup-{#MyAppVersion}-build{#MyBuildNumber}-{#MyGitHash}
 SetupIconFile=
@@ -185,6 +185,9 @@ Source: "{#MyStagingDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignorevers
 ; TurnFix Manager
 Source: "{#MyStagingDir}\TurnFix-Manager.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
 Source: "{#MyStagingDir}\turnfix-manager.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
+
+; License
+Source: "{#MyStagingDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion; Components: app
 
 [Dirs]
 Name: "{app}\server\logs"
