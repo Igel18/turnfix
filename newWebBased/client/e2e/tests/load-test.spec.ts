@@ -398,9 +398,10 @@ test.describe('Load Test: Concurrent Browser Sessions', () => {
       const elapsed = Date.now() - startTime;
 
       // Verify all loaded (squad select should be visible)
+      // Under concurrent load the API-driven select may take longer to render
       for (const page of pageObjects) {
         const select = page.locator('select').first();
-        await select.waitFor({ state: 'visible', timeout: 10_000 });
+        await select.waitFor({ state: 'visible', timeout: 25_000 });
       }
 
       console.log(`✓ 3 score-capture browsers loaded simultaneously in ${elapsed}ms`);

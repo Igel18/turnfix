@@ -284,7 +284,34 @@ Bitte dokumentieren und tests erstellen.
 Für die Kriterien soll in den Einstellungen default werte definiert werden können. Es gibt ja bereits eine Datei in der die Einstellungen gespeichert sind. Die Default werte für die Kriterien sollen hier auch gespeichert werden. 
 	-> Erledigt ✅  
 
-45. 2 Verbesserungen: 
+45. Verbesserungen bei Riegeneinteilung 
 a) Anzahl Pausen-Riegen soll theoretisch unbegrenzt möglich sein 
 b) Bezeichnungen der Riegen: wenn es mehr riegen gibt als mit den vordefinierten "Farben" möglich ist, soll einfach durch nummeriert werden. 
+c) Versuche die Riegengrößen auch ähnlich groß zu halten. also nicht eine Riege mit der max. Anzahl an Teilnehmern und eine dann mit viel weniger. Zumindest als ein Vorschlag. 
+d) Es soll eine Möglichkeit geben bestehende Riegen so zu lassen, wie sie sind. Also Ignoriere bestehende Riegen und deren zugeordnete Personen. 
 
+46. Fehler: 
+  ✘  210 …s:367:3 › Load Test: Concurrent Browser Sessions › 4.2 — 3 browsers view score capture for different squads (19.3s)
+  1 failed
+    [tests] › e2e\tests\load-test.spec.ts:367:3 › Load Test: Concurrent Browser Sessions › 4.2 — 3 browsers view score capture for different squads
+	-> Erledigt ✅  
+
+47. Setup 
+Beim Setup sollte auf folgendes hingewiesen werden wenn keine neue DB erstellt wird: 
+1. Der GymNet-Import kann das Mapping der Geräte nicht richtig machen 
+2. Die Geschlechter können mit unbekannt gekennzeichnet sein 
+3. Infolge von 2. können einige Funktionen nicht richtig sein (z.B. Statistiken, zuweisungen von Geräten, Automatische Riegeneinteilung, usw.)
+
+48. Etiketten-Konfiguration
+a.) Die Etiketten-Konfiguration soll per Setup andere Default-Werte erhalten: 
+Zeilen 16
+Spalten 4
+Breite (mm) 48,5
+Höhe (mm) 16,9
+Oberer Rand (mm) 13
+Unterer Rand (mm) 13
+Linker Rand (mm) 8
+Rechter Rand (mm) 8
+Papierformat Din-A4 
+b.) Zudem wird keine Vorschau-Info beim Drucken/Pdf-Erzeugen der Etiketten angezeigt. 
+c.) Ein Start in Zeile wäre gut. Dann hat man nicht so viel Ausschuss. 
