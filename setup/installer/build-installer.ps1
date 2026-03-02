@@ -28,9 +28,11 @@ $ErrorActionPreference = "Stop"
 # === Paths ===
 $ScriptDir = $PSScriptRoot
 $RepoRoot = Resolve-Path (Join-Path $ScriptDir "..\..")
+$WebDir = Join-Path $RepoRoot "newWebBased"
 $ServerDir = Join-Path $RepoRoot "newWebBased\server"
 $ClientDir = Join-Path $RepoRoot "newWebBased\client"
 $JuryDir = Join-Path $RepoRoot "newWebBased\jury-portal"
+$SharedDir = Join-Path $RepoRoot "newWebBased\shared"
 $StagingDir = Join-Path $ScriptDir "staging"
 $DownloadDir = Join-Path $ScriptDir "downloads"
 $OutputDir = Join-Path $ScriptDir "output"
@@ -171,7 +173,6 @@ if (-not $SkipBuild) {
     
     # Shared package build (must be built before server/client/jury-portal)
     Write-Host "  [0/3] Building Shared Package..." -ForegroundColor Cyan
-    $SharedDir = Join-Path $WebDir "shared"
     if (Test-Path $SharedDir) {
         Push-Location $SharedDir
         try {
@@ -342,6 +343,31 @@ try {
     Copy-Item -Path (Join-Path $ServerDir "node_modules") -Destination (Join-Path $serverStaging "node_modules") -Recurse
 }
 finally { Pop-Location }
+
+# -- Copy @turnfix/shared into node_modules (file: links break in production) --
+Write-Host "  📦 Copying @turnfix/shared package..." -ForegroundColor Cyan
+$sharedTarget = Join-Path $serverStaging "node_modules\@turnfix\shared"
+if (Test-Path $sharedTarget) {
+    Remove-Item $sharedTarget -Recurse -Force
+}
+New-Item -Path $sharedTarget -ItemType Directory -Force | Out-Null
+
+# Copy shared dist, package.json, and node_modules (for expr-eval dependency)
+if (Test-Path $SharedDir) {
+    Copy-Item (Join-Path $SharedDir "package.json") -Destination $sharedTarget
+    $sharedDist = Join-Path $SharedDir "dist"
+    if (Test-Path $sharedDist) {
+        Copy-Item -Path $sharedDist -Destination (Join-Path $sharedTarget "dist") -Recurse
+    }
+    # Copy shared's own node_modules (contains expr-eval)
+    $sharedNodeModules = Join-Path $SharedDir "node_modules"
+    if (Test-Path $sharedNodeModules) {
+        Copy-Item -Path $sharedNodeModules -Destination (Join-Path $sharedTarget "node_modules") -Recurse
+    }
+    Write-Host "  ✓ @turnfix/shared package copied" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ Shared package not found at: $SharedDir" -ForegroundColor Yellow
+}
 
 Write-Host "  ✓ Server files copied" -ForegroundColor Green
 

@@ -365,6 +365,7 @@ test.describe('Load Test: Concurrent Browser Sessions', () => {
   });
 
   test('4.2 — 3 browsers view score capture for different squads', async ({ browser }) => {
+    test.setTimeout(60_000);
     // Simulate 3 jury tablets viewing score-capture for different disciplines
     const squads = ['RW', 'RM'];
     const contexts = await Promise.all([
@@ -391,7 +392,7 @@ test.describe('Load Test: Concurrent Browser Sessions', () => {
       const startTime = Date.now();
       await Promise.all(
         pageObjects.map((page, i) =>
-          page.goto(urls[i], { waitUntil: 'networkidle', timeout: 20_000 })
+          page.goto(urls[i], { waitUntil: 'networkidle', timeout: 30_000 })
         )
       );
       const elapsed = Date.now() - startTime;

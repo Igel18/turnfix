@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
-import { UserGroupIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { UserGroupIcon, InformationCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
 import { UnifiedAssignmentModal } from '@/components/assignment';
@@ -20,6 +20,7 @@ import { useSquadAssignment } from './hooks/useSquadAssignment';
 
 // Components
 import { CreateSquadModal } from './components/CreateSquadModal';
+import { AutoAssignDialog } from './components/AutoAssignDialog';
 
 // Utils
 import { exportSquadsPDF } from './utils/squadPdfExport';
@@ -42,6 +43,7 @@ const SquadManagementUnified: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isAutoAssignOpen, setIsAutoAssignOpen] = useState(false);
 
   // Custom hooks for data management
   const {
@@ -113,6 +115,12 @@ const SquadManagementUnified: React.FC = () => {
   // Handler for unassignment
   const handleUnassign = async (_squadId: number | string, participantId: number | string) => {
     await removeParticipantFromSquad(Number(participantId));
+  };
+
+  // Auto-assign applied handler: refresh squad and participant data
+  const handleAutoAssignApplied = async () => {
+    await forceLoadSquads();
+    await forceLoadAvailableParticipants();
   };
 
   // PDF Export Handler
@@ -259,6 +267,15 @@ const SquadManagementUnified: React.FC = () => {
       showAddButton={true}
       addButtonText={t('squadManagement.actions.newSquad')}
       onAdd={() => setIsCreateModalOpen(true)}
+      customActions={
+        <button
+          onClick={() => setIsAutoAssignOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+        >
+          <SparklesIcon className="h-4 w-4" />
+          {t('squadManagement.autoAssign.button')}
+        </button>
+      }
       showExportCSV={true}
       onExportCSV={() => console.log('Export CSV clicked')}
       showExportPDF={true}
@@ -326,6 +343,14 @@ const SquadManagementUnified: React.FC = () => {
             initialName={editingSquad?.name || ''}
             onClose={handleCloseEditModal}
             onUpdate={updateSquad}
+          />
+
+          {/* Auto-Assign Dialog */}
+          <AutoAssignDialog
+            isOpen={isAutoAssignOpen}
+            onClose={() => setIsAutoAssignOpen(false)}
+            eventId={eventId ? parseInt(eventId) : 0}
+            onApplied={handleAutoAssignApplied}
           />
         </div>
       )}

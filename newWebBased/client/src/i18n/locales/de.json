@@ -2904,6 +2904,62 @@
       "noClub": "Kein Verein",
       "noParticipants": "Keine Teilnehmer zugewiesen",
       "notAvailable": "N/A"
+    },
+    "autoAssign": {
+      "title": "Automatische Riegeneinteilung",
+      "button": "Automatische Zuweisung",
+      "steps": {
+        "criteria": "Kriterien",
+        "proposals": "Vorschläge",
+        "applied": "Angewendet"
+      },
+      "criteriaDescription": "Konfigurieren Sie die Kriterien für die automatische Riegeneinteilung. Die Teilnehmer werden basierend auf diesen Einstellungen optimal in Riegen aufgeteilt.",
+      "fields": {
+        "maxPerSquad": "Max. Teilnehmer pro Riege",
+        "numberOfProposals": "Anzahl Vorschläge",
+        "namingPrefix": "Namensgebung",
+        "breakCount": "Anzahl Pausen-Riegen",
+        "separateGenders": "Geschlechter trennen",
+        "keepClubsTogether": "Vereinsmitglieder zusammenhalten",
+        "groupByAgeCategory": "Nach Alterskategorie gruppieren",
+        "ageCategoryRanges": "Alterskategorien (Bereiche)"
+      },
+      "hints": {
+        "maxPerSquad": "Maximale Anzahl an Teilnehmern in einer Riege (2-50)",
+        "numberOfProposals": "Wie viele verschiedene Vorschläge generiert werden (1-10)",
+        "namingPrefix": "z.B. mRot (Geschlecht), R01 (Nummer), Rot (Ohne)",
+        "breakCount": "Leere Pausen-Riegen für Geräte-Rotation",
+        "separateGenders": "Männliche und weibliche Teilnehmer in getrennte Riegen",
+        "keepClubsTogether": "Teilnehmer desselben Vereins möglichst in einer Riege",
+        "groupByAgeCategory": "Teilnehmer nach Alterskategorien gruppieren",
+        "ageCategoryRanges": "Kommagetrennte Bereiche, z.B. 6-8,9-10,11-12"
+      },
+      "namingOptions": {
+        "gender": "Geschlecht + Farbe (z.B. mRot, wBlau)",
+        "number": "Nummeriert (z.B. R01, R02)",
+        "none": "Nur Farbe (z.B. Rot, Blau)"
+      },
+      "generateButton": "Vorschläge generieren",
+      "generating": "Wird generiert...",
+      "applyButton": "Vorschlag übernehmen",
+      "applying": "Wird angewendet...",
+      "applyWarning": "Bestehende Zuweisungen werden ersetzt",
+      "backToCriteria": "Zurück zu Kriterien",
+      "proposalSummary": "{{count}} Vorschläge für {{participants}} Teilnehmer generiert. Wählen Sie einen Vorschlag und klicken Sie auf 'Übernehmen'.",
+      "proposalTab": "Vorschlag {{num}}",
+      "breakSquad": "Pause",
+      "participants": "Teilnehmer",
+      "years": "Jahre",
+      "clubColumn": "Verein",
+      "ageColumn": "Alter",
+      "stats": {
+        "totalSquads": "Riegen",
+        "totalParticipants": "Teilnehmer",
+        "avgPerSquad": "Ø pro Riege",
+        "range": "Min–Max"
+      },
+      "appliedTitle": "Riegeneinteilung erfolgreich!",
+      "appliedMessage": "{{participants}} Teilnehmer wurden auf {{squads}} Riegen verteilt."
     }
   },
   "competitions": {

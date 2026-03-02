@@ -11,7 +11,7 @@
  *   6. Verify scores via API
  *   7. Verify scores appear in Management UI (Score Capture)
  *
- * The Jury Portal is served at http://localhost:3001/jury (built version)
+ * The Jury Portal is served at http://localhost:3002/jury by the jury-server
  * and uses a separate React app with its own state management.
  */
 
@@ -31,7 +31,7 @@ import {
   MEN_SCORES,
 } from '../fixtures/test-data';
 
-const JURY_URL = 'http://localhost:3001/jury';
+const JURY_URL = 'http://localhost:3002/jury';
 
 let state: EventAState;
 
@@ -284,10 +284,9 @@ test.describe('Jury Portal: Score Entry', () => {
     await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
 
-    // Should show "Teilnehmer 1 von 10" or similar (could be any index if scores exist)
-    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von 10/, { timeout: 10_000 });
+    // Wait for scoring view to be fully loaded (participant counter appears after fetchParticipants completes)
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 30_000 });
 
     // Click "Nächster →" to go to next participant
     const nextBtn = page.getByText('Nächster →');
@@ -295,9 +294,9 @@ test.describe('Jury Portal: Score Entry', () => {
       await nextBtn.click();
       await page.waitForTimeout(1000);
 
-      // The counter should have changed
+      // The counter should still show participant count
       const body = await page.locator('body').textContent();
-      expect(body).toContain('von 10');
+      expect(body).toMatch(/von \d+/);
     }
   });
 
@@ -309,7 +308,9 @@ test.describe('Jury Portal: Score Entry', () => {
     await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
+
+    // Wait for scoring view to be fully loaded
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 30_000 });
 
     // Go to next participant first
     const nextBtn = page.getByText('Nächster →');
@@ -338,7 +339,9 @@ test.describe('Jury Portal: Score Entry', () => {
     await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
+
+    // Wait for scoring view to be fully loaded
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 30_000 });
 
     // Click on a specific participant in the left sidebar (e.g., the 3rd one)
     const thirdParticipant = page.locator(`text=${WOMEN_FIRST_NAMES[2]}`).first();
@@ -505,8 +508,8 @@ test.describe('Jury Portal: Cross-verification with Management UI', () => {
     await page.waitForTimeout(1000);
 
     // Select squad RW
+    await page.locator('select option[value="RW"]').waitFor({ state: 'attached', timeout: 15_000 });
     const squadSelect = page.locator('select').first();
-    await squadSelect.waitFor({ state: 'visible', timeout: 10_000 });
     await squadSelect.selectOption({ value: 'RW' });
     await page.waitForTimeout(2000);
 

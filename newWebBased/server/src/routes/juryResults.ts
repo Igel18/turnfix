@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import scoringRouter from './juryResultsScoring';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Mount scoring sub-router (POST /, POST /save-field-score)
 router.use('/', scoringRouter);

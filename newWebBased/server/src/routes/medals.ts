@@ -1,11 +1,10 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { getMedalTypeValues } from '../utils/configurationHelpers';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Simple in-memory tracking for duplicate detection in tests
 const awardedMedals = new Set<string>();

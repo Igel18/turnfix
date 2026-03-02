@@ -30,6 +30,17 @@ function readSettings(): any {
         autoSave: true,
         autoSaveInterval: 30000,
         description: "Auto-save interval in milliseconds (default: 30000 = 30 seconds)"
+      },
+      squadAutoAssign: {
+        description: "Default criteria for automatic squad assignment (Riegeneinteilung).",
+        maxParticipantsPerSquad: 12,
+        separateGenders: true,
+        keepClubsTogether: true,
+        groupByAgeCategory: false,
+        ageCategoryRanges: "6-8,9-10,11-12,13-14,15-18",
+        numberOfProposals: 3,
+        namingPrefix: "gender",
+        breakCount: 0
       }
     };
   }

@@ -1,10 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const zod_1 = require("zod");
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createVenueSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -16,7 +18,7 @@ const updateVenueSchema = createVenueSchema.partial();
 // Get venues count
 router.get('/count', async (req, res) => {
     try {
-        const count = await prisma.tfx_wettkampforte.count();
+        const count = await prisma_1.default.tfx_wettkampforte.count();
         res.json({ count });
     }
     catch (error) {
@@ -50,7 +52,7 @@ router.get('/', async (req, res) => {
       FROM tfx_wettkampforte
       ${whereClause}
     `;
-        const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
+        const countResult = await prisma_1.default.$queryRawUnsafe(countQuery, ...params);
         const total = parseInt(countResult[0]?.total || '0');
         const dataQuery = `
       SELECT 
@@ -65,7 +67,7 @@ router.get('/', async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(limit, offset);
-        const venues = await prisma.$queryRawUnsafe(dataQuery, ...params);
+        const venues = await prisma_1.default.$queryRawUnsafe(dataQuery, ...params);
         // Convert BigInt values to numbers for JSON serialization
         const venuesData = venues.map((venue) => ({
             ...venue,
@@ -103,7 +105,7 @@ router.get('/:id', async (req, res) => {
       FROM tfx_wettkampforte
       WHERE int_wettkampforteid = $1
     `;
-        const venues = await prisma.$queryRawUnsafe(query, id);
+        const venues = await prisma_1.default.$queryRawUnsafe(query, id);
         if (!venues.length) {
             return res.status(404).json({ error: 'Venue not found' });
         }
@@ -130,7 +132,7 @@ router.post('/', async (req, res) => {
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
-        const venues = await prisma.$queryRawUnsafe(query, validatedData.var_name, validatedData.var_adresse || null, validatedData.var_plz || null, validatedData.var_ort || null);
+        const venues = await prisma_1.default.$queryRawUnsafe(query, validatedData.var_name, validatedData.var_adresse || null, validatedData.var_plz || null, validatedData.var_ort || null);
         // Convert BigInt values to numbers for JSON serialization
         const venue = {
             ...venues[0],
@@ -173,7 +175,7 @@ router.put('/:id', async (req, res) => {
       RETURNING *
     `;
         params.push(id);
-        const venues = await prisma.$queryRawUnsafe(query, ...params);
+        const venues = await prisma_1.default.$queryRawUnsafe(query, ...params);
         if (!venues.length) {
             return res.status(404).json({ error: 'Venue not found' });
         }
@@ -204,7 +206,7 @@ router.delete('/:id', async (req, res) => {
       WHERE int_wettkampforteid = $1
       RETURNING int_wettkampforteid
     `;
-        const result = await prisma.$queryRawUnsafe(query, id);
+        const result = await prisma_1.default.$queryRawUnsafe(query, id);
         if (!result.length) {
             return res.status(404).json({ error: 'Venue not found' });
         }
@@ -233,7 +235,7 @@ router.get('/search', async (req, res) => {
       FROM tfx_wettkampforte 
       WHERE 1=1
     `;
-        const venues = await prisma.$queryRawUnsafe(query);
+        const venues = await prisma_1.default.$queryRawUnsafe(query);
         // Simple filtering for test compatibility
         let filteredVenues = venues;
         if (minCapacity) {
@@ -256,7 +258,7 @@ router.get('/nearby', async (req, res) => {
     try {
         const { latitude, longitude, radius } = req.query;
         // Mock nearby search for test compatibility
-        const venues = await prisma.$queryRawUnsafe(`
+        const venues = await prisma_1.default.$queryRawUnsafe(`
       SELECT 
         int_wettkampforteid as int_venueid,
         var_name as var_venuename,

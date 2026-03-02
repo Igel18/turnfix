@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createResultSchema = zod_1.z.object({
     competitionId: zod_1.z.number().int().positive(),
@@ -45,7 +47,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
       ${whereClause}
     `;
         const countParams = params.slice(); // Copy params without limit/offset
-        const countResult = await prisma.$queryRawUnsafe(countQuery, ...countParams);
+        const countResult = await prisma_1.default.$queryRawUnsafe(countQuery, ...countParams);
         const total = countResult.length > 0 ? countResult[0].total : 0;
         const query = `
       SELECT 
@@ -69,7 +71,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(limit, offset);
-        const results = await prisma.$queryRawUnsafe(query, ...params);
+        const results = await prisma_1.default.$queryRawUnsafe(query, ...params);
         res.json({
             results: results,
             pagination: {
@@ -88,7 +90,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
 // Get result statistics
 router.get('/statistics', authBypass_1.authenticateToken, async (req, res) => {
     try {
-        const stats = await prisma.$queryRawUnsafe(`
+        const stats = await prisma_1.default.$queryRawUnsafe(`
       SELECT 
         COUNT(*)::int as total_results,
         COUNT(DISTINCT int_wettkaempfeid)::int as competitions_with_results,
@@ -113,7 +115,7 @@ router.get('/rankings', authBypass_1.authenticateToken, async (req, res) => {
         if (!eventId) {
             return res.status(400).json({ error: 'Event ID is required' });
         }
-        const rankings = await prisma.$queryRawUnsafe(`
+        const rankings = await prisma_1.default.$queryRawUnsafe(`
       SELECT 
         w.int_wertungenid,
         w.int_teilnehmerid,
@@ -140,7 +142,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid result ID' });
         }
-        const result = await prisma.$queryRawUnsafe(`
+        const result = await prisma_1.default.$queryRawUnsafe(`
       SELECT 
         w.int_wertungenid,
         w.int_wettkaempfeid,
@@ -173,7 +175,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
 router.post('/', authBypass_1.authenticateToken, async (req, res) => {
     try {
         const validatedData = createResultSchema.parse(req.body);
-        const result = await prisma.$queryRawUnsafe(`
+        const result = await prisma_1.default.$queryRawUnsafe(`
       INSERT INTO tfx_wertungen (
         int_wettkaempfeid,
         int_teilnehmerid,
@@ -213,7 +215,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         const validatedData = updateResultSchema.parse(req.body);
         // Check if result exists
-        const existing = await prisma.$queryRawUnsafe(`
+        const existing = await prisma_1.default.$queryRawUnsafe(`
       SELECT int_wertungenid FROM tfx_wertungen WHERE int_wertungenid = $1
     `, id);
         if (!Array.isArray(existing) || existing.length === 0) {
@@ -247,7 +249,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       SET ${updates.join(', ')}
       WHERE int_wertungenid = $${paramIndex}
     `;
-        await prisma.$queryRawUnsafe(updateQuery, ...params);
+        await prisma_1.default.$queryRawUnsafe(updateQuery, ...params);
         res.json({ message: 'Result updated successfully' });
     }
     catch (error) {
@@ -269,13 +271,13 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Invalid result ID' });
         }
         // Check if result exists
-        const existing = await prisma.$queryRawUnsafe(`
+        const existing = await prisma_1.default.$queryRawUnsafe(`
       SELECT int_wertungenid FROM tfx_wertungen WHERE int_wertungenid = $1
     `, id);
         if (!Array.isArray(existing) || existing.length === 0) {
             return res.status(404).json({ error: 'Result not found' });
         }
-        await prisma.$queryRawUnsafe(`
+        await prisma_1.default.$queryRawUnsafe(`
       DELETE FROM tfx_wertungen WHERE int_wertungenid = $1
     `, id);
         res.json({ message: 'Result deleted successfully' });

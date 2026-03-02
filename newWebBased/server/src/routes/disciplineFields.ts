@@ -1,8 +1,7 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../lib/prisma'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 // GET /api/discipline-fields/count - Get total count of discipline fields
 router.get('/count', async (req, res) => {

@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas for gaue (regions/districts)
 const associationBaseSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -29,7 +31,7 @@ const associationQuerySchema = zod_1.z.object({
 // Get associations count
 router.get('/count', async (req, res) => {
     try {
-        const count = await prisma.tfx_gaue.count();
+        const count = await prisma_1.default.tfx_gaue.count();
         res.json({ count });
     }
     catch (error) {
@@ -64,7 +66,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       ${whereClause}
     `;
-        const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
+        const countResult = await prisma_1.default.$queryRawUnsafe(countQuery, ...params);
         const total = parseInt(countResult[0]?.total || '0');
         const dataQuery = `
       SELECT 
@@ -81,7 +83,7 @@ router.get('/', async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(query.limit, query.offset);
-        const associations = await prisma.$queryRawUnsafe(dataQuery, ...params);
+        const associations = await prisma_1.default.$queryRawUnsafe(dataQuery, ...params);
         res.json({
             associations,
             pagination: {
@@ -116,7 +118,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       WHERE g.int_gaueid = $1
     `;
-        const associations = await prisma.$queryRawUnsafe(query, id);
+        const associations = await prisma_1.default.$queryRawUnsafe(query, id);
         if (!associations || associations.length === 0) {
             return res.status(404).json({ error: 'Association not found' });
         }
@@ -139,7 +141,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       RETURNING int_gaueid
     `;
         console.log('Executing insert query with params:', [data.var_name, data.var_kuerzel, data.int_verbaendeid]);
-        const result = await prisma.$queryRawUnsafe(insertQuery, data.var_name, data.var_kuerzel, data.int_verbaendeid);
+        const result = await prisma_1.default.$queryRawUnsafe(insertQuery, data.var_name, data.var_kuerzel, data.int_verbaendeid);
         console.log('Insert result:', result);
         const associationId = result[0]?.int_gaueid;
         if (!associationId) {
@@ -158,7 +160,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       WHERE g.int_gaueid = $1
     `;
-        const associations = await prisma.$queryRawUnsafe(fetchQuery, associationId);
+        const associations = await prisma_1.default.$queryRawUnsafe(fetchQuery, associationId);
         console.log('Fetched association:', associations);
         res.status(201).json(associations[0]);
     }
@@ -207,7 +209,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       RETURNING int_gaueid
     `;
         params.push(id);
-        const result = await prisma.$queryRawUnsafe(updateQuery, ...params);
+        const result = await prisma_1.default.$queryRawUnsafe(updateQuery, ...params);
         if (!result || result.length === 0) {
             return res.status(404).json({ error: 'Association not found' });
         }
@@ -224,7 +226,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_verbaende v ON g.int_verbaendeid = v.int_verbaendeid
       WHERE g.int_gaueid = $1
     `;
-        const associations = await prisma.$queryRawUnsafe(fetchQuery, id);
+        const associations = await prisma_1.default.$queryRawUnsafe(fetchQuery, id);
         res.json(associations[0]);
     }
     catch (error) {
@@ -243,14 +245,14 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Check if association exists first
         const existsQuery = 'SELECT COUNT(*) as count FROM tfx_gaue WHERE int_gaueid = $1';
-        const existsResult = await prisma.$queryRawUnsafe(existsQuery, id);
+        const existsResult = await prisma_1.default.$queryRawUnsafe(existsQuery, id);
         const exists = Number(existsResult[0]?.count) > 0;
         if (!exists) {
             return res.status(404).json({ error: 'Association not found' });
         }
         // Check if association is being used by clubs
         const clubCheckQuery = 'SELECT COUNT(*) as count FROM tfx_vereine WHERE int_gaueid = $1';
-        const clubCheck = await prisma.$queryRawUnsafe(clubCheckQuery, id);
+        const clubCheck = await prisma_1.default.$queryRawUnsafe(clubCheckQuery, id);
         const clubCount = parseInt(clubCheck[0]?.count || '0');
         if (clubCount > 0) {
             return res.status(409).json({
@@ -258,7 +260,7 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
             });
         }
         const deleteQuery = 'DELETE FROM tfx_gaue WHERE int_gaueid = $1';
-        await prisma.$queryRawUnsafe(deleteQuery, id);
+        await prisma_1.default.$queryRawUnsafe(deleteQuery, id);
         res.json({ message: 'Association deleted successfully' });
     }
     catch (error) {
@@ -276,7 +278,7 @@ router.get('/data/verbaende', async (req, res) => {
       LEFT JOIN tfx_laender l ON v.int_laenderid = l.int_laenderid
       ORDER BY v.var_name ASC
     `;
-        const federations = await prisma.$queryRawUnsafe(query);
+        const federations = await prisma_1.default.$queryRawUnsafe(query);
         res.json(federations);
     }
     catch (error) {
@@ -291,7 +293,7 @@ router.post('/data/verbaende', authBypass_1.authenticateToken, async (req, res) 
         if (!int_laenderid) {
             return res.status(400).json({ error: 'int_laenderid is required' });
         }
-        const result = await prisma.$queryRawUnsafe(`INSERT INTO tfx_verbaende (var_name, var_kuerzel, int_laenderid)
+        const result = await prisma_1.default.$queryRawUnsafe(`INSERT INTO tfx_verbaende (var_name, var_kuerzel, int_laenderid)
        VALUES ($1, $2, $3)
        RETURNING int_verbaendeid, var_name, var_kuerzel, int_laenderid`, var_name || null, var_kuerzel || null, int_laenderid);
         res.status(201).json(result[0]);
@@ -334,7 +336,7 @@ router.put('/data/verbaende/:id', authBypass_1.authenticateToken, async (req, re
       RETURNING int_verbaendeid, var_name, var_kuerzel, int_laenderid
     `;
         params.push(id);
-        const result = await prisma.$queryRawUnsafe(updateQuery, ...params);
+        const result = await prisma_1.default.$queryRawUnsafe(updateQuery, ...params);
         if (!result || result.length === 0) {
             return res.status(404).json({ error: 'Federation not found' });
         }
@@ -352,7 +354,7 @@ router.delete('/data/verbaende/:id', authBypass_1.authenticateToken, async (req,
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid federation ID' });
         }
-        await prisma.$queryRawUnsafe(`DELETE FROM tfx_verbaende WHERE int_verbaendeid = $1`, id);
+        await prisma_1.default.$queryRawUnsafe(`DELETE FROM tfx_verbaende WHERE int_verbaendeid = $1`, id);
         res.json({ message: 'Federation deleted' });
     }
     catch (error) {

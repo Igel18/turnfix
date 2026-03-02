@@ -15,6 +15,15 @@ test.beforeAll(async () => {
   state = loadEventAState();
 });
 
+/** Wait for squad options to load in the select, then choose one */
+async function selectSquadOption(page: import('@playwright/test').Page, value: string) {
+  const squadSelect = page.locator('select').first();
+  // Wait for the specific option value to appear in DOM (API may be slow)
+  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 15_000 });
+  await squadSelect.selectOption({ value });
+  await page.waitForTimeout(2000);
+}
+
 test.describe('Score Entry: Women (Squad RW)', () => {
 
   test('navigate to Score Capture and select squad RW', async ({ page }) => {
@@ -25,10 +34,7 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.waitFor({ state: 'visible', timeout: 10_000 });
-    await squadSelect.selectOption({ value: 'RW' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RW');
 
     // Verify participants are shown
     const rows = page.locator('tbody tr');
@@ -45,9 +51,7 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RW' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RW');
 
     // Uncheck "Jury-Wertungen anzeigen" for simple view
     const juryCheckbox = page.locator('#showJuryScores');
@@ -73,9 +77,7 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RW' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RW');
 
     // Table should have header columns
     const headers = page.locator('thead th');
@@ -91,9 +93,7 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RW' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RW');
 
     // Verify all 10 women are visible
     for (const firstName of WOMEN_FIRST_NAMES) {
@@ -112,9 +112,7 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RM' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RM');
 
     const rows = page.locator('tbody tr');
     await expect(rows.first()).toBeVisible({ timeout: 10_000 });
@@ -130,9 +128,7 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RM' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RM');
 
     const juryCheckbox = page.locator('#showJuryScores');
     if (await juryCheckbox.isChecked()) {
@@ -158,9 +154,7 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RM' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RM');
 
     const juryCheckbox = page.locator('#showJuryScores');
     if (await juryCheckbox.isChecked()) {
@@ -187,11 +181,11 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     // Verify the change persisted (reload page)
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
-    await squadSelect.selectOption({ value: 'RM' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RM');
 
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
+    const juryCheckbox2 = page.locator('#showJuryScores');
+    if (await juryCheckbox2.isChecked()) {
+      await juryCheckbox2.uncheck();
       await page.waitForTimeout(500);
     }
 

@@ -1,10 +1,9 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import mutationsRouter from './disciplineMutations';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Mount mutations sub-router (POST /, PUT /:id, DELETE /:id)
 router.use('/', mutationsRouter);

@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas based on tfx_vereine table structure
 const clubCreateSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -48,7 +50,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN tfx_gaue g ON v.int_gaueid = g.int_gaueid
       ${whereClause}
     `;
-        const countResult = await prisma.$queryRawUnsafe(countQuery, ...params);
+        const countResult = await prisma_1.default.$queryRawUnsafe(countQuery, ...params);
         const total = parseInt(countResult[0]?.total || '0');
         const dataQuery = `
       SELECT 
@@ -72,7 +74,7 @@ router.get('/', async (req, res) => {
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
         params.push(query.limit, query.offset);
-        const clubs = await prisma.$queryRawUnsafe(dataQuery, ...params);
+        const clubs = await prisma_1.default.$queryRawUnsafe(dataQuery, ...params);
         // Convert BigInt values to numbers for JSON serialization
         const clubsData = clubs.map((club) => ({
             ...club,
@@ -126,7 +128,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_personen p ON v.int_personenid = p.int_personenid
       WHERE v.int_vereineid = $1
     `;
-        const result = await prisma.$queryRawUnsafe(query, id);
+        const result = await prisma_1.default.$queryRawUnsafe(query, id);
         const club = result[0];
         if (!club) {
             return res.status(404).json({ error: 'Club not found' });
@@ -165,7 +167,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
             data.var_website || null,
             data.int_gaueid
         ]);
-        const result = await prisma.$queryRawUnsafe(query, data.int_personenid || null, data.var_name, data.int_start_ort, data.var_website || null, data.int_gaueid);
+        const result = await prisma_1.default.$queryRawUnsafe(query, data.int_personenid || null, data.var_name, data.int_start_ort, data.var_website || null, data.int_gaueid);
         const clubId = result[0]?.int_vereineid;
         if (!clubId) {
             return res.status(500).json({ message: 'Failed to create club' });
@@ -187,7 +189,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_personen p ON v.int_personenid = p.int_personenid
       WHERE v.int_vereineid = $1
     `;
-        const createdClub = await prisma.$queryRawUnsafe(fetchQuery, clubId);
+        const createdClub = await prisma_1.default.$queryRawUnsafe(fetchQuery, clubId);
         const club = createdClub[0];
         // Convert BigInt values to numbers for JSON serialization
         const clubData = {
@@ -233,7 +235,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       SET ${updates.join(', ')}
       WHERE int_vereineid = $${paramIndex}
     `;
-        await prisma.$queryRawUnsafe(query, ...params);
+        await prisma_1.default.$queryRawUnsafe(query, ...params);
         // Fetch updated club
         const fetchQuery = `
       SELECT 
@@ -251,7 +253,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_personen p ON v.int_personenid = p.int_personenid
       WHERE v.int_vereineid = $1
     `;
-        const updatedClub = await prisma.$queryRawUnsafe(fetchQuery, id);
+        const updatedClub = await prisma_1.default.$queryRawUnsafe(fetchQuery, id);
         const club = updatedClub[0];
         if (!club) {
             return res.status(404).json({ error: 'Club not found' });
@@ -283,19 +285,19 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Check if club exists first
         const existsQuery = 'SELECT COUNT(*) as count FROM tfx_vereine WHERE int_vereineid = $1';
-        const existsResult = await prisma.$queryRawUnsafe(existsQuery, id);
+        const existsResult = await prisma_1.default.$queryRawUnsafe(existsQuery, id);
         const exists = Number(existsResult[0]?.count) > 0;
         if (!exists) {
             return res.status(404).json({ error: 'Club not found' });
         }
         // Check if club has athletes
-        const athleteCount = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM tfx_teilnehmer WHERE int_vereineid = $1', id);
+        const athleteCount = await prisma_1.default.$queryRawUnsafe('SELECT COUNT(*) as count FROM tfx_teilnehmer WHERE int_vereineid = $1', id);
         if (Number(athleteCount[0]?.count) > 0) {
             return res.status(409).json({
                 error: 'Cannot delete club with existing athletes. Please reassign or remove athletes first.'
             });
         }
-        await prisma.$queryRawUnsafe('DELETE FROM tfx_vereine WHERE int_vereineid = $1', id);
+        await prisma_1.default.$queryRawUnsafe('DELETE FROM tfx_vereine WHERE int_vereineid = $1', id);
         res.json({ message: 'Club deleted successfully' });
     }
     catch (error) {
@@ -311,7 +313,7 @@ router.get('/data/gaue', async (req, res) => {
       FROM tfx_gaue
       ORDER BY var_name
     `;
-        const gaue = await prisma.$queryRawUnsafe(query);
+        const gaue = await prisma_1.default.$queryRawUnsafe(query);
         // Convert BigInt values to numbers for JSON serialization
         const gaueData = gaue.map((item) => ({
             id: Number(item.id),
@@ -337,7 +339,7 @@ router.get('/data/personen', async (req, res) => {
       FROM tfx_personen
       ORDER BY var_nachname, var_vorname
     `;
-        const persons = await prisma.$queryRawUnsafe(query);
+        const persons = await prisma_1.default.$queryRawUnsafe(query);
         // Convert BigInt values to numbers for JSON serialization
         const personsData = persons.map((person) => ({
             ...person,

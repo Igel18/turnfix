@@ -4,17 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const authBypass_1 = require("../middleware/authBypass");
 const disciplineMutations_1 = __importDefault(require("./disciplineMutations"));
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Mount mutations sub-router (POST /, PUT /:id, DELETE /:id)
 router.use('/', disciplineMutations_1.default);
 // Get disciplines count
 router.get('/count', async (req, res) => {
     try {
-        const count = await prisma.tfx_disziplinen.count();
+        const count = await prisma_1.default.tfx_disziplinen.count();
         res.json({ count });
     }
     catch (error) {
@@ -78,7 +77,7 @@ router.get('/', async (req, res) => {
       ${whereClause}
       ORDER BY var_name
     `;
-        const rawDisciplines = await prisma.$queryRawUnsafe(query, ...params);
+        const rawDisciplines = await prisma_1.default.$queryRawUnsafe(query, ...params);
         res.json(rawDisciplines);
     }
     catch (error) {
@@ -98,7 +97,7 @@ router.get('/apparatus', authBypass_1.authenticateToken, async (req, res) => {
       GROUP BY var_einheit
       ORDER BY var_einheit
     `;
-        const apparatus = await prisma.$queryRawUnsafe(query);
+        const apparatus = await prisma_1.default.$queryRawUnsafe(query);
         res.json(apparatus);
     }
     catch (error) {
@@ -152,7 +151,7 @@ router.get('/categories', authBypass_1.authenticateToken, async (req, res) => {
       FROM tfx_bereiche
       ORDER BY var_name
     `;
-        const categories = await prisma.$queryRawUnsafe(query);
+        const categories = await prisma_1.default.$queryRawUnsafe(query);
         res.json(categories);
     }
     catch (error) {
@@ -198,7 +197,7 @@ router.get('/filtered', authBypass_1.authenticateToken, async (req, res) => {
       ${whereClause}
       ORDER BY var_name
     `;
-        const disciplines = await prisma.$queryRawUnsafe(query);
+        const disciplines = await prisma_1.default.$queryRawUnsafe(query);
         res.json(disciplines);
     }
     catch (error) {
@@ -251,7 +250,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
       FROM tfx_disziplinen
       WHERE int_disziplinenid = $1
     `;
-        const result = await prisma.$queryRawUnsafe(query, disciplineId);
+        const result = await prisma_1.default.$queryRawUnsafe(query, disciplineId);
         const discipline = Array.isArray(result) ? result[0] : result;
         if (!discipline) {
             return res.status(404).json({ error: 'Discipline not found' });

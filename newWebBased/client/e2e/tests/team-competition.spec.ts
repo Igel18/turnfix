@@ -51,6 +51,14 @@ test.beforeAll(async () => {
   state = loadTeamEventState();
 });
 
+/** Wait for squad options to load in the select, then choose one */
+async function selectSquadOption(page: import('@playwright/test').Page, value: string) {
+  const squadSelect = page.locator('select').first();
+  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 15_000 });
+  await squadSelect.selectOption({ value });
+  await page.waitForTimeout(2000);
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // 1. SETUP VERIFICATION
 // ═══════════════════════════════════════════════════════════════════════
@@ -61,15 +69,22 @@ test.describe('Team Competition: Setup Verification', () => {
     await page.goto('/events', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
+    // Click the Filter button to reveal the search input
+    const filterBtn = page.locator('button', { hasText: /Filter/ }).first();
+    if (await filterBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await filterBtn.click();
+      await page.waitForTimeout(500);
+    }
+
     // The event may be on a later page (pagination). Use the search box to find it.
     const searchInput = page.locator('input[type="text"][placeholder*="uch"], input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]').first();
     if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await searchInput.fill(state.eventName);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
     } else {
       // If no search box, click through pagination until we find it
       let found = false;
-      for (let i = 0; i < 5 && !found; i++) {
+      for (let i = 0; i < 10 && !found; i++) {
         const bodyText = await page.locator('body').textContent();
         if (bodyText?.includes(state.eventName)) {
           found = true;
@@ -307,10 +322,7 @@ test.describe('Team Competition: Score Capture UI', () => {
     await page.waitForTimeout(1000);
 
     // Select squad RT
-    const squadSelect = page.locator('select').first();
-    await squadSelect.waitFor({ state: 'visible', timeout: 10_000 });
-    await squadSelect.selectOption({ value: 'RT' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RT');
 
     // Verify participants are shown
     const rows = page.locator('tbody tr');
@@ -327,9 +339,7 @@ test.describe('Team Competition: Score Capture UI', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RT' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RT');
 
     for (const firstName of ALL_TEAM_NAMES) {
       await expect(page.locator('body')).toContainText(firstName);
@@ -344,9 +354,7 @@ test.describe('Team Competition: Score Capture UI', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RT' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RT');
 
     // Uncheck jury view for simple score display
     const juryCheckbox = page.locator('#showJuryScores');
@@ -372,9 +380,7 @@ test.describe('Team Competition: Score Capture UI', () => {
     );
     await page.waitForTimeout(1000);
 
-    const squadSelect = page.locator('select').first();
-    await squadSelect.selectOption({ value: 'RT' });
-    await page.waitForTimeout(2000);
+    await selectSquadOption(page, 'RT');
 
     const headers = page.locator('thead th');
     const count = await headers.count();

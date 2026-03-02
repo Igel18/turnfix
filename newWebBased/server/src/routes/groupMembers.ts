@@ -1,8 +1,7 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const DEBUG = process.env.DEBUG === 'true';
 const debugLog = (...args: any[]) => { if (DEBUG) console.log('🔍 DEBUG:', ...args); };

@@ -7,6 +7,7 @@
     "dev": "nodemon src/index.ts",
     "prebuild": "node scripts/generate-build-info.js",
     "build": "tsc",
+    "postbuild": "node scripts/copy-shared.js",
     "build:all": "npm run build && cd ../client && npm run build",
     "start": "node dist/index.js",
     "check-port": "ts-node src/scripts/check-port.ts",

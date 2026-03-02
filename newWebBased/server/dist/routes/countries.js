@@ -1,10 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const zod_1 = require("zod");
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createCountrySchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(255),
@@ -25,13 +27,13 @@ router.get('/', async (req, res) => {
             ];
         }
         const [countries, totalCount] = await Promise.all([
-            prisma.tfx_laender.findMany({
+            prisma_1.default.tfx_laender.findMany({
                 where: whereConditions,
                 skip: offset,
                 take: limit,
                 orderBy: { var_name: 'asc' }
             }),
-            prisma.tfx_laender.count({ where: whereConditions })
+            prisma_1.default.tfx_laender.count({ where: whereConditions })
         ]);
         res.json({
             countries,
@@ -55,7 +57,7 @@ router.get('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid country ID' });
         }
-        const country = await prisma.tfx_laender.findUnique({
+        const country = await prisma_1.default.tfx_laender.findUnique({
             where: { int_laenderid: id }
         });
         if (!country) {
@@ -72,7 +74,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const validatedData = createCountrySchema.parse(req.body);
-        const country = await prisma.tfx_laender.create({
+        const country = await prisma_1.default.tfx_laender.create({
             data: validatedData
         });
         res.status(201).json(country);
@@ -93,7 +95,7 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid country ID' });
         }
         const validatedData = updateCountrySchema.parse(req.body);
-        const country = await prisma.tfx_laender.update({
+        const country = await prisma_1.default.tfx_laender.update({
             where: { int_laenderid: id },
             data: validatedData
         });
@@ -117,7 +119,7 @@ router.delete('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid country ID' });
         }
-        await prisma.tfx_laender.delete({
+        await prisma_1.default.tfx_laender.delete({
             where: { int_laenderid: id }
         });
         res.status(204).send();

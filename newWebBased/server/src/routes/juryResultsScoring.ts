@@ -1,12 +1,11 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Validation schema
 const juryResultCreateSchema = z.object({

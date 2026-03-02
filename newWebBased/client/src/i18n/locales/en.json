@@ -2867,6 +2867,62 @@
       "noClub": "No Club",
       "noParticipants": "No participants assigned",
       "notAvailable": "N/A"
+    },
+    "autoAssign": {
+      "title": "Automatic Squad Assignment",
+      "button": "Auto Assign",
+      "steps": {
+        "criteria": "Criteria",
+        "proposals": "Proposals",
+        "applied": "Applied"
+      },
+      "criteriaDescription": "Configure the criteria for automatic squad assignment. Participants will be optimally distributed into squads based on these settings.",
+      "fields": {
+        "maxPerSquad": "Max participants per squad",
+        "numberOfProposals": "Number of proposals",
+        "namingPrefix": "Naming convention",
+        "breakCount": "Number of break squads",
+        "separateGenders": "Separate genders",
+        "keepClubsTogether": "Keep club members together",
+        "groupByAgeCategory": "Group by age category",
+        "ageCategoryRanges": "Age categories (ranges)"
+      },
+      "hints": {
+        "maxPerSquad": "Maximum number of participants in a squad (2-50)",
+        "numberOfProposals": "How many different proposals to generate (1-10)",
+        "namingPrefix": "e.g. mRed (Gender), R01 (Number), Red (None)",
+        "breakCount": "Empty break squads for apparatus rotation",
+        "separateGenders": "Separate male and female participants into different squads",
+        "keepClubsTogether": "Keep participants from the same club together in one squad when possible",
+        "groupByAgeCategory": "Group participants by age categories",
+        "ageCategoryRanges": "Comma-separated ranges, e.g. 6-8,9-10,11-12"
+      },
+      "namingOptions": {
+        "gender": "Gender + Color (e.g. mRed, fBlue)",
+        "number": "Numbered (e.g. R01, R02)",
+        "none": "Color only (e.g. Red, Blue)"
+      },
+      "generateButton": "Generate Proposals",
+      "generating": "Generating...",
+      "applyButton": "Apply Proposal",
+      "applying": "Applying...",
+      "applyWarning": "Existing assignments will be replaced",
+      "backToCriteria": "Back to Criteria",
+      "proposalSummary": "{{count}} proposals generated for {{participants}} participants. Select a proposal and click 'Apply'.",
+      "proposalTab": "Proposal {{num}}",
+      "breakSquad": "Break",
+      "participants": "participants",
+      "years": "years",
+      "clubColumn": "Club",
+      "ageColumn": "Age",
+      "stats": {
+        "totalSquads": "Squads",
+        "totalParticipants": "Participants",
+        "avgPerSquad": "Avg per Squad",
+        "range": "Min–Max"
+      },
+      "appliedTitle": "Squad assignment successful!",
+      "appliedMessage": "{{participants}} participants have been assigned to {{squads}} squads."
     }
   },
   "competitions": {

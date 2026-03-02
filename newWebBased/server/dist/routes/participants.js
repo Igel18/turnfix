@@ -1,13 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const configurationHelpers_1 = require("../utils/configurationHelpers");
 const genderHelpers_1 = require("../utils/genderHelpers");
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const participantCreateSchema = zod_1.z.object({
     var_vorname: zod_1.z.string().min(1).max(150),
@@ -103,8 +105,8 @@ router.get('/', async (req, res) => {
     `;
         const dataParams = [...params, query.limit, query.offset];
         const [countResult, dataResult] = await Promise.all([
-            prisma.$queryRawUnsafe(countQuery, ...params),
-            prisma.$queryRawUnsafe(dataQuery, ...dataParams)
+            prisma_1.default.$queryRawUnsafe(countQuery, ...params),
+            prisma_1.default.$queryRawUnsafe(dataQuery, ...dataParams)
         ]);
         const total = Number(countResult[0]?.total || 0);
         console.log('📊 Query results:', {
@@ -173,7 +175,7 @@ router.get('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
       WHERE t.int_teilnehmerid = $1
     `;
-        const result = await prisma.$queryRawUnsafe(query, id);
+        const result = await prisma_1.default.$queryRawUnsafe(query, id);
         const participant = result[0];
         if (!participant) {
             return res.status(404).json({ error: 'Participant not found' });
@@ -203,7 +205,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING int_teilnehmerid
     `;
-        const result = await prisma.$queryRawUnsafe(query, data.var_vorname, data.var_nachname, data.int_vereineid, data.int_geschlecht, data.dat_geburtstag, data.bool_nur_jahr || false, data.int_startpassnummer || null);
+        const result = await prisma_1.default.$queryRawUnsafe(query, data.var_vorname, data.var_nachname, data.int_vereineid, data.int_geschlecht, data.dat_geburtstag, data.bool_nur_jahr || false, data.int_startpassnummer || null);
         const participantId = result[0]?.int_teilnehmerid;
         if (!participantId) {
             return res.status(500).json({ message: 'Failed to create participant' });
@@ -229,7 +231,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
       WHERE t.int_teilnehmerid = $1
     `;
-        const createdParticipant = await prisma.$queryRawUnsafe(fetchQuery, participantId);
+        const createdParticipant = await prisma_1.default.$queryRawUnsafe(fetchQuery, participantId);
         const participantData = createdParticipant[0];
         // Convert BigInt values to numbers for JSON serialization
         const responseData = {
@@ -277,7 +279,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       SET ${updates.join(', ')}
       WHERE int_teilnehmerid = $${paramIndex}
     `;
-        await prisma.$queryRawUnsafe(query, ...params);
+        await prisma_1.default.$queryRawUnsafe(query, ...params);
         // Fetch updated participant
         const fetchQuery = `
       SELECT 
@@ -299,7 +301,7 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
       LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
       WHERE t.int_teilnehmerid = $1
     `;
-        const updatedParticipant = await prisma.$queryRawUnsafe(fetchQuery, id);
+        const updatedParticipant = await prisma_1.default.$queryRawUnsafe(fetchQuery, id);
         const participant = updatedParticipant[0];
         if (!participant) {
             return res.status(404).json({ error: 'Participant not found' });
@@ -331,19 +333,19 @@ router.delete('/:id', authBypass_1.authenticateToken, async (req, res) => {
         }
         // Check if participant exists first
         const existsQuery = 'SELECT COUNT(*) as count FROM tfx_teilnehmer WHERE int_teilnehmerid = $1';
-        const existsResult = await prisma.$queryRawUnsafe(existsQuery, id);
+        const existsResult = await prisma_1.default.$queryRawUnsafe(existsQuery, id);
         const exists = Number(existsResult[0]?.count) > 0;
         if (!exists) {
             return res.status(404).json({ error: 'Participant not found' });
         }
         // Check if participant has scores/competitions
-        const competitionCount = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM tfx_wertungen WHERE int_teilnehmerid = $1', id);
+        const competitionCount = await prisma_1.default.$queryRawUnsafe('SELECT COUNT(*) as count FROM tfx_wertungen WHERE int_teilnehmerid = $1', id);
         if (Number(competitionCount[0]?.count) > 0) {
             return res.status(409).json({
                 error: 'Cannot delete participant with existing competition entries. Please remove competition entries first.'
             });
         }
-        await prisma.$queryRawUnsafe('DELETE FROM tfx_teilnehmer WHERE int_teilnehmerid = $1', id);
+        await prisma_1.default.$queryRawUnsafe('DELETE FROM tfx_teilnehmer WHERE int_teilnehmerid = $1', id);
         res.json({ message: 'Participant deleted successfully' });
     }
     catch (error) {

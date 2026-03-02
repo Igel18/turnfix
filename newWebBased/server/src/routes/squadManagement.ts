@@ -2,11 +2,15 @@ import { Router } from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import mutationsRouter, { virtualSquads } from './squadManagementMutations';
+import autoAssignRouter from './squadAutoAssign';
 
 const router = Router();
 
 // Mount mutations sub-router (create, assign, unassign, update, delete, complete)
 router.use('/', mutationsRouter);
+
+// Mount auto-assign sub-router (generate proposals, apply proposal)
+router.use('/', autoAssignRouter);
 
 // Get all squads for an event with participants
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {

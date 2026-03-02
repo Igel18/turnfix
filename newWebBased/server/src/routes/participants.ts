@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { getParticipantGenderValues } from '../utils/configurationHelpers';
 import { getGenderNameCaseStatement, parseGenderFilter } from '../utils/genderHelpers';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Validation schemas
 const participantCreateSchema = z.object({

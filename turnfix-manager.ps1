@@ -923,6 +923,140 @@ function Force-Rebuild {
     Read-Host "Drücken Sie Enter zum Fortfahren"
 }
 
+function Repair-ServicePaths {
+    # Diagnose and repair NSSM service registry entries
+    # Fixes the "Cannot find module 'C:\Program'" crash caused by unquoted paths with spaces
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║          Dienst-Pfade Diagnose & Reparatur                 ║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+    
+    $services = @(
+        @{ Name = "TurnFixServer"; Display = "Haupt-Server" },
+        @{ Name = "TurnFixJuryServer"; Display = "Kampfrichter-Portal" }
+    )
+    
+    $issuesFound = 0
+    $issuesFixed = 0
+    
+    foreach ($svc in $services) {
+        $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$($svc.Name)\Parameters"
+        $svcObj = Get-Service -Name $svc.Name -ErrorAction SilentlyContinue
+        
+        Write-Host "━━━ $($svc.Display) ($($svc.Name)) ━━━" -ForegroundColor Yellow
+        
+        if (-not $svcObj) {
+            Write-Host "  Dienst nicht installiert - übersprungen" -ForegroundColor DarkGray
+            Write-Host ""
+            continue
+        }
+        
+        if (-not (Test-Path $regPath)) {
+            Write-Host "  ⚠ Registry-Pfad nicht gefunden: $regPath" -ForegroundColor Red
+            Write-Host ""
+            $issuesFound++
+            continue
+        }
+        
+        $props = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
+        
+        # Check Application (node.exe path)
+        $app = $props.Application
+        Write-Host "  Application:    $app" -ForegroundColor White
+        if ($app -and (Test-Path $app)) {
+            Write-Host "                  ✓ Datei existiert" -ForegroundColor Green
+        } else {
+            Write-Host "                  ✗ Datei NICHT gefunden!" -ForegroundColor Red
+            $issuesFound++
+        }
+        
+        # Check AppParameters (script path - MUST be quoted if contains spaces)
+        $params = $props.AppParameters
+        Write-Host "  AppParameters:  $params" -ForegroundColor White
+        
+        if ($params) {
+            $needsQuoting = $params -match '\s' -and -not ($params.StartsWith('"') -and $params.EndsWith('"'))
+            $unquotedPath = $params.Trim('"')
+            
+            if ($needsQuoting) {
+                Write-Host "                  ✗ FEHLER: Pfad enthält Leerzeichen aber ist NICHT in Anführungszeichen!" -ForegroundColor Red
+                Write-Host "                    Dies verursacht 'Cannot find module' Abstürze." -ForegroundColor Red
+                $issuesFound++
+                
+                # Auto-fix
+                $fixedValue = "`"$params`""
+                Write-Host "                  🔧 Repariere: $fixedValue" -ForegroundColor Cyan
+                try {
+                    Set-ItemProperty -Path $regPath -Name "AppParameters" -Value $fixedValue
+                    Write-Host "                  ✓ Repariert!" -ForegroundColor Green
+                    $issuesFixed++
+                } catch {
+                    Write-Host "                  ✗ Reparatur fehlgeschlagen: $($_.Exception.Message)" -ForegroundColor Red
+                    Write-Host "                    → Bitte als Administrator ausführen!" -ForegroundColor Yellow
+                }
+            } elseif ($params.StartsWith('"')) {
+                Write-Host "                  ✓ Korrekt in Anführungszeichen" -ForegroundColor Green
+            }
+            
+            if (Test-Path $unquotedPath) {
+                Write-Host "                  ✓ Datei existiert" -ForegroundColor Green
+            } else {
+                Write-Host "                  ✗ Datei NICHT gefunden: $unquotedPath" -ForegroundColor Red
+                $issuesFound++
+            }
+        } else {
+            Write-Host "                  ✗ LEER - kein Script konfiguriert!" -ForegroundColor Red
+            $issuesFound++
+        }
+        
+        # Check AppDirectory
+        $dir = $props.AppDirectory
+        Write-Host "  AppDirectory:   $dir" -ForegroundColor White
+        if ($dir -and (Test-Path $dir)) {
+            Write-Host "                  ✓ Verzeichnis existiert" -ForegroundColor Green
+        } else {
+            Write-Host "                  ✗ Verzeichnis NICHT gefunden!" -ForegroundColor Red
+            $issuesFound++
+        }
+        
+        # Check service status
+        $statusColor = if ($svcObj.Status -eq 'Running') { "Green" } else { "Red" }
+        Write-Host "  Status:         $($svcObj.Status)" -ForegroundColor $statusColor
+        
+        Write-Host ""
+    }
+    
+    # Summary
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    if ($issuesFound -eq 0) {
+        Write-Host "✓ Keine Probleme gefunden! Alle Dienst-Pfade sind korrekt." -ForegroundColor Green
+    } else {
+        Write-Host "Gefundene Probleme: $issuesFound | Repariert: $issuesFixed" -ForegroundColor Yellow
+        if ($issuesFixed -gt 0) {
+            Write-Host ""
+            Write-Host "💡 Dienste neu starten um Reparatur zu aktivieren?" -ForegroundColor Cyan
+            $restart = Read-Host "   (j/n)"
+            if ($restart -eq "j" -or $restart -eq "J") {
+                foreach ($svc in $services) {
+                    $svcObj = Get-Service -Name $svc.Name -ErrorAction SilentlyContinue
+                    if ($svcObj) {
+                        try {
+                            Restart-Service -Name $svc.Name -Force -ErrorAction Stop
+                            Write-Host "  ✓ $($svc.Display) neu gestartet" -ForegroundColor Green
+                        } catch {
+                            Write-Host "  ✗ $($svc.Display) Neustart fehlgeschlagen: $($_.Exception.Message)" -ForegroundColor Red
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    Write-Host ""
+    Read-Host "Drücken Sie Enter zum Fortfahren"
+}
+
 function Show-AdvancedMenu {
     Clear-Host
     Write-Host ""
@@ -935,6 +1069,7 @@ function Show-AdvancedMenu {
     Write-Host "  [3] 🔨 FORCE REBUILD (alle Komponenten)" -ForegroundColor Magenta
     Write-Host "  [4] Netzwerk-IP anzeigen (für Tablets)" -ForegroundColor White
     Write-Host "  [5] Datenbank-Status prüfen" -ForegroundColor White
+    Write-Host "  [6] 🔧 Dienst-Pfade prüfen & reparieren" -ForegroundColor Cyan
     Write-Host "  [0] Zurück zum Hauptmenü" -ForegroundColor DarkGray
     Write-Host ""
     
@@ -1049,6 +1184,9 @@ function Show-AdvancedMenu {
                 Write-Host "  Prüfen Sie ob PostgreSQL läuft" -ForegroundColor Yellow
             }
             Read-Host "Drücken Sie Enter zum Fortfahren"
+        }
+        "6" {
+            Repair-ServicePaths
         }
     }
 }

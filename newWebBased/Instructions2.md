@@ -282,4 +282,9 @@ Ist dies erfolgt soll nun mittels einem Klick auf einen Button "erstellen" eine 
 Ist das soweit verständlich oder gibt es noch Unklarheiten? Hast du noch Verbesserungsvorschläge zum Workflow bzw. den Kriterien? 
 Bitte dokumentieren und tests erstellen. 
 Für die Kriterien soll in den Einstellungen default werte definiert werden können. Es gibt ja bereits eine Datei in der die Einstellungen gespeichert sind. Die Default werte für die Kriterien sollen hier auch gespeichert werden. 
-	-> In Arbeit...
+	-> Erledigt ✅  
+
+45. 2 Verbesserungen: 
+a) Anzahl Pausen-Riegen soll theoretisch unbegrenzt möglich sein 
+b) Bezeichnungen der Riegen: wenn es mehr riegen gibt als mit den vordefinierten "Farben" möglich ist, soll einfach durch nummeriert werden. 
+

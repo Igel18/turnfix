@@ -19,11 +19,18 @@ test.describe('Competition: Setup Verification', () => {
     await page.goto('/events', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
+    // Click the Filter button to reveal the search input
+    const filterBtn = page.locator('button', { hasText: /Filter/ }).first();
+    if (await filterBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await filterBtn.click();
+      await page.waitForTimeout(500);
+    }
+
     // The event may be on a later page (pagination). Use the search box to find it.
     const searchInput = page.locator('input[type="text"][placeholder*="uch"], input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]').first();
     if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await searchInput.fill(state.eventName);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
     } else {
       // If no search box, click through pagination until we find it
       let found = false;

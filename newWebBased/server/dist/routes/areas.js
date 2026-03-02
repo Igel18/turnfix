@@ -1,10 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 const zod_1 = require("zod");
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Validation schemas
 const createAreaSchema = zod_1.z.object({
     var_name: zod_1.z.string().min(1).max(150),
@@ -15,7 +17,7 @@ const updateAreaSchema = createAreaSchema.partial();
 // Get areas count
 router.get('/count', async (req, res) => {
     try {
-        const count = await prisma.tfx_bereiche.count();
+        const count = await prisma_1.default.tfx_bereiche.count();
         res.json({ count });
     }
     catch (error) {
@@ -40,13 +42,13 @@ router.get('/', async (req, res) => {
             };
         }
         const [areas, totalCount] = await Promise.all([
-            prisma.tfx_bereiche.findMany({
+            prisma_1.default.tfx_bereiche.findMany({
                 where: whereConditions,
                 skip: offset,
                 take: limit,
                 orderBy: { var_name: 'asc' }
             }),
-            prisma.tfx_bereiche.count({ where: whereConditions })
+            prisma_1.default.tfx_bereiche.count({ where: whereConditions })
         ]);
         res.json({
             areas,
@@ -70,7 +72,7 @@ router.get('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid area ID' });
         }
-        const area = await prisma.tfx_bereiche.findUnique({
+        const area = await prisma_1.default.tfx_bereiche.findUnique({
             where: { int_bereicheid: id },
             include: {
                 tfx_wettkaempfe: {
@@ -92,7 +94,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const validatedData = createAreaSchema.parse(req.body);
-        const area = await prisma.tfx_bereiche.create({
+        const area = await prisma_1.default.tfx_bereiche.create({
             data: validatedData
         });
         res.status(201).json(area);
@@ -113,7 +115,7 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid area ID' });
         }
         const validatedData = updateAreaSchema.parse(req.body);
-        const area = await prisma.tfx_bereiche.update({
+        const area = await prisma_1.default.tfx_bereiche.update({
             where: { int_bereicheid: id },
             data: validatedData
         });
@@ -137,7 +139,7 @@ router.delete('/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid area ID' });
         }
-        await prisma.tfx_bereiche.delete({
+        await prisma_1.default.tfx_bereiche.delete({
             where: { int_bereicheid: id }
         });
         res.status(204).send();

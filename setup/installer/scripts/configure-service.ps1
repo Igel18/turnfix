@@ -88,10 +88,26 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Set paths directly via registry to guarantee correct quoting for paths with spaces
+# CRITICAL: AppParameters MUST be wrapped in escaped double-quotes so NSSM passes
+#           the full path (including spaces) as a single argument to node.exe.
+#           Without quotes: node receives "C:\Program" and "Files\..." as TWO args → crash
 $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName\Parameters"
 Set-ItemProperty -Path $regPath -Name "Application" -Value $NodePath
 Set-ItemProperty -Path $regPath -Name "AppParameters" -Value "`"$ServerScript`""
 Set-ItemProperty -Path $regPath -Name "AppDirectory" -Value $ServerDir
+
+# Verify the registry values were set correctly
+$verifyParams = (Get-ItemProperty -Path $regPath -Name "AppParameters" -ErrorAction SilentlyContinue).AppParameters
+if ($verifyParams -and $verifyParams.StartsWith('"') -and $verifyParams.EndsWith('"')) {
+    Write-Host "  ✓ Registry paths set and verified (AppParameters properly quoted)" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ WARNING: AppParameters may not be properly quoted: $verifyParams" -ForegroundColor Yellow
+    Write-Host "    Expected: `"$ServerScript`"" -ForegroundColor Yellow
+    # Force-set with explicit quoting as fallback
+    $quotedPath = '"' + $ServerScript + '"'
+    Set-ItemProperty -Path $regPath -Name "AppParameters" -Value $quotedPath
+    Write-Host "    Retried with explicit quoting" -ForegroundColor Yellow
+}
 Write-Host "  Registry paths set (Application, AppParameters, AppDirectory)" -ForegroundColor DarkGray
 
 # Configure service - redirect stderr to avoid false failures
@@ -163,10 +179,22 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Set paths directly via registry to guarantee correct quoting for paths with spaces
+# CRITICAL: Same quoting rules as main service — see comment above
 $juryRegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$juryServiceName\Parameters"
 Set-ItemProperty -Path $juryRegPath -Name "Application" -Value $NodePath
 Set-ItemProperty -Path $juryRegPath -Name "AppParameters" -Value "`"$ServerScript`""
 Set-ItemProperty -Path $juryRegPath -Name "AppDirectory" -Value $ServerDir
+
+# Verify the registry values were set correctly
+$verifyParams = (Get-ItemProperty -Path $juryRegPath -Name "AppParameters" -ErrorAction SilentlyContinue).AppParameters
+if ($verifyParams -and $verifyParams.StartsWith('"') -and $verifyParams.EndsWith('"')) {
+    Write-Host "  ✓ Registry paths set and verified (AppParameters properly quoted)" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ WARNING: AppParameters may not be properly quoted: $verifyParams" -ForegroundColor Yellow
+    $quotedPath = '"' + $ServerScript + '"'
+    Set-ItemProperty -Path $juryRegPath -Name "AppParameters" -Value $quotedPath
+    Write-Host "    Retried with explicit quoting" -ForegroundColor Yellow
+}
 Write-Host "  Registry paths set (Application, AppParameters, AppDirectory)" -ForegroundColor DarkGray
 
 # Configure

@@ -1,9 +1,8 @@
 import express from 'express'
 import { z } from 'zod'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../lib/prisma'
 
 const router = express.Router()
-const prisma = new PrismaClient()
 
 // Validation schemas
 const getSquadDisciplinesSchema = z.object({
