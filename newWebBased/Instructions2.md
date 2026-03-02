@@ -289,6 +289,7 @@ a) Anzahl Pausen-Riegen soll theoretisch unbegrenzt möglich sein
 b) Bezeichnungen der Riegen: wenn es mehr riegen gibt als mit den vordefinierten "Farben" möglich ist, soll einfach durch nummeriert werden. 
 c) Versuche die Riegengrößen auch ähnlich groß zu halten. also nicht eine Riege mit der max. Anzahl an Teilnehmern und eine dann mit viel weniger. Zumindest als ein Vorschlag. 
 d) Es soll eine Möglichkeit geben bestehende Riegen so zu lassen, wie sie sind. Also Ignoriere bestehende Riegen und deren zugeordnete Personen. 
+Auch tests hierfür schreiben
 
 46. Fehler: 
   ✘  210 …s:367:3 › Load Test: Concurrent Browser Sessions › 4.2 — 3 browsers view score capture for different squads (19.3s)

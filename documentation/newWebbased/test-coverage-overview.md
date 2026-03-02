@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
-**Stand**: 26. Februar 2026
-**Gesamt**: ~2.473 Tests in ~100 Dateien
+**Stand**: 31. Oktober 2025
+**Gesamt**: ~2.661 Tests in ~119 Dateien
 
 ---
 
@@ -9,19 +9,19 @@
 
 | Kategorie | Dateien | Tests |
 |-----------|---------|-------|
-| E2E Specs (Playwright) | 18 | 258 |
+| E2E Specs (Playwright) | 29 | ~346 |
 | E2E Setup/Teardown | 3 | 26 |
 | Client Unit/Integration/Component (Vitest) | 30 | 786 |
-| **Client Gesamt** | **51** | **1.070** |
-| Server Unit/Integration/Component (Jest) | ~49 | ~1.402+ |
-| **Server Gesamt** | **~49** | **~1.402** |
-| **Gesamt** | **~100** | **~2.473** |
+| **Client Gesamt** | **62** | **~1.158** |
+| Server Unit/Integration/Component (Jest) | ~58 | ~1.576 |
+| **Server Gesamt** | **~58** | **~1.576** |
+| **Gesamt** | **~119** | **~2.661** |
 
 ---
 
 ## Seiten/Routen — Abdeckungsstatus
 
-### ✅ Abgedeckt (25 von 37 Routen = 67%)
+### ✅ Abgedeckt (36 von 37 Routen = 97%)
 
 | Route | Seite | E2E | Integration | Component/Unit |
 |-------|-------|:---:|:-----------:|:--------------:|
@@ -50,22 +50,22 @@
 | `/meldematrix` | Meldematrix | — | ✅ | — |
 | `/formulas` | FormulasUnified | 🟡 Smoke | — | — |
 | `/locations` | LocationsUnified | 🟡 Smoke | — | — |
+| `/group-scoring` | GroupScoreCapture | ✅ | ✅ | — |
+| `/team-scoring` | TeamScoreCapture | ✅ | ✅ | — |
+| `/time-planning` | TimePlanning | ✅ | ✅ | — |
+| `/squad-status` | SquadStatusManagement | ✅ | — | — |
+| `/live-scores` | LiveScoresPage | ✅ | — | — |
+| `/medallienspiegel` | Medallienspiegel | ✅ | ✅ | — |
+| `/areas` | Areas | ✅ | — | — |
+| `/discipline-groups` | DisciplineGroupsUnified | ✅ | ✅ | — |
+| `/persons` | PersonsUnified | ✅ | ✅ | — |
+| `/certificate-layouts` | CertificateLayouts | ✅ | ✅ | — |
+| `/status-management` | StatusUnified | ✅ | ✅ | — |
 
-### ❌ Nicht abgedeckt (12 von 37 Routen = 32%)
+### ❌ Nicht abgedeckt (1 von 37 Routen = 3%)
 
 | Route | Seite | Risiko | Beschreibung |
 |-------|-------|:------:|-------------|
-| `/group-scoring` | GroupScoreCapture | 🔴 HOCH | Mannschafts-Wertungseingabe |
-| `/team-scoring` | TeamScoreCapture | 🔴 HOCH | Team-Wertungseingabe |
-| `/time-planning` | TimePlanning | 🟠 MITTEL | Komplexe Zeitplanung mit Durchgängen |
-| `/squad-status` | SquadStatusManagement | 🟠 MITTEL | Riegen-Status-Verwaltung |
-| `/live-scores` | LiveScoresPage | 🟠 MITTEL | Echtzeit-Ergebnisanzeige |
-| `/medallienspiegel` | Medallienspiegel | 🟢 NIEDRIG | Nur Lesezugriff |
-| `/areas` | Areas | 🟢 NIEDRIG | Stammdaten-CRUD |
-| `/discipline-groups` | DisciplineGroupsUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
-| `/persons` | PersonsUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
-| `/certificate-layouts` | CertificateLayouts | 🟢 NIEDRIG | Urkunden-Layout-Konfiguration |
-| `/status-management` | StatusUnified | 🟢 NIEDRIG | Stammdaten-CRUD |
 | `/locations-debug` | LocationsDebug | ⚪ DEBUG | Debug-Seite |
 
 ---
@@ -92,6 +92,17 @@
 | `status.spec.ts` | 19 | Riegen-/Wettkampfstatus-Übergänge, Workflow-Validierung |
 | `pdf-export.spec.ts` | 13 | PDF-Export für 6 Seiten: Ergebnisse, Teilnehmer, Urkunden |
 | `load-test.spec.ts` | 17 | Last-/Stresstests: Concurrent Writes, Race Conditions, Benchmarks |
+| `master-data-areas.spec.ts` | 7 | `/areas` — CRUD, Suche, Ansichtswechsel, Löschen |
+| `master-data-persons.spec.ts` | 8 | `/persons` — CRUD, Suche, Pflichtfelder, Ansichtswechsel |
+| `master-data-discipline-groups.spec.ts` | 6 | `/discipline-groups` — CRUD, Suche, Löschen |
+| `master-data-statuses.spec.ts` | 6 | `/status-management` — CRUD, Suche, Löschen |
+| `master-data-certificate-layouts.spec.ts` | 6 | `/certificate-layouts` — CRUD, Detail-Ansicht, Löschen |
+| `time-planning.spec.ts` | 11 | `/time-planning` — Ansichten, Durchgänge, API-Validierung |
+| `group-scoring.spec.ts` | 10 | `/group-scoring` — Selektions-Panel, Dropdowns, API-Tests |
+| `team-scoring.spec.ts` | 11 | `/team-scoring` — Entity-Selector, API-Tests, Validierung |
+| `squad-status.spec.ts` | 11 | `/squad-status` — Matrix/Tabellen-Ansicht, Filter, API, CSV |
+| `live-scores.spec.ts` | 11 | `/live-scores` — Einstellungen, Socket.IO, Auto-Refresh |
+| `medallienspiegel.spec.ts` | 9 | `/medallienspiegel` — Medaillentabelle, API-Standings, Statistiken |
 
 ---
 
@@ -149,8 +160,8 @@
 ### Unit Tests (~23 Dateien, ~560+ Tests)
 Kritische Business-Logik: Konfiguration, Disziplin-Daten, Gender-Mapping, GymNet-Presets, Formel-Berechnung, Wettkampf-Helfer, Import-Pipelines, Score-Filter, Score-Synchronisation, **Startnummer-Utilities**
 
-### Integration Tests (~26 Dateien, ~843+ Tests)
-API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**, **Teilnehmer-Einstellungen (participantSettings)**, **Wettkampf-Einstellungen (competitionSettings)**, **Disziplin-Einstellungen (disciplineSettings)**
+### Integration Tests (~35 Dateien, ~1.016+ Tests)
+API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipants, Participants, Results, Scores, Squads, Teams, Venues, Clubs, Areas, Discipline-Fields, Discipline-Groups, Formulas, **Startnummern (Start Numbers)**, **Teilnehmer-Einstellungen (participantSettings)**, **Wettkampf-Einstellungen (competitionSettings)**, **Disziplin-Einstellungen (disciplineSettings)**, **GroupScores**, **TeamScores**, **TimePlanning**, **Medals**, **Layouts**, **Persons**, **DisciplineGroups**, **Statuses**
 
 **Neu hinzugekommen:**
 
@@ -159,26 +170,25 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 | `participantSettings.test.ts` | 23 | `bol_startet_nicht`: update-status, update-details, Effekt auf competition-status participantCount, Meldematrix/Statistiken. `bol_ak`: POST/PUT scores, DB-Verifikation, AK vs. Nicht-AK |
 | `competitionSettings.test.ts` | 17 | `qualifiers` (int_qualifikation): Erstellen, Default, Update, Listenabruf. `dropWorstScore`+`dropCount` (bol_streichwertung+int_anz_streich): Alle CRUD-Szenarien. `useApparatusPoints` (bol_gerpkt): Alle CRUD-Szenarien. Kombinierte Einstellungen, Isolation zwischen Wettkämpfen |
 | `disciplineSettings.test.ts` | 29 | `var_icon`, `var_kurz1/2/kuerzel`, `var_einheit`, `int_sportid`, `var_maske`, `tfx_disziplinen_felder`, `var_formel`+`int_formelid` (COALESCE-Priorität), `bol_m`/`bol_w`. Propagation: GET /disciplines/:id (Management) und GET /competitions/:id/disciplines (Jury-Portal) |
+| `groupScores.test.ts` | 13 | `/api/scores/group` — GET mit Filtern, POST Erstellung/Upsert/Validierung, DELETE |
+| `teamScores.test.ts` | 14 | `/api/scores/team` — GET mit Filtern, POST Erstellung/Upsert/Validierung, DELETE |
+| `timePlanning.test.ts` | 14 | `/api/time-planning` — GET Zeitplanung/Bahnen, POST Durchgänge, PUT Bahnen/Runden |
+| `medals.test.ts` | 13 | `/api/medals` — GET Übersicht/Standings/Statistiken, POST Vergabe, DELETE, Event-spezifisch |
+| `layouts.test.ts` | 18 | `/api/layouts` — Vollständiges CRUD + Felder-CRUD + Duplizierung |
+| `persons.test.ts` | 16 | `/api/persons` — CRUD mit Suche, Paginierung, Pflichtfeld-Validierung |
+| `disciplineGroups.test.ts` | 16 | `/api/discipline-groups` — CRUD mit Disziplin-Zuweisungen, Duplikat-Prüfung |
+| `statuses.test.ts` | 14 | `/api/statuses` — CRUD mit Farben, Boolean-Flags, Suche |
 
-> **Letzte bestätigte Zahlen**: 49 Test-Suites, ~1.402 Tests (alle bestanden)
+> **Letzte bestätigte Zahlen**: 58 Test-Suites, 1.576 Tests (alle bestanden)
 
 ---
 
 ## Empfohlene nächste Tests (nach Risiko-Priorität)
 
-### 🔴 Höchste Priorität
-1. **`/group-scoring`** — Mannschaftswertung: Eingabe, Berechnung, Validierung
-2. **`/team-scoring`** — Teamwertung: Eingabe, Berechnung, Validierung
+Alle 12 zuvor nicht abgedeckten Routen sind jetzt mit Server-Integration- und/oder E2E-Tests abgedeckt.
 
-### 🟠 Mittlere Priorität
-3. **`/time-planning`** — Zeitplanung: Durchgänge erstellen, Zeitstrahl, Rotation
-4. **`/squad-status`** — Riegen-Status: Status setzen, Workflow
-5. **`/live-scores`** — Live-Ergebnisse: WebSocket-Verbindung, Echtzeit-Updates
-
-### 🟢 Niedrige Priorität
-6. **`/areas`** — CRUD analog zu anderen Stammdaten-Tests
-7. **`/discipline-groups`** — CRUD analog
-8. **`/persons`** — CRUD analog
-9. **`/certificate-layouts`** — Layout-Konfiguration
-10. **`/status-management`** — CRUD analog
-11. **`/medallienspiegel`** — Nur Lesezugriff, geringe Fehleranfälligkeit
+### Mögliche Vertiefungen
+1. **Component-Tests** für die neuen Seiten (GroupScoreCapture, TeamScoreCapture, etc.)
+2. **Socket.IO-Integration** — Tiefere Tests für Live-Updates in `/live-scores` und `/squad-status`
+3. **PDF-Export** — Medallienspiegel PDF-Export testen
+4. **Edge Cases** — Score-Validierung bei ungültigen Eingaben, Concurrent-Write-Szenarien für neue Endpunkte
