@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
 **Stand**: 31. Oktober 2025
-**Gesamt**: ~2.744 Tests in ~121 Dateien
+**Gesamt**: ~2.907 Tests in ~127 Dateien
 
 ---
 
@@ -11,11 +11,11 @@
 |-----------|---------|-------|
 | E2E Specs (Playwright) | 29 | ~346 |
 | E2E Setup/Teardown | 3 | 26 |
-| Client Unit/Integration/Component (Vitest) | 30 | 786 |
-| **Client Gesamt** | **62** | **~1.158** |
+| Client Unit/Integration/Component (Vitest) | 36 | 963 |
+| **Client Gesamt** | **68** | **~1.335** |
 | Server Unit/Integration/Component (Jest) | ~60 | ~1.659 |
 | **Server Gesamt** | **~60** | **~1.659** |
-| **Gesamt** | **~121** | **~2.744** |
+| **Gesamt** | **~127** | **~2.907** |
 
 ---
 
@@ -50,12 +50,12 @@
 | `/meldematrix` | Meldematrix | — | ✅ | — |
 | `/formulas` | FormulasUnified | 🟡 Smoke | — | — |
 | `/locations` | LocationsUnified | 🟡 Smoke | — | — |
-| `/group-scoring` | GroupScoreCapture | ✅ | ✅ | — |
-| `/team-scoring` | TeamScoreCapture | ✅ | ✅ | — |
-| `/time-planning` | TimePlanning | ✅ | ✅ | — |
-| `/squad-status` | SquadStatusManagement | ✅ | — | — |
-| `/live-scores` | LiveScoresPage | ✅ | — | — |
-| `/medallienspiegel` | Medallienspiegel | ✅ | ✅ | — |
+| `/group-scoring` | GroupScoreCapture | ✅ | ✅ | ✅ |
+| `/team-scoring` | TeamScoreCapture | ✅ | ✅ | ✅ |
+| `/time-planning` | TimePlanning | ✅ | ✅ | ✅ |
+| `/squad-status` | SquadStatusManagement | ✅ | — | ✅ |
+| `/live-scores` | LiveScoresPage | ✅ | — | ✅ |
+| `/medallienspiegel` | Medallienspiegel | ✅ | ✅ | ✅ |
 | `/areas` | Areas | ✅ | — | — |
 | `/discipline-groups` | DisciplineGroupsUnified | ✅ | ✅ | — |
 | `/persons` | PersonsUnified | ✅ | ✅ | — |
@@ -128,6 +128,12 @@
 | `useScoreValidation.test.ts` | 28 | Disziplin-/Teilnehmer-Filterung, Score-Validierung |
 | `useSquadDisciplineStatus.test.ts` | 9 | Status-API, Guard-Bedingungen |
 | `usePagination.test.ts` | 31 | Paginierung: Navigation, Edge-Cases |
+| `GroupScoreCapture.test.tsx` | 20 | Gruppen-Wertungseingabe: Rendering, Auswahl-Workflow, Score-Berechnung, MSW-Daten |
+| `TeamScoreCapture.test.tsx` | 24 | Team-Wertungseingabe: Rendering, Wettkampftyp-Filter, Disziplin-Filter, Score-Matrix |
+| `LiveScoresPage.test.tsx` | 17 | Live-Ergebnisse: Rendering, Einstellungen-Persistenz (localStorage), Widget-Props |
+| `Medallienspiegel.test.tsx` | 22 | Medallienspiegel: Sortierlogik, PDF-Export, Fehler-/Leer-Zustände, Statistiken |
+| `SquadStatusManagement.test.tsx` | 26 | Riegen-Status: Farbparsing (JSON/rgb/hex), Filter, Matrix, CSV-Export, Statuswechsel |
+| `TimePlanning.test.tsx` | 30 | Zeitplanung: Zeitberechnung, Slot-Generierung, Session-Gruppierung, Geräte-Schedule |
 
 ---
 
@@ -184,7 +190,7 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 Alle 12 zuvor nicht abgedeckten Routen sind jetzt mit Server-Integration- und/oder E2E-Tests abgedeckt.
 
 ### Mögliche Vertiefungen
-1. **Component-Tests** für die neuen Seiten (GroupScoreCapture, TeamScoreCapture, etc.)
+1. ~~**Component-Tests** für die neuen Seiten (GroupScoreCapture, TeamScoreCapture, etc.)~~ ✅ Erledigt (139 Tests in 6 Dateien)
 2. **Socket.IO-Integration** — Tiefere Tests für Live-Updates in `/live-scores` und `/squad-status`
 3. **PDF-Export** — Medallienspiegel PDF-Export testen
 4. ~~**Edge Cases** — Score-Validierung bei ungültigen Eingaben, Concurrent-Write-Szenarien für neue Endpunkte~~ ✅ Erledigt (71 + 12 = 83 Tests in 2 Dateien)
