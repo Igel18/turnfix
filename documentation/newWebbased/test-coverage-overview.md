@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
 **Stand**: 31. Oktober 2025
-**Gesamt**: ~2.661 Tests in ~119 Dateien
+**Gesamt**: ~2.744 Tests in ~121 Dateien
 
 ---
 
@@ -13,15 +13,15 @@
 | E2E Setup/Teardown | 3 | 26 |
 | Client Unit/Integration/Component (Vitest) | 30 | 786 |
 | **Client Gesamt** | **62** | **~1.158** |
-| Server Unit/Integration/Component (Jest) | ~58 | ~1.576 |
-| **Server Gesamt** | **~58** | **~1.576** |
-| **Gesamt** | **~119** | **~2.661** |
+| Server Unit/Integration/Component (Jest) | ~60 | ~1.659 |
+| **Server Gesamt** | **~60** | **~1.659** |
+| **Gesamt** | **~121** | **~2.744** |
 
 ---
 
 ## Seiten/Routen — Abdeckungsstatus
 
-### ✅ Abgedeckt (36 von 37 Routen = 97%)
+### ✅ Abgedeckt (36 von 36 Routen = 100%)
 
 | Route | Seite | E2E | Integration | Component/Unit |
 |-------|-------|:---:|:-----------:|:--------------:|
@@ -61,12 +61,6 @@
 | `/persons` | PersonsUnified | ✅ | ✅ | — |
 | `/certificate-layouts` | CertificateLayouts | ✅ | ✅ | — |
 | `/status-management` | StatusUnified | ✅ | ✅ | — |
-
-### ❌ Nicht abgedeckt (1 von 37 Routen = 3%)
-
-| Route | Seite | Risiko | Beschreibung |
-|-------|-------|:------:|-------------|
-| `/locations-debug` | LocationsDebug | ⚪ DEBUG | Debug-Seite |
 
 ---
 
@@ -178,8 +172,10 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 | `persons.test.ts` | 16 | `/api/persons` — CRUD mit Suche, Paginierung, Pflichtfeld-Validierung |
 | `disciplineGroups.test.ts` | 16 | `/api/discipline-groups` — CRUD mit Disziplin-Zuweisungen, Duplikat-Prüfung |
 | `statuses.test.ts` | 14 | `/api/statuses` — CRUD mit Farben, Boolean-Flags, Suche |
+| `scoreValidationEdgeCases.test.ts` | 71 | Score-Validierung bei ungültigen Eingaben: Zod-Schema-Ablehnungen, Typfehler, Grenzwerte, SQL-Injection, fehlende Felder, Null/Undefined, Save-Value Manual-Validation, Group/Team/Medal Edge Cases |
+| `concurrentWrites.test.ts` | 12 | Concurrent-Write-Szenarien: Gleichzeitige Score-Erstellung, Upsert Race Conditions, Duplikat-Erkennung, Read-While-Write-Konsistenz, Burst-Resilienz, Datenintegrität nach Lastspitzen |
 
-> **Letzte bestätigte Zahlen**: 58 Test-Suites, 1.576 Tests (alle bestanden)
+> **Letzte bestätigte Zahlen**: 60 Test-Suites, 1.659 Tests (alle bestanden)
 
 ---
 
@@ -191,4 +187,4 @@ Alle 12 zuvor nicht abgedeckten Routen sind jetzt mit Server-Integration- und/od
 1. **Component-Tests** für die neuen Seiten (GroupScoreCapture, TeamScoreCapture, etc.)
 2. **Socket.IO-Integration** — Tiefere Tests für Live-Updates in `/live-scores` und `/squad-status`
 3. **PDF-Export** — Medallienspiegel PDF-Export testen
-4. **Edge Cases** — Score-Validierung bei ungültigen Eingaben, Concurrent-Write-Szenarien für neue Endpunkte
+4. ~~**Edge Cases** — Score-Validierung bei ungültigen Eingaben, Concurrent-Write-Szenarien für neue Endpunkte~~ ✅ Erledigt (71 + 12 = 83 Tests in 2 Dateien)
