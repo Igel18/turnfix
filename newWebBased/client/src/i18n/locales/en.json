@@ -2960,7 +2960,8 @@
         "separateGenders": "Separate genders",
         "keepClubsTogether": "Keep club members together",
         "groupByAgeCategory": "Group by age category",
-        "ageCategoryRanges": "Age categories (ranges)"
+        "ageCategoryRanges": "Age categories (ranges)",
+        "keepExistingSquads": "Keep existing squads"
       },
       "hints": {
         "maxPerSquad": "Maximum number of participants in a squad (2-50)",
@@ -2970,7 +2971,8 @@
         "separateGenders": "Separate male and female participants into different squads",
         "keepClubsTogether": "Keep participants from the same club together in one squad when possible",
         "groupByAgeCategory": "Group participants by age categories",
-        "ageCategoryRanges": "Comma-separated ranges, e.g. 6-8,9-10,11-12"
+        "ageCategoryRanges": "Comma-separated ranges, e.g. 6-8,9-10,11-12",
+        "keepExistingSquads": "Ignore already assigned participants and their squads. Only distribute unassigned participants."
       },
       "namingOptions": {
         "gender": "Gender + Color (e.g. mRed, fBlue)",
@@ -2982,8 +2984,10 @@
       "applyButton": "Apply Proposal",
       "applying": "Applying...",
       "applyWarning": "Existing assignments will be replaced",
+      "applyWarningKeepExisting": "Existing squads will be preserved, only unassigned participants will be distributed",
       "backToCriteria": "Back to Criteria",
       "proposalSummary": "{{count}} proposals generated for {{participants}} participants. Select a proposal and click 'Apply'.",
+      "proposalSummaryKeepExisting": "{{count}} proposals generated for {{unassigned}} unassigned participants (out of {{total}} total). Existing squads will be preserved.",
       "proposalTab": "Proposal {{num}}",
       "breakSquad": "Break",
       "participants": "participants",
@@ -2997,7 +3001,8 @@
         "range": "Min–Max"
       },
       "appliedTitle": "Squad assignment successful!",
-      "appliedMessage": "{{participants}} participants have been assigned to {{squads}} squads."
+      "appliedMessage": "{{participants}} participants have been assigned to {{squads}} squads.",
+      "keepExistingInfo": "{{squads}} existing squads with {{assigned}} participants will be preserved."
     }
   },
   "competitions": {

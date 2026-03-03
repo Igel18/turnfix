@@ -66,6 +66,7 @@ test.describe('Squad Auto-Assignment', () => {
       await expect(page.getByText(/Namensgebung|Naming/i).first()).toBeVisible();
       await expect(page.getByText(/Geschlechter trennen|Separate genders/i).first()).toBeVisible();
       await expect(page.getByText(/Vereinsmitglieder.*zusammen|Keep club members/i).first()).toBeVisible();
+      await expect(page.getByText(/Bestehende Riegen beibehalten|Keep existing squads/i).first()).toBeVisible();
     });
 
     test('auto-assign dialog can be closed', async ({ page }) => {
@@ -299,6 +300,272 @@ test.describe('Squad Auto-Assignment', () => {
           clearExisting: true,
         },
       });
+    });
+  });
+
+  test.describe('API — Keep Existing Squads', () => {
+
+    test('keepExistingSquads excludes already-assigned participants', async ({ request }) => {
+      const state = loadEventAState();
+      if (!state) {
+        test.skip();
+        return;
+      }
+
+      // Step 1: Generate and apply initial assignment for some participants
+      const initialResponse = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 4,
+          separateGenders: false,
+          keepClubsTogether: false,
+          groupByAgeCategory: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+          keepExistingSquads: false,
+        },
+      });
+
+      expect(initialResponse.ok()).toBe(true);
+      const initialBody = await initialResponse.json();
+      const totalParticipants = initialBody.totalParticipants;
+
+      // Apply only the first squad from the proposal
+      const firstSquad = initialBody.proposals[0].squads.find((s: any) => !s.isBreak && s.participants.length > 0);
+      if (!firstSquad) {
+        test.skip();
+        return;
+      }
+
+      await request.post(`${API_BASE}/squad-management/auto-assign/apply`, {
+        data: {
+          eventId: state.eventId,
+          squads: [{
+            name: firstSquad.name,
+            participantIds: firstSquad.participants.map((p: any) => p.id),
+          }],
+          clearExisting: true,
+        },
+      });
+
+      // Step 2: Generate with keepExistingSquads=true
+      const keepExistingResponse = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 12,
+          separateGenders: false,
+          keepClubsTogether: false,
+          groupByAgeCategory: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+          keepExistingSquads: true,
+        },
+      });
+
+      expect(keepExistingResponse.ok()).toBe(true);
+      const keepBody = await keepExistingResponse.json();
+
+      // Should have info about existing squads
+      expect(keepBody.existingSquads).toBeGreaterThan(0);
+      expect(keepBody.existingAssignedParticipants).toBe(firstSquad.participants.length);
+      expect(keepBody.unassignedParticipants).toBe(totalParticipants - firstSquad.participants.length);
+
+      // Proposals should only contain unassigned participants
+      const proposalParticipantIds = new Set(
+        keepBody.proposals[0].squads
+          .filter((s: any) => !s.isBreak)
+          .flatMap((s: any) => s.participants.map((p: any) => p.id))
+      );
+
+      // No overlap with already-assigned participants
+      for (const p of firstSquad.participants) {
+        expect(proposalParticipantIds.has(p.id)).toBe(false);
+      }
+
+      // Clean up
+      await request.post(`${API_BASE}/squad-management/auto-assign/apply`, {
+        data: {
+          eventId: state.eventId,
+          squads: [],
+          clearExisting: true,
+        },
+      });
+    });
+
+    test('keepExistingSquads generates unique squad names', async ({ request }) => {
+      const state = loadEventAState();
+      if (!state) {
+        test.skip();
+        return;
+      }
+
+      // Apply an initial squad named "gRot"
+      const genResponse = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 3,
+          separateGenders: false,
+          keepClubsTogether: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+          keepExistingSquads: false,
+        },
+      });
+
+      expect(genResponse.ok()).toBe(true);
+      const genBody = await genResponse.json();
+      const firstSquad = genBody.proposals[0].squads[0];
+
+      await request.post(`${API_BASE}/squad-management/auto-assign/apply`, {
+        data: {
+          eventId: state.eventId,
+          squads: [{
+            name: firstSquad.name,
+            participantIds: firstSquad.participants.map((p: any) => p.id),
+          }],
+          clearExisting: true,
+        },
+      });
+
+      // Now generate with keepExisting - new names should not conflict
+      const keepResponse = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 12,
+          separateGenders: false,
+          keepClubsTogether: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+          keepExistingSquads: true,
+        },
+      });
+
+      expect(keepResponse.ok()).toBe(true);
+      const keepBody = await keepResponse.json();
+      
+      // None of the new squad names should match the existing one
+      for (const squad of keepBody.proposals[0].squads) {
+        if (!squad.isBreak) {
+          expect(squad.name).not.toBe(firstSquad.name);
+        }
+      }
+
+      // Clean up
+      await request.post(`${API_BASE}/squad-management/auto-assign/apply`, {
+        data: {
+          eventId: state.eventId,
+          squads: [],
+          clearExisting: true,
+        },
+      });
+    });
+
+    test('keepExistingSquads with all participants assigned returns error', async ({ request }) => {
+      const state = loadEventAState();
+      if (!state) {
+        test.skip();
+        return;
+      }
+
+      // Assign all participants first
+      const genResponse = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 50,
+          separateGenders: false,
+          keepClubsTogether: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+          keepExistingSquads: false,
+        },
+      });
+
+      expect(genResponse.ok()).toBe(true);
+      const genBody = await genResponse.json();
+
+      // Apply all squads
+      const squads = genBody.proposals[0].squads
+        .filter((s: any) => !s.isBreak)
+        .map((s: any) => ({
+          name: s.name,
+          participantIds: s.participants.map((p: any) => p.id),
+        }));
+
+      await request.post(`${API_BASE}/squad-management/auto-assign/apply`, {
+        data: {
+          eventId: state.eventId,
+          squads,
+          clearExisting: true,
+        },
+      });
+
+      // Now try keepExisting — should fail because all are assigned
+      const keepResponse = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 12,
+          separateGenders: false,
+          keepClubsTogether: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+          keepExistingSquads: true,
+        },
+      });
+
+      expect(keepResponse.status()).toBe(400);
+
+      // Clean up
+      await request.post(`${API_BASE}/squad-management/auto-assign/apply`, {
+        data: {
+          eventId: state.eventId,
+          squads: [],
+          clearExisting: true,
+        },
+      });
+    });
+  });
+
+  test.describe('Algorithm — Balanced Distribution', () => {
+
+    test('round-robin distribution creates balanced squads', async ({ request }) => {
+      const state = loadEventAState();
+      if (!state) {
+        test.skip();
+        return;
+      }
+
+      const response = await request.post(`${API_BASE}/squad-management/auto-assign/generate`, {
+        data: {
+          eventId: state.eventId,
+          maxParticipantsPerSquad: 5,
+          separateGenders: false,
+          keepClubsTogether: false,
+          groupByAgeCategory: false,
+          numberOfProposals: 1,
+          namingPrefix: 'gender',
+          breakCount: 0,
+        },
+      });
+
+      expect(response.ok()).toBe(true);
+      const body = await response.json();
+      const proposal = body.proposals[0];
+
+      // Check squad sizes are balanced (max difference of 1 between any two squads)
+      const nonBreakSquads = proposal.squads.filter((s: any) => !s.isBreak);
+      if (nonBreakSquads.length >= 2) {
+        const sizes = nonBreakSquads.map((s: any) => s.participants.length);
+        const maxSize = Math.max(...sizes);
+        const minSize = Math.min(...sizes);
+        // With round-robin, the max difference should be at most 1
+        expect(maxSize - minSize).toBeLessThanOrEqual(1);
+      }
     });
   });
 });

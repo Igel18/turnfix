@@ -17,6 +17,7 @@ const DEFAULT_CRITERIA: Omit<AutoAssignCriteria, 'eventId'> = {
   numberOfProposals: 3,
   namingPrefix: 'gender',
   breakCount: 0,
+  keepExistingSquads: false,
 };
 
 interface UseAutoAssignReturn {
@@ -27,6 +28,9 @@ interface UseAutoAssignReturn {
   isApplying: boolean;
   error: string | null;
   totalParticipants: number | null;
+  unassignedParticipants: number | null;
+  existingSquadCount: number | null;
+  existingAssignedCount: number | null;
   generateProposals: (eventId: number) => Promise<void>;
   applyProposal: (eventId: number, proposal: Proposal) => Promise<void>;
   reset: () => void;
@@ -40,6 +44,9 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
   const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalParticipants, setTotalParticipants] = useState<number | null>(null);
+  const [unassignedParticipants, setUnassignedParticipants] = useState<number | null>(null);
+  const [existingSquadCount, setExistingSquadCount] = useState<number | null>(null);
+  const [existingAssignedCount, setExistingAssignedCount] = useState<number | null>(null);
 
   /**
    * Load default criteria from app settings
@@ -57,6 +64,7 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
           numberOfProposals: settings.numberOfProposals ?? DEFAULT_CRITERIA.numberOfProposals,
           namingPrefix: settings.namingPrefix ?? DEFAULT_CRITERIA.namingPrefix,
           breakCount: settings.breakCount ?? DEFAULT_CRITERIA.breakCount,
+          keepExistingSquads: settings.keepExistingSquads ?? DEFAULT_CRITERIA.keepExistingSquads,
         });
       }
     } catch (err) {
@@ -79,6 +87,9 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
       });
       setProposals(response.proposals || []);
       setTotalParticipants(response.totalParticipants || 0);
+      setUnassignedParticipants(response.unassignedParticipants ?? null);
+      setExistingSquadCount(response.existingSquads ?? null);
+      setExistingAssignedCount(response.existingAssignedParticipants ?? null);
     } catch (err: any) {
       const message = err?.response?.data?.message || err?.message || 'Failed to generate proposals';
       setError(message);
@@ -103,7 +114,7 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
       await apiPost('/squad-management/auto-assign/apply', {
         eventId,
         squads,
-        clearExisting: true,
+        clearExisting: !criteria.keepExistingSquads,
       });
     } catch (err: any) {
       const message = err?.response?.data?.message || err?.message || 'Failed to apply proposal';
@@ -112,7 +123,7 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
     } finally {
       setIsApplying(false);
     }
-  }, []);
+  }, [criteria]);
 
   /**
    * Reset state (when dialog closes)
@@ -121,6 +132,9 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
     setProposals([]);
     setError(null);
     setTotalParticipants(null);
+    setUnassignedParticipants(null);
+    setExistingSquadCount(null);
+    setExistingAssignedCount(null);
   }, []);
 
   return {
@@ -131,6 +145,9 @@ export const useAutoAssign = (): UseAutoAssignReturn => {
     isApplying,
     error,
     totalParticipants,
+    unassignedParticipants,
+    existingSquadCount,
+    existingAssignedCount,
     generateProposals,
     applyProposal,
     reset,

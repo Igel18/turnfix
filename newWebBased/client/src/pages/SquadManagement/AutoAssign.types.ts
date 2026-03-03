@@ -12,6 +12,7 @@ export interface AutoAssignCriteria {
   numberOfProposals: number;
   namingPrefix: 'gender' | 'number' | 'none';
   breakCount: number;
+  keepExistingSquads: boolean;
 }
 
 export interface AutoAssignParticipant {
@@ -54,5 +55,8 @@ export interface AutoAssignResponse {
   proposals: Proposal[];
   eventId: number;
   totalParticipants: number;
+  unassignedParticipants?: number;
+  existingSquads?: number;
+  existingAssignedParticipants?: number;
   criteria: Omit<AutoAssignCriteria, 'eventId' | 'numberOfProposals'>;
 }

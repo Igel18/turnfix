@@ -58,6 +58,7 @@ const autoAssignSchema = z.object({
   numberOfProposals: z.number().int().min(1).max(10).default(3),
   namingPrefix: z.enum(['gender', 'number', 'none']).default('gender'),
   breakCount: z.number().int().min(0).max(10).default(0),
+  keepExistingSquads: z.boolean().default(false),
 });
 
 const applyProposalSchema = z.object({
@@ -107,10 +108,50 @@ interface Proposal {
 }
 
 /**
+ * Fetch existing squad assignments for an event.
+ * Returns a map of squad name → participant IDs and a set of assigned participant IDs.
+ */
+async function fetchExistingSquadAssignments(eventId: number): Promise<{
+  existingSquads: Map<string, Set<number>>;
+  assignedParticipantIds: Set<number>;
+  existingSquadNames: Set<string>;
+}> {
+  const rows: any[] = await prisma.$queryRawUnsafe(`
+    SELECT DISTINCT w.var_riege, w.int_teilnehmerid
+    FROM tfx_wertungen w
+    INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+    WHERE wk.int_veranstaltungenid = $1
+      AND w.var_riege IS NOT NULL
+      AND w.var_riege != ''
+      AND w.int_teilnehmerid IS NOT NULL
+  `, eventId);
+
+  const existingSquads = new Map<string, Set<number>>();
+  const assignedParticipantIds = new Set<number>();
+  const existingSquadNames = new Set<string>();
+
+  for (const row of rows) {
+    const squadName = row.var_riege as string;
+    const participantId = Number(row.int_teilnehmerid);
+    existingSquadNames.add(squadName);
+    assignedParticipantIds.add(participantId);
+    if (!existingSquads.has(squadName)) existingSquads.set(squadName, new Set());
+    existingSquads.get(squadName)!.add(participantId);
+  }
+
+  return { existingSquads, assignedParticipantIds, existingSquadNames };
+}
+
+/**
  * Fetch all participants for an event (those with wertungen entries).
  * Only returns distinct participants regardless of how many wertungen they have.
+ * If excludeAssigned is true, only returns participants without squad assignments.
  */
-async function fetchEventParticipants(eventId: number): Promise<AutoAssignParticipant[]> {
+async function fetchEventParticipants(
+  eventId: number,
+  excludeAssigned: boolean = false,
+  assignedParticipantIds?: Set<number>
+): Promise<AutoAssignParticipant[]> {
   const rows: any[] = await prisma.$queryRawUnsafe(`
     SELECT DISTINCT ON (t.int_teilnehmerid)
       t.int_teilnehmerid,
@@ -128,7 +169,7 @@ async function fetchEventParticipants(eventId: number): Promise<AutoAssignPartic
     ORDER BY t.int_teilnehmerid
   `, eventId);
 
-  return rows.map(r => {
+  const allParticipants = rows.map(r => {
     let age: number | null = null;
     let birthYear: number | null = null;
     if (r.dat_geburtstag) {
@@ -150,6 +191,13 @@ async function fetchEventParticipants(eventId: number): Promise<AutoAssignPartic
       birthYear,
     } as AutoAssignParticipant;
   });
+
+  // Filter out already-assigned participants when keepExistingSquads is enabled
+  if (excludeAssigned && assignedParticipantIds && assignedParticipantIds.size > 0) {
+    return allParticipants.filter(p => !assignedParticipantIds.has(p.id));
+  }
+
+  return allParticipants;
 }
 
 /**
@@ -221,6 +269,7 @@ function generateSquadName(
 /**
  * Distribute participants into squads of a given max size.
  * If keepClubsTogether, groups from the same club are kept together.
+ * Uses balanced distribution (round-robin) for even squad sizes.
  * Returns array of participant arrays (one per squad).
  */
 function distributeIntoSquads(
@@ -230,8 +279,9 @@ function distributeIntoSquads(
 ): AutoAssignParticipant[][] {
   if (participants.length === 0) return [];
 
-  const squads: AutoAssignParticipant[][] = [];
-
+  // Calculate optimal number of squads for balanced distribution
+  const numSquads = Math.ceil(participants.length / maxPerSquad);
+  
   if (keepClubsTogether) {
     // Group by club
     const clubGroups = new Map<number, AutoAssignParticipant[]>();
@@ -244,52 +294,72 @@ function distributeIntoSquads(
     // Sort groups by size descending for better bin-packing
     const groups = Array.from(clubGroups.values()).sort((a, b) => b.length - a.length);
 
-    for (const group of groups) {
-      // Try to fit into existing squad
-      let placed = false;
-      for (const squad of squads) {
-        if (squad.length + group.length <= maxPerSquad) {
-          squad.push(...group);
-          placed = true;
-          break;
-        }
-      }
-      if (!placed) {
-        // If group is larger than max, split it
-        if (group.length > maxPerSquad) {
-          let remaining = [...group];
-          while (remaining.length > 0) {
-            const chunk = remaining.splice(0, maxPerSquad);
-            squads.push(chunk);
-          }
-        } else {
-          squads.push([...group]);
-        }
-      }
-    }
-  } else {
-    // Simple distribution: fill squads sequentially
-    let currentSquad: AutoAssignParticipant[] = [];
-    for (const p of participants) {
-      currentSquad.push(p);
-      if (currentSquad.length >= maxPerSquad) {
-        squads.push(currentSquad);
-        currentSquad = [];
-      }
-    }
-    if (currentSquad.length > 0) squads.push(currentSquad);
-  }
+    // Initialize squads
+    const squads: AutoAssignParticipant[][] = Array.from({ length: numSquads }, () => []);
 
-  return squads;
+    for (const group of groups) {
+      if (group.length > maxPerSquad) {
+        // If a club group is larger than max, split it across squads
+        let remaining = [...group];
+        while (remaining.length > 0) {
+          // Find the smallest squad that can accept at least some members
+          squads.sort((a, b) => a.length - b.length);
+          const target = squads[0];
+          const spaceAvailable = maxPerSquad - target.length;
+          if (spaceAvailable <= 0) {
+            // All squads full, create a new one
+            const newSquad = remaining.splice(0, maxPerSquad);
+            squads.push(newSquad);
+          } else {
+            const chunk = remaining.splice(0, spaceAvailable);
+            target.push(...chunk);
+          }
+        }
+      } else {
+        // Try to place the entire club group in the smallest squad that has room
+        squads.sort((a, b) => a.length - b.length);
+        let placed = false;
+        for (const squad of squads) {
+          if (squad.length + group.length <= maxPerSquad) {
+            squad.push(...group);
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          // No existing squad has room — add to the smallest squad anyway (may exceed max slightly)
+          // or create a new squad if the smallest is already at max
+          const smallest = squads[0];
+          if (smallest.length >= maxPerSquad) {
+            squads.push([...group]);
+          } else {
+            smallest.push(...group);
+          }
+        }
+      }
+    }
+
+    // Remove empty squads
+    return squads.filter(s => s.length > 0);
+  } else {
+    // Balanced round-robin distribution without club grouping
+    const squads: AutoAssignParticipant[][] = Array.from({ length: numSquads }, () => []);
+    for (let i = 0; i < participants.length; i++) {
+      squads[i % numSquads].push(participants[i]);
+    }
+    return squads.filter(s => s.length > 0);
+  }
 }
 
 /**
  * Generate a single proposal.
+ * @param existingSquadNames - Set of squad names already in use (to avoid conflicts when keepExistingSquads is enabled)
  */
 function generateProposal(
   participants: AutoAssignParticipant[],
   options: z.infer<typeof autoAssignSchema>,
   proposalIndex: number,
+  existingSquadNames: Set<string> = new Set(),
 ): Proposal {
   const {
     maxParticipantsPerSquad,
@@ -340,10 +410,20 @@ function generateProposal(
       const squadParticipants = distributeIntoSquads(ageParticipants, maxParticipantsPerSquad, keepClubsTogether);
 
       for (const squadMembers of squadParticipants) {
-        const name = generateSquadName(genderGroup, globalColorIndex, namingPrefix, globalSquadIndex);
+        // Generate a unique name that doesn't conflict with existing squads
+        let name: string;
+        let attempts = 0;
+        do {
+          name = generateSquadName(genderGroup, globalColorIndex + attempts, namingPrefix, globalSquadIndex + attempts);
+          attempts++;
+        } while (existingSquadNames.has(name) && attempts < SQUAD_COLORS.length * 2);
+        
+        // Track the name to avoid duplicates within this proposal too
+        existingSquadNames.add(name);
+        
         allSquads.push({
           name,
-          colorName: SQUAD_COLORS[globalColorIndex % SQUAD_COLORS.length].name,
+          colorName: SQUAD_COLORS[(globalColorIndex + attempts - 1) % SQUAD_COLORS.length].name,
           genderGroup,
           ageCategory: ageCat || null,
           participants: squadMembers,
@@ -399,25 +479,61 @@ function generateProposal(
 router.post('/auto-assign/generate', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const options = autoAssignSchema.parse(req.body);
-    const participants = await fetchEventParticipants(options.eventId);
 
-    if (participants.length === 0) {
+    // Fetch existing squad assignments if keepExistingSquads is enabled
+    let existingSquadNames = new Set<string>();
+    let assignedParticipantIds = new Set<number>();
+    let existingSquadCount = 0;
+    let existingAssignedCount = 0;
+
+    if (options.keepExistingSquads) {
+      const existing = await fetchExistingSquadAssignments(options.eventId);
+      existingSquadNames = existing.existingSquadNames;
+      assignedParticipantIds = existing.assignedParticipantIds;
+      existingSquadCount = existing.existingSquads.size;
+      existingAssignedCount = existing.assignedParticipantIds.size;
+      console.log(`📋 Keep existing: ${existingSquadCount} squads, ${existingAssignedCount} assigned participants`);
+    }
+
+    // Fetch participants (excluding already-assigned if keepExistingSquads)
+    const participants = await fetchEventParticipants(
+      options.eventId,
+      options.keepExistingSquads,
+      assignedParticipantIds
+    );
+
+    // Get total participants count (including assigned) for the response
+    const allParticipants = options.keepExistingSquads
+      ? await fetchEventParticipants(options.eventId)
+      : participants;
+
+    if (participants.length === 0 && !options.keepExistingSquads) {
       return res.status(400).json({
         message: 'No participants found for this event. Please register participants first.',
       });
     }
 
-    console.log(`🔄 Auto-assign: Generating ${options.numberOfProposals} proposals for ${participants.length} participants (event ${options.eventId})`);
+    if (participants.length === 0 && options.keepExistingSquads) {
+      return res.status(400).json({
+        message: 'All participants are already assigned to squads. Disable "Keep existing squads" to reassign them.',
+      });
+    }
+
+    console.log(`🔄 Auto-assign: Generating ${options.numberOfProposals} proposals for ${participants.length} unassigned participants (event ${options.eventId})${options.keepExistingSquads ? ` [keeping ${existingSquadCount} existing squads]` : ''}`);
 
     const proposals: Proposal[] = [];
     for (let i = 0; i < options.numberOfProposals; i++) {
-      proposals.push(generateProposal(participants, options, i));
+      // Pass a copy of existingSquadNames so each proposal can track independently
+      proposals.push(generateProposal(participants, options, i, new Set(existingSquadNames)));
     }
 
     res.json({
       proposals,
       eventId: options.eventId,
-      totalParticipants: participants.length,
+      totalParticipants: allParticipants.length,
+      unassignedParticipants: participants.length,
+      existingSquads: existingSquadCount,
+      existingAssignedParticipants: existingAssignedCount,
       criteria: {
         maxParticipantsPerSquad: options.maxParticipantsPerSquad,
         separateGenders: options.separateGenders,
@@ -426,6 +542,7 @@ router.post('/auto-assign/generate', authenticateToken, async (req: AuthRequest,
         ageCategoryRanges: options.ageCategoryRanges,
         breakCount: options.breakCount,
         namingPrefix: options.namingPrefix,
+        keepExistingSquads: options.keepExistingSquads,
       },
     });
   } catch (error) {

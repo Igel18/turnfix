@@ -21,7 +21,8 @@
     "ageCategoryRanges": "6-8,9-10,11-12,13-14,15-18",
     "numberOfProposals": 3,
     "namingPrefix": "gender",
-    "breakCount": 0
+    "breakCount": 0,
+    "keepExistingSquads": false
   },
   "wifi": {
     "description": "WiFi/WLAN settings for generating QR codes that judges can scan to connect to the competition network.",

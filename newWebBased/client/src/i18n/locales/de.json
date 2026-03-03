@@ -2997,7 +2997,8 @@
         "separateGenders": "Geschlechter trennen",
         "keepClubsTogether": "Vereinsmitglieder zusammenhalten",
         "groupByAgeCategory": "Nach Alterskategorie gruppieren",
-        "ageCategoryRanges": "Alterskategorien (Bereiche)"
+        "ageCategoryRanges": "Alterskategorien (Bereiche)",
+        "keepExistingSquads": "Bestehende Riegen beibehalten"
       },
       "hints": {
         "maxPerSquad": "Maximale Anzahl an Teilnehmern in einer Riege (2-50)",
@@ -3007,7 +3008,8 @@
         "separateGenders": "Männliche und weibliche Teilnehmer in getrennte Riegen",
         "keepClubsTogether": "Teilnehmer desselben Vereins möglichst in einer Riege",
         "groupByAgeCategory": "Teilnehmer nach Alterskategorien gruppieren",
-        "ageCategoryRanges": "Kommagetrennte Bereiche, z.B. 6-8,9-10,11-12"
+        "ageCategoryRanges": "Kommagetrennte Bereiche, z.B. 6-8,9-10,11-12",
+        "keepExistingSquads": "Bereits zugewiesene Teilnehmer und deren Riegen ignorieren. Nur nicht zugewiesene Teilnehmer verteilen."
       },
       "namingOptions": {
         "gender": "Geschlecht + Farbe (z.B. mRot, wBlau)",
@@ -3019,8 +3021,10 @@
       "applyButton": "Vorschlag übernehmen",
       "applying": "Wird angewendet...",
       "applyWarning": "Bestehende Zuweisungen werden ersetzt",
+      "applyWarningKeepExisting": "Bestehende Riegen bleiben erhalten, nur nicht zugewiesene Teilnehmer werden verteilt",
       "backToCriteria": "Zurück zu Kriterien",
       "proposalSummary": "{{count}} Vorschläge für {{participants}} Teilnehmer generiert. Wählen Sie einen Vorschlag und klicken Sie auf 'Übernehmen'.",
+      "proposalSummaryKeepExisting": "{{count}} Vorschläge für {{unassigned}} nicht zugewiesene Teilnehmer (von insgesamt {{total}}) generiert. Bestehende Riegen bleiben erhalten.",
       "proposalTab": "Vorschlag {{num}}",
       "breakSquad": "Pause",
       "participants": "Teilnehmer",
@@ -3034,7 +3038,8 @@
         "range": "Min–Max"
       },
       "appliedTitle": "Riegeneinteilung erfolgreich!",
-      "appliedMessage": "{{participants}} Teilnehmer wurden auf {{squads}} Riegen verteilt."
+      "appliedMessage": "{{participants}} Teilnehmer wurden auf {{squads}} Riegen verteilt.",
+      "keepExistingInfo": "{{squads}} bestehende Riegen mit {{assigned}} Teilnehmern werden beibehalten."
     }
   },
   "competitions": {

@@ -288,8 +288,6 @@ Für die Kriterien soll in den Einstellungen default werte definiert werden kön
 a) Anzahl Pausen-Riegen soll theoretisch unbegrenzt möglich sein 
 b) Bezeichnungen der Riegen: wenn es mehr riegen gibt als mit den vordefinierten "Farben" möglich ist, soll einfach durch nummeriert werden. 
 c) Versuche die Riegengrößen auch ähnlich groß zu halten. also nicht eine Riege mit der max. Anzahl an Teilnehmern und eine dann mit viel weniger. Zumindest als ein Vorschlag. 
-d) Es soll eine Möglichkeit geben bestehende Riegen so zu lassen, wie sie sind. Also Ignoriere bestehende Riegen und deren zugeordnete Personen. 
-Auch tests hierfür schreiben
 
 46. Fehler: 
   ✘  210 …s:367:3 › Load Test: Concurrent Browser Sessions › 4.2 — 3 browsers view score capture for different squads (19.3s)
@@ -341,4 +339,25 @@ Die Infos zu dem WLAN wären dann gut wenn man diese in den Einstellungen in ein
 	-> Erledigt ✅  
 
 53. Riegeneinteilung verbessern wie in DB Turnfix. 
-Die Automatische Riegeneinteilung ist schon ganz gut. Jetzt schau doch mal in die DB "TurnFix" in der wir bereits einige Wettkämpfe mit manuellen Riegeneinteilungen durchgeführt haben. Wenn du das analysiert hast, wie könnten wir die Automatische Einteilung verbessern sodass zukünftig die Riegen genauso gut automatisch eingeteilt werden können (ggf. auf mit zusätzlichen Parametern)?
+Es soll eine Möglichkeit geben bestehende Riegen so zu lassen, wie sie sind. Also Ignoriere bestehende Riegen und deren zugeordnete Personen. 
+--
+Riegeneinteilung wie in DB Turnfix: Die Automatische Riegeneinteilung ist schon ganz gut. Jetzt schau doch mal in die DB "TurnFix" in der wir bereits über 40 richtige Wettkämpfe mit manuellen Riegeneinteilungen durchgeführt haben. Wenn du das analysiert hast, wie könnten wir die Automatische Einteilung verbessern sodass zukünftig die Riegen genauso gut automatisch eingeteilt werden können (ggf. auf mit zusätzlichen Parametern)?
+--
+Auch tests hierfür schreiben & Dokumentieren
+	-> Erledigt ✅
+	Legacy DB Analyse (40+ Wettkämpfe):
+	- Geschlechtertrennung: 97.8% aller Riegen sind eingeschlechtlich (stärkstes Muster)
+	- Riegengrößen: Weiblich Ø7.8, Männlich Ø3.4 (männl. Riegen kleiner)
+	- Vereinsgruppierung: 25% ein-Verein, 36% zwei-Vereine, 21% drei-Vereine
+	- Alter: 91% gleich (0-1 Jahr Differenz, da Wettkämpfe nach Alter gefiltert)
+	- Balance: 31% sehr ausgeglichen, 21% ausgeglichen, 34% moderat
+	Implementiert:
+	- "Bestehende Riegen beibehalten" Option (keepExistingSquads)
+	- Balancierte Verteilung (Round-Robin statt sequentiell)
+	- Besseres Bin-Packing bei Vereinsgruppierung
+	- Eindeutige Namensgebung (keine Konflikte mit bestehenden Riegen)
+	- Server: squadAutoAssign.ts (keepExistingSquads, fetchExistingSquadAssignments, balanced distributeIntoSquads)
+	- Client: AutoAssignDialog.tsx, useAutoAssign.ts, AutoAssign.types.ts
+	- i18n: de.json + en.json (keepExistingSquads, Info-Boxen, Warnungen)
+	- E2E Tests: 4 neue Tests (keepExisting, unique names, all-assigned error, balanced distribution)
+	- 1017 Unit/Integration Tests bestehen

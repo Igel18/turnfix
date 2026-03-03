@@ -15,6 +15,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   UserGroupIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import UnifiedModal from '@/components/UnifiedModal';
 import { GenderBadge } from '@/components/GenderBadge';
@@ -45,6 +46,9 @@ export const AutoAssignDialog: React.FC<AutoAssignDialogProps> = ({
     isApplying,
     error,
     totalParticipants,
+    unassignedParticipants,
+    existingSquadCount,
+    existingAssignedCount,
     generateProposals,
     applyProposal,
     reset,
@@ -132,6 +136,10 @@ export const AutoAssignDialog: React.FC<AutoAssignDialogProps> = ({
             onBack={() => setStep('criteria')}
             isApplying={isApplying}
             totalParticipants={totalParticipants}
+            unassignedParticipants={unassignedParticipants}
+            existingSquadCount={existingSquadCount}
+            existingAssignedCount={existingAssignedCount}
+            keepExistingSquads={criteria.keepExistingSquads}
             t={t}
           />
         )}
@@ -282,6 +290,14 @@ const CriteriaForm: React.FC<CriteriaFormProps> = ({
 
       {/* Toggles */}
       <div className="space-y-3 pt-2">
+        {/* Keep existing squads */}
+        <ToggleRow
+          label={t('squadManagement.autoAssign.fields.keepExistingSquads')}
+          hint={t('squadManagement.autoAssign.hints.keepExistingSquads')}
+          checked={criteria.keepExistingSquads}
+          onChange={val => updateField('keepExistingSquads', val)}
+        />
+
         {/* Separate genders */}
         <ToggleRow
           label={t('squadManagement.autoAssign.fields.separateGenders')}
@@ -393,6 +409,10 @@ interface ProposalReviewProps {
   onBack: () => void;
   isApplying: boolean;
   totalParticipants: number | null;
+  unassignedParticipants: number | null;
+  existingSquadCount: number | null;
+  existingAssignedCount: number | null;
+  keepExistingSquads: boolean;
   t: any;
 }
 
@@ -404,19 +424,44 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
   onBack,
   isApplying,
   totalParticipants,
+  unassignedParticipants,
+  existingSquadCount,
+  existingAssignedCount,
+  keepExistingSquads,
   t,
 }) => {
   const selected = proposals.find(p => p.id === selectedProposalId) || proposals[0];
 
   return (
     <div className="space-y-4">
+      {/* Keep existing info box */}
+      {keepExistingSquads && existingSquadCount != null && existingSquadCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <InformationCircleIcon className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800">
+            {t('squadManagement.autoAssign.keepExistingInfo', {
+              squads: existingSquadCount,
+              assigned: existingAssignedCount || 0,
+            })}
+          </p>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm text-blue-800">
-          {t('squadManagement.autoAssign.proposalSummary', {
-            count: proposals.length,
-            participants: totalParticipants || 0,
-          })}
+          {keepExistingSquads && unassignedParticipants != null ? (
+            t('squadManagement.autoAssign.proposalSummaryKeepExisting', {
+              count: proposals.length,
+              unassigned: unassignedParticipants,
+              total: totalParticipants || 0,
+            })
+          ) : (
+            t('squadManagement.autoAssign.proposalSummary', {
+              count: proposals.length,
+              participants: totalParticipants || 0,
+            })
+          )}
         </p>
       </div>
 
@@ -462,7 +507,10 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">
-            {t('squadManagement.autoAssign.applyWarning')}
+            {keepExistingSquads
+              ? t('squadManagement.autoAssign.applyWarningKeepExisting')
+              : t('squadManagement.autoAssign.applyWarning')
+            }
           </span>
           <button
             onClick={onApply}
