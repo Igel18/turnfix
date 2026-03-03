@@ -8,7 +8,7 @@ test.describe.serial('Master Data: Discipline Groups', () => {
   test('discipline groups page loads', async ({ page }) => {
     await navigateTo(page, '/discipline-groups');
     await waitForLoadingToFinish(page);
-    await expectPageTitle(page, /Disziplinen.*Grupp|Discipline.*Group/i);
+    await expectPageTitle(page, /Disziplin.*Grupp|Discipline.*Group/i);
   });
 
   test('page shows table with data', async ({ page }) => {

@@ -199,9 +199,10 @@ export async function clickButton(page: Page, name: string | RegExp) {
 
 /**
  * Click the "Add" / "Hinzufügen" button (common across pages).
+ * Uses .first() to avoid strict mode violations when empty state shows a duplicate add button.
  */
 export async function clickAddButton(page: Page) {
-  const addButton = page.getByRole('button', { name: /hinzufügen|add|neu|new/i });
+  const addButton = page.getByRole('button', { name: /hinzufügen|add|neu|new/i }).first();
   await addButton.click();
 }
 

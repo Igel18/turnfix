@@ -77,8 +77,8 @@ test.describe('Live Scores Page', () => {
   test('info box with socket.io information displayed', async ({ page }) => {
     await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
 
-    // Info box mentions Socket.IO
-    const infoText = page.locator('text=/Socket.IO/i');
+    // Info box mentions Socket.IO (use .first() since multiple elements contain the text)
+    const infoText = page.locator('text=/Socket.IO/i').first();
     await expect(infoText).toBeVisible({ timeout: 10_000 });
   });
 

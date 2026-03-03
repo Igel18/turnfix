@@ -92,7 +92,7 @@ test.describe('Group Scoring Page', () => {
     expect(discResponse.ok()).toBeTruthy();
 
     const discData = await discResponse.json();
-    const disciplines = discData.results || [];
+    const disciplines = Array.isArray(discData) ? discData : (discData.results || []);
     expect(disciplines.length).toBeGreaterThan(0);
   });
 

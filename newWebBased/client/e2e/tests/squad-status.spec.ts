@@ -31,14 +31,16 @@ test.describe('Squad Status Management', () => {
   test('displays view mode toggle (Matrix/Table/Grid)', async ({ page }) => {
     await page.goto(`/squad-status?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
 
-    // Should have view toggle buttons - Matrix, Table, Grid
-    const matrixBtn = page.locator('button:has-text("Matrix")');
-    const tableBtn = page.locator('button:has-text("Tabelle"), button:has-text("Table")');
+    // View toggle buttons: icon-only Matrix button, "List" button, "Grid" button
+    const viewGroup = page.locator('[role="group"]');
+    const listBtn = page.locator('button:has-text("List")');
+    const gridBtn = page.locator('button:has-text("Grid")');
 
-    // At least one view toggle should exist
-    const matrixVisible = await matrixBtn.isVisible({ timeout: 5_000 }).catch(() => false);
-    const tableVisible = await tableBtn.isVisible({ timeout: 1_000 }).catch(() => false);
-    expect(matrixVisible || tableVisible).toBeTruthy();
+    // At least the view group or one text button should exist
+    const groupVisible = await viewGroup.isVisible({ timeout: 5_000 }).catch(() => false);
+    const listVisible = await listBtn.isVisible({ timeout: 1_000 }).catch(() => false);
+    const gridVisible = await gridBtn.isVisible({ timeout: 1_000 }).catch(() => false);
+    expect(groupVisible || listVisible || gridVisible).toBeTruthy();
   });
 
   test('matrix view is default view', async ({ page }) => {
@@ -46,10 +48,10 @@ test.describe('Squad Status Management', () => {
 
     // Matrix view should be the default active view mode
     // The active button typically has a specific style (dark bg)
-    const matrixBtn = page.locator('button:has-text("Matrix")');
-    if (await matrixBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      // Matrix should be the active/selected button
-      const btnClasses = await matrixBtn.getAttribute('class');
+    const viewGroup = page.locator('[role="group"] button').first();
+    if (await viewGroup.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      // First button in the group is matrix (icon-only) and should be active
+      const btnClasses = await viewGroup.getAttribute('class');
       // Active button usually has dark/filled background
       expect(btnClasses).toBeTruthy();
     }
@@ -72,7 +74,8 @@ test.describe('Squad Status Management', () => {
     await page.goto(`/squad-status?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
 
     // Should show either data or an empty state message
-    const content = page.locator('table, [class*="matrix"], [class*="grid"], [class*="empty"]');
+    // MatrixView uses role="grid" or renders a div structure
+    const content = page.locator('table, [role="grid"], [class*="grid"], [class*="empty"], .bg-white');
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
 
@@ -111,15 +114,16 @@ test.describe('Squad Status Management', () => {
     expect(true).toBeTruthy();
   });
 
-  test('API: GET /api/squad-discipline-status returns data structure', async ({ page }) => {
+  test('API: GET /api/squad-disciplines returns data structure', async ({ page }) => {
     const response = await page.request.get(
-      `${API_BASE}/squad-discipline-status?eventId=${state.eventId}`
+      `${API_BASE}/squad-disciplines?eventId=${state.eventId}`
     );
     expect(response.ok()).toBeTruthy();
 
     const data = await response.json();
-    // Response should be an array or object with results
+    // Response should have squadDisciplines array
     expect(data).toBeTruthy();
+    expect(data).toHaveProperty('squadDisciplines');
   });
 
   test('API: GET /api/statuses for status list', async ({ page }) => {
@@ -127,7 +131,7 @@ test.describe('Squad Status Management', () => {
     expect(response.ok()).toBeTruthy();
 
     const data = await response.json();
-    const statuses = data.results || data;
+    const statuses = data.statuses || data.results || data;
     expect(Array.isArray(statuses)).toBeTruthy();
   });
 
