@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import getSocket from '@/utils/socket'
 import { formatScore } from '@/utils/scoreFormatter'
+import { getDisplayDisciplineName } from '@/utils/liveScoreUtils'
 import { 
   TrophyIcon,
   UserIcon,
@@ -150,7 +151,7 @@ const LiveScoreUpdates = ({ eventId, maxEntries = 10, showSquad = true, classNam
                       {score.competitionNumber && ` (${score.competitionNumber})`}
                     </span>
                     <span className="text-gray-400">•</span>
-                    <span className="font-medium">{score.disciplineShort || score.disciplineName}</span>
+                    <span className="font-medium">{getDisplayDisciplineName(score.disciplineName, score.disciplineShort)}</span>
                     {showSquad && score.squadName && (
                       <>
                         <span className="text-gray-400">•</span>

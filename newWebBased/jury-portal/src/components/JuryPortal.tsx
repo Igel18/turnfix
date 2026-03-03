@@ -3,6 +3,7 @@ import { Users, Trophy } from 'lucide-react';
 import { getDisciplineIcon, MISSING_ICON_EMOJI, getMissingIconUrl } from '../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder } from '../utils/scoreFormatter';
 import { isEventOnDate, validateScore } from '../utils/eventUtils';
+import { getCreateWertungRequest, extractWertungenId } from '../utils/scoreSaveHelper';
 import getSocket from '../utils/socket';
 import FormulaInput from './FormulaInput';
 
@@ -713,26 +714,29 @@ const JuryPortal: React.FC = () => {
         let wertungenId = currentParticipant.wertungenId;
         
         if (!wertungenId) {
-          console.log('🔵 JURY: No wertungenId yet, creating score entry first...');
+          console.log('🔵 JURY: No wertungenId yet, creating wertung entry first...');
           
-          // Create a score entry to get a wertungenId
-          const createScoreResponse = await fetch(`${API_BASE_URL}/scores/save-value`, {
+          // Use create-wertung (NOT save-value) to avoid emitting score-updated socket event with 0.00
+          // save-value with score:0 caused a ghost "0.00" entry in live-scores before the real score appeared
+          const { url: createUrl, body: createBody } = getCreateWertungRequest(
+            API_BASE_URL,
+            actualCompetitionId,
+            currentParticipant.participantId,
+            selectedDevice.disciplineId
+          );
+          
+          const createScoreResponse = await fetch(createUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              competitionId: actualCompetitionId,
-              participantId: currentParticipant.participantId,
-              disciplineId: selectedDevice.disciplineId,
-              score: 0 // Temporary score, will be overwritten by calculate-final
-            })
+            body: JSON.stringify(createBody)
           });
           
           if (createScoreResponse.ok) {
             const createScoreResult = await createScoreResponse.json();
-            wertungenId = createScoreResult.wertungenId || createScoreResult.id;
-            console.log('✅ JURY: Created score entry, got wertungenId:', wertungenId);
+            wertungenId = extractWertungenId(createScoreResult);
+            console.log('✅ JURY: Created wertung entry, got wertungenId:', wertungenId);
             
             // Update current participant with wertungenId for future saves
             const updatedParticipants = [...participants];
