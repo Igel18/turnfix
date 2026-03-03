@@ -361,3 +361,9 @@ Auch tests hierfür schreiben & Dokumentieren
 	- i18n: de.json + en.json (keepExistingSquads, Info-Boxen, Warnungen)
 	- E2E Tests: 4 neue Tests (keepExisting, unique names, all-assigned error, balanced distribution)
 	- 1017 Unit/Integration Tests bestehen
+
+Die Riegengröße ist auch abhängig von der Anzahl an Geräten welche absolviert werden müssen. 
+
+54. Fehler: 
+a.) Die WLAN / WiFi Einstellungen (http://localhost:3001/configuration) werden nicht gespeichert. Es kommt zur Fehlermeldung "Fehler beim Speichern der WLAN-Einstellungen" 
+b.) 

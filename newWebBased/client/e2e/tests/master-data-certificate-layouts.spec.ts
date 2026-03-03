@@ -50,16 +50,9 @@ test.describe.serial('Master Data: Certificate Layouts', () => {
     await clickAddButton(page);
     await page.waitForTimeout(3000);
 
-    // Navigate back to layout list if designer opened
-    const backButton = page.getByRole('button', { name: /zurück|back|liste|list|schließen|close/i }).first();
-    if (await backButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await backButton.click();
-      await page.waitForTimeout(1000);
-    } else {
-      // Maybe we need to navigate back to the page
-      await navigateTo(page, '/certificate-layouts');
-      await waitForLoadingToFinish(page);
-    }
+    // Navigate back to layout list (button may be disabled, so navigate directly)
+    await navigateTo(page, '/certificate-layouts');
+    await waitForLoadingToFinish(page);
 
     // Verify a new layout was created (the default name is "Neues Layout") 
     await expect(page.locator('body')).toContainText(/Neues Layout|New Layout/i, { timeout: 10_000 });

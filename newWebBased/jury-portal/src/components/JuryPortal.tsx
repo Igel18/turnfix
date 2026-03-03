@@ -105,7 +105,7 @@ const JuryPortal: React.FC = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/events`);
+        const response = await fetch(`${API_BASE_URL}/events?limit=10000`);
         const data = await response.json();
         
         // Handle different response structures
@@ -140,14 +140,16 @@ const JuryPortal: React.FC = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Check event start date (dat_eventbeginn)
-    if (event.dat_eventbeginn) {
-      const eventStart = new Date(event.dat_eventbeginn);
+    // Check event start date (dat_eventstartdate or dat_eventbeginn for backwards compat)
+    const startDate = event.dat_eventstartdate || event.dat_eventbeginn;
+    if (startDate) {
+      const eventStart = new Date(startDate);
       eventStart.setHours(0, 0, 0, 0);
       
       // Check event end date if available
-      if (event.dat_eventende) {
-        const eventEnd = new Date(event.dat_eventende);
+      const endDate = event.dat_eventenddate || event.dat_eventende;
+      if (endDate) {
+        const eventEnd = new Date(endDate);
         eventEnd.setHours(0, 0, 0, 0);
         
         // Event is "today" if today is between start and end date
