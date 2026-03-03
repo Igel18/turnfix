@@ -180,6 +180,11 @@ Source: "{#MyStagingDir}\client\public\*"; DestDir: "{app}\client\public"; Flags
 ; Jury Portal files
 Source: "{#MyStagingDir}\jury-portal\dist\*"; DestDir: "{app}\jury-portal\dist"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 
+; Jury Server files
+Source: "{#MyStagingDir}\jury-server\src\*"; DestDir: "{app}\jury-server\src"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
+Source: "{#MyStagingDir}\jury-server\package.json"; DestDir: "{app}\jury-server"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
+Source: "{#MyStagingDir}\jury-server\node_modules\*"; DestDir: "{app}\jury-server\node_modules"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
+
 ; Documentation
 Source: "{#MyStagingDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 
@@ -479,15 +484,15 @@ begin
     '    },' + #13#10 +
     '    {' + #13#10 +
     '      name: ''turnfix-jury-server'',' + #13#10 +
-    '      script: ''./dist/index.js'',' + #13#10 +
+    '      script: ''../jury-server/src/index.js'',' + #13#10 +
     '      instances: 1,' + #13#10 +
     '      exec_mode: ''fork'',' + #13#10 +
     '      watch: false,' + #13#10 +
     '      max_memory_restart: ''300M'',' + #13#10 +
     '      env: {' + #13#10 +
     '        NODE_ENV: ''production'',' + #13#10 +
-    '        PORT: ' + JuryPort + ',' + #13#10 +
-    '        JURY_MODE: ''true''' + #13#10 +
+    '        JURY_PORT: ' + JuryPort + ',' + #13#10 +
+    '        MAIN_SERVER_URL: ''http://localhost:' + ServerPort + '''' + #13#10 +
     '      },' + #13#10 +
     '      error_file: ''./logs/jury-err.log'',' + #13#10 +
     '      out_file: ''./logs/jury-out.log'',' + #13#10 +

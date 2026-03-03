@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +45,8 @@ app.use(express.json());
 
 // Serve static files from the jury portal build under /jury path
 const juryDistPath = path.join(__dirname, '../../jury-portal/dist');
+console.log(`📂 Jury Portal dist path: ${juryDistPath}`);
+console.log(`📂 Jury Portal dist exists: ${fs.existsSync(juryDistPath)}`);
 app.use('/jury', express.static(juryDistPath));
 
 // Health check endpoint
@@ -122,8 +125,14 @@ app.get('/', (req, res) => {
 
 // Catch all handler for /jury routes: send back the jury portal index.html file
 // This must come AFTER static file serving to allow assets to load
+const juryIndexPath = path.join(juryDistPath, 'index.html');
 app.get('/jury/*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../jury-portal/dist/index.html'));
+  if (fs.existsSync(juryIndexPath)) {
+    res.sendFile(juryIndexPath);
+  } else {
+    console.error(`❌ Jury Portal index.html not found at: ${juryIndexPath}`);
+    res.status(500).send('Jury Portal not found. Please check the installation.');
+  }
 });
 
 // Block all other routes — redirect to /jury

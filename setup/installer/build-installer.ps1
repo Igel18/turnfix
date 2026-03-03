@@ -398,6 +398,42 @@ if (Test-Path $JuryDir) {
     Write-Host "  ✓ Jury Portal build copied" -ForegroundColor Green
 }
 
+# -- Jury Server --
+$JuryServerDir = Join-Path $RepoRoot "newWebBased\jury-server"
+if (Test-Path $JuryServerDir) {
+    Write-Host "  📦 Copying Jury Server..." -ForegroundColor Cyan
+    $juryServerStaging = Join-Path $StagingDir "jury-server"
+    New-Item -Path $juryServerStaging -ItemType Directory -Force | Out-Null
+
+    # Copy source
+    $juryServerSrc = Join-Path $JuryServerDir "src"
+    if (Test-Path $juryServerSrc) {
+        Copy-Item -Path $juryServerSrc -Destination (Join-Path $juryServerStaging "src") -Recurse
+    }
+
+    # Copy package.json
+    Copy-Item (Join-Path $JuryServerDir "package.json") -Destination $juryServerStaging
+    $juryLock = Join-Path $JuryServerDir "package-lock.json"
+    if (Test-Path $juryLock) {
+        Copy-Item $juryLock -Destination $juryServerStaging
+    }
+
+    # Install production dependencies
+    Push-Location $juryServerStaging
+    try {
+        npm ci --omit=dev 2>&1 | Out-Null
+        Write-Host "  ✓ Jury Server dependencies installed" -ForegroundColor Green
+    } catch {
+        Write-Host "  ⚠ Failed to install jury-server deps, copying node_modules..." -ForegroundColor Yellow
+        if (Test-Path (Join-Path $JuryServerDir "node_modules")) {
+            Copy-Item -Path (Join-Path $JuryServerDir "node_modules") -Destination (Join-Path $juryServerStaging "node_modules") -Recurse
+        }
+    }
+    finally { Pop-Location }
+
+    Write-Host "  ✓ Jury Server copied" -ForegroundColor Green
+}
+
 # -- Copy installer scripts --
 Write-Host "  📦 Copying installer scripts..." -ForegroundColor Cyan
 $scriptsStaging = Join-Path $StagingDir "scripts"
