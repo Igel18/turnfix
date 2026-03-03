@@ -4,8 +4,9 @@ import path from 'path';
 
 const router = Router();
 
-// Path to the settings file (relative to dist directory after compilation)
-const SETTINGS_FILE = path.join(process.cwd(), 'newWebBased', 'server', 'config', 'app-settings.json');
+// Path to the settings file - use __dirname for reliable resolution
+// Works in both dev (src/routes/) and prod (dist/routes/) since both are 2 levels deep from server root
+const SETTINGS_FILE = path.join(__dirname, '..', '..', 'config', 'app-settings.json');
 
 /**
  * Read settings from file
@@ -40,7 +41,13 @@ function readSettings(): any {
         ageCategoryRanges: "6-8,9-10,11-12,13-14,15-18",
         numberOfProposals: 3,
         namingPrefix: "gender",
-        breakCount: 0
+        breakCount: 0,
+        keepExistingSquads: false
+      },
+      wifi: {
+        description: "WiFi/WLAN settings for generating QR codes that judges can scan to connect to the competition network.",
+        enabled: false,
+        networks: []
       }
     };
   }

@@ -1,8 +1,7 @@
 {
   "scoreCapture": {
     "showJuryScores": false,
-    "description": "When true, shows individual jury scores in score capture. When false, shows only the total score.",
-    "useJuryResults": true
+    "description": "When true, shows individual jury scores in score capture. When false, shows only the total score."
   },
   "juryPortal": {
     "blindMode": false,
@@ -12,5 +11,22 @@
     "autoSave": true,
     "autoSaveInterval": 30000,
     "description": "Auto-save interval in milliseconds (default: 30000 = 30 seconds)"
+  },
+  "squadAutoAssign": {
+    "description": "Default criteria for automatic squad assignment (Riegeneinteilung). These values are loaded as defaults in the auto-assign dialog.",
+    "maxParticipantsPerSquad": 12,
+    "separateGenders": true,
+    "keepClubsTogether": true,
+    "groupByAgeCategory": false,
+    "ageCategoryRanges": "6-8,9-10,11-12,13-14,15-18",
+    "numberOfProposals": 3,
+    "namingPrefix": "gender",
+    "breakCount": 0,
+    "keepExistingSquads": false
+  },
+  "wifi": {
+    "description": "WiFi/WLAN settings for generating QR codes that judges can scan to connect to the competition network.",
+    "enabled": false,
+    "networks": []
   }
 }
