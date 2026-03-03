@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
-**Stand**: 31. Oktober 2025
-**Gesamt**: ~2.907 Tests in ~127 Dateien
+**Stand**: 3. März 2026
+**Gesamt**: ~3.087 Tests in ~133 Dateien
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Kategorie | Dateien | Tests |
 |-----------|---------|-------|
-| E2E Specs (Playwright) | 29 | ~346 |
-| E2E Setup/Teardown | 3 | 26 |
-| Client Unit/Integration/Component (Vitest) | 36 | 963 |
-| **Client Gesamt** | **68** | **~1.335** |
-| Server Unit/Integration/Component (Jest) | ~60 | ~1.659 |
-| **Server Gesamt** | **~60** | **~1.659** |
-| **Gesamt** | **~127** | **~2.907** |
+| E2E Specs (Playwright) | 32 | 424 |
+| E2E Setup/Teardown | 4 | 41 |
+| Client Unit/Integration/Component (Vitest) | 37 | 963 |
+| **Client Gesamt** | **73** | **1.428** |
+| Server Unit/Integration/Component (Jest) | 60 | 1.659 |
+| **Server Gesamt** | **60** | **1.659** |
+| **Gesamt** | **~133** | **~3.087** |
 
 ---
 
@@ -82,21 +82,35 @@
 | `score-entry.spec.ts` | 11 | `/score-capture` — Damen/Herren Wertungseingabe |
 | `results.spec.ts` | 14 | `/results` — Rankings, Gruppenansicht, Medaillenspiegel |
 | `placement.spec.ts` | 17 | API-Tests: Platzierungen, Tie-Breaking, Score-Änderungen |
-| `jury-portal.spec.ts` | 26 | `/jury` — Navigation, Score-Anzeige, Eingabe, Live-Updates |
+| `jury-portal.spec.ts` | 28 | `/jury` — Navigation, Score-Anzeige, Eingabe, Live-Updates |
 | `status.spec.ts` | 19 | Riegen-/Wettkampfstatus-Übergänge, Workflow-Validierung |
 | `pdf-export.spec.ts` | 13 | PDF-Export für 6 Seiten: Ergebnisse, Teilnehmer, Urkunden |
-| `load-test.spec.ts` | 17 | Last-/Stresstests: Concurrent Writes, Race Conditions, Benchmarks |
+| `load-test.spec.ts` | 20 | Last-/Stresstests: Concurrent Writes, Race Conditions, Benchmarks |
 | `master-data-areas.spec.ts` | 7 | `/areas` — CRUD, Suche, Ansichtswechsel, Löschen |
 | `master-data-persons.spec.ts` | 8 | `/persons` — CRUD, Suche, Pflichtfelder, Ansichtswechsel |
 | `master-data-discipline-groups.spec.ts` | 6 | `/discipline-groups` — CRUD, Suche, Löschen |
 | `master-data-statuses.spec.ts` | 6 | `/status-management` — CRUD, Suche, Löschen |
 | `master-data-certificate-layouts.spec.ts` | 6 | `/certificate-layouts` — CRUD, Detail-Ansicht, Löschen |
-| `time-planning.spec.ts` | 11 | `/time-planning` — Ansichten, Durchgänge, API-Validierung |
+| `time-planning.spec.ts` | 10 | `/time-planning` — Ansichten, Durchgänge, API-Validierung |
 | `group-scoring.spec.ts` | 10 | `/group-scoring` — Selektions-Panel, Dropdowns, API-Tests |
-| `team-scoring.spec.ts` | 11 | `/team-scoring` — Entity-Selector, API-Tests, Validierung |
+| `team-scoring.spec.ts` | 10 | `/team-scoring` — Entity-Selector, API-Tests, Validierung |
 | `squad-status.spec.ts` | 11 | `/squad-status` — Matrix/Tabellen-Ansicht, Filter, API, CSV |
 | `live-scores.spec.ts` | 11 | `/live-scores` — Einstellungen, Socket.IO, Auto-Refresh |
 | `medallienspiegel.spec.ts` | 9 | `/medallienspiegel` — Medaillentabelle, API-Standings, Statistiken |
+| `jury-server-access.spec.ts` | 13 | Jury-Server Zugriffskontrolle: Port-Restriktionen (3002), API-Blockierung |
+| `team-competition.spec.ts` | 44 | Mannschaftswettkampf: Setup, Teams, Riegen, Wertungen, Platzierungen, XML-Import |
+| `squad-auto-assign.spec.ts` | 10 | Automatische Riegeneinteilung: Dialog, Kriterien, Vorschlag generieren/anwenden |
+
+> **Hinweis**: `squad-auto-assign.spec.ts` ist noch nicht in der Playwright-Config eingetragen und läuft daher nicht in der Pipeline.
+
+### E2E Setup/Teardown — Details
+
+| Datei | Tests | Beschreibung |
+|-------|:-----:|--------------|
+| `create-event.setup.ts` | 16 | Setup Event A: Sportart, Halle, Vereine, Teilnehmer, Disziplinen, Wettkämpfe via API |
+| `import-event.setup.ts` | 7 | Setup Event B: GymNet-XML-Import, Verifikation |
+| `create-team-event.setup.ts` | 15 | Setup Team-Event: Mannschaftswettkampf mit 12 Teilnehmern, Teams, 48 Wertungen |
+| `teardown.setup.ts` | 3 | Cleanup: Event A, Event B, State-Dateien löschen |
 
 ---
 

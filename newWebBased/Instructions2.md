@@ -329,3 +329,9 @@ Bitte prüfen, beheben, Tests schreiben, Doku erstellen. Und prüfen ob dies im 
 Für die Software sollen beim Setup Lizenzbestimmungen abgefragt werden. Ggf. ist ein anhängen einer bestehende Lizenz Apache, MIT oder so sinnvoll? Diese sollen jegliche Haftung ausschließen. Die Software ist (aktuell) open source und darf (aktuell) kostenlos verwendet werden. Wird diese modifiziert, verbessert, erweitert, fehler behoben so sind diese auch als open source zur Verfügung zu stellen. Lizenzinhaber von Turnfix Web ist Dominik Prudlo. Was ist hier sinnvoll? 
 	-> Erledigt ✅  
 
+51. QR-Code für URL 
+Für das Jury-Portal sollte es einen QR-Code zum Scannen der (URL) IP/Port-Kombination geben, damit die vielen Kampfrichter leicht darauf zugreifen könnnen. 
+Vielleicht direkt auf der Startseite http://localhost:3001/ 
+
+52. Riegeneinteilung verbessern wie in DB Turnfix. 
+Die Automatische Riegeneinteilung ist schon ganz gut. Jetzt schau doch mal in die DB "TurnFix" in der wir bereits einige Wettkämpfe mit manuellen Riegeneinteilungen durchgeführt haben. Wenn du das analysiert hast, wie könnten wir die Automatische Einteilung verbessern sodass zukünftig die Riegen genauso gut automatisch eingeteilt werden können (ggf. auf mit zusätzlichen Parametern)?
