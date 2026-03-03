@@ -625,14 +625,20 @@ const JuryPortal: React.FC = () => {
         console.log('🔵 JURY: Skipping jury results load - missing prerequisites', {
           reason: !currentParticipant ? 'no participant' : !selectedDevice ? 'no device' : 'no fields'
         });
+        // Clear jury results and formula state when prerequisites are missing
+        setLoadedJuryResults({});
+        setFormulaFieldValues({});
         return;
       }
 
       if (!currentParticipant.wertungenId) {
-        console.log('🔵 JURY: No wertungenId for participant, skipping jury results load', {
+        console.log('🔵 JURY: No wertungenId for participant, clearing jury results', {
           participantId: currentParticipant.participantId,
           participantName: currentParticipant.name
         });
+        // FIX: Clear jury results and formula state so previous participant's values don't carry over
+        setLoadedJuryResults({});
+        setFormulaFieldValues({});
         return;
       }
 
@@ -1336,7 +1342,7 @@ const JuryPortal: React.FC = () => {
                     }`}
                     onClick={() => {
                       setCurrentParticipantIndex(index);
-                      setScore(participant.currentScore?.toString() || '');
+                      // Score is set by the useEffect that watches currentParticipantIndex
                     }}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -1480,8 +1486,7 @@ const JuryPortal: React.FC = () => {
                         onClick={() => {
                           if (currentParticipantIndex > 0) {
                             setCurrentParticipantIndex(currentParticipantIndex - 1);
-                            const prevParticipant = participants[currentParticipantIndex - 1];
-                            setScore(prevParticipant.currentScore?.toString() || '');
+                            // Score is set by the useEffect that watches currentParticipantIndex
                           }
                         }}
                         disabled={currentParticipantIndex <= 0}
@@ -1493,8 +1498,7 @@ const JuryPortal: React.FC = () => {
                         onClick={() => {
                           if (currentParticipantIndex < participants.length - 1) {
                             setCurrentParticipantIndex(currentParticipantIndex + 1);
-                            const nextPart = participants[currentParticipantIndex + 1];
-                            setScore(nextPart.currentScore?.toString() || '');
+                            // Score is set by the useEffect that watches currentParticipantIndex
                           }
                         }}
                         disabled={currentParticipantIndex >= participants.length - 1}
