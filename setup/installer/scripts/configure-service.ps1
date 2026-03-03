@@ -159,8 +159,22 @@ Write-Host "  ✓ Service $serviceDisplayName installed" -ForegroundColor Green
 $juryServiceName = "TurnFixJuryServer"
 $juryDisplayName = "TurnFix Jury Server"
 $juryDescription = "TurnFix Kampfrichter-Portal (Port $JuryPort)"
+$JuryServerDir = Join-Path $InstallDir "jury-server"
+$JuryServerScript = Join-Path $JuryServerDir "src\index.js"
 
 Write-Host "  Installing service: $juryDisplayName..." -ForegroundColor Cyan
+
+# Verify jury-server files exist
+if (-not (Test-Path $JuryServerScript)) {
+    Write-Host "❌ Jury server script not found at: $JuryServerScript" -ForegroundColor Red
+    Write-Host "  Contents of install dir:" -ForegroundColor Yellow
+    Get-ChildItem $InstallDir -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "    $($_.Name)" }
+    if (Test-Path $JuryServerDir) {
+        Write-Host "  Contents of jury-server/:" -ForegroundColor Yellow
+        Get-ChildItem $JuryServerDir -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "    $($_.FullName)" }
+    }
+    Write-Host "  ⚠ Jury server will not be installed." -ForegroundColor Yellow
+} else {
 
 # Remove existing
 $existingJury = Get-Service -Name $juryServiceName -ErrorAction SilentlyContinue
@@ -179,19 +193,21 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Set paths directly via registry to guarantee correct quoting for paths with spaces
-# CRITICAL: Same quoting rules as main service — see comment above
+# CRITICAL: Jury service uses jury-server/src/index.js, NOT the main server's dist/index.js!
 $juryRegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$juryServiceName\Parameters"
 Set-ItemProperty -Path $juryRegPath -Name "Application" -Value $NodePath
-Set-ItemProperty -Path $juryRegPath -Name "AppParameters" -Value "`"$ServerScript`""
-Set-ItemProperty -Path $juryRegPath -Name "AppDirectory" -Value $ServerDir
+Set-ItemProperty -Path $juryRegPath -Name "AppParameters" -Value "`"$JuryServerScript`""
+Set-ItemProperty -Path $juryRegPath -Name "AppDirectory" -Value $JuryServerDir
 
 # Verify the registry values were set correctly
 $verifyParams = (Get-ItemProperty -Path $juryRegPath -Name "AppParameters" -ErrorAction SilentlyContinue).AppParameters
 if ($verifyParams -and $verifyParams.StartsWith('"') -and $verifyParams.EndsWith('"')) {
     Write-Host "  ✓ Registry paths set and verified (AppParameters properly quoted)" -ForegroundColor Green
+    Write-Host "    Script: $JuryServerScript" -ForegroundColor DarkGray
+    Write-Host "    Dir: $JuryServerDir" -ForegroundColor DarkGray
 } else {
     Write-Host "  ⚠ WARNING: AppParameters may not be properly quoted: $verifyParams" -ForegroundColor Yellow
-    $quotedPath = '"' + $ServerScript + '"'
+    $quotedPath = '"' + $JuryServerScript + '"'
     Set-ItemProperty -Path $juryRegPath -Name "AppParameters" -Value $quotedPath
     Write-Host "    Retried with explicit quoting" -ForegroundColor Yellow
 }
@@ -203,21 +219,9 @@ Write-Host "  Registry paths set (Application, AppParameters, AppDirectory)" -Fo
 & $NssmPath set $juryServiceName Start SERVICE_AUTO_START 2>&1 | Out-Null
 & $NssmPath set $juryServiceName ObjectName LocalSystem 2>&1 | Out-Null
 
-# Environment variables - include DATABASE_URL from .env file
-$juryEnvVars = @("NODE_ENV=production", "PORT=$JuryPort", "JURY_MODE=true")
-if (Test-Path $EnvFile) {
-    foreach ($line in (Get-Content $EnvFile)) {
-        if ($line -match '^\s*DATABASE_URL\s*=\s*"?(.+?)"?\s*$') {
-            $juryEnvVars += "DATABASE_URL=$($Matches[1])"
-        }
-        if ($line -match '^\s*JWT_SECRET\s*=\s*"?(.+?)"?\s*$') {
-            $juryEnvVars += "JWT_SECRET=$($Matches[1])"
-        }
-        if ($line -match '^\s*JWT_REFRESH_SECRET\s*=\s*"?(.+?)"?\s*$') {
-            $juryEnvVars += "JWT_REFRESH_SECRET=$($Matches[1])"
-        }
-    }
-}
+# Environment variables for jury server
+# Jury server only needs JURY_PORT and MAIN_SERVER_URL (it's a proxy/static server, not a DB client)
+$juryEnvVars = @("NODE_ENV=production", "JURY_PORT=$JuryPort", "MAIN_SERVER_URL=http://localhost:$ServerPort")
 & $NssmPath set $juryServiceName AppEnvironmentExtra $juryEnvVars 2>&1 | Out-Null
 # Also write via registry as MultiString to ensure correct handling
 Set-ItemProperty -Path $juryRegPath -Name "AppEnvironmentExtra" -Value $juryEnvVars -Type MultiString
@@ -235,6 +239,7 @@ Set-ItemProperty -Path $juryRegPath -Name "AppRestartDelay" -Value 5000 -Type DW
 & $NssmPath set $juryServiceName AppExit Default Restart 2>&1 | Out-Null
 
 Write-Host "  ✓ Service $juryDisplayName installed" -ForegroundColor Green
+} # End of jury-server file existence check (else block)
 
 # === Start main service ===
 Write-Host ""
