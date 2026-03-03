@@ -26,7 +26,14 @@
   },
   "wifi": {
     "description": "WiFi/WLAN settings for generating QR codes that judges can scan to connect to the competition network.",
-    "enabled": false,
-    "networks": []
+    "enabled": true,
+    "networks": [
+      {
+        "ssid": "xxx",
+        "password": "xxx",
+        "encryption": "WPA",
+        "hidden": false
+      }
+    ]
   }
 }

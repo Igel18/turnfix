@@ -366,4 +366,4 @@ Die Riegengröße ist auch abhängig von der Anzahl an Geräten welche absolvier
 
 54. Fehler: 
 a.) Die WLAN / WiFi Einstellungen (http://localhost:3001/configuration) werden nicht gespeichert. Es kommt zur Fehlermeldung "Fehler beim Speichern der WLAN-Einstellungen" 
-b.) 
+	-> Erledigt ✅
