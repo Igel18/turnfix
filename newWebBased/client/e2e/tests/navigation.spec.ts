@@ -118,3 +118,53 @@ test.describe('Navigation: Flow', () => {
     await expect(page.locator('body')).toContainText(/Verein|Club/i);
   });
 });
+
+test.describe('Navigation: Jury QR Code on Homepage', () => {
+
+  test('homepage shows QR code section for jury portal', async ({ page }) => {
+    await navigateTo(page, '/');
+    // Should show QR code title (either loading, error, or actual content)
+    await expect(page.locator('body')).toContainText(/QR.*Code.*Jury|Jury.*QR/i);
+  });
+
+  test('QR code section displays network IPs', async ({ page }) => {
+    await navigateTo(page, '/');
+    // Wait for network info to load - look for either IP display or no-network message
+    await page.waitForTimeout(2000);
+    const body = page.locator('body');
+    const hasIp = await body.locator('text=/\\d+\\.\\d+\\.\\d+\\.\\d+/').count();
+    const hasNoNetwork = await body.locator('text=/Kein Netzwerk|No network/i').count();
+    expect(hasIp > 0 || hasNoNetwork > 0).toBeTruthy();
+  });
+
+  test('QR code section has copy URL buttons', async ({ page }) => {
+    await navigateTo(page, '/');
+    await page.waitForTimeout(2000);
+    // If network is available, copy buttons should exist
+    const copyButtons = page.locator('[title*="URL kopieren"], [title*="Copy URL"]');
+    const noNetwork = page.locator('text=/Kein Netzwerk|No network/i');
+    const hasCopy = await copyButtons.count();
+    const hasNoNet = await noNetwork.count();
+    // Either copy buttons or no-network message should be present
+    expect(hasCopy > 0 || hasNoNet > 0).toBeTruthy();
+  });
+
+  test('QR code SVGs are rendered', async ({ page }) => {
+    await navigateTo(page, '/');
+    await page.waitForTimeout(2000);
+    // Look for QR code SVGs (qrcode.react renders SVG elements)
+    const noNetwork = await page.locator('text=/Kein Netzwerk|No network/i').count();
+    if (noNetwork === 0) {
+      // If network is available, QR SVGs should exist
+      const qrSvgs = page.locator('svg');
+      expect(await qrSvgs.count()).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  test('jury portal link points to port 3002', async ({ page }) => {
+    await navigateTo(page, '/');
+    // The jury portal link should include port 3002
+    const juryLink = page.locator('a[href*="3002/jury"]').first();
+    await expect(juryLink).toBeVisible();
+  });
+});

@@ -1932,6 +1932,22 @@
       "created": "Created with TurnFix • github.com/Igel18/turnfix"
     }
   },
+  "juryQR": {
+    "title": "QR Code Jury Portal",
+    "subtitle": "Judges can scan the QR code to open the Jury Portal",
+    "loading": "Loading network information...",
+    "error": "Network Error",
+    "errorFetching": "Could not fetch network information",
+    "retry": "Retry",
+    "noNetwork": "No network found",
+    "noNetworkHint": "No network interfaces were found. Make sure the computer is connected to a network.",
+    "networkHint": "Make sure the judge devices are on the same network and the firewall rule for port 3002 is enabled.",
+    "selectNetwork": "Select network",
+    "copyUrl": "Copy URL",
+    "openInBrowser": "Open in browser",
+    "portInfo": "Jury Portal on port {{port}} • Only open this port in the firewall",
+    "refresh": "Refresh"
+  },
   "competitionForm": {
     "title": {
       "create": "Create New Competition",

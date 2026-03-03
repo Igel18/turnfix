@@ -12,6 +12,7 @@ import {
   ArrowRightIcon,
   ScaleIcon
 } from '@heroicons/react/24/outline'
+import { JuryQRCode } from '@/components/JuryQRCode'
 
 export function Home() {
   const { t } = useTranslation()
@@ -188,7 +189,7 @@ export function Home() {
               <p className="text-gray-600 mb-4 leading-relaxed">
                 {t('home.jury.description')}
               </p>
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-4">
                 <p className="text-sm text-purple-900 mb-3">
                   {t('home.jury.info')}
                 </p>
@@ -205,8 +206,15 @@ export function Home() {
                   <ArrowRightIcon className="h-4 w-4" />
                 </a>
               </div>
+              {/* QR Code for Jury Portal */}
+              <JuryQRCode compact />
             </div>
           </div>
+        </div>
+
+        {/* Full QR Code Section */}
+        <div className="mt-12 max-w-3xl mx-auto">
+          <JuryQRCode />
         </div>
 
         {/* Help Section */}

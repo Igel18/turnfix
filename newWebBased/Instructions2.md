@@ -332,6 +332,13 @@ Für die Software sollen beim Setup Lizenzbestimmungen abgefragt werden. Ggf. is
 51. QR-Code für URL 
 Für das Jury-Portal sollte es einen QR-Code zum Scannen der (URL) IP/Port-Kombination geben, damit die vielen Kampfrichter leicht darauf zugreifen könnnen. 
 Vielleicht direkt auf der Startseite http://localhost:3001/ 
+	-> Erledigt ✅  
 
-52. Riegeneinteilung verbessern wie in DB Turnfix. 
+52. Jetzt gibt es ja den Jury-Qr-Code. 
+Die Meisten Kampfrichter müssen sich mit dem Handy an einem verschlüsseltes WLAN anmelden, damit diese das Jury-Portal erreichen können. Hierfür wäre es hilfreich, wenn auch ein QR-Code auf der Seite dargestellt ist. 
+Am Besten beschriftet und Nummeriert. 
+Die Infos zu dem WLAN wären dann gut wenn man diese in den Einstellungen in einem Separaten Punkt hinterlegen kann. Also Verschlüsselung, SSID, Passwort... 
+	-> Erledigt ✅  
+
+53. Riegeneinteilung verbessern wie in DB Turnfix. 
 Die Automatische Riegeneinteilung ist schon ganz gut. Jetzt schau doch mal in die DB "TurnFix" in der wir bereits einige Wettkämpfe mit manuellen Riegeneinteilungen durchgeführt haben. Wenn du das analysiert hast, wie könnten wir die Automatische Einteilung verbessern sodass zukünftig die Riegen genauso gut automatisch eingeteilt werden können (ggf. auf mit zusätzlichen Parametern)?

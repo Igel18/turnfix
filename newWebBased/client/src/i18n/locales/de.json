@@ -1965,6 +1965,22 @@
       "created": "Erstellt mit TurnFix • github.com/Igel18/turnfix"
     }
   },
+  "juryQR": {
+    "title": "QR-Code Jury-Portal",
+    "subtitle": "Kampfrichter können den QR-Code scannen, um das Jury-Portal zu öffnen",
+    "loading": "Netzwerk-Informationen werden geladen...",
+    "error": "Netzwerk-Fehler",
+    "errorFetching": "Netzwerk-Informationen konnten nicht abgerufen werden",
+    "retry": "Erneut versuchen",
+    "noNetwork": "Kein Netzwerk gefunden",
+    "noNetworkHint": "Es wurden keine Netzwerkschnittstellen gefunden. Stellen Sie sicher, dass der Computer mit einem Netzwerk verbunden ist.",
+    "networkHint": "Stellen Sie sicher, dass die Kampfrichter-Geräte im selben Netzwerk sind und die Firewall-Regel für Port 3002 aktiviert ist.",
+    "selectNetwork": "Netzwerk auswählen",
+    "copyUrl": "URL kopieren",
+    "openInBrowser": "Im Browser öffnen",
+    "portInfo": "Jury-Portal auf Port {{port}} • Nur diesen Port in der Firewall freigeben",
+    "refresh": "Aktualisieren"
+  },
   "competitionForm": {
     "title": {
       "create": "Neuen Wettkampf erstellen",
