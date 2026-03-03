@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { getDisciplineIcon, MISSING_ICON_EMOJI, getMissingIconUrl } from '../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder } from '../utils/scoreFormatter';
+import { isEventOnDate, validateScore } from '../utils/eventUtils';
 import getSocket from '../utils/socket';
 import FormulaInput from './FormulaInput';
 
@@ -133,39 +134,9 @@ const JuryPortal: React.FC = () => {
     fetchEvents();
   }, []);
   
-  // Helper function to check if event is today
-  const isEventToday = (event: any): boolean => {
-    if (!event) return false;
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Check event start date (dat_eventstartdate or dat_eventbeginn for backwards compat)
-    const startDate = event.dat_eventstartdate || event.dat_eventbeginn;
-    if (startDate) {
-      const eventStart = new Date(startDate);
-      eventStart.setHours(0, 0, 0, 0);
-      
-      // Check event end date if available
-      const endDate = event.dat_eventenddate || event.dat_eventende;
-      if (endDate) {
-        const eventEnd = new Date(endDate);
-        eventEnd.setHours(0, 0, 0, 0);
-        
-        // Event is "today" if today is between start and end date
-        return today >= eventStart && today <= eventEnd;
-      }
-      
-      // If no end date, just check if start date matches
-      return today.getTime() === eventStart.getTime();
-    }
-    
-    return false;
-  };
-  
   // Filter events based on today filter setting
   const filteredEvents = filterToday 
-    ? events.filter(isEventToday)
+    ? events.filter(event => isEventOnDate(event))
     : events;
   
   // Save filter preference to localStorage when it changes
@@ -981,28 +952,10 @@ const JuryPortal: React.FC = () => {
 
   // Score validation function
   const getScoreValidation = (scoreValue: string): { isValid: boolean; message: string } => {
-    if (!selectedDevice || !scoreValue || scoreValue.trim() === '') {
+    if (!selectedDevice) {
       return { isValid: true, message: '' };
     }
-
-    const numericScore = parseFloat(scoreValue);
-    const maxScore = selectedDevice.maxScore || 0;
-
-    console.log('🔍 JURY VALIDATION:', {
-      scoreValue,
-      numericScore,
-      maxScore,
-      selectedDevice: selectedDevice.name
-    });
-
-    if (maxScore > 0 && numericScore > maxScore) {
-      return {
-        isValid: false,
-        message: `Der Wert überschreitet die maximale Punktzahl von ${maxScore.toFixed(2)}`
-      };
-    }
-
-    return { isValid: true, message: '' };
+    return validateScore(scoreValue, selectedDevice.maxScore || 0);
   };
 
   const handleDeviceComplete = async () => {
