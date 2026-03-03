@@ -607,6 +607,10 @@
         "warningPoint1": "Jury Results use different database tables (tfx_jury_results vs. tfx_wertungen)",
         "warningPoint2": "Changes during an active competition will lead to data inconsistency",
         "warningPoint3": "Default: Enabled (recommended for detailed score capture)"
+      },
+      "wifi": {
+        "title": "WiFi / WLAN",
+        "description": "Configure WiFi credentials for judge QR codes"
       }
     },
     "common": {
@@ -1947,6 +1951,55 @@
     "openInBrowser": "Open in browser",
     "portInfo": "Jury Portal on port {{port}} • Only open this port in the firewall",
     "refresh": "Refresh"
+  },
+  "wifiQR": {
+    "title": "WiFi Connection",
+    "subtitle": "Scan QR code to connect to the competition WiFi",
+    "loading": "Loading WiFi settings...",
+    "error": "WiFi Error",
+    "errorFetching": "Could not fetch WiFi settings",
+    "retry": "Retry",
+    "notConfigured": "WiFi not configured",
+    "notConfiguredHint": "Configure WiFi credentials under Settings → WiFi / WLAN",
+    "selectNetwork": "Select network",
+    "copyPassword": "Copy password",
+    "openNetwork": "Open (no password)",
+    "networkName": "Network name (SSID)",
+    "encryptionType": "Encryption",
+    "password": "Password",
+    "scanHint": "Judges can scan this QR code with their phone to automatically connect to the WiFi network. Then scan the Jury Portal QR code.",
+    "configHint": "WiFi settings can be changed under Settings → WiFi / WLAN",
+    "refresh": "Refresh"
+  },
+  "wifiSettings": {
+    "loading": "Loading WiFi settings...",
+    "infoTitle": "WiFi QR Code for Judges",
+    "infoText": "Enter the WiFi credentials of the competition network here. A QR code will be displayed on the homepage that judges can scan with their phone to automatically connect to the WiFi.",
+    "enableLabel": "Enable WiFi QR code",
+    "enableDescription": "Show QR code on the homepage",
+    "networksTitle": "WiFi Networks",
+    "addNetwork": "Add Network",
+    "noNetworks": "No WiFi networks configured",
+    "addFirstNetwork": "Add first network",
+    "newNetwork": "New Network",
+    "ssidLabel": "Network Name (SSID)",
+    "ssidPlaceholder": "e.g. Gymnasium-WiFi",
+    "encryptionLabel": "Encryption",
+    "encryptionNone": "Open (no password)",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter WiFi password",
+    "hiddenNetwork": "Hidden network (SSID is not broadcast)",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "preview": "QR Preview",
+    "previewLabel": "QR Code Preview",
+    "removeNetwork": "Remove network",
+    "save": "Save WiFi settings",
+    "saving": "Saving...",
+    "saveSuccess": "WiFi settings saved successfully",
+    "saveFailed": "Error saving WiFi settings",
+    "errorEmptySSID": "All networks must have a name (SSID)",
+    "errorEmptyPassword": "Encrypted networks must have a password"
   },
   "competitionForm": {
     "title": {

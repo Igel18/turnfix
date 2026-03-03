@@ -11,11 +11,13 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   GlobeAltIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  WifiIcon
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
 import FirewallManagement from '@/components/FirewallManagement'
+import WifiSettings from '@/components/WifiSettings'
 import DatabaseSetupWizard from './Configuration/DatabaseSetupWizard'
 
 interface ConfigSection {
@@ -668,6 +670,13 @@ const Configuration: React.FC = () => {
           icon: GlobeAltIcon,
           description: t('configuration.firewall.description'),
           settings: [] // Firewall uses custom component, no standard settings
+        },
+        {
+          id: 'wifi',
+          name: t('configuration.sections.wifi.title'),
+          icon: WifiIcon,
+          description: t('configuration.sections.wifi.description'),
+          settings: [] // WiFi uses custom WifiSettings component
         }
       ]
 
@@ -855,6 +864,8 @@ const Configuration: React.FC = () => {
                   {/* Firewall Section - Custom Component */}
                   {activeConfigSection.id === 'firewall' ? (
                     <FirewallManagement />
+                  ) : activeConfigSection.id === 'wifi' ? (
+                    <WifiSettings />
                   ) : (
                     <>
                       {/* Database Section Info Box */}

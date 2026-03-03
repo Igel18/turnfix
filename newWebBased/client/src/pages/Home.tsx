@@ -13,6 +13,7 @@ import {
   ScaleIcon
 } from '@heroicons/react/24/outline'
 import { JuryQRCode } from '@/components/JuryQRCode'
+import { WifiQRCode } from '@/components/WifiQRCode'
 
 export function Home() {
   const { t } = useTranslation()
@@ -208,13 +209,33 @@ export function Home() {
               </div>
               {/* QR Code for Jury Portal */}
               <JuryQRCode compact />
+              {/* QR Code for WiFi */}
+              <WifiQRCode compact />
             </div>
           </div>
         </div>
 
-        {/* Full QR Code Section */}
-        <div className="mt-12 max-w-3xl mx-auto">
-          <JuryQRCode />
+        {/* Full QR Code Sections - Numbered */}
+        <div className="mt-12 max-w-4xl mx-auto space-y-6">
+          {/* Step 1: WiFi Connection */}
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-lg shadow-md">
+              1
+            </div>
+            <div className="flex-1">
+              <WifiQRCode />
+            </div>
+          </div>
+
+          {/* Step 2: Jury Portal */}
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-purple-600 text-white font-bold text-lg shadow-md">
+              2
+            </div>
+            <div className="flex-1">
+              <JuryQRCode />
+            </div>
+          </div>
         </div>
 
         {/* Help Section */}

@@ -607,6 +607,10 @@
         "warningPoint1": "Jury-Results verwenden unterschiedliche Datenbanktabellen (tfx_jury_results vs. tfx_wertungen)",
         "warningPoint2": "Änderungen während eines laufenden Wettkampfes führen zu Dateninkonsistenz",
         "warningPoint3": "Standard: Aktiviert (empfohlen für detaillierte Wertungserfassung)"
+      },
+      "wifi": {
+        "title": "WLAN / WiFi",
+        "description": "WLAN-Zugangsdaten für Kampfrichter-QR-Codes konfigurieren"
       }
     },
     "common": {
@@ -1980,6 +1984,55 @@
     "openInBrowser": "Im Browser öffnen",
     "portInfo": "Jury-Portal auf Port {{port}} • Nur diesen Port in der Firewall freigeben",
     "refresh": "Aktualisieren"
+  },
+  "wifiQR": {
+    "title": "WLAN-Verbindung",
+    "subtitle": "QR-Code scannen, um sich mit dem Wettkampf-WLAN zu verbinden",
+    "loading": "WLAN-Einstellungen werden geladen...",
+    "error": "WLAN-Fehler",
+    "errorFetching": "WLAN-Einstellungen konnten nicht abgerufen werden",
+    "retry": "Erneut versuchen",
+    "notConfigured": "WLAN nicht konfiguriert",
+    "notConfiguredHint": "Konfigurieren Sie WLAN-Zugangsdaten unter Einstellungen → WLAN / WiFi",
+    "selectNetwork": "Netzwerk auswählen",
+    "copyPassword": "Passwort kopieren",
+    "openNetwork": "Offen (kein Passwort)",
+    "networkName": "Netzwerkname (SSID)",
+    "encryptionType": "Verschlüsselung",
+    "password": "Passwort",
+    "scanHint": "Kampfrichter können den QR-Code mit dem Handy scannen, um sich automatisch mit dem WLAN zu verbinden. Danach den Jury-Portal QR-Code scannen.",
+    "configHint": "WLAN-Einstellungen können unter Einstellungen → WLAN / WiFi geändert werden",
+    "refresh": "Aktualisieren"
+  },
+  "wifiSettings": {
+    "loading": "WLAN-Einstellungen werden geladen...",
+    "infoTitle": "WLAN-QR-Code für Kampfrichter",
+    "infoText": "Hinterlegen Sie hier die WLAN-Zugangsdaten des Wettkampf-Netzwerks. Auf der Startseite wird dann ein QR-Code angezeigt, den die Kampfrichter mit dem Handy scannen können, um sich automatisch mit dem WLAN zu verbinden.",
+    "enableLabel": "WLAN-QR-Code aktivieren",
+    "enableDescription": "QR-Code auf der Startseite anzeigen",
+    "networksTitle": "WLAN-Netzwerke",
+    "addNetwork": "Netzwerk hinzufügen",
+    "noNetworks": "Keine WLAN-Netzwerke konfiguriert",
+    "addFirstNetwork": "Erstes Netzwerk hinzufügen",
+    "newNetwork": "Neues Netzwerk",
+    "ssidLabel": "Netzwerkname (SSID)",
+    "ssidPlaceholder": "z.B. Turnhalle-WLAN",
+    "encryptionLabel": "Verschlüsselung",
+    "encryptionNone": "Offen (kein Passwort)",
+    "passwordLabel": "Passwort",
+    "passwordPlaceholder": "WLAN-Passwort eingeben",
+    "hiddenNetwork": "Verstecktes Netzwerk (SSID wird nicht gesendet)",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "preview": "QR-Vorschau",
+    "previewLabel": "QR-Code Vorschau",
+    "removeNetwork": "Netzwerk entfernen",
+    "save": "WLAN-Einstellungen speichern",
+    "saving": "Wird gespeichert...",
+    "saveSuccess": "WLAN-Einstellungen erfolgreich gespeichert",
+    "saveFailed": "Fehler beim Speichern der WLAN-Einstellungen",
+    "errorEmptySSID": "Alle Netzwerke müssen einen Namen (SSID) haben",
+    "errorEmptyPassword": "Verschlüsselte Netzwerke müssen ein Passwort haben"
   },
   "competitionForm": {
     "title": {

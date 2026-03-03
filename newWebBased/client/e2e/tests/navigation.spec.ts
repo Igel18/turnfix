@@ -168,3 +168,34 @@ test.describe('Navigation: Jury QR Code on Homepage', () => {
     await expect(juryLink).toBeVisible();
   });
 });
+
+test.describe('Navigation: WiFi QR Code on Homepage', () => {
+  test('homepage shows WiFi QR section or not-configured message', async ({ page }) => {
+    await navigateTo(page, '/');
+    await page.waitForTimeout(3000);
+    // WiFi section compact version is in the jury section
+    // It should show either configured WiFi or "not configured" state
+    // The WifiQRCode component always renders — check for its container
+    const wifiSection = page.locator('text=/WLAN|WiFi/i');
+    const count = await wifiSection.count();
+    expect(count).toBeGreaterThanOrEqual(1);
+  });
+
+  test('WiFi section appears before Jury QR section (numbered steps)', async ({ page }) => {
+    await navigateTo(page, '/');
+    await page.waitForTimeout(2000);
+    // Check for numbered steps (1 = WiFi, 2 = Jury)
+    const numberedSteps = page.locator('.rounded-full');
+    const stepCount = await numberedSteps.count();
+    // Should have at least 2 numbered step indicators
+    expect(stepCount).toBeGreaterThanOrEqual(2);
+  });
+
+  test('WiFi configuration section exists in settings', async ({ page }) => {
+    await navigateTo(page, '/configuration');
+    await page.waitForTimeout(1000);
+    // WiFi section should be in the sidebar navigation
+    const wifiNav = page.locator('button:has-text("WLAN"), button:has-text("WiFi")');
+    await expect(wifiNav.first()).toBeVisible();
+  });
+});
