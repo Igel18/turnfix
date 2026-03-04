@@ -1,0 +1,551 @@
+/**
+ * Custom hook for all data fetching in the Jury Portal.
+ * 
+ * Extracted from JuryPortal.tsx for Separation of Concerns.
+ * Handles: events, squads, devices/disciplines, participants, discipline fields, jury results.
+ */
+
+import { useState, useEffect, useMemo } from 'react';
+import { getDisciplineIcon } from '../../../utils/iconUtils';
+import { isEventOnDate } from '../../../utils/eventUtils';
+import { normalizeScoreInput } from '../../../utils/scoreFormatter';
+import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
+import { API_BASE_URL } from '../JuryPortal.types';
+
+interface UseJuryDataReturn {
+  // Data
+  events: any[];
+  filteredEvents: any[];
+  squads: Squad[];
+  devices: Device[];
+  participants: Participant[];
+  competitions: Competition[];
+  disciplineFields: DisciplineField[];
+  loadedJuryResults: Record<string, number>;
+  formulaFieldValues: Record<string, number>;
+  currentParticipant: Participant | undefined;
+
+  // State
+  selectedEvent: number | null;
+  selectedSquad: Squad | null;
+  selectedDevice: Device | null;
+  currentParticipantIndex: number;
+  score: string;
+  loading: boolean;
+  filterToday: boolean;
+
+  // Setters
+  setSelectedEvent: (id: number | null) => void;
+  setSelectedSquad: (squad: Squad | null) => void;
+  setSelectedDevice: (device: Device | null) => void;
+  setCurrentParticipantIndex: (index: number) => void;
+  setScore: (score: string) => void;
+  setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
+  setLoading: (loading: boolean) => void;
+  setFilterToday: (filter: boolean) => void;
+  setFormulaFieldValues: (values: Record<string, number>) => void;
+  setLoadedJuryResults: (results: Record<string, number>) => void;
+}
+
+export function useJuryData(): UseJuryDataReturn {
+  const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
+  const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [currentParticipantIndex, setCurrentParticipantIndex] = useState<number>(0);
+  const [score, setScore] = useState<string>('');
+
+  // Real data states
+  const [events, setEvents] = useState<any[]>([]);
+  const [squads, setSquads] = useState<Squad[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Formula-related states
+  const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
+  const [formulaFieldValues, setFormulaFieldValues] = useState<Record<string, number>>({});
+  const [loadedJuryResults, setLoadedJuryResults] = useState<Record<string, number>>({});
+
+  // Auto-filter settings - persist in localStorage
+  const [filterToday, setFilterToday] = useState<boolean>(() => {
+    const saved = localStorage.getItem('juryPortal_filterToday');
+    return saved !== null ? saved === 'true' : true; // Default: enabled
+  });
+
+  // Fetch events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/events?limit=10000`);
+        const data = await response.json();
+
+        let eventsArray: any[] = [];
+        if (Array.isArray(data)) {
+          eventsArray = data;
+        } else if (data && Array.isArray(data.events)) {
+          eventsArray = data.events;
+        } else if (data && data.data && Array.isArray(data.data)) {
+          eventsArray = data.data;
+        }
+
+        console.log('Events API response:', data);
+        console.log('Processed events array:', eventsArray);
+        setEvents(eventsArray);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Filter events based on today filter setting
+  const filteredEvents = filterToday
+    ? events.filter(event => isEventOnDate(event))
+    : events;
+
+  // Save filter preference to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('juryPortal_filterToday', filterToday.toString());
+  }, [filterToday]);
+
+  // Fetch squads when event is selected
+  useEffect(() => {
+    const fetchSquads = async () => {
+      if (!selectedEvent) return;
+
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/squad-management?eventId=${selectedEvent}`);
+        const data = await response.json();
+
+        console.log('Squad Management API response:', data);
+
+        const formattedSquads = (data?.squads || [])
+          .filter((squad: any) => squad.participantCount > 0)
+          .map((squad: any) => ({
+            id: squad.id,
+            name: squad.name,
+            participants: squad.participants || []
+          }));
+
+        console.log('Processed squads:', formattedSquads);
+        setSquads(formattedSquads);
+      } catch (error) {
+        console.error('Error fetching squads:', error);
+        setSquads([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSquads();
+  }, [selectedEvent]);
+
+  // Fetch devices (disciplines) when squad is selected
+  useEffect(() => {
+    const fetchDevices = async () => {
+      if (!selectedEvent || !selectedSquad) return;
+
+      try {
+        setLoading(true);
+        console.log('🔍 JURY: Loading disciplines for event:', selectedEvent, 'squad:', selectedSquad.name);
+
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Load all competitions for the event
+        const competitionsData = await fetch(`${API_BASE_URL}/competitions?eventId=${selectedEvent}`);
+        const competitionsResponse = await competitionsData.json();
+        await delay(100);
+        console.log('🔍 JURY: Loaded competitions:', competitionsResponse);
+
+        // Load all disciplines from all competitions
+        let allDisciplines: any[] = [];
+        const disciplineToCompetitionMap = new Map<number | string, number>();
+
+        console.log('🔍 JURY DEBUG: Starting discipline loading for competitions:', competitionsResponse?.map((c: any) => ({ id: c.id, name: c.name })));
+
+        for (const competition of competitionsResponse || []) {
+          try {
+            await delay(50);
+            console.log(`🔍 JURY: Loading disciplines for competition ${competition.id} (${competition.name})`);
+            const disciplinesResponse = await fetch(`${API_BASE_URL}/competitions/${competition.id}/disciplines`);
+            const disciplinesData = await disciplinesResponse.json();
+            const competitionDisciplines = disciplinesData.disciplines || [];
+
+            console.log(`🔍 JURY: Competition ${competition.id} returned ${competitionDisciplines.length} disciplines:`,
+              competitionDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
+
+            competitionDisciplines.forEach((discipline: any) => {
+              const disciplineKey = discipline.int_disziplinid || discipline.var_name;
+              disciplineToCompetitionMap.set(disciplineKey, competition.id);
+              console.log(`🔍 JURY: Mapped discipline "${discipline.var_name}" (ID: ${discipline.int_disziplinid}) to competition ${competition.id}`);
+            });
+
+            allDisciplines = [...allDisciplines, ...competitionDisciplines];
+          } catch (error) {
+            console.error(`❌ JURY: Error loading disciplines for competition ${competition.id}:`, error);
+          }
+        }
+
+        console.log('🔍 JURY: Final discipline-to-competition mapping:', Array.from(disciplineToCompetitionMap.entries()));
+
+        // Remove duplicate disciplines
+        const uniqueDisciplines = allDisciplines.reduce((acc: any[], current: any) => {
+          const existingIndex = acc.findIndex(d =>
+            (d.int_disziplinid && current.int_disziplinid && d.int_disziplinid === current.int_disziplinid) ||
+            (d.var_name === current.var_name && d.int_disziplinid === current.int_disziplinid)
+          );
+          if (existingIndex === -1) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+
+        console.log('🔍 JURY: All loaded disciplines (before dedup):', allDisciplines);
+        console.log('🔍 JURY: Unique disciplines (after dedup):', uniqueDisciplines);
+
+        // Filter disciplines by the squad's assigned competitions
+        const squadParticipants = selectedSquad.participants || [];
+        console.log('🔍 JURY: Squad participants for filtering:', squadParticipants.length);
+
+        if (squadParticipants.length === 0) {
+          console.log('🔍 JURY: No participants in squad, showing no devices');
+          setDevices([]);
+          return;
+        }
+
+        const participantCompetitionIds = new Set<number>();
+        squadParticipants.forEach((participant: any) => {
+          if (participant.competitions && Array.isArray(participant.competitions)) {
+            participant.competitions.forEach((comp: any) => {
+              if (comp.id) {
+                participantCompetitionIds.add(comp.id);
+              }
+            });
+          }
+        });
+
+        console.log('🔍 JURY: Competitions from squad participants:', Array.from(participantCompetitionIds));
+
+        const availableDisciplineIds = new Set<number>();
+        competitionsResponse.forEach((competition: any) => {
+          if (participantCompetitionIds.has(competition.id)) {
+            console.log('🔍 JURY: Found matching competition:', competition.id, competition.name);
+            if (competition.disciplines && Array.isArray(competition.disciplines)) {
+              competition.disciplines.forEach((discipline: any) => {
+                const disciplineId = discipline.int_disziplinid || discipline.disciplineId;
+                if (disciplineId) {
+                  availableDisciplineIds.add(disciplineId);
+                  console.log('🔍 JURY: Added discipline ID:', disciplineId);
+                }
+              });
+            }
+          }
+        });
+
+        console.log('🔍 JURY: Available discipline IDs for squad:', Array.from(availableDisciplineIds));
+
+        // Filter disciplines
+        const filteredDisciplines = uniqueDisciplines.filter((discipline: any) => {
+          return availableDisciplineIds.has(discipline.int_disziplinid);
+        });
+
+        console.log('🔍 JURY: Filtered disciplines:', filteredDisciplines.map((d: any) => ({ id: d.int_disziplinid, name: d.var_name })));
+
+        // Transform to Device format
+        const mapDisciplineToDevice = (discipline: any): Device => {
+          const iconUrl = getDisciplineIcon(discipline.var_name, discipline.var_icon);
+          return {
+            id: discipline.int_disziplinid,
+            name: discipline.var_name,
+            disciplineId: discipline.int_disziplinid,
+            icon: '',
+            iconPath: iconUrl,
+            maxScore: discipline.maxScore || 0,
+            int_berechnung: discipline.int_berechnung,
+            var_maske: discipline.var_maske,
+            var_formel: discipline.var_formel,
+            int_formelid: discipline.int_formelid
+          };
+        };
+
+        const devicesList = filteredDisciplines.map(mapDisciplineToDevice);
+        console.log('🔍 JURY: Final devices list:', devicesList);
+
+        // Fallback: if no disciplines found, show all unique disciplines
+        if (devicesList.length === 0) {
+          console.log('🔍 JURY: No filtered disciplines found, using fallback to all unique disciplines');
+          const fallbackDevices = uniqueDisciplines.map(mapDisciplineToDevice);
+          setDevices(fallbackDevices);
+          if (!selectedDevice && fallbackDevices.length > 0) {
+            console.log('🔵 JURY: Auto-selecting first device (fallback):', fallbackDevices[0].name);
+            setSelectedDevice(fallbackDevices[0]);
+          }
+        } else {
+          setDevices(devicesList);
+          if (!selectedDevice && devicesList.length > 0) {
+            console.log('🔵 JURY: Auto-selecting first device:', devicesList[0].name);
+            setSelectedDevice(devicesList[0]);
+          }
+        }
+
+        setCompetitions(competitionsResponse || []);
+      } catch (error) {
+        console.error('❌ JURY: Error fetching devices:', error);
+        setDevices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+  }, [selectedEvent, selectedSquad]);
+
+  // Fetch participants when squad and device are selected
+  useEffect(() => {
+    const fetchParticipants = async () => {
+      if (!selectedEvent || !selectedSquad || !selectedDevice) return;
+
+      try {
+        setLoading(true);
+        const rawSquadParticipants = selectedSquad.participants || [];
+        console.log('Raw squad participants (may contain duplicates):', rawSquadParticipants.length);
+
+        // Deduplicate based on participant ID
+        const uniqueSquadParticipants = rawSquadParticipants.reduce((acc: any[], current: any) => {
+          const exists = acc.find((p: any) => p.id === current.id);
+          if (!exists) {
+            acc.push(current);
+          } else {
+            console.log(`⚠️ JURY: Skipping duplicate participant from squad: ${current.firstname} ${current.lastname} (ID: ${current.id})`);
+          }
+          return acc;
+        }, []);
+
+        console.log('Unique squad participants (after dedup):', uniqueSquadParticipants.length);
+
+        // Format participants for scoring and fetch existing scores
+        const formattedParticipantsPromises = uniqueSquadParticipants.map(async (participant: any, index: number) => {
+          let existingScore = null;
+          let wertungenId = null;
+          try {
+            console.log(`🔍 JURY: Checking existing scores for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
+            const scoresResponse = await fetch(`${API_BASE_URL}/scores?eventId=${selectedEvent}&limit=1000`);
+            if (scoresResponse.ok) {
+              const scoresData = await scoresResponse.json();
+              const scores = scoresData?.results || [];
+              const existingScoreRecord = scores.find((s: any) => {
+                return s.participantId === participant.id && s.disciplineId === selectedDevice?.disciplineId;
+              });
+              if (existingScoreRecord) {
+                existingScore = existingScoreRecord.score;
+                wertungenId = existingScoreRecord.id;
+                console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore, 'wertungenId:', wertungenId);
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ JURY: Could not fetch existing scores for participant:', participant.id, error);
+          }
+
+          return {
+            id: participant.id,
+            participantId: participant.id,
+            name: participant.firstname && participant.lastname
+              ? `${participant.firstname} ${participant.lastname}`
+              : participant.firstName && participant.lastName
+                ? `${participant.firstName} ${participant.lastName}`
+                : participant.name || 'Unknown Participant',
+            firstName: participant.firstname || participant.firstName || '',
+            lastName: participant.lastname || participant.lastName || '',
+            club: participant.clubName || participant.club || 'Unknown Club',
+            clubName: participant.clubName || participant.club || 'Unknown Club',
+            startNumber: participant.startNumber || (index + 1),
+            status: existingScore ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
+            currentScore: existingScore,
+            wertungenId: wertungenId
+          };
+        });
+
+        const formattedParticipants = await Promise.all(formattedParticipantsPromises);
+
+        console.log('🟢 JURY: Formatted participants for scoring with scores:', formattedParticipants);
+        setParticipants(formattedParticipants);
+
+        // Set current participant to first uncompleted
+        const firstUncompletedIndex = formattedParticipants.findIndex(p => !p.currentScore);
+        const selectedIndex = firstUncompletedIndex >= 0 ? firstUncompletedIndex : 0;
+        console.log('🔵 JURY: Setting currentParticipantIndex to', selectedIndex);
+        setCurrentParticipantIndex(selectedIndex);
+      } catch (error) {
+        console.error('Error processing participants:', error);
+        setParticipants([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchParticipants();
+  }, [selectedEvent, selectedSquad, selectedDevice]);
+
+  // Load discipline fields when device is selected
+  useEffect(() => {
+    const loadDisciplineFields = async () => {
+      if (!selectedDevice) {
+        setDisciplineFields([]);
+        return;
+      }
+
+      try {
+        console.log('🔵 JURY: Loading discipline fields for discipline', selectedDevice.disciplineId);
+        const response = await fetch(`${API_BASE_URL}/discipline-fields`);
+        const allFields = await response.json();
+
+        console.log('🔵 JURY: Total fields loaded:', allFields.length);
+
+        const relevantFields = allFields.filter((f: any) =>
+          f.disciplineId === selectedDevice.disciplineId && f.enabled
+        );
+
+        const fields: DisciplineField[] = relevantFields.map((f: any) => ({
+          id: f.id,
+          disciplineId: f.disciplineId,
+          name: f.name,
+          sortOrder: f.sortOrder,
+          enabled: f.enabled,
+          isEndValue: f.isEndValue || false,
+          isStartValue: f.isStartValue || false
+        }));
+
+        fields.sort((a, b) => a.sortOrder - b.sortOrder);
+        setDisciplineFields(fields);
+        console.log('🔵 JURY: Loaded', fields.length, 'discipline fields');
+      } catch (error) {
+        console.error('❌ JURY: Error loading discipline fields:', error);
+        setDisciplineFields([]);
+      }
+    };
+
+    loadDisciplineFields();
+  }, [selectedDevice]);
+
+  // Memoize currentParticipant
+  const currentParticipant = useMemo(() => {
+    return participants[currentParticipantIndex];
+  }, [participants, currentParticipantIndex]);
+
+  // Load jury results when participant changes
+  useEffect(() => {
+    const loadJuryResults = async () => {
+      console.log('🔵 JURY: loadJuryResults useEffect triggered', {
+        hasCurrentParticipant: !!currentParticipant,
+        currentParticipantId: currentParticipant?.participantId,
+        hasSelectedDevice: !!selectedDevice,
+        selectedDeviceId: selectedDevice?.disciplineId,
+        disciplineFieldsLength: disciplineFields.length,
+        wertungenId: currentParticipant?.wertungenId,
+        disciplineFieldsDetails: disciplineFields.map(f => ({ id: f.id, name: f.name, sortOrder: f.sortOrder })),
+        participantsLength: participants.length,
+        currentParticipantIndex
+      });
+
+      if (!currentParticipant || !selectedDevice || disciplineFields.length === 0) {
+        console.log('🔵 JURY: Skipping jury results load - missing prerequisites');
+        setLoadedJuryResults({});
+        setFormulaFieldValues({});
+        return;
+      }
+
+      if (!currentParticipant.wertungenId) {
+        console.log('🔵 JURY: No wertungenId for participant, clearing jury results');
+        setLoadedJuryResults({});
+        setFormulaFieldValues({});
+        return;
+      }
+
+      try {
+        console.log('🔵 JURY: Loading jury results for wertungenId', currentParticipant.wertungenId, 'discipline', selectedDevice.disciplineId);
+        const response = await fetch(
+          `${API_BASE_URL}/jury-results?participantId=${currentParticipant.wertungenId}&disciplineId=${selectedDevice.disciplineId}`
+        );
+        const data = await response.json();
+
+        console.log('🔵 JURY: Loaded jury results:', data);
+
+        if (data.results && Array.isArray(data.results)) {
+          const resultsMap: Record<string, number> = {};
+          const sortedResults = data.results
+            .filter((r: any) => r.isFinalScore === false)
+            .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+          console.log('🔵 JURY: Filtered results (non-final only):', sortedResults);
+
+          sortedResults.forEach((result: any, index: number) => {
+            const symbol = String.fromCharCode(65 + index);
+            if (result.performance !== null && result.performance !== undefined) {
+              resultsMap[symbol] = result.performance;
+              console.log(`🔵 JURY: Mapping ${symbol} = ${result.performance} (${result.fieldName})`);
+            }
+          });
+
+          console.log('🔵 JURY: Mapped jury results to symbols:', resultsMap);
+          setLoadedJuryResults(resultsMap);
+        }
+      } catch (error) {
+        console.error('❌ JURY: Error loading jury results:', error);
+      }
+    };
+
+    loadJuryResults();
+  }, [selectedDevice, disciplineFields, participants, currentParticipantIndex]);
+
+  // Update score input when current participant changes
+  useEffect(() => {
+    if (currentParticipant && currentParticipant.currentScore) {
+      const normalized = normalizeScoreInput(
+        currentParticipant.currentScore.toString(),
+        selectedDevice?.int_berechnung || 2
+      );
+      setScore(normalized);
+    } else {
+      setScore('');
+    }
+  }, [currentParticipantIndex, selectedDevice?.int_berechnung]);
+
+  return {
+    events,
+    filteredEvents,
+    squads,
+    devices,
+    participants,
+    competitions,
+    disciplineFields,
+    loadedJuryResults,
+    formulaFieldValues,
+    currentParticipant,
+
+    selectedEvent,
+    selectedSquad,
+    selectedDevice,
+    currentParticipantIndex,
+    score,
+    loading,
+    filterToday,
+
+    setSelectedEvent,
+    setSelectedSquad,
+    setSelectedDevice,
+    setCurrentParticipantIndex,
+    setScore,
+    setParticipants,
+    setLoading,
+    setFilterToday,
+    setFormulaFieldValues,
+    setLoadedJuryResults,
+  };
+}

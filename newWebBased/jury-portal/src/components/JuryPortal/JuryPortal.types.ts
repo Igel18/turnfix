@@ -1,0 +1,76 @@
+/**
+ * Type definitions for the Jury Portal.
+ * 
+ * Extracted from JuryPortal.tsx for Separation of Concerns.
+ * Contains all interfaces used across jury portal components and hooks.
+ */
+
+export interface Participant {
+  id: number;
+  name: string;
+  club: string;
+  startNumber: number;
+  currentScore?: number;
+  status: 'completed' | 'current' | 'pending';
+  participantId: number;
+  firstName: string;
+  lastName: string;
+  firstname?: string; // API sometimes uses this format
+  lastname?: string;  // API sometimes uses this format
+  clubName: string;
+  wertungenId?: number;
+  assignedCompetitions?: number[];
+}
+
+export interface Squad {
+  id: number;
+  name: string;
+  participants: Participant[];
+}
+
+export interface Device {
+  id: number;
+  name: string;
+  icon: string; // Can be emoji or icon path
+  iconPath?: string | null; // Optional: database icon path (web-accessible URL)
+  disciplineId: number;
+  maxScore?: number; // Maximum allowed score for this discipline
+  int_berechnung?: number; // Number of decimal places (0-3)
+  var_maske?: string; // Format pattern (e.g., "0.00", "0,000", "0:00:00")
+  var_formel?: string; // Formula for calculation (e.g., "(10 + A) - B")
+  int_formelid?: number; // Formula ID reference
+}
+
+export interface DisciplineField {
+  id: number;
+  disciplineId: number;
+  name: string;
+  sortOrder: number;
+  enabled: boolean;
+  isEndValue: boolean;
+  isStartValue: boolean;
+}
+
+export interface Competition {
+  id: number;
+  name: string;
+  eventId: number;
+  disciplines?: Device[];
+}
+
+export type JuryStep = 'event' | 'squad' | 'device' | 'scoring';
+
+// API configuration - use full URL to main server port in production
+export const getApiBaseUrl = (): string => {
+  if (import.meta.env.PROD) {
+    // In production, connect to port 3001 (main server) instead of 3002 (jury server)
+    const origin = window.location.origin.replace(':3002', ':3001');
+    console.log('🔧 JURY API: Using production URL:', `${origin}/api`);
+    return `${origin}/api`;
+  }
+  // In development, use proxy
+  console.log('🔧 JURY API: Using development proxy: /api');
+  return '/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
