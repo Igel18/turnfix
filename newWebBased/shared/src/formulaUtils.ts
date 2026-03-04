@@ -329,6 +329,142 @@ export function buildFieldSymbolsMap(
 }
 
 // ---------------------------------------------------------------------------
+// Formula type detection & helpers (migrated from client/formulaCalculator.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect formula type based on variable style.
+ * - 'letter': Has uppercase single-letter variables (A, B, C…)
+ * - 'variable': Has lowercase single-letter variables (x, y, z…)
+ * - 'none': No single-letter variables (pure numeric)
+ *
+ * Letter takes precedence when both are present (A + x → 'letter').
+ */
+export function detectFormulaType(formula: string): 'letter' | 'variable' | 'none' {
+  if (!formula) return 'none';
+  const hasLetterVariables = /\b[A-Z]\b/.test(formula);
+  const hasLowercaseVariables = /\b[a-z]\b/.test(formula);
+  if (hasLetterVariables) return 'letter';
+  if (hasLowercaseVariables) return 'variable';
+  return 'none';
+}
+
+/**
+ * Get maximum letter index from formula.
+ * A=0, B=1, C=2, … Returns -1 if no uppercase letter variables found.
+ */
+export function getMaxLetterIndex(formula: string): number {
+  const letters = formula.match(/\b[A-Z]\b/g) || [];
+  if (letters.length === 0) return -1;
+  const uniqueLetters = Array.from(new Set(letters)).sort();
+  return uniqueLetters[uniqueLetters.length - 1].charCodeAt(0) - 65;
+}
+
+/**
+ * Extract the operator that follows a specific field in the formula.
+ * Converts * → × and / → ÷ for UI display.
+ * Returns empty string when no operator follows.
+ */
+export function getOperatorAfterField(formula: string, fieldIndex: number): string {
+  if (!formula) return '';
+  const fieldLetter = getFormulaSymbol(fieldIndex);
+  const letterPattern = new RegExp(`${fieldLetter}\\s*([+\\-*/])`, 'i');
+  const match = formula.match(letterPattern);
+  if (match && match[1]) {
+    const op = match[1];
+    if (op === '*') return '×';
+    if (op === '/') return '÷';
+    return op;
+  }
+  return '';
+}
+
+/**
+ * Parse time format (MM:SS.ms or MM:SS,ms) to seconds.
+ * Returns null if the string is not a recognized time format.
+ */
+export function parseTimeToSeconds(timeString: string): number | null {
+  const timeMatch = timeString.match(/^(\d+):(\d+)[.,](\d+)$/);
+  if (timeMatch) {
+    const minutes = parseInt(timeMatch[1], 10);
+    const seconds = parseInt(timeMatch[2], 10);
+    const milliseconds = parseInt(timeMatch[3], 10);
+    return minutes * 60 + seconds + (milliseconds / 100);
+  }
+  return null;
+}
+
+/**
+ * Normalize a value string for use in formula calculation.
+ * Handles time format (MM:SS.ms) and German decimal commas.
+ */
+export function normalizeValueForCalculation(value: string): string {
+  // Check if it's a time format first
+  const timeSeconds = parseTimeToSeconds(value);
+  if (timeSeconds !== null) {
+    return timeSeconds.toString();
+  }
+  // Regular number — replace comma with dot
+  return value.replace(',', '.');
+}
+
+/**
+ * Calculate formula result from ordered field values.
+ * Convenience API that wraps `calculateFormula` with an array-based interface.
+ *
+ * @param formula - The formula string (e.g., "A + B", "1*x")
+ * @param fieldValues - Ordered string values for each variable
+ * @param formulaType - 'letter' (A,B,C) or 'variable' (x,y,z)
+ * @returns Object with `result` (number|null) and `error` (string|null)
+ */
+export function calculateFormulaResult(
+  formula: string,
+  fieldValues: string[],
+  formulaType: 'letter' | 'variable'
+): { result: number | null; error: string | null } {
+  try {
+    // Build a Record<string, number> from the ordered values
+    const values: Record<string, number> = {};
+
+    // Determine variable names based on type
+    const variableMap = formulaType === 'letter'
+      ? FORMULA_VARIABLES  // A, B, C, …
+      : ['x', 'y', 'z', 'a', 'b', 'c'];  // lowercase custom
+
+    for (let i = 0; i < fieldValues.length; i++) {
+      const raw = fieldValues[i];
+      const normalized = normalizeValueForCalculation(raw);
+      const num = parseFloat(normalized);
+
+      if (isNaN(num)) {
+        return { result: null, error: `Invalid value: ${raw}` };
+      }
+
+      const key = i < variableMap.length ? variableMap[i] : getFormulaSymbol(i);
+      values[key] = num;
+    }
+
+    const result = calculateFormula(formula, values);
+
+    if (result === null) {
+      return { result: null, error: 'Calculation error' };
+    }
+
+    // Check for division by zero (Infinity/-Infinity)
+    if (!isFinite(result)) {
+      return { result: null, error: 'Division by zero' };
+    }
+
+    return { result, error: null };
+  } catch (error) {
+    return {
+      result: null,
+      error: error instanceof Error ? error.message : 'Calculation error'
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Formatting
 // ---------------------------------------------------------------------------
 
