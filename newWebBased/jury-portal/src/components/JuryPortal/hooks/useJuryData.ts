@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getDisciplineIcon } from '../../../utils/iconUtils';
 import { isEventOnDate } from '../../../utils/eventUtils';
 import { normalizeScoreInput } from '../../../utils/scoreFormatter';
+import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/navigationHelper';
 import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
@@ -506,14 +507,21 @@ export function useJuryData(): UseJuryDataReturn {
 
   // Update score input when current participant changes
   useEffect(() => {
-    if (currentParticipant && currentParticipant.currentScore) {
+    const existingScore = getScoreForParticipant(currentParticipant);
+    if (existingScore) {
       const normalized = normalizeScoreInput(
-        currentParticipant.currentScore.toString(),
+        existingScore,
         selectedDevice?.int_berechnung || 2
       );
       setScore(normalized);
     } else {
       setScore('');
+    }
+
+    // Clear formula state when navigating to a participant without saved results
+    if (shouldClearJuryResults(currentParticipant)) {
+      setLoadedJuryResults({});
+      setFormulaFieldValues({});
     }
   }, [currentParticipantIndex, selectedDevice?.int_berechnung]);
 

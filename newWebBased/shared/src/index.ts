@@ -12,3 +12,4 @@ export * from './formulaUtils';
 export * from './genderHelpers';
 export * from './iconUtils';
 export * from './socketConfig';
+export * from './eventDateUtils';

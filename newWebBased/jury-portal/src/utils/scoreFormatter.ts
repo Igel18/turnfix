@@ -27,6 +27,9 @@ export {
   validateAndRoundScore,
   normalizeScoreInput,
   parseScoreInput,
+  validateScore,
 } from '@turnfix/shared/dist/scoreFormatter';
+
+export type { ScoreValidationResult } from '@turnfix/shared/dist/scoreFormatter';
 
 export type { DisciplineScoreConfig } from '@turnfix/shared/dist/scoreFormatter';

@@ -9,7 +9,7 @@
 import React from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { MISSING_ICON_EMOJI, getMissingIconUrl } from '../../../utils/iconUtils';
-import { normalizeScoreInput, getScorePlaceholder } from '../../../utils/scoreFormatter';
+import { normalizeScoreInput, getScorePlaceholder, formatScore } from '../../../utils/scoreFormatter';
 import FormulaInput from '../../FormulaInput';
 import type { Participant, Device, Squad, DisciplineField } from '../JuryPortal.types';
 
@@ -253,7 +253,7 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
                   {participant.currentScore && participant.currentScore > 0 ? (
                     <div className="flex flex-col items-end">
                       <span className="text-base sm:text-lg font-bold text-green-700">
-                        {participant.currentScore.toFixed(2)}
+                        {formatScore(participant.currentScore, selectedDevice?.int_berechnung)}
                       </span>
                       <span className="text-xs text-green-600">✓</span>
                     </div>

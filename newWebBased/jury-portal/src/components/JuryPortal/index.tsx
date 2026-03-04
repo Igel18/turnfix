@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import type { JuryStep } from './JuryPortal.types';
+import { formatScore } from '../../utils/scoreFormatter';
 import { useJuryData } from './hooks/useJuryData';
 import { useScoreSave } from './hooks/useScoreSave';
 import { useLiveScoreUpdates } from './hooks/useLiveScoreUpdates';
@@ -122,7 +123,7 @@ const JuryPortal: React.FC = () => {
       onScoreChange={data.setScore}
       onFormulaChange={(calculatedScore, fieldValues) => {
         if (calculatedScore !== null && data.selectedDevice) {
-          const formattedScore = calculatedScore.toFixed(data.selectedDevice.int_berechnung || 2);
+          const formattedScore = formatScore(calculatedScore, data.selectedDevice.int_berechnung);
           data.setScore(formattedScore);
           data.setFormulaFieldValues(fieldValues);
         }

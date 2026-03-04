@@ -4,15 +4,14 @@
  * URL resolution is jury-portal-specific; connection options are shared.
  */
 import { io, Socket } from 'socket.io-client';
-import { SOCKET_OPTIONS, SOCKET_SERVER_PORT } from '@turnfix/shared';
+import { SOCKET_OPTIONS } from '@turnfix/shared';
+import { getServerOrigin } from './serverOrigin';
 
 const getSocketUrl = () => {
   if (import.meta.env.PROD) {
-    return window.location.origin
-      .replace(':3002', `:${SOCKET_SERVER_PORT}`)
-      .replace(':5174', `:${SOCKET_SERVER_PORT}`);
+    return getServerOrigin();
   }
-  return import.meta.env.VITE_SOCKET_URL || `http://localhost:${SOCKET_SERVER_PORT}`;
+  return import.meta.env.VITE_SOCKET_URL || getServerOrigin();
 };
 
 const SOCKET_URL = getSocketUrl();

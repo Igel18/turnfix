@@ -8,6 +8,8 @@
 import { useCallback } from 'react';
 import { getCreateWertungRequest, extractWertungenId } from '../../../utils/scoreSaveHelper';
 import { validateScore } from '../../../utils/eventUtils';
+import { showSuccessToast } from '../../../utils/toast';
+import { formatScore } from '../../../utils/scoreFormatter';
 import type { Participant, Device, DisciplineField, Competition, JuryStep } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
@@ -52,14 +54,6 @@ export function useScoreSave({
   setCurrentParticipantIndex,
   setScore,
 }: UseScoreSaveParams): UseScoreSaveReturn {
-
-  const showSuccessToast = (message: string) => {
-    const successMsg = document.createElement('div');
-    successMsg.textContent = message;
-    successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
-    document.body.appendChild(successMsg);
-    setTimeout(() => successMsg.remove(), 3000);
-  };
 
   /**
    * Finds the correct competition ID for the selected discipline.
@@ -267,7 +261,7 @@ export function useScoreSave({
           return updated;
         });
 
-        showSuccessToast(`✅ Bewertung gespeichert! Endwert: ${finalScore.toFixed(2)}`);
+        showSuccessToast(`✅ Bewertung gespeichert! Endwert: ${formatScore(finalScore, selectedDevice!.int_berechnung)}`);
         console.log('✅ Formula-based score saved! Final score:', finalScore);
         return true;
       } else {

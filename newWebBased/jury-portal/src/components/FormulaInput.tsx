@@ -13,12 +13,7 @@ import {
   formatFormulaWithValues,
   formatScore 
 } from '../utils/formulaUtils';
-
-interface DisciplineField {
-  id: number;
-  name: string;
-  sortOrder: number;
-}
+import type { DisciplineField } from './JuryPortal/JuryPortal.types';
 
 interface FormulaInputProps {
   formula: string;
@@ -26,7 +21,7 @@ interface FormulaInputProps {
   decimals: number;
   onScoreChange: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   disabled?: boolean;
-  disciplineFields?: DisciplineField[];
+  disciplineFields?: Pick<DisciplineField, 'id' | 'name' | 'sortOrder'>[];
   initialValues?: Record<string, number>;
 }
 

@@ -60,17 +60,6 @@ export interface Competition {
 
 export type JuryStep = 'event' | 'squad' | 'device' | 'scoring';
 
-// API configuration - use full URL to main server port in production
-export const getApiBaseUrl = (): string => {
-  if (import.meta.env.PROD) {
-    // In production, connect to port 3001 (main server) instead of 3002 (jury server)
-    const origin = window.location.origin.replace(':3002', ':3001');
-    console.log('🔧 JURY API: Using production URL:', `${origin}/api`);
-    return `${origin}/api`;
-  }
-  // In development, use proxy
-  console.log('🔧 JURY API: Using development proxy: /api');
-  return '/api';
-};
-
+// API configuration — delegates to the shared serverOrigin utility
+import { getApiBaseUrl } from '../../utils/serverOrigin';
 export const API_BASE_URL = getApiBaseUrl();
