@@ -51,8 +51,17 @@ test.describe.serial('Master Data: Areas', () => {
     const saveButton = page.locator('[role="dialog"]').getByRole('button', { name: /speichern|save|erstellen|create/i });
     await saveButton.click();
 
+    // Wait for dialog to close
+    await expect(page.locator('[role="dialog"], .fixed.inset-0').first()).toBeHidden({ timeout: 10_000 });
+
+    // Search for the newly created area (table may be paginated)
+    const searchInput = page.locator('input[type="search"], input[type="text"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
+    if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await searchInput.fill(testAreaName);
+      await page.waitForTimeout(1000);
+    }
+
     // Verify in table
-    await page.waitForTimeout(1000);
     await expect(page.locator('table tbody')).toContainText(testAreaName, { timeout: 10_000 });
   });
 

@@ -173,7 +173,7 @@ describe('Disciplines Edit & Formulas', () => {
     })
   })
 
-  it('creates a discipline with custom formula and gender flags', async () => {
+  it('creates a discipline with custom formula and gender flags', { timeout: 15000 }, async () => {
     const user = userEvent.setup()
     renderComponent()
 

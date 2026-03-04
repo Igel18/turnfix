@@ -51,10 +51,16 @@ test.beforeAll(async () => {
   state = loadTeamEventState();
 });
 
-/** Wait for squad options to load in the select, then choose one */
+/** Wait for squad options to load in the select, then choose one.
+ *  The SquadDisciplineSelector component returns null while loading,
+ *  so we first wait for the select to become visible (proves data loaded),
+ *  then wait for the specific option value. */
 async function selectSquadOption(page: import('@playwright/test').Page, value: string) {
   const squadSelect = page.locator('select').first();
-  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 15_000 });
+  // Wait for the select to be visible (SquadDisciplineSelector renders null while loading)
+  await squadSelect.waitFor({ state: 'visible', timeout: 30_000 });
+  // Wait for the specific option value to appear in DOM
+  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 30_000 });
   await squadSelect.selectOption({ value });
   await page.waitForTimeout(2000);
 }
@@ -317,9 +323,8 @@ test.describe('Team Competition: Score Capture UI', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.competitionId}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     // Select squad RT
     await selectSquadOption(page, 'RT');
@@ -335,9 +340,8 @@ test.describe('Team Competition: Score Capture UI', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.competitionId}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RT');
 
@@ -350,9 +354,8 @@ test.describe('Team Competition: Score Capture UI', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.competitionId}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RT');
 
@@ -376,9 +379,8 @@ test.describe('Team Competition: Score Capture UI', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.competitionId}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RT');
 

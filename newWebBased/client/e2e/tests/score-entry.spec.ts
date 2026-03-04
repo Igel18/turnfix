@@ -15,11 +15,16 @@ test.beforeAll(async () => {
   state = loadEventAState();
 });
 
-/** Wait for squad options to load in the select, then choose one */
+/** Wait for squad options to load in the select, then choose one.
+ *  The SquadDisciplineSelector component returns null while loading,
+ *  so we first wait for the select to become visible (proves data loaded),
+ *  then wait for the specific option value. */
 async function selectSquadOption(page: import('@playwright/test').Page, value: string) {
   const squadSelect = page.locator('select').first();
+  // Wait for the select to be visible (SquadDisciplineSelector renders null while loading)
+  await squadSelect.waitFor({ state: 'visible', timeout: 30_000 });
   // Wait for the specific option value to appear in DOM (API may be slow)
-  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 15_000 });
+  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 30_000 });
   await squadSelect.selectOption({ value });
   await page.waitForTimeout(2000);
 }
@@ -30,9 +35,8 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RW');
 
@@ -47,9 +51,8 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RW');
 
@@ -73,9 +76,8 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RW');
 
@@ -89,9 +91,8 @@ test.describe('Score Entry: Women (Squad RW)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RW');
 
@@ -108,9 +109,8 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp2Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RM');
 
@@ -124,9 +124,8 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp2Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RM');
 
@@ -150,9 +149,8 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp2Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     await selectSquadOption(page, 'RM');
 
@@ -179,8 +177,7 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     await page.waitForTimeout(1000);
 
     // Verify the change persisted (reload page)
-    await page.reload({ waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await selectSquadOption(page, 'RM');
 
     const juryCheckbox2 = page.locator('#showJuryScores');

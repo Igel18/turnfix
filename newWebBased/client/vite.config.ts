@@ -8,16 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve('./src'),
-    },
-  },
-  // Pre-bundle @turnfix/shared so Vite converts CJS → ESM properly
-  optimizeDeps: {
-    include: ['@turnfix/shared', '@turnfix/shared/dist/scoreFormatter'],
-  },
-  // Also handle CJS → ESM for production builds (Rollup)
-  build: {
-    commonjsOptions: {
-      include: [/node_modules/, /shared[\\/]dist/],
+      // Resolve shared package to TS source so Vite always picks up latest code
+      // without relying on a potentially stale CJS dist or optimizeDeps cache.
+      "@turnfix/shared/dist/scoreFormatter": path.resolve('../shared/src/scoreFormatter.ts'),
+      "@turnfix/shared": path.resolve('../shared/src/index.ts'),
     },
   },
   server: {
