@@ -13,6 +13,7 @@ export {
   applyBuiltInFormula,
   buildFieldSymbolsMap,
   calculateFormula,
+  detectFormulaType,
   extractFormulaSymbols,
   formatFormulaWithValues,
   formatScore,

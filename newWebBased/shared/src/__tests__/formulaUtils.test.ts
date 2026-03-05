@@ -334,6 +334,28 @@ describe('calculateFormula', () => {
   it('returns null for empty formula', () => {
     expect(calculateFormula('', {})).toBeNull();
   });
+
+  // ── Non-trivial formula "5,5*x" (German decimal comma) ──
+
+  it('calculates "5,5*x" with x=3 → 16.5', () => {
+    expect(calculateFormula('5,5*x', { x: 3 })).toBeCloseTo(16.5);
+  });
+
+  it('calculates "5,5*x" with x=4 → 22', () => {
+    expect(calculateFormula('5,5*x', { x: 4 })).toBe(22);
+  });
+
+  it('calculates "5,5*x" with x=2.5 → 13.75', () => {
+    expect(calculateFormula('5,5*x', { x: 2.5 })).toBeCloseTo(13.75);
+  });
+
+  it('calculates "5,5*x" with x=0 → 0', () => {
+    expect(calculateFormula('5,5*x', { x: 0 })).toBe(0);
+  });
+
+  it('calculates "5,5*x" with x=1.8 → 9.9', () => {
+    expect(calculateFormula('5,5*x', { x: 1.8 })).toBeCloseTo(9.9);
+  });
 });
 
 describe('formatFormulaWithValues', () => {

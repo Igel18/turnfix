@@ -9,6 +9,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { FormulaInput } from '@/components/FormulaInput';
+import { applyBuiltInFormula, detectFormulaType, formatFormulaWithValues } from '@/utils/formulaUtils';
+import { parseScoreInput } from '@/utils/scoreFormatter';
 import type { Discipline, DisciplineField } from '@/types/ScoreCapture.types';
 
 interface ScoreInputCellProps {
@@ -83,46 +85,71 @@ export const ScoreInputCell = ({
       });
   }, [showJuryScores, wertungenId, disciplineId, disciplineFields.length]);
 
+  // Detect built-in formula (lowercase variable like "x" in "20-x", "(((1000/x)-2,158)/0,006)/49")
+  const formula = (discipline as any).var_formel as string | undefined;
+  const hasBuiltInFormula = formula && detectFormulaType(formula) === 'variable';
+  const rawNumericValue = scoreValue ? parseScoreInput(scoreValue) : 0;
+  const calculatedResult = hasBuiltInFormula && rawNumericValue > 0
+    ? applyBuiltInFormula(formula!, rawNumericValue)
+    : null;
+
   // Simple mode: Direct endwert input
   if (!showJuryScores) {
     return (
       <div className="relative">
-        <input
-          type="text"
-          inputMode="decimal"
-          value={scoreValue}
-          onChange={(e) => onScoreChange(participantId, disciplineId, e.target.value)}
-          onBlur={(e) => {
-            // Normalize score to show all decimal places
-            const normalized = normalizeScoreInput(e.target.value, decimalPlaces);
-            if (normalized !== e.target.value) {
-              onScoreChange(participantId, disciplineId, normalized);
-            }
-            onSave(participantId, disciplineId);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              // Normalize and save
-              const normalized = normalizeScoreInput(e.currentTarget.value, decimalPlaces);
-              if (normalized !== e.currentTarget.value) {
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={scoreValue}
+            onChange={(e) => onScoreChange(participantId, disciplineId, e.target.value)}
+            onBlur={(e) => {
+              // Normalize score to show all decimal places
+              const normalized = normalizeScoreInput(e.target.value, decimalPlaces);
+              if (normalized !== e.target.value) {
                 onScoreChange(participantId, disciplineId, normalized);
               }
               onSave(participantId, disciplineId);
-              // Blur the input field
-              e.currentTarget.blur();
-            }
-          }}
-          data-participant={participantId}
-          data-discipline={disciplineId}
-          className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
-            validation.isValid
-              ? 'border-gray-300 focus:ring-blue-500'
-              : 'border-red-300 bg-red-50 focus:ring-red-500'
-          }`}
-          placeholder={getScorePlaceholder(decimalPlaces)}
-          title={!validation.isValid ? validation.message : ''}
-        />
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                // Normalize and save
+                const normalized = normalizeScoreInput(e.currentTarget.value, decimalPlaces);
+                if (normalized !== e.currentTarget.value) {
+                  onScoreChange(participantId, disciplineId, normalized);
+                }
+                onSave(participantId, disciplineId);
+                // Blur the input field
+                e.currentTarget.blur();
+              }
+            }}
+            data-participant={participantId}
+            data-discipline={disciplineId}
+            className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
+              validation.isValid
+                ? 'border-gray-300 focus:ring-blue-500'
+                : 'border-red-300 bg-red-50 focus:ring-red-500'
+            }`}
+            placeholder={getScorePlaceholder(decimalPlaces)}
+            title={!validation.isValid ? validation.message : ''}
+          />
+          {/* Show calculated result inline for built-in formula disciplines */}
+          {hasBuiltInFormula && calculatedResult !== null && (
+            <span
+              className="text-sm font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1 whitespace-nowrap"
+              title={`Formel: ${formula}\n${formatFormulaWithValues(formula!, { x: rawNumericValue }, { decimals: decimalPlaces })}`}
+            >
+              = {calculatedResult.toFixed(decimalPlaces)}
+            </span>
+          )}
+        </div>
+        {/* Show formula text for built-in formula disciplines */}
+        {hasBuiltInFormula && (
+          <div className="mt-1 text-xs text-purple-500 truncate max-w-[200px]" title={formula}>
+            Formel: {formula}
+          </div>
+        )}
         {!validation.isValid && (
           <div className="absolute -bottom-6 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 z-10 whitespace-nowrap">
             ⚠️ {validation.message}

@@ -10,7 +10,7 @@ import { getDisciplineIcon } from '../../../utils/iconUtils';
 import { isEventOnDate } from '../../../utils/eventUtils';
 import { normalizeScoreInput } from '../../../utils/scoreFormatter';
 import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/navigationHelper';
-import { getBuiltInFormulaInitialValues } from '../../../utils/builtInFormulaHelper';
+import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
 import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 

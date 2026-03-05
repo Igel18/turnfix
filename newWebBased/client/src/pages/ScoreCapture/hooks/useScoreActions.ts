@@ -6,6 +6,7 @@
  */
 
 import { apiPost } from '@/utils/api';
+import { parseScoreInput } from '@/utils/scoreFormatter';
 import type { 
   Competition, 
   Participant, 
@@ -153,7 +154,7 @@ export function useScoreActions({
         competitionId: actualCompetitionId,
         participantId: participantId,
         disciplineId: numericDisciplineId,
-        score: typeof scoreValue === 'string' ? parseFloat(scoreValue) : scoreValue
+        score: typeof scoreValue === 'string' ? parseScoreInput(scoreValue) : scoreValue
       }
       
       console.log('🟢 Sending score data to API:', scoreData)
@@ -196,7 +197,7 @@ export function useScoreActions({
       return
     }
     
-    const numericValue = typeof fieldValue === 'string' ? parseFloat(fieldValue) : fieldValue
+    const numericValue = typeof fieldValue === 'string' ? parseScoreInput(fieldValue) : fieldValue
     if (isNaN(numericValue)) {
       console.log(`Skipping save for non-numeric value: ${fieldValue}`)
       return
@@ -284,7 +285,7 @@ export function useScoreActions({
           const fieldKey = `${participant.id}-${field.id}`
           const value = scoreMatrix[fieldKey]
           if (value !== undefined && value !== '') {
-            fieldValues[field.name] = typeof value === 'string' ? parseFloat(value) : value
+            fieldValues[field.name] = typeof value === 'string' ? parseScoreInput(value) : value
           }
         }
       })

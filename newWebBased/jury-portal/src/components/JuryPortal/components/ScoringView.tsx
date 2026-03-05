@@ -10,6 +10,7 @@ import React from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { MISSING_ICON_EMOJI, getMissingIconUrl } from '../../../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder, formatScore } from '../../../utils/scoreFormatter';
+import { applyBuiltInFormula, detectFormulaType } from '../../../utils/formulaUtils';
 import FormulaInput from '../../FormulaInput';
 import type { Participant, Device, Squad, DisciplineField } from '../JuryPortal.types';
 
@@ -253,8 +254,18 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
                   {participant.currentScore && participant.currentScore > 0 ? (
                     <div className="flex flex-col items-end">
                       <span className="text-base sm:text-lg font-bold text-green-700">
-                        {formatScore(participant.currentScore, selectedDevice?.int_berechnung)}
+                        {formatScore(
+                          selectedDevice?.var_formel && detectFormulaType(selectedDevice.var_formel) === 'variable'
+                            ? applyBuiltInFormula(selectedDevice.var_formel, participant.currentScore)
+                            : participant.currentScore,
+                          selectedDevice?.int_berechnung
+                        )}
                       </span>
+                      {selectedDevice?.var_formel && detectFormulaType(selectedDevice.var_formel) === 'variable' && (
+                        <span className="text-xs text-gray-400">
+                          (Eingabe: {formatScore(participant.currentScore, selectedDevice?.int_berechnung)})
+                        </span>
+                      )}
                       <span className="text-xs text-green-600">✓</span>
                     </div>
                   ) : index === currentParticipantIndex ? (

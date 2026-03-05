@@ -370,6 +370,19 @@ describe('parseScoreInput', () => {
     expect(parseScoreInput('12,5')).toBe(12.5);
   });
 
+  // Regression: ScoreCapture bug — "3,3" was parsed as 3 by raw parseFloat
+  it('parses "3,3" as 3.3 (German decimal comma)', () => {
+    expect(parseScoreInput('3,3')).toBe(3.3);
+  });
+
+  it('parses "9,75" as 9.75', () => {
+    expect(parseScoreInput('9,75')).toBe(9.75);
+  });
+
+  it('parses "0,5" as 0.5', () => {
+    expect(parseScoreInput('0,5')).toBe(0.5);
+  });
+
   it('returns 0 for empty string', () => {
     expect(parseScoreInput('')).toBe(0);
   });

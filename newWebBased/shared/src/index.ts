@@ -9,6 +9,7 @@
  */
 
 export * from './formulaUtils';
+export * from './builtInFormulaHelper';
 export * from './genderHelpers';
 export * from './iconUtils';
 export * from './socketConfig';

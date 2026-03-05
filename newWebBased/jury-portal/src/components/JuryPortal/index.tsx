@@ -18,7 +18,7 @@
 import React, { useState } from 'react';
 import type { JuryStep } from './JuryPortal.types';
 import { formatScore } from '../../utils/scoreFormatter';
-import { getScoreToSave } from '../../utils/builtInFormulaHelper';
+import { getScoreToSave } from '@turnfix/shared';
 import { useJuryData } from './hooks/useJuryData';
 import { useScoreSave } from './hooks/useScoreSave';
 import { useLiveScoreUpdates } from './hooks/useLiveScoreUpdates';

@@ -120,6 +120,51 @@ describe('getScoreToSave', () => {
   });
 });
 
+// ─── getScoreToSave: non-trivial formula "5,5*x" ────────────────────────────
+
+describe('getScoreToSave — non-trivial "5,5*x" (German decimal comma)', () => {
+  const FORMULA = '5,5*x';
+
+  it('should return raw value (3) when calculated = 16.5 for x=3', () => {
+    // 5.5 * 3 = 16.5  — but we store the raw 3
+    const result = getScoreToSave(16.5, { x: 3 }, FORMULA, 0);
+    expect(result).toBe(3);
+  });
+
+  it('should return raw value (4) when calculated = 22 for x=4', () => {
+    const result = getScoreToSave(22, { x: 4 }, FORMULA, 0);
+    expect(result).toBe(4);
+  });
+
+  it('should return raw value (2.5) when calculated = 13.75 for x=2.5', () => {
+    const result = getScoreToSave(13.75, { x: 2.5 }, FORMULA, 0);
+    expect(result).toBe(2.5);
+  });
+
+  it('should return raw value (0) when calculated = 0 for x=0', () => {
+    const result = getScoreToSave(0, { x: 0 }, FORMULA, 0);
+    expect(result).toBe(0);
+  });
+
+  it('should return raw value (1.8) when calculated = 9.9 for x=1.8', () => {
+    // 5.5 * 1.8 = 9.9
+    const result = getScoreToSave(9.9, { x: 1.8 }, FORMULA, 0);
+    expect(result).toBe(1.8);
+  });
+});
+
+// ─── isBuiltInFormula: "5,5*x" ──────────────────────────────────────────────
+
+describe('isBuiltInFormula — "5,5*x" (German decimal comma)', () => {
+  it('should return true for "5,5*x" with no discipline fields', () => {
+    expect(isBuiltInFormula('5,5*x', 0)).toBe(true);
+  });
+
+  it('should return false for "5,5*x" with discipline fields (would be linked)', () => {
+    expect(isBuiltInFormula('5,5*x', 2)).toBe(false);
+  });
+});
+
 // ─── Round-trip stability ──────────────────────────────────────────────────
 
 describe('Built-in formula round-trip (enter → save → load → same input)', () => {
@@ -164,6 +209,49 @@ describe('Built-in formula round-trip (enter → save → load → same input)',
 
     const loadedValues = getBuiltInFormulaInitialValues(formula, scoreToSave, 0);
     expect(loadedValues).toEqual({ x: 4 });
+  });
+
+  it('should be stable for "5,5*x": enter x=3 → save 3 → load x=3', () => {
+    const formula = '5,5*x';
+    // Step 1: User types x=3, formula calculates 5.5*3=16.5
+    const calculatedScore = 16.5;
+    const fieldValues = { x: 3 };
+
+    // Step 2: getScoreToSave returns 3 (raw)
+    const scoreToSave = getScoreToSave(calculatedScore, fieldValues, formula, 0);
+    expect(scoreToSave).toBe(3);
+
+    // Step 3: On load, getBuiltInFormulaInitialValues maps 3 → {x: 3}
+    const loadedValues = getBuiltInFormulaInitialValues(formula, scoreToSave, 0);
+    expect(loadedValues).toEqual({ x: 3 });
+  });
+
+  it('should be stable for "5,5*x": enter x=4 → save 4 → load x=4', () => {
+    const formula = '5,5*x';
+    const calculatedScore = 22; // 5.5 * 4
+    const fieldValues = { x: 4 };
+
+    const scoreToSave = getScoreToSave(calculatedScore, fieldValues, formula, 0);
+    expect(scoreToSave).toBe(4);
+
+    const loadedValues = getBuiltInFormulaInitialValues(formula, scoreToSave, 0);
+    expect(loadedValues).toEqual({ x: 4 });
+  });
+
+  it('should NOT double-calculate for "5,5*x": old bug would store 16.5 then load x=16.5 → 90.75', () => {
+    const formula = '5,5*x';
+    const fieldValues = { x: 3 };
+
+    // OLD BUG: would store 16.5 (the calculated value)
+    const buggyScoreToSave = 16.5;
+    const buggyLoadedValues = getBuiltInFormulaInitialValues(formula, buggyScoreToSave, 0);
+    // BUG: x=16.5 → would calculate 5.5*16.5 = 90.75 !!!
+    expect(buggyLoadedValues).toEqual({ x: 16.5 });
+
+    // FIX: store raw value 3
+    const fixedScoreToSave = getScoreToSave(16.5, fieldValues, formula, 0);
+    const fixedLoadedValues = getBuiltInFormulaInitialValues(formula, fixedScoreToSave, 0);
+    expect(fixedLoadedValues).toEqual({ x: 3 }); // Correct!
   });
 
   it('should NOT double-calculate for "20-x": enter x=5 → save → load should NOT yield x=15', () => {

@@ -12,7 +12,7 @@
 
 import { test, expect } from '@playwright/test';
 import { navigateTo, waitForLoadingToFinish } from '../helpers';
-import { loadEventAState } from '../fixtures/test-state';
+import { loadEventAState, setEventContext } from '../fixtures/test-state';
 import { API_BASE } from '../fixtures/test-data';
 
 test.describe('Squad Auto-Assignment', () => {
@@ -25,7 +25,8 @@ test.describe('Squad Auto-Assignment', () => {
         test.skip();
         return;
       }
-      await navigateTo(page, `/squad-management?eventId=${state.eventId}`);
+      await setEventContext(page, state.eventId, state.eventName);
+      await navigateTo(page, `/squads?eventId=${state.eventId}`);
       await waitForLoadingToFinish(page);
 
       const autoAssignBtn = page.getByRole('button', { name: /automatische|auto assign/i });
@@ -38,7 +39,8 @@ test.describe('Squad Auto-Assignment', () => {
         test.skip();
         return;
       }
-      await navigateTo(page, `/squad-management?eventId=${state.eventId}`);
+      await setEventContext(page, state.eventId, state.eventName);
+      await navigateTo(page, `/squads?eventId=${state.eventId}`);
       await waitForLoadingToFinish(page);
 
       const autoAssignBtn = page.getByRole('button', { name: /automatische|auto assign/i });
@@ -55,7 +57,8 @@ test.describe('Squad Auto-Assignment', () => {
         test.skip();
         return;
       }
-      await navigateTo(page, `/squad-management?eventId=${state.eventId}`);
+      await setEventContext(page, state.eventId, state.eventName);
+      await navigateTo(page, `/squads?eventId=${state.eventId}`);
       await waitForLoadingToFinish(page);
 
       await page.getByRole('button', { name: /automatische|auto assign/i }).click();
@@ -75,7 +78,8 @@ test.describe('Squad Auto-Assignment', () => {
         test.skip();
         return;
       }
-      await navigateTo(page, `/squad-management?eventId=${state.eventId}`);
+      await setEventContext(page, state.eventId, state.eventName);
+      await navigateTo(page, `/squads?eventId=${state.eventId}`);
       await waitForLoadingToFinish(page);
 
       await page.getByRole('button', { name: /automatische|auto assign/i }).click();

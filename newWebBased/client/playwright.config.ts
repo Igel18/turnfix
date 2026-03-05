@@ -75,7 +75,7 @@ export default defineConfig({
     // ── Independent tests: No setup needed ──
     {
       name: 'independent',
-      testMatch: /tests\/(navigation|master-data[\w-]*|event-management|jury-server-access)\.spec\.ts/,
+      testMatch: /tests\/(navigation|master-data[\w-]*|event-management|jury-server-access|formula-crossview)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
 

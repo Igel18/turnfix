@@ -58,6 +58,28 @@ describe('applyBuiltInFormula', () => {
     expect(applyBuiltInFormula('2*x', 5)).toBe(10);
   });
 
+  // ─── Non-trivial multiplier "5,5*x" (German decimal comma) ────────────
+
+  it('should apply "5,5*x" with x=3 → 16.5', () => {
+    expect(applyBuiltInFormula('5,5*x', 3)).toBeCloseTo(16.5);
+  });
+
+  it('should apply "5,5*x" with x=4 → 22', () => {
+    expect(applyBuiltInFormula('5,5*x', 4)).toBe(22);
+  });
+
+  it('should apply "5,5*x" with x=2.5 → 13.75', () => {
+    expect(applyBuiltInFormula('5,5*x', 2.5)).toBeCloseTo(13.75);
+  });
+
+  it('should apply "5,5*x" with x=0 → 0', () => {
+    expect(applyBuiltInFormula('5,5*x', 0)).toBe(0);
+  });
+
+  it('should apply "5,5*x" with x=1.8 → 9.9', () => {
+    expect(applyBuiltInFormula('5,5*x', 1.8)).toBeCloseTo(9.9);
+  });
+
   // ─── Complex formula ─────────────────────────────────────────────────
 
   it('should handle complex time conversion formula', () => {

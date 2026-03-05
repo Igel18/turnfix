@@ -92,7 +92,7 @@ export function useScoreValidation({
       return { isValid: true, message: '' };
     }
     
-    const numericScore = parseFloat(scoreValue);
+    const numericScore = parseFloat(String(scoreValue).replace(',', '.'));
     if (isNaN(numericScore) || scoreValue === '') {
       return { isValid: true, message: '' };
     }
