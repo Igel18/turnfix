@@ -75,6 +75,13 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await navigateTo(page, '/discipline-groups');
     await waitForLoadingToFinish(page);
 
+    // Search for the test entry to make it visible (may be on another page)
+    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill(testGroupName);
+      await page.waitForTimeout(1000);
+    }
+
     const row = page.locator('table tbody tr', { hasText: testGroupName });
     if (await row.isVisible({ timeout: 3000 }).catch(() => false)) {
       const deleteButton = row.getByRole('button', { name: /löschen|delete|entfernen/i }).first();

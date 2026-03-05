@@ -279,8 +279,8 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     const input = page.locator(`input[data-participant="${pid}"][data-discipline="${discId}"]`);
     await input.waitFor({ state: 'visible', timeout: 10_000 });
 
-    // Save original value
-    const originalValue = await input.inputValue();
+    // Register cleanup BEFORE modifying (uses afterEach for reliable restore even on failure)
+    scoresToRestore.push({ pid, discId, score: WOMEN_SCORES[9][3] });
 
     // Type "3,3" with German decimal comma
     // Note: Playwright's fill() and pressSequentially() don't correctly insert commas
@@ -306,14 +306,6 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     expect(match).toBeTruthy();
     expect(match.score).toBeCloseTo(3.3, 1);
     expect(match.score).not.toBeCloseTo(33.0, 0);
-
-    // Restore original score
-    await apiPost(request, '/scores/save-value', {
-      competitionId: state.comp1Id,
-      participantId: pid,
-      disciplineId: discId,
-      score: parseFloat(originalValue.replace(',', '.')) || WOMEN_SCORES[9][3],
-    });
   });
 
   test('entering "9,75" via keyboard is saved as 9.75 (not 975.00)', async ({ page, request }) => {
@@ -337,7 +329,8 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     const input = page.locator(`input[data-participant="${pid}"][data-discipline="${discId}"]`);
     await input.waitFor({ state: 'visible', timeout: 10_000 });
 
-    const originalValue = await input.inputValue();
+    // Register cleanup BEFORE modifying
+    scoresToRestore.push({ pid, discId, score: WOMEN_SCORES[8][3] });
 
     // Type "9,75" with German decimal comma
     // Note: Playwright's fill() and pressSequentially() don't correctly insert commas
@@ -361,14 +354,6 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     );
     expect(match).toBeTruthy();
     expect(match.score).toBeCloseTo(9.75, 1);
-
-    // Restore
-    await apiPost(request, '/scores/save-value', {
-      competitionId: state.comp1Id,
-      participantId: pid,
-      disciplineId: discId,
-      score: parseFloat(originalValue.replace(',', '.')) || WOMEN_SCORES[8][3],
-    });
   });
 
   test('entering "3.3" with dot still works correctly', async ({ page, request }) => {
@@ -392,7 +377,8 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     const input = page.locator(`input[data-participant="${pid}"][data-discipline="${discId}"]`);
     await input.waitFor({ state: 'visible', timeout: 10_000 });
 
-    const originalValue = await input.inputValue();
+    // Register cleanup BEFORE modifying
+    scoresToRestore.push({ pid, discId, score: WOMEN_SCORES[7][3] });
 
     // Type "3.3" with English decimal point
     await input.click();
@@ -413,13 +399,5 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     );
     expect(match).toBeTruthy();
     expect(match.score).toBeCloseTo(3.3, 1);
-
-    // Restore
-    await apiPost(request, '/scores/save-value', {
-      competitionId: state.comp1Id,
-      participantId: pid,
-      disciplineId: discId,
-      score: parseFloat(originalValue.replace(',', '.')) || WOMEN_SCORES[7][3],
-    });
   });
 });

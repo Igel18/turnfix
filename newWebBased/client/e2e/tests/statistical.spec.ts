@@ -6,7 +6,7 @@
  */
 
 import { test, expect, APIRequestContext } from '@playwright/test';
-import { loadEventAState, apiGet, EventAState } from '../fixtures/test-state';
+import { loadEventAState, apiGet, apiPost, EventAState } from '../fixtures/test-state';
 import {
   WOMEN_SCORES, MEN_SCORES, EXPECTED_WOMEN, EXPECTED_MEN,
   SCORES_PER_COMPETITION, PARTICIPANTS_PER_CLUB,
@@ -15,8 +15,27 @@ import {
 
 let state: EventAState;
 
-test.beforeAll(async () => {
+test.beforeAll(async ({ request }) => {
   state = loadEventAState();
+
+  // Re-seed all expected scores to ensure data integrity.
+  // Previous test failures (e.g. comma regression) may have left corrupted scores.
+  const allScores = [
+    { compId: state.comp1Id, pids: state.womenPids, scores: WOMEN_SCORES },
+    { compId: state.comp2Id, pids: state.menPids, scores: MEN_SCORES },
+  ];
+  for (const { compId, pids, scores } of allScores) {
+    for (let p = 0; p < pids.length; p++) {
+      for (let d = 0; d < state.disciplineIds.length; d++) {
+        await apiPost(request, '/scores/save-value', {
+          competitionId: compId,
+          participantId: pids[p],
+          disciplineId: state.disciplineIds[d],
+          score: scores[p][d],
+        });
+      }
+    }
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════
