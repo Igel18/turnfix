@@ -22,8 +22,8 @@ import { describe, it, expect } from 'vitest';
 import {
   getScoreToSave,
   isBuiltInFormula,
-} from '../utils/builtInFormulaHelper';
-import { getBuiltInFormulaInitialValues } from '../utils/builtInFormulaHelper';
+} from '@turnfix/shared';
+import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
 
 // ─── isBuiltInFormula ──────────────────────────────────────────────────────
 

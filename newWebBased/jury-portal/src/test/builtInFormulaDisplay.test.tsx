@@ -13,7 +13,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { getBuiltInFormulaInitialValues } from '../utils/builtInFormulaHelper';
+import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
 import FormulaInput from '../components/FormulaInput';
 
 // ─── Unit: getBuiltInFormulaInitialValues ──────────────────────────────────
