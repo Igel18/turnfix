@@ -138,7 +138,15 @@ Invoke-Step -Name "Client-Tests (Vitest)" -Skip:($SkipTests -or $SkipUnitTests) 
 # ── 6. E2E-Tests (Playwright) ──────────────────────────────────────────────
 Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) -Action {
     Set-Location $ClientDir
+    # Run with both list (console) and html (report) reporters
     npx playwright test
+    # Show report hint regardless of pass/fail
+    $reportPath = Join-Path $ClientDir "playwright-report" "index.html"
+    if (Test-Path $reportPath) {
+        Write-Host ""
+        Write-Host "  📊 HTML-Report: $reportPath" -ForegroundColor Cyan
+        Write-Host "  📊 Öffnen mit:  npx playwright show-report" -ForegroundColor Cyan
+    }
 }
 
 # ── 7. Installer erstellen ────────────────────────────────────────────────
@@ -171,6 +179,17 @@ foreach ($entry in $results.GetEnumerator()) {
         'ÜBERSPRUNGEN'  { 'DarkGray' }
     }
     Write-Host "  $icon  $($entry.Key)" -ForegroundColor $c
+}
+
+# Show Playwright report hint if E2E tests were run
+if (-not ($SkipTests -or $SkipE2ETests)) {
+    $e2eReport = Join-Path $ClientDir "playwright-report" "index.html"
+    if (Test-Path $e2eReport) {
+        Write-Host ""
+        Write-Host "  📊 Playwright HTML-Report:" -ForegroundColor Cyan
+        Write-Host "     $e2eReport" -ForegroundColor Cyan
+        Write-Host "     Öffnen: cd $ClientDir ; npx playwright show-report" -ForegroundColor Cyan
+    }
 }
 
 Write-Host ""
