@@ -14,10 +14,19 @@
  * All pages use client-side jsPDF → doc.save() which triggers a browser
  * download event that Playwright can intercept.
  *
+ * Tests per page:
+ *   - Button visible
+ *   - Download triggers (.pdf filename)
+ *
+ * Deep validation (all 6 pages, loop-based):
+ *   - PDF file non-empty (> 1 KB)
+ *   - No console errors during export
+ *
  * Depends on Event A setup (needs an event with data so pages render content).
  */
 
 import { test, expect, Page, Download } from '@playwright/test';
+import * as fs from 'fs';
 import {
   loadEventAState,
   setEventContext,
@@ -216,4 +225,73 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
     }
     console.log('✓ All 6 pages use consistent "Export PDF" button label');
   });
+
+  // ── Deep validation: PDF file non-empty (all pages) ────────────
+
+  const PDF_PAGES = [
+    { name: 'Medallienspiegel', path: () => `/medallienspiegel?eventId=${stateA.eventId}` },
+    { name: 'Ergebnisse', path: () => `/results?eventId=${stateA.eventId}` },
+    { name: 'Event Management', path: () => '/event-management' },
+    { name: 'Event Participants', path: () => `/event-participants?eventId=${stateA.eventId}` },
+    { name: 'Squad Management', path: () => `/squads?eventId=${stateA.eventId}` },
+    { name: 'Meldematrix', path: () => `/meldematrix?eventId=${stateA.eventId}` },
+  ];
+
+  for (const p of PDF_PAGES) {
+    test(`${p.name} — PDF file is non-empty (> 1 KB)`, async ({ page }) => {
+      await navigateWithEvent(page, p.path());
+
+      // Event Participants button appears only after data loads
+      if (p.name === 'Event Participants') {
+        const btn = page.getByRole('button', { name: PDF_BUTTON_LABEL });
+        await btn.waitFor({ state: 'visible', timeout: 15_000 });
+      }
+
+      const download = await clickPDFAndWaitForDownload(page);
+      expect(download, `${p.name}: download should trigger`).not.toBeNull();
+
+      const filePath = await download!.path();
+      expect(filePath, `${p.name}: download path should exist`).toBeTruthy();
+
+      const stats = fs.statSync(filePath!);
+      expect(stats.size, `${p.name}: PDF should be > 1 KB (got ${stats.size} bytes)`).toBeGreaterThan(1024);
+      console.log(`✓ ${p.name}: PDF non-empty (${(stats.size / 1024).toFixed(1)} KB)`);
+    });
+  }
+
+  // ── Deep validation: No console errors during export (all pages) ─
+
+  for (const p of PDF_PAGES) {
+    test(`${p.name} — no console errors during PDF export`, async ({ page }) => {
+      const consoleErrors: string[] = [];
+      page.on('console', msg => {
+        if (msg.type() === 'error') {
+          consoleErrors.push(msg.text());
+        }
+      });
+
+      await navigateWithEvent(page, p.path());
+
+      if (p.name === 'Event Participants') {
+        const btn = page.getByRole('button', { name: PDF_BUTTON_LABEL });
+        await btn.waitFor({ state: 'visible', timeout: 15_000 });
+      }
+
+      const download = await clickPDFAndWaitForDownload(page);
+      expect(download, `${p.name}: download should trigger`).not.toBeNull();
+
+      // Wait a moment for any async errors to surface
+      await page.waitForTimeout(500);
+
+      // Filter for PDF-specific errors (ignore unrelated ones like network/websocket)
+      const pdfErrors = consoleErrors.filter(e =>
+        e.includes('Cannot export PDF') ||
+        e.includes('jsPDF') ||
+        e.includes('Missing') ||
+        e.includes('PDF generation')
+      );
+      expect(pdfErrors, `${p.name}: should have no PDF-related errors, but got: ${pdfErrors.join('; ')}`).toHaveLength(0);
+      console.log(`✓ ${p.name}: no console errors during PDF export`);
+    });
+  }
 });

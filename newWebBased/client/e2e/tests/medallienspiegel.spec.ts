@@ -125,3 +125,115 @@ test.describe('Medallienspiegel', () => {
     expect(data).toHaveProperty('bronze');
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+// Medallienspiegel — PDF Export Tests
+// ═══════════════════════════════════════════════════════════════════════
+test.describe('Medallienspiegel — PDF Export', () => {
+  test.beforeEach(async ({ page }) => {
+    await setEventContext(page, state.eventId, state.eventName);
+  });
+
+  test('PDF export button is visible when data exists', async ({ page }) => {
+    await page.goto(`/medallienspiegel?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+
+    // The "Export PDF" button is rendered by UnifiedPageHeader → blue button
+    const pdfBtn = page.locator('button:has-text("PDF")');
+    await expect(pdfBtn.first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('PDF export triggers download', async ({ page }) => {
+    await page.goto(`/medallienspiegel?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+
+    // Wait for data to load (table or grid should be visible)
+    const content = page.locator('table, [class*="grid"], [class*="card"]');
+    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+
+    // Click the PDF export button and wait for the download event
+    const pdfBtn = page.locator('button:has-text("PDF")');
+    await expect(pdfBtn.first()).toBeVisible({ timeout: 5_000 });
+
+    // jsPDF save() creates a download via an <a> element with blob URL
+    const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
+    await pdfBtn.first().click();
+    const download = await downloadPromise;
+
+    // Verify the download has a filename
+    const suggestedFilename = download.suggestedFilename();
+    expect(suggestedFilename).toBeTruthy();
+    expect(suggestedFilename.toLowerCase()).toContain('.pdf');
+  });
+
+  test('PDF export produces a non-empty file', async ({ page }) => {
+    await page.goto(`/medallienspiegel?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+
+    // Wait for data to load
+    const content = page.locator('table, [class*="grid"], [class*="card"]');
+    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+
+    const pdfBtn = page.locator('button:has-text("PDF")');
+    await expect(pdfBtn.first()).toBeVisible({ timeout: 5_000 });
+
+    const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
+    await pdfBtn.first().click();
+    const download = await downloadPromise;
+
+    // Save to a temp path and check file size
+    const filePath = await download.path();
+    expect(filePath).toBeTruthy();
+
+    // Read file size — a valid PDF should be at least a few KB
+    const fs = await import('fs');
+    const stats = fs.statSync(filePath!);
+    expect(stats.size).toBeGreaterThan(1024); // > 1 KB
+  });
+
+  test('PDF file starts with valid PDF header', async ({ page }) => {
+    await page.goto(`/medallienspiegel?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+
+    const content = page.locator('table, [class*="grid"], [class*="card"]');
+    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+
+    const pdfBtn = page.locator('button:has-text("PDF")');
+    await expect(pdfBtn.first()).toBeVisible({ timeout: 5_000 });
+
+    const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
+    await pdfBtn.first().click();
+    const download = await downloadPromise;
+
+    const filePath = await download.path();
+    expect(filePath).toBeTruthy();
+
+    // Read first bytes — valid PDFs start with "%PDF-"
+    const fs = await import('fs');
+    const buffer = fs.readFileSync(filePath!);
+    const header = buffer.slice(0, 5).toString('ascii');
+    expect(header).toBe('%PDF-');
+  });
+
+  test('no error when exporting with medal data', async ({ page }) => {
+    // Collect console errors during export
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    await page.goto(`/medallienspiegel?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+
+    const content = page.locator('table, [class*="grid"], [class*="card"]');
+    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+
+    const pdfBtn = page.locator('button:has-text("PDF")');
+    if (await pdfBtn.first().isVisible({ timeout: 5_000 }).catch(() => false)) {
+      const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
+      await pdfBtn.first().click();
+      await downloadPromise;
+
+      // No "Cannot export PDF" error messages should appear
+      const exportErrors = consoleErrors.filter(e => e.includes('Cannot export PDF'));
+      expect(exportErrors.length).toBe(0);
+    }
+  });
+});

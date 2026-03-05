@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loadEventAState, setEventContext, EventAState } from '../fixtures/test-state';
+import { loadEventAState, setEventContext, EventAState, apiPost } from '../fixtures/test-state';
 import { API_BASE } from '../fixtures/test-data';
 
 /**
@@ -7,6 +7,10 @@ import { API_BASE } from '../fixtures/test-data';
  * 
  * Tests the /live-scores page which displays real-time score updates
  * using Socket.IO. Uses LiveScoreUpdates component with settings panel.
+ * 
+ * Includes:
+ * - UI element tests (settings panel, inputs, toggles)
+ * - Socket.IO integration tests (submit score via API → verify live update)
  */
 
 let state: EventAState;
@@ -120,5 +124,140 @@ test.describe('Live Scores Page', () => {
     const warningVisible = await warningText.first().isVisible({ timeout: 5_000 }).catch(() => false);
     // Page should at least not crash
     expect(true).toBeTruthy();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// Socket.IO Integration Tests — Submit score via API, verify live update
+// ═══════════════════════════════════════════════════════════════════════
+test.describe('Live Scores — Socket.IO Integration', () => {
+  test.beforeEach(async ({ page }) => {
+    await setEventContext(page, state.eventId, state.eventName);
+  });
+
+  test('score submitted via API appears in live feed', async ({ page, request }) => {
+    // 1. Navigate to the live-scores page and wait for Socket.IO to connect
+    await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+    
+    // Wait for the green pulse indicator (Socket.IO connected)
+    const pulseIndicator = page.locator('[class*="animate-pulse"]');
+    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
+    
+    // Give Socket.IO a moment to join the competition room
+    await page.waitForTimeout(1_000);
+
+    // 2. Submit a score via the API — this triggers server-side Socket.IO emission
+    const participantId = state.womenPids[0];
+    const disciplineId = state.disciplineIds[0];
+    const competitionId = state.comp1Id;
+    const scoreValue = 12.345;
+
+    const result = await apiPost(request, '/scores/save-value', {
+      competitionId,
+      participantId,
+      disciplineId,
+      score: scoreValue,
+    });
+    expect(result.status).toBe(200);
+
+    // 3. Verify the score appears in the live feed (Socket.IO delivers it)
+    // The LiveScoreUpdates component renders participant name in a span.font-medium
+    // Wait for any score entry to appear (the divide-y container gets children)
+    const scoreEntry = page.locator('.divide-y > div').first();
+    await expect(scoreEntry).toBeVisible({ timeout: 15_000 });
+
+    // Verify the score value is displayed (formatted as "12.345" or similar)
+    const scoreText = page.locator('text=/12\\.3/');
+    await expect(scoreText.first()).toBeVisible({ timeout: 5_000 });
+  });
+
+  test('multiple scores appear in newest-first order', async ({ page, request }) => {
+    // Navigate and wait for Socket.IO
+    await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+    const pulseIndicator = page.locator('[class*="animate-pulse"]');
+    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
+    await page.waitForTimeout(1_000);
+
+    // Submit two scores in sequence
+    const firstScore = 10.100;
+    const secondScore = 13.750;
+
+    await apiPost(request, '/scores/save-value', {
+      competitionId: state.comp1Id,
+      participantId: state.womenPids[1],
+      disciplineId: state.disciplineIds[0],
+      score: firstScore,
+    });
+
+    // Wait for the first score to appear
+    await page.locator('text=/10\\.1/').first().waitFor({ timeout: 10_000 });
+
+    await apiPost(request, '/scores/save-value', {
+      competitionId: state.comp1Id,
+      participantId: state.womenPids[2],
+      disciplineId: state.disciplineIds[0],
+      score: secondScore,
+    });
+
+    // Wait for the second score to appear
+    await page.locator('text=/13\\.7/').first().waitFor({ timeout: 10_000 });
+
+    // Newest score (13.750) should be first in the list
+    const allScoreEntries = page.locator('.divide-y > div');
+    const firstEntryText = await allScoreEntries.first().textContent();
+    expect(firstEntryText).toContain('13.7');
+  });
+
+  test('score entry shows participant name and discipline', async ({ page, request }) => {
+    await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+    const pulseIndicator = page.locator('[class*="animate-pulse"]');
+    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
+    await page.waitForTimeout(1_000);
+
+    // Submit a score
+    await apiPost(request, '/scores/save-value', {
+      competitionId: state.comp1Id,
+      participantId: state.womenPids[3],
+      disciplineId: state.disciplineIds[1],
+      score: 11.500,
+    });
+
+    // Wait for the score to appear
+    const scoreEntry = page.locator('.divide-y > div').first();
+    await expect(scoreEntry).toBeVisible({ timeout: 15_000 });
+
+    // Should show the score value
+    await expect(page.locator('text=/11\\.5/').first()).toBeVisible({ timeout: 5_000 });
+
+    // Should show participant name (font-medium span inside the entry)
+    const nameSpan = scoreEntry.locator('.font-medium.text-gray-900');
+    await expect(nameSpan).toBeVisible({ timeout: 5_000 });
+    const nameText = await nameSpan.textContent();
+    expect(nameText?.trim().length).toBeGreaterThan(0);
+  });
+
+  test('score entry shows timestamp', async ({ page, request }) => {
+    await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+    const pulseIndicator = page.locator('[class*="animate-pulse"]');
+    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
+    await page.waitForTimeout(1_000);
+
+    await apiPost(request, '/scores/save-value', {
+      competitionId: state.comp1Id,
+      participantId: state.womenPids[4],
+      disciplineId: state.disciplineIds[0],
+      score: 9.250,
+    });
+
+    // Wait for score to appear
+    const scoreEntry = page.locator('.divide-y > div').first();
+    await expect(scoreEntry).toBeVisible({ timeout: 15_000 });
+
+    // Should show a timestamp (text-xs text-gray-500 element with time format like HH:MM)
+    const timestampEl = scoreEntry.locator('.text-xs.text-gray-500');
+    await expect(timestampEl).toBeVisible({ timeout: 5_000 });
+    const timeText = await timestampEl.textContent();
+    // Timestamp format: HH:MM or HH:MM:SS
+    expect(timeText).toMatch(/\d{1,2}:\d{2}/);
   });
 });

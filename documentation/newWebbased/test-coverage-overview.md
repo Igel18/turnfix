@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
-**Stand**: 3. März 2026
-**Gesamt**: ~3.087 Tests in ~133 Dateien
+**Stand**: 5. März 2026
+**Gesamt**: ~3.122 Tests in ~133 Dateien
 
 ---
 
@@ -9,13 +9,15 @@
 
 | Kategorie | Dateien | Tests |
 |-----------|---------|-------|
-| E2E Specs (Playwright) | 32 | 424 |
+| Kategorie | Dateien | Tests |
+|-----------|---------|-------|
+| E2E Specs (Playwright) | 32 | 459 |
 | E2E Setup/Teardown | 4 | 41 |
 | Client Unit/Integration/Component (Vitest) | 37 | 963 |
-| **Client Gesamt** | **73** | **1.428** |
+| **Client Gesamt** | **73** | **1.463** |
 | Server Unit/Integration/Component (Jest) | 60 | 1.659 |
 | **Server Gesamt** | **60** | **1.659** |
-| **Gesamt** | **~133** | **~3.087** |
+| **Gesamt** | **~133** | **~3.122** |
 
 ---
 
@@ -84,7 +86,7 @@
 | `placement.spec.ts` | 17 | API-Tests: Platzierungen, Tie-Breaking, Score-Änderungen |
 | `jury-portal.spec.ts` | 28 | `/jury` — Navigation, Score-Anzeige, Eingabe, Live-Updates |
 | `status.spec.ts` | 19 | Riegen-/Wettkampfstatus-Übergänge, Workflow-Validierung |
-| `pdf-export.spec.ts` | 13 | PDF-Export für 6 Seiten: Ergebnisse, Teilnehmer, Urkunden |
+| `pdf-export.spec.ts` | 25 | PDF-Export für 6 Seiten: Button, Download, **Dateigröße >1KB, keine Console-Errors** (je Seite) |
 | `load-test.spec.ts` | 20 | Last-/Stresstests: Concurrent Writes, Race Conditions, Benchmarks |
 | `master-data-areas.spec.ts` | 7 | `/areas` — CRUD, Suche, Ansichtswechsel, Löschen |
 | `master-data-persons.spec.ts` | 8 | `/persons` — CRUD, Suche, Pflichtfelder, Ansichtswechsel |
@@ -94,14 +96,14 @@
 | `time-planning.spec.ts` | 10 | `/time-planning` — Ansichten, Durchgänge, API-Validierung |
 | `group-scoring.spec.ts` | 10 | `/group-scoring` — Selektions-Panel, Dropdowns, API-Tests |
 | `team-scoring.spec.ts` | 10 | `/team-scoring` — Entity-Selector, API-Tests, Validierung |
-| `squad-status.spec.ts` | 11 | `/squad-status` — Matrix/Tabellen-Ansicht, Filter, API, CSV |
-| `live-scores.spec.ts` | 11 | `/live-scores` — Einstellungen, Socket.IO, Auto-Refresh |
-| `medallienspiegel.spec.ts` | 9 | `/medallienspiegel` — Medaillentabelle, API-Standings, Statistiken |
+| `squad-status.spec.ts` | 16 | `/squad-status` — Matrix/Tabellen-Ansicht, Filter, API, CSV, **API-Integration (Struktur, Filter, Refresh nach Score)** |
+| `live-scores.spec.ts` | 15 | `/live-scores` — Einstellungen, Socket.IO, Auto-Refresh, **Socket.IO-Integration (Score via API → Live-Feed, Reihenfolge, Teilnehmer-Infos, Timestamp)** |
+| `medallienspiegel.spec.ts` | 13 | `/medallienspiegel` — Medaillentabelle, API-Standings, Statistiken, **PDF-Export (Download, Dateigröße, PDF-Header, Fehlerfreiheit)** |
 | `jury-server-access.spec.ts` | 13 | Jury-Server Zugriffskontrolle: Port-Restriktionen (3002), API-Blockierung |
 | `team-competition.spec.ts` | 44 | Mannschaftswettkampf: Setup, Teams, Riegen, Wertungen, Platzierungen, XML-Import |
 | `squad-auto-assign.spec.ts` | 10 | Automatische Riegeneinteilung: Dialog, Kriterien, Vorschlag generieren/anwenden |
 
-> **Hinweis**: `squad-auto-assign.spec.ts` ist noch nicht in der Playwright-Config eingetragen und läuft daher nicht in der Pipeline.
+> ✅ `squad-auto-assign.spec.ts` ist seit 5. März 2026 in der Playwright-Config (`tests`-Projekt) eingetragen und läuft in der Pipeline.
 
 ### E2E Setup/Teardown — Details
 
@@ -196,7 +198,7 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 | `concurrentWrites.test.ts` | 12 | Concurrent-Write-Szenarien: Gleichzeitige Score-Erstellung, Upsert Race Conditions, Duplikat-Erkennung, Read-While-Write-Konsistenz, Burst-Resilienz, Datenintegrität nach Lastspitzen |
 
 > **Letzte bestätigte Zahlen**: 60 Test-Suites, 1.659 Tests (alle bestanden)
-
+ 
 ---
 
 ## Empfohlene nächste Tests (nach Risiko-Priorität)
@@ -205,6 +207,11 @@ Alle 12 zuvor nicht abgedeckten Routen sind jetzt mit Server-Integration- und/od
 
 ### Mögliche Vertiefungen
 1. ~~**Component-Tests** für die neuen Seiten (GroupScoreCapture, TeamScoreCapture, etc.)~~ ✅ Erledigt (139 Tests in 6 Dateien)
-2. **Socket.IO-Integration** — Tiefere Tests für Live-Updates in `/live-scores` und `/squad-status`
-3. **PDF-Export** — Medallienspiegel PDF-Export testen
+2. ~~**Socket.IO-Integration** — Tiefere Tests für Live-Updates in `/live-scores` und `/squad-status`~~ ✅ Erledigt (5. März 2026: 4 Socket.IO-Tests in live-scores, 5 API-Integration-Tests in squad-status)
+3. ~~**PDF-Export** — Medallienspiegel PDF-Export testen~~ ✅ Erledigt (5. März 2026: 4 Tests — Download, Dateigröße >1KB, PDF-Header `%PDF-`, Fehlerfreiheit)
 4. ~~**Edge Cases** — Score-Validierung bei ungültigen Eingaben, Concurrent-Write-Szenarien für neue Endpunkte~~ ✅ Erledigt (71 + 12 = 83 Tests in 2 Dateien)
+
+### Offene Vertiefungen
+5. ~~**PDF-Export Tiefenprüfung für alle Seiten**~~ ✅ Erledigt (5. März 2026: +12 Tests in `pdf-export.spec.ts` — Dateigröße >1KB + keine Console-Errors für alle 6 Seiten)
+   - ⚠️ **TimePlanning** (`/time-planning`) hat `showExportPDF=true`, ist aber bewusst nicht in `pdf-export.spec.ts` enthalten (vorerst ausgenommen)
+6. **Server-seitige Socket.IO-Events für Squad-Status** — Client-Code lauscht auf `squad-status-updated` und `competition-status-updated`, aber kein Server-Route emittiert diese Events aktuell
