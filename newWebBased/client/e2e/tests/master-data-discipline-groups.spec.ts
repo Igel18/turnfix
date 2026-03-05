@@ -1,9 +1,43 @@
 import { test, expect } from '@playwright/test';
 import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog } from '../helpers';
 
+const API_BASE = 'http://localhost:3001/api';
+
+/** Helper: Find the search input reliably.
+ *  The UnifiedPageHeader uses type="text" with a translated placeholder like
+ *  "Disziplingruppen suchen..." — we use getByPlaceholder (case-insensitive). */
+function getSearchInput(page: import('@playwright/test').Page) {
+  return page.getByPlaceholder(/suche|search|filter/i).first();
+}
+
 test.describe.serial('Master Data: Discipline Groups', () => {
   const uniqueSuffix = Date.now().toString().slice(-6);
   const testGroupName = `Test DisGrp E2E ${uniqueSuffix}`;
+
+  // Clean up leftover "Test DisGrp E2E" entries from previous runs
+  test.beforeAll(async ({ request }) => {
+    try {
+      const res = await request.get(`${API_BASE}/discipline-groups?limit=500`);
+      if (res.ok()) {
+        const data = await res.json();
+        const groups = data.disciplineGroups || data || [];
+        const staleEntries = groups.filter((g: any) =>
+          (g.name || g.var_name || '').startsWith('Test DisGrp E2E')
+        );
+        for (const entry of staleEntries) {
+          const id = entry.id || entry.int_diszgrpid;
+          if (id) {
+            await request.delete(`${API_BASE}/discipline-groups/${id}`).catch(() => {});
+          }
+        }
+        if (staleEntries.length > 0) {
+          console.log(`🧹 Cleaned up ${staleEntries.length} stale "Test DisGrp E2E" entries`);
+        }
+      }
+    } catch (e) {
+      console.log('⚠ Could not clean up stale test entries:', e);
+    }
+  });
 
   test('discipline groups page loads', async ({ page }) => {
     await navigateTo(page, '/discipline-groups');
@@ -51,11 +85,10 @@ test.describe.serial('Master Data: Discipline Groups', () => {
 
     // The new entry may be on a different page due to pagination.
     // Use the search filter to find it reliably.
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testGroupName);
-      await page.waitForTimeout(1000);
-    }
+    const searchInput = getSearchInput(page);
+    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
+    await searchInput.fill(testGroupName);
+    await page.waitForTimeout(1000);
     await expect(page.locator('table tbody')).toContainText(testGroupName, { timeout: 10_000 });
   });
 
@@ -63,12 +96,11 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await navigateTo(page, '/discipline-groups');
     await waitForLoadingToFinish(page);
 
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testGroupName);
-      await page.waitForTimeout(1000);
-      await expect(page.locator('table tbody')).toContainText(testGroupName);
-    }
+    const searchInput = getSearchInput(page);
+    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
+    await searchInput.fill(testGroupName);
+    await page.waitForTimeout(1000);
+    await expect(page.locator('table tbody')).toContainText(testGroupName);
   });
 
   test('can delete test discipline group', async ({ page }) => {
@@ -76,11 +108,10 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await waitForLoadingToFinish(page);
 
     // Search for the test entry to make it visible (may be on another page)
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testGroupName);
-      await page.waitForTimeout(1000);
-    }
+    const searchInput = getSearchInput(page);
+    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
+    await searchInput.fill(testGroupName);
+    await page.waitForTimeout(1000);
 
     const row = page.locator('table tbody tr', { hasText: testGroupName });
     if (await row.isVisible({ timeout: 3000 }).catch(() => false)) {

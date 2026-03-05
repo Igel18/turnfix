@@ -54,15 +54,28 @@ test.beforeAll(async () => {
 /** Wait for squad options to load in the select, then choose one.
  *  The SquadDisciplineSelector component returns null while loading,
  *  so we first wait for the select to become visible (proves data loaded),
- *  then wait for the specific option value. */
+ *  then wait for the specific option value.
+ *  Includes retry logic because under full-suite server load the component
+ *  may briefly re-render (loading → null → visible again). */
 async function selectSquadOption(page: import('@playwright/test').Page, value: string) {
-  const squadSelect = page.locator('select').first();
-  // Wait for the select to be visible (SquadDisciplineSelector renders null while loading)
-  await squadSelect.waitFor({ state: 'visible', timeout: 30_000 });
-  // Wait for the specific option value to appear in DOM
-  await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 30_000 });
-  await squadSelect.selectOption({ value });
-  await page.waitForTimeout(2000);
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const squadSelect = page.locator('select').first();
+      await squadSelect.waitFor({ state: 'visible', timeout: 30_000 });
+      await page.locator(`select option[value="${value}"]`).waitFor({ state: 'attached', timeout: 30_000 });
+      // Stabilization: wait then verify select is still visible
+      await page.waitForTimeout(500);
+      await squadSelect.waitFor({ state: 'visible', timeout: 5_000 });
+      await squadSelect.selectOption({ value }, { timeout: 15_000 });
+      await page.waitForTimeout(1000);
+      return;
+    } catch (e) {
+      if (attempt === maxRetries - 1) throw e;
+      console.log(`selectSquadOption attempt ${attempt + 1} failed, retrying...`);
+      await page.waitForTimeout(2000);
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════

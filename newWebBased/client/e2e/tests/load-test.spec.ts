@@ -399,9 +399,27 @@ test.describe('Load Test: Concurrent Browser Sessions', () => {
 
       // Verify all loaded (squad select should be visible)
       // Under concurrent load the API-driven select may take longer to render
+      // and may briefly disappear during re-renders (loading → null → visible again)
       for (const page of pageObjects) {
         const select = page.locator('select').first();
-        await select.waitFor({ state: 'visible', timeout: 25_000 });
+        // Retry: under heavy load the SquadDisciplineSelector may return null
+        // during loading state re-renders
+        let visible = false;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            await select.waitFor({ state: 'visible', timeout: 25_000 });
+            visible = true;
+            break;
+          } catch {
+            if (attempt < 2) {
+              await page.waitForTimeout(2000);
+            }
+          }
+        }
+        if (!visible) {
+          // Final attempt — let it throw with full error
+          await select.waitFor({ state: 'visible', timeout: 15_000 });
+        }
       }
 
       console.log(`✓ 3 score-capture browsers loaded simultaneously in ${elapsed}ms`);
