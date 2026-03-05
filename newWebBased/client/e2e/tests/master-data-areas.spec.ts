@@ -54,12 +54,16 @@ test.describe.serial('Master Data: Areas', () => {
     // Wait for dialog to close
     await expect(page.locator('[role="dialog"], .fixed.inset-0').first()).toBeHidden({ timeout: 10_000 });
 
+    // Open filter panel to reveal the search input
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
     // Search for the newly created area (table may be paginated)
-    const searchInput = page.locator('input[type="search"], input[type="text"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await searchInput.fill(testAreaName);
-      await page.waitForTimeout(1000);
-    }
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testAreaName);
+    await page.waitForTimeout(1000);
 
     // Verify in table
     await expect(page.locator('table tbody')).toContainText(testAreaName, { timeout: 10_000 });
@@ -69,12 +73,16 @@ test.describe.serial('Master Data: Areas', () => {
     await navigateTo(page, '/areas');
     await waitForLoadingToFinish(page);
 
-    const searchInput = page.locator('input[type="search"], input[type="text"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testAreaName);
-      await page.waitForTimeout(1000);
-      await expect(page.locator('table tbody')).toContainText(testAreaName);
-    }
+    // Open filter panel to reveal the search input
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testAreaName);
+    await page.waitForTimeout(1000);
+    await expect(page.locator('table tbody')).toContainText(testAreaName);
   });
 
   test('can toggle between table and card view', async ({ page }) => {
@@ -96,6 +104,15 @@ test.describe.serial('Master Data: Areas', () => {
   test('can delete a test area', async ({ page }) => {
     await navigateTo(page, '/areas');
     await waitForLoadingToFinish(page);
+
+    // Open filter panel and search for the test area
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testAreaName);
+    await page.waitForTimeout(1000);
 
     const row = page.locator('table tbody tr', { hasText: testAreaName });
     if (await row.isVisible({ timeout: 3000 }).catch(() => false)) {

@@ -2,11 +2,16 @@
 # TurnFix Full Pipeline
 # ============================================================================
 # Führt in einem Durchgang aus:
-#   1. Server-Tests (Jest: Unit + Integration)
-#   2. Client-Tests (Vitest: Unit + Integration + Component)
-#   3. E2E-Tests (Playwright)
-#   4. Build (Server + Client + Jury-Portal)
-#   5. Installer erstellen (Inno Setup)
+#   1. Build Shared (@turnfix/shared)
+#   2. Build Server + Client
+#   3. Build Jury-Portal
+#   4. Server-Tests (Jest: Unit + Integration)
+#   5. Client-Tests (Vitest: Unit + Integration + Component)
+#   6. E2E-Tests (Playwright)
+#   7. Installer erstellen (Inno Setup)
+#
+# Build zuerst: Compile-Fehler fallen sofort auf (schnelles Feedback),
+# und Tests laufen garantiert gegen den aktuellen Stand.
 #
 # Verwendung:
 #   .\run-pipeline.ps1                         # Alles ausführen
@@ -100,37 +105,43 @@ Write-Host "╚═════════════════════�
 Write-Host "  Start: $(Get-Date -Format 'dd.MM.yyyy HH:mm:ss')"
 Write-Host ""
 
-# ── 1. Server-Tests (Jest) ─────────────────────────────────────────────────
-Invoke-Step -Name "Server-Tests (Jest)" -Skip:($SkipTests -or $SkipUnitTests) -Action {
-    Set-Location $ServerDir
-    npm test -- --forceExit
+# ── 1. Shared-Paket bauen ─────────────────────────────────────────────────
+Invoke-Step -Name "Build Shared (@turnfix/shared)" -Skip:$SkipBuild -Action {
+    Set-Location (Join-Path $WebDir "shared")
+    npm run build
 }
 
-# ── 2. Client-Tests (Vitest) ───────────────────────────────────────────────
-Invoke-Step -Name "Client-Tests (Vitest)" -Skip:($SkipTests -or $SkipUnitTests) -Action {
-    Set-Location $ClientDir
-    npm run test:run
-}
-
-# ── 3. E2E-Tests (Playwright) ──────────────────────────────────────────────
-Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) -Action {
-    Set-Location $ClientDir
-    npx playwright test
-}
-
-# ── 4a. Build Server + Client ─────────────────────────────────────────────
+# ── 2. Build Server + Client ──────────────────────────────────────────────
 Invoke-Step -Name "Build Server + Client" -Skip:$SkipBuild -Action {
     Set-Location $WebDir
     npm run build
 }
 
-# ── 4b. Build Jury-Portal ─────────────────────────────────────────────────
+# ── 3. Build Jury-Portal ──────────────────────────────────────────────────
 Invoke-Step -Name "Build Jury-Portal" -Skip:$SkipBuild -Action {
     Set-Location $JuryPortalDir
     npm run build
 }
 
-# ── 5. Installer erstellen ────────────────────────────────────────────────
+# ── 4. Server-Tests (Jest) ─────────────────────────────────────────────────
+Invoke-Step -Name "Server-Tests (Jest)" -Skip:($SkipTests -or $SkipUnitTests) -Action {
+    Set-Location $ServerDir
+    npm test -- --forceExit
+}
+
+# ── 5. Client-Tests (Vitest) ───────────────────────────────────────────────
+Invoke-Step -Name "Client-Tests (Vitest)" -Skip:($SkipTests -or $SkipUnitTests) -Action {
+    Set-Location $ClientDir
+    npm run test:run
+}
+
+# ── 6. E2E-Tests (Playwright) ──────────────────────────────────────────────
+Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) -Action {
+    Set-Location $ClientDir
+    npx playwright test
+}
+
+# ── 7. Installer erstellen ────────────────────────────────────────────────
 Invoke-Step -Name "Installer erstellen (Inno Setup)" -Skip:$SkipInstaller -Action {
     $args = @("-SkipBuild")           # Build wurde oben bereits gemacht
     if ($SkipDownload) { $args += "-SkipDownload" }

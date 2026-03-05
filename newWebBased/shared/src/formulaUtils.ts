@@ -271,7 +271,7 @@ export function validateFormula(formula: string): { valid: boolean; error?: stri
     testValues[symbol] = 1;
   });
 
-  const result = calculateFormula(formula, testValues, 10);
+  const result = calculateFormula(formula, testValues);
   if (result === null) {
     return { valid: false, error: 'Formula cannot be evaluated' };
   }

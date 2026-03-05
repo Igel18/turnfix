@@ -10,6 +10,7 @@ import { getDisciplineIcon } from '../../../utils/iconUtils';
 import { isEventOnDate } from '../../../utils/eventUtils';
 import { normalizeScoreInput } from '../../../utils/scoreFormatter';
 import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/navigationHelper';
+import { getBuiltInFormulaInitialValues } from '../../../utils/builtInFormulaHelper';
 import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
@@ -457,6 +458,24 @@ export function useJuryData(): UseJuryDataReturn {
 
       if (!currentParticipant || !selectedDevice || disciplineFields.length === 0) {
         console.log('🔵 JURY: Skipping jury results load - missing prerequisites');
+
+        // For built-in formula disciplines (e.g., "1*x", "20-x") there are no
+        // discipline fields, but we still need to map the stored raw score back
+        // to the formula variable so FormulaInput can display it.
+        if (currentParticipant && selectedDevice?.var_formel && disciplineFields.length === 0) {
+          const builtInValues = getBuiltInFormulaInitialValues(
+            selectedDevice.var_formel,
+            currentParticipant.currentScore,
+            disciplineFields.length
+          );
+          if (Object.keys(builtInValues).length > 0) {
+            console.log('🔵 JURY: Built-in formula mapping:', builtInValues);
+            setLoadedJuryResults(builtInValues);
+            setFormulaFieldValues(builtInValues);
+            return;
+          }
+        }
+
         setLoadedJuryResults({});
         setFormulaFieldValues({});
         return;

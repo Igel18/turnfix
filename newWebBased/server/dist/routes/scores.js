@@ -115,10 +115,9 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
         const resultsWithJuryData = await Promise.all(results.map(async (result) => {
             if (!result.id)
                 return result;
-            // Initialize formula and startValue for this result
+            // Initialize formula for this result
             let formula = null; // Linked formula from tfx_formeln (multi-field)
             let disciplineFormula = null; // Discipline's own var_formel (built-in, applied at ranking time)
-            let startValue = 10.0; // Default starting value
             try {
                 console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
                 // Get discipline ID early so we can filter jury results by discipline
@@ -231,13 +230,6 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                         console.error('❌ [Server] Error loading discipline formula:', error);
                     }
                 }
-                // Parse starting value from the linked formula if it contains a constant
-                if (formula) {
-                    const startValueMatch = formula.match(/^[(\s]*(\d+\.?\d*)/);
-                    if (startValueMatch) {
-                        startValue = parseFloat(startValueMatch[1]);
-                    }
-                }
                 // Calculate and save final score if needed
                 if (needsEndwertCalculation && formula && endwertFieldId) {
                     try {
@@ -325,7 +317,6 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                     ...result,
                     formula,
                     disciplineFormula,
-                    startValue,
                     juryResults: juryResults.map((jr) => ({
                         id: jr.id,
                         disciplineFieldId: jr.disciplineFieldId,
@@ -373,7 +364,6 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
             status: result.status,
             formula: result.formula || null,
             disciplineFormula: result.disciplineFormula || null,
-            startValue: result.startValue || null,
             participant: {
                 firstName: result.var_vorname,
                 lastName: result.var_nachname
