@@ -48,6 +48,14 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await saveButton.click();
 
     await page.waitForTimeout(1000);
+
+    // The new entry may be on a different page due to pagination.
+    // Use the search filter to find it reliably.
+    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
+    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await searchInput.fill(testGroupName);
+      await page.waitForTimeout(1000);
+    }
     await expect(page.locator('table tbody')).toContainText(testGroupName, { timeout: 10_000 });
   });
 

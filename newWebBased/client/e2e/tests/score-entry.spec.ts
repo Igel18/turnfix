@@ -242,6 +242,21 @@ test.describe('Score Entry: API Verification', () => {
 
 test.describe('Score Entry: German Decimal Comma (Regression)', () => {
 
+  // Track scores that need restoring — afterEach ensures cleanup even on failure
+  const scoresToRestore: Array<{ pid: number; discId: number; score: number }> = [];
+
+  test.afterEach(async ({ request }) => {
+    for (const entry of scoresToRestore) {
+      await apiPost(request, '/scores/save-value', {
+        competitionId: state.comp1Id,
+        participantId: entry.pid,
+        disciplineId: entry.discId,
+        score: entry.score,
+      });
+    }
+    scoresToRestore.length = 0;
+  });
+
   test('entering "3,3" via keyboard is saved as 3.30 (not 33.00)', async ({ page, request }) => {
     test.setTimeout(60_000);
     await setEventContext(page, state.eventId, state.eventName);

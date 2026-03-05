@@ -287,4 +287,21 @@ describe('normalizeScoreByDecimalPlaces', () => {
   it('returns empty for non-numeric input', () => {
     expect(normalizeScoreByDecimalPlaces('abc', 2)).toBe('');
   });
+
+  // German decimal comma regression tests
+  it('normalizes "7,1" with 2 decimals to "7.10" (German comma)', () => {
+    expect(normalizeScoreByDecimalPlaces('7,1', 2)).toBe('7.10');
+  });
+
+  it('normalizes "3,3" with 2 decimals to "3.30" (German comma)', () => {
+    expect(normalizeScoreByDecimalPlaces('3,3', 2)).toBe('3.30');
+  });
+
+  it('normalizes "9,75" with 2 decimals to "9.75" (German comma)', () => {
+    expect(normalizeScoreByDecimalPlaces('9,75', 2)).toBe('9.75');
+  });
+
+  it('normalizes "0,5" with 3 decimals to "0.500" (German comma)', () => {
+    expect(normalizeScoreByDecimalPlaces('0,5', 3)).toBe('0.500');
+  });
 });

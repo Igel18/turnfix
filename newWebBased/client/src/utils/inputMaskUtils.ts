@@ -310,7 +310,9 @@ export function normalizeScoreByDecimalPlaces(value: string, decimalPlaces: numb
     return '';
   }
 
-  const cleaned = value.replace(/[^\d.]/g, '');
+  // Replace German decimal comma with dot before cleaning
+  const withDot = value.replace(',', '.');
+  const cleaned = withDot.replace(/[^\d.]/g, '');
   const num = parseFloat(cleaned);
   
   if (isNaN(num)) {

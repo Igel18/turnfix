@@ -47,7 +47,7 @@ test.describe('Squad Auto-Assignment', () => {
       await autoAssignBtn.click();
 
       // Dialog should be visible with criteria step
-      await expect(page.getByText(/Automatische Riegeneinteilung|Automatic Squad Assignment/i)).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Automatische Riegeneinteilung|Automatic Squad Assignment/i })).toBeVisible();
       await expect(page.getByText(/Kriterien|Criteria/i).first()).toBeVisible();
     });
 
@@ -83,11 +83,11 @@ test.describe('Squad Auto-Assignment', () => {
       await waitForLoadingToFinish(page);
 
       await page.getByRole('button', { name: /automatische|auto assign/i }).click();
-      await expect(page.getByText(/Automatische Riegeneinteilung|Automatic Squad Assignment/i)).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Automatische Riegeneinteilung|Automatic Squad Assignment/i })).toBeVisible();
 
       // Close via cancel button
       await page.getByRole('button', { name: /Abbrechen|Cancel/i }).click();
-      await expect(page.getByText(/Automatische Riegeneinteilung|Automatic Squad Assignment/i)).not.toBeVisible();
+      await expect(page.getByRole('heading', { name: /Automatische Riegeneinteilung|Automatic Squad Assignment/i })).not.toBeVisible();
     });
   });
 
