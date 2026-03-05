@@ -113,7 +113,6 @@ export function useResultsData(
       const juryResultsMap = new Map<number, { [discipline: string]: any[] }>();
       const formulasMap = new Map<number, { [discipline: string]: string }>();
       const disciplineFormulasMap = new Map<number, { [discipline: string]: string }>();
-      const startValuesMap = new Map<number, { [discipline: string]: number }>();
       const disciplineSet = new Set<string>();
       const participantIds = new Set(participants.map((p: any) => p.id));
       const filteredScores = scores.filter((score: any) => participantIds.has(score.participantId));
@@ -166,12 +165,6 @@ export function useResultsData(
           }
           disciplineFormulasMap.get(participantId)![discipline] = score.disciplineFormula;
         }
-        if (score.startValue !== undefined) {
-          if (!startValuesMap.has(participantId)) {
-            startValuesMap.set(participantId, {});
-          }
-          startValuesMap.get(participantId)![discipline] = score.startValue;
-        }
       });
 
       console.log('📊 [Results] Final scores map:', Array.from(scoresMap.entries()));
@@ -185,7 +178,6 @@ export function useResultsData(
           const participantJuryResults = juryResultsMap.get(participant.id) || {};
           const participantFormulas = formulasMap.get(participant.id) || {};
           const participantDisciplineFormulas = disciplineFormulasMap.get(participant.id) || {};
-          const participantStartValues = startValuesMap.get(participant.id) || {};
           
           // Two-step score calculation (C++ backward compatible):
           //   Step 1: If linked formula + jury results exist, recalculate Endwert from fields
@@ -198,7 +190,6 @@ export function useResultsData(
             const juryResults = participantJuryResults[discipline];
             const formula = participantFormulas[discipline];       // linked formula (multi-field)
             const discFormula = participantDisciplineFormulas[discipline]; // built-in var_formel
-            const startValue = participantStartValues[discipline] || 10;
             
             // Step 1: If we have jury results and linked formula, recalculate Endwert from fields
             let scoreForRanking = storedScore;
@@ -214,7 +205,7 @@ export function useResultsData(
                   }
                 });
                 
-                const calculatedScore = calculateFormula(formula, valuesMap, startValue);
+                const calculatedScore = calculateFormula(formula, valuesMap);
                 
                 if (calculatedScore !== null) {
                   scoreForRanking = calculatedScore;
@@ -259,7 +250,6 @@ export function useResultsData(
             scores: recalculatedScores, // Use recalculated scores instead of stored scores
             juryResults: participantJuryResults,
             formulas: participantFormulas,
-            startValues: participantStartValues,
             totalScore,
             rank: 0,
             competitionId: participant.assignedCompetitions?.[0],

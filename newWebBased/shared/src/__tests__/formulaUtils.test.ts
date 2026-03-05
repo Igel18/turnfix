@@ -315,7 +315,7 @@ describe('calculateFormula', () => {
     expect(calculateFormula('A + B', { A: 6, B: 4 })).toBe(10);
   });
 
-  it('calculates "(10 + A) - B" with startValue', () => {
+  it('calculates "(10 + A) - B" with literal 10', () => {
     expect(calculateFormula('(10 + A) - B', { A: 6, B: 3.5 })).toBeCloseTo(12.5, 5);
   });
 

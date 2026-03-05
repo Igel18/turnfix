@@ -15,14 +15,12 @@ interface JuryResultsDisplayProps {
   finalScore: number
   disciplineName: string
   formula?: string
-  startValue?: number
 }
 
 export const JuryResultsDisplay = ({ 
   juryResults, 
   finalScore,
-  formula,
-  startValue = 10
+  formula
 }: JuryResultsDisplayProps) => {
 
   // DEBUG: Always log what we receive
@@ -30,7 +28,6 @@ export const JuryResultsDisplay = ({
     juryResultsCount: juryResults?.length || 0,
     finalScore,
     formula,
-    startValue,
     juryResults
   })
 
@@ -71,10 +68,10 @@ export const JuryResultsDisplay = ({
       }
     })
 
-    console.log('🧮 [JuryResultsDisplay] Calculating with:', { formula, startValue, valuesMap })
+    console.log('🧮 [JuryResultsDisplay] Calculating with:', { formula, valuesMap })
 
     // Calculate fresh score using centralized formula utility
-    const calculatedScore = calculateFormula(formula, valuesMap, startValue)
+    const calculatedScore = calculateFormula(formula, valuesMap)
     
     console.log('✅ [JuryResultsDisplay] Calculation result:', { calculatedScore, originalScore: finalScore })
     
@@ -98,7 +95,6 @@ export const JuryResultsDisplay = ({
   return (
     <FormulaDisplay
       formula={formula}
-      startValue={startValue}
       fields={fields}
       finalScore={actualFinalScore}
       mode="compact"

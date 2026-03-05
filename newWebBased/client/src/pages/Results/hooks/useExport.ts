@@ -117,7 +117,6 @@ export const useExport = ({
 
         // Use centralized formula utilities
         const formula = participant.formulas?.[discipline]
-        const startValue = participant.startValues?.[discipline]
         
         // Build field symbols map
         const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
@@ -134,15 +133,13 @@ export const useExport = ({
         // Format formula with values using centralized utility
         const formulaWithValues = formula
           ? formatFormulaWithValues(formula, valuesMap, { 
-              decimals: 2, 
-              replaceStartValue: startValue 
+              decimals: 2
             })
           : null
 
         // Build detailed breakdown
         const breakdown: string[] = []
         if (formulaWithValues) breakdown.push(`Formula: ${formulaWithValues}`)
-        if (startValue !== undefined) breakdown.push(`Start: ${startValue}`)
         
         // Field scores
         const fieldScores = fields
@@ -306,7 +303,6 @@ export const useExport = ({
 
           // Use centralized formula utilities
           const formula = participant.formulas?.[discipline]
-          const startValue = participant.startValues?.[discipline]
           
           // Build field symbols map
           const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
@@ -323,15 +319,13 @@ export const useExport = ({
           // Format formula with values using centralized utility
           const formulaWithValues = formula
             ? formatFormulaWithValues(formula, valuesMap, { 
-                decimals: 2, 
-                replaceStartValue: startValue 
+                decimals: 2
               })
             : null
 
           // Build detailed breakdown
           const breakdown: string[] = []
           if (formulaWithValues) breakdown.push(`Formula: ${formulaWithValues}`)
-          if (startValue !== undefined) breakdown.push(`Start: ${startValue}`)
           
           // Field scores
           const fieldScores = fields

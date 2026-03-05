@@ -157,7 +157,6 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
         
         // Get formula (prefer table formula over discipline formula)
         const formula = details.table_formula || details.discipline_formula;
-        const startValue = details.start_value || 10;
         
         let calculatedScore = parseFloat(score); // Default to stored score
         
@@ -197,10 +196,10 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
               }
             });
             
-            console.log(`🧮 Calculating formula "${formula}" with values:`, valuesMap, 'startValue:', startValue);
+            console.log(`🧮 Calculating formula "${formula}" with values:`, valuesMap);
             
             // Calculate using centralized formula utility
-            const result = calculateFormula(formula, valuesMap, startValue);
+            const result = calculateFormula(formula, valuesMap);
             
             if (result !== null) {
               calculatedScore = result;
@@ -388,10 +387,6 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
     
     console.log('📝 Formula:', formula);
     
-    // Extract start value from formula
-    const startValueMatch = formula.match(/^(\d+(\.\d+)?)/);
-    const startValue = startValueMatch ? parseFloat(startValueMatch[1]) : undefined;
-    
     // Get all non-final jury results
     const juryResultsQuery = `
       SELECT 
@@ -427,10 +422,10 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
       }
     });
     
-    console.log('🧮 Calculating with values:', valuesMap, 'startValue:', startValue);
+    console.log('🧮 Calculating with values:', valuesMap);
     
     // Calculate using centralized formula utility
-    const result = calculateFormula(formula, valuesMap, startValue);
+    const result = calculateFormula(formula, valuesMap);
     
     if (result === null) {
       return res.status(500).json({ error: 'Formula calculation failed' });

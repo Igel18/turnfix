@@ -79,7 +79,6 @@ describe('formulaUtils', () => {
       const result = parseFormula('A + B');
       expect(result.symbols).toEqual(['A', 'B']);
       expect(result.hasParentheses).toBe(false);
-      expect(result.startValue).toBeUndefined();
     });
 
     it('should detect parentheses', () => {
@@ -88,14 +87,14 @@ describe('formulaUtils', () => {
       expect(result.symbols).toEqual(['A', 'B', 'C']);
     });
 
-    it('should extract starting value', () => {
+    it('should extract symbols from formula with leading number', () => {
       const result = parseFormula('10 + A - B');
-      expect(result.startValue).toBe(10);
+      expect(result.symbols).toEqual(['A', 'B']);
     });
 
-    it('should handle decimal starting value', () => {
+    it('should handle formula with decimal leading number', () => {
       const result = parseFormula('10.5 + A');
-      expect(result.startValue).toBe(10.5);
+      expect(result.symbols).toEqual(['A']);
     });
 
     it('should return empty for empty formula', () => {
@@ -151,9 +150,9 @@ describe('formulaUtils', () => {
       expect(calculateFormula('A + B - C', { A: 5.2, B: 8.3, C: 0.3 })).toBeCloseTo(13.2);
     });
 
-    it('should handle override starting value', () => {
-      const result = calculateFormula('10 + A', { A: 3 }, 15);
-      expect(result).toBe(18); // 15 replaces 10
+    it('should handle formula with leading number', () => {
+      const result = calculateFormula('10 + A', { A: 3 });
+      expect(result).toBe(13); // 10 is literal part of formula
     });
   });
 
@@ -170,9 +169,10 @@ describe('formulaUtils', () => {
       expect(result).toBe('6.000 + 3.500');
     });
 
-    it('should replace starting value when provided', () => {
-      const result = formatFormulaWithValues('10 + A - B', { A: 6, B: 3.5 }, { replaceStartValue: 15 });
-      expect(result).toContain('15.00');
+    it('should format formula with leading number', () => {
+      const result = formatFormulaWithValues('10 + A - B', { A: 6, B: 3.5 });
+      expect(result).toContain('6.00');
+      expect(result).toContain('3.50');
     });
 
     it('should return empty string for empty formula', () => {

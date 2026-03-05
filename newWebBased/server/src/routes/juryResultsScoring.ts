@@ -190,7 +190,6 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
             
             // Get formula and calculate score
             const formula = info.table_formula || info.discipline_formula;
-            const startValue = info.start_value || 10;
             let calculatedScore = validatedData.performance;
             
             if (formula) {
@@ -231,7 +230,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
                 });
                 
                 console.log(`[JuryResults] Calculating formula with values:`, valuesMap);
-                const result = calculateFormula(formula, valuesMap, startValue);
+                const result = calculateFormula(formula, valuesMap);
                 
                 if (result !== null) {
                   calculatedScore = result;
@@ -269,7 +268,6 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
               finalScore: calculatedScore,
               score: calculatedScore,
               formula: formula,
-              startValue: startValue,
               attempt: validatedData.attempt,
               timestamp: new Date().toISOString()
             });

@@ -22,7 +22,6 @@ export type FormulaDisplayMode = 'compact' | 'full' | 'inline';
 
 interface FormulaDisplayProps {
   formula?: string;
-  startValue?: number;
   fields: FormulaField[];
   finalScore: number;
   mode?: FormulaDisplayMode;
@@ -31,7 +30,6 @@ interface FormulaDisplayProps {
 
 export const FormulaDisplay = ({
   formula,
-  startValue = 10,
   fields,
   finalScore,
   mode = 'compact',
@@ -49,8 +47,7 @@ export const FormulaDisplay = ({
   // Format formula with actual values
   const formulaWithValues = formula
     ? formatFormulaWithValues(formula, valuesMap, { 
-        decimals: 2, 
-        replaceStartValue: startValue 
+        decimals: 2
       })
     : null;
 
@@ -77,18 +74,6 @@ export const FormulaDisplay = ({
   if (mode === 'full') {
     return (
       <div className={`flex flex-col space-y-3 ${className}`}>
-        {/* Start Value */}
-        {startValue !== undefined && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 font-medium">Startwert:</span>
-            <div className="px-3 py-1 bg-blue-50 rounded-lg border border-blue-200">
-              <span className="text-sm font-bold text-blue-900 font-mono">
-                {formatScore(startValue)}
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Field Values */}
         {fields.length > 0 && (
           <div className="space-y-2">

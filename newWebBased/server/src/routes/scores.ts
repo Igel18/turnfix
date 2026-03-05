@@ -130,10 +130,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     const resultsWithJuryData = await Promise.all(results.map(async (result: any) => {
       if (!result.id) return result;
       
-      // Initialize formula and startValue for this result
+      // Initialize formula for this result
       let formula: string | null = null;           // Linked formula from tfx_formeln (multi-field)
       let disciplineFormula: string | null = null;  // Discipline's own var_formel (built-in, applied at ranking time)
-      let startValue = 10.0; // Default starting value
       
       try {
         console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
@@ -258,14 +257,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
           }
         }
         
-        // Parse starting value from the linked formula if it contains a constant
-        if (formula) {
-          const startValueMatch = formula.match(/^[(\s]*(\d+\.?\d*)/);
-          if (startValueMatch) {
-            startValue = parseFloat(startValueMatch[1]);
-          }
-        }
-        
         // Calculate and save final score if needed
         if (needsEndwertCalculation && formula && endwertFieldId) {
           try {
@@ -368,7 +359,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
           ...result,
           formula,
           disciplineFormula,
-          startValue,
           juryResults: juryResults.map((jr: any) => ({
             id: jr.id,
             disciplineFieldId: jr.disciplineFieldId,
@@ -420,7 +410,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       status: result.status,
       formula: result.formula || null,
       disciplineFormula: result.disciplineFormula || null,
-      startValue: result.startValue || null,
       participant: {
         firstName: result.var_vorname,
         lastName: result.var_nachname

@@ -17,7 +17,6 @@ import type { DisciplineField } from './JuryPortal/JuryPortal.types';
 
 interface FormulaInputProps {
   formula: string;
-  startValue?: number;
   decimals: number;
   onScoreChange: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   disabled?: boolean;
@@ -32,7 +31,6 @@ interface FormulaInputProps {
  */
 const FormulaInput: React.FC<FormulaInputProps> = ({
   formula,
-  startValue,
   decimals,
   onScoreChange,
   disabled = false,
@@ -78,10 +76,10 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
 
   // Calculate score whenever field values change
   useEffect(() => {
-    const result = calculateFormula(formula, fieldValues, startValue);
+    const result = calculateFormula(formula, fieldValues);
     setCalculatedScore(result);
     onScoreChangeRef.current(result, fieldValues);
-  }, [fieldValues, formula, startValue]);
+  }, [fieldValues, formula]);
 
   const handleFieldChange = (symbol: string, value: string) => {
     // Allow typing with decimal separators (both . and ,)
@@ -123,7 +121,7 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="text-xs font-medium text-gray-600 mb-1">Formel:</div>
         <div className="text-lg font-mono text-blue-900">
-          {formatFormulaWithValues(formula, fieldValues, { decimals, replaceStartValue: startValue })}
+          {formatFormulaWithValues(formula, fieldValues, { decimals })}
         </div>
       </div>
 

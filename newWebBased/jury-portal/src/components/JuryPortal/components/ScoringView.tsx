@@ -324,7 +324,6 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
               {selectedDevice?.var_formel ? (
                 <FormulaInput
                   formula={selectedDevice.var_formel}
-                  startValue={selectedDevice.maxScore}
                   decimals={selectedDevice.int_berechnung || 2}
                   disciplineFields={disciplineFields}
                   initialValues={loadedJuryResults}

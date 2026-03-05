@@ -27,7 +27,6 @@ export interface FormulaField {
 export interface ParsedFormula {
   originalFormula: string;
   symbols: string[];
-  startValue?: number;
   hasParentheses: boolean;
 }
 
@@ -87,14 +86,9 @@ export function parseFormula(formula: string): ParsedFormula {
   const symbols = extractFormulaSymbols(formula);
   const hasParentheses = formula.includes('(') && formula.includes(')');
 
-  // Try to extract starting value (number at beginning)
-  const startValueMatch = formula.match(/^(\d+(\.\d+)?)/);
-  const startValue = startValueMatch ? parseFloat(startValueMatch[1]) : undefined;
-
   return {
     originalFormula: formula,
     symbols,
-    startValue,
     hasParentheses
   };
 }
@@ -112,21 +106,12 @@ export function formatFormulaWithValues(
   values: Record<string, number>,
   options: {
     decimals?: number;
-    replaceStartValue?: number;
   } = {}
 ): string {
   if (!formula) return '';
 
-  const { decimals = 2, replaceStartValue } = options;
+  const { decimals = 2 } = options;
   let result = formula;
-
-  // Detect if this is a custom formula (lowercase variables like x, y, z)
-  const hasLowercaseVars = /\b[a-z]\b/.test(formula);
-
-  // Replace start value if provided — only for DB formulas (uppercase vars)
-  if (replaceStartValue !== undefined && !hasLowercaseVars) {
-    result = result.replace(/^(\d+(\.\d+)?)/, replaceStartValue.toFixed(decimals));
-  }
 
   // Replace each uppercase symbol with its value
   FORMULA_VARIABLES.forEach(variable => {
@@ -161,23 +146,12 @@ export function formatFormulaWithValues(
  */
 export function calculateFormula(
   formula: string,
-  values: Record<string, number>,
-  startValue?: number
+  values: Record<string, number>
 ): number | null {
   if (!formula) return null;
 
   try {
     let evalFormula = formula;
-
-    // Detect if this is a custom formula (contains lowercase variables like x, y, z)
-    // Custom formulas should NOT have their leading number replaced by startValue,
-    // because the number is part of the formula itself (e.g., "1*x", "(((1000/x)-2,158)/0,006)/49")
-    const hasLowercaseVars = /\b[a-z]\b/.test(formula);
-
-    // Replace start value if provided — only for DB formulas (uppercase vars like A, B, C)
-    if (startValue !== undefined && !hasLowercaseVars) {
-      evalFormula = evalFormula.replace(/^(\d+(\.\d+)?)/, startValue.toString());
-    }
 
     // Replace uppercase symbols with values
     FORMULA_VARIABLES.forEach(variable => {
@@ -221,7 +195,7 @@ export function calculateFormula(
 
     return typeof result === 'number' && !isNaN(result) ? result : null;
   } catch (error) {
-    console.error('[formulaUtils] Formula calculation error:', error, { formula, values, startValue });
+    console.error('[formulaUtils] Formula calculation error:', error, { formula, values });
     return null;
   }
 }

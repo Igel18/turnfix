@@ -14,7 +14,6 @@ export interface JuryResult {
   isFinalScore: boolean;
   isStartingScore: boolean;
   formula?: string;
-  startValue?: number;
 }
 
 export interface Participant {
@@ -28,7 +27,6 @@ export interface Participant {
   scores: { [discipline: string]: number };
   juryResults?: { [discipline: string]: JuryResult[] };
   formulas?: { [discipline: string]: string };
-  startValues?: { [discipline: string]: number };
   totalScore: number;
   rank: number;
   competitionId?: number;

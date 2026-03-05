@@ -146,7 +146,6 @@ export const ResultsTable = ({
                                 finalScore={participant.scores[discipline]}
                                 disciplineName={discipline}
                                 formula={participant.formulas?.[discipline]}
-                                startValue={participant.startValues?.[discipline]}
                               />
                             ) : (
                               <div className="flex flex-col items-center py-2">
@@ -299,7 +298,6 @@ export const ResultsTable = ({
                                     finalScore={participant.scores[discipline]}
                                     disciplineName={discipline}
                                     formula={participant.formulas?.[discipline]}
-                                    startValue={participant.startValues?.[discipline]}
                                   />
                                 ) : (
                                   <div className="flex flex-col items-center py-2">

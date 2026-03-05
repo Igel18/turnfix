@@ -167,37 +167,34 @@ describe('FormulaInput — extended tests', () => {
     });
   });
 
-  describe('formula with startValue', () => {
-    it('should use startValue when formula starts with a number', () => {
+  describe('formula with leading number', () => {
+    it('should use leading number as literal in formula', () => {
       const onScoreChange = vi.fn();
       render(
         <FormulaInput
           formula="10 + A - B"
-          startValue={15}
           decimals={2}
           onScoreChange={onScoreChange}
           initialValues={{ A: 2, B: 1 }}
         />
       );
 
-      // startValue replaces leading "10" → "15 + 2 - 1" = 16
+      // "10 + 2 - 1" = 11 (10 is literal part of formula)
       const lastCall = onScoreChange.mock.calls[onScoreChange.mock.calls.length - 1];
-      expect(lastCall[0]).toBeCloseTo(16, 2);
+      expect(lastCall[0]).toBeCloseTo(11, 2);
     });
 
-    it('should NOT replace start value when formula starts with parenthesis', () => {
+    it('should handle formula starting with parenthesis', () => {
       const onScoreChange = vi.fn();
       render(
         <FormulaInput
           formula="(10 + A) - B"
-          startValue={15}
           decimals={2}
           onScoreChange={onScoreChange}
           initialValues={{ A: 2, B: 1 }}
         />
       );
 
-      // Regex ^(\d+) does NOT match "(10..." so startValue is ignored
       // (10 + 2) - 1 = 11
       const lastCall = onScoreChange.mock.calls[onScoreChange.mock.calls.length - 1];
       expect(lastCall[0]).toBeCloseTo(11, 2);
