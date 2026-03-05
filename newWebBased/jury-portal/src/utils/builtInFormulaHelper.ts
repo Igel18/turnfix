@@ -58,3 +58,58 @@ export function getBuiltInFormulaInitialValues(
 
   return result;
 }
+
+/**
+ * Checks whether a formula is a "built-in" formula.
+ *
+ * Built-in formulas:
+ *  - Contain at least one lowercase variable (e.g., "x" in "20-x" or "1*x")
+ *  - Have NO linked discipline fields (disciplineFieldCount === 0)
+ *
+ * Linked formulas use uppercase variables (A, B, C) with discipline fields.
+ *
+ * @param formula - The discipline's var_formel
+ * @param disciplineFieldCount - Number of linked discipline fields
+ */
+export function isBuiltInFormula(
+  formula: string | null | undefined,
+  disciplineFieldCount: number
+): boolean {
+  if (!formula || disciplineFieldCount > 0) return false;
+  return /[a-z]/.test(formula);
+}
+
+/**
+ * Determines what score value should be saved to rel_leistung.
+ *
+ * - **Built-in formulas** (lowercase vars like "x", no discipline fields):
+ *   Store the RAW input value. The var_formel is applied at ranking time
+ *   by applyBuiltInFormula(). This matches C++ behavior.
+ *
+ * - **Linked formulas** (uppercase vars like A/B/C, with discipline fields):
+ *   Store the CALCULATED result. Individual field values are saved separately
+ *   to tfx_jury_results.
+ *
+ * @param calculatedScore - The result of evaluating the formula
+ * @param fieldValues - Map of variable → entered value (e.g., { x: 5 })
+ * @param formula - The discipline's var_formel
+ * @param disciplineFieldCount - Number of linked discipline fields
+ * @returns The score value that should be stored in rel_leistung
+ */
+export function getScoreToSave(
+  calculatedScore: number,
+  fieldValues: Record<string, number>,
+  formula: string,
+  disciplineFieldCount: number
+): number {
+  if (isBuiltInFormula(formula, disciplineFieldCount)) {
+    // Extract the single lowercase variable value (the raw user input)
+    const lowercaseEntries = Object.entries(fieldValues)
+      .filter(([key]) => /^[a-z]$/.test(key));
+    if (lowercaseEntries.length === 1) {
+      return lowercaseEntries[0][1];
+    }
+  }
+  // Linked formula or complex: store the calculated result
+  return calculatedScore;
+}
