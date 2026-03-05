@@ -116,7 +116,8 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
             if (!result.id)
                 return result;
             // Initialize formula and startValue for this result
-            let formula = null;
+            let formula = null; // Linked formula from tfx_formeln (multi-field)
+            let disciplineFormula = null; // Discipline's own var_formel (built-in, applied at ranking time)
             let startValue = 10.0; // Default starting value
             try {
                 console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
@@ -205,12 +206,21 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                         const formulaResult = await prisma_1.default.$queryRawUnsafe(formulaQuery, disciplineId);
                         console.log(`📊 [Server] Formula query for discipline ${disciplineId}:`, JSON.stringify(formulaResult, null, 2));
                         if (formulaResult.length > 0) {
-                            formula = formulaResult[0].tableFormula || formulaResult[0].disciplineFormula;
+                            // Keep both formulas separate (C++ backward compatibility):
+                            //   - formula:           linked/template formula from tfx_formeln (for multi-field calculation)
+                            //   - disciplineFormula:  discipline's own var_formel (applied at ranking/display time)
+                            formula = formulaResult[0].tableFormula || null;
+                            disciplineFormula = formulaResult[0].disciplineFormula || null;
+                            // For needsEndwertCalculation, only the linked formula is applicable
+                            // (the built-in formula is applied at ranking time, not at save time)
                             if (formula) {
-                                console.log('📐 [Server] Found formula on discipline:', formula);
+                                console.log('📐 [Server] Found linked formula on discipline:', formula);
                             }
-                            else {
-                                console.log(`⚠️ [Server] No formula found for discipline ${disciplineId} - disciplineFormula: '${formulaResult[0].disciplineFormula}', tableFormula: '${formulaResult[0].tableFormula}'`);
+                            if (disciplineFormula) {
+                                console.log('📐 [Server] Found built-in formula (var_formel) on discipline:', disciplineFormula);
+                            }
+                            if (!formula && !disciplineFormula) {
+                                console.log(`⚠️ [Server] No formula found for discipline ${disciplineId}`);
                             }
                         }
                         else {
@@ -221,7 +231,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                         console.error('❌ [Server] Error loading discipline formula:', error);
                     }
                 }
-                // Parse starting value from formula if it contains a constant
+                // Parse starting value from the linked formula if it contains a constant
                 if (formula) {
                     const startValueMatch = formula.match(/^[(\s]*(\d+\.?\d*)/);
                     if (startValueMatch) {
@@ -314,6 +324,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
                 return {
                     ...result,
                     formula,
+                    disciplineFormula,
                     startValue,
                     juryResults: juryResults.map((jr) => ({
                         id: jr.id,
@@ -361,6 +372,7 @@ router.get('/', authBypass_1.authenticateToken, async (req, res) => {
             notes: result.notes,
             status: result.status,
             formula: result.formula || null,
+            disciplineFormula: result.disciplineFormula || null,
             startValue: result.startValue || null,
             participant: {
                 firstName: result.var_vorname,

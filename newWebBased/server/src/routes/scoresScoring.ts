@@ -377,10 +377,13 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
       return res.status(404).json({ error: 'Discipline not found' });
     }
     
-    const formula = formulaResult[0].lookupFormula || formulaResult[0].disciplineFormula;
+    const formula = formulaResult[0].lookupFormula;
     
     if (!formula) {
-      return res.status(400).json({ error: 'No formula defined for this discipline' });
+      // Only linked formulas (from tfx_formeln) are used for multi-field calculation.
+      // The discipline's own var_formel is a built-in formula applied at ranking time,
+      // NOT for calculating Endwert from fields. (C++ backward compatibility)
+      return res.status(400).json({ error: 'No linked formula template defined for this discipline (only built-in var_formel found, which is applied at ranking time)' });
     }
     
     console.log('📝 Formula:', formula);

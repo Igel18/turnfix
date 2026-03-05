@@ -10,6 +10,7 @@
  */
 export {
   FORMULA_VARIABLES,
+  applyBuiltInFormula,
   buildFieldSymbolsMap,
   calculateFormula,
   extractFormulaSymbols,

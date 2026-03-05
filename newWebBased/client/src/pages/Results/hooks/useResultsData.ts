@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
-import { calculateFormula, buildFieldSymbolsMap } from '@/utils/formulaUtils';
+import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula } from '@/utils/formulaUtils';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
 
 interface UseResultsDataReturn {
@@ -112,6 +112,7 @@ export function useResultsData(
       const scoresMap = new Map<number, { [discipline: string]: number }>();
       const juryResultsMap = new Map<number, { [discipline: string]: any[] }>();
       const formulasMap = new Map<number, { [discipline: string]: string }>();
+      const disciplineFormulasMap = new Map<number, { [discipline: string]: string }>();
       const startValuesMap = new Map<number, { [discipline: string]: number }>();
       const disciplineSet = new Set<string>();
       const participantIds = new Set(participants.map((p: any) => p.id));
@@ -158,6 +159,13 @@ export function useResultsData(
           }
           formulasMap.get(participantId)![discipline] = score.formula;
         }
+        // Store built-in formula (var_formel) separately for ranking-time application
+        if (score.disciplineFormula) {
+          if (!disciplineFormulasMap.has(participantId)) {
+            disciplineFormulasMap.set(participantId, {});
+          }
+          disciplineFormulasMap.get(participantId)![discipline] = score.disciplineFormula;
+        }
         if (score.startValue !== undefined) {
           if (!startValuesMap.has(participantId)) {
             startValuesMap.set(participantId, {});
@@ -176,19 +184,24 @@ export function useResultsData(
           const participantScores = scoresMap.get(participant.id) || {};
           const participantJuryResults = juryResultsMap.get(participant.id) || {};
           const participantFormulas = formulasMap.get(participant.id) || {};
+          const participantDisciplineFormulas = disciplineFormulasMap.get(participant.id) || {};
           const participantStartValues = startValuesMap.get(participant.id) || {};
           
-          // IMPORTANT: Recalculate scores from juryResults if formula exists
-          // This ensures totalScore uses correct calculated values, not stored DB values
+          // Two-step score calculation (C++ backward compatible):
+          //   Step 1: If linked formula + jury results exist, recalculate Endwert from fields
+          //   Step 2: Apply built-in formula (var_formel) to transform score for ranking
+          // This matches result_calc.cpp behavior where var_formel is applied at ranking time.
           const recalculatedScores: { [discipline: string]: number } = {};
           
           Object.keys(participantScores).forEach(discipline => {
             const storedScore = participantScores[discipline];
             const juryResults = participantJuryResults[discipline];
-            const formula = participantFormulas[discipline];
+            const formula = participantFormulas[discipline];       // linked formula (multi-field)
+            const discFormula = participantDisciplineFormulas[discipline]; // built-in var_formel
             const startValue = participantStartValues[discipline] || 10;
             
-            // If we have jury results and formula, recalculate
+            // Step 1: If we have jury results and linked formula, recalculate Endwert from fields
+            let scoreForRanking = storedScore;
             if (juryResults && juryResults.length > 0 && formula) {
               const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
               const fields = Object.values(fieldsMap);
@@ -204,7 +217,7 @@ export function useResultsData(
                 const calculatedScore = calculateFormula(formula, valuesMap, startValue);
                 
                 if (calculatedScore !== null) {
-                  recalculatedScores[discipline] = calculatedScore;
+                  scoreForRanking = calculatedScore;
                   
                   if (Math.abs(calculatedScore - storedScore) > 0.01) {
                     console.log(`🔄 [Results] Recalculated ${participant.firstname} ${participant.lastname} - ${discipline}:`, {
@@ -213,18 +226,23 @@ export function useResultsData(
                       difference: calculatedScore - storedScore
                     });
                   }
-                } else {
-                  // Calculation failed, use stored score
-                  recalculatedScores[discipline] = storedScore;
                 }
-              } else {
-                // No fields, use stored score
-                recalculatedScores[discipline] = storedScore;
+                // If calculation failed, scoreForRanking stays as storedScore
               }
-            } else {
-              // No jury results or formula, use stored score
-              recalculatedScores[discipline] = storedScore;
             }
+            
+            // Step 2: Apply built-in formula (var_formel) for ranking
+            // This mirrors C++ result_calc.cpp: var_formel transforms the stored
+            // score into the ranking value (e.g. "20-x" converts time to points)
+            if (discFormula) {
+              const transformedScore = applyBuiltInFormula(discFormula, scoreForRanking);
+              if (transformedScore !== scoreForRanking) {
+                console.log(`📐 [Results] Applied var_formel "${discFormula}" to ${participant.firstname} ${participant.lastname} - ${discipline}: ${scoreForRanking} → ${transformedScore}`);
+              }
+              scoreForRanking = transformedScore;
+            }
+            
+            recalculatedScores[discipline] = scoreForRanking;
           });
           
           // Calculate total from recalculated scores

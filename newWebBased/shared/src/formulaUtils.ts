@@ -227,6 +227,40 @@ export function calculateFormula(
 }
 
 // ---------------------------------------------------------------------------
+// Built-in formula (var_formel) — applied at ranking/display time
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply a discipline's built-in formula (var_formel) to a raw score.
+ *
+ * This mirrors the C++ result_calc.cpp behaviour where var_formel is applied
+ * **at ranking time**, not at save time.  The raw score is stored unchanged
+ * in tfx_wertungen_details.rel_leistung; the built-in formula transforms it
+ * into the value used for ranking &amp; display.
+ *
+ * Built-in formulas use lowercase 'x' as the score variable:
+ *  - "1*x"    → identity (most common, no transformation)
+ *  - "20-x"   → subtract from 20 (time-based: lower time = higher score)
+ *  - "x/2,5"  → scaling (German decimal comma)
+ *  - "(((1000/x)-2,158)/0,006)/49" → complex time conversion
+ *
+ * @param formula  The discipline's var_formel (e.g. "20-x", "1*x").
+ *                 Pass null/undefined/empty to skip transformation.
+ * @param rawScore The raw score value from rel_leistung.
+ * @returns        The transformed score, or rawScore unchanged when no
+ *                 valid formula is provided.
+ */
+export function applyBuiltInFormula(
+  formula: string | null | undefined,
+  rawScore: number
+): number {
+  if (!formula) return rawScore;
+
+  const result = calculateFormula(formula, { x: rawScore });
+  return result !== null ? result : rawScore;
+}
+
+// ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
 
