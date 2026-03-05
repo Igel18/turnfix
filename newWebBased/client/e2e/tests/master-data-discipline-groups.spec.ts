@@ -1,14 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog, openFilterAndSearch } from '../helpers';
 
 const API_BASE = 'http://localhost:3001/api';
-
-/** Helper: Find the search input reliably.
- *  The UnifiedPageHeader uses type="text" with a translated placeholder like
- *  "Disziplingruppen suchen..." — we use getByPlaceholder (case-insensitive). */
-function getSearchInput(page: import('@playwright/test').Page) {
-  return page.getByPlaceholder(/suche|search|filter/i).first();
-}
 
 test.describe.serial('Master Data: Discipline Groups', () => {
   const uniqueSuffix = Date.now().toString().slice(-6);
@@ -84,11 +77,8 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await page.waitForTimeout(1000);
 
     // The new entry may be on a different page due to pagination.
-    // Use the search filter to find it reliably.
-    const searchInput = getSearchInput(page);
-    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
-    await searchInput.fill(testGroupName);
-    await page.waitForTimeout(1000);
+    // Open filter panel and search to find it reliably.
+    await openFilterAndSearch(page, testGroupName);
     await expect(page.locator('table tbody')).toContainText(testGroupName, { timeout: 10_000 });
   });
 
@@ -96,10 +86,7 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await navigateTo(page, '/discipline-groups');
     await waitForLoadingToFinish(page);
 
-    const searchInput = getSearchInput(page);
-    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
-    await searchInput.fill(testGroupName);
-    await page.waitForTimeout(1000);
+    await openFilterAndSearch(page, testGroupName);
     await expect(page.locator('table tbody')).toContainText(testGroupName);
   });
 
@@ -108,10 +95,7 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     await waitForLoadingToFinish(page);
 
     // Search for the test entry to make it visible (may be on another page)
-    const searchInput = getSearchInput(page);
-    await searchInput.waitFor({ state: 'visible', timeout: 5_000 });
-    await searchInput.fill(testGroupName);
-    await page.waitForTimeout(1000);
+    await openFilterAndSearch(page, testGroupName);
 
     const row = page.locator('table tbody tr', { hasText: testGroupName });
     if (await row.isVisible({ timeout: 3000 }).catch(() => false)) {
