@@ -9,6 +9,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { exec } from 'child_process';
+import { reconnectPrisma } from '../lib/prisma';
 
 // Configuration file path
 export const CONFIG_FILE = path.join(process.cwd(), 'config', 'app-config.json');
@@ -391,7 +392,15 @@ export const saveConfig = async (config: AppConfig): Promise<boolean> => {
     if (config.database) {
       await updateEnvFile(config);
 
-      // Automatically regenerate Prisma client after .env update
+      // Reconnect the running Prisma singleton to the (potentially new) database
+      try {
+        await reconnectPrisma();
+      } catch (reconnectError) {
+        console.error('❌ Error reconnecting Prisma after config save:', reconnectError);
+        // Don't throw — config is already saved, reconnect can be retried by restarting
+      }
+
+      // Automatically regenerate Prisma client after .env update (non-blocking)
       exec('npx prisma generate', { cwd: process.cwd() }, (error, stdout, stderr) => {
         if (process.env.DEBUG === 'true') {
           if (error) {
@@ -404,7 +413,7 @@ export const saveConfig = async (config: AppConfig): Promise<boolean> => {
         }
       });
 
-      // Restart server via PM2 after DB config change
+      // In production with PM2, also restart the server for a full clean state
       exec('pm2 restart turnfix-server', { cwd: process.cwd() }, (error, stdout, stderr) => {
         if (process.env.DEBUG === 'true') {
           if (error) {

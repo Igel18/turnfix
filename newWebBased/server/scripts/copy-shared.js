@@ -8,7 +8,8 @@
  * copies the actual shared package files so require('@turnfix/shared') works.
  *
  * Safe to run in both environments:
- * - If the symlink exists and resolves → skips shared copy (dev is fine)
+ * - If a real directory copy exists → skips (already good)
+ * - If a symlink exists → replaces with real copy (symlinks break on deploy)
  * - If missing or broken → copies from ../shared/
  */
 const fs = require('fs');
@@ -55,10 +56,17 @@ function canResolveShared() {
   }
 }
 
-// If shared already resolves (symlink works in dev), skip
-if (canResolveShared()) {
-  console.log('✓ @turnfix/shared already resolves — skipping copy');
+// If shared resolves via a REAL directory (not symlink), we can skip.
+// If it resolves only because of a symlink, we MUST replace
+// the symlink with a real copy — symlinks break when deployed
+// to a different machine (production installer).
+if (canResolveShared() && !isSymlinkOrJunction(sharedTarget)) {
+  console.log('✓ @turnfix/shared already resolves (real copy) — skipping');
   process.exit(0);
+}
+
+if (isSymlinkOrJunction(sharedTarget)) {
+  console.log('🔗 @turnfix/shared is a symlink — replacing with real copy for production');
 }
 
 // Source must exist

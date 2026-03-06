@@ -1,30 +1,8 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-
-// PrismaClient Singleton with Connection Resilience
-// This ensures only one instance exists across the application
-
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
-}
-
-// Connection pool configuration
-const connectionConfig: Prisma.PrismaClientOptions = {
-  // Log queries in development
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'info', 'warn', 'error']
-    : ['error'],
-  
-  // Error formatting
-  errorFormat: 'pretty',
-};
-
-// Create Prisma Client with retry logic
-export const prisma = global.prisma || new PrismaClient(connectionConfig);
-
-if (process.env.NODE_ENV !== 'production') {
-  global.prisma = prisma;
-}
+// Re-export the shared Prisma singleton from lib/prisma.ts
+// This ensures all code uses the same Proxy-based instance that
+// automatically switches to the new database after reconnectPrisma().
+import { prisma } from '../lib/prisma';
+export { prisma };
 
 // Connection health check
 export async function checkDatabaseConnection(): Promise<boolean> {

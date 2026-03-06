@@ -250,9 +250,16 @@ Auch dokumentieren & tests schreiben!
 41. Die Fallback Icons löschen und schauen warum in dem shared iconUtis.ts ein mapping drin ist. Das steht doch eigentlich in der DB ob und welche Disziplin welches Icon hat. Von mir aus kann beim fehlen eines icons in der DB (z.B. bei falschem namen) oder bei keiner angabe eines Icons in der Disziplin ein "Fehler" icon angezeigt werden. Auch testen.  
 	-> Erledigt ✅  
 
-42. Icons für Geräte 
-Eine UI um Icons für Geräte hinzuzufügen, zu löschen wäre hilfreich. 
-Und um Hintergrundbilder von Layouts hinzuzufügen/Löschen. 
+42. UI für Bilder
+Einstieg ist die Datenverwaltung im Management. Hier muss ein neuer Button hinzugefügt werden um zu einer neuen UI zu gelangen. 
+Diese neue UI muss angelegt werden. 
+Sie soll aussehen wie alle anderen DB-UIs in der Datenverwaltung (siehe auch myown). 
+Die UI soll für das Handling von Dateien zuständig sein (z.B. Bilder, xml (gibt es noch mehr?))
+- Unter Bilder fallen die Icons für die Disziplinen und die Bilder bei Urkunden. 
+- Unter XML fallen die hoch geladenen GymNet Imports. 
+- Es soll möglich sein hier Dateien hinzuzufügen, zu löschen und herunter zu laden. 
+- Da sich alle diese jetzt erwähnten Dateien in separaten Ordnern befinden wäre es auch gut dies zu kennzeichnen (z.B. als Kategorie). 
+
 Beim LayoutEditor gibt es schon eine Upload Möglichkeit. Diese sollte wiederverwendbar gemacht werden. 
 Beim Editieren der Geräte wäre ein DropDown menü gut, um die vorhandenen Icons auswählen zu können. 
 
