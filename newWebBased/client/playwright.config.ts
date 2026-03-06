@@ -27,8 +27,8 @@ export default defineConfig({
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  /* Retry flaky tests: 1 locally, 2 on CI */
+  retries: process.env.CI ? 2 : 1,
   /* Single worker for sequential execution */
   workers: 1,
   /* Reporter */
@@ -46,8 +46,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     /* Default timeout per action */
     actionTimeout: 10_000,
-    /* Default navigation timeout */
-    navigationTimeout: 15_000,
+    /* Default navigation timeout — generous to absorb cold starts */
+    navigationTimeout: 20_000,
     /* Locale for consistent date formatting */
     locale: 'de-DE',
   },

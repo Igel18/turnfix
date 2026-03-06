@@ -30,6 +30,7 @@ import {
   WOMEN_SCORES,
   MEN_SCORES,
 } from '../fixtures/test-data';
+import { robustGoto } from '../helpers';
 
 const JURY_URL = 'http://localhost:3002/jury';
 
@@ -45,26 +46,34 @@ test.beforeAll(async () => {
 
 /** Navigate Jury Portal: disable today filter, select event, click "Weiter" */
 async function selectEventInJuryPortal(page: Page, eventId: number) {
-  await page.goto(JURY_URL, { waitUntil: 'networkidle' });
+  await robustGoto(page, JURY_URL);
 
   // Disable "Filter today" so all events are visible
   await page.evaluate(() => {
     localStorage.setItem('juryPortal_filterToday', 'false');
   });
-  await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForTimeout(1500);
+  await page.reload({ waitUntil: 'domcontentloaded' }).catch(async () => {
+    // Retry reload on transient error
+    await page.waitForTimeout(1_000);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+  });
 
-  // Select event from dropdown
+  // Select event from dropdown — wait for options to be populated (not just the <select>)
   const selectEl = page.locator('select').first();
   await selectEl.waitFor({ state: 'visible', timeout: 10_000 });
+  // Wait until the dropdown has more than just the placeholder option
+  await selectEl.locator('option').nth(1).waitFor({ state: 'attached', timeout: 10_000 });
   await selectEl.selectOption(eventId.toString());
-  await page.waitForTimeout(500);
 
-  // Click "Weiter zur Riegeneinteilung"
+  // Click "Weiter zur Riegeneinteilung" — wait for button, not a fixed timeout
   const weiterBtn = page.getByText('Weiter zur Riegeneinteilung');
   await weiterBtn.waitFor({ state: 'visible', timeout: 5_000 });
   await weiterBtn.click();
-  await page.waitForTimeout(2000);
+
+  // Wait for squad selection to appear instead of fixed timeout
+  await page.locator('text=Riege auswählen').waitFor({ state: 'visible', timeout: 10_000 }).catch(() => {
+    // Some events may not show headline — wait a moment as fallback
+  });
 }
 
 /** From squad selection step, click a squad by name */
@@ -72,7 +81,8 @@ async function selectSquad(page: Page, squadName: string) {
   const squadCard = page.locator(`text=${squadName}`).first();
   await squadCard.waitFor({ state: 'visible', timeout: 10_000 });
   await squadCard.click();
-  await page.waitForTimeout(2000);
+  // Wait for device selection or next step to appear
+  await page.locator('text=Gerät auswählen').waitFor({ state: 'visible', timeout: 10_000 }).catch(() => {});
 }
 
 /** From device selection step, click a device by name */
@@ -80,7 +90,8 @@ async function selectDevice(page: Page, deviceName: string) {
   const deviceCard = page.locator(`text=${deviceName}`).first();
   await deviceCard.waitFor({ state: 'visible', timeout: 10_000 });
   await deviceCard.click();
-  await page.waitForTimeout(2000);
+  // Wait for the scoring view to appear (participant counter)
+  await page.locator('body').filter({ hasText: /Teilnehmer \d+ von \d+/ }).waitFor({ timeout: 15_000 }).catch(() => {});
 }
 
 /** Full navigation: event → squad → device → scoring view */
@@ -88,8 +99,8 @@ async function navigateToScoring(page: Page, eventId: number, squadName: string,
   await selectEventInJuryPortal(page, eventId);
   await selectSquad(page, squadName);
   await selectDevice(page, deviceName);
-  // Wait for participants to load
-  await page.waitForTimeout(3000);
+  // Wait for participants to be rendered
+  await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -99,8 +110,7 @@ async function navigateToScoring(page: Page, eventId: number, squadName: string,
 test.describe('Jury Portal: Navigation', () => {
 
   test('1.1 Jury Portal loads and shows welcome page', async ({ page }) => {
-    await page.goto(JURY_URL, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
+    await robustGoto(page, JURY_URL);
 
     // Should show "Kampfrichter-Portal" or event selection heading
     const body = await page.locator('body').textContent();
@@ -109,18 +119,18 @@ test.describe('Jury Portal: Navigation', () => {
   });
 
   test('1.2 Test event is visible after disabling today filter', async ({ page }) => {
-    await page.goto(JURY_URL, { waitUntil: 'networkidle' });
+    await robustGoto(page, JURY_URL);
 
     // Disable today filter
     await page.evaluate(() => {
       localStorage.setItem('juryPortal_filterToday', 'false');
     });
-    await page.reload({ waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
-    // Check event is in dropdown options
+    // Check event is in dropdown options — wait for options to be populated first
     const selectEl = page.locator('select').first();
     await selectEl.waitFor({ state: 'visible', timeout: 10_000 });
+    await selectEl.locator('option').nth(1).waitFor({ state: 'attached', timeout: 10_000 });
     const options = await selectEl.locator('option').allTextContents();
     const hasOurEvent = options.some(opt => opt.includes(state.eventName));
     expect(hasOurEvent).toBe(true);
@@ -150,15 +160,17 @@ test.describe('Jury Portal: Navigation', () => {
     await selectEventInJuryPortal(page, state.eventId);
     await selectSquad(page, 'RW');
 
-    // Wait for devices to load and click the first one
-    await page.waitForTimeout(2000);
+    // Wait for device cards to appear
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
     const deviceCount = await deviceCards.count();
     expect(deviceCount).toBeGreaterThan(0);
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
 
-    // Should show "Teilnehmer" or participant names in scoring view
+    // Wait for scoring view to load (participant counter)
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
+
+    // Should show participant names in scoring view
     const body = await page.locator('body').textContent({ timeout: 10_000 });
     const hasParticipant = WOMEN_FIRST_NAMES.some(name => body?.includes(name));
     expect(hasParticipant).toBe(true);
@@ -177,11 +189,10 @@ test.describe('Jury Portal: Navigation', () => {
     // Click "Zurück"
     const backBtn = page.getByText('← Zurück');
     await backBtn.click();
-    await page.waitForTimeout(1000);
 
     // Should be back at event selection
     const selectEl = page.locator('select').first();
-    await expect(selectEl).toBeVisible();
+    await expect(selectEl).toBeVisible({ timeout: 5_000 });
   });
 });
 
@@ -196,16 +207,16 @@ test.describe('Jury Portal: Existing Scores Display', () => {
     await selectEventInJuryPortal(page, state.eventId);
     await selectSquad(page, 'RW');
 
-    // Wait for devices to load and click first discipline
-    await page.waitForTimeout(2000);
+    // Wait for device cards to appear and click first discipline
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
 
-    // Check that at least some participants show scores (green checkmarks or score values)
-    const body = await page.locator('body').textContent({ timeout: 10_000 });
+    // Wait for scoring view to fully load
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
 
     // First participant (AnnaUI) should be visible
+    const body = await page.locator('body').textContent({ timeout: 10_000 });
     expect(body).toContain(WOMEN_FIRST_NAMES[0]);
   });
 
@@ -214,13 +225,12 @@ test.describe('Jury Portal: Existing Scores Display', () => {
     await selectEventInJuryPortal(page, state.eventId);
     await selectSquad(page, 'RW');
 
-    await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
 
     // Should show "Teilnehmer X von Y"
-    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 10_000 });
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
   });
 
   test('2.3 Men squad RM also shows participants', async ({ page }) => {
@@ -228,10 +238,12 @@ test.describe('Jury Portal: Existing Scores Display', () => {
     await selectEventInJuryPortal(page, state.eventId);
     await selectSquad(page, 'RM');
 
-    await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
+
+    // Wait for scoring view to load
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
 
     // First male participant (AdamUI) should be visible
     const body = await page.locator('body').textContent({ timeout: 10_000 });
@@ -245,16 +257,19 @@ test.describe('Jury Portal: Existing Scores Display', () => {
 
 test.describe('Jury Portal: Score Entry', () => {
 
-  test('3.1 Can enter and save a score for first participant', async ({ page }) => {
-    test.setTimeout(60_000);
+  /** Helper to navigate to scoring view with device selection */
+  async function gotoScoringView(page: Page) {
     await selectEventInJuryPortal(page, state.eventId);
     await selectSquad(page, 'RW');
-
-    // Select first device
-    await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
+  }
+
+  test('3.1 Can enter and save a score for first participant', async ({ page }) => {
+    test.setTimeout(60_000);
+    await gotoScoringView(page);
 
     // The scoring view should show a score input and "Bewertung speichern" button
     const saveBtn = page.getByText('Bewertung speichern').or(page.getByText('Speichert...'));
@@ -265,11 +280,9 @@ test.describe('Jury Portal: Score Entry', () => {
     if (await scoreInput.count() > 0) {
       // Clear and enter a new score
       await scoreInput.fill('12.34');
-      await page.waitForTimeout(500);
 
       // Click save
       await page.getByText('Bewertung speichern').click();
-      await page.waitForTimeout(2000);
 
       // Verify the save was acknowledged (button should not be in loading state anymore)
       await expect(page.getByText('Bewertung speichern')).toBeVisible({ timeout: 10_000 });
@@ -278,79 +291,49 @@ test.describe('Jury Portal: Score Entry', () => {
 
   test('3.2 Navigation between participants works', async ({ page }) => {
     test.setTimeout(60_000);
-    await selectEventInJuryPortal(page, state.eventId);
-    await selectSquad(page, 'RW');
-
-    await page.waitForTimeout(2000);
-    const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
-    await deviceCards.first().click();
-
-    // Wait for scoring view to be fully loaded (participant counter appears after fetchParticipants completes)
-    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 30_000 });
+    await gotoScoringView(page);
 
     // Click "Nächster →" to go to next participant
     const nextBtn = page.getByText('Nächster →');
     if (await nextBtn.isEnabled()) {
       await nextBtn.click();
-      await page.waitForTimeout(1000);
 
       // The counter should still show participant count
-      const body = await page.locator('body').textContent();
-      expect(body).toMatch(/von \d+/);
+      await expect(page.locator('body')).toContainText(/von \d+/, { timeout: 5_000 });
     }
   });
 
   test('3.3 "Vorheriger" button navigates back', async ({ page }) => {
     test.setTimeout(60_000);
-    await selectEventInJuryPortal(page, state.eventId);
-    await selectSquad(page, 'RW');
-
-    await page.waitForTimeout(2000);
-    const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
-    await deviceCards.first().click();
-
-    // Wait for scoring view to be fully loaded
-    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 30_000 });
+    await gotoScoringView(page);
 
     // Go to next participant first
     const nextBtn = page.getByText('Nächster →');
     if (await nextBtn.isEnabled()) {
       await nextBtn.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('body')).toContainText(/von \d+/, { timeout: 5_000 });
     }
 
     // Now click "Vorheriger" — should go back
     const prevBtn = page.getByText('← Vorheriger');
     if (await prevBtn.isEnabled()) {
       await prevBtn.click();
-      await page.waitForTimeout(1000);
 
       // Should be back at first/previous participant
-      const body = await page.locator('body').textContent();
-      expect(body).toBeTruthy();
+      await expect(page.locator('body')).toContainText(/von \d+/, { timeout: 5_000 });
     }
   });
 
   test('3.4 Clicking participant in list selects them', async ({ page }) => {
     test.setTimeout(60_000);
-    await selectEventInJuryPortal(page, state.eventId);
-    await selectSquad(page, 'RW');
-
-    await page.waitForTimeout(2000);
-    const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
-    await deviceCards.first().click();
-
-    // Wait for scoring view to be fully loaded
-    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 30_000 });
+    await gotoScoringView(page);
 
     // Click on a specific participant in the left sidebar (e.g., the 3rd one)
     const thirdParticipant = page.locator(`text=${WOMEN_FIRST_NAMES[2]}`).first();
     if (await thirdParticipant.isVisible()) {
       await thirdParticipant.click();
-      await page.waitForTimeout(1000);
 
       // The scoring panel should now show the selected participant's name
-      // The right panel contains the score card with participant name and start number
       const scoreCard = page.locator('.bg-white.rounded-lg, .bg-white.rounded-xl').filter({ hasText: WOMEN_FIRST_NAMES[2] });
       await expect(scoreCard).toBeVisible({ timeout: 5_000 });
     }
@@ -503,21 +486,18 @@ test.describe('Jury Portal: Cross-verification with Management UI', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
-      { waitUntil: 'networkidle' }
+      { waitUntil: 'domcontentloaded' }
     );
-    await page.waitForTimeout(1000);
 
     // Select squad RW
     await page.locator('select option[value="RW"]').waitFor({ state: 'attached', timeout: 15_000 });
     const squadSelect = page.locator('select').first();
     await squadSelect.selectOption({ value: 'RW' });
-    await page.waitForTimeout(2000);
 
     // Uncheck jury scores for simple view
     const juryCheckbox = page.locator('#showJuryScores');
     if (await juryCheckbox.isChecked()) {
       await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
     }
 
     // Check EvaUI's first discipline score
@@ -588,10 +568,12 @@ test.describe('Jury Portal: Device Completion', () => {
     await selectEventInJuryPortal(page, state.eventId);
     await selectSquad(page, 'RW');
 
-    await page.waitForTimeout(2000);
     const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
     await deviceCards.first().click();
-    await page.waitForTimeout(3000);
+
+    // Wait for scoring view to load
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
 
     // "Gerät abschließen" button should be visible in the header
     const finishBtn = page.getByText('Gerät abschließen');

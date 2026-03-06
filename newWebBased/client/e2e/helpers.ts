@@ -10,11 +10,52 @@ import { Page, expect } from '@playwright/test';
 // ─── Navigation Helpers ────────────────────────────────────────────
 
 /**
+ * Robust page.goto with automatic retry on transient network errors.
+ * Uses 'domcontentloaded' instead of 'networkidle' to avoid flaky timeouts
+ * caused by WebSockets, long-polling, or slow background API calls.
+ *
+ * Retries up to {@link maxRetries} times on ERR_NETWORK_CHANGED,
+ * ERR_CONNECTION_REFUSED, timeouts, and similar transient failures.
+ */
+export async function robustGoto(
+  page: Page,
+  url: string,
+  options?: { maxRetries?: number; waitUntil?: 'domcontentloaded' | 'load' | 'commit' },
+) {
+  const maxRetries = options?.maxRetries ?? 2;
+  const waitUntil = options?.waitUntil ?? 'domcontentloaded';
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await page.goto(url, { waitUntil });
+      return; // success
+    } catch (err: any) {
+      const msg: string = err?.message ?? '';
+      const isTransient =
+        msg.includes('ERR_NETWORK_CHANGED') ||
+        msg.includes('ERR_CONNECTION_REFUSED') ||
+        msg.includes('ERR_CONNECTION_RESET') ||
+        msg.includes('ERR_INTERNET_DISCONNECTED') ||
+        msg.includes('Timeout') ||
+        msg.includes('timeout');
+
+      if (isTransient && attempt < maxRetries) {
+        // Brief pause before retry
+        await page.waitForTimeout(1_000);
+        continue;
+      }
+      throw err; // non-transient or exhausted retries
+    }
+  }
+}
+
+/**
  * Navigate to a page and wait for it to be fully loaded.
- * Waits for network idle to ensure API calls are complete.
+ * Uses domcontentloaded + loading-spinner check instead of networkidle
+ * for reliability. Automatically retries on transient network errors.
  */
 export async function navigateTo(page: Page, path: string) {
-  await page.goto(path, { waitUntil: 'networkidle' });
+  await robustGoto(page, path);
 }
 
 /**
@@ -22,8 +63,31 @@ export async function navigateTo(page: Page, path: string) {
  * More reliable than networkidle for pages with streaming data.
  */
 export async function navigateAndWaitFor(page: Page, path: string, text: string) {
-  await page.goto(path);
+  await robustGoto(page, path);
   await page.getByText(text, { exact: false }).first().waitFor({ timeout: 10_000 });
+}
+
+/**
+ * Robust page.reload with automatic retry on transient network errors.
+ */
+export async function robustReload(page: Page) {
+  for (let attempt = 0; attempt <= 2; attempt++) {
+    try {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      return;
+    } catch (err: any) {
+      const msg: string = err?.message ?? '';
+      const isTransient =
+        msg.includes('ERR_NETWORK_CHANGED') ||
+        msg.includes('ERR_CONNECTION_REFUSED') ||
+        msg.includes('Timeout');
+      if (isTransient && attempt < 2) {
+        await page.waitForTimeout(1_000);
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 // ─── Page Header Helpers ───────────────────────────────────────────
@@ -157,9 +221,12 @@ export async function waitForLoadingToFinish(page: Page) {
 
 /**
  * Wait for the page to have no active network requests.
+ * Falls back gracefully if network never becomes idle (e.g. WebSocket).
  */
-export async function waitForNetworkIdle(page: Page) {
-  await page.waitForLoadState('networkidle');
+export async function waitForNetworkIdle(page: Page, timeout = 5_000) {
+  await page.waitForLoadState('networkidle').catch(() => {
+    // networkidle may never fire if there are persistent connections — that's OK
+  });
 }
 
 // ─── Assertion Helpers ─────────────────────────────────────────────
