@@ -11,6 +11,7 @@ import {
   LockClosedIcon,
   LockOpenIcon
 } from '@heroicons/react/24/outline';
+import ImagePicker from './ImagePicker';
 
 interface LayoutField {
   int_layout_felderid: number;
@@ -1020,91 +1021,27 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     
                     {selectedField.int_typ === 2 ? (
                       <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="text"
-                            placeholder={t('layoutDesigner.imagePathPlaceholder')}
-                            value={selectedField.var_value || ''}
-                            onChange={(e) => {
-                              updateField(selectedField.int_layout_felderid, { var_value: e.target.value });
-                            }}
-                            className="text-xs flex-1 px-2 py-1 border rounded"
-                            id="image-path"
-                          />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                try {
-                                  // Show uploading state immediately
-                                  const tempPath = t('layoutDesigner.uploading');
-                                  await updateField(selectedField.int_layout_felderid, { var_value: tempPath });
-                                  
-                                  // Upload image to server
-                                  const formData = new FormData();
-                                  formData.append('image', file);
-                                  
-                                  const response = await fetch('/api/images/upload', {
-                                    method: 'POST',
-                                    body: formData,
-                                  });
-                                  
-                                  if (response.ok) {
-                                    const result = await response.json();
-                                    // Store the server path and wait for it to complete
-                                    await updateField(selectedField.int_layout_felderid, { var_value: result.imagePath });
-                                    
-                                    // Force re-check of image loading
-                                    setLoadedImages(prev => {
-                                      const updated = { ...prev };
-                                      delete updated[result.imagePath]; // Remove existing entry to force re-check
-                                      return updated;
-                                    });
-                                    
-                                    // Trigger image load check after a brief delay
-                                    setTimeout(() => {
-                                      checkImageLoad(result.imagePath);
-                                    }, 100);
-                                  } else {
-                                    console.error('Failed to upload image');
-                                    alert(t('layoutDesigner.uploadFailed'));
-                                    // Revert to empty
-                                    await updateField(selectedField.int_layout_felderid, { var_value: '' });
-                                  }
-                                } catch (error) {
-                                  console.error('Error uploading image:', error);
-                                  alert(t('layoutDesigner.uploadError'));
-                                  // Revert to empty
-                                  await updateField(selectedField.int_layout_felderid, { var_value: '' });
-                                }
-                                // Clear the input so the same file can be selected again
-                                e.target.value = '';
-                              }
-                            }}
-                            className="hidden"
-                            id="image-upload"
-                            title={t('layoutDesigner.uploadImageFile')}
-                          />
-                          <label 
-                            htmlFor="image-upload" 
-                            className="px-2 py-1 bg-green-500 text-white text-xs rounded cursor-pointer hover:bg-green-600"
-                          >
-                            {t('layoutDesigner.upload')}
-                          </label>
-                        </div>
-                        
-                        {/* File format and size information */}
-                        <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded border">
-                          <div className="font-medium mb-1">📋 Upload Requirements:</div>
-                          <div className="space-y-1">
-                            <div>• <strong>Formats:</strong> PNG, JPG, JPEG, GIF, WebP, SVG</div>
-                            <div>• <strong>Max Size:</strong> 5 MB per file</div>
-                            <div>• <strong>Recommended:</strong> PNG or JPG for best quality</div>
-                            <div>• <strong>Note:</strong> Images are stored on server for reliable access</div>
-                          </div>
-                        </div>
+                        <ImagePicker
+                          value={selectedField.var_value || ''}
+                          onChange={async (val) => {
+                            await updateField(selectedField.int_layout_felderid, { var_value: val });
+                            if (val) {
+                              // Force re-check of image loading
+                              setLoadedImages(prev => {
+                                const updated = { ...prev };
+                                delete updated[val];
+                                return updated;
+                              });
+                              setTimeout(() => { checkImageLoad(val); }, 100);
+                            }
+                          }}
+                          category="images"
+                          allowUpload
+                          allowClear
+                          placeholder={t('layoutDesigner.imagePathPlaceholder')}
+                          columns={3}
+                          thumbnailSize="w-12 h-12"
+                        />
                         {selectedField.var_value && (
                           <div className="text-xs">
                             {loadedImages[selectedField.var_value] === true && (

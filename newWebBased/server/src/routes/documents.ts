@@ -46,6 +46,11 @@ interface CategoryDef {
 // __dirname = .../server/src/routes  →  go up 2 levels to get server root
 const serverRoot = path.resolve(__dirname, '..', '..');
 
+// uploads/ is served via express.static('uploads') which resolves relative to
+// process.cwd().  The images.ts route also uses process.cwd().  We must use the
+// same base so Documents sees the files that were uploaded via the layout editor.
+const uploadsRoot = process.cwd();
+
 const CATEGORIES: Record<string, CategoryDef> = {
   icons: {
     key: 'icons',
@@ -58,7 +63,7 @@ const CATEGORIES: Record<string, CategoryDef> = {
   },
   images: {
     key: 'images',
-    dir: path.join(serverRoot, 'uploads', 'images'),
+    dir: path.join(uploadsRoot, 'uploads', 'images'),
     allowedMimes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml'],
     maxFileSize: 5 * 1024 * 1024, // 5 MB
     uploadAllowed: true,
@@ -67,7 +72,7 @@ const CATEGORIES: Record<string, CategoryDef> = {
   },
   xml: {
     key: 'xml',
-    dir: path.join(serverRoot, 'uploads', 'xml'),
+    dir: path.join(uploadsRoot, 'uploads', 'xml'),
     allowedMimes: ['text/xml', 'application/xml'],
     maxFileSize: 10 * 1024 * 1024, // 10 MB
     uploadAllowed: true,
@@ -184,6 +189,23 @@ const upload = multer({
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
+
+/**
+ * GET /api/documents/count
+ * Returns total file count across all categories
+ */
+router.get('/count', (_req: Request, res: Response) => {
+  try {
+    let total = 0;
+    for (const cat of Object.values(CATEGORIES)) {
+      total += readDir(cat).length;
+    }
+    res.json({ count: total });
+  } catch (error) {
+    console.error('[Documents] Error counting files:', error);
+    res.status(500).json({ error: 'Failed to count files' });
+  }
+});
 
 /**
  * GET /api/documents/categories

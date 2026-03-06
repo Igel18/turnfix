@@ -161,7 +161,7 @@ const getDatabaseManagementActions = (statistics: any) => [
     href: '/documents',
     icon: DocumentTextIcon,
     color: 'bg-sky-500',
-    count: 0,
+    count: statistics.totalDocuments,
     countLabel: 'Files'
   },
   {
@@ -355,6 +355,7 @@ export function ManagementCenter() {
     totalDisciplineFields: 0,
     totalCertificateLayouts: 0,
     totalStatuses: 0,
+    totalDocuments: 0,
     loading: true
   })
 
@@ -500,7 +501,8 @@ export function ManagementCenter() {
           '/discipline-fields/count',
           '/layouts/count',
           '/statuses',
-          '/areas/count'
+          '/areas/count',
+          '/documents/count'
         ]
 
         const additionalPromises = additionalApis.map(url => 
@@ -519,7 +521,8 @@ export function ManagementCenter() {
           disciplineFieldsData,
           layoutsData,
           statusesData,
-          areasCountData
+          areasCountData,
+          documentsCountData
         ] = await Promise.all(additionalPromises)
 
         setStatistics({
@@ -538,6 +541,7 @@ export function ManagementCenter() {
           totalDisciplineFields: disciplineFieldsData?.count || 0,
           totalCertificateLayouts: layoutsData?.count || 0,
           totalStatuses: statusesData.pagination?.total || 0,
+          totalDocuments: documentsCountData?.count || 0,
           loading: false
         })
       } catch (error) {
