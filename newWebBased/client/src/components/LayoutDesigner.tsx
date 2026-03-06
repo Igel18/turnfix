@@ -322,16 +322,34 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     }
   };
 
+  /**
+   * Resolve an image value (var_value) to a loadable URL.
+   *
+   * Values may be stored as:
+   *   • "/uploads/images/foo.png"  → already a valid relative URL
+   *   • "foo.png"                  → bare filename (old entries) → prepend /uploads/images/
+   *   • "C:\\path\\foo.png"        → local Windows path → can't load in browser
+   *   • "http://..."               → absolute URL → use as-is
+   */
+  const resolveImageUrl = useCallback((imagePath: string): string => {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/public/')) return imagePath;
+    // Windows-style local path — not loadable
+    if (imagePath.includes(':\\')) return imagePath;
+    // Bare filename → assume it lives in /uploads/images/
+    return `/uploads/images/${imagePath}`;
+  }, []);
+
   // Check if an image can be loaded
   const checkImageLoad = useCallback((imagePath: string) => {
     if (!imagePath || loadedImages[imagePath] !== undefined) return;
     
     // Skip checking local file paths (they can't be loaded in browser)
-    const isLocalPath = imagePath.includes(':\\') || imagePath.startsWith('/');
-    const isUploadPath = imagePath.startsWith('/uploads/');
+    const isLocalPath = imagePath.includes(':\\') && !imagePath.startsWith('/uploads/');
     const isUploading = imagePath.includes('🔄');
     
-    if (isLocalPath && !isUploadPath) {
+    if (isLocalPath) {
       setLoadedImages(prev => ({ ...prev, [imagePath]: 'local' as any }));
       return;
     }
@@ -341,6 +359,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       return;
     }
     
+    // Resolve bare filenames to full URL
+    const resolvedUrl = resolveImageUrl(imagePath);
+    
     const img = new Image();
     img.onload = () => {
       setLoadedImages(prev => ({ ...prev, [imagePath]: true }));
@@ -348,8 +369,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     img.onerror = () => {
       setLoadedImages(prev => ({ ...prev, [imagePath]: false }));
     };
-    img.src = imagePath;
-  }, [loadedImages]);
+    img.src = resolvedUrl;
+  }, [loadedImages, resolveImageUrl]);
 
   // Check images when fields change
   useEffect(() => {
@@ -587,7 +608,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
           return (
             <div style={{ ...contentStyle, padding: 0, overflow: 'hidden' }}>
               <img 
-                src={imagePath} 
+                src={resolveImageUrl(imagePath)} 
                 alt="Layout Image"
                 style={{
                   width: '100%',
