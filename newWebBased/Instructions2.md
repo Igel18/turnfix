@@ -263,6 +263,8 @@ Die UI soll für das Handling von Dateien zuständig sein (z.B. Bilder, xml (gib
 Beim LayoutEditor gibt es schon eine Upload Möglichkeit. Diese sollte wiederverwendbar gemacht werden. 
 Beim Editieren der Geräte wäre ein DropDown menü gut, um die vorhandenen Icons auswählen zu können. 
 
+Tests und Dokumentation nicht vergessen 
+
 
 43. Benutzerdefinierte Formeln 
 Bei den Sportarten Leichtathletik, Schwimmen, Rope-Skipping, Gymnastik, Turnen bei denen keine Formel aus der anderen DB-Tabelle hinterlegt ist müssen Benutzerdefinierte Formeln hinterlegt sein. Dies muss über den DB-Wizard erfolgen der bereits die Disziplinen anlegt. 

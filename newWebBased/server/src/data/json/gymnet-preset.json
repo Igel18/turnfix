@@ -2,6 +2,67 @@
   "$comment": "GymNet preset data for TurnFix database initialization. Edit this file to change disciplines/formulas without rebuilding.",
   "version": "2.0",
   "maxPresetDisciplineId": 78,
+
+  "_help": {
+    "_overview": "Diese Datei definiert alle Formeln und Disziplinen (Geräte) für den GymNet-Import. Änderungen hier wirken sich beim nächsten DB-Wizard-Lauf aus — kein Rebuild nötig.",
+    "_formulas": {
+      "_description": "Formeln berechnen den Endwert aus den Eingabefeldern. Die Variablen A, B, C, x entsprechen den 'fields' des Geräts (in Reihenfolge der 'sortierung').",
+      "_variables": "A = 1. Feld, B = 2. Feld, C = 3. Feld, x = einziges Eingabefeld (bei '1*x')",
+      "_type": "int_typ in der DB. 0 = Standard. Aktuell immer 0.",
+      "_examples": {
+        "P-Wettkampf": "Felder: Stufe(A), AbzugAusf.(B), Endwert. Formel: (10 + A) - B → z.B. Stufe=4, Abzug=0.5 → 10+4−0.5 = 13.5",
+        "AK": "Felder: Ausgangswert(A), AbzugAusf.(B), AbzugSonst.(C), Endwert. Formel: A - B - C",
+        "LK": "Felder: D-Note(A), E-Note(B), N-Abzüge(C), Endwert. Formel: A + B - C",
+        "Benutzerdefiniert": "Felder: Wertung(x), Endwert. Formel: 1*x → Wertung wird 1:1 durchgereicht. Nutze diese Formel, wenn GymNet nur einen einzelnen Score liefert (kein D-/E-Note Split)."
+      },
+      "_neue_formel_anlegen": "Neuen Eintrag zu 'formulas' hinzufügen mit name, formula, type (0), description. Dann bei den Geräten 'formula' auf den neuen Namen setzen."
+    },
+    "_devices": {
+      "_description": "Jedes 'device' (Gerät/Disziplin) wird als Zeile in tfx_disziplinen angelegt.",
+      "_felder": {
+        "id": "Eindeutige Preset-ID. Wird als int_disziplinenid in der DB verwendet. Muss kleiner oder gleich maxPresetDisciplineId sein. NICHT ändern bei bestehenden Geräten!",
+        "name": "Interner Name (var_name, max 100 Zeichen). Muss eindeutig sein. z.B. 'Boden', 'Boden w', 'Boden m. Kür'",
+        "anzeigename": "Wird dem Benutzer angezeigt (var_kurz2, max 20 Zeichen). z.B. 'Boden' (ohne Geschlecht-Suffix)",
+        "kurzname": "Kurzform für Tabellen (var_kurz1, max 6 Zeichen). z.B. 'BODEN', 'SPRNG'",
+        "eingabemaske": "Zahlenformat (var_maske). '0.00' = 2 Dezimalstellen, '0.000' = 3 usw.",
+        "einheit": "Maßeinheit (var_einheit). Fast immer 'Pkt.'",
+        "symbol": "Icon-Pfad im alten Qt-Ressourcensystem (var_icon). z.B. ':/icons/boden.png'",
+        "formula": "Name der zugewiesenen Formel (muss in 'formulas' definiert sein). Bestimmt welche Felder nötig sind.",
+        "sport": "Sportart-Gruppe. 'Turnen DTB' = Basis, 'Turnen DTB LK' = Leistungsklassen, 'Turnen DTB P' = P-Stufen, 'Turnen DTB Turn10' = Turn10-Programm",
+        "bol_m": "true = für männliche Turner erlaubt",
+        "bol_w": "true = für weibliche Turnerinnen erlaubt",
+        "isP": "(optional) true = P-Stufen-Gerät. Wird vom GymNet-Import genutzt um P-Geräte automatisch zuzuordnen.",
+        "fields": "Eingabefelder für dieses Gerät (tfx_disziplinen_felder). Das letzte Feld sollte immer 'Endwert' sein."
+      },
+      "_fields_felder": {
+        "name": "Feldname (var_name, max 15 Zeichen). Mögliche Werte: 'D-Note', 'E-Note', 'N-Abzüge', 'Endwert', 'Wertung', 'Stufe', 'AbzugAusf.', 'AbzugSonst.', 'Ausgangswert', 'Wert', 'Abzug'",
+        "sortierung": "Reihenfolge der Felder (int_sortierung). 1 = erstes Feld (= Variable A in Formel), 2 = zweites (= B), usw."
+      },
+      "_id_bereiche": {
+        "1-10": "Basis-Geräte (GymNet-Standard) – Boden, Pferd, Ringe, Sprung, Barren, Reck, Stufenbarren, Schwebebalken. Nutzen 'Benutzerdefiniert' weil GymNet nur einen Score liefert.",
+        "11-13": "Minitrampolin, Gerätebahn A/B",
+        "14-20": "Sammeldisziplinen (LK1-3, AK, KM, KM2, KM3)",
+        "21-28": "Kür-Geräte (m/w) – Boden m. Kür, P.-Pferd Kür, etc. Nutzen 'LK' (D-Note + E-Note − N-Abzüge).",
+        "31-40": "Leistungsklasse 1 (LK1) – alle Geräte m/w",
+        "41-50": "Leistungsklasse 2 (LK2) – alle Geräte m/w",
+        "51-60": "Leistungsklasse 3 (LK3) – alle Geräte m/w",
+        "61-70": "P-Stufen (P1-P9) – alle Geräte m/w. Nutzen 'P-Wettkampf' Formel.",
+        "71-77": "Turn10® Basis – Boden, Balken, P-Barren, Minitrampolin, Reck/StuBa, Sprung",
+        "78": "Boden AK (Altersklassen-Gerät mit AK-Formel)"
+      },
+      "_neues_geraet_anlegen": "1. Neue ID wählen (> maxPresetDisciplineId). 2. maxPresetDisciplineId entsprechend erhöhen. 3. Gerät-Objekt mit allen Feldern hinzufügen. 4. 'formula' muss auf einen existierenden Formel-Namen zeigen. 5. 'fields' müssen zur gewählten Formel passen."
+    },
+    "_gymnet_ids": {
+      "_description": "GymNet-IDs werden in gymnetDisciplineIds.ts separat definiert und verknüpfen GymNet-XML-Disziplinen mit diesen Preset-IDs.",
+      "_beispiel": "GymNet-ID 200 (Boden m) → TurnFix Preset-ID 1 (Boden). GymNet-ID 290 (Boden w) → TurnFix Preset-ID 10 (Boden w)."
+    },
+    "_benutzerdefiniert_erklaerung": {
+      "_wann_nutzen": "Wenn von außen (z.B. GymNet-XML-Import) nur EIN Score pro Gerät geliefert wird und keine D-Note/E-Note-Aufsplittung existiert.",
+      "_felder": "Nur 2 Felder: 'Wertung' (sortierung=1, Eingabe) und 'Endwert' (sortierung=2, berechnetes Ergebnis = 1*x = Wertung).",
+      "_formel": "'1*x' bedeutet: x (= der Wert aus dem 1. Feld 'Wertung') wird 1:1 zum Endwert."
+    }
+  },
+
   "formulas": [
     {
       "name": "P-Wettkampf",
