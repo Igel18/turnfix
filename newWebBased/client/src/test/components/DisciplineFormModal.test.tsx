@@ -95,9 +95,10 @@ describe('DisciplineFormModal — Icon Picker', () => {
 
     // Modal should exist with form fields
     await waitFor(() => {
-      // Name input should be visible
-      const nameInput = screen.getByDisplayValue('Boden');
+      // Name input should be visible (use placeholder to avoid ambiguity with displayName)
+      const nameInput = screen.getByPlaceholderText('disciplines.form.namePlaceholder');
       expect(nameInput).toBeInTheDocument();
+      expect(nameInput).toHaveValue('Boden');
     });
   });
 
@@ -105,7 +106,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
     renderWithProviders(<DisciplineFormModal {...defaultProps} isOpen={false} />);
 
     // Name input should NOT be in the document
-    expect(screen.queryByDisplayValue('Boden')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('disciplines.form.namePlaceholder')).not.toBeInTheDocument();
   });
 
   it('should fetch icons from /api/documents/icons on mount', async () => {
@@ -113,7 +114,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
 
     // Wait for the fetch to complete — the icon picker button should be functional
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
 
     // The icons should be loaded (we can verify by opening the picker later)
@@ -125,7 +126,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
 
     // Wait for icons to load
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
 
     // Find and click the icon picker toggle button
@@ -159,7 +160,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
     renderWithProviders(<DisciplineFormModal {...defaultProps} />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
 
     // Should not crash — plain strings should be handled correctly
@@ -176,7 +177,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
 
     // Should render without crash
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
   });
 
@@ -190,7 +191,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
     renderWithProviders(<DisciplineFormModal {...defaultProps} />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
   });
 
@@ -205,7 +206,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
 
     // Should render without crash
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
   });
 
@@ -218,7 +219,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
 
     // Find and click the submit button
@@ -240,7 +241,7 @@ describe('DisciplineFormModal — Icon Picker', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Boden')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Boden');
     });
 
     // Find a close / cancel button
@@ -299,8 +300,8 @@ describe('DisciplineFormModal — Icon Picker', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Schwebebalken')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('SB')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('disciplines.form.namePlaceholder')).toHaveValue('Schwebebalken');
+      expect(screen.getByPlaceholderText('disciplines.form.shortNamePlaceholder')).toHaveValue('SB');
     });
   });
 });

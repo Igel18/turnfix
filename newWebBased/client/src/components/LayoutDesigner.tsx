@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { DATABASE_FIELD_DESCRIPTIONS, getDatabaseFieldDescription } from '@/pages/CertificateLayouts'
+import { resolveImageUrl, isLocalFilePath, isUploadingPath, extractFilename } from '@/utils/imageUrlUtils'
 import { useTranslation } from 'react-i18next'
 import { 
   TrashIcon, 
@@ -322,39 +323,16 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     }
   };
 
-  /**
-   * Resolve an image value (var_value) to a loadable URL.
-   *
-   * Values may be stored as:
-   *   • "/uploads/images/foo.png"  → already a valid relative URL
-   *   • "foo.png"                  → bare filename (old entries) → prepend /uploads/images/
-   *   • "C:\\path\\foo.png"        → local Windows path → can't load in browser
-   *   • "http://..."               → absolute URL → use as-is
-   */
-  const resolveImageUrl = useCallback((imagePath: string): string => {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/public/')) return imagePath;
-    // Windows-style local path — not loadable
-    if (imagePath.includes(':\\')) return imagePath;
-    // Bare filename → assume it lives in /uploads/images/
-    return `/uploads/images/${imagePath}`;
-  }, []);
-
   // Check if an image can be loaded
   const checkImageLoad = useCallback((imagePath: string) => {
     if (!imagePath || loadedImages[imagePath] !== undefined) return;
     
-    // Skip checking local file paths (they can't be loaded in browser)
-    const isLocalPath = imagePath.includes(':\\') && !imagePath.startsWith('/uploads/');
-    const isUploading = imagePath.includes('🔄');
-    
-    if (isLocalPath) {
+    if (isLocalFilePath(imagePath)) {
       setLoadedImages(prev => ({ ...prev, [imagePath]: 'local' as any }));
       return;
     }
     
-    if (isUploading) {
+    if (isUploadingPath(imagePath)) {
       setLoadedImages(prev => ({ ...prev, [imagePath]: 'uploading' as any }));
       return;
     }
@@ -370,7 +348,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       setLoadedImages(prev => ({ ...prev, [imagePath]: false }));
     };
     img.src = resolvedUrl;
-  }, [loadedImages, resolveImageUrl]);
+  }, [loadedImages]);
 
   // Check images when fields change
   useEffect(() => {
@@ -600,8 +578,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
         );
       case 2: // Image
         const imagePath = field.var_value;
-        const isLocalPath = imagePath && imagePath.includes(':\\') && !imagePath.startsWith('/uploads/');
-        const isUploading = imagePath && imagePath.includes('🔄');
+        const isLocalPath = imagePath && isLocalFilePath(imagePath);
+        const isUploading = imagePath && isUploadingPath(imagePath);
         const isImageLoaded = imagePath && loadedImages[imagePath] === true;
         
         if (isImageLoaded && !isLocalPath && !isUploading) {
@@ -632,12 +610,10 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             displayText = 'Uploading...';
             statusIndicator = '🔄';
           } else if (isLocalPath) {
-            const fileName = imagePath.split(/[\\\/]/).pop() || imagePath;
-            displayText = fileName;
+            displayText = extractFilename(imagePath);
             statusIndicator = '📁';
           } else if (imagePath) {
-            const fileName = imagePath.split(/[\\\/]/).pop() || imagePath;
-            displayText = fileName;
+            displayText = extractFilename(imagePath);
             statusIndicator = '🖼';
           } else {
             displayText = 'image.png';

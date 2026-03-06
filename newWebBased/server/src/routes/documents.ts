@@ -239,8 +239,12 @@ router.get('/', (req: Request, res: Response) => {
 
     let files: ReturnType<typeof readDir> = [];
 
-    if (categoryFilter && CATEGORIES[categoryFilter]) {
-      files = readDir(CATEGORIES[categoryFilter]);
+    if (categoryFilter) {
+      // Specific category requested
+      if (CATEGORIES[categoryFilter]) {
+        files = readDir(CATEGORIES[categoryFilter]);
+      }
+      // else: unknown category → files stays empty
     } else {
       // All categories
       for (const cat of Object.values(CATEGORIES)) {
@@ -270,45 +274,51 @@ router.get('/', (req: Request, res: Response) => {
  * POST /api/documents/upload
  * Upload a file. Send as multipart/form-data with field "file" and "category".
  */
-router.post('/upload', upload.single('file'), (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        error: 'No file provided or file type not supported',
-      });
+router.post('/upload', (req: Request, res: Response) => {
+  upload.single('file')(req, res, (err: any) => {
+    if (err) {
+      // Multer errors (e.g. upload not allowed, unknown category) → 400
+      return res.status(400).json({ error: err.message || 'Upload failed' });
     }
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: 'No file provided or file type not supported',
+        });
+      }
 
-    const catKey = req.body?.category || 'images';
-    const cat = CATEGORIES[catKey];
+      const catKey = req.body?.category || 'images';
+      const cat = CATEGORIES[catKey];
 
-    // Check per-category size limit
-    if (cat && cat.maxFileSize > 0 && req.file.size > cat.maxFileSize) {
-      // File too large — delete and report
-      fs.unlinkSync(req.file.path);
-      return res.status(413).json({
-        error: `File too large for category "${catKey}". Max: ${Math.round(cat.maxFileSize / 1024 / 1024)} MB`,
+      // Check per-category size limit
+      if (cat && cat.maxFileSize > 0 && req.file.size > cat.maxFileSize) {
+        // File too large — delete and report
+        fs.unlinkSync(req.file.path);
+        return res.status(413).json({
+          error: `File too large for category "${catKey}". Max: ${Math.round(cat.maxFileSize / 1024 / 1024)} MB`,
+        });
+      }
+
+      const url = cat ? `${cat.urlPrefix}/${req.file.filename}` : `/uploads/${req.file.filename}`;
+
+      console.log(`[Documents] Uploaded: ${req.file.filename} → ${catKey} (${req.file.size} bytes)`);
+
+      res.json({
+        success: true,
+        file: {
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          category: catKey,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          url,
+        },
       });
+    } catch (error) {
+      console.error('[Documents] Upload error:', error);
+      res.status(500).json({ error: 'Failed to upload file' });
     }
-
-    const url = cat ? `${cat.urlPrefix}/${req.file.filename}` : `/uploads/${req.file.filename}`;
-
-    console.log(`[Documents] Uploaded: ${req.file.filename} → ${catKey} (${req.file.size} bytes)`);
-
-    res.json({
-      success: true,
-      file: {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        category: catKey,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        url,
-      },
-    });
-  } catch (error) {
-    console.error('[Documents] Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
-  }
+  });
 });
 
 /**

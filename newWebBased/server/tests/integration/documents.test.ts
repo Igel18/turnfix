@@ -228,8 +228,12 @@ describe('Documents API', () => {
       const categoryFilter = req.query.category as string | undefined;
       const search = (req.query.search as string || '').toLowerCase();
       let files: ReturnType<typeof readDir> = [];
-      if (categoryFilter && CATEGORIES[categoryFilter]) {
-        files = readDir(CATEGORIES[categoryFilter]);
+      if (categoryFilter) {
+        // Specific category requested
+        if (CATEGORIES[categoryFilter]) {
+          files = readDir(CATEGORIES[categoryFilter]);
+        }
+        // else: unknown category → files stays empty
       } else {
         for (const cat of Object.values(CATEGORIES)) {
           files.push(...readDir(cat));
@@ -242,23 +246,29 @@ describe('Documents API', () => {
       res.json({ files, total: files.length });
     });
 
-    router.post('/upload', upload.single('file'), (req, res) => {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file provided or file type not supported' });
-      }
-      const catKey = req.body?.category || 'images';
-      const cat = CATEGORIES[catKey];
-      const url = cat ? `${cat.urlPrefix}/${req.file.filename}` : `/uploads/${req.file.filename}`;
-      res.json({
-        success: true,
-        file: {
-          filename: req.file.filename,
-          originalName: req.file.originalname,
-          category: catKey,
-          size: req.file.size,
-          mimetype: req.file.mimetype,
-          url,
-        },
+    router.post('/upload', (req, res) => {
+      upload.single('file')(req, res, (err: any) => {
+        if (err) {
+          // Multer errors (e.g. upload not allowed, unknown category) → 400
+          return res.status(400).json({ error: err.message || 'Upload failed' });
+        }
+        if (!req.file) {
+          return res.status(400).json({ error: 'No file provided or file type not supported' });
+        }
+        const catKey = req.body?.category || 'images';
+        const cat = CATEGORIES[catKey];
+        const url = cat ? `${cat.urlPrefix}/${req.file.filename}` : `/uploads/${req.file.filename}`;
+        res.json({
+          success: true,
+          file: {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            category: catKey,
+            size: req.file.size,
+            mimetype: req.file.mimetype,
+            url,
+          },
+        });
       });
     });
 
