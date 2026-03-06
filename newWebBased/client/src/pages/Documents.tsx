@@ -15,7 +15,6 @@ import {
   PhotoIcon,
   CodeBracketIcon,
   DocumentTextIcon,
-  FolderArrowDownIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
