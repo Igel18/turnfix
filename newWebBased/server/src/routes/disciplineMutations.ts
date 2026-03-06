@@ -241,9 +241,9 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       paramCounter++;
     }
     
-    if (validatedData.formulaId !== undefined && validatedData.formulaId !== null) {
+    if (validatedData.formulaId !== undefined) {
       updateFields.push(`int_formelid = $${paramCounter}`);
-      values.push(validatedData.formulaId);
+      values.push(validatedData.formulaId); // null clears the predefined formula
       paramCounter++;
     }
     

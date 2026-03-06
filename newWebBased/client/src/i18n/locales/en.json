@@ -1585,6 +1585,8 @@
       "bothGenders": "Both Genders",
       "allDisciplines": "All Disciplines",
       "hasFormulaYes": "Has Formula",
+      "hasPredefinedFormula": "Predefined Formula (DB)",
+      "hasCustomFormula": "Custom Formula",
       "hasFormulaNo": "No Formula"
     },
     "form": {

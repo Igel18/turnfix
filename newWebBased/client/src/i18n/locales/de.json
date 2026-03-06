@@ -1622,6 +1622,8 @@
       "bothGenders": "Beide Geschlechter",
       "allDisciplines": "Alle Disziplinen",
       "hasFormulaYes": "Hat Formel",
+      "hasPredefinedFormula": "Vordefinierte Formel (DB)",
+      "hasCustomFormula": "Benutzerdefiniert",
       "hasFormulaNo": "Keine Formel"
     },
     "form": {

@@ -355,10 +355,14 @@ const DisciplinesUnified: React.FC = () => {
       (genderFilter === 'female' && discipline.female_allowed && !discipline.male_allowed) ||
       (genderFilter === 'both' && discipline.male_allowed && discipline.female_allowed);
     
-    const hasFormula = discipline.formula_id || (discipline.formula && discipline.formula.trim());
+    const hasPredefinedFormula = !!discipline.formula_id;
+    const hasCustomFormula_f = !!(discipline.formula && discipline.formula.trim());
+    const hasAnyFormula = hasPredefinedFormula || hasCustomFormula_f;
     const matchesFormula = !formulaFilter ||
-      (formulaFilter === 'yes' && hasFormula) ||
-      (formulaFilter === 'no' && !hasFormula);
+      (formulaFilter === 'yes' && hasAnyFormula) ||
+      (formulaFilter === 'no' && !hasAnyFormula) ||
+      (formulaFilter === 'predefined' && hasPredefinedFormula) ||
+      (formulaFilter === 'custom' && hasCustomFormula_f && !hasPredefinedFormula);
     
     return matchesSearch && matchesSport && matchesGender && matchesFormula;
   });
@@ -395,6 +399,8 @@ const DisciplinesUnified: React.FC = () => {
       onChange: setFormulaFilter,
       options: [
         { value: 'yes', label: t('disciplines.filter.hasFormulaYes') },
+        { value: 'predefined', label: t('disciplines.filter.hasPredefinedFormula') },
+        { value: 'custom', label: t('disciplines.filter.hasCustomFormula') },
         { value: 'no', label: t('disciplines.filter.hasFormulaNo') }
       ]
     }

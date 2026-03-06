@@ -97,7 +97,7 @@ describe('Disciplines API', () => {
           (d.name && d.name.includes('Floor'))
         );
         expect(foundDiscipline).toBeDefined();
-      }
+       }
     });
   });
 
@@ -200,6 +200,42 @@ describe('Disciplines API', () => {
         .expect(404);
 
       expect(response.body.error).toBeDefined();
+    });
+
+    it('should set formulaId to a predefined formula and then clear it to null', async () => {
+      // Step 1: Create a formula to assign
+      const formula = await prisma.tfx_formeln.create({
+        data: { var_name: 'TestFormel_ClearTest', var_formel: 'A + B', int_typ: 0 }
+      });
+
+      // Step 2: Assign the formula to the discipline
+      const assignResponse = await request(app)
+        .put(`/api/disciplines/${testDiscipline.int_disziplinenid}`)
+        .send({ formulaId: formula.int_formelid })
+        .expect(200);
+
+      // Verify it was assigned
+      const assignedId = assignResponse.body.formula_id ?? assignResponse.body.int_formelid;
+      expect(assignedId).toBe(formula.int_formelid);
+
+      // Step 3: Clear the formula by sending formulaId: null
+      const clearResponse = await request(app)
+        .put(`/api/disciplines/${testDiscipline.int_disziplinenid}`)
+        .send({ formulaId: null })
+        .expect(200);
+
+      // Verify it was cleared
+      const clearedId = clearResponse.body.formula_id ?? clearResponse.body.int_formelid;
+      expect(clearedId).toBeNull();
+
+      // Step 4: Verify directly in DB
+      const dbRecord = await prisma.tfx_disziplinen.findUnique({
+        where: { int_disziplinenid: testDiscipline.int_disziplinenid }
+      });
+      expect(dbRecord?.int_formelid).toBeNull();
+
+      // Cleanup formula
+      await prisma.tfx_formeln.delete({ where: { int_formelid: formula.int_formelid } }).catch(() => {});
     });
   });
 
