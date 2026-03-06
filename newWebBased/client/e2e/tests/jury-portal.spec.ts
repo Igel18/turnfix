@@ -52,10 +52,10 @@ async function selectEventInJuryPortal(page: Page, eventId: number) {
   await page.evaluate(() => {
     localStorage.setItem('juryPortal_filterToday', 'false');
   });
-  await page.reload({ waitUntil: 'domcontentloaded' }).catch(async () => {
+  await page.reload({ waitUntil: 'load' }).catch(async () => {
     // Retry reload on transient error
     await page.waitForTimeout(1_000);
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.reload({ waitUntil: 'load' });
   });
 
   // Select event from dropdown — wait for options to be populated (not just the <select>)
@@ -125,7 +125,7 @@ test.describe('Jury Portal: Navigation', () => {
     await page.evaluate(() => {
       localStorage.setItem('juryPortal_filterToday', 'false');
     });
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.reload({ waitUntil: 'load' });
 
     // Check event is in dropdown options — wait for options to be populated first
     const selectEl = page.locator('select').first();
@@ -486,25 +486,31 @@ test.describe('Jury Portal: Cross-verification with Management UI', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await page.goto(
       `/score-capture?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
-      { waitUntil: 'domcontentloaded' }
+      { waitUntil: 'load' }
     );
 
-    // Select squad RW
-    await page.locator('select option[value="RW"]').waitFor({ state: 'attached', timeout: 15_000 });
+    // Select squad RW — wait for the select to have the RW option populated
     const squadSelect = page.locator('select').first();
+    await squadSelect.waitFor({ state: 'visible', timeout: 15_000 });
+    await page.locator('select option[value="RW"]').waitFor({ state: 'attached', timeout: 15_000 });
     await squadSelect.selectOption({ value: 'RW' });
+
+    // Wait for score table to load after squad selection
+    await page.locator('input[data-participant]').first().waitFor({ state: 'visible', timeout: 15_000 });
 
     // Uncheck jury scores for simple view
     const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
+    if (await juryCheckbox.isVisible({ timeout: 2_000 }).catch(() => false) && await juryCheckbox.isChecked()) {
       await juryCheckbox.uncheck();
+      // Wait for table to re-render after toggling jury scores
+      await page.locator('input[data-participant]').first().waitFor({ state: 'visible', timeout: 10_000 });
     }
 
     // Check EvaUI's first discipline score
     const scoreInput = page.locator(
       `input[data-participant="${state.womenPids[4]}"][data-discipline="${state.disciplineIds[0]}"]`
     );
-    await scoreInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await scoreInput.waitFor({ state: 'visible', timeout: 15_000 });
     const displayedValue = await scoreInput.inputValue();
     expect(parseFloat(displayedValue)).toBeCloseTo(testScore, 1);
 

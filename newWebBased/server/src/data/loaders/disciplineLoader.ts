@@ -10,8 +10,27 @@ import fs from 'fs';
 import path from 'path';
 import { Discipline, GymNetDevice } from '../types/discipline.types';
 
-// JSON file paths - point to source directory (not dist)
-const JSON_DIR = path.join(__dirname, '..', '..', '..', 'src', 'data', 'json');
+/**
+ * Resolve the path to the JSON data directory.
+ * Works from both ts-node (src/) and compiled (dist/) contexts:
+ *   1. __dirname/../json/  (same level — works in dist/ after postbuild copy)
+ *   2. <serverRoot>/src/data/json/  (works when running via ts-node)
+ */
+function resolveJsonDir(): string {
+  // Option 1: sibling json/ folder (dist/data/json/ when running from dist/data/loaders/)
+  const siblingDir = path.join(__dirname, '..', 'json');
+  if (fs.existsSync(siblingDir)) return siblingDir;
+
+  // Option 2: src/data/json/ relative to server root (ts-node or dev)
+  const srcDir = path.join(__dirname, '..', '..', '..', 'src', 'data', 'json');
+  if (fs.existsSync(srcDir)) return srcDir;
+
+  throw new Error(
+    `Cannot find JSON data directory. Tried:\n  - ${siblingDir}\n  - ${srcDir}`
+  );
+}
+
+const JSON_DIR = resolveJsonDir();
 const PRODUCTION_DISCIPLINES_PATH = path.join(JSON_DIR, 'disciplines-production.json');
 const GYMNET_DISCIPLINES_PATH = path.join(JSON_DIR, 'disciplines-gymnet.json');
 

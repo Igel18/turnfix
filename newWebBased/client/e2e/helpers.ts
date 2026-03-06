@@ -11,8 +11,9 @@ import { Page, expect } from '@playwright/test';
 
 /**
  * Robust page.goto with automatic retry on transient network errors.
- * Uses 'domcontentloaded' instead of 'networkidle' to avoid flaky timeouts
+ * Uses 'load' instead of 'networkidle' to avoid flaky timeouts
  * caused by WebSockets, long-polling, or slow background API calls.
+ * ('load' waits for all scripts/CSS, so React is ready to mount.)
  *
  * Retries up to {@link maxRetries} times on ERR_NETWORK_CHANGED,
  * ERR_CONNECTION_REFUSED, timeouts, and similar transient failures.
@@ -23,7 +24,7 @@ export async function robustGoto(
   options?: { maxRetries?: number; waitUntil?: 'domcontentloaded' | 'load' | 'commit' },
 ) {
   const maxRetries = options?.maxRetries ?? 2;
-  const waitUntil = options?.waitUntil ?? 'domcontentloaded';
+  const waitUntil = options?.waitUntil ?? 'load';
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -51,8 +52,8 @@ export async function robustGoto(
 
 /**
  * Navigate to a page and wait for it to be fully loaded.
- * Uses domcontentloaded + loading-spinner check instead of networkidle
- * for reliability. Automatically retries on transient network errors.
+ * Uses 'load' instead of 'networkidle' for reliability.
+ * Automatically retries on transient network errors.
  */
 export async function navigateTo(page: Page, path: string) {
   await robustGoto(page, path);
@@ -73,7 +74,7 @@ export async function navigateAndWaitFor(page: Page, path: string, text: string)
 export async function robustReload(page: Page) {
   for (let attempt = 0; attempt <= 2; attempt++) {
     try {
-      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.reload({ waitUntil: 'load' });
       return;
     } catch (err: any) {
       const msg: string = err?.message ?? '';

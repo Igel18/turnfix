@@ -209,7 +209,7 @@ export async function setEventContext(
   eventName: string,
 ) {
   if (page.url() === 'about:blank' || !page.url().includes('localhost')) {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto('/', { waitUntil: 'load' });
   }
   await page.evaluate(({ id, name }) => {
     localStorage.setItem('turnfix-selected-event', JSON.stringify({

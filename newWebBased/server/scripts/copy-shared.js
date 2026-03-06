@@ -1,17 +1,39 @@
 /**
- * Post-build script: Copy @turnfix/shared into node_modules
+ * Post-build script:
+ * 1. Copy @turnfix/shared into node_modules (if symlink doesn't exist)
+ * 2. Copy JSON data files into dist/data/json/ (always)
  *
  * In development, @turnfix/shared is linked via npm workspace symlink.
  * In production (installer), the symlink doesn't exist — this script
  * copies the actual shared package files so require('@turnfix/shared') works.
  *
  * Safe to run in both environments:
- * - If the symlink exists and resolves → skips (dev is fine)
+ * - If the symlink exists and resolves → skips shared copy (dev is fine)
  * - If missing or broken → copies from ../shared/
  */
 const fs = require('fs');
 const path = require('path');
 
+// ── 1. Copy JSON data files into dist/ ───────────────────────────────
+// TypeScript does not copy .json assets to outDir. The data loaders
+// look for a sibling json/ folder first (dist/data/json/) before
+// falling back to src/data/json/. Copying them ensures the server
+// works even when src/ is not present (production / other PCs).
+const jsonSource = path.resolve(__dirname, '..', 'src', 'data', 'json');
+const jsonTarget = path.resolve(__dirname, '..', 'dist', 'data', 'json');
+
+if (fs.existsSync(jsonSource)) {
+  fs.mkdirSync(jsonTarget, { recursive: true });
+  const jsonFiles = fs.readdirSync(jsonSource).filter(f => f.endsWith('.json'));
+  for (const file of jsonFiles) {
+    fs.copyFileSync(path.join(jsonSource, file), path.join(jsonTarget, file));
+  }
+  console.log(`✓ Copied ${jsonFiles.length} JSON data files to dist/data/json/`);
+} else {
+  console.warn('⚠ src/data/json/ not found — JSON data files not copied');
+}
+
+// ── 2. Copy @turnfix/shared ──────────────────────────────────────────
 const sharedSource = path.resolve(__dirname, '..', '..', 'shared');
 const sharedTarget = path.resolve(__dirname, '..', 'node_modules', '@turnfix', 'shared');
 
