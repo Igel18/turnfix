@@ -3174,6 +3174,7 @@
     "subtitle": "{{count}} files in {{cats}} categories",
     "searchPlaceholder": "Search filename...",
     "uploadFile": "Upload file",
+    "uploadTo": "Upload file to:",
     "download": "Download",
     "delete": "Delete",
     "confirmDelete": "Really delete file '{{name}}'?",
@@ -3187,6 +3188,7 @@
       "json": "JSON Presets"
     },
     "table": {
+      "preview": "Preview",
       "filename": "Filename",
       "category": "Category",
       "size": "Size",

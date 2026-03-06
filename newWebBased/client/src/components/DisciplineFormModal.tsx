@@ -92,10 +92,15 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
   const iconPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Fetch available icons once
+    // Fetch available icons once — API returns {icons: [{filename, url, path}, ...]}
     fetch('/api/documents/icons')
       .then(res => res.ok ? res.json() : { icons: [] })
-      .then(data => setAvailableIcons(data.icons || []))
+      .then(data => {
+        const icons = (data.icons || []).map((icon: any) =>
+          typeof icon === 'string' ? icon : icon.filename
+        );
+        setAvailableIcons(icons);
+      })
       .catch(() => setAvailableIcons([]));
   }, []);
 

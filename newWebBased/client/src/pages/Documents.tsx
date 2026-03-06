@@ -11,9 +11,11 @@ import {
   DocumentIcon,
   TrashIcon,
   ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
   PhotoIcon,
   CodeBracketIcon,
   DocumentTextIcon,
+  FolderArrowDownIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
@@ -234,25 +236,38 @@ const Documents: React.FC = () => {
   const uploadableCategories = categories.filter(c => c.uploadAllowed);
 
   const renderUploadArea = () => (
-    <div className="flex items-center gap-3">
-      <select
-        value={uploadCategory}
-        onChange={e => setUploadCategory(e.target.value)}
-        className="text-sm border border-gray-300 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
-      >
-        {uploadableCategories.map(c => (
-          <option key={c.key} value={c.key}>
-            {t(`documents.category.${c.key}`, c.key)}
-          </option>
-        ))}
-      </select>
-      <FileUploadButton
-        category={uploadCategory}
-        accept={acceptForCategory(uploadCategory)}
-        onUploaded={handleUploaded}
-        onError={handleUploadError}
-        label={t('documents.uploadFile', 'Datei hochladen')}
-      />
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <ArrowUpTrayIcon className="h-5 w-5 text-blue-600" />
+        <span className="text-sm font-medium text-blue-900">
+          {t('documents.uploadTo', 'Datei hochladen in:')}
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex rounded-md overflow-hidden border border-blue-300">
+          {uploadableCategories.map(c => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => setUploadCategory(c.key)}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                uploadCategory === c.key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-blue-700 hover:bg-blue-100'
+              }`}
+            >
+              {t(`documents.category.${c.key}`, c.key)}
+            </button>
+          ))}
+        </div>
+        <FileUploadButton
+          category={uploadCategory}
+          accept={acceptForCategory(uploadCategory)}
+          onUploaded={handleUploaded}
+          onError={handleUploadError}
+          label={t('documents.uploadFile', 'Datei hochladen')}
+        />
+      </div>
     </div>
   );
 
@@ -262,8 +277,8 @@ const Documents: React.FC = () => {
 
   const renderTableHeaders = () => (
     <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
-        {/* Preview */}
+      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '60px' }}>
+        {t('documents.table.preview', 'Vorschau')}
       </th>
       <SortableTableHeader
         label={t('documents.table.filename', 'Dateiname')}
@@ -306,17 +321,25 @@ const Documents: React.FC = () => {
 
     return (
       <tr key={`${file.category}-${file.filename}`} className="hover:bg-gray-50">
-        {/* Preview / icon */}
-        <td className="px-6 py-4 whitespace-nowrap">
+        {/* Thumbnail / icon */}
+        <td className="px-4 py-2 whitespace-nowrap">
           {isImage(file.mimetype) ? (
-            <img
-              src={file.url}
-              alt={file.filename}
-              className="w-8 h-8 object-contain rounded border"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
+            <div className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded border border-gray-200">
+              <img
+                src={file.url}
+                alt={file.filename}
+                className="max-w-[36px] max-h-[36px] object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) parent.innerHTML = '<span class="text-xs text-gray-400">?</span>';
+                }}
+              />
+            </div>
           ) : (
-            <CatIcon className="h-6 w-6 text-gray-400" />
+            <div className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded border border-gray-200">
+              <CatIcon className="h-5 w-5 text-gray-400" />
+            </div>
           )}
         </td>
 
@@ -381,14 +404,18 @@ const Documents: React.FC = () => {
         key={`${file.category}-${file.filename}`}
         className="bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow p-4"
       >
-        {/* Preview */}
-        <div className="flex items-center justify-center h-24 mb-3 bg-gray-50 rounded">
+        {/* Thumbnail */}
+        <div className="flex items-center justify-center h-28 mb-3 bg-gray-50 rounded border border-gray-100">
           {isImage(file.mimetype) ? (
             <img
               src={file.url}
               alt={file.filename}
-              className="max-h-20 max-w-full object-contain"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              className="max-h-24 max-w-full object-contain p-1"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) parent.innerHTML = '<span class="text-gray-300 text-xs">Vorschau nicht verfügbar</span>';
+              }}
             />
           ) : (
             <CatIcon className="h-12 w-12 text-gray-300" />

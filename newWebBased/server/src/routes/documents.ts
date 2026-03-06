@@ -43,7 +43,8 @@ interface CategoryDef {
   urlPrefix: string;
 }
 
-const serverRoot = process.cwd(); // newWebBased/server
+// __dirname = .../server/src/routes  →  go up 2 levels to get server root
+const serverRoot = path.resolve(__dirname, '..', '..');
 
 const CATEGORIES: Record<string, CategoryDef> = {
   icons: {

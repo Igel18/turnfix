@@ -3229,6 +3229,7 @@
     "subtitle": "{{count}} Dateien in {{cats}} Kategorien",
     "searchPlaceholder": "Dateiname suchen...",
     "uploadFile": "Datei hochladen",
+    "uploadTo": "Datei hochladen in:",
     "download": "Herunterladen",
     "delete": "Löschen",
     "confirmDelete": "Datei '{{name}}' wirklich löschen?",
@@ -3242,6 +3243,7 @@
       "json": "JSON-Presets"
     },
     "table": {
+      "preview": "Vorschau",
       "filename": "Dateiname",
       "category": "Kategorie",
       "size": "Größe",
