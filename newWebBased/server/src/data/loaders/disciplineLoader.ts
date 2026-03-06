@@ -32,7 +32,7 @@ function resolveJsonDir(): string {
 
 const JSON_DIR = resolveJsonDir();
 const PRODUCTION_DISCIPLINES_PATH = path.join(JSON_DIR, 'disciplines-production.json');
-const GYMNET_DISCIPLINES_PATH = path.join(JSON_DIR, 'disciplines-gymnet.json');
+const GYMNET_PRESET_PATH = path.join(JSON_DIR, 'gymnet-preset.json');
 
 // Cache loaded data
 let productionDisciplinesCache: Discipline[] | null = null;
@@ -57,7 +57,7 @@ export function loadProductionDisciplines(): Discipline[] {
 }
 
 /**
- * Load GymNet preset data from JSON
+ * Load GymNet preset data from JSON (gymnet-preset.json v2.0)
  */
 export function loadGymNetPresetData(): { formulas: any[]; devices: any[] } {
   if (gymnetDataCache) {
@@ -65,7 +65,7 @@ export function loadGymNetPresetData(): { formulas: any[]; devices: any[] } {
   }
 
   try {
-    const data = fs.readFileSync(GYMNET_DISCIPLINES_PATH, 'utf-8');
+    const data = fs.readFileSync(GYMNET_PRESET_PATH, 'utf-8');
     const parsed = JSON.parse(data);
     gymnetDataCache = {
       formulas: parsed.formulas || [],
