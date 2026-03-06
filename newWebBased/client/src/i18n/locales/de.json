@@ -81,6 +81,10 @@
         "title": "Statusverwaltung",
         "description": "Teilnehmerstatus und Riegenzustände verwalten"
       },
+      "documents": {
+        "title": "Dokumente verwalten",
+        "description": "Icons, Bilder, XML-Importe und Preset-Dateien verwalten"
+      },
       "createEvent": {
         "title": "Veranstaltung erstellen",
         "description": "Neuen Turnwettkampf einrichten",
@@ -3219,6 +3223,30 @@
     "squad": "Riege",
     "scoreEntry": "Wertungserfassung",
     "team": "Mannschaft"
+  },
+  "documents": {
+    "title": "Dokumente & Dateien",
+    "subtitle": "{{count}} Dateien in {{cats}} Kategorien",
+    "searchPlaceholder": "Dateiname suchen...",
+    "uploadFile": "Datei hochladen",
+    "download": "Herunterladen",
+    "delete": "Löschen",
+    "confirmDelete": "Datei '{{name}}' wirklich löschen?",
+    "filters": {
+      "category": "Kategorie"
+    },
+    "category": {
+      "icons": "Icons",
+      "images": "Bilder",
+      "xml": "XML-Dateien",
+      "json": "JSON-Presets"
+    },
+    "table": {
+      "filename": "Dateiname",
+      "category": "Kategorie",
+      "size": "Größe",
+      "modified": "Geändert"
+    }
   }
 }
 

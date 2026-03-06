@@ -41,6 +41,7 @@ import TimePlanning from '@/pages/TimePlanning'
 import LiveScoresPage from '@/pages/LiveScoresPage'
 import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
 import TeamScoreCapture from '@/pages/GroupTeamScoring/TeamScoreCapture'
+import Documents from '@/pages/Documents'
 
 function App() {
   return (
@@ -86,6 +87,7 @@ function App() {
             <Route path="/persons" element={<PersonsUnified />} />
             <Route path="/certificate-layouts" element={<CertificateLayouts />} />
             <Route path="/status-management" element={<StatusUnified />} />
+            <Route path="/documents" element={<Documents />} />
             <Route path="/configuration" element={<Configuration />} />
           </Routes>
         </div>

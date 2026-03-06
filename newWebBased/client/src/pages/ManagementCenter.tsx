@@ -156,6 +156,15 @@ const getDatabaseManagementActions = (statistics: any) => [
     countLabel: 'Statuses'
   },
   {
+    name: 'Manage Documents',
+    description: 'Manage icons, images, XML imports and preset files',
+    href: '/documents',
+    icon: DocumentTextIcon,
+    color: 'bg-sky-500',
+    count: 0,
+    countLabel: 'Files'
+  },
+  {
     name: 'Create Event',
     description: 'Set up a new gymnastics competition',
     href: '/events',
@@ -385,6 +394,7 @@ export function ManagementCenter() {
       'Discipline Fields': 'managementCenter.databaseManagement.disciplineFields.title',
       'Certificate Layouts': 'managementCenter.databaseManagement.certificateLayouts.title',
       'Status Management': 'managementCenter.databaseManagement.statusManagement.title',
+      'Manage Documents': 'managementCenter.databaseManagement.documents.title',
       'Create Event': 'managementCenter.databaseManagement.createEvent.title'
     }
 
@@ -421,6 +431,7 @@ export function ManagementCenter() {
       'Discipline Fields': 'managementCenter.databaseManagement.disciplineFields.description',
       'Certificate Layouts': 'managementCenter.databaseManagement.certificateLayouts.description',
       'Status Management': 'managementCenter.databaseManagement.statusManagement.description',
+      'Manage Documents': 'managementCenter.databaseManagement.documents.description',
       'Create Event': 'managementCenter.databaseManagement.createEvent.description'
     }
 

@@ -81,6 +81,10 @@
         "title": "Status Management",
         "description": "Manage participant statuses and squad states"
       },
+      "documents": {
+        "title": "Manage Documents",
+        "description": "Manage icons, images, XML imports and preset files"
+      },
       "createEvent": {
         "title": "Create Event",
         "description": "Set up a new gymnastics competition",
@@ -3164,6 +3168,30 @@
     "squad": "Squad",
     "scoreEntry": "Score Entry",
     "team": "Team"
+  },
+  "documents": {
+    "title": "Documents & Files",
+    "subtitle": "{{count}} files in {{cats}} categories",
+    "searchPlaceholder": "Search filename...",
+    "uploadFile": "Upload file",
+    "download": "Download",
+    "delete": "Delete",
+    "confirmDelete": "Really delete file '{{name}}'?",
+    "filters": {
+      "category": "Category"
+    },
+    "category": {
+      "icons": "Icons",
+      "images": "Images",
+      "xml": "XML Files",
+      "json": "JSON Presets"
+    },
+    "table": {
+      "filename": "Filename",
+      "category": "Category",
+      "size": "Size",
+      "modified": "Modified"
+    }
   }
 }
 

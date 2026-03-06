@@ -264,7 +264,7 @@ Beim LayoutEditor gibt es schon eine Upload Möglichkeit. Diese sollte wiederver
 Beim Editieren der Geräte wäre ein DropDown menü gut, um die vorhandenen Icons auswählen zu können. 
 
 Tests und Dokumentation nicht vergessen 
-
+	-> In Arbeit 
 
 43. Benutzerdefinierte Formeln 
 Bei den Sportarten Leichtathletik, Schwimmen, Rope-Skipping, Gymnastik, Turnen bei denen keine Formel aus der anderen DB-Tabelle hinterlegt ist müssen Benutzerdefinierte Formeln hinterlegt sein. Dies muss über den DB-Wizard erfolgen der bereits die Disziplinen anlegt. 

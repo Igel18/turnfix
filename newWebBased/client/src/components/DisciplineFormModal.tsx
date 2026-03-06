@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getIconUrl } from '../utils/iconUtils';
 import UnifiedModal from './UnifiedModal';
@@ -84,6 +84,35 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
   sports
 }) => {
   const { t } = useTranslation();
+
+  // Icon picker state
+  const [availableIcons, setAvailableIcons] = useState<string[]>([]);
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const [iconSearch, setIconSearch] = useState('');
+  const iconPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Fetch available icons once
+    fetch('/api/documents/icons')
+      .then(res => res.ok ? res.json() : { icons: [] })
+      .then(data => setAvailableIcons(data.icons || []))
+      .catch(() => setAvailableIcons([]));
+  }, []);
+
+  // Close icon picker on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (iconPickerRef.current && !iconPickerRef.current.contains(e.target as Node)) {
+        setShowIconPicker(false);
+      }
+    };
+    if (showIconPicker) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showIconPicker]);
+
+  const filteredIcons = availableIcons.filter(icon =>
+    !iconSearch || icon.toLowerCase().includes(iconSearch.toLowerCase())
+  );
 
   return (
     <UnifiedModal
@@ -350,28 +379,81 @@ const DisciplineFormModal: React.FC<DisciplineFormModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('disciplines.form.icon')}
                   </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      maxLength={20}
-                      value={formData.icon}
-                      onChange={(e) => setFormData({...formData, icon: e.target.value})}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={t('disciplines.form.iconPlaceholder')}
-                    />
-                    {formData.icon && (
-                      <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center bg-gray-50">
-                        <img 
-                          src={getIconUrl(formData.icon) || ''} 
-                          alt="Icon preview"
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => { 
-                            e.currentTarget.style.display = 'none';
-                            const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                            if (nextElement) nextElement.style.display = 'block';
-                          }}
-                        />
-                        <span className="text-xs text-gray-400 hidden">❌</span>
+                  <div className="relative" ref={iconPickerRef}>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowIconPicker(!showIconPicker)}
+                        className="flex-1 flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
+                      >
+                        {formData.icon ? (
+                          <>
+                            <img
+                              src={getIconUrl(formData.icon) || ''}
+                              alt=""
+                              className="w-5 h-5 object-contain"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                            <span className="text-sm text-gray-900 truncate">{formData.icon}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-400">{t('disciplines.form.iconPlaceholder')}</span>
+                        )}
+                      </button>
+                      {formData.icon && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData({...formData, icon: ''})}
+                          className="text-gray-400 hover:text-red-500 p-1"
+                          title={t('common.clear', 'Leeren')}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Icon picker dropdown */}
+                    {showIconPicker && (
+                      <div className="absolute z-50 mt-1 w-72 bg-white rounded-lg shadow-lg border border-gray-200 max-h-64 overflow-hidden">
+                        <div className="p-2 border-b">
+                          <input
+                            type="text"
+                            value={iconSearch}
+                            onChange={(e) => setIconSearch(e.target.value)}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            placeholder={t('documents.searchPlaceholder', 'Suchen...')}
+                            autoFocus
+                          />
+                        </div>
+                        <div className="overflow-y-auto max-h-48 p-2 grid grid-cols-6 gap-1">
+                          {filteredIcons.map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => {
+                                setFormData({...formData, icon});
+                                setShowIconPicker(false);
+                                setIconSearch('');
+                              }}
+                              className={`p-1.5 rounded hover:bg-blue-50 border ${
+                                formData.icon === icon ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+                              }`}
+                              title={icon}
+                            >
+                              <img
+                                src={getIconUrl(icon) || ''}
+                                alt={icon}
+                                className="w-6 h-6 object-contain mx-auto"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            </button>
+                          ))}
+                          {filteredIcons.length === 0 && (
+                            <p className="col-span-6 text-xs text-gray-400 text-center py-2">
+                              {t('common.noResults', 'Keine Ergebnisse')}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
