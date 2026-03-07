@@ -10,7 +10,7 @@ import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate'
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader'
 import { useCertificateLayout } from '@/contexts/CertificateLayoutContext'
 import LayoutDesigner from '@/components/LayoutDesigner'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
+import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../utils/api'
 import { BlueInfoBox } from '@/components/InfoBoxes'
 import { useTranslation } from 'react-i18next'
 
@@ -127,10 +127,21 @@ const CertificateLayouts: React.FC = () => {
     }
   }
 
-  // Edit layout (open designer)
-  const handleEditLayout = (layout: Layout) => {
-    setSelectedLayout(layout)
-    setShowDesigner(true)
+  // Edit layout (open designer) — always fetch fresh data from API
+  const handleEditLayout = async (layout: Layout) => {
+    try {
+      // Invalidate cache and fetch fresh layout data to avoid stale image paths
+      invalidateCache(`/layouts/${layout.int_layoutid}`)
+      const freshLayout = await apiGet(`/layouts/${layout.int_layoutid}`)
+      console.log('Opening designer with fresh layout data:', freshLayout)
+      setSelectedLayout(freshLayout)
+      setShowDesigner(true)
+    } catch (error) {
+      console.error('Error fetching fresh layout data, using local copy:', error)
+      // Fallback to local data if API call fails
+      setSelectedLayout(layout)
+      setShowDesigner(true)
+    }
   }
 
   // Delete layout
@@ -189,6 +200,13 @@ const CertificateLayouts: React.FC = () => {
   const saveLayoutFromDesigner = async (layout: Layout) => {
     try {
       console.log('Saving layout:', layout)
+      
+      // Cancel all pending debounced field saves to prevent race conditions
+      // (debounced saves from handleFieldsChange could overwrite with stale data)
+      Object.values(debouncedFieldSave.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout)
+      })
+      debouncedFieldSave.current = {}
       
       // Test if the layout exists first
       try {
@@ -253,6 +271,10 @@ const CertificateLayouts: React.FC = () => {
       // Close designer and refresh the complete list to show updated name/comment
       setShowDesigner(false)
       setSelectedLayout(null)
+      
+      // Invalidate the API cache for layouts before re-fetching
+      // Without this, apiGet may return stale cached data (30s cache) showing old image paths
+      invalidateCache('/layouts')
       
       // Reload all layouts to ensure UI is in sync with database
       await fetchLayouts()

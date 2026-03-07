@@ -425,8 +425,12 @@ index-Rr7bXvmM.js:384:48399
 09:32:14.360 [DEBUG] Certificate PDF generated successfully: certificates_all_2026-03-07.pdf index-Rr7bXvmM.js:180:29953
 09:32:14.363 Results Debug: 
 Object { showFilters: false, filterSectionExists: true, competitionsCount: 1, competitionsData: (1) […] } 
+	-> Erledigt ✅
 
-56. Wurde dem Layout ein Bild hinzugefügt, kann dieses zwar geändert werden, aber nach dem Speichern und schließen und erneut öffnen ist wieder das vorherige da... 
+56. Wurde dem Layout ein Bild hinzugefügt, kann dieses zwar geändert werden, aber nach dem Speichern und schließen und erneut öffnen ist wieder das vorherige da. Das passiert aber nur sporadisch
+	-> Erledigt ✅
 
 57. Lässt sich das Layout und PDF generieren mit tests abdecken? Dass bei einem Layout alle möglichen felder hinzugefügt werden und dann gespeichert, danach eine Urkunde mit dem Layout generiert und geprüft ob auch alle Felder vorhanden sind? Ggf. über Auswertung der Debug log files oder des PDFs direkt? 
 Zudem alle möglichen Einstellungen bei dem Layout designer. 
+
+58. Ich habe jetzt eine neue DB angelegt und auch gespeichert. aber es sieht so aus, als ob noch die vorherige DB verwendet wird, da noch viele Daten vorhanden sind... in den Einstellungen steht aber die neue DB. Ich dachte das wird schon mittels tests abgedeckt? 
