@@ -222,17 +222,23 @@ export default function ScoreCapture() {
   }, [contextDiscipline?.int_disziplinid, contextDiscipline?.var_name]);
 
   // Initialize score matrix when data is ready
+  // Note: existingScores.length > 0 was removed as guard - matrix must initialize  
+  // even with 0 existing scores so that input fields are created.
+  // activeSquad and activeDiscipline are included so the matrix re-initializes
+  // when the user switches squad or discipline.
   useEffect(() => {
-    if (participants.length > 0 && disciplines.length > 0 && existingScores.length > 0 && !isInitializing) {
+    if (participants.length > 0 && disciplines.length > 0 && !isInitializing) {
       console.log('🎯 Triggering initializeScoreMatrix with:', {
         participants: participants.length,
         disciplines: disciplines.length,
         existingScores: existingScores.length,
+        activeSquad,
+        activeDiscipline,
         isInitializing
       });
       initializeScoreMatrix(participants, disciplines, existingScores);
     }
-  }, [participants.length, disciplines.length, existingScores.length, isInitializing, showJuryScores]);
+  }, [participants.length, disciplines.length, existingScores.length, isInitializing, showJuryScores, activeSquad, activeDiscipline]);
 
   // Helper: Get discipline fields (filtered by showJuryScores)
   const getDisciplineFields = (disciplineId: number | string) => {

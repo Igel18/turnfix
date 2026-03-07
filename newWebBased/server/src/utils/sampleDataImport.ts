@@ -201,29 +201,29 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
 
     // Create layout fields based on a real working certificate layout.
     // int_typ: 0 = DB field, 1 = Static text, 2 = Image, 3 = Line
-    // int_align: 0 = Center, 1 = Left, 2 = Right
+    // int_align: 0 = Left, 1 = Center, 2 = Right
     // DB field var_value mapping:
     //   "3" = Name (Teilnehmer), "4" = Verein (Club), "5" = Platz (Rank),
     //   "6" = Punkte (Score), "15" = Wettkampfnummer (Competition number)
     const layoutFields = [
       // Name of participant - large, bold, centered
-      { int_typ: 0, var_font: 'Tahoma,20,-1,5,50,0,0,0,0,0', rel_x: 35.79, rel_y: 144.64, rel_w: 137.01, rel_h: 9.95, var_value: '3', int_align: 0, int_layer: 0 },
+      { int_typ: 0, var_font: 'Tahoma,20,-1,5,50,0,0,0,0,0', rel_x: 35.79, rel_y: 144.64, rel_w: 137.01, rel_h: 9.95, var_value: '3', int_align: 1, int_layer: 0 },
       // Place/Rank - large, bold, centered
-      { int_typ: 0, var_font: 'Tahoma,20,-1,5,75,0,0,0,0,0', rel_x: 82.59, rel_y: 208.17, rel_w: 43.62, rel_h: 11.01, var_value: '5', int_align: 0, int_layer: 1 },
-      // Static text "Platz"
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 82.59, rel_y: 187.62, rel_w: 43.20, rel_h: 6.99, var_value: 'Platz', int_align: 0, int_layer: 2 },
-      // Static text "erreichte mit"
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 53.79, rel_y: 169.84, rel_w: 43.41, rel_h: 4.66, var_value: 'erreichte mit ', int_align: 0, int_layer: 3 },
-      // Score/Points - DB field
-      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 82.38, rel_y: 169.84, rel_w: 42.78, rel_h: 4.66, var_value: '6', int_align: 0, int_layer: 4 },
-      // Static text "Punkten"
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 103.77, rel_y: 169.84, rel_w: 42.78, rel_h: 5.93, var_value: 'Punkten', int_align: 0, int_layer: 5 },
-      // Competition number - DB field
-      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 98.45, rel_y: 178.02, rel_w: 48.17, rel_h: 6.15, var_value: '15', int_align: 0, int_layer: 7 },
-      // Static text "im Wettkampf Nr."
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 73.42, rel_y: 177.81, rel_w: 43.92, rel_h: 9.34, var_value: 'im Wettkampf Nr.', int_align: 0, int_layer: 8 },
-      // Club/Verein - DB field
-      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 63.87, rel_y: 155.96, rel_w: 80.63, rel_h: 9.97, var_value: '4', int_align: 0, int_layer: 9 },
+      { int_typ: 0, var_font: 'Tahoma,20,-1,5,75,0,0,0,0,0', rel_x: 82.59, rel_y: 208.17, rel_w: 43.62, rel_h: 11.01, var_value: '5', int_align: 1, int_layer: 1 },
+      // Static text "Platz" - centered
+      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 82.59, rel_y: 187.62, rel_w: 43.20, rel_h: 6.99, var_value: 'Platz', int_align: 1, int_layer: 2 },
+      // Static text "erreichte mit" - centered
+      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 53.79, rel_y: 169.84, rel_w: 43.41, rel_h: 4.66, var_value: 'erreichte mit ', int_align: 1, int_layer: 3 },
+      // Score/Points - DB field, centered
+      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 82.38, rel_y: 169.84, rel_w: 42.78, rel_h: 4.66, var_value: '6', int_align: 1, int_layer: 4 },
+      // Static text "Punkten" - centered
+      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 103.77, rel_y: 169.84, rel_w: 42.78, rel_h: 5.93, var_value: 'Punkten', int_align: 1, int_layer: 5 },
+      // Competition number - DB field, right-aligned
+      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 98.45, rel_y: 178.02, rel_w: 48.17, rel_h: 6.15, var_value: '15', int_align: 2, int_layer: 7 },
+      // Static text "im Wettkampf Nr." - centered
+      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 73.42, rel_y: 177.81, rel_w: 43.92, rel_h: 9.34, var_value: 'im Wettkampf Nr.', int_align: 1, int_layer: 8 },
+      // Club/Verein - DB field, centered
+      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 63.87, rel_y: 155.96, rel_w: 80.63, rel_h: 9.97, var_value: '4', int_align: 1, int_layer: 9 },
     ];
 
     for (const field of layoutFields) {

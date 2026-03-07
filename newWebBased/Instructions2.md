@@ -438,4 +438,14 @@ Zudem alle möglichen Einstellungen in dem Layout designer.
 
 59. Datenbankkonfiguration: Wenn die DB nicht existiert und versucht wird zu connecten sollte das visualisiert werden... 
 
-60. die Positionen der DB Felder in den Certifikaten passen nicht. 
+60. die Positionen der DB Felder in den Certifikaten passen nicht. Bei dem Import über den Wizard werden die voreinstellungen nicht richtig gesetzt oder importiert: 
+Name muss Zentriert sein 
+Verein muss Zentriert sein 
+Wettkampfnummer muss rechts sein 
+Textfeld Platz muss Zentriert sein 
+DB Feld Platz muss Zentriert sein 
+Das sollte ja einfach über das JSON zu lösen sein... 
+	-> Erledigt ✅
+
+61. Sample data 
+Ich habe gedacht die sample data werden jetzt auch mit einem JSON importiert. Aber jetzt sehe ich, dass diese im SampleDataImport.ts drin stehen. Das muss geänderte werden. 
