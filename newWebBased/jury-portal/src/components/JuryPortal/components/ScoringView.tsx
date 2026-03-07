@@ -334,6 +334,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
             <div className="space-y-2">
               {selectedDevice?.var_formel ? (
                 <FormulaInput
+                  key={`formula-p${currentParticipant?.id ?? currentParticipantIndex}`}
                   formula={selectedDevice.var_formel}
                   decimals={selectedDevice.int_berechnung || 2}
                   disciplineFields={disciplineFields}

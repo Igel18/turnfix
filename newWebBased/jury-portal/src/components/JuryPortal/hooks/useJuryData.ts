@@ -11,6 +11,7 @@ import { isEventOnDate } from '../../../utils/eventUtils';
 import { normalizeScoreInput } from '../../../utils/scoreFormatter';
 import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/navigationHelper';
 import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
+import { computeEffectiveJuryResults } from '../../../utils/effectiveJuryResults';
 import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
@@ -443,28 +444,16 @@ export function useJuryData(): UseJuryDataReturn {
 
   // Synchronous built-in formula values — avoids race condition where FormulaInput
   // mounts with initialValues={} before the async loadJuryResults effect has run.
-  // For built-in formulas ("1*x", "20-x" etc.) we can compute the input value
-  // directly from currentParticipant.currentScore without an API call.
+  // Uses the TDD-tested pure function computeEffectiveJuryResults.
+  // KEY FIX: Built-in formulas ("1*x") must use currentScore even when
+  // disciplineFields exist (e.g. Boden has Wert/Abzug/Endwert fields).
   const effectiveLoadedJuryResults = useMemo(() => {
-    if (!currentParticipant) return {};
-
-    // Built-in formulas: compute synchronously from the participant's stored score
-    if (selectedDevice?.var_formel && disciplineFields.length === 0) {
-      if (currentParticipant.currentScore != null) {
-        const builtInValues = getBuiltInFormulaInitialValues(
-          selectedDevice.var_formel,
-          currentParticipant.currentScore,
-          disciplineFields.length
-        );
-        if (Object.keys(builtInValues).length > 0) {
-          return builtInValues;
-        }
-      }
-      return {}; // No score yet for this participant
-    }
-
-    // Linked formulas (with discipline fields): use async-loaded results
-    return loadedJuryResults;
+    return computeEffectiveJuryResults(
+      currentParticipant,
+      selectedDevice?.var_formel || null,
+      disciplineFields.length,
+      loadedJuryResults
+    );
   }, [selectedDevice?.var_formel, disciplineFields.length, currentParticipant, loadedJuryResults]);
 
   // Load jury results when participant changes
