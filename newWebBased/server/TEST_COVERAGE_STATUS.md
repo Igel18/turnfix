@@ -1,113 +1,95 @@
 # Test Coverage Summary
 
-## ✅ Successful Test Suites
+**Stand**: 7. März 2026
 
-### 1. Events API Tests (13/13 tests passing)
-- **File**: `tests/integration/events.test.ts`
-- **Coverage**: Full CRUD operations for events
-- **Endpoints**: GET, POST, PUT, DELETE `/api/events`
-- **Features**:
-  - Event listing with pagination and filtering
-  - Event creation with venue management
-  - Event updates and deletion
-  - Search functionality
-  - Date validation
-  - Status management (upcoming, ongoing, completed)
+## ✅ Server Tests — Alle bestanden
 
-### 2. Comprehensive API Tests (17/17 tests passing)
-- **File**: `tests/integration/api-comprehensive.test.ts`
-- **Coverage**: Cross-cutting API functionality
-- **Endpoints**: All major API routes
-- **Features**:
-  - API health checks
-  - Response format consistency
-  - Error handling validation
-  - Performance and load testing
-  - Concurrent request handling
-  - Parameter validation
-  - Header validation
-
-## 🔧 In Development Test Suites
-
-### 3. Participants API Tests (Mixed Results)
-- **File**: `tests/integration/participants.test.ts`
-- **Status**: Partial functionality, schema validation issues
-- **Issues**: Field name mismatches in Prisma schema
-
-### 4. Clubs API Tests (Mixed Results)  
-- **File**: `tests/integration/clubs.test.ts`
-- **Status**: Partial functionality, validation errors
-- **Issues**: Schema field mapping problems
-
-### 5. Disciplines API Tests (Mixed Results)
-- **File**: `tests/integration/disciplines.test.ts`
-- **Status**: Partial functionality, schema validation issues
-- **Issues**: Field name mismatches and validation problems
-
-### 6. Associations API Tests (Created but not tested)
-- **File**: `tests/integration/associations.test.ts`
-- **Status**: Created but likely has similar schema issues
-
-## 📊 Current Test Statistics
-
+### Gesamtzahlen
 ```
-✅ Passing Tests: 30/30 (from working suites)
-⚠️  Failing Tests: 23 (from schema-dependent suites)
-📁 Total Test Suites: 6 created
-🎯 Working Test Suites: 2/6 (33%)
+✅ Test Suites: 66 passed, 66 total
+✅ Tests:       1.781 passed, 1.781 total
 ```
 
-## 🔍 Key Insights
+### Unit Tests (27 Dateien, ~640 Tests)
 
-### Working Patterns:
-1. **API Health Testing**: Basic endpoint availability checks work well
-2. **Response Format Validation**: Flexible response format checking effective
-3. **Error Handling Testing**: General error response validation successful
-4. **Performance Testing**: Basic load and concurrent request testing functional
+| Datei | Tests | Was wird getestet |
+|-------|:-----:|-------------------|
+| `configurationDatabase.test.ts` | 41 | DB-Setup-Wizard: test-connection, create-database, create-schema, init-database (Mocked Prisma + child_process) |
+| `configurationValidation.test.ts` | 15 | Config-Validierung: db_host/db_name, DATABASE_URL-Parsing, URL-Aufbau mit SSL |
+| `configurationUtils.test.ts` | — | Konfigurations-Utilities |
+| `configurationHelpers.test.ts` | 8 | Enum-Helfer: Gender, Status, Medaillen-Typen, DB↔Teilnehmer Konvertierung |
+| `iconUtils.test.ts` | 16 | Qt-Ressource-Pfad → Web-URL (`getIconUrl`, `getIconFilename`) |
+| `disciplineData.test.ts` | — | Disziplin-Daten-Verarbeitung |
+| `formulaUtils.test.ts` | — | Formel-Utilities: Parsing, Validierung |
+| `builtInFormula.test.ts` | — | Built-In Formel-Engine |
+| `genderHelpers.test.ts` | — | Geschlechter-Normalisierung, DB-Mapping |
+| `gymnetPreset.test.ts` | — | GymNet-Preset-Daten |
+| `gymnetXmlExtraction.test.ts` | — | XML-Extraktion |
+| `gymnetMappingFunctions.test.ts` | — | GymNet-Mapping-Funktionen |
+| `wedDisNrMapping.test.ts` | — | Wettkampf-Disziplin-Nummer-Mapping |
+| `productionDisciplinesImport.test.ts` | — | Produktions-Disziplinen-Import |
+| `disciplineGroupsImport.test.ts` | — | Disziplingruppen-Import |
+| `sampleDataImport.test.ts` | — | Sample-Daten-Import |
+| `copySharedLogic.test.ts` | — | Shared-Logic-Kopierung |
+| `squadAutoAssign.test.ts` | — | Automatische Riegeneinteilung |
+| `scoresJuryResultsFilter.test.ts` | — | Score-/Jury-Ergebnis-Filterung |
+| `competitionHelpers.test.ts` | — | Wettkampf-Helfer-Funktionen |
+| `startNumberUtils.test.ts` | — | Startnummer-Utilities |
+| `routes.test.ts` | — | Route-Registrierung |
+| `api.test.ts` | — | API-Helfer |
+| `middleware.test.ts` | — | Express-Middleware |
+| `prismaReconnect.test.ts` | — | Prisma-Reconnect-Logik |
+| `dynamicPrismaClient.test.ts` | — | Dynamischer Prisma-Client |
+| `ecosystemConfig.test.ts` | — | PM2-Ecosystem-Konfiguration |
 
-### Challenge Areas:
-1. **Schema Field Mapping**: Prisma field names don't match API expectations
-2. **Foreign Key Constraints**: Complex database relationships cause cleanup issues
-3. **Data Creation**: Test data creation requires exact schema compliance
-4. **Validation Logic**: Different validation between API layer and database layer
+### Integration Tests (39 Dateien, ~1.141 Tests)
 
-## 🚀 Achievements
+| Datei | Tests | Was wird getestet |
+|-------|:-----:|-------------------|
+| `documents.test.ts` | 43 | Kategorien, Datei-Listing/Filterung, Upload (MIME-Validierung), Löschen, Download, Icons |
+| `scoreValidationEdgeCases.test.ts` | 71 | Zod-Schema, Typfehler, Grenzwerte, SQL-Injection, Null/Undefined, Group/Team/Medal Edge Cases |
+| `participantSettings.test.ts` | 23 | `bol_startet_nicht`, `bol_ak`: update-status, competition-status, Meldematrix |
+| `disciplineSettings.test.ts` | 29 | Icons, Kürzel, Einheiten, Masken, Formeln, Gender-Flags, Propagation |
+| `competitionSettings.test.ts` | 17 | Qualifiers, DropWorstScore, useApparatusPoints, kombinierte Settings |
+| `layouts.test.ts` | 18 | CRUD + Felder-CRUD + Duplizierung |
+| `persons.test.ts` | 16 | CRUD mit Suche, Paginierung, Pflichtfeld-Validierung |
+| `disciplineGroups.test.ts` | 16 | CRUD mit Disziplin-Zuweisungen, Duplikat-Prüfung |
+| `statuses.test.ts` | 14 | CRUD mit Farben, Boolean-Flags, Suche |
+| `timePlanning.test.ts` | 14 | Zeitplanung, Bahnen, Durchgänge, Runden |
+| `medals.test.ts` | 13 | Übersicht, Standings, Statistiken, Vergabe, Event-spezifisch |
+| `groupScores.test.ts` | 13 | GET mit Filtern, POST Erstellung/Upsert/Validierung, DELETE |
+| `teamScores.test.ts` | 14 | GET mit Filtern, POST Erstellung/Upsert/Validierung, DELETE |
+| `concurrentWrites.test.ts` | 12 | Race Conditions, Burst-Resilienz, Datenintegrität |
+| `events.test.ts` | — | Event-CRUD, Paginierung, Status |
+| `competitions.test.ts` | — | Wettkampf-CRUD, Disziplinen |
+| `participants.test.ts` | — | Teilnehmer-CRUD |
+| `scores.test.ts` | — | Score-CRUD |
+| `results.test.ts` | — | Ergebnis-Abfragen |
+| `clubs.test.ts` | — | Verein-CRUD |
+| `associations.test.ts` | — | Verband-CRUD |
+| `disciplines.test.ts` | — | Disziplin-CRUD |
+| `areas.test.ts` | — | Bereich-CRUD |
+| `venues.test.ts` | — | Hallen-CRUD |
+| `teams.test.ts` | — | Team-CRUD |
+| `eventParticipants.test.ts` | — | Event-Teilnehmer |
+| `squadManagement.test.ts` | — | Riegen-Verwaltung |
+| `startNumbers.test.ts` | — | Startnummern |
+| `api-comprehensive.test.ts` | — | Cross-Cutting API-Tests |
+| `competition-disciplines.test.ts` | — | Wettkampf-Disziplinen |
+| `specialized.test.ts` | — | Spezialisierte Tests |
+| `administrative.test.ts` | — | Administrative Endpunkte |
+| `builtin-formula-ranking.test.ts` | — | Built-In Formel-Ranking |
+| `results-pagination.test.ts` | — | Ergebnis-Paginierung |
+| `formula-priority.test.ts` | — | Formel-Priorität |
+| `import-gender-validation.test.ts` | — | Import Gender-Validierung |
+| `seed-data.test.ts` | — | Seed-Daten |
+| `gymnetTeamImport.test.ts` | — | GymNet Team-Import |
+| `system-utility.test.ts` | — | System-Utilities |
 
-1. **Expanded Test Coverage**: From 1 test suite to 6 comprehensive test suites
-2. **Comprehensive API Testing**: Created cross-cutting API functionality tests
-3. **Error Handling**: Improved error scenario coverage
-4. **Performance Testing**: Added basic load testing capabilities
-5. **Flexible Validation**: Tests work with both database and API field naming
+## 📊 Fortschritt
 
-## 🎯 Next Steps
-
-1. **Schema Alignment**: Resolve field name mismatches between API and database
-2. **Cleanup Optimization**: Improve test cleanup to handle foreign key constraints
-3. **Data Factory**: Create more robust test data generation utilities
-4. **Validation Consistency**: Align validation logic between API and database layers
-
-## 📋 Test Files Created
-
-```
-tests/
-├── integration/
-│   ├── events.test.ts           ✅ 13/13 passing
-│   ├── api-comprehensive.test.ts ✅ 17/17 passing
-│   ├── participants.test.ts     ⚠️  Schema issues
-│   ├── clubs.test.ts           ⚠️  Schema issues
-│   ├── disciplines.test.ts     ⚠️  Schema issues
-│   └── associations.test.ts    ⚠️  Schema issues
-└── utils/
-    └── testUtils.ts            🔧 Enhanced with new utilities
-```
-
-## 💡 Test Strategy Summary
-
-The test expansion successfully demonstrates:
-- **Comprehensive API Coverage**: All major endpoints tested
-- **Multiple Testing Approaches**: From basic health checks to detailed CRUD operations
-- **Robust Error Handling**: Extensive error scenario coverage
-- **Performance Validation**: Basic load and concurrency testing
-- **Flexible Architecture**: Tests adapt to different response formats
-
-While some tests require schema fixes, the foundation for comprehensive API testing is now established and working well for the core functionality.
+| Datum | Suites | Tests | Änderungen |
+|-------|--------|-------|------------|
+| Erstfassung | 2 | 30 | Events + API-Comprehensive |
+| 5. März 2026 | 60 | 1.659 | +58 Suites, +1.629 Tests |
+| 7. März 2026 | 66 | 1.781 | +6 Suites, +122 Tests (Documents API, DB-Setup-Wizard, Icon-Utils, Config-Validierung, Config-Helpers) |
