@@ -362,7 +362,10 @@
         "ssl": {
           "label": "Use SSL Connection",
           "description": "Enable SSL/TLS for database connection"
-        }
+        },
+        "connectedTo": "Connected database",
+        "notConnected": "No database connected",
+        "refresh": "Refresh"
       },
       "application": {
         "title": "Application Settings",

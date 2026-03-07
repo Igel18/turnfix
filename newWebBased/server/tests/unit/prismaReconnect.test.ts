@@ -10,7 +10,7 @@
 // We must mock @prisma/client before importing the module under test
 const mockDisconnect = jest.fn().mockResolvedValue(undefined);
 const mockConnect = jest.fn().mockResolvedValue(undefined);
-const mockQueryRaw = jest.fn().mockResolvedValue([{ '?column?': 1 }]);
+const mockQueryRaw = jest.fn().mockResolvedValue([{ current_database: 'test_db', '?column?': 1 }]);
 
 let instanceCount = 0;
 
@@ -77,5 +77,18 @@ describe('lib/prisma', () => {
     const { reconnectPrisma } = require('../../src/lib/prisma');
     // Should not throw even if disconnect fails
     await expect(reconnectPrisma()).resolves.not.toThrow();
+  });
+
+  it('getCurrentDatabaseName returns the database name', async () => {
+    const { getCurrentDatabaseName } = require('../../src/lib/prisma');
+    const dbName = await getCurrentDatabaseName();
+    expect(dbName).toBe('test_db');
+  });
+
+  it('getCurrentDatabaseName returns null on error', async () => {
+    mockQueryRaw.mockRejectedValueOnce(new Error('Connection failed'));
+    const { getCurrentDatabaseName } = require('../../src/lib/prisma');
+    const dbName = await getCurrentDatabaseName();
+    expect(dbName).toBeNull();
   });
 });

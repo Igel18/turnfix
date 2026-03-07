@@ -10,6 +10,7 @@
 
 import express from 'express';
 import { AppConfig, loadConfig, saveConfig, getDefaultConfig } from '../utils/configurationUtils';
+import { getCurrentDatabaseName } from '../lib/prisma';
 
 // Import sub-routers
 import seedingRouter from './configurationSeeding';
@@ -20,6 +21,26 @@ const router = express.Router();
 // Mount sub-routers (all routes are relative to /api/configuration)
 router.use('/', seedingRouter);
 router.use('/', databaseRouter);
+
+// GET /api/configuration/connected-database - Which database is Prisma actually connected to?
+router.get('/connected-database', async (_req, res) => {
+  try {
+    const connectedDatabase = await getCurrentDatabaseName();
+    const envDatabase = process.env.DATABASE_NAME || null;
+    const envUrl = process.env.DATABASE_URL;
+    // Extract DB name from URL: last path segment before query params
+    const urlDatabase = envUrl?.match(/\/([^/?]+)\?/)?.[1] || null;
+
+    res.json({
+      connectedDatabase,
+      configuredDatabase: envDatabase,
+      urlDatabase,
+      match: connectedDatabase === envDatabase || connectedDatabase === urlDatabase,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 // GET /api/configuration - Load configuration
@@ -63,11 +84,12 @@ router.post('/save', async (req, res) => {
       config.database.db_host = 'localhost';
     }
     
-    await saveConfig(config);
+    const result = await saveConfig(config);
     
     if (process.env.DEBUG === 'true') {
       console.log('Configuration saved successfully:', {
         sections: Object.keys(config),
+        connectedDatabase: result.connectedDatabase,
         timestamp: new Date().toISOString()
       });
     }
@@ -75,6 +97,7 @@ router.post('/save', async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Configuration saved successfully',
+      connectedDatabase: result.connectedDatabase,
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {

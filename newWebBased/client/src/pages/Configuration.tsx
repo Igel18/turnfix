@@ -229,8 +229,23 @@ const Configuration: React.FC = () => {
           delete configData.scoreCapture;
         }
 
-        await apiPost('/configuration/save', configData);
+        const response = await apiPost('/configuration/save', configData);
+        const connectedDb = response?.connectedDatabase;
+        const expectedDb = configData.database?.db_name;
+        
+        if (connectedDb && expectedDb && connectedDb !== expectedDb) {
+          console.warn(`⚠️ Database mismatch: expected "${expectedDb}", connected to "${connectedDb}"`);
+        }
+        
         setMessage({ type: 'success', text: t('configuration.wizard.savedAndReconnected') || 'Konfiguration gespeichert & Server wird neu verbunden!' });
+        
+        // Force a full page reload after a short delay to clear ALL cached data
+        // This ensures React Query cache, component state, and any other caches
+        // are flushed and fresh data is loaded from the new database
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
         return { success: true };
       } catch (error: any) {
         console.error('Error saving configuration from wizard:', error);
@@ -245,9 +260,21 @@ const Configuration: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [connectedDb, setConnectedDb] = useState<string | null>(null)
+
+  // Fetch which database the server is actually connected to
+  const fetchConnectedDatabase = async () => {
+    try {
+      const response = await apiGet('/configuration/connected-database')
+      setConnectedDb(response?.connectedDatabase || null)
+    } catch {
+      setConnectedDb(null)
+    }
+  }
 
   useEffect(() => {
     loadConfiguration()
+    fetchConnectedDatabase()
   }, [t]) // Reload when language changes
 
   const loadConfiguration = async () => {
@@ -724,8 +751,26 @@ const Configuration: React.FC = () => {
         delete configData.scoreCapture // Don't send to main configuration API
       }
 
-      await apiPost('/configuration/save', configData)
+      const response = await apiPost('/configuration/save', configData)
       setMessage({ type: 'success', text: t('configuration.messages.saveSuccess') })
+
+      // Update the connected database indicator immediately
+      if (response?.connectedDatabase) {
+        setConnectedDb(response.connectedDatabase)
+      }
+
+      // If database config changed, force a full page reload to clear all cached data
+      // (React Query staleTime is 5 min — stale data from the old DB would persist otherwise)
+      if (configData.database) {
+        const connDb = response?.connectedDatabase
+        const expectedDb = configData.database.db_name
+        if (connDb && expectedDb && connDb !== expectedDb) {
+          console.warn(`⚠️ Database mismatch after save: expected "${expectedDb}", connected to "${connDb}"`)
+        }
+        setTimeout(() => {
+          window.location.reload()
+        }, 2000)
+      }
     } catch (error) {
       console.error('Error saving configuration:', error)
       setMessage({ type: 'error', text: t('configuration.messages.saveFailed') })
@@ -870,14 +915,40 @@ const Configuration: React.FC = () => {
                     <>
                       {/* Database Section Info Box */}
                       {activeConfigSection.id === 'database' && (
-                        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex">
-                            <div className="flex-shrink-0">
-                              <ExclamationTriangleIcon className="h-5 w-5 text-blue-600" />
+                        <div className="mb-6 space-y-4">
+                          {/* Connected Database Status */}
+                          <div className={`border rounded-lg p-4 ${
+                            connectedDb ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <CircleStackIcon className={`h-5 w-5 mr-2 ${connectedDb ? 'text-green-600' : 'text-yellow-600'}`} />
+                                <span className="text-sm font-medium text-gray-700">
+                                  {t('configuration.sections.database.connectedTo') || 'Verbundene Datenbank:'}
+                                </span>
+                                <span className={`ml-2 text-sm font-bold ${connectedDb ? 'text-green-800' : 'text-yellow-800'}`}>
+                                  {connectedDb || t('configuration.sections.database.notConnected') || 'Nicht verbunden'}
+                                </span>
+                              </div>
+                              <button
+                                onClick={fetchConnectedDatabase}
+                                className="text-xs text-gray-500 hover:text-gray-700 underline"
+                                title={t('configuration.sections.database.refresh') || 'Aktualisieren'}
+                              >
+                                {t('configuration.sections.database.refresh') || 'Aktualisieren'}
+                              </button>
                             </div>
-                            <div className="ml-3">
-                              <h3 className="text-sm font-medium text-blue-800">
-                                {t('configuration.sections.database.infoTitle') || 'Database Configuration'}
+                          </div>
+
+                          {/* Database Info */}
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex">
+                              <div className="flex-shrink-0">
+                                <ExclamationTriangleIcon className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div className="ml-3">
+                                <h3 className="text-sm font-medium text-blue-800">
+                                  {t('configuration.sections.database.infoTitle') || 'Database Configuration'}
                               </h3>
                               <div className="mt-2 text-sm text-blue-700">
                                 <p>{t('configuration.sections.database.infoText') || 'Configure your PostgreSQL database connection. Use the "Create Database" button if you need to create a new database. Make sure the database user has CREATE DATABASE privileges.'}</p>
@@ -888,6 +959,7 @@ const Configuration: React.FC = () => {
                                 </ul>
                               </div>
                             </div>
+                          </div>
                           </div>
                         </div>
                       )}

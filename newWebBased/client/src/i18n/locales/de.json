@@ -337,6 +337,9 @@
       "database": {
         "title": "Datenbankkonfiguration",
         "description": "Datenbankverbindungseinstellungen und Anmeldedaten",
+        "connectedTo": "Verbundene Datenbank:",
+        "notConnected": "Nicht verbunden",
+        "refresh": "Aktualisieren",
         "infoTitle": "Datenbankkonfiguration",
         "infoText": "Konfigurieren Sie Ihre PostgreSQL-Datenbankverbindung. Verwenden Sie den Button 'Datenbank erstellen', wenn Sie eine neue Datenbank anlegen müssen. Stellen Sie sicher, dass der Datenbankbenutzer die Berechtigung 'CREATE DATABASE' besitzt.",
         "host": {

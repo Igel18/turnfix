@@ -9,14 +9,18 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { exec } from 'child_process';
-import { reconnectPrisma } from '../lib/prisma';
+import { reconnectPrisma, getCurrentDatabaseName } from '../lib/prisma';
 
 // Configuration file path
-export const CONFIG_FILE = path.join(process.cwd(), 'config', 'app-config.json');
+// IMPORTANT: Use __dirname (relative to this source file) instead of process.cwd()
+// because PM2 sets cwd to the project root (turnfix/), not the server/ folder.
+// dotenv in index.ts also uses __dirname-based path: resolve(__dirname, '../.env')
+const SERVER_ROOT = path.resolve(__dirname, '../..');
+export const CONFIG_FILE = path.join(SERVER_ROOT, 'config', 'app-config.json');
 export const CONFIG_DIR = path.dirname(CONFIG_FILE);
 
-// .env file path
-export const ENV_FILE = path.join(process.cwd(), '.env');
+// .env file path — must match what dotenv reads in index.ts
+export const ENV_FILE = path.join(SERVER_ROOT, '.env');
 
 // Encryption key for sensitive data (in production, use environment variable)
 export const ENCRYPTION_KEY = process.env.CONFIG_ENCRYPTION_KEY || 'turnfix-config-key-2024-secret-key';
@@ -373,8 +377,9 @@ export const updateEnvFile = async (config: AppConfig): Promise<void> => {
 
 /**
  * Save configuration to file, update .env, and trigger Prisma regeneration + PM2 restart
+ * Returns an object with success status and the currently connected database name.
  */
-export const saveConfig = async (config: AppConfig): Promise<boolean> => {
+export const saveConfig = async (config: AppConfig): Promise<{ success: boolean; connectedDatabase?: string }> => {
   try {
     await ensureConfigDir();
     
@@ -389,12 +394,21 @@ export const saveConfig = async (config: AppConfig): Promise<boolean> => {
     await fs.writeFile(CONFIG_FILE, JSON.stringify(configToSave, null, 2));
     
     // Update .env file with database configuration
+    let connectedDatabase: string | undefined;
     if (config.database) {
       await updateEnvFile(config);
 
       // Reconnect the running Prisma singleton to the (potentially new) database
       try {
         await reconnectPrisma();
+        // Verify we're connected to the correct database
+        connectedDatabase = (await getCurrentDatabaseName()) || undefined;
+        const expectedDb = config.database.db_name;
+        if (connectedDatabase && connectedDatabase !== expectedDb) {
+          console.error(`❌ Database mismatch! Expected: ${expectedDb}, Connected: ${connectedDatabase}`);
+        } else {
+          console.log(`✅ Database switch verified: ${connectedDatabase}`);
+        }
       } catch (reconnectError) {
         console.error('❌ Error reconnecting Prisma after config save:', reconnectError);
         // Don't throw — config is already saved, reconnect can be retried by restarting
@@ -414,7 +428,8 @@ export const saveConfig = async (config: AppConfig): Promise<boolean> => {
       });
 
       // In production with PM2, also restart the server for a full clean state
-      exec('pm2 restart turnfix-server', { cwd: process.cwd() }, (error, stdout, stderr) => {
+      // Use --update-env to ensure PM2 picks up the latest environment variables
+      exec('pm2 restart turnfix-server --update-env', { cwd: process.cwd() }, (error, stdout, stderr) => {
         if (process.env.DEBUG === 'true') {
           if (error) {
             console.error('❌ Error running pm2 restart turnfix-server:', error);
@@ -432,7 +447,7 @@ export const saveConfig = async (config: AppConfig): Promise<boolean> => {
       process.env.DEBUG = config.application.debug_mode ? 'true' : 'false';
     }
 
-    return true;
+    return { success: true, connectedDatabase };
   } catch (error) {
     console.error('Error saving configuration:', error);
     throw error;

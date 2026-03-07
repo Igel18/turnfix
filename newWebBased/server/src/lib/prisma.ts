@@ -54,6 +54,26 @@ export async function reconnectPrisma(): Promise<void> {
   // Swap the global reference — the Proxy will immediately delegate to it
   globalForPrisma.prisma = newClient
   console.log('✅ Prisma reconnected to:', process.env.DATABASE_URL?.replace(/:([^@]+)@/, ':****@'))
+
+  // Verify the connection by querying the current database name
+  try {
+    const result = await newClient.$queryRaw<{ current_database: string }[]>`SELECT current_database()`
+    console.log('✅ Verified: Connected to database:', result[0]?.current_database)
+  } catch (verifyErr) {
+    console.error('⚠️ Could not verify database connection:', verifyErr)
+  }
+}
+
+/**
+ * Get the name of the currently connected database.
+ */
+export async function getCurrentDatabaseName(): Promise<string | null> {
+  try {
+    const result = await globalForPrisma.prisma.$queryRaw<{ current_database: string }[]>`SELECT current_database()`
+    return result[0]?.current_database || null
+  } catch {
+    return null
+  }
 }
 
 export default prisma

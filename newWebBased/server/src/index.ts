@@ -20,7 +20,9 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 // Load environment variables from server/.env (not CWD) 
 // This ensures PM2 (which sets cwd to project root) still finds the .env file
-config({ path: resolve(__dirname, '../.env') });
+// IMPORTANT: override: true ensures that after a DB switch + PM2 restart,
+// the updated .env values take precedence over any cached PM2 environment variables
+config({ path: resolve(__dirname, '../.env'), override: true });
 
 console.log('🚀 Starting TurnFix server...');
 // Debug: Log database URL availability (mask the actual value for security)
