@@ -449,3 +449,13 @@ Das sollte ja einfach über das JSON zu lösen sein...
 
 61. Sample data 
 Ich habe gedacht die sample data werden jetzt auch mit einem JSON importiert. Aber jetzt sehe ich, dass diese im SampleDataImport.ts drin stehen. Das muss geänderte werden. 
+
+62. Formel Felder & Jury-Wertungen Konzept: 
+Also die Möglichkeit die Jury-Wertungen anzuzeigen/auszublenden im score-capture gefällt mir nicht so gut. 
+- Wie wäre es wenn wir bei Formeln mit mehr wie einem Feld immer alle Felder anzeigen? 
+- Bei "Benutzerdefinierte Formel" (die haben ja eigentlich nur x als variable) immer dieses X und die Formel anzeigen, wie im Jury-Portal? 
+- Die Formel soll auch angezeigt werden, wie bisher 
+- Das Berechte Ergebnis soll auch angezeigt werden, wie bisher 
+- Wenn es eine vordefinierte Formel und "Benutzerdefinierte Formel" gibt soll die vordefinierte Formel verwendet werden, wie bisher 
+
+Hab ich was vergessen? Verhält sich das so wie früher im c++ und wäre kompatibel? 

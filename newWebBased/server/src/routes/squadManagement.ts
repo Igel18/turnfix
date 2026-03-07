@@ -3,6 +3,7 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import mutationsRouter, { virtualSquads } from './squadManagementMutations';
 import autoAssignRouter from './squadAutoAssign';
+import { buildAvailableParticipantsWhereClause } from '../utils/squadHelpers';
 
 const router = Router();
 
@@ -247,6 +248,9 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
       queryParams = [];
     } else {
       // Get participants registered for the event but not assigned to any squad
+      // FIX: Use NOT EXISTS subquery to exclude participants who have ANY squad
+      // assignment in the event. The old row-level WHERE filter missed participants
+      // registered in multiple competitions where only some rows had a squad.
       availableParticipantsQuery = `
         SELECT 
           t.int_teilnehmerid,
@@ -273,8 +277,7 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
         INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
         INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
         LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-        WHERE wk.int_veranstaltungenid = $1 
-          AND (w.var_riege IS NULL OR w.var_riege = '' OR w.var_riege = 'Unassigned')
+        WHERE ${buildAvailableParticipantsWhereClause()}
         GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
                  t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name
         ORDER BY t.var_nachname ASC, t.var_vorname ASC
