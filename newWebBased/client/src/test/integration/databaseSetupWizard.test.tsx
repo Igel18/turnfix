@@ -637,3 +637,724 @@ describe('useDatabaseSetupWizard - Save & Reconnect (Item 8)', () => {
     });
   });
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  5) executeStep — All 9 step IDs comprehensive
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('useDatabaseSetupWizard — executeStep all steps', () => {
+  let cbs: ReturnType<typeof createMockCallbacks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    cbs = createMockCallbacks();
+  });
+
+  const hookParams = (overrides: Record<string, any> = {}) => ({
+    isOpen: false,
+    currentDbConfig: defaultDbConfig,
+    ...cbs,
+    ...overrides,
+  });
+
+  /**
+   * Helper: bring the wizard to a state where steps 3–8 are executable.
+   * This means: create-db → success, test-connection → success, create-schema → success.
+   */
+  async function completeRequiredSteps(result: any) {
+    cbs.onCreateDatabase.mockResolvedValue({ success: true, message: 'Created' });
+    cbs.onTestConnection.mockResolvedValue({ success: true, message: 'OK' });
+    cbs.onCreateSchema.mockResolvedValue({ success: true, message: 'Schema done' });
+
+    act(() => { result.current.setNewDatabaseName('test_db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    expect(result.current.steps[0].status).toBe('success');
+    expect(result.current.steps[1].status).toBe('success');
+    expect(result.current.steps[2].status).toBe('success');
+  }
+
+  // ── create-db (additional cases) ──────────────────────────────
+
+  it('create-db failure with generic error', async () => {
+    cbs.onCreateDatabase.mockResolvedValue({ success: false, error: 'Disk full' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('new_db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    expect(result.current.steps[0].status).toBe('error');
+    expect(result.current.steps[0].error).toContain('Disk full');
+  });
+
+  it('create-db exception from callback', async () => {
+    cbs.onCreateDatabase.mockRejectedValue(new Error('Network down'));
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('new_db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    expect(result.current.steps[0].status).toBe('error');
+    expect(result.current.steps[0].error).toContain('Network down');
+  });
+
+  // ── test-connection (exception path) ──────────────────────────
+
+  it('test-connection handles exception from callback', async () => {
+    cbs.onCreateDatabase.mockResolvedValue({ success: true });
+    cbs.onTestConnection.mockRejectedValue(new Error('timeout'));
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    expect(result.current.steps[1].status).toBe('error');
+    expect(result.current.steps[1].error).toContain('timeout');
+  });
+
+  // ── create-schema ─────────────────────────────────────────────
+
+  it('create-schema succeeds', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    // Already completed inside helper
+    expect(result.current.steps[2].status).toBe('success');
+    expect(cbs.onCreateSchema).toHaveBeenCalled();
+  });
+
+  it('create-schema succeeds with details output', async () => {
+    cbs.onCreateSchema.mockResolvedValue({
+      success: true,
+      message: 'Schema done',
+      details: 'table created\nmigration applied\nsome noise',
+    });
+    cbs.onCreateDatabase.mockResolvedValue({ success: true });
+    cbs.onTestConnection.mockResolvedValue({ success: true });
+
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    expect(result.current.steps[2].status).toBe('success');
+    const output = result.current.steps[2].output || [];
+    expect(output.some(l => l.includes('table'))).toBe(true);
+  });
+
+  it('create-schema failure', async () => {
+    cbs.onCreateDatabase.mockResolvedValue({ success: true });
+    cbs.onTestConnection.mockResolvedValue({ success: true });
+    cbs.onCreateSchema.mockResolvedValue({ success: false, error: 'Prisma error' });
+
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    expect(result.current.steps[2].status).toBe('error');
+    expect(result.current.steps[2].error).toContain('Prisma error');
+  });
+
+  // ── production-statuses ───────────────────────────────────────
+
+  it('production-statuses succeeds with stats', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-statuses'); });
+    expect(result.current.steps[3].status).toBe('success');
+    expect(cbs.onImportProductionStatuses).toHaveBeenCalled();
+    const output = result.current.steps[3].output || [];
+    expect(output.some(l => l.includes('10/10'))).toBe(true);
+  });
+
+  it('production-statuses shows skipped count', async () => {
+    cbs.onImportProductionStatuses.mockResolvedValue({
+      success: true,
+      stats: { createdStatuses: 7, skippedStatuses: 3, totalStatuses: 10 },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-statuses'); });
+    expect(result.current.steps[3].status).toBe('success');
+    const output = result.current.steps[3].output || [];
+    expect(output.some(l => l.includes('3'))).toBe(true);
+  });
+
+  it('production-statuses failure', async () => {
+    cbs.onImportProductionStatuses.mockResolvedValue({ success: false, error: 'Import failed' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-statuses'); });
+    expect(result.current.steps[3].status).toBe('error');
+  });
+
+  // ── standard-countries ────────────────────────────────────────
+
+  it('standard-countries succeeds with stats', async () => {
+    cbs.onImportStandardCountries.mockResolvedValue({
+      success: true,
+      stats: { createdCountries: 34, skippedCountries: 0, totalCountries: 34 },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('standard-countries'); });
+    expect(result.current.steps[4].status).toBe('success');
+    expect(cbs.onImportStandardCountries).toHaveBeenCalled();
+  });
+
+  it('standard-countries shows skipped', async () => {
+    cbs.onImportStandardCountries.mockResolvedValue({
+      success: true,
+      stats: { createdCountries: 20, skippedCountries: 14, totalCountries: 34 },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('standard-countries'); });
+    expect(result.current.steps[4].status).toBe('success');
+    const output = result.current.steps[4].output || [];
+    expect(output.some(l => l.includes('14'))).toBe(true);
+  });
+
+  it('standard-countries failure', async () => {
+    cbs.onImportStandardCountries.mockResolvedValue({ success: false, error: 'fail' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('standard-countries'); });
+    expect(result.current.steps[4].status).toBe('error');
+  });
+
+  // ── gymnet-preset ─────────────────────────────────────────────
+
+  it('gymnet-preset succeeds with stats', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('gymnet-preset'); });
+    expect(result.current.steps[5].status).toBe('success');
+    expect(cbs.onApplyGymNetPreset).toHaveBeenCalled();
+    const output = result.current.steps[5].output || [];
+    expect(output.some(l => l.includes('Formeln'))).toBe(true);
+  });
+
+  it('gymnet-preset failure', async () => {
+    cbs.onApplyGymNetPreset.mockResolvedValue({ success: false, error: 'Preset fail' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('gymnet-preset'); });
+    expect(result.current.steps[5].status).toBe('error');
+  });
+
+  // ── production-disciplines ────────────────────────────────────
+
+  it('production-disciplines succeeds with stats', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    expect(result.current.steps[6].status).toBe('success');
+    expect(cbs.onImportProductionDisciplines).toHaveBeenCalled();
+    const output = result.current.steps[6].output || [];
+    expect(output.some(l => l.includes('Disziplinen'))).toBe(true);
+  });
+
+  it('production-disciplines shows skipped disciplines', async () => {
+    cbs.onImportProductionDisciplines.mockResolvedValue({
+      success: true,
+      stats: {
+        createdSports: 2, createdFormulas: 4, totalFormulas: 4,
+        createdDisciplines: 8, createdFields: 20, skippedDisciplines: 2, totalDisciplines: 10,
+      },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    const output = result.current.steps[6].output || [];
+    expect(output.some(l => l.includes('2') && l.includes('übersprungen'))).toBe(true);
+  });
+
+  it('production-disciplines failure', async () => {
+    cbs.onImportProductionDisciplines.mockResolvedValue({ success: false, error: 'Import failed' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    expect(result.current.steps[6].status).toBe('error');
+  });
+
+  // ── discipline-groups ─────────────────────────────────────────
+
+  it('discipline-groups succeeds with stats', async () => {
+    cbs.onImportDisciplineGroups.mockResolvedValue({
+      success: true,
+      stats: { createdGroups: 2, totalGroups: 2, createdAssignments: 8, skippedGroups: 0, missingDisciplines: [] },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    // discipline-groups requires production-disciplines to succeed first
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    await act(async () => { await result.current.executeStep('discipline-groups'); });
+    expect(result.current.steps[7].status).toBe('success');
+    expect(cbs.onImportDisciplineGroups).toHaveBeenCalled();
+  });
+
+  it('discipline-groups shows missing disciplines warning', async () => {
+    cbs.onImportDisciplineGroups.mockResolvedValue({
+      success: true,
+      stats: {
+        createdGroups: 1, totalGroups: 2, createdAssignments: 4,
+        skippedGroups: 1, missingDisciplines: ['Sprung', 'Reck'],
+      },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    await act(async () => { await result.current.executeStep('discipline-groups'); });
+    const output = result.current.steps[7].output || [];
+    expect(output.some(l => l.includes('Sprung'))).toBe(true);
+    expect(output.some(l => l.includes('Reck'))).toBe(true);
+  });
+
+  it('discipline-groups blocked when production-disciplines not done', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    // Don't execute production-disciplines
+    expect(result.current.canExecuteStep(7)).toBe(false);
+  });
+
+  it('discipline-groups failure', async () => {
+    cbs.onImportDisciplineGroups.mockResolvedValue({ success: false, error: 'Groups fail' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    await act(async () => { await result.current.executeStep('discipline-groups'); });
+    expect(result.current.steps[7].status).toBe('error');
+  });
+
+  // ── sample-data ───────────────────────────────────────────────
+
+  it('sample-data succeeds with detailed stats', async () => {
+    cbs.onImportSampleData.mockResolvedValue({
+      success: true,
+      stats: {
+        createdCountries: 1, createdAssociations: 1, createdRegions: 1,
+        createdClubs: 1, createdParticipants: 1, createdVenues: 1, createdLayouts: 1,
+        skipped: [],
+      },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('sample-data'); });
+    expect(result.current.steps[8].status).toBe('success');
+    const output = result.current.steps[8].output || [];
+    expect(output.some(l => l.includes('Angelegt'))).toBe(true);
+  });
+
+  it('sample-data shows skipped items', async () => {
+    cbs.onImportSampleData.mockResolvedValue({
+      success: true,
+      stats: {
+        createdCountries: 0, createdAssociations: 0, createdRegions: 0,
+        createdClubs: 0, createdParticipants: 0, createdVenues: 0, createdLayouts: 0,
+        skipped: ['Land', 'Verband', 'Verein'],
+      },
+    });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('sample-data'); });
+    expect(result.current.steps[8].status).toBe('success');
+    const output = result.current.steps[8].output || [];
+    expect(output.some(l => l.includes('Übersprungen'))).toBe(true);
+  });
+
+  it('sample-data failure', async () => {
+    cbs.onImportSampleData.mockResolvedValue({ success: false, error: 'Sample fail' });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await completeRequiredSteps(result);
+    await act(async () => { await result.current.executeStep('sample-data'); });
+    expect(result.current.steps[8].status).toBe('error');
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  6) canExecuteStep — Dependency rules
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('useDatabaseSetupWizard — canExecuteStep logic', () => {
+  let cbs: ReturnType<typeof createMockCallbacks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    cbs = createMockCallbacks();
+    cbs.onCreateDatabase.mockResolvedValue({ success: true });
+    cbs.onTestConnection.mockResolvedValue({ success: true });
+    cbs.onCreateSchema.mockResolvedValue({ success: true });
+  });
+
+  const hookParams = (overrides: Record<string, any> = {}) => ({
+    isOpen: false,
+    currentDbConfig: defaultDbConfig,
+    ...cbs,
+    ...overrides,
+  });
+
+  it('step 0 (create-db) always executable', () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    expect(result.current.canExecuteStep(0)).toBe(true);
+  });
+
+  it('step 1 blocked when step 0 not done', () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    expect(result.current.canExecuteStep(1)).toBe(false);
+  });
+
+  it('step 1 allowed when step 0 is success', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    expect(result.current.canExecuteStep(1)).toBe(true);
+  });
+
+  it('step 1 allowed when step 0 is skipped', () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.skipStep('create-db'); });
+    expect(result.current.canExecuteStep(1)).toBe(true);
+  });
+
+  it('steps 3–8 require schema (step 2) to be success', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    // Complete steps 0 and 1 but NOT 2
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+
+    // Steps 3–8 should all be blocked
+    for (let i = 3; i <= 8; i++) {
+      expect(result.current.canExecuteStep(i)).toBe(false);
+    }
+  });
+
+  it('steps 3–8 allowed after schema succeeds', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    // Steps 3–6, 8 should be executable (step 7 has additional requirement)
+    expect(result.current.canExecuteStep(3)).toBe(true);
+    expect(result.current.canExecuteStep(4)).toBe(true);
+    expect(result.current.canExecuteStep(5)).toBe(true);
+    expect(result.current.canExecuteStep(6)).toBe(true);
+    expect(result.current.canExecuteStep(8)).toBe(true);
+  });
+
+  it('step 7 (discipline-groups) requires step 6 (production-disciplines) success', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    // Step 7 should NOT be executable yet
+    expect(result.current.canExecuteStep(7)).toBe(false);
+
+    // Complete production-disciplines
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    expect(result.current.canExecuteStep(7)).toBe(true);
+  });
+
+  it('executeStep does nothing when canExecuteStep returns false', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    // Step 1 is blocked because step 0 hasn't completed
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    // Status should remain pending (not running or error)
+    expect(result.current.steps[1].status).toBe('pending');
+    expect(cbs.onTestConnection).not.toHaveBeenCalled();
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  7) retryStep, skippedCriticalSteps, allRequiredStepsComplete
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('useDatabaseSetupWizard — retryStep, computed props', () => {
+  let cbs: ReturnType<typeof createMockCallbacks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    cbs = createMockCallbacks();
+    cbs.onCreateDatabase.mockResolvedValue({ success: true });
+    cbs.onTestConnection.mockResolvedValue({ success: true });
+    cbs.onCreateSchema.mockResolvedValue({ success: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const hookParams = (overrides: Record<string, any> = {}) => ({
+    isOpen: false,
+    currentDbConfig: defaultDbConfig,
+    ...cbs,
+    ...overrides,
+  });
+
+  it('allRequiredStepsComplete becomes true when all 3 required steps succeed', async () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    expect(result.current.allRequiredStepsComplete).toBe(false);
+
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    expect(result.current.allRequiredStepsComplete).toBe(true);
+  });
+
+  it('skippedCriticalSteps lists skipped critical optional steps', () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+
+    // Skip gymnet-preset and production-statuses (both critical optional)
+    act(() => {
+      result.current.skipStep('gymnet-preset');
+      result.current.skipStep('production-statuses');
+    });
+
+    const ids = result.current.skippedCriticalSteps.map(s => s.id);
+    expect(ids).toContain('gymnet-preset');
+    expect(ids).toContain('production-statuses');
+    expect(ids).not.toContain('sample-data'); // not critical
+  });
+
+  it('skippedCriticalSteps includes production-disciplines when skipped', () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.skipStep('production-disciplines'); });
+    const ids = result.current.skippedCriticalSteps.map(s => s.id);
+    expect(ids).toContain('production-disciplines');
+  });
+
+  it('skippedCriticalSteps is empty when nothing is skipped', () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    expect(result.current.skippedCriticalSteps).toHaveLength(0);
+  });
+
+  it('retryStep resets step to pending then re-executes', async () => {
+    vi.useRealTimers();
+    // First: make create-db fail, then retry with success
+    cbs.onCreateDatabase
+      .mockResolvedValueOnce({ success: false, error: 'Temp fail' })
+      .mockResolvedValueOnce({ success: true, message: 'OK' });
+
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('retry_db'); });
+
+    // First attempt → error
+    await act(async () => { await result.current.executeStep('create-db'); });
+    expect(result.current.steps[0].status).toBe('error');
+
+    // Retry
+    await act(async () => {
+      result.current.retryStep('create-db');
+      // retryStep uses setTimeout, wait for it
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+
+    await waitFor(() => {
+      expect(result.current.steps[0].status).toBe('success');
+    });
+  });
+
+  it('handleSaveAndReconnect handles exception from callback', async () => {
+    vi.useRealTimers();
+    cbs.onSaveAndReconnect.mockRejectedValue(new Error('Reconnect crash'));
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    await act(async () => { await result.current.handleSaveAndReconnect(); });
+    expect(result.current.isSaving).toBe(false);
+    expect(result.current.saveCompleted).toBe(false);
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  8) Step output messages verification
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('useDatabaseSetupWizard — step output messages', () => {
+  let cbs: ReturnType<typeof createMockCallbacks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    cbs = createMockCallbacks();
+    cbs.onCreateDatabase.mockResolvedValue({ success: true });
+    cbs.onTestConnection.mockResolvedValue({ success: true });
+    cbs.onCreateSchema.mockResolvedValue({ success: true });
+  });
+
+  const hookParams = (overrides: Record<string, any> = {}) => ({
+    isOpen: false,
+    currentDbConfig: defaultDbConfig,
+    ...cbs,
+    ...overrides,
+  });
+
+  it('create-db success output includes loading and success emojis', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('my_db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    const output = result.current.steps[0].output || [];
+    expect(output.some(l => l.includes('⏳'))).toBe(true);
+    expect(output.some(l => l.includes('✅'))).toBe(true);
+    expect(output.some(l => l.includes('my_db'))).toBe(true);
+  });
+
+  it('test-connection success output includes status messages', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    const output = result.current.steps[1].output || [];
+    expect(output.some(l => l.includes('Verbindung'))).toBe(true);
+  });
+
+  it('error step output includes error emoji', async () => {
+    cbs.onCreateDatabase.mockRejectedValue(new Error('boom'));
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.setNewDatabaseName('db'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    const output = result.current.steps[0].output || [];
+    expect(output.some(l => l.includes('❌'))).toBe(true);
+  });
+
+  it('skip step output includes skip emoji', () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+    act(() => { result.current.skipStep('gymnet-preset'); });
+    const output = result.current.steps[5].output || [];
+    expect(output.some(l => l.includes('⏭️'))).toBe(true);
+  });
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  9) Integration: Full happy-path wizard flow
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('useDatabaseSetupWizard — Full happy path', () => {
+  let cbs: ReturnType<typeof createMockCallbacks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    cbs = createMockCallbacks();
+    cbs.onImportStandardCountries.mockResolvedValue({
+      success: true,
+      stats: { createdCountries: 34, skippedCountries: 0, totalCountries: 34 },
+    });
+    cbs.onImportDisciplineGroups.mockResolvedValue({
+      success: true,
+      stats: { createdGroups: 2, totalGroups: 2, createdAssignments: 8, skippedGroups: 0, missingDisciplines: [] },
+    });
+    cbs.onImportSampleData.mockResolvedValue({
+      success: true,
+      stats: {
+        createdCountries: 1, createdAssociations: 1, createdRegions: 1,
+        createdClubs: 1, createdParticipants: 1, createdVenues: 1, createdLayouts: 1,
+        skipped: [],
+      },
+    });
+  });
+
+  const hookParams = (overrides: Record<string, any> = {}) => ({
+    isOpen: false,
+    currentDbConfig: defaultDbConfig,
+    ...cbs,
+    ...overrides,
+  });
+
+  it('executes all 9 steps in order and reaches allRequiredStepsComplete', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+
+    // Step 0: create-db
+    act(() => { result.current.setNewDatabaseName('turnfix_full'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    expect(result.current.steps[0].status).toBe('success');
+
+    // Step 1: test-connection
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    expect(result.current.steps[1].status).toBe('success');
+
+    // Step 2: create-schema
+    await act(async () => { await result.current.executeStep('create-schema'); });
+    expect(result.current.steps[2].status).toBe('success');
+    expect(result.current.allRequiredStepsComplete).toBe(true);
+
+    // Step 3: production-statuses
+    await act(async () => { await result.current.executeStep('production-statuses'); });
+    expect(result.current.steps[3].status).toBe('success');
+
+    // Step 4: standard-countries
+    await act(async () => { await result.current.executeStep('standard-countries'); });
+    expect(result.current.steps[4].status).toBe('success');
+
+    // Step 5: gymnet-preset
+    await act(async () => { await result.current.executeStep('gymnet-preset'); });
+    expect(result.current.steps[5].status).toBe('success');
+
+    // Step 6: production-disciplines
+    await act(async () => { await result.current.executeStep('production-disciplines'); });
+    expect(result.current.steps[6].status).toBe('success');
+
+    // Step 7: discipline-groups (now allowed because step 6 done)
+    expect(result.current.canExecuteStep(7)).toBe(true);
+    await act(async () => { await result.current.executeStep('discipline-groups'); });
+    expect(result.current.steps[7].status).toBe('success');
+
+    // Step 8: sample-data
+    await act(async () => { await result.current.executeStep('sample-data'); });
+    expect(result.current.steps[8].status).toBe('success');
+
+    // All done
+    expect(result.current.steps.every(s => s.status === 'success')).toBe(true);
+    expect(result.current.allRequiredStepsComplete).toBe(true);
+    expect(result.current.skippedCriticalSteps).toHaveLength(0);
+  });
+
+  it('completes required steps and skips all optional ones', async () => {
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+
+    act(() => { result.current.setNewDatabaseName('turnfix_minimal'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    // Skip all optional
+    act(() => {
+      result.current.skipStep('production-statuses');
+      result.current.skipStep('standard-countries');
+      result.current.skipStep('gymnet-preset');
+      result.current.skipStep('production-disciplines');
+      result.current.skipStep('discipline-groups');
+      result.current.skipStep('sample-data');
+    });
+
+    expect(result.current.allRequiredStepsComplete).toBe(true);
+    const skippedIds = result.current.steps.filter(s => s.status === 'skipped').map(s => s.id);
+    expect(skippedIds).toHaveLength(6);
+
+    // Critical skipped
+    expect(result.current.skippedCriticalSteps.length).toBe(3);
+  });
+
+  it('save and reconnect after all required steps completes wizard', async () => {
+    cbs.onSaveAndReconnect.mockResolvedValue({ success: true });
+    const { result } = renderHook(() => useDatabaseSetupWizard(hookParams()), { wrapper: i18nWrapper });
+
+    act(() => { result.current.setNewDatabaseName('turnfix_save'); });
+    await act(async () => { await result.current.executeStep('create-db'); });
+    await act(async () => { await result.current.executeStep('test-connection'); });
+    await act(async () => { await result.current.executeStep('create-schema'); });
+
+    expect(result.current.allRequiredStepsComplete).toBe(true);
+
+    await act(async () => { await result.current.handleSaveAndReconnect(); });
+    expect(result.current.saveCompleted).toBe(true);
+    expect(result.current.isSaving).toBe(false);
+  });
+});

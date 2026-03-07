@@ -9,9 +9,14 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { exec, execSync } from 'child_process';
+import path from 'path';
 import { applyGymNetPreset } from '../utils/gymnetPreset';
 
 const router = express.Router();
+
+// Server root directory — where prisma/schema.prisma lives
+// __dirname at runtime = server/dist/routes → up 2 = server/
+const serverRoot = path.resolve(__dirname, '..', '..');
 
 // POST /api/configuration/test-database - Test database connection
 router.post('/test-database', async (req, res) => {
@@ -235,8 +240,10 @@ router.post('/create-schema', async (req, res) => {
       }
       
       // Run Prisma db push to create schema directly from schema.prisma
-      const output = execSync('npx prisma db push --skip-generate', {
-        cwd: process.cwd(),
+      // Use serverRoot as cwd so Prisma finds prisma/schema.prisma
+      const schemaPath = path.join(serverRoot, 'prisma', 'schema.prisma');
+      const output = execSync(`npx prisma db push --schema="${schemaPath}"`, {
+        cwd: serverRoot,
         encoding: 'utf-8',
         env
       });
@@ -284,7 +291,8 @@ router.post('/init-database', async (req, res) => {
     
     // 1. Create schema
     const schemaResult = await new Promise((resolve, reject) => {
-      exec('npx prisma migrate deploy', { cwd: process.cwd() }, (error, stdout, stderr) => {
+      const schemaPath = path.join(serverRoot, 'prisma', 'schema.prisma');
+      exec(`npx prisma migrate deploy --schema="${schemaPath}"`, { cwd: serverRoot }, (error, stdout, stderr) => {
         if (error) reject({ error: 'Schema creation failed', details: stderr || error.message });
         else resolve({ success: true, step: 'schema', output: stdout });
       });

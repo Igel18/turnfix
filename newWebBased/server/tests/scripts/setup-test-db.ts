@@ -74,7 +74,7 @@ export async function applySchema(): Promise<void> {
 
   console.log('📐 Applying Prisma schema to test database...');
 
-  execSync(`npx prisma db push --skip-generate --accept-data-loss`, {
+  execSync(`npx prisma db push --accept-data-loss`, {
     cwd: serverDir,
     env: {
       ...process.env,
