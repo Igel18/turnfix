@@ -376,3 +376,57 @@ Die Riegengröße ist auch abhängig von der Anzahl an Geräten welche absolvier
 54. Fehler: 
 a.) Die WLAN / WiFi Einstellungen (http://localhost:3001/configuration) werden nicht gespeichert. Es kommt zur Fehlermeldung "Fehler beim Speichern der WLAN-Einstellungen" 
 	-> Erledigt ✅
+
+55. Urkunden PDF generieren
+auf der Seite http://localhost:3001/results lassen sich "Urkunden-PDF generieren" hier wird das Layout ausgewählt und anschließend alle PDF generiert. Leider funktionieren die Bilder nicht mehr, die in den Layouts eingebettet sind. 
+http://localhost:3001/certificate-layouts 
+
+09:32:11.515 [DEBUG] Using cached request for: /api/layouts index-Rr7bXvmM.js:180:29953
+09:32:11.515 Results Debug: 
+Object { showFilters: false, filterSectionExists: true, competitionsCount: 1, competitionsData: (1) […] }
+index-Rr7bXvmM.js:387:22725
+09:32:11.517 [DEBUG] Fetched certificate layouts: 
+Array [ {…} ]
+index-Rr7bXvmM.js:180:29953
+09:32:11.517 Results Debug: 
+Object { showFilters: false, filterSectionExists: true, competitionsCount: 1, competitionsData: (1) […] }
+index-Rr7bXvmM.js:387:22725
+09:32:13.585 [DEBUG] Fetching fresh layout data from API for layout ID: 52 index-Rr7bXvmM.js:180:29953
+09:32:13.585 Results Debug: 
+Object { showFilters: false, filterSectionExists: true, competitionsCount: 1, competitionsData: (1) […] }
+index-Rr7bXvmM.js:387:22725
+09:32:13.591 [DEBUG] Using fresh layout data: 
+Object { int_layoutid: 52, var_name: "aaaaa", txt_comment: null, fieldCount: 4, fields: (4) […] }
+index-Rr7bXvmM.js:180:29953
+09:32:13.591 [DEBUG] Generating certificates for participants: 1 index-Rr7bXvmM.js:180:29953
+09:32:13.591 [DEBUG] Paper format: A4 index-Rr7bXvmM.js:180:29953
+09:32:13.592 [DEBUG] Processing certificate 1/1 for: Sophie Beispielkind index-Rr7bXvmM.js:180:29953
+09:32:13.592 Processing 4 fields for participant 1: Sophie Beispielkind index-Rr7bXvmM.js:384:47941
+09:32:13.592 Coordinate scaling: dbMax=(1.0, 1.0), scale=(595.0000, 842.0000) index-Rr7bXvmM.js:384:48155
+09:32:13.592 Field 2 (type 2): 
+Object { x: "0.0", y: "0.0", width: "595.0", height: "842.0", value: "/uploads/images/layout-image-1772871978433-747885855.png" }
+index-Rr7bXvmM.js:384:48399
+09:32:14.260 [DEBUG] ✓ Added image: /uploads/images/layout-image-1772871978433-747885855.png index-Rr7bXvmM.js:180:29953
+09:32:14.261 Field 4 (type 0): 
+Object { x: "178.0", y: "430.4", width: "119.0", height: "42.1", value: "0" }
+index-Rr7bXvmM.js:384:48399
+09:32:14.261 Text field 4: "0" → "1 (Nr. 1)" (fontSize: 12) index-Rr7bXvmM.js:384:49065
+09:32:14.261 Field 4 alignment: int_align=0, computed="left", textX=178.0, x=178.0, width=119.0 index-Rr7bXvmM.js:384:49542
+09:32:14.261 [DEBUG] Added text: "1 (Nr. 1)" at (177.95260000000002, 457.40554620000006) with font helvetica, size 12, align left index-Rr7bXvmM.js:180:29953
+09:32:14.261 Field 3 (type 0): 
+Object { x: "201.3", y: "374.2", width: "119.0", height: "42.1", value: null }
+index-Rr7bXvmM.js:384:48399
+09:32:14.262 Field 5 (type 0): 
+Object { x: "324.5", y: "436.6", width: "119.0", height: "42.1", value: "4" }
+index-Rr7bXvmM.js:384:48399
+09:32:14.262 Text field 5: "4" → "SV Beispieldorf 1900 e.V." (fontSize: 12) index-Rr7bXvmM.js:384:49065
+09:32:14.262 Field 5 alignment: int_align=0, computed="left", textX=324.5, x=324.5, width=119.0 index-Rr7bXvmM.js:384:49542
+09:32:14.262 [DEBUG] Added text: "SV Beispieldorf 1900 e.V." at (324.45986650000003, 463.6426612000001) with font helvetica, size 12, align left index-Rr7bXvmM.js:180:29953
+09:32:14.360 [DEBUG] Certificate PDF generated successfully: certificates_all_2026-03-07.pdf index-Rr7bXvmM.js:180:29953
+09:32:14.363 Results Debug: 
+Object { showFilters: false, filterSectionExists: true, competitionsCount: 1, competitionsData: (1) […] } 
+
+56. Wurde dem Layout ein Bild hinzugefügt, kann dieses zwar geändert werden, aber nach dem Speichern und schließen und erneut öffnen ist wieder das vorherige da... 
+
+57. Lässt sich das Layout und PDF generieren mit tests abdecken? Dass bei einem Layout alle möglichen felder hinzugefügt werden und dann gespeichert, danach eine Urkunde mit dem Layout generiert und geprüft ob auch alle Felder vorhanden sind? Ggf. über Auswertung der Debug log files oder des PDFs direkt? 
+Zudem alle möglichen Einstellungen bei dem Layout designer. 

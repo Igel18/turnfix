@@ -327,6 +327,9 @@ e2e/
     results.spec.ts             # Prüft Platzierungen
     navigation.spec.ts          # UI-Navigation
 
+- Always check the tests after making changes to ensure that existing functionality is not broken and that new features are properly covered by tests. This is critical for maintaining the stability and reliability of the application as it evolves. 
+- E2E tests take a long time to run, so unit and integration tests should be written to cover as much logic as possible, and E2E tests should focus on critical user flows and edge cases.
+
 ### Test Strategy
 ```bash
 # Run all tests with coverage

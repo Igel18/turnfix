@@ -13,6 +13,7 @@ import { useState, useCallback } from 'react'
 import jsPDF from 'jspdf'
 import { apiGet } from '@/utils/api'
 import { debugLog, isDebugEnabled } from '@/utils/debug'
+import { resolveImageUrl, isLocalFilePath } from '@/utils/imageUrlUtils'
 import type { CertificateLayout, PaperFormat, Participant } from '../Results.types'
 
 const PAPER_FORMATS = {
@@ -53,63 +54,73 @@ export const useCertificates = () => {
    * For local file paths, use server API endpoint
    * Returns null if image cannot be loaded (caller will draw placeholder)
    */
-  const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+  const loadImageAsBase64 = async (rawUrl: string): Promise<{ dataUrl: string; format: string } | null> => {
+    // Resolve the URL using the shared utility (handles bare filenames, etc.)
+    const url = resolveImageUrl(rawUrl);
+    debugLog(`Loading image: raw="${rawUrl}" → resolved="${url}"`);
+
     // Check if this is a local Windows path (starts with drive letter or UNC)
-    const isLocalPath = /^[A-Za-z]:\\|^\\\\/.test(url);
-    
-    if (isLocalPath) {
+    if (isLocalFilePath(url)) {
       try {
-        // Use server API to load local file
         debugLog(`Loading local image via API: ${url}`);
         const response = await apiGet(`/layouts/image?path=${encodeURIComponent(url)}`);
         
         if (response && typeof response === 'object' && 'dataUrl' in response) {
-          return response.dataUrl as string;
+          const dataUrl = response.dataUrl as string;
+          const format = dataUrl.includes('image/jpeg') ? 'JPEG' : 'PNG';
+          return { dataUrl, format };
         } else {
           console.warn(`⚠ Invalid API response for image: ${url}`);
-          return null; // Return null instead of throwing
+          return null;
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.warn(`⚠ Local image not available: ${url} (${errorMsg})`);
-        return null; // Return null instead of throwing
+        return null;
       }
     }
     
-    // For HTTP(S) URLs, load directly in browser
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+    // For server-relative or HTTP(S) URLs, use fetch to get the raw bytes
+    // This avoids the unreliable canvas.toDataURL() approach which can
+    // produce corrupt or oversized re-encoded PNGs.
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.warn(`⚠ Image fetch failed (${response.status}): ${url}`);
+        return null;
+      }
+
+      const contentType = response.headers.get('content-type') || 'image/png';
+      const blob = await response.blob();
       
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          console.warn('Failed to get canvas context');
-          resolve(null); // Return null instead of rejecting
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0);
-        
-        try {
-          const dataURL = canvas.toDataURL('image/png');
-          resolve(dataURL);
-        } catch (error) {
-          console.warn('Failed to convert image to data URL:', error);
-          resolve(null); // Return null instead of rejecting
-        }
-      };
-      
-      img.onerror = () => {
-        console.warn(`Failed to load image: ${url}`);
-        resolve(null); // Return null instead of rejecting
-      };
-      img.src = url;
-    });
+      if (blob.size === 0) {
+        console.warn(`⚠ Image is empty: ${url}`);
+        return null;
+      }
+
+      // Determine jsPDF format from content-type
+      const format = contentType.includes('jpeg') || contentType.includes('jpg') ? 'JPEG' : 'PNG';
+
+      // Convert blob to data URL via FileReader (preserves original bytes)
+      const dataUrl = await new Promise<string | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+
+      if (!dataUrl) {
+        console.warn(`⚠ Failed to convert image blob to data URL: ${url}`);
+        return null;
+      }
+
+      debugLog(`Image loaded: ${url} (${blob.size} bytes, ${format})`);
+      return { dataUrl, format };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`⚠ Failed to fetch image: ${url} (${errorMsg})`);
+      return null;
+    }
   };
 
   /**
@@ -323,11 +334,11 @@ export const useCertificates = () => {
               
             case 2: // Image field
               if (field.var_value && width > 0 && height > 0) {
-                const imageData = await loadImageAsBase64(field.var_value)
-                if (imageData) {
-                  // Image loaded successfully
-                  doc.addImage(imageData, 'PNG', x, y, width, height)
-                  debugLog(`✓ Added image: ${field.var_value}`)
+                const imageResult = await loadImageAsBase64(field.var_value)
+                if (imageResult) {
+                  // Image loaded successfully — use detected format (JPEG/PNG)
+                  doc.addImage(imageResult.dataUrl, imageResult.format, x, y, width, height)
+                  debugLog(`✓ Added image: ${field.var_value} (${imageResult.format})`)
                 } else {
                   // Image not available - draw placeholder
                   doc.setDrawColor(200, 200, 200)

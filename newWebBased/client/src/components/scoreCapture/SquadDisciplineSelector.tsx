@@ -57,6 +57,7 @@ export function SquadDisciplineSelector({
           </span>
         </label>
         <select
+          data-testid="squad-select"
           value={activeSquad}
           onChange={(e) => onSquadChange(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"

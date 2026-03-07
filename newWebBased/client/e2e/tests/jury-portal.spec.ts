@@ -489,11 +489,11 @@ test.describe('Jury Portal: Cross-verification with Management UI', () => {
       { waitUntil: 'load' }
     );
 
-    // Select squad RW — wait for the select to have the RW option populated
-    const squadSelect = page.locator('select').first();
+    // Select squad RW — use data-testid for stable selector, explicit timeout for selectOption
+    const squadSelect = page.locator('[data-testid="squad-select"]');
     await squadSelect.waitFor({ state: 'visible', timeout: 15_000 });
-    await page.locator('select option[value="RW"]').waitFor({ state: 'attached', timeout: 15_000 });
-    await squadSelect.selectOption({ value: 'RW' });
+    await squadSelect.locator('option[value="RW"]').waitFor({ state: 'attached', timeout: 15_000 });
+    await squadSelect.selectOption('RW', { timeout: 15_000 });
 
     // Wait for score table to load after squad selection
     await page.locator('input[data-participant]').first().waitFor({ state: 'visible', timeout: 15_000 });
