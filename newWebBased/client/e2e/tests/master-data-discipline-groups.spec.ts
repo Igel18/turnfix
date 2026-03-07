@@ -74,7 +74,8 @@ test.describe.serial('Master Data: Discipline Groups', () => {
     const saveButton = dialog.getByRole('button', { name: /speichern|save|erstellen|create/i });
     await saveButton.click();
 
-    await page.waitForTimeout(1000);
+    // Wait for dialog to close (indicates save completed + data re-fetched)
+    await expect(page.locator('[role="dialog"], .fixed.inset-0').first()).toBeHidden({ timeout: 10_000 });
 
     // The new entry may be on a different page due to pagination.
     // Open filter panel and search to find it reliably.

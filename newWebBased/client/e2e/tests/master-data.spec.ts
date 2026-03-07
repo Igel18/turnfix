@@ -85,7 +85,9 @@ test.describe.serial('Master Data: Regions', () => {
     // Submit
     const saveButton = modal.getByRole('button', { name: /speichern|save|erstellen|create/i });
     await saveButton.click();
-    await page.waitForTimeout(2000);
+
+    // Wait for dialog to close (indicates save completed + data re-fetched)
+    await expect(page.locator('.fixed.inset-0, [role="dialog"]').first()).toBeHidden({ timeout: 10_000 });
 
     // Verify region appears — search for it to handle pagination
     await page.reload({ waitUntil: 'networkidle' });
@@ -142,7 +144,9 @@ test.describe.serial('Master Data: Regions', () => {
 
       const saveButton = modal.getByRole('button', { name: /speichern|save|aktualisieren|update/i });
       await saveButton.click();
-      await page.waitForTimeout(1000);
+
+      // Wait for dialog to close
+      await expect(modal).toBeHidden({ timeout: 10_000 });
 
       await page.reload({ waitUntil: 'networkidle' });
       await waitForLoadingToFinish(page);

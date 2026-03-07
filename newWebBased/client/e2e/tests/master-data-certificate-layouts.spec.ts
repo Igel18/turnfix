@@ -77,6 +77,13 @@ test.describe.serial('Master Data: Certificate Layouts', () => {
     await navigateTo(page, '/certificate-layouts');
     await waitForLoadingToFinish(page);
 
+    // Search for layout to handle pagination
+    const searchInput = page.locator('input[type="search"], input[type="text"], input[placeholder*="Suche"], input[placeholder*="search"]').first();
+    if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await searchInput.fill('Neues Layout');
+      await page.waitForTimeout(1000);
+    }
+
     // Find the last 'Neues Layout' row (the one we just created)
     const rows = page.locator('table tbody tr', { hasText: /Neues Layout/ });
     const count = await rows.count();

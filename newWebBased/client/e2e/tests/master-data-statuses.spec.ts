@@ -47,7 +47,20 @@ test.describe.serial('Master Data: Statuses', () => {
     const saveButton = dialog.getByRole('button', { name: /speichern|save|erstellen|create/i });
     await saveButton.click();
 
+    // Wait for dialog to close (indicates save completed + data re-fetched)
+    await expect(page.locator('[role="dialog"], .fixed.inset-0').first()).toBeHidden({ timeout: 10_000 });
+
+    // Open filter panel to reveal the search input (search is inside .bg-gray-50 filter section)
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    // Search for the newly created status (table may be paginated)
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testStatusName);
     await page.waitForTimeout(1000);
+
     await expect(page.locator('table tbody')).toContainText(testStatusName, { timeout: 10_000 });
   });
 
@@ -55,17 +68,31 @@ test.describe.serial('Master Data: Statuses', () => {
     await navigateTo(page, '/status-management');
     await waitForLoadingToFinish(page);
 
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testStatusName);
-      await page.waitForTimeout(1000);
-      await expect(page.locator('table tbody')).toContainText(testStatusName);
-    }
+    // Open filter panel to reveal the search input
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testStatusName);
+    await page.waitForTimeout(1000);
+    await expect(page.locator('table tbody')).toContainText(testStatusName);
   });
 
   test('can delete test status', async ({ page }) => {
     await navigateTo(page, '/status-management');
     await waitForLoadingToFinish(page);
+
+    // Open filter panel and search for the test status (table may be paginated)
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testStatusName);
+    await page.waitForTimeout(1000);
 
     const row = page.locator('table tbody tr', { hasText: testStatusName });
     if (await row.isVisible({ timeout: 3000 }).catch(() => false)) {

@@ -67,7 +67,20 @@ test.describe.serial('Master Data: Persons', () => {
     const saveButton = dialog.getByRole('button', { name: /speichern|save|erstellen|create/i });
     await saveButton.click();
 
+    // Wait for dialog to close (indicates save completed + data re-fetched)
+    await expect(page.locator('[role="dialog"], .fixed.inset-0').first()).toBeHidden({ timeout: 10_000 });
+
+    // Open filter panel to reveal the search input (search is inside .bg-gray-50 filter section)
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    // Search for the newly created person (table may be paginated)
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testLastName);
     await page.waitForTimeout(1000);
+
     await expect(page.locator('table tbody')).toContainText(testLastName, { timeout: 10_000 });
   });
 
@@ -75,12 +88,16 @@ test.describe.serial('Master Data: Persons', () => {
     await navigateTo(page, '/persons');
     await waitForLoadingToFinish(page);
 
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"], input[placeholder*="Filter"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testLastName);
-      await page.waitForTimeout(1000);
-      await expect(page.locator('table tbody')).toContainText(testLastName);
-    }
+    // Open filter panel to reveal the search input
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testLastName);
+    await page.waitForTimeout(1000);
+    await expect(page.locator('table tbody')).toContainText(testLastName);
   });
 
   test('required fields are marked', async ({ page }) => {
@@ -112,12 +129,15 @@ test.describe.serial('Master Data: Persons', () => {
     await navigateTo(page, '/persons');
     await waitForLoadingToFinish(page);
 
-    // Search for our test person
-    const searchInput = page.locator('input[type="search"], input[placeholder*="Suche"], input[placeholder*="search"]').first();
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await searchInput.fill(testLastName);
-      await page.waitForTimeout(1000);
-    }
+    // Open filter panel and search for our test person
+    const filterButton = page.getByRole('button', { name: /filter/i }).first();
+    await filterButton.click();
+    await page.waitForTimeout(500);
+
+    const searchInput = page.locator('.bg-gray-50 input[type="text"]').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    await searchInput.fill(testLastName);
+    await page.waitForTimeout(1000);
 
     const row = page.locator('table tbody tr', { hasText: testLastName });
     if (await row.isVisible({ timeout: 3000 }).catch(() => false)) {

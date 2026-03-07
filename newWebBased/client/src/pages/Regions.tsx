@@ -45,7 +45,7 @@ const Regions: React.FC = () => {
       try {
         setLoading(true);
         const [regionsResponse, verbaendeResponse] = await Promise.all([
-          fetch('/api/regions'),
+          fetch('/api/regions?limit=10000'),
           fetch('/api/associations')
         ]);
 
