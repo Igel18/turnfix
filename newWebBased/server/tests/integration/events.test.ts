@@ -222,6 +222,68 @@ describe('Events API', () => {
   });
 
   describe('DELETE /api/events/:id', () => {
+    it('should require force=true when event has scores, then delete all associated data', async () => {
+      const isolatedEvent = await TestUtils.createTestEvent({
+        name: 'Force Delete Event',
+        organizer: 'Force Delete Org',
+        description: 'Force delete validation event'
+      });
+
+      const competition = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: isolatedEvent.int_veranstaltungenid,
+        name: 'Force Delete Competition'
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'Force',
+        lastName: 'DeleteParticipant'
+      });
+
+      await prisma.tfx_wertungen.create({
+        data: {
+          int_wettkaempfeid: competition.int_wettkaempfeid,
+          int_teilnehmerid: participant.int_teilnehmerid,
+          int_statusid: 1,
+          int_startnummer: 501,
+          var_riege: 'FD1'
+        }
+      });
+
+      const blockedDelete = await request(app)
+        .delete(`/api/events/${isolatedEvent.int_veranstaltungenid}`)
+        .expect(409);
+
+      expect(blockedDelete.body.hasScores).toBe(true);
+      expect(blockedDelete.body.scoresCount).toBeGreaterThan(0);
+
+      const forcedDelete = await request(app)
+        .delete(`/api/events/${isolatedEvent.int_veranstaltungenid}?force=true`)
+        .expect(200);
+
+      expect(forcedDelete.body.message).toBe('Event deleted successfully');
+      expect(forcedDelete.body.deletedScores).toBeGreaterThan(0);
+      expect(forcedDelete.body.deletedCompetitions).toBeGreaterThan(0);
+
+      const eventAfterDelete = await prisma.tfx_veranstaltungen.findUnique({
+        where: { int_veranstaltungenid: isolatedEvent.int_veranstaltungenid }
+      });
+      expect(eventAfterDelete).toBeNull();
+
+      const competitionAfterDelete = await prisma.tfx_wettkaempfe.findUnique({
+        where: { int_wettkaempfeid: competition.int_wettkaempfeid }
+      });
+      expect(competitionAfterDelete).toBeNull();
+
+      const remainingScores = await prisma.tfx_wertungen.count({
+        where: {
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: isolatedEvent.int_veranstaltungenid
+          }
+        }
+      });
+      expect(remainingScores).toBe(0);
+    });
+
     it('should delete an existing event', async () => {
       // Create a dedicated event for the delete test to avoid interference
       // from other test suites creating related data (competitions, scores)

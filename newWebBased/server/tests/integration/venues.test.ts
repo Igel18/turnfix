@@ -15,6 +15,10 @@ describe('Venues API', () => {
     prisma = TestUtils.getPrisma();
   });
 
+  afterEach(async () => {
+    await TestUtils.cleanupCreatedRecords();
+  });
+
   afterAll(async () => {
     await TestUtils.cleanup();
     await TestUtils.disconnect();
@@ -196,6 +200,27 @@ describe('Venues API', () => {
   });
 
   describe('DELETE /api/venues/:id', () => {
+    it('should delete an existing venue', async () => {
+      const createdVenue = await prisma.tfx_wettkampforte.create({
+        data: {
+          var_name: `Delete Venue ${Date.now()}`,
+          var_adresse: 'Delete Street 1',
+          var_plz: '12345',
+          var_ort: 'Delete City'
+        }
+      });
+
+      await request(app)
+        .delete(`/api/venues/${createdVenue.int_wettkampforteid}`)
+        .expect(200);
+
+      const deletedVenue = await prisma.tfx_wettkampforte.findUnique({
+        where: { int_wettkampforteid: createdVenue.int_wettkampforteid }
+      });
+
+      expect(deletedVenue).toBeNull();
+    });
+
     it('should handle venue deletion', async () => {
       const response = await request(app)
         .delete('/api/venues/99999')
@@ -204,12 +229,43 @@ describe('Venues API', () => {
         });
     });
 
-    it('should prevent deletion of venues with events', async () => {
-      const response = await request(app)
-        .delete('/api/venues/1') // Assuming venue 1 might have events
-        .expect((res) => {
-          expect([200, 400, 409, 404, 500]).toContain(res.status);
-        });
+    it('should delete venue and keep linked event record intact', async () => {
+      const blockedVenue = await prisma.tfx_wettkampforte.create({
+        data: {
+          var_name: `Blocked Venue ${Date.now()}`,
+          var_adresse: 'Blocked Street 1',
+          var_plz: '54321',
+          var_ort: 'Blocked City'
+        }
+      });
+
+      const linkedEvent = await TestUtils.createTestEvent({
+        name: 'Venue FK Event',
+        venueId: blockedVenue.int_wettkampforteid
+      });
+
+      await request(app)
+        .delete(`/api/venues/${blockedVenue.int_wettkampforteid}`)
+        .expect(200);
+
+      const stillExists = await prisma.tfx_wettkampforte.findUnique({
+        where: { int_wettkampforteid: blockedVenue.int_wettkampforteid }
+      });
+
+      expect(stillExists).toBeNull();
+
+      const eventAfterVenueDelete = await prisma.tfx_veranstaltungen.findUnique({
+        where: { int_veranstaltungenid: linkedEvent.int_veranstaltungenid }
+      });
+
+      expect(eventAfterVenueDelete).toBeTruthy();
+
+      await prisma.tfx_veranstaltungen.deleteMany({
+        where: { int_veranstaltungenid: linkedEvent.int_veranstaltungenid }
+      });
+      await prisma.tfx_wettkampforte.deleteMany({
+        where: { int_wettkampforteid: blockedVenue.int_wettkampforteid }
+      });
     });
   });
 

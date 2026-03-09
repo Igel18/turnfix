@@ -1,7 +1,7 @@
 # TurnFix Test-Abdeckung — Übersicht
 
 **Stand**: 9. März 2026
-**Gesamt**: ~3.470 Tests in ~149 Dateien
+**Gesamt**: ~3.483 Tests in ~151 Dateien
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Kategorie | Dateien | Tests |
 |-----------|---------|-------|
-| E2E Specs (Playwright) | 33 | 477 |
+| E2E Specs (Playwright) | 34 | 481 |
 | E2E Setup/Teardown | 4 | 41 |
 | Client Unit/Integration/Component (Vitest) | 46 | 1.171 |
-| **Client Gesamt** | **83** | **1.689** |
-| Server Unit/Integration/Component (Jest) | 66 | 1.781 |
-| **Server Gesamt** | **66** | **1.781** |
-| **Gesamt** | **~149** | **~3.470** |
+| **Client Gesamt** | **84** | **1.693** |
+| Server Unit/Integration/Component (Jest) | 67 | 1.790 |
+| **Server Gesamt** | **67** | **1.790** |
+| **Gesamt** | **~151** | **~3.483** |
 
 ### Shared Package (`newWebBased/shared`) — Funktionsabdeckung
 
@@ -116,6 +116,7 @@
 | `squad-auto-assign.spec.ts` | 10 | Automatische Riegeneinteilung: Dialog, Kriterien, Vorschlag generieren/anwenden |
 | `configuration.spec.ts` | 31 | `/configuration` — Sektionen, DB-Wizard, Druck, WiFi, Firewall, Suche, Speichern, Persistenz, Validierung |
 | `formula-crossview.spec.ts` | 11 | Formel Cross-View: Self-contained Setup `5,5*x`, raw vs. transformierte Scores über API, ScoreCapture, Results |
+| `delete-critical-flows.spec.ts` | 4 | Kritische Delete-Flows: `/event-participants`, `/squads` (UI), sowie `/groups` und `/teams` (API-kritische Löschpfade) |
 
 > ✅ `configuration.spec.ts` wurde seit 7. März 2026 um 28 Tests erweitert (war zuvor 3 Tests für Wizard-Dialog).
 > ✅ `formula-crossview.spec.ts` ist seit 7. März 2026 neu und prüft Formel-Konsistenz über mehrere Ansichten.
@@ -222,12 +223,13 @@ API-Endpunkte: Associations, Competitions, Disciplines, Events, EventParticipant
 | `scoreValidationEdgeCases.test.ts` | 71 | Score-Validierung bei ungültigen Eingaben: Zod-Schema-Ablehnungen, Typfehler, Grenzwerte, SQL-Injection, fehlende Felder, Null/Undefined, Save-Value Manual-Validation, Group/Team/Medal Edge Cases |
 | `concurrentWrites.test.ts` | 12 | Concurrent-Write-Szenarien: Gleichzeitige Score-Erstellung, Upsert Race Conditions, Duplikat-Erkennung, Read-While-Write-Konsistenz, Burst-Resilienz, Datenintegrität nach Lastspitzen |
 | `documents.test.ts` | 43 | `/api/documents` — Kategorien, Datei-Listing/Filterung, Upload (MIME-Validierung), Löschen, Download, Icons-Endpunkt |
+| `groups.test.ts` | 2 | `/api/groups/:id` — Löschen ohne Wertungen, Blockierung bei vorhandenen Wertungen |
 | `configurationDatabase.test.ts` | 41 | DB-Setup-Wizard (Unit): test-connection, create-database, create-schema, init-database — Mocked Prisma + child_process, Fehlerklassifizierung (AUTH_FAILED, CONNECTION_REFUSED, etc.) |
 | `iconUtils.test.ts` | 16 | Qt-Ressource-Pfad → Web-URL-Konvertierung (`getIconUrl`, `getIconFilename`), Null/Leer/Ungültig-Behandlung |
 | `configurationValidation.test.ts` | 15 | Konfigurations-Validierung: db_host/db_name Verwechslungsprävention, DATABASE_URL-Parsing, URL-Aufbau mit SSL |
 | `configurationHelpers.test.ts` | 8 | Enum-Helfer: Gender-Werte, Wettkampf-Status, Medaillen-Typen, DB↔Teilnehmer Gender-Konvertierung |
 
-> **Letzte bestätigte Zahlen**: 66 Test-Suites, 1.781 Tests (alle bestanden)
+> **Letzte bestätigte Zahlen**: 67 Test-Suites, 1.790 Tests (inkl. neuer Delete-Flow-Integrationen)
  
 ---
 

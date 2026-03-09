@@ -666,6 +666,32 @@ describe('Documents API', () => {
   // ===================================================================
 
   describe('DELETE /api/documents/:category/:filename', () => {
+    it('should delete uploaded image file from images category', async () => {
+      const png1x1 = Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        'base64'
+      );
+
+      const uploadRes = await request(app)
+        .post('/api/documents/upload')
+        .field('category', 'images')
+        .attach('file', png1x1, { filename: 'ui-delete-image.png', contentType: 'image/png' })
+        .expect(200);
+
+      const uploadedName = uploadRes.body.file.filename;
+
+      await request(app)
+        .delete(`/api/documents/images/${uploadedName}`)
+        .expect(200);
+
+      const listRes = await request(app)
+        .get('/api/documents?category=images')
+        .expect(200);
+
+      expect(listRes.body.files.find((f: any) => f.filename === uploadedName)).toBeUndefined();
+      expect(fs.existsSync(path.join(imagesDir, uploadedName))).toBe(false);
+    });
+
     it('should delete an existing file', async () => {
       // Create a temp file to delete
       const tmpFile = path.join(iconsDir, 'to-delete.png');

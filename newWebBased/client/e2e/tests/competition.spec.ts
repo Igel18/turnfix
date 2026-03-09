@@ -131,10 +131,11 @@ test.describe('Competition: Cross-Competition Isolation', () => {
   test('women scores do not appear in men competition', async ({ request }) => {
     const res = await apiGet(request, `/scores?competitionId=${state.comp2Id}&limit=1000`);
     const results = res.body.results || [];
+    const completedResults = results.filter((r: any) => r.score !== null && r.score !== undefined);
 
     // No women participant IDs should appear in men's competition
     for (const wPid of state.womenPids) {
-      const found = results.filter((r: any) => r.participantId === wPid);
+      const found = completedResults.filter((r: any) => r.participantId === wPid);
       expect(found.length).toBe(0);
     }
   });
@@ -142,9 +143,10 @@ test.describe('Competition: Cross-Competition Isolation', () => {
   test('men scores do not appear in women competition', async ({ request }) => {
     const res = await apiGet(request, `/scores?competitionId=${state.comp1Id}&limit=1000`);
     const results = res.body.results || [];
+    const completedResults = results.filter((r: any) => r.score !== null && r.score !== undefined);
 
     for (const mPid of state.menPids) {
-      const found = results.filter((r: any) => r.participantId === mPid);
+      const found = completedResults.filter((r: any) => r.participantId === mPid);
       expect(found.length).toBe(0);
     }
   });

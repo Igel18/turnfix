@@ -211,6 +211,38 @@ describe('Teams API', () => {
   });
 
   describe('DELETE /api/teams/:id', () => {
+    it('should delete an existing team without associated records', async () => {
+      const competition = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Delete Test Competition'
+      });
+
+      const club = await prisma.tfx_vereine.findFirst({
+        select: { int_vereineid: true }
+      });
+
+      expect(club).toBeTruthy();
+
+      const createdTeam = await prisma.tfx_mannschaften.create({
+        data: {
+          int_wettkaempfeid: competition.int_wettkaempfeid,
+          int_vereineid: club!.int_vereineid,
+          int_nummer: 99,
+          var_riege: 'T1'
+        }
+      });
+
+      await request(app)
+        .delete(`/api/teams/${createdTeam.int_mannschaftenid}`)
+        .expect(204);
+
+      const deletedTeam = await prisma.tfx_mannschaften.findUnique({
+        where: { int_mannschaftenid: createdTeam.int_mannschaftenid }
+      });
+
+      expect(deletedTeam).toBeNull();
+    });
+
     it('should handle team deletion', async () => {
       const response = await request(app)
         .delete('/api/teams/99999')

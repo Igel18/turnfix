@@ -196,6 +196,59 @@ describe('Squad Management API', () => {
   });
 
   describe('DELETE /api/squad-management/:id', () => {
+    it('should delete squad via /delete endpoint and unassign participants', async () => {
+      const competition = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Squad Delete Competition'
+      });
+
+      const participantA = await TestUtils.createTestParticipant({
+        firstName: 'Squad',
+        lastName: 'DeleteA'
+      });
+
+      const participantB = await TestUtils.createTestParticipant({
+        firstName: 'Squad',
+        lastName: 'DeleteB'
+      });
+
+      await prisma.tfx_wertungen.createMany({
+        data: [
+          {
+            int_wettkaempfeid: competition.int_wettkaempfeid,
+            int_teilnehmerid: participantA.int_teilnehmerid,
+            int_statusid: 1,
+            var_riege: 'SQ1',
+            int_startnummer: 301
+          },
+          {
+            int_wettkaempfeid: competition.int_wettkaempfeid,
+            int_teilnehmerid: participantB.int_teilnehmerid,
+            int_statusid: 1,
+            var_riege: 'SQ1',
+            int_startnummer: 302
+          }
+        ]
+      });
+
+      const response = await request(app)
+        .delete(`/api/squad-management/delete?squadName=SQ1&eventId=${testEvent.int_veranstaltungenid}`)
+        .expect(200);
+
+      expect(response.body.unassignedParticipants).toBe(2);
+
+      const stillAssigned = await prisma.tfx_wertungen.count({
+        where: {
+          var_riege: 'SQ1',
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: testEvent.int_veranstaltungenid
+          }
+        }
+      });
+
+      expect(stillAssigned).toBe(0);
+    });
+
     it('should handle squad deletion', async () => {
       const response = await request(app)
         .delete('/api/squad-management/99999')

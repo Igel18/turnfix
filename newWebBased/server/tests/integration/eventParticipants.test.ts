@@ -230,6 +230,78 @@ describe('Event Participants API', () => {
   });
 
   describe('DELETE /api/event-participants/:id', () => {
+    it('should remove all event assignments for a participant in competitions with squads', async () => {
+      const competitionA = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Delete Test Competition A'
+      });
+
+      const competitionB = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Delete Test Competition B'
+      });
+
+      const otherParticipant = await TestUtils.createTestParticipant({
+        firstName: 'Other',
+        lastName: 'Participant'
+      });
+
+      await prisma.tfx_wertungen.createMany({
+        data: [
+          {
+            int_wettkaempfeid: competitionA.int_wettkaempfeid,
+            int_teilnehmerid: testParticipant.int_teilnehmerid,
+            int_statusid: 1,
+            int_startnummer: 101,
+            var_riege: 'R1'
+          },
+          {
+            int_wettkaempfeid: competitionB.int_wettkaempfeid,
+            int_teilnehmerid: testParticipant.int_teilnehmerid,
+            int_statusid: 1,
+            int_startnummer: 102,
+            var_riege: 'R2'
+          },
+          {
+            int_wettkaempfeid: competitionA.int_wettkaempfeid,
+            int_teilnehmerid: otherParticipant.int_teilnehmerid,
+            int_statusid: 1,
+            int_startnummer: 201,
+            var_riege: 'R1'
+          }
+        ]
+      });
+
+      const response = await request(app)
+        .delete(`/api/event-participants/${testParticipant.int_teilnehmerid}?eventId=${testEvent.int_veranstaltungenid}`)
+        .expect(200);
+
+      expect(response.body.deletedEntries).toBe(2);
+
+      const deletedParticipantAssignments = await prisma.tfx_wertungen.findMany({
+        where: {
+          int_teilnehmerid: testParticipant.int_teilnehmerid,
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: testEvent.int_veranstaltungenid
+          }
+        }
+      });
+
+      expect(deletedParticipantAssignments).toHaveLength(0);
+
+      const otherParticipantAssignments = await prisma.tfx_wertungen.findMany({
+        where: {
+          int_teilnehmerid: otherParticipant.int_teilnehmerid,
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: testEvent.int_veranstaltungenid
+          }
+        }
+      });
+
+      expect(otherParticipantAssignments).toHaveLength(1);
+      expect(otherParticipantAssignments[0].var_riege).toBe('R1');
+    });
+
     it('should handle registration cancellation', async () => {
       const response = await request(app)
         .delete('/api/event-participants/99999')
@@ -245,6 +317,40 @@ describe('Event Participants API', () => {
         .expect((res) => {
           expect([200, 404, 400]).toContain(res.status);
         });
+    });
+
+    it('should remove participant from event via /remove query endpoint', async () => {
+      const competition = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Legacy Remove Competition'
+      });
+
+      await prisma.tfx_wertungen.create({
+        data: {
+          int_wettkaempfeid: competition.int_wettkaempfeid,
+          int_teilnehmerid: testParticipant.int_teilnehmerid,
+          int_statusid: 1,
+          int_startnummer: 601,
+          var_riege: 'L1'
+        }
+      });
+
+      const response = await request(app)
+        .delete(`/api/event-participants/remove?eventId=${testEvent.int_veranstaltungenid}&participantId=${testParticipant.int_teilnehmerid}`)
+        .expect(200);
+
+      expect(response.body.deletedEntries).toBe(1);
+
+      const remaining = await prisma.tfx_wertungen.count({
+        where: {
+          int_teilnehmerid: testParticipant.int_teilnehmerid,
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: testEvent.int_veranstaltungenid
+          }
+        }
+      });
+
+      expect(remaining).toBe(0);
     });
   });
 

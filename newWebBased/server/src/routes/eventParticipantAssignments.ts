@@ -18,6 +18,14 @@ const assignParticipantToCompetitionSchema = z.object({
   competitionId: z.number().int().positive(),
 });
 
+const parsePositiveInteger = (value: unknown): number | null => {
+  const parsed = parseInt(String(value), 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+};
+
 // Add participant to event (create basic score entry)
 router.post('/add', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -104,12 +112,19 @@ router.delete('/remove', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'Event ID and Participant ID are required' });
     }
 
+    const parsedEventId = parsePositiveInteger(eventId);
+    const parsedParticipantId = parsePositiveInteger(participantId);
+
+    if (!parsedEventId || !parsedParticipantId) {
+      return res.status(400).json({ message: 'Event ID and Participant ID must be valid positive numbers' });
+    }
+
     // Delete all score entries for this participant in this event
     const deleteResult = await prisma.tfx_wertungen.deleteMany({
       where: {
-        int_teilnehmerid: parseInt(participantId as string),
+        int_teilnehmerid: parsedParticipantId,
         tfx_wettkaempfe: {
-          int_veranstaltungenid: parseInt(eventId as string)
+          int_veranstaltungenid: parsedEventId
         }
       }
     });
@@ -119,13 +134,52 @@ router.delete('/remove', authenticateToken, async (req: AuthRequest, res) => {
     res.json({
       message: 'Participant removed from event successfully',
       deletedEntries: deleteResult.count,
-      participantId: parseInt(participantId as string),
-      eventId: parseInt(eventId as string)
+      participantId: parsedParticipantId,
+      eventId: parsedEventId
     });
 
   } catch (error) {
     console.error('Error removing participant from event:', error);
     res.status(500).json({ message: 'Failed to remove participant from event' });
+  }
+});
+
+// Remove participant from event (compatibility endpoint used by client)
+router.delete('/:participantId', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const participantId = parsePositiveInteger(req.params.participantId);
+    const eventId = parsePositiveInteger(req.query.eventId);
+
+    if (!participantId || !eventId) {
+      return res.status(400).json({ message: 'Valid participantId (path) and eventId (query) are required' });
+    }
+
+    const deleteResult = await prisma.tfx_wertungen.deleteMany({
+      where: {
+        int_teilnehmerid: participantId,
+        tfx_wettkaempfe: {
+          int_veranstaltungenid: eventId
+        }
+      }
+    });
+
+    if (deleteResult.count === 0) {
+      return res.status(404).json({
+        message: 'No event assignments found for this participant',
+        participantId,
+        eventId
+      });
+    }
+
+    return res.json({
+      message: 'Participant removed from event successfully',
+      deletedEntries: deleteResult.count,
+      participantId,
+      eventId
+    });
+  } catch (error) {
+    console.error('Error removing participant from event (compatibility endpoint):', error);
+    return res.status(500).json({ message: 'Failed to remove participant from event' });
   }
 });
 
