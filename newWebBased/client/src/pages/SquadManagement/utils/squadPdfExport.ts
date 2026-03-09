@@ -10,9 +10,12 @@ import {
   setupPDFWithHeaderFooter, 
   addSectionTitle, 
   addBodyText,
-  PDF_CONFIG,
   getUnifiedTableStyles
 } from '@/utils/pdfUtils';
+import {
+  pdfSpacing,
+  pdfFonts
+} from '@/utils/pdfStyles';
 import type { Squad } from '../SquadManagement.types';
 
 interface ExportSquadsPDFParams {
@@ -39,7 +42,7 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
   const totalParticipants = squads.reduce((sum, squad) => sum + squad.participantCount, 0);
   const summaryText = `${t('squadManagement.pdf.totalSquads', { count: squads.length })} | ${t('squadManagement.pdf.totalParticipants', { count: totalParticipants })}`;
   yPosition = addBodyText(doc, summaryText, yPosition, leftMargin);
-  yPosition += PDF_CONFIG.spacing.section;
+  yPosition += pdfSpacing.section.spacing;
 
   // Get unified table styles
   const unifiedStyles = getUnifiedTableStyles();
@@ -58,19 +61,19 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
       doc, 
       squad.name || `Riege ${squadIndex + 1}`, 
       yPosition,
-      { fontSize: PDF_CONFIG.fonts.subtitle.size }
+      { fontSize: pdfFonts.sectionTitle.size }
     );
-    yPosition += PDF_CONFIG.spacing.line;
+    yPosition += pdfSpacing.section.title;
 
     // Squad info: Participant count
-    doc.setFontSize(PDF_CONFIG.fonts.body.size);
+    doc.setFontSize(pdfFonts.tableBody.size);
     doc.setFont('helvetica', 'normal');
     doc.text(
       `${normalizeLabel(t('squadManagement.pdf.participants'))}: ${squad.participantCount}`,
       leftMargin,
       yPosition
     );
-    yPosition += PDF_CONFIG.spacing.line;
+    yPosition += pdfSpacing.section.spacing;
 
     // Squad Competitions - each on a separate line
     if (squad.competitions && squad.competitions.length > 0) {
@@ -79,17 +82,17 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
         leftMargin,
         yPosition
       );
-      yPosition += PDF_CONFIG.spacing.line;
+      yPosition += pdfSpacing.section.spacing;
       
       squad.competitions.forEach((comp) => {
         const compText = comp.number ? `  - ${comp.name} (Nr. ${comp.number})` : `  - ${comp.name}`;
         doc.text(compText, leftMargin, yPosition);
-        yPosition += PDF_CONFIG.spacing.line;
+        yPosition += pdfSpacing.section.spacing;
       });
       
-      yPosition += PDF_CONFIG.spacing.line;
+      yPosition += pdfSpacing.section.spacing;
     } else {
-      yPosition += PDF_CONFIG.spacing.line;
+      yPosition += pdfSpacing.section.spacing;
     }
 
     // Squad Participants Table
@@ -122,17 +125,17 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
       });
 
       // Update yPosition after table
-      yPosition = (doc as any).lastAutoTable.finalY + PDF_CONFIG.spacing.section;
+      yPosition = (doc as any).lastAutoTable.finalY + pdfSpacing.section.spacing;
     } else {
-      doc.setFontSize(PDF_CONFIG.fonts.small.size);
+      doc.setFontSize(pdfFonts.tableBody.size);
       doc.setFont('helvetica', 'italic');
       doc.text(t('squadManagement.pdf.noParticipants'), leftMargin, yPosition);
-      yPosition += PDF_CONFIG.spacing.section;
+      yPosition += pdfSpacing.section.spacing;
     }
 
     // Add spacing between squads (except for the last one)
     if (squadIndex < squads.length - 1) {
-      yPosition += PDF_CONFIG.spacing.section;
+      yPosition += pdfSpacing.section.spacing;
     }
   });
 

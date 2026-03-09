@@ -275,4 +275,80 @@ describe('useResultsData', () => {
     expect(annaInGroup1!.totalScore).toBeCloseTo(17, 2)
     expect(annaInGroup2!.totalScore).toBeCloseTo(5, 2)
   })
+
+  it('calculates totals using current competition discipline formula after formula switch', async () => {
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 1,
+              firstname: 'Emilia',
+              lastname: 'SwitchCase',
+              club: 'TV Test',
+              startNumber: 3,
+              age: 6,
+              gender: 'weiblich',
+              startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+
+      if (url.startsWith('/scores?')) {
+        return {
+          results: [
+            {
+              participantId: 1,
+              competitionId: 1,
+              disciplineName: 'Boden w',
+              score: 8,
+              // stale linked formula persisted in old score row
+              formula: 'A+B',
+              juryResults: [
+                { fieldName: 'Schwierigkeit', fieldShortName: 'A', performance: 2, isFinalScore: false, isStartingScore: false },
+                { fieldName: 'Wertung', fieldShortName: 'x', performance: 8, isFinalScore: false, isStartingScore: false },
+              ],
+            },
+          ],
+        }
+      }
+
+      if (url === '/disciplines') {
+        return [{ id: 10, name: 'Boden w' }]
+      }
+
+      if (url === '/competitions/1/disciplines') {
+        return {
+          disciplines: [
+            // current formula configured on discipline and shown in Results header
+            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: ':/icons/boden.png' },
+          ],
+        }
+      }
+
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    const { result } = renderHook(() => useResultsData('1', null, ''))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([
+        { id: 1, name: 'Comp 1', number: '0001' },
+      ])
+    })
+
+    const group = result.current.competitionGroups.find(g => g.competitionId === 1)
+    expect(group).toBeTruthy()
+
+    const participant = group!.participants.find(p => p.id === 1)
+    expect(participant).toBeTruthy()
+
+    // Must follow current discipline formula 1*x (=> 8), not stale stored A+B (=> 10)
+    expect(participant!.scores['Boden w']).toBeCloseTo(8, 2)
+    expect(participant!.totalScore).toBeCloseTo(8, 2)
+  })
 })

@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { pdfColors, pdfSpacing, pdfFonts, applyFooterStyle } from './pdfStyles'
 
 interface Event {
   int_eventid: number
@@ -39,21 +40,21 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
   const { doc, event, documentTitle, pageWidth = 297, pageHeight = 210 } = options
   
   // Header configuration
-  const headerHeight = 15
-  const footerHeight = 15
-  const margin = 10
+  const headerHeight = pdfSpacing.header.height
+  const footerHeight = pdfSpacing.footer.height
+  const margin = pdfSpacing.margin.left
   
   // Clear header area with white background to prevent text overlap
-  doc.setFillColor(255, 255, 255) // White background
+  doc.setFillColor(...pdfColors.background.even)
   doc.rect(0, 0, pageWidth, headerHeight + 15, 'F') // Fill rectangle for entire header area
   
   // Reset to black text and drawing color
-  doc.setTextColor(0, 0, 0)
-  doc.setDrawColor(0, 0, 0)
+  doc.setTextColor(...pdfColors.text.primary)
+  doc.setDrawColor(...pdfColors.line.default)
   
   // Set header font
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(pdfFonts.header.size)
+  doc.setFont(pdfFonts.header.family, pdfFonts.header.weight)
   
   // Header Left: Event info
   if (event) {
@@ -83,39 +84,37 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
   }
   
   // Header Right: Document title
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 0, 0) // Ensure black text
+  doc.setFont(pdfFonts.header.family, 'bold')
+  doc.setTextColor(...pdfColors.text.primary)
   doc.text(documentTitle, pageWidth - margin, headerHeight, { align: 'right' })
   
   // Reset text color and font for content
-  doc.setTextColor(0, 0, 0)
-  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...pdfColors.text.primary)
+  doc.setFont(pdfFonts.header.family, 'normal')
   
   // Header separator line (consistent color and width)
-  doc.setDrawColor(0, 0, 0) // Black line
-  doc.setLineWidth(0.5)
-  doc.line(margin, headerHeight + 12, pageWidth - margin, headerHeight + 12)
+  doc.setDrawColor(...pdfColors.line.default)
+  doc.setLineWidth(pdfSpacing.header.separator.thickness)
+  doc.line(margin, headerHeight + pdfSpacing.header.separator.top, pageWidth - margin, headerHeight + pdfSpacing.header.separator.top)
   
   // Footer configuration
   const footerY = pageHeight - footerHeight
   
   // Clear footer area with white background to prevent text overlap
-  doc.setFillColor(255, 255, 255) // White background
+  doc.setFillColor(...pdfColors.background.even)
   doc.rect(0, footerY - 6, pageWidth, footerHeight + 12, 'F') // Fill rectangle for entire footer area
   
   // Reset colors for footer
-  doc.setTextColor(0, 0, 0)
-  doc.setDrawColor(0, 0, 0)
+  doc.setTextColor(...pdfColors.text.primary)
+  doc.setDrawColor(...pdfColors.line.default)
   
   // Footer separator line (consistent color and width)
-  doc.setDrawColor(0, 0, 0) // Black line
-  doc.setLineWidth(0.5)
-  doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5)
+  doc.setDrawColor(...pdfColors.line.default)
+  doc.setLineWidth(pdfSpacing.footer.separator.thickness)
+  doc.line(margin, footerY - pdfSpacing.footer.separator.top, pageWidth - margin, footerY - pdfSpacing.footer.separator.top)
   
   // Footer Left: TurnFix branding
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(0, 0, 0) // Ensure black text
+  applyFooterStyle(doc)
   doc.text('created with TurnFix', margin, footerY)
   doc.text('github.com/Igel18/turnfix', margin, footerY + 4)
   
@@ -144,20 +143,19 @@ export const addPDFHeaderFooter = (options: PDFHeaderFooterOptions) => {
   doc.text('GNU GPL v3', pageWidth - margin, footerY + 4, { align: 'right' })
   
   // Reset all colors and styles to defaults after header/footer
-  doc.setTextColor(0, 0, 0)
-  doc.setDrawColor(0, 0, 0)
-  doc.setFillColor(255, 255, 255)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
+  doc.setTextColor(...pdfColors.text.primary)
+  doc.setDrawColor(...pdfColors.line.default)
+  doc.setFillColor(...pdfColors.background.even)
+  doc.setFont(pdfFonts.header.family, 'normal')
 }
 
 /**
  * Calculates the available content area after headers and footers
  */
 export const getContentArea = (pageWidth: number = 297, pageHeight: number = 210) => {
-  const margin = 10
-  const headerHeight = 32 // Header + separator + spacing (increased to prevent overlap)
-  const footerHeight = 25 // Footer + separator + spacing (increased to prevent overlap)
+  const margin = pdfSpacing.margin.left
+  const headerHeight = pdfSpacing.margin.headerHeight
+  const footerHeight = pdfSpacing.margin.footerHeight
   
   return {
     startX: margin,

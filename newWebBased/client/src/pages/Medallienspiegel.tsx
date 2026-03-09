@@ -8,9 +8,9 @@ import {
   addPDFHeaderFooter, 
   getContentArea,
   getUnifiedTableStyles,
-  drawRankingBadge,
-  PDF_CONFIG
+  drawRankingBadge
 } from '@/utils/pdfUtils'
+import { pdfSpacing, pdfFonts } from '@/utils/pdfStyles'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import getSocket from '@/utils/socket'
@@ -128,12 +128,12 @@ export default function Medallienspiegel() {
       const totalMedals = tableData.reduce((sum, row) => sum + row.total, 0)
       const totalStarters = tableData.reduce((sum, row) => sum + row.starters, 0)
       
-      doc.setFontSize(PDF_CONFIG.fonts.body.size)
+      doc.setFontSize(pdfFonts.tableBody.size)
       doc.setFont('helvetica', 'normal')
       doc.text(`${t('medallienspiegel.participatingClubs')}: ${tableData.length}`, contentArea.startX, yPosition)
       doc.text(`${t('medallienspiegel.totalMedals')}: ${totalMedals}`, contentArea.startX + 80, yPosition)
       doc.text(`${t('medallienspiegel.totalStarters')}: ${totalStarters}`, contentArea.startX + 150, yPosition)
-      yPosition += PDF_CONFIG.spacing.section
+      yPosition += pdfSpacing.section.spacing
 
       console.log('PDF table data prepared:', tableData)
 

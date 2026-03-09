@@ -6,6 +6,7 @@
  */
 
 import jsPDF from 'jspdf';
+import { pdfColors, pdfFonts } from '@/utils/pdfStyles';
 import type { Participant } from '../EventParticipants.types';
 import type { LabelConfig } from '../components/LabelConfigModal';
 
@@ -72,7 +73,7 @@ export function useLabelPrinting({ participants, competitions, eventId }: UseLab
 
       // Draw border if enabled
       if (config.showBorders) {
-        doc.setDrawColor(200, 200, 200);
+        doc.setDrawColor(...pdfColors.line.light);
         doc.setLineWidth(0.1);
         doc.rect(x, y, labelWidth, labelHeight);
       }
@@ -92,7 +93,7 @@ export function useLabelPrinting({ participants, competitions, eventId }: UseLab
       const squadInfo = participant.squad_name || '';
 
       // Set font for label content
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(pdfFonts.tableHeader.family, 'bold');
       doc.setFontSize(10);
 
       // Name (top of label)
@@ -101,14 +102,14 @@ export function useLabelPrinting({ participants, competitions, eventId }: UseLab
 
       // Start number (top right)
       if (startNumber) {
-        doc.setFont('helvetica', 'bold');
+        doc.setFont(pdfFonts.tableHeader.family, 'bold');
         doc.setFontSize(12);
         const startNumberWidth = doc.getTextWidth(startNumber);
         doc.text(startNumber, x + labelWidth - startNumberWidth - 2, nameY);
       }
 
       // Club
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(pdfFonts.tableBody.family, 'normal');
       doc.setFontSize(8);
       const clubY = nameY + 4;
       doc.text(club, x + 2, clubY, { maxWidth: labelWidth - 4 });

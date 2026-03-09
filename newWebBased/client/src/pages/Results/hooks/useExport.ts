@@ -21,6 +21,11 @@ import {
   addSectionTitle,
   drawRankingBadge
 } from '@/utils/pdfUtils'
+import {
+  pdfColors,
+  applyTableHeaderStyle,
+  applyFormulaStyle
+} from '@/utils/pdfStyles'
 import { getDisciplineShortName } from '@/utils/disciplineIcons'
 import { preloadIconsForPDF, addIconToPDF, type IconData } from '@/utils/pdfIcons'
 import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
@@ -256,7 +261,7 @@ export const useExport = ({
           [headers.length - 1]: {
             halign: 'center',
             cellWidth: 20,
-            fillColor: [240, 248, 255],
+            fillColor: pdfColors.background.header,
             fontStyle: 'bold'
           }
         }
@@ -282,23 +287,23 @@ export const useExport = ({
           if (rank <= 3) {
             switch (rank) {
               case 1:
-                data.cell.styles.fillColor = [255, 250, 205]
+                data.cell.styles.fillColor = pdfColors.ranking.gold
                 break
               case 2:
-                data.cell.styles.fillColor = [245, 245, 245]
+                data.cell.styles.fillColor = pdfColors.ranking.silver
                 break
               case 3:
-                data.cell.styles.fillColor = [255, 243, 224]
+                data.cell.styles.fillColor = pdfColors.ranking.bronze
                 break
             }
-            data.cell.styles.textColor = [0, 0, 0]
+            data.cell.styles.textColor = pdfColors.text.primary
             data.cell.styles.fontStyle = 'bold'
           }
         }
 
         // Highlight total score column
         if (data.section === 'body' && data.column.index === headers.length - 1) {
-          data.cell.styles.fillColor = [240, 248, 255]
+          data.cell.styles.fillColor = pdfColors.background.header
           data.cell.styles.fontStyle = 'bold'
         }
       },
@@ -314,13 +319,11 @@ export const useExport = ({
               addIconToPDF(doc, icon, cell.x + 1.5, cell.y + 1.2, 3.2)
             }
 
-            doc.setFont('helvetica', 'bold')
-            doc.setFontSize(8)
+            applyTableHeaderStyle(doc)
             doc.text(meta.shortName, cell.x + cell.width / 2, cell.y + 4.2, { align: 'center' })
 
             if (meta.formula) {
-              doc.setFont('helvetica', 'normal')
-              doc.setFontSize(6)
+              applyFormulaStyle(doc)
               doc.text(meta.formula, cell.x + cell.width / 2, cell.y + 7.5, { align: 'center' })
             }
           }
@@ -509,22 +512,22 @@ export const useExport = ({
             if (rank <= 3) {
               switch (rank) {
                 case 1:
-                  data.cell.styles.fillColor = [255, 250, 205]
+                  data.cell.styles.fillColor = pdfColors.ranking.gold
                   break
                 case 2:
-                  data.cell.styles.fillColor = [245, 245, 245]
+                  data.cell.styles.fillColor = pdfColors.ranking.silver
                   break
                 case 3:
-                  data.cell.styles.fillColor = [255, 243, 224]
+                  data.cell.styles.fillColor = pdfColors.ranking.bronze
                   break
               }
-              data.cell.styles.textColor = [0, 0, 0]
+              data.cell.styles.textColor = pdfColors.text.primary
               data.cell.styles.fontStyle = 'bold'
             }
           }
 
           if (data.section === 'body' && data.column.index === headers.length - 1) {
-            data.cell.styles.fillColor = [240, 248, 255]
+            data.cell.styles.fillColor = pdfColors.background.header
             data.cell.styles.fontStyle = 'bold'
           }
         },
@@ -540,13 +543,11 @@ export const useExport = ({
                 addIconToPDF(doc, icon, cell.x + 1.5, cell.y + 1.2, 3.2)
               }
 
-              doc.setFont('helvetica', 'bold')
-              doc.setFontSize(8)
+              applyTableHeaderStyle(doc)
               doc.text(meta.shortName, cell.x + cell.width / 2, cell.y + 4.2, { align: 'center' })
 
               if (meta.formula) {
-                doc.setFont('helvetica', 'normal')
-                doc.setFontSize(6)
+                applyFormulaStyle(doc)
                 doc.text(meta.formula, cell.x + cell.width / 2, cell.y + 7.5, { align: 'center' })
               }
             }

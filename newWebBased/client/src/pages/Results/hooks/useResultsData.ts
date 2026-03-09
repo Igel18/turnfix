@@ -132,6 +132,27 @@ export function useResultsData(
 
       const getParticipantCompetitionKey = (participantId: number, competitionId: number) => `${participantId}:${competitionId}`;
 
+      // Pre-load current competition formulas to override old linked formulas
+      const competitionCurrentFormulas = new Map<number, Record<string, string>>();
+      for (const competition of availableCompetitions) {
+        try {
+          const competitionDisciplinesData = await apiGet(`/competitions/${competition.id}/disciplines`);
+          if (competitionDisciplinesData?.disciplines?.length > 0) {
+            const currentFormulas: Record<string, string> = {};
+            competitionDisciplinesData.disciplines.forEach((d: any) => {
+              const disciplineName = d.var_name || d.name;
+              const formula = d.var_formel || d.formula;
+              if (disciplineName && formula && String(formula).trim()) {
+                currentFormulas[disciplineName] = String(formula).trim();
+              }
+            });
+            competitionCurrentFormulas.set(competition.id, currentFormulas);
+          }
+        } catch (error) {
+          console.error(`Error pre-loading disciplines for competition ${competition.id}:`, error);
+        }
+      }
+
       const scoresMap = new Map<string, { [discipline: string]: number }>();
       const juryResultsMap = new Map<string, { [discipline: string]: any[] }>();
       const formulasMap = new Map<string, { [discipline: string]: string }>();
@@ -197,12 +218,27 @@ export function useResultsData(
       console.log('📊 [Results] Final jury results map:', Array.from(juryResultsMap.entries()));
       console.log('📊 [Results] Disciplines found:', Array.from(disciplineSet));
 
-      const buildParticipantCompetitionEntry = (participant: any, competitionId: number): Participant => {
+      const buildParticipantCompetitionEntry = (participant: any, competitionId: number, currentFormulas?: Record<string, string>): Participant => {
           const participantCompetitionKey = getParticipantCompetitionKey(participant.id, competitionId);
           const participantScores = scoresMap.get(participantCompetitionKey) || {};
           const participantJuryResults = juryResultsMap.get(participantCompetitionKey) || {};
           const participantFormulas = formulasMap.get(participantCompetitionKey) || {};
           const participantDisciplineFormulas = disciplineFormulasMap.get(participantCompetitionKey) || {};
+
+          // Override old linked formulas with current competition discipline formulas
+          const effectiveFormulas: Record<string, string> = {};
+          Object.keys(participantFormulas).forEach(discipline => {
+            effectiveFormulas[discipline] = currentFormulas?.[discipline] || participantFormulas[discipline] || '';
+          });
+
+          // If currentFormulas has discipline not in participantFormulas (fresh discipline), assign it
+          if (currentFormulas) {
+            Object.keys(currentFormulas).forEach(discipline => {
+              if (!(discipline in effectiveFormulas)) {
+                effectiveFormulas[discipline] = currentFormulas[discipline];
+              }
+            });
+          }
           
           // Two-step score calculation (C++ backward compatible):
           //   Step 1: If linked formula + jury results exist, recalculate Endwert from fields
@@ -213,7 +249,7 @@ export function useResultsData(
           Object.keys(participantScores).forEach(discipline => {
             const storedScore = participantScores[discipline];
             const juryResults = participantJuryResults[discipline];
-            const formula = participantFormulas[discipline];       // linked formula (multi-field)
+            const formula = effectiveFormulas[discipline];       // use current formula, fallback to old linked
             const discFormula = participantDisciplineFormulas[discipline]; // built-in var_formel
             
             // Step 1: If we have jury results and linked formula, recalculate Endwert from fields
@@ -290,14 +326,18 @@ export function useResultsData(
         .flatMap((participant: any) => {
           if (selectedCompetition) {
             const selectedCompetitionId = parseInt(selectedCompetition);
-            return [buildParticipantCompetitionEntry(participant, selectedCompetitionId)];
+            const currentFormulas = competitionCurrentFormulas.get(selectedCompetitionId) || {};
+            return [buildParticipantCompetitionEntry(participant, selectedCompetitionId, currentFormulas)];
           }
 
           const assignedCompetitions: number[] = Array.isArray(participant.assignedCompetitions)
             ? Array.from(new Set(participant.assignedCompetitions.map((compId: any) => Number(compId)).filter((compId: number) => !Number.isNaN(compId) && compId > 0)))
             : [];
 
-          return assignedCompetitions.map((competitionId: number) => buildParticipantCompetitionEntry(participant, competitionId));
+          return assignedCompetitions.map((competitionId: number) => {
+            const currentFormulas = competitionCurrentFormulas.get(competitionId) || {};
+            return buildParticipantCompetitionEntry(participant, competitionId, currentFormulas);
+          });
         });
 
       if (selectedCompetition) {
