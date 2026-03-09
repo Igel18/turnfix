@@ -12,16 +12,16 @@ export function resolveScoringInputMode(options: ResolveScoringInputModeOptions)
   const hasLinkedFormula = Boolean(options.formulaId);
   const formulaType = detectFormulaType(formula);
 
+  if (hasLinkedFormula) {
+    return 'linkedFormula';
+  }
+
   if (formulaType === 'letter') {
     return 'linkedFormula';
   }
 
   if (formulaType === 'variable') {
     return 'builtInFormula';
-  }
-
-  if (hasLinkedFormula) {
-    return 'linkedFormula';
   }
 
   return 'simple';

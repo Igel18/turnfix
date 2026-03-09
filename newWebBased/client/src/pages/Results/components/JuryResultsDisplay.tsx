@@ -43,22 +43,35 @@ export const JuryResultsDisplay = ({
   }
 
   // Build field symbols map using centralized utility
-  const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
+  const formulaType = formula ? detectFormulaType(formula) : 'none'
+  let fieldsMap = buildFieldSymbolsMap(juryResults, formula)
   let fields: FormulaField[] = Object.values(fieldsMap)
 
-  const formulaType = formula ? detectFormulaType(formula) : 'none'
-  if (formula && formulaType === 'variable') {
-    const variableSymbols = extractFormulaSymbols(formula).filter(symbol => /^[a-z]$/.test(symbol))
-    if (variableSymbols.length === 1) {
-      const variableSymbol = variableSymbols[0]
-      fields = fields.map(field => {
-        if (field.symbol !== variableSymbol) return field
-        if (field.value !== null) return field
-        return {
-          ...field,
-          value: finalScore
-        }
-      })
+  // When formula is variable-type (e.g. "1*x") and jury results have actual
+  // performance values that couldn't be matched by symbol name, fall back to
+  // auto-assigned letter symbols (A, B, …) so the real jury field values are
+  // displayed instead of the stored total score.
+  if (formulaType === 'variable') {
+    const allMappedNull = fields.every(f => f.value === null)
+    const hasActualJuryPerformance = juryResults.some(jr => jr.performance !== null && !jr.isFinalScore && !jr.isStartingScore)
+    if (allMappedNull && hasActualJuryPerformance) {
+      // Rebuild without formula → auto-assigns A, B, C… from actual fields
+      fieldsMap = buildFieldSymbolsMap(juryResults, undefined)
+      fields = Object.values(fieldsMap)
+    } else {
+      // Legacy fallback: fill single variable with finalScore when no jury data matched
+      const variableSymbols = extractFormulaSymbols(formula!).filter(symbol => /^[a-z]$/.test(symbol))
+      if (variableSymbols.length === 1) {
+        const variableSymbol = variableSymbols[0]
+        fields = fields.map(field => {
+          if (field.symbol !== variableSymbol) return field
+          if (field.value !== null) return field
+          return {
+            ...field,
+            value: finalScore
+          }
+        })
+      }
     }
   }
 

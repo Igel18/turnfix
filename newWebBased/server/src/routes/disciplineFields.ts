@@ -22,40 +22,52 @@ router.get('/', async (req, res) => {
   try {
     const disciplineId = req.query.disciplineId ? parseInt(req.query.disciplineId as string) : undefined;
 
-    const whereClause: any = {};
-    if (disciplineId) {
-      whereClause.int_disziplinenid = disciplineId;
-    }
+    const rows = disciplineId
+      ? await prisma.$queryRawUnsafe(`
+          SELECT
+            df.int_disziplinen_felderid,
+            df.int_disziplinenid,
+            d.var_name as discipline_name,
+            d.var_kurz1 as discipline_short,
+            df.var_name,
+            df.int_sortierung,
+            df.bol_endwert,
+            df.bol_ausgangswert,
+            df.int_gruppe,
+            df.bol_enabled
+          FROM tfx_disziplinen_felder df
+          LEFT JOIN tfx_disziplinen d ON d.int_disziplinenid = df.int_disziplinenid
+          WHERE df.int_disziplinenid = $1
+          ORDER BY df.int_disziplinenid ASC, df.int_sortierung ASC
+        `, disciplineId) as any[]
+      : await prisma.$queryRawUnsafe(`
+          SELECT
+            df.int_disziplinen_felderid,
+            df.int_disziplinenid,
+            d.var_name as discipline_name,
+            d.var_kurz1 as discipline_short,
+            df.var_name,
+            df.int_sortierung,
+            df.bol_endwert,
+            df.bol_ausgangswert,
+            df.int_gruppe,
+            df.bol_enabled
+          FROM tfx_disziplinen_felder df
+          LEFT JOIN tfx_disziplinen d ON d.int_disziplinenid = df.int_disziplinenid
+          ORDER BY df.int_disziplinenid ASC, df.int_sortierung ASC
+        `) as any[]
 
-    const disciplineFields = await prisma.tfx_disziplinen_felder.findMany({
-      where: whereClause,
-      include: {
-        tfx_disziplinen: {
-          select: {
-            int_disziplinenid: true,
-            var_name: true,
-            var_kurz1: true,
-            var_kurz2: true
-          }
-        }
-      },
-      orderBy: [
-        { int_disziplinenid: 'asc' },
-        { int_sortierung: 'asc' }
-      ]
-    })
-
-    const formatted = disciplineFields.map(field => ({
+    const formatted = rows.map((field: any) => ({
       id: field.int_disziplinen_felderid,
       disciplineId: field.int_disziplinenid,
-      disciplineName: field.tfx_disziplinen?.var_name || 'Unknown',
-      disciplineShort: field.tfx_disziplinen?.var_kurz1 || '',
+      disciplineName: field.discipline_name || 'Unknown',
+      disciplineShort: field.discipline_short || '',
       name: field.var_name,
       sortOrder: field.int_sortierung,
       isFinalScore: field.bol_endwert,
       isStartingScore: field.bol_ausgangswert,
       group: field.int_gruppe,
-      enabled: field.bol_enabled
+      enabled: field.bol_enabled ?? true
     }))
 
     if (process.env.DEBUG === 'true') {
@@ -76,35 +88,41 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id)
-    const disciplineField = await prisma.tfx_disziplinen_felder.findUnique({
-      where: { int_disziplinen_felderid: id },
-      include: {
-        tfx_disziplinen: {
-          select: {
-            int_disziplinenid: true,
-            var_name: true,
-            var_kurz1: true,
-            var_kurz2: true
-          }
-        }
-      }
-    })
+    const rows = await prisma.$queryRawUnsafe(`
+      SELECT
+        df.int_disziplinen_felderid,
+        df.int_disziplinenid,
+        d.var_name as discipline_name,
+        d.var_kurz1 as discipline_short,
+        df.var_name,
+        df.int_sortierung,
+        df.bol_endwert,
+        df.bol_ausgangswert,
+        df.int_gruppe,
+        df.bol_enabled
+      FROM tfx_disziplinen_felder df
+      LEFT JOIN tfx_disziplinen d ON d.int_disziplinenid = df.int_disziplinenid
+      WHERE df.int_disziplinen_felderid = $1
+      LIMIT 1
+    `, id) as any[]
 
-    if (!disciplineField) {
+    if (!rows || rows.length === 0) {
       return res.status(404).json({ error: 'Discipline field not found' })
     }
+
+    const disciplineField = rows[0]
 
     const formatted = {
       id: disciplineField.int_disziplinen_felderid,
       disciplineId: disciplineField.int_disziplinenid,
-      disciplineName: disciplineField.tfx_disziplinen?.var_name || 'Unknown',
-      disciplineShort: disciplineField.tfx_disziplinen?.var_kurz1 || '',
+      disciplineName: disciplineField.discipline_name || 'Unknown',
+      disciplineShort: disciplineField.discipline_short || '',
       name: disciplineField.var_name,
       sortOrder: disciplineField.int_sortierung,
       isFinalScore: disciplineField.bol_endwert,
       isStartingScore: disciplineField.bol_ausgangswert,
       group: disciplineField.int_gruppe,
-      enabled: disciplineField.bol_enabled
+      enabled: disciplineField.bol_enabled ?? true
     }
 
     res.json(formatted)

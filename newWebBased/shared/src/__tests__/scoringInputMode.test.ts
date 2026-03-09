@@ -14,8 +14,8 @@ describe('resolveScoringInputMode', () => {
     expect(resolveScoringInputMode({ formula: 'A-B', formulaId: null })).toBe('linkedFormula');
   });
 
-  it('prioritizes built-in formula when formula content is variable-based even if formulaId exists', () => {
-    expect(resolveScoringInputMode({ formula: '1*x', formulaId: 12 })).toBe('builtInFormula');
+  it('prioritizes linked formula when formulaId exists even if formula content is variable-based', () => {
+    expect(resolveScoringInputMode({ formula: '1*x', formulaId: 12 })).toBe('linkedFormula');
   });
 
   it('returns linkedFormula when only formulaId is present', () => {
