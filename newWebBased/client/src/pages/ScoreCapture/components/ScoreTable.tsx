@@ -31,7 +31,7 @@ interface ScoreTableProps {
   handleScoreChange: (participantId: number, disciplineId: number | string, value: string) => void
   handleFieldScoreChange: (participantId: number, fieldId: number, value: string) => void
   saveScore: (participantId: number, disciplineId: number | string) => Promise<void>
-  saveFieldScore: (participantId: number, field: DisciplineField) => Promise<void>
+  saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>
   parseFormulaDisplay: (formula: string, fields: DisciplineField[], finalFieldName: string) => string | null
   normalizeScoreInput: (value: string, decimalPlaces: number) => string
   getScorePlaceholder: (decimalPlaces: number) => string
@@ -167,9 +167,9 @@ export const ScoreTable = ({
                         wertungenId={(participant as any).wertungenId || participant.id}
                         onScoreChange={handleScoreChange}
                         onSave={saveScore}
-                        onFieldSave={async (participantId, field, _value) => {
+                        onFieldSave={async (participantId, field, value) => {
                           // This will be called when individual fields are changed in formula mode
-                          await saveFieldScore(participantId, field)
+                          await saveFieldScore(participantId, field, value)
                         }}
                         normalizeScoreInput={normalizeScoreInput}
                         getScorePlaceholder={getScorePlaceholder}

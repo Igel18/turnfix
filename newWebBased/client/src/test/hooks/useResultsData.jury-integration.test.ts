@@ -180,14 +180,14 @@ describe('useResultsData - Jury Results Integration (Point 150)', () => {
       expect(sharedJuryResult.performance).toBe(6.0);
       
       // And what Jury Portal expects
-      const jury​PortalExpectation = {
+      const juryPortalExpectation = {
         performance: 6.0,
         fieldName: 'Stufe',
         isFinalScore: false,
         sortOrder: 1
       };
 
-      expect(jury​PortalExpectation.performance).toBe(sharedJuryResult.performance);
+      expect(juryPortalExpectation.performance).toBe(sharedJuryResult.performance);
     });
 
   });

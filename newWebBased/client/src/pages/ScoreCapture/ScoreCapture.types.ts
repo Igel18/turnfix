@@ -43,7 +43,7 @@ export interface ParticipantRowProps {
   handleScoreChange: (participantId: number, disciplineId: number | string, value: string) => void;
   handleFieldScoreChange: (participantId: number, fieldId: number, value: string) => void;
   saveScore: (participantId: number, disciplineId: number | string) => Promise<void>;
-  saveFieldScore: (participantId: number, field: DisciplineField) => Promise<void>;
+  saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>;
   parseFormulaDisplay: (formula: string, fields: DisciplineField[], finalFieldName: string) => string | null;
 }
 
@@ -58,7 +58,7 @@ export interface ScoreTableProps {
   handleScoreChange: (participantId: number, disciplineId: number | string, value: string) => void;
   handleFieldScoreChange: (participantId: number, fieldId: number, value: string) => void;
   saveScore: (participantId: number, disciplineId: number | string) => Promise<void>;
-  saveFieldScore: (participantId: number, field: DisciplineField) => Promise<void>;
+  saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>;
   parseFormulaDisplay: (formula: string, fields: DisciplineField[], finalFieldName: string) => string | null;
 }
 

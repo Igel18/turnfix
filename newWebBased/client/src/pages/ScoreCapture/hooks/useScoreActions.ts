@@ -30,7 +30,7 @@ interface UseScoreActionsProps {
 
 interface UseScoreActionsReturn {
   saveScore: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<void>;
-  saveFieldScore: (participantId: number, field: DisciplineField) => Promise<void>;
+  saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>;
   calculateDisciplineScores: (disciplineId: number | string, fields: DisciplineField[]) => Promise<void>;
 }
 
@@ -188,9 +188,9 @@ export function useScoreActions({
   }
 
   // Save field-specific score using jury results API
-  const saveFieldScore = async (participantId: number, field: DisciplineField) => {
+  const saveFieldScore = async (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => {
     const fieldKey = `${participantId}-${field.id}`
-    const fieldValue = scoreMatrix[fieldKey]
+    const fieldValue = overrideFieldValue ?? scoreMatrix[fieldKey]
     
     if (fieldValue === '' || fieldValue === null || fieldValue === undefined) {
       console.log(`Skipping save for empty field: ${fieldKey}`)

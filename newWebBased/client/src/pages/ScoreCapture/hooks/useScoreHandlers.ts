@@ -21,7 +21,7 @@ import type {
   scoreMatrix: {[key: string]: string};
   setScoreMatrix: (matrix: {[key: string]: string} | ((prev: {[key: string]: string}) => {[key: string]: string})) => void;
   disciplineFields: DisciplineField[];
-  saveFieldScore: (participantId: number, field: DisciplineField) => Promise<void>;
+  saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>;
   participants: Participant[];
   disciplines: Discipline[];
   squads: Squad[];
@@ -76,7 +76,7 @@ export function useScoreHandlers({
         const field = disciplineFields.find(f => f.id === fieldId);
         if (field) {
           console.log(`Auto-saving field score: participant=${participantId}, field=${fieldId}, value=${value}`);
-          saveFieldScore(participantId, field);
+          saveFieldScore(participantId, field, value);
         }
       }
     }, 1000); // Save 1 second after user stops typing

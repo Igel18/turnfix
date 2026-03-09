@@ -291,36 +291,9 @@ export const ScoreInputCell = ({
           // Save individual field value
           const field = disciplineFields.find(f => f.id === fieldId);
           if (field && wertungenId) {
-            // Convert comma to dot for correct parsing (German decimal format: 4,15 → 4.15)
-            const normalizedValue = value.replace(',', '.');
-            const performanceValue = parseFloat(normalizedValue) || 0;
-            
-            console.log('💾 Saving jury result:', {
-              participantId: wertungenId,
-              disciplineFieldId: fieldId,
-              performance: performanceValue,
-              originalValue: value,
-              normalizedValue
+            _onFieldSave(wertungenId, field, value).catch(error => {
+              console.error('❌ Error saving field value:', error);
             });
-            
-            // Use API to save jury result
-            fetch('/api/jury-results', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                participantId: wertungenId,
-                disciplineFieldId: fieldId,
-                performance: performanceValue,
-                attempt: 1,
-                type: 0
-              })
-            })
-            .then(res => {
-              console.log('✅ Save response status:', res.status);
-              return res.json();
-            })
-            .then(data => console.log('✅ Save response data:', data))
-            .catch(error => console.error('❌ Error saving field value:', error));
           } else {
             console.warn('⚠️ Cannot save: field or wertungenId missing', { field, wertungenId });
           }
