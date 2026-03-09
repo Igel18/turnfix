@@ -79,6 +79,55 @@ describe('Event Participants API', () => {
 
       expect(response.body).toBeDefined();
     });
+
+    it('should return each participant only once even with multiple wertungen in the same event', async () => {
+      const competitionA = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Duplicate Guard Competition A'
+      });
+
+      const competitionB = await TestUtils.createTestCompetition({
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        name: 'Duplicate Guard Competition B'
+      });
+
+      await prisma.tfx_wertungen.createMany({
+        data: [
+          {
+            int_wettkaempfeid: competitionA.int_wettkaempfeid,
+            int_teilnehmerid: testParticipant.int_teilnehmerid,
+            int_statusid: 1,
+            int_startnummer: 10,
+            var_riege: 'R1'
+          },
+          {
+            int_wettkaempfeid: competitionB.int_wettkaempfeid,
+            int_teilnehmerid: testParticipant.int_teilnehmerid,
+            int_statusid: 1,
+            int_startnummer: 11,
+            var_riege: ''
+          }
+        ]
+      });
+
+      const response = await request(app)
+        .get(`/api/event-participants?eventId=${testEvent.int_veranstaltungenid}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body.participants)).toBe(true);
+
+      const sameParticipantEntries = response.body.participants.filter(
+        (participant: any) => participant.id === testParticipant.int_teilnehmerid
+      );
+
+      expect(sameParticipantEntries).toHaveLength(1);
+      expect(sameParticipantEntries[0].assignedCompetitions).toEqual(
+        expect.arrayContaining([
+          competitionA.int_wettkaempfeid,
+          competitionB.int_wettkaempfeid
+        ])
+      );
+    });
   });
 
   describe('GET /api/event-participants/:id', () => {

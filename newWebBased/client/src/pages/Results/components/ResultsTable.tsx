@@ -37,6 +37,16 @@ export const ResultsTable = ({
 }: ResultsTableProps) => {
   const { t } = useTranslation()
 
+  const getDisciplineFormula = (participants: Participant[], discipline: string): string | null => {
+    for (const participant of participants) {
+      const formula = participant.formulas?.[discipline]
+      if (formula && formula.trim()) {
+        return formula.trim()
+      }
+    }
+    return null
+  }
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border mx-6">
@@ -86,6 +96,11 @@ export const ResultsTable = ({
                   <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
                     <div className="flex flex-col">
                       <span className="font-semibold">{discipline}</span>
+                      {getDisciplineFormula(filteredRanking, discipline) && (
+                        <span className="text-[10px] text-gray-500 font-normal normal-case mt-0.5">
+                          {getDisciplineFormula(filteredRanking, discipline)}
+                        </span>
+                      )}
                       <span className="text-[10px] text-gray-400 font-normal">{t('results.table.device')}</span>
                     </div>
                   </th>
@@ -133,18 +148,12 @@ export const ResultsTable = ({
                     return (
                       <td key={discipline} className="px-3 py-3 text-center border-l border-gray-100 bg-gray-50">
                         <div className="flex flex-col items-center">
-                          {/* Device Name Header */}
-                          <div className="text-xs font-semibold text-gray-700 mb-2 border-b border-gray-300 pb-1 w-full">
-                            {discipline}
-                          </div>
-                          
                           {/* Jury Results Display or Simple Score */}
                           {participant.scores[discipline] ? (
                             hasJuryResults ? (
                               <JuryResultsDisplay 
                                 juryResults={juryResults}
                                 finalScore={participant.scores[discipline]}
-                                disciplineName={discipline}
                                 formula={participant.formulas?.[discipline]}
                               />
                             ) : (
@@ -238,6 +247,11 @@ export const ResultsTable = ({
                             />
                             <span className="font-semibold">{disciplineInfo.name}</span>
                           </div>
+                          {getDisciplineFormula(group.participants, disciplineInfo.name) && (
+                            <span className="text-[10px] text-gray-500 font-normal normal-case mb-1">
+                              {getDisciplineFormula(group.participants, disciplineInfo.name)}
+                            </span>
+                          )}
                           <span className="text-[10px] text-gray-400 font-normal">{t('results.table.device')}</span>
                         </div>
                       </th>
@@ -285,18 +299,12 @@ export const ResultsTable = ({
                         return (
                           <td key={discipline} className="px-3 py-3 text-center border-l border-gray-100 bg-gray-50">
                             <div className="flex flex-col items-center">
-                              {/* Device Name Header */}
-                              <div className="text-xs font-semibold text-gray-700 mb-2 border-b border-gray-300 pb-1 w-full">
-                                {discipline}
-                              </div>
-                              
                               {/* Jury Results Display or Simple Score */}
                               {participant.scores[discipline] ? (
                                 hasJuryResults ? (
                                   <JuryResultsDisplay 
                                     juryResults={juryResults}
                                     finalScore={participant.scores[discipline]}
-                                    disciplineName={discipline}
                                     formula={participant.formulas?.[discipline]}
                                   />
                                 ) : (

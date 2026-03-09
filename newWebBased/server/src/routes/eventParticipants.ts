@@ -39,37 +39,38 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     // Build query to get participants for this event (those who have wertungen)
     // Use the same approach as Squad Management since that works correctly
     let eventParticipantsQuery = `
-      SELECT DISTINCT
-        t.int_teilnehmerid,
-        t.var_vorname,
-        t.var_nachname,
-        t.int_vereineid,
-        t.int_geschlecht,
-        t.dat_geburtstag,
-        t.int_startpassnummer,
-        v.var_name as verein_name,
-        w.var_riege as squad_name,
-        w.bol_startet_nicht,
-        w.int_startnummer,
-        w.int_wertungenid,
-        ${getGermanGenderCaseStatement('t', 'gender')},
-        t.int_geschlecht as raw_gender_value,
-        CASE 
-          WHEN t.dat_geburtstag IS NOT NULL THEN 
-            EXTRACT(YEAR FROM AGE(t.dat_geburtstag))
-          ELSE NULL
-        END as age,
-        CASE 
-          WHEN t.dat_geburtstag IS NOT NULL THEN 
-            EXTRACT(YEAR FROM t.dat_geburtstag)
-          ELSE NULL
-        END as birth_year,
-        CURRENT_DATE::TEXT as registration_date
-      FROM tfx_wertungen w
-      INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
-      LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-      WHERE wk.int_veranstaltungenid = $1`;
+      WITH unique_participants AS (
+        SELECT DISTINCT ON (t.int_teilnehmerid)
+          t.int_teilnehmerid,
+          t.var_vorname,
+          t.var_nachname,
+          t.int_vereineid,
+          t.int_geschlecht,
+          t.dat_geburtstag,
+          t.int_startpassnummer,
+          v.var_name as verein_name,
+          w.var_riege as squad_name,
+          w.bol_startet_nicht,
+          w.int_startnummer,
+          w.int_wertungenid,
+          ${getGermanGenderCaseStatement('t', 'gender')},
+          t.int_geschlecht as raw_gender_value,
+          CASE 
+            WHEN t.dat_geburtstag IS NOT NULL THEN 
+              EXTRACT(YEAR FROM AGE(t.dat_geburtstag))
+            ELSE NULL
+          END as age,
+          CASE 
+            WHEN t.dat_geburtstag IS NOT NULL THEN 
+              EXTRACT(YEAR FROM t.dat_geburtstag)
+            ELSE NULL
+          END as birth_year,
+          CURRENT_DATE::TEXT as registration_date
+        FROM tfx_wertungen w
+        INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+        INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+        LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+        WHERE wk.int_veranstaltungenid = $1`;
     
     let queryParams = [parseInt(eventId)];
     
@@ -80,7 +81,15 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     }
     
     eventParticipantsQuery += `
-      ORDER BY t.var_nachname ASC, t.var_vorname ASC
+        ORDER BY
+          t.int_teilnehmerid,
+          CASE WHEN COALESCE(w.var_riege, '') <> '' THEN 1 ELSE 0 END DESC,
+          CASE WHEN w.int_startnummer IS NOT NULL THEN 1 ELSE 0 END DESC,
+          w.int_wertungenid DESC
+      )
+      SELECT *
+      FROM unique_participants
+      ORDER BY var_nachname ASC, var_vorname ASC
     `;
     
     console.log(`[DEBUG] Executing query with params:`, queryParams);

@@ -13,7 +13,6 @@ import type { JuryResult } from '../Results.types'
 interface JuryResultsDisplayProps {
   juryResults: JuryResult[]
   finalScore: number
-  disciplineName: string
   formula?: string
 }
 

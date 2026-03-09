@@ -21,7 +21,6 @@ import {
   drawRankingBadge
 } from '@/utils/pdfUtils'
 import { 
-  formatFormulaWithValues, 
   buildFieldSymbolsMap, 
   formatScore as formatScoreUtil 
 } from '@/utils/formulaUtils'
@@ -45,6 +44,22 @@ export const useExport = ({
   formatScore
 }: UseExportProps) => {
   const { selectedEvent } = useEvent()
+
+  const getDisciplineFormulaMap = (participants: Participant[], disciplineNames: string[]) => {
+    const formulaMap: Record<string, string> = {}
+
+    disciplineNames.forEach((discipline) => {
+      const formula = participants
+        .map(participant => participant.formulas?.[discipline])
+        .find(value => value && value.trim())
+
+      if (formula) {
+        formulaMap[discipline] = formula.trim()
+      }
+    })
+
+    return formulaMap
+  }
 
   /**
    * Export results to CSV format
@@ -88,10 +103,15 @@ export const useExport = ({
     const pageWidth = pageFormat.width
     const pageHeight = pageFormat.height
 
+    const disciplineFormulaMap = getDisciplineFormulaMap(participants, disciplines)
+
     // Table headers
     const headers = [
       'Platz', 'Start #', 'Name', 'Verein', 'Jg',
-      ...disciplines,
+      ...disciplines.map(discipline => {
+        const formula = disciplineFormulaMap[discipline]
+        return formula ? `${discipline}\n${formula}` : discipline
+      }),
       'Gesamt'
     ]
 
@@ -121,25 +141,9 @@ export const useExport = ({
         // Build field symbols map
         const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
         const fields = Object.values(fieldsMap)
-        
-        // Build values map for formula
-        const valuesMap: Record<string, number> = {}
-        fields.forEach(field => {
-          if (field.value !== null) {
-            valuesMap[field.symbol] = field.value
-          }
-        })
-        
-        // Format formula with values using centralized utility
-        const formulaWithValues = formula
-          ? formatFormulaWithValues(formula, valuesMap, { 
-              decimals: 2
-            })
-          : null
 
         // Build detailed breakdown
         const breakdown: string[] = []
-        if (formulaWithValues) breakdown.push(`Formula: ${formulaWithValues}`)
         
         // Field scores
         const fieldScores = fields
@@ -275,9 +279,14 @@ export const useExport = ({
       currentY += 15
 
       // Table headers
+      const disciplineFormulaMap = getDisciplineFormulaMap(group.participants, group.disciplines)
+
       const headers = [
         'Platz', 'Start #', 'Name', 'Verein', 'Jg',
-        ...group.disciplines,
+        ...group.disciplines.map(discipline => {
+          const formula = disciplineFormulaMap[discipline]
+          return formula ? `${discipline}\n${formula}` : discipline
+        }),
         'Gesamt'
       ]
 
@@ -307,25 +316,9 @@ export const useExport = ({
           // Build field symbols map
           const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
           const fields = Object.values(fieldsMap)
-          
-          // Build values map for formula
-          const valuesMap: Record<string, number> = {}
-          fields.forEach(field => {
-            if (field.value !== null) {
-              valuesMap[field.symbol] = field.value
-            }
-          })
-          
-          // Format formula with values using centralized utility
-          const formulaWithValues = formula
-            ? formatFormulaWithValues(formula, valuesMap, { 
-                decimals: 2
-              })
-            : null
 
           // Build detailed breakdown
           const breakdown: string[] = []
-          if (formulaWithValues) breakdown.push(`Formula: ${formulaWithValues}`)
           
           // Field scores
           const fieldScores = fields
