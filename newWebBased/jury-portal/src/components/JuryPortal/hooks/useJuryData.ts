@@ -11,6 +11,7 @@ import { isEventOnDate } from '../../../utils/eventUtils';
 import { normalizeScoreInput } from '../../../utils/scoreFormatter';
 import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/navigationHelper';
 import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
+import { computeEffectiveParticipantScore } from '../../../utils/effectiveParticipantScore';
 import { computeEffectiveJuryResults } from '../../../utils/effectiveJuryResults';
 import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
@@ -333,24 +334,31 @@ export function useJuryData(): UseJuryDataReturn {
 
         console.log('Unique squad participants (after dedup):', uniqueSquadParticipants.length);
 
+        let scores: any[] = [];
+        try {
+          const scoresResponse = await fetch(`${API_BASE_URL}/scores?eventId=${selectedEvent}&limit=1000`);
+          if (scoresResponse.ok) {
+            const scoresData = await scoresResponse.json();
+            scores = scoresData?.results || [];
+          }
+        } catch (error) {
+          console.warn('⚠️ JURY: Could not fetch existing scores:', error);
+        }
+
         // Format participants for scoring and fetch existing scores
         const formattedParticipantsPromises = uniqueSquadParticipants.map(async (participant: any, index: number) => {
-          let existingScore = null;
+          let existingScore: number | undefined = undefined;
           let wertungenId = null;
           try {
             console.log(`🔍 JURY: Checking existing scores for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
-            const scoresResponse = await fetch(`${API_BASE_URL}/scores?eventId=${selectedEvent}&limit=1000`);
-            if (scoresResponse.ok) {
-              const scoresData = await scoresResponse.json();
-              const scores = scoresData?.results || [];
-              const existingScoreRecord = scores.find((s: any) => {
-                return s.participantId === participant.id && s.disciplineId === selectedDevice?.disciplineId;
-              });
-              if (existingScoreRecord) {
-                existingScore = existingScoreRecord.score;
-                wertungenId = existingScoreRecord.id;
-                console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore, 'wertungenId:', wertungenId);
-              }
+            const existingScoreRecord = scores.find((s: any) => {
+              return s.participantId === participant.id && s.disciplineId === selectedDevice?.disciplineId;
+            });
+            if (existingScoreRecord) {
+                const effectiveScore = computeEffectiveParticipantScore(existingScoreRecord);
+                existingScore = effectiveScore === null ? undefined : effectiveScore;
+              wertungenId = existingScoreRecord.id;
+              console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore, 'wertungenId:', wertungenId);
             }
           } catch (error) {
             console.warn('⚠️ JURY: Could not fetch existing scores for participant:', participant.id, error);
