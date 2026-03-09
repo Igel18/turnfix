@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
-import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula } from '@/utils/formulaUtils';
+import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
 
 interface UseResultsDataReturn {
@@ -217,6 +217,11 @@ export function useResultsData(
       console.log('📊 [Results] Final scores map:', Array.from(scoresMap.entries()));
       console.log('📊 [Results] Final jury results map:', Array.from(juryResultsMap.entries()));
       console.log('📊 [Results] Disciplines found:', Array.from(disciplineSet));
+       console.log('🔍 DEBUG: total juryResultsMap entries:', juryResultsMap.size);
+       if (juryResultsMap.size > 0) {
+         const firstKey = Array.from(juryResultsMap.keys())[0];
+         console.log('🔍 DEBUG: first entry key:', firstKey, 'value:', juryResultsMap.get(firstKey));
+       }
 
       const buildParticipantCompetitionEntry = (participant: any, competitionId: number, currentFormulas?: Record<string, string>): Participant => {
           const participantCompetitionKey = getParticipantCompetitionKey(participant.id, competitionId);
@@ -224,6 +229,12 @@ export function useResultsData(
           const participantJuryResults = juryResultsMap.get(participantCompetitionKey) || {};
           const participantFormulas = formulasMap.get(participantCompetitionKey) || {};
           const participantDisciplineFormulas = disciplineFormulasMap.get(participantCompetitionKey) || {};
+         
+           // DEBUG: Log jury results for this participant
+           console.log(`🔍 [Results] Building entry for ${participant.firstname} ${participant.lastname} (key: ${participantCompetitionKey})`, {
+             juryResultsKeys: Object.keys(participantJuryResults),
+             juryResultsSize: Object.keys(participantJuryResults).length
+           });
 
           // Override old linked formulas with current competition discipline formulas
           const effectiveFormulas: Record<string, string> = {};
@@ -251,10 +262,11 @@ export function useResultsData(
             const juryResults = participantJuryResults[discipline];
             const formula = effectiveFormulas[discipline];       // use current formula, fallback to old linked
             const discFormula = participantDisciplineFormulas[discipline]; // built-in var_formel
+            const formulaType = formula ? detectFormulaType(formula) : 'none'
             
             // Step 1: If we have jury results and linked formula, recalculate Endwert from fields
             let scoreForRanking = storedScore;
-            if (juryResults && juryResults.length > 0 && formula) {
+            if (juryResults && juryResults.length > 0 && formula && formulaType === 'letter') {
               const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
               const fields = Object.values(fieldsMap);
               
@@ -281,6 +293,8 @@ export function useResultsData(
                 }
                 // If calculation failed, scoreForRanking stays as storedScore
               }
+            } else if (formula && formulaType === 'variable') {
+              console.log(`ℹ️ [Results] Skip linked-formula recalculation for variable formula "${formula}" on ${participant.firstname} ${participant.lastname} - ${discipline}; using stored score ${storedScore}`);
             }
             
             // Step 2: Apply built-in formula (var_formel) for ranking

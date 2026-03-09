@@ -59,6 +59,7 @@ const Results = () => {
   const [genderFilter, setGenderFilter] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [showDisciplineScores, setShowDisciplineScores] = useState(true)
+  const [showJuryScores] = useState(true)
   const [showCertificateModal, setShowCertificateModal] = useState(false)
   const [selectedPaperFormat, setSelectedPaperFormat] = useState<PaperFormat>('A4')
   const [certificatesToPrint, setCertificatesToPrint] = useState<any[]>([])
@@ -269,7 +270,8 @@ const Results = () => {
             filteredCompetitionGroups={filteredCompetitionGroups}
             disciplines={disciplines}
             disciplineFormulas={disciplineFormulas}
-            showDisciplineScores={showDisciplineScores}
+              showDisciplineScores={showDisciplineScores}
+              showJuryScores={showJuryScores}
             formatScore={formatScore}
             getMedalColor={getMedalColor}
             getMedalEmoji={getMedalEmoji}

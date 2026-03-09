@@ -97,6 +97,7 @@ describe('ResultsTable formula propagation', () => {
         disciplines={[]}
         disciplineFormulas={{}}
         showDisciplineScores={true}
+        showJuryScores={true}
         formatScore={(score) => score.toFixed(2)}
         getMedalColor={() => 'bg-gray-100 text-gray-900'}
         getMedalEmoji={(rank) => String(rank)}
@@ -121,6 +122,7 @@ describe('ResultsTable formula propagation', () => {
           Stufenbarren: '(10 + A) - B',
         }}
         showDisciplineScores={true}
+        showJuryScores={true}
         formatScore={(score) => score.toFixed(2)}
         getMedalColor={() => 'bg-gray-100 text-gray-900'}
         getMedalEmoji={(rank) => String(rank)}
@@ -130,5 +132,52 @@ describe('ResultsTable formula propagation', () => {
     const formulas = juryDisplaySpy.mock.calls.map(call => call[0]?.formula)
     expect(formulas).toContain('1*x')
     expect(formulas).toContain('(10 + A) - B')
+  })
+
+  it('renders JuryResultsDisplay when jury results exist and showJuryScores is true', () => {
+    render(
+      <ResultsTable
+        isLoading={false}
+        selectedCompetition={'1'}
+        filteredRanking={[baseParticipant]}
+        filteredCompetitionGroups={[]}
+        disciplines={['Boden w', 'Stufenbarren']}
+        disciplineFormulas={{
+          'Boden w': '1*x',
+          Stufenbarren: '(10 + A) - B',
+        }}
+        showDisciplineScores={true}
+        showJuryScores={true}
+        formatScore={(score) => score.toFixed(2)}
+        getMedalColor={() => 'bg-gray-100 text-gray-900'}
+        getMedalEmoji={(rank) => String(rank)}
+      />
+    )
+
+    expect(juryDisplaySpy).toHaveBeenCalled()
+    expect(juryDisplaySpy.mock.calls.length).toBeGreaterThan(0)
+  })
+
+  it('does not render JuryResultsDisplay when showJuryScores is false', () => {
+    render(
+      <ResultsTable
+        isLoading={false}
+        selectedCompetition={'1'}
+        filteredRanking={[baseParticipant]}
+        filteredCompetitionGroups={[]}
+        disciplines={['Boden w', 'Stufenbarren']}
+        disciplineFormulas={{
+          'Boden w': '1*x',
+          Stufenbarren: '(10 + A) - B',
+        }}
+        showDisciplineScores={true}
+        showJuryScores={false}
+        formatScore={(score) => score.toFixed(2)}
+        getMedalColor={() => 'bg-gray-100 text-gray-900'}
+        getMedalEmoji={(rank) => String(rank)}
+      />
+    )
+
+    expect(juryDisplaySpy).not.toHaveBeenCalled()
   })
 })

@@ -7,7 +7,7 @@
  */
 
 import { FormulaDisplay } from '@/components/formula/FormulaDisplay'
-import { buildFieldSymbolsMap, calculateFormula, type FormulaField } from '@/utils/formulaUtils'
+import { buildFieldSymbolsMap, calculateFormula, detectFormulaType, extractFormulaSymbols, type FormulaField } from '@/utils/formulaUtils'
 import type { JuryResult } from '../Results.types'
 
 interface JuryResultsDisplayProps {
@@ -44,7 +44,23 @@ export const JuryResultsDisplay = ({
 
   // Build field symbols map using centralized utility
   const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
-  const fields: FormulaField[] = Object.values(fieldsMap)
+  let fields: FormulaField[] = Object.values(fieldsMap)
+
+  const formulaType = formula ? detectFormulaType(formula) : 'none'
+  if (formula && formulaType === 'variable') {
+    const variableSymbols = extractFormulaSymbols(formula).filter(symbol => /^[a-z]$/.test(symbol))
+    if (variableSymbols.length === 1) {
+      const variableSymbol = variableSymbols[0]
+      fields = fields.map(field => {
+        if (field.symbol !== variableSymbol) return field
+        if (field.value !== null) return field
+        return {
+          ...field,
+          value: finalScore
+        }
+      })
+    }
+  }
 
   console.log('📊 [JuryResultsDisplay] Fields mapped:', { fieldsMap, fields })
 
@@ -54,11 +70,12 @@ export const JuryResultsDisplay = ({
 
   console.log('🔍 [JuryResultsDisplay] Checking if should recalculate:', { 
     hasFormula: !!formula, 
+    formulaType,
     fieldsLength: fields.length,
-    willRecalculate: !!(formula && fields.length > 0)
+    willRecalculate: !!(formula && formulaType === 'letter' && fields.length > 0)
   })
 
-  if (formula && fields.length > 0) {
+  if (formula && formulaType === 'letter' && fields.length > 0) {
     // Build values map for calculation
     const valuesMap: Record<string, number> = {}
     fields.forEach(field => {

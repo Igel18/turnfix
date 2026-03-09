@@ -21,6 +21,7 @@ interface ResultsTableProps {
   disciplines: string[]
   disciplineFormulas: Record<string, string>
   showDisciplineScores: boolean
+    showJuryScores: boolean
   formatScore: (score: number) => string
   getMedalColor: (rank: number) => string
   getMedalEmoji: (rank: number) => string | number
@@ -34,6 +35,7 @@ export const ResultsTable = ({
   disciplines,
   disciplineFormulas,
   showDisciplineScores,
+    showJuryScores,
   formatScore,
   getMedalColor,
   getMedalEmoji
@@ -167,7 +169,7 @@ export const ResultsTable = ({
                         <div className="flex flex-col items-center">
                           {/* Jury Results Display or Simple Score */}
                           {participant.scores[discipline] ? (
-                            hasJuryResults ? (
+                            (hasJuryResults && showJuryScores) ? (
                               <JuryResultsDisplay 
                                 juryResults={juryResults}
                                 finalScore={participant.scores[discipline]}
@@ -332,7 +334,7 @@ export const ResultsTable = ({
                             <div className="flex flex-col items-center">
                               {/* Jury Results Display or Simple Score */}
                               {participant.scores[discipline] ? (
-                                hasJuryResults ? (
+                                (hasJuryResults && showJuryScores) ? (
                                   <JuryResultsDisplay 
                                     juryResults={juryResults}
                                     finalScore={participant.scores[discipline]}

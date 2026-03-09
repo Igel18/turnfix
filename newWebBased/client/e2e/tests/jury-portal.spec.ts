@@ -561,6 +561,117 @@ test.describe('Jury Portal: Cross-verification with Management UI', () => {
     // Both should return the same number of results
     expect((proxyData.results || []).length).toBe((mainData.results || []).length);
   });
+
+  test('6.4 Existing jury results are rendered with breakdown in Results page', async ({ page, request }) => {
+    test.setTimeout(60_000);
+
+    const disciplineId = state.disciplineIds[0];
+    const participantId = state.womenPids[0];
+    const participantFirstName = WOMEN_FIRST_NAMES[0];
+
+    const fieldsRes = await apiGet(request, '/discipline-fields');
+    expect(fieldsRes.status).toBe(200);
+
+    let disciplineFields = (fieldsRes.body || []).filter((f: any) => {
+      const fieldDisciplineId = f.disciplineId ?? f.int_disziplinenid;
+      return Number(fieldDisciplineId) === Number(disciplineId);
+    });
+
+    if (disciplineFields.length === 0) {
+      const createFieldRes = await apiPost(request, '/discipline-fields', {
+        disciplineId,
+        name: 'Wertung',
+        sortOrder: 1,
+        isFinalScore: false,
+        isStartingScore: false,
+        group: 1,
+        enabled: true,
+      });
+
+      expect(createFieldRes.status).toBeLessThan(300);
+
+      const refreshedFieldsRes = await apiGet(request, `/discipline-fields?disciplineId=${disciplineId}`);
+      expect(refreshedFieldsRes.status).toBe(200);
+
+      disciplineFields = (refreshedFieldsRes.body || []).filter((f: any) => {
+        const fieldDisciplineId = f.disciplineId ?? f.int_disziplinenid;
+        return Number(fieldDisciplineId) === Number(disciplineId);
+      });
+    }
+
+    expect(disciplineFields.length).toBeGreaterThan(0);
+
+    const inputField = disciplineFields.find((f: any) => {
+      const isFinal = f.isFinalScore ?? f.bol_endwert;
+      return !isFinal;
+    });
+
+    expect(inputField).toBeTruthy();
+
+    const disciplineFieldId = inputField.id ?? inputField.int_disziplinen_felderid;
+    expect(disciplineFieldId).toBeTruthy();
+
+    const saveJuryFieldRes = await apiPost(request, '/jury-results/save-field-score', {
+      participantId,
+      disciplineFieldId,
+      attempt: 1,
+      performance: 9.87,
+      type: 0,
+      eventId: state.eventId,
+      competitionId: state.comp1Id,
+    });
+
+    expect(saveJuryFieldRes.status).toBeLessThan(300);
+
+    const scoresRes = await apiGet(request, `/scores?competitionId=${state.comp1Id}&limit=1000`);
+    expect(scoresRes.status).toBe(200);
+
+    const participantDisciplineScore = (scoresRes.body.results || []).find(
+      (r: any) => Number(r.participantId) === Number(participantId) && Number(r.disciplineId) === Number(disciplineId)
+    );
+
+    expect(participantDisciplineScore).toBeTruthy();
+    expect(Array.isArray(participantDisciplineScore.juryResults)).toBe(true);
+    expect(participantDisciplineScore.juryResults.length).toBeGreaterThan(0);
+
+    await setEventContext(page, state.eventId, state.eventName);
+    await page.goto(`/results?eventId=${state.eventId}&squadName=RW`, { waitUntil: 'load' });
+
+    const participantRow = page.locator('tr', { hasText: participantFirstName }).first();
+    await expect(participantRow).toBeVisible({ timeout: 20_000 });
+
+    // Jury breakdown in compact mode includes field symbol labels, which are not present in simple score mode.
+    await expect(participantRow).toContainText(/\([A-Za-z]\)/, { timeout: 10_000 });
+    await expect(participantRow).toContainText(/9[\.,]87/, { timeout: 10_000 });
+  });
+
+  test('6.5 Results page shows simple score when no jury results exist for participant', async ({ page, request }) => {
+    test.setTimeout(60_000);
+
+    const participantId = state.womenPids[1];
+    const participantFirstName = WOMEN_FIRST_NAMES[1];
+    const disciplineId = state.disciplineIds[0];
+
+    const scoresRes = await apiGet(request, `/scores?competitionId=${state.comp1Id}&limit=1000`);
+    expect(scoresRes.status).toBe(200);
+
+    const participantDisciplineScore = (scoresRes.body.results || []).find(
+      (r: any) => Number(r.participantId) === Number(participantId) && Number(r.disciplineId) === Number(disciplineId)
+    );
+
+    expect(participantDisciplineScore).toBeTruthy();
+    expect(Array.isArray(participantDisciplineScore.juryResults)).toBe(true);
+    expect(participantDisciplineScore.juryResults.length).toBe(0);
+
+    await setEventContext(page, state.eventId, state.eventName);
+    await page.goto(`/results?eventId=${state.eventId}&squadName=RW`, { waitUntil: 'load' });
+
+    const participantRow = page.locator('tr', { hasText: participantFirstName }).first();
+    await expect(participantRow).toBeVisible({ timeout: 20_000 });
+
+    // No jury breakdown markers in this row when juryResults are missing.
+    await expect(participantRow).not.toContainText(/\([A-Za-z]\)/, { timeout: 10_000 });
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════

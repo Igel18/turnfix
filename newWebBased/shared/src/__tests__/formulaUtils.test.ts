@@ -519,6 +519,19 @@ describe('buildFieldSymbolsMap', () => {
     expect(map.x.fieldName).toBe('Wertung');
   });
 
+  it('does not fallback to unrelated fields when variable x value is missing', () => {
+    const map = buildFieldSymbolsMap([
+      { fieldName: 'Schwierigkeit', fieldShortName: 'Schwierigkeit', performance: null },
+      { fieldName: 'Wertung', fieldShortName: 'Wertung', performance: 0 },
+      { fieldName: 'Abzüge', fieldShortName: 'Abzüge', performance: 1 }
+    ], '1*x');
+
+    expect(Object.keys(map)).toEqual(['x']);
+    expect(map.x.value).toBeNull();
+    expect(map.x.fieldName).toBe('x');
+    expect(map.x.fieldShortName).toBe('x');
+  });
+
   it('adds placeholder for missing formula symbols', () => {
     const map = buildFieldSymbolsMap([
       { fieldName: 'Wertung', fieldShortName: 'x', performance: 5 }

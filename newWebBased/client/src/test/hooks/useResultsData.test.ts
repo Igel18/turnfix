@@ -351,4 +351,154 @@ describe('useResultsData', () => {
     expect(participant!.scores['Boden w']).toBeCloseTo(8, 2)
     expect(participant!.totalScore).toBeCloseTo(8, 2)
   })
+
+  it('maps API juryResults to participant.juryResults for selected competition results', async () => {
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 11,
+              firstname: 'Ida',
+              lastname: 'Von Preislinger',
+              club: 'TV Memmingen 1859',
+              startNumber: 1,
+              age: 5,
+              gender: 'weiblich',
+              startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+
+      if (url.startsWith('/scores?')) {
+        return {
+          results: [
+            {
+              participantId: 11,
+              competitionId: 1,
+              disciplineName: 'Boden w',
+              score: 10,
+              formula: '1*x',
+              juryResults: [
+                { id: 1, fieldName: 'Wertung', fieldShortName: 'x', performance: 10, isFinalScore: false, isStartingScore: false, attempt: 1, kp: 0 },
+                { id: 2, fieldName: 'Endwert', fieldShortName: 'E', performance: 10, isFinalScore: true, isStartingScore: false, attempt: 1, kp: 0 },
+              ],
+            },
+          ],
+        }
+      }
+
+      if (url === '/disciplines') {
+        return [{ id: 10, name: 'Boden w' }]
+      }
+
+      if (url === '/competitions/1/disciplines') {
+        return {
+          disciplines: [
+            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: ':/icons/boden.png' },
+          ],
+        }
+      }
+
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    const { result } = renderHook(() => useResultsData('1', null, '1'))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([
+        { id: 1, name: 'Comp 1', number: '0001' },
+      ])
+    })
+
+    expect(result.current.ranking).toHaveLength(1)
+
+    const participant = result.current.ranking[0]
+    const disciplineJuryResults = participant.juryResults?.['Boden w']
+
+    expect(disciplineJuryResults).toBeDefined()
+    expect(disciplineJuryResults).toHaveLength(2)
+    expect(disciplineJuryResults?.[0].fieldName).toBe('Wertung')
+    expect(disciplineJuryResults?.[0].performance).toBe(10)
+    expect(disciplineJuryResults?.[1].isFinalScore).toBe(true)
+  })
+
+  it('anonymized regression: keeps Boden w score 10.0 for variable formula 1*x with Endwert jury data', async () => {
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 21,
+              firstname: 'Athletin',
+              lastname: 'A',
+              club: 'Verein A',
+              startNumber: 3,
+              age: 6,
+              gender: 'weiblich',
+              startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+
+      if (url.startsWith('/scores?')) {
+        return {
+          results: [
+            {
+              participantId: 21,
+              competitionId: 1,
+              disciplineName: 'Boden w',
+              score: 10,
+              formula: null,
+              disciplineFormula: '1*x',
+              juryResults: [
+                { id: 1, fieldName: 'Schwierigkeit', fieldShortName: 'Schwierigkeit', performance: null, isFinalScore: false, isStartingScore: false, attempt: 1, kp: 0 },
+                { id: 2, fieldName: 'Wertung', fieldShortName: 'Wertung', performance: null, isFinalScore: false, isStartingScore: false, attempt: 1, kp: 0 },
+                { id: 3, fieldName: 'Abzüge', fieldShortName: 'Abzüge', performance: 1, isFinalScore: false, isStartingScore: false, attempt: 1, kp: 0 },
+                { id: 4, fieldName: 'Endwert', fieldShortName: 'Endwert', performance: 10, isFinalScore: true, isStartingScore: false, attempt: 1, kp: 0 },
+              ],
+            },
+          ],
+        }
+      }
+
+      if (url === '/disciplines') {
+        return [{ id: 10, name: 'Boden w' }]
+      }
+
+      if (url === '/competitions/1/disciplines') {
+        return {
+          disciplines: [
+            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: ':/icons/boden.png' },
+          ],
+        }
+      }
+
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    const { result } = renderHook(() => useResultsData('1', null, '1'))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([
+        { id: 1, name: 'Comp 1', number: '0001' },
+      ])
+    })
+
+    expect(result.current.ranking).toHaveLength(1)
+    const participant = result.current.ranking[0]
+
+    expect(participant.name).toBe('Athletin A')
+    expect(participant.scores['Boden w']).toBeCloseTo(10, 2)
+    expect(participant.totalScore).toBeCloseTo(10, 2)
+    expect(participant.juryResults?.['Boden w']?.length).toBe(4)
+  })
 })

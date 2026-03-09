@@ -341,6 +341,7 @@ export function buildFieldSymbolsMap(
 
   formulaSymbols.forEach((symbol) => {
     const normalizedSymbol = symbol.toLowerCase();
+    const isLowercaseVariable = symbol.length === 1 && /^[a-z]$/.test(symbol);
 
     // 1) Prefer explicit symbol mapping via short name or exact field name
     let matchedFieldIndex = fieldScores.findIndex((jr, index) => {
@@ -351,7 +352,10 @@ export function buildFieldSymbolsMap(
     });
 
     // 2) Fallback to next available field by order
-    if (matchedFieldIndex === -1) {
+    // IMPORTANT: For lowercase variable formulas (x, y, z), do NOT fallback to
+    // unrelated fields. Keep placeholder instead so missing variable input is
+    // shown consistently instead of randomly mapping to e.g. "Schwierigkeit".
+    if (matchedFieldIndex === -1 && !isLowercaseVariable) {
       matchedFieldIndex = fieldScores.findIndex((_, index) => !usedFieldIndexes.has(index));
     }
 
