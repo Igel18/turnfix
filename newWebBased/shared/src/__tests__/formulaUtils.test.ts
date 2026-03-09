@@ -497,14 +497,36 @@ describe('buildFieldSymbolsMap', () => {
     expect(map.B.value).toBe(4.4);
   });
 
-  it('falls back to generated symbol if formula has too few variables', () => {
+  it('does not include extra non-formula symbols when formula has too few variables', () => {
     const map = buildFieldSymbolsMap([
       { fieldName: 'X', performance: 1 },
       { fieldName: 'Y', performance: 2 }
     ], 'A');
 
+    expect(Object.keys(map)).toEqual(['A']);
+    expect(map.A.value).toBe(1);
+  });
+
+  it('prefers explicit fieldShortName match for lowercase variable formulas', () => {
+    const map = buildFieldSymbolsMap([
+      { fieldName: 'Schwierigkeit', fieldShortName: 'A', performance: 2 },
+      { fieldName: 'Wertung', fieldShortName: 'x', performance: 5 },
+      { fieldName: 'Abzüge', fieldShortName: 'C', performance: 1 }
+    ], '1*x');
+
+    expect(Object.keys(map)).toEqual(['x']);
+    expect(map.x.value).toBe(5);
+    expect(map.x.fieldName).toBe('Wertung');
+  });
+
+  it('adds placeholder for missing formula symbols', () => {
+    const map = buildFieldSymbolsMap([
+      { fieldName: 'Wertung', fieldShortName: 'x', performance: 5 }
+    ], '(10 + A) - B');
+
     expect(Object.keys(map)).toEqual(['A', 'B']);
-    expect(map.B.value).toBe(2);
+    expect(map.A.value).toBe(5);
+    expect(map.B.value).toBeNull();
   });
 });
 

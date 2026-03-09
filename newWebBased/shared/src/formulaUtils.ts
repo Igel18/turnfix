@@ -317,19 +317,67 @@ export function buildFieldSymbolsMap(
 
   const fieldScores = sortedJuryResults.filter(jr => !jr.isStartingScore && !jr.isFinalScore);
   const symbolsMap: Record<string, FormulaField> = {};
+  const formulaSymbols = formula ? extractFormulaSymbols(formula) : [];
 
-  fieldScores.forEach((jr, index) => {
-    const symbol = formula ?
-      extractFormulaSymbols(formula)[index] || getFormulaSymbol(index) :
-      getFormulaSymbol(index);
+  if (formulaSymbols.length === 0) {
+    fieldScores.forEach((jr, index) => {
+      const symbol = getFormulaSymbol(index);
 
+      symbolsMap[symbol] = {
+        symbol,
+        value: jr.performance,
+        fieldName: jr.fieldName,
+        fieldShortName: jr.fieldShortName,
+        isSubtraction: jr.fieldName ? isSubtractionField(jr.fieldName) : false,
+        sortOrder: jr.sortOrder
+      };
+    });
+
+    return symbolsMap;
+  }
+
+  const usedFieldIndexes = new Set<number>();
+  const normalizedFieldValue = (value?: string) => (value || '').trim().toLowerCase();
+
+  formulaSymbols.forEach((symbol) => {
+    const normalizedSymbol = symbol.toLowerCase();
+
+    // 1) Prefer explicit symbol mapping via short name or exact field name
+    let matchedFieldIndex = fieldScores.findIndex((jr, index) => {
+      if (usedFieldIndexes.has(index)) return false;
+      const shortNameMatches = normalizedFieldValue(jr.fieldShortName) === normalizedSymbol;
+      const fieldNameMatches = normalizedFieldValue(jr.fieldName) === normalizedSymbol;
+      return shortNameMatches || fieldNameMatches;
+    });
+
+    // 2) Fallback to next available field by order
+    if (matchedFieldIndex === -1) {
+      matchedFieldIndex = fieldScores.findIndex((_, index) => !usedFieldIndexes.has(index));
+    }
+
+    if (matchedFieldIndex !== -1) {
+      usedFieldIndexes.add(matchedFieldIndex);
+      const jr = fieldScores[matchedFieldIndex];
+
+      symbolsMap[symbol] = {
+        symbol,
+        value: jr.performance,
+        fieldName: jr.fieldName,
+        fieldShortName: jr.fieldShortName,
+        isSubtraction: jr.fieldName ? isSubtractionField(jr.fieldName) : false,
+        sortOrder: jr.sortOrder
+      };
+      return;
+    }
+
+    // 3) If no field exists for this symbol, keep placeholder to show expected formula input
     symbolsMap[symbol] = {
       symbol,
-      value: jr.performance,
-      fieldName: jr.fieldName,
-      fieldShortName: jr.fieldShortName,
-      isSubtraction: jr.fieldName ? isSubtractionField(jr.fieldName) : false,
-      sortOrder: jr.sortOrder
+      value: null,
+      fieldName: symbol,
+      fieldShortName: symbol,
+      isSubtraction: false,
+      sortOrder: undefined
     };
   });
 

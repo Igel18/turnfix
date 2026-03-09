@@ -2568,9 +2568,10 @@
     },
     "table": {
       "rank": "Rank",
-      "startNumber": "Start #",
+      "startNumber": "Start Number",
       "name": "Name",
       "club": "Club",
+      "age": "Age",
       "yearOfBirth": "YOB",
       "device": "Device",
       "total": "Total",

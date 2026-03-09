@@ -93,7 +93,7 @@ export const JuryResultsDisplay = ({
 
   return (
     <FormulaDisplay
-      formula={formula}
+      formula={undefined}
       fields={fields}
       finalScore={actualFinalScore}
       mode="compact"

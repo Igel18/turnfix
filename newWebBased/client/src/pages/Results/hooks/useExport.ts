@@ -11,6 +11,7 @@
  */
 
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useEvent } from '@/contexts/EventContext'
@@ -20,11 +21,14 @@ import {
   addSectionTitle,
   drawRankingBadge
 } from '@/utils/pdfUtils'
+import { getDisciplineShortName } from '@/utils/disciplineIcons'
+import { preloadIconsForPDF, addIconToPDF, type IconData } from '@/utils/pdfIcons'
+import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
 import { 
   buildFieldSymbolsMap, 
   formatScore as formatScoreUtil 
 } from '@/utils/formulaUtils'
-import type { Participant, CompetitionGroup } from '../Results.types'
+import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types'
 
 interface UseExportProps {
   eventName: string
@@ -32,6 +36,8 @@ interface UseExportProps {
   ranking: Participant[]
   competitionGroups: CompetitionGroup[]
   disciplines: string[]
+  disciplineFormulas: Record<string, string>
+  selectedCompetitionDisciplineInfo: DisciplineInfo[]
   formatScore: (score: number) => string
 }
 
@@ -41,14 +47,54 @@ export const useExport = ({
   ranking,
   competitionGroups,
   disciplines,
+  disciplineFormulas,
+  selectedCompetitionDisciplineInfo,
   formatScore
 }: UseExportProps) => {
   const { selectedEvent } = useEvent()
+  const { t } = useTranslation()
+  const labels = getUnifiedResultsHeaderLabels(t)
 
-  const getDisciplineFormulaMap = (participants: Participant[], disciplineNames: string[]) => {
+  interface DisciplineHeaderMeta {
+    shortName: string
+    formula?: string
+    iconPath?: string
+  }
+
+  const buildDisciplineHeaderMeta = (
+    disciplineNames: string[],
+    participants: Participant[],
+    preferredFormulas: Record<string, string>,
+    disciplineInfo: DisciplineInfo[]
+  ): Record<string, DisciplineHeaderMeta> => {
+    const byName = new Map(disciplineInfo.map(info => [info.name, info]))
+    const formulaMap = getDisciplineFormulaMap(participants, disciplineNames, preferredFormulas)
+
+    return disciplineNames.reduce((acc: Record<string, DisciplineHeaderMeta>, discipline) => {
+      const info = byName.get(discipline)
+      acc[discipline] = {
+        shortName: getDisciplineShortName(discipline, info?.fullData || info),
+        formula: formulaMap[discipline],
+        iconPath: info?.iconPath || info?.fullData?.var_icon
+      }
+      return acc
+    }, {})
+  }
+
+  const getDisciplineFormulaMap = (
+    participants: Participant[],
+    disciplineNames: string[],
+    preferredFormulas: Record<string, string> = {}
+  ) => {
     const formulaMap: Record<string, string> = {}
 
     disciplineNames.forEach((discipline) => {
+      const preferred = preferredFormulas[discipline]
+      if (preferred && preferred.trim()) {
+        formulaMap[discipline] = preferred.trim()
+        return
+      }
+
       const formula = participants
         .map(participant => participant.formulas?.[discipline])
         .find(value => value && value.trim())
@@ -67,7 +113,15 @@ export const useExport = ({
   const exportResultsCSV = useCallback(() => {
     if (ranking.length === 0) return
 
-    const headers = ['Platz', 'Start #', 'Name', 'Verein', 'Jg', ...disciplines, 'Gesamt']
+    const headers = [
+      labels.rank,
+      labels.startNumber,
+      labels.name,
+      labels.club,
+      labels.age,
+      ...disciplines,
+      labels.total
+    ]
     const csvData = ranking.map(participant => [
       participant.rank,
       participant.startNumber || '',
@@ -89,12 +143,12 @@ export const useExport = ({
     a.download = `results_${eventName}_${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     window.URL.revokeObjectURL(url)
-  }, [ranking, disciplines, eventName, formatScore])
+  }, [ranking, disciplines, eventName, formatScore, t])
 
   /**
    * Export single competition results to PDF
    */
-  const exportSingleCompetitionPDF = useCallback((
+  const exportSingleCompetitionPDF = useCallback(async (
     participants: Participant[],
     competitionName: string
   ) => {
@@ -103,16 +157,28 @@ export const useExport = ({
     const pageWidth = pageFormat.width
     const pageHeight = pageFormat.height
 
-    const disciplineFormulaMap = getDisciplineFormulaMap(participants, disciplines)
+    const headerMeta = buildDisciplineHeaderMeta(
+      disciplines,
+      participants,
+      disciplineFormulas,
+      selectedCompetitionDisciplineInfo
+    )
+    const iconCache = await preloadIconsForPDF(
+      disciplines.map(discipline => ({
+        name: discipline,
+        iconPath: headerMeta[discipline]?.iconPath
+      }))
+    )
 
     // Table headers
     const headers = [
-      'Platz', 'Start #', 'Name', 'Verein', 'Jg',
-      ...disciplines.map(discipline => {
-        const formula = disciplineFormulaMap[discipline]
-        return formula ? `${discipline}\n${formula}` : discipline
-      }),
-      'Gesamt'
+      labels.rank,
+      labels.startNumber,
+      labels.name,
+      labels.club,
+      labels.age,
+      ...disciplines.map(discipline => headerMeta[discipline]?.shortName || discipline),
+      labels.total
     ]
 
     // Table data with jury results support
@@ -168,6 +234,10 @@ export const useExport = ({
       head: [headers],
       body: tableData,
       startY: 60,
+      headStyles: {
+        ...(unifiedStyles.headStyles || {}),
+        minCellHeight: 9
+      },
       styles: {
         ...unifiedStyles.styles,
         fontSize: 7,
@@ -202,6 +272,10 @@ export const useExport = ({
         return styles
       })(),
       didParseCell: function (data: any) {
+        if (data.section === 'head' && data.column.index >= 5 && data.column.index < headers.length - 1) {
+          data.cell.text = ['']
+        }
+
         // Highlight medal positions
         if (data.section === 'body' && data.column.index === 0) {
           const rank = parseInt(data.cell.text[0])
@@ -229,6 +303,29 @@ export const useExport = ({
         }
       },
       didDrawCell: function (data: any) {
+        if (data.section === 'head' && data.column.index >= 5 && data.column.index < headers.length - 1) {
+          const discipline = disciplines[data.column.index - 5]
+          const meta = headerMeta[discipline]
+          if (meta) {
+            const cell = data.cell
+            const icon: IconData | undefined = iconCache.get(discipline)
+
+            if (icon) {
+              addIconToPDF(doc, icon, cell.x + 1.5, cell.y + 1.2, 3.2)
+            }
+
+            doc.setFont('helvetica', 'bold')
+            doc.setFontSize(8)
+            doc.text(meta.shortName, cell.x + cell.width / 2, cell.y + 4.2, { align: 'center' })
+
+            if (meta.formula) {
+              doc.setFont('helvetica', 'normal')
+              doc.setFontSize(6)
+              doc.text(meta.formula, cell.x + cell.width / 2, cell.y + 7.5, { align: 'center' })
+            }
+          }
+        }
+
         // Draw ranking badges for top 3 positions
         if (data.section === 'body' && data.column.index === 0) {
           const rank = parseInt(data.cell.text[0])
@@ -252,12 +349,12 @@ export const useExport = ({
     })
 
     doc.save(`results_${competitionName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
-  }, [disciplines, formatScore, selectedEvent])
+  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, t])
 
   /**
    * Export all competitions to PDF
    */
-  const exportAllCompetitionsPDF = useCallback(() => {
+  const exportAllCompetitionsPDF = useCallback(async () => {
     if (competitionGroups.length === 0) return
 
     const doc = new jsPDF('landscape')
@@ -267,7 +364,8 @@ export const useExport = ({
 
     let currentY = 60
 
-    competitionGroups.forEach((group, groupIndex) => {
+    for (let groupIndex = 0; groupIndex < competitionGroups.length; groupIndex++) {
+      const group = competitionGroups[groupIndex]
       // Add page break if needed
       if (groupIndex > 0 && currentY > pageHeight - 100) {
         doc.addPage()
@@ -279,15 +377,35 @@ export const useExport = ({
       currentY += 15
 
       // Table headers
-      const disciplineFormulaMap = getDisciplineFormulaMap(group.participants, group.disciplines)
+      const groupHeaderFormulas = group.disciplineInfo.reduce((acc: Record<string, string>, disciplineInfo) => {
+        const formula = disciplineInfo.fullData?.var_formel || disciplineInfo.fullData?.formula
+        if (formula && String(formula).trim()) {
+          acc[disciplineInfo.name] = String(formula).trim()
+        }
+        return acc
+      }, {})
+
+      const headerMeta = buildDisciplineHeaderMeta(
+        group.disciplines,
+        group.participants,
+        groupHeaderFormulas,
+        group.disciplineInfo
+      )
+      const iconCache = await preloadIconsForPDF(
+        group.disciplines.map(discipline => ({
+          name: discipline,
+          iconPath: headerMeta[discipline]?.iconPath
+        }))
+      )
 
       const headers = [
-        'Platz', 'Start #', 'Name', 'Verein', 'Jg',
-        ...group.disciplines.map(discipline => {
-          const formula = disciplineFormulaMap[discipline]
-          return formula ? `${discipline}\n${formula}` : discipline
-        }),
-        'Gesamt'
+        labels.rank,
+        labels.startNumber,
+        labels.name,
+        labels.club,
+        labels.age,
+        ...group.disciplines.map(discipline => headerMeta[discipline]?.shortName || discipline),
+        labels.total
       ]
 
       // Table data with jury results support
@@ -344,6 +462,10 @@ export const useExport = ({
         body: tableData,
         startY: currentY,
         pageBreak: 'auto',
+        headStyles: {
+          ...(unifiedStyles.headStyles || {}),
+          minCellHeight: 9
+        },
         styles: {
           ...unifiedStyles.styles,
           fontSize: 7,
@@ -378,6 +500,10 @@ export const useExport = ({
           return styles
         })(),
         didParseCell: function (data: any) {
+          if (data.section === 'head' && data.column.index >= 5 && data.column.index < headers.length - 1) {
+            data.cell.text = ['']
+          }
+
           if (data.section === 'body' && data.column.index === 0) {
             const rank = parseInt(data.cell.text[0])
             if (rank <= 3) {
@@ -403,6 +529,29 @@ export const useExport = ({
           }
         },
         didDrawCell: function (data: any) {
+          if (data.section === 'head' && data.column.index >= 5 && data.column.index < headers.length - 1) {
+            const discipline = group.disciplines[data.column.index - 5]
+            const meta = headerMeta[discipline]
+            if (meta) {
+              const cell = data.cell
+              const icon: IconData | undefined = iconCache.get(discipline)
+
+              if (icon) {
+                addIconToPDF(doc, icon, cell.x + 1.5, cell.y + 1.2, 3.2)
+              }
+
+              doc.setFont('helvetica', 'bold')
+              doc.setFontSize(8)
+              doc.text(meta.shortName, cell.x + cell.width / 2, cell.y + 4.2, { align: 'center' })
+
+              if (meta.formula) {
+                doc.setFont('helvetica', 'normal')
+                doc.setFontSize(6)
+                doc.text(meta.formula, cell.x + cell.width / 2, cell.y + 7.5, { align: 'center' })
+              }
+            }
+          }
+
           if (data.section === 'body' && data.column.index === 0) {
             const rank = parseInt(data.cell.text[0])
             if (rank <= 3) {
@@ -426,10 +575,10 @@ export const useExport = ({
       })
 
       currentY += 10
-    })
+    }
 
     doc.save(`results_all_competitions_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
-  }, [competitionGroups, eventName, formatScore, selectedEvent])
+  }, [competitionGroups, eventName, formatScore, selectedEvent, t])
 
   /**
    * Main export function that chooses between single or all competitions
@@ -439,10 +588,10 @@ export const useExport = ({
       // Single competition export
       if (ranking.length === 0) return
       const competitionName = competitionGroups.find(g => g.competitionId.toString() === selectedCompetition)?.competitionName || `Competition ${selectedCompetition}`
-      exportSingleCompetitionPDF(ranking, competitionName)
+      void exportSingleCompetitionPDF(ranking, competitionName)
     } else {
       // All competitions export
-      exportAllCompetitionsPDF()
+      void exportAllCompetitionsPDF()
     }
   }, [selectedCompetition, ranking, competitionGroups, exportSingleCompetitionPDF, exportAllCompetitionsPDF])
 

@@ -2602,9 +2602,10 @@
     },
     "table": {
       "rank": "Platz",
-      "startNumber": "Start #",
+      "startNumber": "Startnummer",
       "name": "Name",
       "club": "Verein",
+      "age": "Alter",
       "yearOfBirth": "Jg",
       "device": "Gerät",
       "total": "Gesamt",

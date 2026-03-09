@@ -10,6 +10,7 @@
 import { useTranslation } from 'react-i18next'
 import { TrophyIcon } from '@heroicons/react/24/outline'
 import { JuryResultsDisplay } from './JuryResultsDisplay'
+import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
 import type { Participant, CompetitionGroup } from '../Results.types'
 
 interface ResultsTableProps {
@@ -18,6 +19,7 @@ interface ResultsTableProps {
   filteredRanking: Participant[]
   filteredCompetitionGroups: CompetitionGroup[]
   disciplines: string[]
+  disciplineFormulas: Record<string, string>
   showDisciplineScores: boolean
   formatScore: (score: number) => string
   getMedalColor: (rank: number) => string
@@ -30,14 +32,24 @@ export const ResultsTable = ({
   filteredRanking,
   filteredCompetitionGroups,
   disciplines,
+  disciplineFormulas,
   showDisciplineScores,
   formatScore,
   getMedalColor,
   getMedalEmoji
 }: ResultsTableProps) => {
   const { t } = useTranslation()
+  const labels = getUnifiedResultsHeaderLabels(t)
 
-  const getDisciplineFormula = (participants: Participant[], discipline: string): string | null => {
+  const getDisciplineFormula = (
+    participants: Participant[],
+    discipline: string,
+    preferredFormula?: string | null
+  ): string | null => {
+    if (preferredFormula && preferredFormula.trim()) {
+      return preferredFormula.trim()
+    }
+
     for (const participant of participants) {
       const formula = participant.formulas?.[discipline]
       if (formula && formula.trim()) {
@@ -78,37 +90,37 @@ export const ResultsTable = ({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('results.table.rank')}
+                  {labels.rank}
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('results.table.startNumber')}
+                  {labels.startNumber}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('results.table.name')}
+                  {labels.name}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('results.table.club')}
+                  {labels.club}
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('results.table.yearOfBirth')}
+                  {labels.age}
                 </th>
                 {showDisciplineScores && disciplines.map(discipline => (
                   <th key={discipline} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
                     <div className="flex flex-col">
                       <span className="font-semibold">{discipline}</span>
-                      {getDisciplineFormula(filteredRanking, discipline) && (
+                      {getDisciplineFormula(filteredRanking, discipline, disciplineFormulas[discipline]) && (
                         <span className="text-[10px] text-gray-500 font-normal normal-case mt-0.5">
-                          {getDisciplineFormula(filteredRanking, discipline)}
+                          {getDisciplineFormula(filteredRanking, discipline, disciplineFormulas[discipline])}
                         </span>
                       )}
-                      <span className="text-[10px] text-gray-400 font-normal">{t('results.table.device')}</span>
+                      <span className="text-[10px] text-gray-400 font-normal">{labels.device}</span>
                     </div>
                   </th>
                 ))}
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
                   <div className="flex flex-col">
-                    <span className="font-bold text-blue-700">{t('results.table.total')}</span>
-                    <span className="text-[10px] text-blue-500 font-normal">{t('results.table.totalScore')}</span>
+                    <span className="font-bold text-blue-700">{labels.total}</span>
+                    <span className="text-[10px] text-blue-500 font-normal">{labels.totalScore}</span>
                   </div>
                 </th>
               </tr>
@@ -144,6 +156,11 @@ export const ResultsTable = ({
                   {showDisciplineScores && disciplines.map(discipline => {
                     const juryResults = participant.juryResults?.[discipline] || []
                     const hasJuryResults = juryResults.length > 0
+                    const disciplineFormula = getDisciplineFormula(
+                      filteredRanking,
+                      discipline,
+                      disciplineFormulas[discipline]
+                    )
                     
                     return (
                       <td key={discipline} className="px-3 py-3 text-center border-l border-gray-100 bg-gray-50">
@@ -154,7 +171,7 @@ export const ResultsTable = ({
                               <JuryResultsDisplay 
                                 juryResults={juryResults}
                                 finalScore={participant.scores[discipline]}
-                                formula={participant.formulas?.[discipline]}
+                                formula={disciplineFormula || undefined}
                               />
                             ) : (
                               <div className="flex flex-col items-center py-2">
@@ -218,19 +235,19 @@ export const ResultsTable = ({
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('results.table.rank')}
+                      {labels.rank}
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('results.table.startNumber')}
+                      {labels.startNumber}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('results.table.name')}
+                      {labels.name}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('results.table.club')}
+                      {labels.club}
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('results.table.yearOfBirth')}
+                      {labels.age}
                     </th>
                     {showDisciplineScores && group.disciplineInfo.map(disciplineInfo => (
                       <th key={disciplineInfo.name} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
@@ -247,19 +264,27 @@ export const ResultsTable = ({
                             />
                             <span className="font-semibold">{disciplineInfo.name}</span>
                           </div>
-                          {getDisciplineFormula(group.participants, disciplineInfo.name) && (
+                          {getDisciplineFormula(
+                            group.participants,
+                            disciplineInfo.name,
+                            disciplineInfo.fullData?.var_formel || disciplineInfo.fullData?.formula
+                          ) && (
                             <span className="text-[10px] text-gray-500 font-normal normal-case mb-1">
-                              {getDisciplineFormula(group.participants, disciplineInfo.name)}
+                              {getDisciplineFormula(
+                                group.participants,
+                                disciplineInfo.name,
+                                disciplineInfo.fullData?.var_formel || disciplineInfo.fullData?.formula
+                              )}
                             </span>
                           )}
-                          <span className="text-[10px] text-gray-400 font-normal">{t('results.table.device')}</span>
+                          <span className="text-[10px] text-gray-400 font-normal">{labels.device}</span>
                         </div>
                       </th>
                     ))}
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-l-2 border-blue-200">
                       <div className="flex flex-col">
-                        <span className="font-bold text-blue-700">{t('results.table.total')}</span>
-                        <span className="text-[10px] text-blue-500 font-normal">{t('results.table.totalScore')}</span>
+                        <span className="font-bold text-blue-700">{labels.total}</span>
+                        <span className="text-[10px] text-blue-500 font-normal">{labels.totalScore}</span>
                       </div>
                     </th>
                   </tr>
@@ -295,6 +320,12 @@ export const ResultsTable = ({
                       {showDisciplineScores && group.disciplines.map(discipline => {
                         const juryResults = participant.juryResults?.[discipline] || []
                         const hasJuryResults = juryResults.length > 0
+                        const disciplineInfo = group.disciplineInfo.find(info => info.name === discipline)
+                        const disciplineFormula = getDisciplineFormula(
+                          group.participants,
+                          discipline,
+                          disciplineInfo?.fullData?.var_formel || disciplineInfo?.fullData?.formula
+                        )
                         
                         return (
                           <td key={discipline} className="px-3 py-3 text-center border-l border-gray-100 bg-gray-50">
@@ -305,7 +336,7 @@ export const ResultsTable = ({
                                   <JuryResultsDisplay 
                                     juryResults={juryResults}
                                     finalScore={participant.scores[discipline]}
-                                    formula={participant.formulas?.[discipline]}
+                                    formula={disciplineFormula || undefined}
                                   />
                                 ) : (
                                   <div className="flex flex-col items-center py-2">

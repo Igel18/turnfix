@@ -35,6 +35,7 @@ import {
 
 // Utilities
 import { setupPDFWithHeaderFooter, addPDFHeaderFooter, getUnifiedTableStyles, createPDFDocument } from '@/utils/pdfUtils';
+import { getUnifiedParticipantHeaderLabels } from '@/utils/headerLabels';
 import autoTable from 'jspdf-autotable';
 
 /**
@@ -42,6 +43,7 @@ import autoTable from 'jspdf-autotable';
  */
 export default function EventParticipants() {
   const { t } = useTranslation();
+  const labels = getUnifiedParticipantHeaderLabels(t);
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
 
@@ -186,13 +188,13 @@ export default function EventParticipants() {
     autoTable(doc, {
       head: [
         [
-          t('eventParticipants.table.name'),
-          t('eventParticipants.table.startNumber'),
-          t('eventParticipants.table.club'),
-          t('eventParticipants.table.age'),
-          t('eventParticipants.table.gender'),
-          t('eventParticipants.table.squad'),
-          t('eventParticipants.table.status'),
+          labels.name,
+          labels.startNumber,
+          labels.club,
+          labels.age,
+          labels.gender,
+          labels.squad,
+          labels.status,
         ],
       ],
       body: tableData,
@@ -217,13 +219,13 @@ export default function EventParticipants() {
 
     // CSV Header
     const headers = [
-      t('eventParticipants.table.name'),
-      t('eventParticipants.table.startNumber'),
-      t('eventParticipants.table.club'),
-      t('eventParticipants.table.age'),
-      t('eventParticipants.table.gender'),
-      t('eventParticipants.table.squad'),
-      t('eventParticipants.table.status'),
+      labels.name,
+      labels.startNumber,
+      labels.club,
+      labels.age,
+      labels.gender,
+      labels.squad,
+      labels.status,
     ].join(',');
 
     // CSV Rows

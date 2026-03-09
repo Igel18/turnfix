@@ -15,6 +15,8 @@ interface UseResultsDataReturn {
   ranking: Participant[];
   competitionGroups: CompetitionGroup[];
   disciplines: string[];
+  disciplineFormulas: Record<string, string>;
+  selectedCompetitionDisciplineInfo: DisciplineInfo[];
   eventName: string;
   competitions: any[];
   isLoading: boolean;
@@ -35,6 +37,8 @@ export function useResultsData(
   const [ranking, setRanking] = useState<Participant[]>([]);
   const [competitionGroups, setCompetitionGroups] = useState<CompetitionGroup[]>([]);
   const [disciplines, setDisciplines] = useState<string[]>([]);
+  const [disciplineFormulas, setDisciplineFormulas] = useState<Record<string, string>>({});
+  const [selectedCompetitionDisciplineInfo, setSelectedCompetitionDisciplineInfo] = useState<DisciplineInfo[]>([]);
   const [eventName, setEventName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [competitions, setCompetitions] = useState<any[]>([]);
@@ -95,6 +99,8 @@ export function useResultsData(
       });
       
       let allowedDisciplines: Set<string> | null = null;
+      let selectedCompetitionFormulaMap: Record<string, string> = {};
+      let selectedCompetitionDisciplineInfoData: DisciplineInfo[] = [];
       
       if (selectedCompetition) {
         try {
@@ -103,22 +109,40 @@ export function useResultsData(
             allowedDisciplines = new Set(
               competitionDisciplinesData.disciplines.map((d: any) => d.var_name || d.name)
             );
+            selectedCompetitionDisciplineInfoData = competitionDisciplinesData.disciplines.map((d: any) => ({
+              name: d.var_name || d.name,
+              icon: getDisciplineIcon(d.var_name || d.name, d.var_icon),
+              iconPath: d.var_icon,
+              var_kurz1: d.var_kurz1,
+              fullData: d
+            }));
+            selectedCompetitionFormulaMap = competitionDisciplinesData.disciplines.reduce((acc: Record<string, string>, d: any) => {
+              const disciplineName = d.var_name || d.name;
+              const formula = d.var_formel || d.formula;
+              if (disciplineName && formula && String(formula).trim()) {
+                acc[disciplineName] = String(formula).trim();
+              }
+              return acc;
+            }, {});
           }
         } catch (error) {
           console.error('Error fetching competition disciplines:', error);
         }
       }
 
-      const scoresMap = new Map<number, { [discipline: string]: number }>();
-      const juryResultsMap = new Map<number, { [discipline: string]: any[] }>();
-      const formulasMap = new Map<number, { [discipline: string]: string }>();
-      const disciplineFormulasMap = new Map<number, { [discipline: string]: string }>();
+      const getParticipantCompetitionKey = (participantId: number, competitionId: number) => `${participantId}:${competitionId}`;
+
+      const scoresMap = new Map<string, { [discipline: string]: number }>();
+      const juryResultsMap = new Map<string, { [discipline: string]: any[] }>();
+      const formulasMap = new Map<string, { [discipline: string]: string }>();
+      const disciplineFormulasMap = new Map<string, { [discipline: string]: string }>();
       const disciplineSet = new Set<string>();
       const participantIds = new Set(participants.map((p: any) => p.id));
       const filteredScores = scores.filter((score: any) => participantIds.has(score.participantId));
 
       filteredScores.forEach((score: any) => {
         const participantId = score.participantId;
+        const competitionId = Number(score.competitionId || score.competitionid || 0);
         const discipline = score.discipline?.name || score.disciplineName;
         const scoreValue = score.score || 0;
         
@@ -131,39 +155,41 @@ export function useResultsData(
           fullScore: score 
         });
         
-        if (!participantId || !discipline || scoreValue === null) return;
+        if (!participantId || !competitionId || !discipline || scoreValue === null) return;
         if (allowedDisciplines && !allowedDisciplines.has(discipline)) return;
+
+        const participantCompetitionKey = getParticipantCompetitionKey(participantId, competitionId);
         
         disciplineSet.add(discipline);
-        if (!scoresMap.has(participantId)) {
-          scoresMap.set(participantId, {});
+        if (!scoresMap.has(participantCompetitionKey)) {
+          scoresMap.set(participantCompetitionKey, {});
         }
-        scoresMap.get(participantId)![discipline] = scoreValue;
+        scoresMap.get(participantCompetitionKey)![discipline] = scoreValue;
         
         // Store jury results if available
         if (score.juryResults && score.juryResults.length > 0) {
           console.log('✅ [Results] Storing jury results for participant', participantId, 'discipline', discipline, ':', score.juryResults);
-          if (!juryResultsMap.has(participantId)) {
-            juryResultsMap.set(participantId, {});
+          if (!juryResultsMap.has(participantCompetitionKey)) {
+            juryResultsMap.set(participantCompetitionKey, {});
           }
-          juryResultsMap.get(participantId)![discipline] = score.juryResults;
+          juryResultsMap.get(participantCompetitionKey)![discipline] = score.juryResults;
         } else {
           console.log('⚠️ [Results] No jury results for participant', participantId, 'discipline', discipline);
         }
         
         // Store formula and startValue if available
         if (score.formula) {
-          if (!formulasMap.has(participantId)) {
-            formulasMap.set(participantId, {});
+          if (!formulasMap.has(participantCompetitionKey)) {
+            formulasMap.set(participantCompetitionKey, {});
           }
-          formulasMap.get(participantId)![discipline] = score.formula;
+          formulasMap.get(participantCompetitionKey)![discipline] = score.formula;
         }
         // Store built-in formula (var_formel) separately for ranking-time application
         if (score.disciplineFormula) {
-          if (!disciplineFormulasMap.has(participantId)) {
-            disciplineFormulasMap.set(participantId, {});
+          if (!disciplineFormulasMap.has(participantCompetitionKey)) {
+            disciplineFormulasMap.set(participantCompetitionKey, {});
           }
-          disciplineFormulasMap.get(participantId)![discipline] = score.disciplineFormula;
+          disciplineFormulasMap.get(participantCompetitionKey)![discipline] = score.disciplineFormula;
         }
       });
 
@@ -171,13 +197,12 @@ export function useResultsData(
       console.log('📊 [Results] Final jury results map:', Array.from(juryResultsMap.entries()));
       console.log('📊 [Results] Disciplines found:', Array.from(disciplineSet));
 
-      const participantsList: Participant[] = participants
-        .filter((participant: any) => !participant.startet_nicht)
-        .map((participant: any) => {
-          const participantScores = scoresMap.get(participant.id) || {};
-          const participantJuryResults = juryResultsMap.get(participant.id) || {};
-          const participantFormulas = formulasMap.get(participant.id) || {};
-          const participantDisciplineFormulas = disciplineFormulasMap.get(participant.id) || {};
+      const buildParticipantCompetitionEntry = (participant: any, competitionId: number): Participant => {
+          const participantCompetitionKey = getParticipantCompetitionKey(participant.id, competitionId);
+          const participantScores = scoresMap.get(participantCompetitionKey) || {};
+          const participantJuryResults = juryResultsMap.get(participantCompetitionKey) || {};
+          const participantFormulas = formulasMap.get(participantCompetitionKey) || {};
+          const participantDisciplineFormulas = disciplineFormulasMap.get(participantCompetitionKey) || {};
           
           // Two-step score calculation (C++ backward compatible):
           //   Step 1: If linked formula + jury results exist, recalculate Endwert from fields
@@ -252,12 +277,27 @@ export function useResultsData(
             formulas: participantFormulas,
             totalScore,
             rank: 0,
-            competitionId: participant.assignedCompetitions?.[0],
+            competitionId,
             competitionName: (() => {
-              const comp = availableCompetitions.find(c => c.id === participant.assignedCompetitions?.[0]);
+              const comp = availableCompetitions.find(c => c.id === competitionId);
               return comp ? `${comp.name}${comp.number ? ` (Nr. ${comp.number})` : ''}` : 'Unknown Competition';
             })()
           };
+        };
+
+      const participantsList: Participant[] = participants
+        .filter((participant: any) => !participant.startet_nicht)
+        .flatMap((participant: any) => {
+          if (selectedCompetition) {
+            const selectedCompetitionId = parseInt(selectedCompetition);
+            return [buildParticipantCompetitionEntry(participant, selectedCompetitionId)];
+          }
+
+          const assignedCompetitions: number[] = Array.isArray(participant.assignedCompetitions)
+            ? Array.from(new Set(participant.assignedCompetitions.map((compId: any) => Number(compId)).filter((compId: number) => !Number.isNaN(compId) && compId > 0)))
+            : [];
+
+          return assignedCompetitions.map((competitionId: number) => buildParticipantCompetitionEntry(participant, competitionId));
         });
 
       if (selectedCompetition) {
@@ -267,6 +307,8 @@ export function useResultsData(
         });
         setRanking(participantsList);
         setCompetitionGroups([]);
+        setDisciplineFormulas(selectedCompetitionFormulaMap);
+        setSelectedCompetitionDisciplineInfo(selectedCompetitionDisciplineInfoData);
       } else {
         const competitionMap = new Map<number, Participant[]>();
         participantsList.forEach(participant => {
@@ -345,6 +387,8 @@ export function useResultsData(
         
         setCompetitionGroups(groups);
         setRanking([]);
+        setDisciplineFormulas({});
+        setSelectedCompetitionDisciplineInfo([]);
       }
 
       setDisciplines(Array.from(disciplineSet).sort());
@@ -354,6 +398,8 @@ export function useResultsData(
       setRanking([]);
       setCompetitionGroups([]);
       setDisciplines([]);
+      setDisciplineFormulas({});
+      setSelectedCompetitionDisciplineInfo([]);
       setEventName(`Event ${eventId}`);
     } finally {
       setIsLoading(false);
@@ -364,6 +410,8 @@ export function useResultsData(
     ranking,
     competitionGroups,
     disciplines,
+    disciplineFormulas,
+    selectedCompetitionDisciplineInfo,
     eventName,
     competitions,
     isLoading,

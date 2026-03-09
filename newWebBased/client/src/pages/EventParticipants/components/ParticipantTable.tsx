@@ -9,6 +9,7 @@ import { isDebugEnabled } from '@/utils/debug';
 import { SortableTableHeader } from '@/components/SortableTableHeader';
 import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
+import { getUnifiedParticipantHeaderLabels } from '@/utils/headerLabels';
 import type { Participant } from '../EventParticipants.types';
 
 interface ParticipantTableProps {
@@ -31,6 +32,7 @@ export const ParticipantTable: React.FC<ParticipantTableProps> = ({
   onToggleStatus,
 }) => {
   const { t } = useTranslation();
+  const labels = getUnifiedParticipantHeaderLabels(t);
 
   if (participants.length === 0) {
     return (
@@ -47,49 +49,49 @@ export const ParticipantTable: React.FC<ParticipantTableProps> = ({
         <thead className="bg-gray-50">
           <tr>
             <SortableTableHeader
-              label={t('eventParticipants.table.name')}
+              label={labels.name}
               sortKey="lastname"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={onSort}
             />
             <SortableTableHeader
-              label={t('eventParticipants.table.startNumber')}
+              label={labels.startNumber}
               sortKey="startNumber"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={onSort}
             />
             <SortableTableHeader
-              label={t('eventParticipants.table.club')}
+              label={labels.club}
               sortKey="club"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={onSort}
             />
             <SortableTableHeader
-              label={t('eventParticipants.table.age')}
+              label={labels.age}
               sortKey="age"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={onSort}
             />
             <SortableTableHeader
-              label={t('eventParticipants.table.gender')}
+              label={labels.gender}
               sortKey="gender"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={onSort}
             />
             <SortableTableHeader
-              label={t('eventParticipants.table.squad')}
+              label={labels.squad}
               sortKey="squad_name"
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={onSort}
             />
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('eventParticipants.table.status')}
+              {labels.status}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               {t('eventParticipants.table.competitions')}

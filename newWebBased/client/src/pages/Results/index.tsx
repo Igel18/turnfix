@@ -69,6 +69,8 @@ const Results = () => {
     competitionGroups,
     competitions,
     disciplines,
+    disciplineFormulas,
+    selectedCompetitionDisciplineInfo,
     eventName,
     isLoading,
     fetchCompetitions,
@@ -101,6 +103,8 @@ const Results = () => {
     ranking,
     competitionGroups,
     disciplines,
+    disciplineFormulas,
+    selectedCompetitionDisciplineInfo,
     formatScore
   })
 
@@ -264,6 +268,7 @@ const Results = () => {
             filteredRanking={filteredRanking}
             filteredCompetitionGroups={filteredCompetitionGroups}
             disciplines={disciplines}
+            disciplineFormulas={disciplineFormulas}
             showDisciplineScores={showDisciplineScores}
             formatScore={formatScore}
             getMedalColor={getMedalColor}
