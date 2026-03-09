@@ -1709,6 +1709,14 @@
         "autoCalculate": "Automatische Berechnungen aktivieren, wenn diese Disziplin in Wettkämpfen verwendet wird. Deaktivieren für manuelle Eingabe ohne Formel-Transformation."
       }
     },
+    "help": {
+      "scoringModes": {
+        "title": "Eingabemodus für Wertungserfassung",
+        "step1": "Verknüpfte Formel: Detailfelder werden immer erfasst",
+        "step2": "Benutzerdefinierte Formel (x): x-Eingabe + Formel + Ergebnis",
+        "step3": "Wenn beides gesetzt ist, wird die verknüpfte Formel verwendet"
+      }
+    },
     "messages": {
       "createSuccess": "Disziplin erfolgreich erstellt",
       "updateSuccess": "Disziplin erfolgreich aktualisiert",
@@ -2520,6 +2528,13 @@
       "gender": "Geschlecht"
     },
     "help": {
+      "modeRules": {
+        "title": "Eingabelogik nach Formeltyp",
+        "step1": "Verknüpfte Formel: Alle Detailfelder werden immer angezeigt und gespeichert",
+        "step2": "Benutzerdefinierte Formel (x): Es wird ein x-Feld mit Formel und Ergebnis angezeigt",
+        "step3": "Wenn verknüpfte Formel und benutzerdefinierte Formel vorhanden sind, gilt die verknüpfte Formel",
+        "step4": "Ohne Formel wird nur der Endwert direkt erfasst"
+      },
       "juryScores": {
         "title": "Wertungserfassung mit Jury-Wertungen",
         "step1": "Riege auswählen und Gerät/Disziplin wählen",

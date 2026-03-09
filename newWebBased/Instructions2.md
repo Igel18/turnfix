@@ -458,4 +458,15 @@ Also die Möglichkeit die Jury-Wertungen anzuzeigen/auszublenden im score-captur
 - Das Berechte Ergebnis soll auch angezeigt werden, wie bisher 
 - Wenn es eine vordefinierte Formel und "Benutzerdefinierte Formel" gibt soll die vordefinierte Formel verwendet werden, wie bisher 
 
-Hab ich was vergessen? Verhält sich das so wie früher im c++ und wäre kompatibel? 
+Hab ich was vergessen? Verhält sich das so wie früher im c++ und wäre kompatibel? Wie ist das in anderen systemen? 
+
+usw. 
+
+Die Info: "Eingabemodus
+
+    Verknüpfte Formel: Detailfelder werden immer erfasst
+    Benutzerdefinierte Formel (x): x-Eingabe + Formel + Ergebnis
+    Wenn beides gesetzt ist, wird die verknüpfte Formel verwendet"
+	Soll im Jury-Portal nicht angezeigt werden. Eher auf der Disziplin seite http://localhost:3001/disciplines 
+
+Die Berechnung für die Build-In-Formel ist im Jury-Portal korrekt. Aber im Score-Capture nicht. 

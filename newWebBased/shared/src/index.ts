@@ -14,3 +14,7 @@ export * from './genderHelpers';
 export * from './iconUtils';
 export * from './socketConfig';
 export * from './eventDateUtils';
+export * from './scoringInputMode';
+
+// React components (separate export to avoid bundler issues)
+export { BuiltInFormulaInput, type BuiltInFormulaInputProps } from './components/BuiltInFormulaInput';

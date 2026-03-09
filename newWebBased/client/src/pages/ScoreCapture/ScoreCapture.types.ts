@@ -16,8 +16,6 @@ import type {
 export interface ScoreFilterProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  showJuryScores: boolean;
-  onShowJuryScoresChange: (checked: boolean) => void;
 }
 
 export interface SquadStatusSelectorProps {
@@ -40,7 +38,6 @@ export interface ParticipantRowProps {
   disciplines: Discipline[];
   disciplineFields: DisciplineField[];
   scoreMatrix: {[key: string]: string};
-  showJuryScores: boolean;
   getDisciplineFields: (disciplineId: number | string) => DisciplineField[];
   getScoreValidation: (disciplineId: number | string, scoreValue: string) => { isValid: boolean; message?: string };
   handleScoreChange: (participantId: number, disciplineId: number | string, value: string) => void;
@@ -55,7 +52,6 @@ export interface ScoreTableProps {
   displayDisciplines: Discipline[];
   disciplineFields: DisciplineField[];
   scoreMatrix: {[key: string]: string};
-  showJuryScores: boolean;
   getDisciplineFields: (disciplineId: number | string) => DisciplineField[];
   getScoreValidation: (disciplineId: number | string, scoreValue: string) => { isValid: boolean; message?: string };
   getParticipantCompetitions: (participant: Participant) => string[];
@@ -66,6 +62,4 @@ export interface ScoreTableProps {
   parseFormulaDisplay: (formula: string, fields: DisciplineField[], finalFieldName: string) => string | null;
 }
 
-export interface HelpPanelProps {
-  showJuryScores: boolean;
-}
+export interface HelpPanelProps {}

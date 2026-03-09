@@ -19,6 +19,7 @@ import { EventManagementTemplate } from '@/components/templates/EventManagementT
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import { SquadDisciplineSelector } from '@/components/scoreCapture/SquadDisciplineSelector';
 import { normalizeScoreByDecimalPlaces } from '@/utils/inputMaskUtils';
+import { resolveScoringInputMode } from '@turnfix/shared';
 
 // All 8 hooks
 import {
@@ -38,6 +39,8 @@ import {
   HelpPanel
 } from './components';
 
+const linkedFormulaCache = new Map<number, string>();
+
 export default function ScoreCapture() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
@@ -54,12 +57,13 @@ export default function ScoreCapture() {
 
   // Local UI state
   const [searchTerm, setSearchTerm] = useState('');
-  const [showJuryScores, setShowJuryScores] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
+  const [showJuryScores, setShowJuryScores] = useState(true);
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || urlSquadName || '');
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
     contextDiscipline ? (contextDiscipline.int_disziplinid || contextDiscipline.var_name) : ''
   );
+  const [resolvedDisciplineFormula, setResolvedDisciplineFormula] = useState('');
 
   // Hook 1: Data Loading
   const {
@@ -92,10 +96,9 @@ export default function ScoreCapture() {
     disciplineFields,
     existingScores,
     getDisciplineFields: (disciplineId) => {
-      const allFields = disciplineFields
+      return disciplineFields
         .filter(field => field.disciplineId === disciplineId && field.enabled)
         .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-      return showJuryScores ? allFields : allFields.filter(field => field.isFinalScore === true);
     },
     getFilteredDisciplines: () => {
       return activeDiscipline
@@ -165,7 +168,6 @@ export default function ScoreCapture() {
     handleFieldScoreChange,
     handleSquadChange,
     handleDisciplineChange,
-    handleShowJuryScoresChange,
     handleExportCSV
   } = useScoreHandlers({
     eventId,
@@ -181,21 +183,6 @@ export default function ScoreCapture() {
     setActiveDiscipline,
     selectedEvent
   });
-
-  // Load showJuryScores setting from API on mount
-  useEffect(() => {
-    const loadJuryScoresSetting = async () => {
-      try {
-        const response = await fetch('/api/app-settings/scoreCapture');
-        const data = await response.json();
-        setShowJuryScores(data.showJuryScores || false);
-      } catch (error) {
-        console.error('Failed to load jury scores setting:', error);
-        setShowJuryScores(false);
-      }
-    };
-    loadJuryScoresSetting();
-  }, []);
 
   // Load initial data when eventId is available
   useEffect(() => {
@@ -238,14 +225,13 @@ export default function ScoreCapture() {
       });
       initializeScoreMatrix(participants, disciplines, existingScores);
     }
-  }, [participants.length, disciplines.length, existingScores.length, isInitializing, showJuryScores, activeSquad, activeDiscipline]);
+  }, [participants.length, disciplines.length, existingScores.length, isInitializing, activeSquad, activeDiscipline]);
 
-  // Helper: Get discipline fields (filtered by showJuryScores)
+  // Helper: Get discipline fields
   const getDisciplineFields = (disciplineId: number | string) => {
-    const allFields = disciplineFields
+    return disciplineFields
       .filter(field => field.disciplineId === disciplineId && field.enabled)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return showJuryScores ? allFields : allFields.filter(field => field.isFinalScore === true);
   };
 
   // Helper: Get filtered squads (all available squads)
@@ -341,6 +327,58 @@ export default function ScoreCapture() {
     ? disciplines.filter(d => d.int_disziplinid === activeDiscipline || d.var_name === activeDiscipline)
     : disciplines;
 
+  const selectedDiscipline = displayDisciplines.length === 1 ? displayDisciplines[0] : null;
+
+  useEffect(() => {
+    let isActive = true;
+
+    const resolveFormula = async () => {
+      if (!selectedDiscipline) {
+        if (isActive) {
+          setResolvedDisciplineFormula('');
+        }
+        return;
+      }
+
+      const baseFormula = ((selectedDiscipline as any).var_formel || '') as string;
+      const formulaId = (selectedDiscipline as any).int_formelid as number | undefined;
+
+      if (!formulaId) {
+        if (isActive) {
+          setResolvedDisciplineFormula(baseFormula);
+        }
+        return;
+      }
+
+      if (linkedFormulaCache.has(formulaId)) {
+        if (isActive) {
+          setResolvedDisciplineFormula(linkedFormulaCache.get(formulaId) || baseFormula);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/formulas/${formulaId}`);
+        const formulaData = await response.json();
+        const linkedFormula = formulaData?.var_formel || baseFormula;
+        linkedFormulaCache.set(formulaId, linkedFormula);
+        if (isActive) {
+          setResolvedDisciplineFormula(linkedFormula);
+        }
+      } catch {
+        if (isActive) {
+          setResolvedDisciplineFormula(baseFormula);
+        }
+      }
+    };
+
+    resolveFormula();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedDiscipline?.int_disziplinid, (selectedDiscipline as any)?.int_formelid, (selectedDiscipline as any)?.var_formel]);
+
   // Early return: No event selected
   if (!eventId) {
     return (
@@ -377,7 +415,7 @@ export default function ScoreCapture() {
       showFilters={false}
       showHelpPanel={showHelpPanel}
       onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
-      helpContent={<HelpPanel showJuryScores={showJuryScores} />}
+      helpContent={<HelpPanel />}
       onExportCSV={handleExportCSV}
       showExportCSV={true}
     >
@@ -398,7 +436,21 @@ export default function ScoreCapture() {
         loading={loading}
       />
 
-      {/* Search and Jury Scores Toggle */}
+      {selectedDiscipline && resolvedDisciplineFormula && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 mb-4">
+          <div className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Geräte-Formel</div>
+          <div className="text-lg font-mono text-purple-900 mt-1">{resolvedDisciplineFormula}</div>
+          <div className="text-xs text-purple-700 mt-1">
+            Modus: {resolveScoringInputMode({
+              formula: resolvedDisciplineFormula,
+              formulaId: (selectedDiscipline as any).int_formelid || null
+            }) === 'builtInFormula' ? 'x-Eingabe + Endwert' : 'Feld-Eingabe + Endwert'}
+            {(selectedDiscipline as any).var_einheit ? ` • Einheit: ${(selectedDiscipline as any).var_einheit}` : ''}
+          </div>
+        </div>
+      )}
+
+      {/* Search */}
       <div className="bg-white p-4 rounded-lg border mb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search Input */}
@@ -416,20 +468,19 @@ export default function ScoreCapture() {
           </div>
 
           {/* Show Jury Scores Toggle */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="showJuryScores"
-              checked={showJuryScores}
-              onChange={(e) => {
-                setShowJuryScores(e.target.checked);
-                handleShowJuryScoresChange(e.target.checked);
-              }}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="showJuryScores" className="text-sm font-medium text-gray-700">
-              {t('scoreCapture.filters.showJuryScores')}
-            </label>
+          <div className="flex items-end">
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="showJuryScores"
+                checked={showJuryScores}
+                onChange={(e) => setShowJuryScores(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="showJuryScores" className="text-sm font-medium text-gray-700">
+                {t('scoreCapture.filters.showJuryScores')}
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -444,7 +495,6 @@ export default function ScoreCapture() {
           displayDisciplines={displayDisciplines}
           disciplineFields={disciplineFields}
           scoreMatrix={scoreMatrix}
-          showJuryScores={showJuryScores}
           existingScores={existingScores}
           pendingEndwerts={pendingEndwerts}
           setPendingEndwerts={setPendingEndwerts}
@@ -462,6 +512,7 @@ export default function ScoreCapture() {
           setScoreMatrix={setScoreMatrix}
           disciplines={disciplines}
           competitionId={competitionId || undefined}
+          showJuryScores={showJuryScores}
         />
       )}
     </EventManagementTemplate>

@@ -21,7 +21,6 @@ interface ScoreTableProps {
   displayDisciplines: Discipline[]
   disciplineFields: DisciplineField[]
   scoreMatrix: {[key: string]: string}
-  showJuryScores: boolean
   existingScores: any[]
   pendingEndwerts: {[key: string]: string}
   setPendingEndwerts: (value: any) => void
@@ -39,6 +38,7 @@ interface ScoreTableProps {
   setScoreMatrix: (value: any) => void
   disciplines: Discipline[]
   competitionId?: string
+  showJuryScores: boolean
 }
 
 export const ScoreTable = ({
@@ -46,7 +46,6 @@ export const ScoreTable = ({
   displayDisciplines,
   disciplineFields: _disciplineFields, // intentionally unused for now
   scoreMatrix,
-  showJuryScores,
   getDisciplineFields,
   getScoreValidation,
   getParticipantCompetitions,
@@ -55,6 +54,7 @@ export const ScoreTable = ({
   saveFieldScore,
   normalizeScoreInput,
   getScorePlaceholder,
+  showJuryScores,
 }: ScoreTableProps) => {
   const { t } = useTranslation()
 
@@ -164,7 +164,6 @@ export const ScoreTable = ({
                         discipline={discipline}
                         disciplineFields={enabledFields}
                         scoreValue={score}
-                        showJuryScores={showJuryScores}
                         wertungenId={(participant as any).wertungenId || participant.id}
                         onScoreChange={handleScoreChange}
                         onSave={saveScore}
@@ -175,6 +174,7 @@ export const ScoreTable = ({
                         normalizeScoreInput={normalizeScoreInput}
                         getScorePlaceholder={getScorePlaceholder}
                         validation={validation}
+                        showJuryScores={showJuryScores}
                       />
                     </td>
                   )

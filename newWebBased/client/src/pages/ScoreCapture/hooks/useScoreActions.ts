@@ -293,7 +293,7 @@ export function useScoreActions({
       // Calculate using formula
       const calculatedScore = evaluateFormula(formula, fieldValues, fields)
       
-      if (calculatedScore > 0) {
+      if (calculatedScore !== null && !isNaN(calculatedScore)) {
         console.log(`Calculated score for ${participant.firstname} ${participant.lastname}: ${calculatedScore}`)
         
         // Save the calculated score

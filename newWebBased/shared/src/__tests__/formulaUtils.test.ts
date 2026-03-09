@@ -25,7 +25,11 @@ import {
   parseFormula,
   formatFormulaWithValues,
   calculateFormula,
+  applyBuiltInFormula,
   validateFormula,
+  isSubtractionField,
+  buildFieldSymbolsMap,
+  formatScore,
   FORMULA_VARIABLES,
   // New functions added for formulaCalculator parity
   detectFormulaType,
@@ -265,6 +269,18 @@ describe('calculateFormulaResult', () => {
     expect(error).toBeNull();
     expect(result).toBeCloseTo(9.5, 5);
   });
+
+  it('calculates "1*x" with x=0 → 0', () => {
+    const { result, error } = calculateFormulaResult('1*x', ['0'], 'variable');
+    expect(error).toBeNull();
+    expect(result).toBe(0);
+  });
+
+  it('calculates "20-x" with x=0 → 20', () => {
+    const { result, error } = calculateFormulaResult('20-x', ['0'], 'variable');
+    expect(error).toBeNull();
+    expect(result).toBe(20);
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -293,6 +309,22 @@ describe('extractFormulaSymbols', () => {
 
   it('returns empty for empty formula', () => {
     expect(extractFormulaSymbols('')).toEqual([]);
+  });
+});
+
+describe('parseFormula', () => {
+  it('parses formula with symbols and parentheses', () => {
+    const parsed = parseFormula('(10 + A) - B');
+    expect(parsed.originalFormula).toBe('(10 + A) - B');
+    expect(parsed.symbols).toEqual(['A', 'B']);
+    expect(parsed.hasParentheses).toBe(true);
+  });
+
+  it('returns empty parse info for empty input', () => {
+    const parsed = parseFormula('');
+    expect(parsed.originalFormula).toBe('');
+    expect(parsed.symbols).toEqual([]);
+    expect(parsed.hasParentheses).toBe(false);
   });
 });
 
@@ -335,6 +367,14 @@ describe('calculateFormula', () => {
     expect(calculateFormula('', {})).toBeNull();
   });
 
+  it('replaces missing uppercase symbols with 0', () => {
+    expect(calculateFormula('A + B', { A: 2 })).toBe(2);
+  });
+
+  it('replaces remaining lowercase symbols with 0', () => {
+    expect(calculateFormula('x + y', { x: 2 })).toBe(2);
+  });
+
   // ── Non-trivial formula "5,5*x" (German decimal comma) ──
 
   it('calculates "5,5*x" with x=3 → 16.5', () => {
@@ -355,6 +395,22 @@ describe('calculateFormula', () => {
 
   it('calculates "5,5*x" with x=1.8 → 9.9', () => {
     expect(calculateFormula('5,5*x', { x: 1.8 })).toBeCloseTo(9.9);
+  });
+});
+
+describe('applyBuiltInFormula', () => {
+  it('returns raw score when formula is missing', () => {
+    expect(applyBuiltInFormula(undefined, 7.5)).toBe(7.5);
+    expect(applyBuiltInFormula(null, 7.5)).toBe(7.5);
+    expect(applyBuiltInFormula('', 7.5)).toBe(7.5);
+  });
+
+  it('applies valid built-in formula', () => {
+    expect(applyBuiltInFormula('20-x', 5)).toBe(15);
+  });
+
+  it('falls back to raw score for invalid built-in formula', () => {
+    expect(applyBuiltInFormula('x + ;', 5)).toBe(5);
   });
 });
 
@@ -387,5 +443,83 @@ describe('validateFormula', () => {
 
   it('rejects unbalanced parentheses', () => {
     expect(validateFormula('(A + B').valid).toBe(false);
+  });
+
+  it('rejects invalid characters', () => {
+    const result = validateFormula('A + B; DROP TABLE');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('invalid characters');
+  });
+
+  it('rejects non-evaluable formulas', () => {
+    const result = validateFormula('A +');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('cannot be evaluated');
+  });
+});
+
+describe('isSubtractionField', () => {
+  it('detects subtraction keywords', () => {
+    expect(isSubtractionField('Abzug Ausführung')).toBe(true);
+    expect(isSubtractionField('Deduction')).toBe(true);
+    expect(isSubtractionField('Penalty Time')).toBe(true);
+    expect(isSubtractionField('Ausf-Fehler')).toBe(true);
+  });
+
+  it('returns false for non-subtraction field names', () => {
+    expect(isSubtractionField('Schwierigkeit')).toBe(false);
+  });
+});
+
+describe('buildFieldSymbolsMap', () => {
+  it('maps and sorts non-final/non-starting fields by sortOrder', () => {
+    const map = buildFieldSymbolsMap([
+      { fieldName: 'Abzug', performance: 1.2, sortOrder: 2 },
+      { fieldName: 'Startwert', performance: 10, sortOrder: 0, isStartingScore: true },
+      { fieldName: 'D-Note', performance: 5.8, sortOrder: 1 },
+      { fieldName: 'Endwert', performance: 14.6, sortOrder: 3, isFinalScore: true }
+    ], 'A-B');
+
+    expect(Object.keys(map)).toEqual(['A', 'B']);
+    expect(map.A.value).toBe(5.8);
+    expect(map.B.value).toBe(1.2);
+    expect(map.B.isSubtraction).toBe(true);
+  });
+
+  it('uses generated symbols when no formula is provided', () => {
+    const map = buildFieldSymbolsMap([
+      { fieldName: 'Wert 1', performance: 3.3 },
+      { fieldName: 'Wert 2', performance: 4.4 }
+    ]);
+
+    expect(Object.keys(map)).toEqual(['A', 'B']);
+    expect(map.A.value).toBe(3.3);
+    expect(map.B.value).toBe(4.4);
+  });
+
+  it('falls back to generated symbol if formula has too few variables', () => {
+    const map = buildFieldSymbolsMap([
+      { fieldName: 'X', performance: 1 },
+      { fieldName: 'Y', performance: 2 }
+    ], 'A');
+
+    expect(Object.keys(map)).toEqual(['A', 'B']);
+    expect(map.B.value).toBe(2);
+  });
+});
+
+describe('formatScore', () => {
+  it('formats numeric score with default decimals', () => {
+    expect(formatScore(12.345)).toBe('12.35');
+  });
+
+  it('formats numeric score with custom decimals', () => {
+    expect(formatScore(12.345, 1)).toBe('12.3');
+  });
+
+  it('returns dash for nullish or NaN values', () => {
+    expect(formatScore(null)).toBe('-');
+    expect(formatScore(undefined)).toBe('-');
+    expect(formatScore(Number.NaN)).toBe('-');
   });
 });

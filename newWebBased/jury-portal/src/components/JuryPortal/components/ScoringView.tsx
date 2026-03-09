@@ -10,7 +10,13 @@ import React from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { MISSING_ICON_EMOJI, getMissingIconUrl } from '../../../utils/iconUtils';
 import { normalizeScoreInput, getScorePlaceholder, formatScore } from '../../../utils/scoreFormatter';
-import { applyBuiltInFormula, detectFormulaType } from '../../../utils/formulaUtils';
+import { 
+  applyBuiltInFormula, 
+  detectFormulaType, 
+  normalizeValueForCalculation,
+  resolveScoringInputMode, 
+  BuiltInFormulaInput 
+} from '@turnfix/shared';
 import FormulaInput from '../../FormulaInput';
 import type { Participant, Device, Squad, DisciplineField } from '../JuryPortal.types';
 
@@ -29,7 +35,7 @@ interface ScoringViewProps {
   // Handlers
   onParticipantSelect: (index: number) => void;
   onScoreChange: (score: string) => void;
-  onFormulaChange: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
+  onCalculationComplete: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   onScoreSubmit: () => void;
   onDeviceComplete: () => void;
   onBack: () => void;
@@ -48,7 +54,7 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   loading,
   onParticipantSelect,
   onScoreChange,
-  onFormulaChange,
+  onCalculationComplete,
   onScoreSubmit,
   onDeviceComplete,
   onBack,
@@ -91,7 +97,7 @@ const ScoringView: React.FC<ScoringViewProps> = ({
           score={score}
           loading={loading}
           onScoreChange={onScoreChange}
-          onFormulaChange={onFormulaChange}
+          onCalculationComplete={onCalculationComplete}
           onScoreSubmit={onScoreSubmit}
           onParticipantSelect={onParticipantSelect}
           getScoreValidation={getScoreValidation}
@@ -293,7 +299,7 @@ interface ScoreInputPanelProps {
   score: string;
   loading: boolean;
   onScoreChange: (score: string) => void;
-  onFormulaChange: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
+  onCalculationComplete: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   onScoreSubmit: () => void;
   onParticipantSelect: (index: number) => void;
   getScoreValidation: (scoreValue: string) => { isValid: boolean; message: string };
@@ -309,11 +315,67 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
   score,
   loading,
   onScoreChange,
-  onFormulaChange,
+  onCalculationComplete,
   onScoreSubmit,
   onParticipantSelect,
   getScoreValidation,
 }) => {
+  const [resolvedFormula, setResolvedFormula] = React.useState<string>(selectedDevice?.var_formel || '');
+  const [formulaLoading, setFormulaLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    let isActive = true;
+
+    const loadLinkedFormula = async () => {
+      if (!selectedDevice) {
+        if (isActive) {
+          setResolvedFormula('');
+          setFormulaLoading(false);
+        }
+        return;
+      }
+
+      if (!selectedDevice.int_formelid) {
+        if (isActive) {
+          setResolvedFormula(selectedDevice.var_formel || '');
+          setFormulaLoading(false);
+        }
+        return;
+      }
+
+      try {
+        if (isActive) {
+          setFormulaLoading(true);
+        }
+        const response = await fetch(`/api/formulas/${selectedDevice.int_formelid}`);
+        const formulaData = await response.json();
+        const linkedFormula = formulaData?.var_formel || selectedDevice.var_formel || '';
+        if (isActive) {
+          setResolvedFormula(linkedFormula);
+        }
+      } catch (error) {
+        if (isActive) {
+          setResolvedFormula(selectedDevice.var_formel || '');
+        }
+      } finally {
+        if (isActive) {
+          setFormulaLoading(false);
+        }
+      }
+    };
+
+    loadLinkedFormula();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedDevice?.disciplineId, selectedDevice?.int_formelid, selectedDevice?.var_formel]);
+
+  const inputMode = resolveScoringInputMode({
+    formula: resolvedFormula,
+    formulaId: selectedDevice?.int_formelid || null
+  });
+
   const validation = getScoreValidation(score);
 
   return (
@@ -332,17 +394,61 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
 
             {/* Score Input Section */}
             <div className="space-y-2">
-              {selectedDevice?.var_formel ? (
-                <FormulaInput
-                  key={`formula-p${currentParticipant?.id ?? currentParticipantIndex}`}
-                  formula={selectedDevice.var_formel}
-                  decimals={selectedDevice.int_berechnung || 2}
-                  disciplineFields={disciplineFields}
-                  initialValues={loadedJuryResults}
-                  onScoreChange={(calculatedScore: number | null, fieldValues: Record<string, number>) => {
-                    onFormulaChange(calculatedScore, fieldValues);
+              {resolvedFormula && inputMode !== 'simple' && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                  <div className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Geräte-Formel</div>
+                  <div className="text-lg font-mono text-purple-900 mt-1">{resolvedFormula}</div>
+                  {selectedDevice?.var_einheit && (
+                    <div className="text-xs text-purple-700 mt-1">Einheit: {selectedDevice.var_einheit}</div>
+                  )}
+                </div>
+              )}
+
+              {inputMode === 'linkedFormula' ? (
+                formulaLoading && !resolvedFormula ? (
+                  <div className="text-center text-sm text-gray-500 py-6">Formel wird geladen...</div>
+                ) : (
+                  <FormulaInput
+                    key={`formula-p${currentParticipant?.id ?? currentParticipantIndex}`}
+                    formula={resolvedFormula}
+                    decimals={selectedDevice?.int_berechnung || 2}
+                    disciplineFields={disciplineFields}
+                    initialValues={loadedJuryResults}
+                    onScoreChange={(calculatedScore: number | null, fieldValues: Record<string, number>) => {
+                      onCalculationComplete(calculatedScore, fieldValues);
+                    }}
+                    disabled={loading}
+                    showFormulaDisplay={false}
+                  />
+                )
+              ) : inputMode === 'builtInFormula' ? (
+                <BuiltInFormulaInput
+                  formula={resolvedFormula}
+                  variable="x"
+                  value={score}
+                  calculatedResult={
+                    score.trim() !== '' && detectFormulaType(resolvedFormula) === 'variable'
+                      ? applyBuiltInFormula(resolvedFormula, parseFloat(normalizeValueForCalculation(score)) || 0)
+                      : null
+                  }
+                  decimalPlaces={selectedDevice?.int_berechnung || 2}
+                  unit={selectedDevice?.var_einheit || ''}
+                  maxScore={selectedDevice?.maxScore}
+                  placeholder={getScorePlaceholder(selectedDevice?.int_berechnung || 2)}
+                  onChange={(value) => {
+                    onScoreChange(value);
                   }}
+                  onBlur={() => {
+                    const normalized = normalizeScoreInput(score, selectedDevice?.int_berechnung || 2);
+                    if (normalized !== score) {
+                      onScoreChange(normalized);
+                    }
+                  }}
+                  validation={validation}
+                  variant="jury"
+                  autoFocus={true}
                   disabled={loading}
+                  showFormulaDisplay={false}
                 />
               ) : (
                 <div className={validation.isValid ? '' : 'mb-6'}>

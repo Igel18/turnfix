@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
+import { BlueInfoBox } from '../components/InfoBoxes';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
 import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import DisciplineFormModal from '../components/DisciplineFormModal';
@@ -743,6 +744,16 @@ const DisciplinesUnified: React.FC = () => {
     );
   }
 
+  const helpContent = (
+    <BlueInfoBox title={t('disciplines.help.scoringModes.title')}>
+      <ul className="list-disc list-inside space-y-1 text-sm">
+        <li>{t('disciplines.help.scoringModes.step1')}</li>
+        <li>{t('disciplines.help.scoringModes.step2')}</li>
+        <li>{t('disciplines.help.scoringModes.step3')}</li>
+      </ul>
+    </BlueInfoBox>
+  );
+
   return (
     <>
       <DatabaseManagementTemplate
@@ -762,6 +773,7 @@ const DisciplinesUnified: React.FC = () => {
         onDelete={(discipline) => handleDelete(discipline.id)}
         viewStorageKey="disciplines-view"
         itemsPerPage={20}
+        helpContent={helpContent}
         renderTableHeaders={renderTableHeaders}
         renderTableRow={renderTableRow}
         renderCard={renderCard}

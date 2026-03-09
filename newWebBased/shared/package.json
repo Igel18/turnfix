@@ -11,14 +11,21 @@
     "build:watch": "tsc --watch",
     "clean": "rimraf dist",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "expr-eval": "^2.0.2"
   },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.19.35",
+    "@types/react": "^18.2.48",
+    "@vitest/coverage-v8": "^4.0.18",
     "rimraf": "^5.0.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   }
 }

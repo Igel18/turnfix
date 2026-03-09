@@ -1,6 +1,6 @@
 # TurnFix Test-Abdeckung — Übersicht
 
-**Stand**: 7. März 2026
+**Stand**: 9. März 2026
 **Gesamt**: ~3.470 Tests in ~149 Dateien
 
 ---
@@ -16,6 +16,19 @@
 | Server Unit/Integration/Component (Jest) | 66 | 1.781 |
 | **Server Gesamt** | **66** | **1.781** |
 | **Gesamt** | **~149** | **~3.470** |
+
+### Shared Package (`newWebBased/shared`) — Funktionsabdeckung
+
+**Gemessen am 9. März 2026 mit `npm run test:coverage` (nach Erweiterung der Formel-Tests)**
+
+| Scope | Test-Dateien | Tests | Statements | Branches | Functions | Lines |
+|-------|:------------:|:-----:|:----------:|:--------:|:---------:|:-----:|
+| `@turnfix/shared` | 3 | 112 | 97.10% | 90.44% | 100% | 98.05% |
+
+**Bewertung**:
+- Hohe Shared-Abdeckung ist jetzt erreicht.
+- `formulaUtils.ts` liegt jetzt bei 96.66% Statements / 90.35% Branches / 100% Functions.
+- `scoringInputMode.ts` bleibt bei 100% in allen Metriken.
 
 ---
 

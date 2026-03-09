@@ -1672,6 +1672,14 @@
         "autoCalculate": "Enable automatic calculations when this discipline is used in competitions. Disable for manual input without formula transformation."
       }
     },
+    "help": {
+      "scoringModes": {
+        "title": "Scoring Input Mode",
+        "step1": "Linked formula: detail fields are always captured",
+        "step2": "Custom formula (x): x input + formula + calculated result",
+        "step3": "If both are configured, the linked formula is used"
+      }
+    },
     "messages": {
       "createSuccess": "Discipline created successfully",
       "updateSuccess": "Discipline updated successfully",
@@ -2486,6 +2494,13 @@
       "gender": "Gender"
     },
     "help": {
+      "modeRules": {
+        "title": "Input Logic by Formula Type",
+        "step1": "Linked formula: all detail fields are always shown and saved",
+        "step2": "Custom formula (x): an x field with formula and calculated result is shown",
+        "step3": "If linked and custom formula are both configured, the linked formula is used",
+        "step4": "Without a formula, only the final score is entered directly"
+      },
       "juryScores": {
         "title": "Score Capture with Jury Scores",
         "step1": "Select squad and choose apparatus/discipline",

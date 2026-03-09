@@ -2,23 +2,37 @@
  * ScoreInputCell Component
  * Point 135: Formula-based Score Input
  * 
- * Renders either:
- * - Simple input field (showJuryScores = false): Direct endwert input
- * - FormulaInput component (showJuryScores = true): Multi-field input with formula calculation
+ * Renders by formula mode:
+ * - linkedFormula: FormulaInput with all configured fields
+ * - builtInFormula: BuiltInFormulaInput (shared component) with x + formula + result
+ * - simple: Direct endwert input
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { FormulaInput } from '@/components/FormulaInput';
-import { applyBuiltInFormula, detectFormulaType, formatFormulaWithValues } from '@/utils/formulaUtils';
-import { parseScoreInput } from '@/utils/scoreFormatter';
+import { applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
+import { normalizeValueForCalculation } from '@/utils/formulaCalculator';
+import { resolveScoringInputMode, BuiltInFormulaInput } from '@turnfix/shared';
 import type { Discipline, DisciplineField } from '@/types/ScoreCapture.types';
+
+const linkedFormulaCache = new Map<number, string>();
+
+export function parseBuiltInFormulaInputValue(scoreValue: string): number {
+  if (!scoreValue || scoreValue.trim() === '') {
+    return 0;
+  }
+
+  const normalized = normalizeValueForCalculation(scoreValue);
+  const parsed = parseFloat(normalized);
+
+  return isNaN(parsed) ? 0 : parsed;
+}
 
 interface ScoreInputCellProps {
   participantId: number;
   discipline: Discipline;
   disciplineFields: DisciplineField[];
   scoreValue: string;
-  showJuryScores: boolean;
   wertungenId?: number; // Added: needed to load/save jury results
   onScoreChange: (participantId: number, disciplineId: number | string, value: string) => void;
   onSave: (participantId: number, disciplineId: number | string) => Promise<void>;
@@ -26,6 +40,7 @@ interface ScoreInputCellProps {
   normalizeScoreInput: (value: string, decimalPlaces: number) => string;
   getScorePlaceholder: (decimalPlaces: number) => string;
   validation: { isValid: boolean; message?: string };
+  showJuryScores: boolean;
 }
 
 export const ScoreInputCell = ({
@@ -33,29 +48,83 @@ export const ScoreInputCell = ({
   discipline,
   disciplineFields,
   scoreValue,
-  showJuryScores,
   wertungenId,
   onScoreChange,
   onSave,
   onFieldSave: _onFieldSave,
   normalizeScoreInput,
   getScorePlaceholder,
-  validation
+  validation,
+  showJuryScores
 }: ScoreInputCellProps) => {
   const disciplineId = discipline.int_disziplinid || discipline.var_name;
   const decimalPlaces = discipline.int_berechnung || 2;
+  const enabledFields = disciplineFields.filter(
+    (field) => field.disciplineId === disciplineId && field.enabled
+  );
+  const formula = (discipline as any).var_formel as string | undefined;
+  const formulaId = (discipline as any).int_formelid as number | null | undefined;
+  const [resolvedFormula, setResolvedFormula] = useState<string>(formula || '');
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadResolvedFormula = async () => {
+      if (!formulaId) {
+        if (isActive) {
+          setResolvedFormula(formula || '');
+        }
+        return;
+      }
+
+      if (linkedFormulaCache.has(formulaId)) {
+        if (isActive) {
+          setResolvedFormula(linkedFormulaCache.get(formulaId) || formula || '');
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/formulas/${formulaId}`);
+        const formulaData = await response.json();
+        const linkedFormula = formulaData?.var_formel || formula || '';
+        linkedFormulaCache.set(formulaId, linkedFormula);
+        if (isActive) {
+          setResolvedFormula(linkedFormula);
+        }
+      } catch {
+        if (isActive) {
+          setResolvedFormula(formula || '');
+        }
+      }
+    };
+
+    loadResolvedFormula();
+
+    return () => {
+      isActive = false;
+    };
+  }, [formulaId, formula]);
+
+  const mode = resolveScoringInputMode({
+    formula: resolvedFormula || '',
+      formulaId: formulaId || null
+  });
+
+  const isLinkedFormulaMode = showJuryScores && mode === 'linkedFormula';
+  const isBuiltInFormulaMode = showJuryScores && mode === 'builtInFormula';
   const [initialFieldValues, setInitialFieldValues] = useState<Record<number, string>>({});
   const [loadingValues, setLoadingValues] = useState(false);
   const lastCalculatedValue = useRef<string | null>(null);
 
-  // Load existing jury results when in jury score mode
+  // Load existing jury results in linked formula mode
   useEffect(() => {
-    if (!showJuryScores || !wertungenId || disciplineFields.length === 0) {
-      console.log('🔵 Skipping load:', { showJuryScores, wertungenId, disciplineFieldsLength: disciplineFields.length });
+    if (!isLinkedFormulaMode || !wertungenId || enabledFields.length === 0) {
+      console.log('🔵 Skipping load:', { isLinkedFormulaMode, wertungenId, enabledFieldsLength: enabledFields.length });
       return;
     }
 
-    console.log('🔵 Loading jury results:', { wertungenId, disciplineId, disciplineFields });
+    console.log('🔵 Loading jury results:', { wertungenId, disciplineId, enabledFields });
     setLoadingValues(true);
     
     // Load jury results for this participant and discipline
@@ -83,73 +152,94 @@ export const ScoreInputCell = ({
       .finally(() => {
         setLoadingValues(false);
       });
-  }, [showJuryScores, wertungenId, disciplineId, disciplineFields.length]);
+  }, [isLinkedFormulaMode, wertungenId, disciplineId, enabledFields.length]);
 
   // Detect built-in formula (lowercase variable like "x" in "20-x", "(((1000/x)-2,158)/0,006)/49")
-  const formula = (discipline as any).var_formel as string | undefined;
-  const hasBuiltInFormula = formula && detectFormulaType(formula) === 'variable';
-  const rawNumericValue = scoreValue ? parseScoreInput(scoreValue) : 0;
-  const calculatedResult = hasBuiltInFormula && rawNumericValue > 0
-    ? applyBuiltInFormula(formula!, rawNumericValue)
+  const activeFormula = resolvedFormula || formula || '';
+  const hasBuiltInFormula = isBuiltInFormulaMode && activeFormula && detectFormulaType(activeFormula) === 'variable';
+
+  const rawNumericValue = parseBuiltInFormulaInputValue(scoreValue);
+  const calculatedResult = hasBuiltInFormula && scoreValue !== ''
+    ? applyBuiltInFormula(activeFormula, rawNumericValue)
     : null;
 
-  // Simple mode: Direct endwert input
-  if (!showJuryScores) {
+  // builtInFormula: Use shared BuiltInFormulaInput component
+  if (isBuiltInFormulaMode && hasBuiltInFormula) {
+    return (
+      <BuiltInFormulaInput
+        formula={activeFormula}
+        variable="x"
+        value={scoreValue}
+        calculatedResult={calculatedResult}
+        decimalPlaces={decimalPlaces}
+        unit={(discipline as any).var_einheit || ''}
+        maxScore={discipline.maxScore}
+        placeholder={getScorePlaceholder(decimalPlaces)}
+        onChange={(value) => onScoreChange(participantId, disciplineId, value)}
+        onBlur={() => {
+          const normalized = normalizeScoreInput(scoreValue, decimalPlaces);
+          if (normalized !== scoreValue) {
+            onScoreChange(participantId, disciplineId, normalized);
+          }
+          onSave(participantId, disciplineId);
+        }}
+        onEnter={() => {
+          const normalized = normalizeScoreInput(scoreValue, decimalPlaces);
+          if (normalized !== scoreValue) {
+            onScoreChange(participantId, disciplineId, normalized);
+          }
+          onSave(participantId, disciplineId);
+        }}
+        validation={validation}
+        variant="capture"
+        compact={true}
+        showFormulaDisplay={false}
+        dataParticipant={participantId}
+        dataDiscipline={disciplineId}
+      />
+    );
+  }
+
+  // simple: direct input; no formula
+  if (!isLinkedFormulaMode) {
     return (
       <div className="relative">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            inputMode="decimal"
-            value={scoreValue}
-            onChange={(e) => onScoreChange(participantId, disciplineId, e.target.value)}
-            onBlur={(e) => {
-              // Normalize score to show all decimal places
-              const normalized = normalizeScoreInput(e.target.value, decimalPlaces);
-              if (normalized !== e.target.value) {
+        <input
+          type="text"
+          inputMode="decimal"
+          value={scoreValue}
+          onChange={(e) => onScoreChange(participantId, disciplineId, e.target.value)}
+          onBlur={(e) => {
+            // Normalize score to show all decimal places
+            const normalized = normalizeScoreInput(e.target.value, decimalPlaces);
+            if (normalized !== e.target.value) {
+              onScoreChange(participantId, disciplineId, normalized);
+            }
+            onSave(participantId, disciplineId);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              // Normalize and save
+              const normalized = normalizeScoreInput(e.currentTarget.value, decimalPlaces);
+              if (normalized !== e.currentTarget.value) {
                 onScoreChange(participantId, disciplineId, normalized);
               }
               onSave(participantId, disciplineId);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                // Normalize and save
-                const normalized = normalizeScoreInput(e.currentTarget.value, decimalPlaces);
-                if (normalized !== e.currentTarget.value) {
-                  onScoreChange(participantId, disciplineId, normalized);
-                }
-                onSave(participantId, disciplineId);
-                // Blur the input field
-                e.currentTarget.blur();
-              }
-            }}
-            data-participant={participantId}
-            data-discipline={disciplineId}
-            className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
-              validation.isValid
-                ? 'border-gray-300 focus:ring-blue-500'
-                : 'border-red-300 bg-red-50 focus:ring-red-500'
-            }`}
-            placeholder={getScorePlaceholder(decimalPlaces)}
-            title={!validation.isValid ? validation.message : ''}
-          />
-          {/* Show calculated result inline for built-in formula disciplines */}
-          {hasBuiltInFormula && calculatedResult !== null && (
-            <span
-              className="text-sm font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1 whitespace-nowrap"
-              title={`Formel: ${formula}\n${formatFormulaWithValues(formula!, { x: rawNumericValue }, { decimals: decimalPlaces })}`}
-            >
-              = {calculatedResult.toFixed(decimalPlaces)}
-            </span>
-          )}
-        </div>
-        {/* Show formula text for built-in formula disciplines */}
-        {hasBuiltInFormula && (
-          <div className="mt-1 text-xs text-purple-500 truncate max-w-[200px]" title={formula}>
-            Formel: {formula}
-          </div>
-        )}
+              // Blur the input field
+              e.currentTarget.blur();
+            }
+          }}
+          data-participant={participantId}
+          data-discipline={disciplineId}
+          className={`w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:border-transparent ${
+            validation.isValid
+              ? 'border-gray-300 focus:ring-blue-500'
+              : 'border-red-300 bg-red-50 focus:ring-red-500'
+          }`}
+          placeholder={getScorePlaceholder(decimalPlaces)}
+          title={!validation.isValid ? validation.message : ''}
+        />
         {!validation.isValid && (
           <div className="absolute -bottom-6 left-0 right-0 text-xs text-red-600 bg-red-100 border border-red-200 rounded px-2 py-1 z-10 whitespace-nowrap">
             ⚠️ {validation.message}
@@ -164,10 +254,7 @@ export const ScoreInputCell = ({
     );
   }
 
-  // Advanced mode: Multi-field input with formula
-  const enabledFields = disciplineFields.filter(
-    (f) => f.disciplineId === disciplineId && f.enabled
-  );
+  // linkedFormula mode: Multi-field input with formula
 
   if (enabledFields.length === 0) {
     return (
@@ -190,7 +277,7 @@ export const ScoreInputCell = ({
     <div className="w-full">
       <FormulaInput
         inputMask={(discipline as any).var_eingabemaske || ''}
-        formula={(discipline as any).var_formel || ''}
+        formula={activeFormula}
         formulaId={(discipline as any).int_formelid}
         calculationType={decimalPlaces}
         unit={(discipline as any).var_einheit || ''}

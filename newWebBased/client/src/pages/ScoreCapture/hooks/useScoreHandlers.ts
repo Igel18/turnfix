@@ -5,7 +5,6 @@
  * Bundles all handler functions for ScoreCapture:
  * - Score change handlers (matrix updates + auto-save)
  * - Squad/Discipline selection handlers (with context sync)
- * - Settings handlers (showJuryScores)
  * - Export handlers (CSV)
  */
 
@@ -36,7 +35,6 @@ interface UseScoreHandlersReturn {
   handleFieldScoreChange: (participantId: number, fieldId: number, value: string) => void;
   handleSquadChange: (squadName: string) => void;
   handleDisciplineChange: (disciplineValue: number | string) => void;
-  handleShowJuryScoresChange: (checked: boolean) => Promise<void>;
   handleExportCSV: () => void;
 }
 
@@ -120,19 +118,6 @@ export function useScoreHandlers({
     }
   };
 
-  // Handle showJuryScores checkbox (save to backend)
-  const handleShowJuryScoresChange = async (checked: boolean) => {
-    try {
-      await fetch('/api/app-settings/scoreCapture/showJuryScores', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: checked })
-      });
-    } catch (error) {
-      console.error('Failed to save jury scores setting:', error);
-    }
-  };
-
   // Handle CSV export
   const handleExportCSV = () => {
     if (!selectedEvent) {
@@ -149,7 +134,6 @@ export function useScoreHandlers({
     handleFieldScoreChange,
     handleSquadChange,
     handleDisciplineChange,
-    handleShowJuryScoresChange,
     handleExportCSV
   };
 }

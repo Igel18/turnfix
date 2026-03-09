@@ -31,6 +31,13 @@ Das TurnFix Formula System ermöglicht die **dynamische Berechnung von Endwerten
 - ✅ **Echtzeit-Berechnung**: Automatische Aktualisierung bei Wertänderungen
 - ✅ **Type-Safe**: Vollständige TypeScript-Unterstützung
 
+### Wichtige Regel: Wert `0` ist ein gültiger Eingabewert
+
+- `0` darf **nicht** als „leer“ behandelt werden.
+- Die Formelberechnung muss auch dann ausgeführt werden, wenn ein oder mehrere Eingabefelder den Wert `0` enthalten.
+- UI-Fallbacks (z. B. Platzhalter wie `?`) dürfen nur bei wirklich leerem Wert (`''`) greifen, nicht bei `0`.
+- Persistenz-Logik darf berechnete Ergebnisse `0` genauso speichern wie positive oder negative Werte.
+
 ---
 
 ## Formel-Typen

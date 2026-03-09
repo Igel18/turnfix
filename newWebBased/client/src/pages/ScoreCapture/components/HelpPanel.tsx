@@ -6,20 +6,19 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import type { HelpPanelProps } from '../ScoreCapture.types';
 
-export function HelpPanel({ showJuryScores }: HelpPanelProps) {
+export function HelpPanel() {
   const { t } = useTranslation();
 
-  const juryScoresHelp = (
+  return (
     <div className="space-y-4">
       <div>
-        <h4 className="font-medium text-blue-900 mb-2">{t('scoreCapture.help.juryScores.title')}</h4>
+        <h4 className="font-medium text-blue-900 mb-2">{t('scoreCapture.help.modeRules.title')}</h4>
         <ul className="list-disc list-inside space-y-1 text-sm text-blue-800">
-          <li>{t('scoreCapture.help.juryScores.step1')}</li>
-          <li>{t('scoreCapture.help.juryScores.step2')}</li>
-          <li>{t('scoreCapture.help.juryScores.step3')}</li>
-          <li>{t('scoreCapture.help.juryScores.step4')}</li>
+          <li>{t('scoreCapture.help.modeRules.step1')}</li>
+          <li>{t('scoreCapture.help.modeRules.step2')}</li>
+          <li>{t('scoreCapture.help.modeRules.step3')}</li>
+          <li>{t('scoreCapture.help.modeRules.step4')}</li>
         </ul>
       </div>
       <div>
@@ -27,19 +26,6 @@ export function HelpPanel({ showJuryScores }: HelpPanelProps) {
         <ul className="list-disc list-inside space-y-1 text-sm text-blue-800">
           <li>{t('scoreCapture.help.navigation.enter')}</li>
           <li>{t('scoreCapture.help.navigation.arrows')}</li>
-        </ul>
-      </div>
-    </div>
-  );
-
-  const simpleScoresHelp = (
-    <div className="space-y-4">
-      <div>
-        <h4 className="font-medium text-blue-900 mb-2">{t('scoreCapture.help.simpleScores.title')}</h4>
-        <ul className="list-disc list-inside space-y-1 text-sm text-blue-800">
-          <li>{t('scoreCapture.help.simpleScores.step1')}</li>
-          <li>{t('scoreCapture.help.simpleScores.step2')}</li>
-          <li>{t('scoreCapture.help.simpleScores.step3')}</li>
         </ul>
       </div>
       <div>
@@ -51,6 +37,4 @@ export function HelpPanel({ showJuryScores }: HelpPanelProps) {
       </div>
     </div>
   );
-
-  return showJuryScores ? juryScoresHelp : simpleScoresHelp;
 }

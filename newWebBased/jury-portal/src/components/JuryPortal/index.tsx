@@ -18,7 +18,7 @@
 import React, { useState } from 'react';
 import type { JuryStep } from './JuryPortal.types';
 import { formatScore } from '../../utils/scoreFormatter';
-import { getScoreToSave } from '@turnfix/shared';
+import { getScoreToSave, resolveScoringInputMode } from '@turnfix/shared';
 import { useJuryData } from './hooks/useJuryData';
 import { useScoreSave } from './hooks/useScoreSave';
 import { useLiveScoreUpdates } from './hooks/useLiveScoreUpdates';
@@ -122,8 +122,14 @@ const JuryPortal: React.FC = () => {
         // Score is set by the useEffect in useJuryData that watches currentParticipantIndex
       }}
       onScoreChange={data.setScore}
-      onFormulaChange={(calculatedScore, fieldValues) => {
+      onCalculationComplete={(calculatedScore, fieldValues) => {
         if (calculatedScore !== null && data.selectedDevice) {
+          const inputMode = resolveScoringInputMode({
+            formula: data.selectedDevice.var_formel || '',
+            formulaId: data.selectedDevice.int_formelid || null
+          });
+          const disciplineFieldCountForSave = inputMode === 'builtInFormula' ? 0 : data.disciplineFields.length;
+
           // For built-in formulas (lowercase vars like "x", no discipline fields):
           // Store the RAW input value, not the calculated result.
           // The var_formel is applied at ranking time by applyBuiltInFormula().
@@ -131,7 +137,7 @@ const JuryPortal: React.FC = () => {
             calculatedScore,
             fieldValues,
             data.selectedDevice.var_formel || '',
-            data.disciplineFields.length
+            disciplineFieldCountForSave
           );
           const formattedScore = formatScore(scoreValue, data.selectedDevice.int_berechnung);
           data.setScore(formattedScore);

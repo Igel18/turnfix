@@ -39,6 +39,7 @@ export interface Device {
   var_maske?: string; // Format pattern (e.g., "0.00", "0,000", "0:00:00")
   var_formel?: string; // Formula for calculation (e.g., "(10 + A) - B")
   int_formelid?: number; // Formula ID reference
+  var_einheit?: string; // Display unit (e.g., Pkt., sec)
 }
 
 export interface DisciplineField {

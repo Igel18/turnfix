@@ -215,7 +215,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                           {/* For final score, show result in green box */}
                           {field.isFinalScore ? (
                             <div className={`${sizeClasses.resultPadding} rounded-lg ${sizeClasses.inputBorder} bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white ${sizeClasses.resultText} font-bold ${sizeClasses.resultWidth} text-center shadow-sm`}>
-                              {displayValue || '?'}
+                              {displayValue !== '' ? displayValue : '?'}
                             </div>
                           ) : (
                             /* For other fields, show input */
@@ -263,7 +263,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                         
                         {field.isFinalScore ? (
                           <div className={`${sizeClasses.resultPadding} rounded-lg ${sizeClasses.inputBorder} bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white ${sizeClasses.resultText} font-bold ${sizeClasses.resultWidth} text-center shadow-sm`}>
-                            {displayValue || '?'}
+                            {displayValue !== '' ? displayValue : '?'}
                           </div>
                         ) : (
                           <input

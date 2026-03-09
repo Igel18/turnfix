@@ -22,6 +22,7 @@ interface FormulaInputProps {
   disabled?: boolean;
   disciplineFields?: Pick<DisciplineField, 'id' | 'name' | 'sortOrder'>[];
   initialValues?: Record<string, number>;
+  showFormulaDisplay?: boolean;
 }
 
 /**
@@ -35,7 +36,8 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
   onScoreChange,
   disabled = false,
   disciplineFields = [],
-  initialValues = {}
+  initialValues = {},
+  showFormulaDisplay = true
 }) => {
   const [fieldValues, setFieldValues] = useState<Record<string, number>>(initialValues);
   const [fieldInputs, setFieldInputs] = useState<Record<string, string>>(() => {
@@ -118,12 +120,14 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
   return (
     <div className="space-y-3">
       {/* Formula Display */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <div className="text-xs font-medium text-gray-600 mb-1">Formel:</div>
-        <div className="text-lg font-mono text-blue-900">
-          {formatFormulaWithValues(formula, fieldValues, { decimals })}
+      {showFormulaDisplay && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="text-xs font-medium text-gray-600 mb-1">Formel:</div>
+          <div className="text-lg font-mono text-blue-900">
+            {formatFormulaWithValues(formula, fieldValues, { decimals })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Individual Field Inputs */}
       <div className="grid grid-cols-2 gap-2">
@@ -137,7 +141,7 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
             <input
               type="text"
               inputMode="decimal"
-              value={fieldInputs[symbol] || ''}
+              value={fieldInputs[symbol] ?? ''}
               onChange={(e) => handleFieldChange(symbol, e.target.value)}
               onBlur={() => handleFieldBlur(symbol)}
               placeholder={getFieldPlaceholder()}
