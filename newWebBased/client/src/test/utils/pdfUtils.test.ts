@@ -62,7 +62,7 @@ describe('pdfUtils', () => {
     });
 
     it('has color definitions', () => {
-      expect(PDF_CONFIG.colors.primary).toEqual([0, 102, 204]);
+      expect(PDF_CONFIG.colors.primary).toEqual([229, 236, 246]);
       expect(PDF_CONFIG.colors.text).toEqual([0, 0, 0]);
       expect(PDF_CONFIG.colors.white).toEqual([255, 255, 255]);
       expect(PDF_CONFIG.colors.gold).toEqual([255, 215, 0]);
@@ -206,7 +206,7 @@ describe('pdfUtils', () => {
     it('returns correct head styles', () => {
       const styles = getUnifiedTableStyles();
       expect(styles.headStyles.fillColor).toEqual(PDF_CONFIG.colors.primary);
-      expect(styles.headStyles.textColor).toEqual(PDF_CONFIG.colors.white);
+      expect(styles.headStyles.textColor).toEqual(PDF_CONFIG.colors.headingText);
       expect(styles.headStyles.fontStyle).toBe('bold');
       expect(styles.headStyles.halign).toBe('center');
     });

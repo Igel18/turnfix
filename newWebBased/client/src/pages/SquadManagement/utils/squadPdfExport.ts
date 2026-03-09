@@ -27,6 +27,8 @@ interface ExportSquadsPDFParams {
 export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFParams): void => {
   if (!selectedEvent) return;
 
+  const normalizeLabel = (label: string) => label.trim().replace(/[:：]\s*$/, '');
+
   const doc = new jsPDF('p', 'mm', 'a4');
   const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
   
@@ -64,8 +66,8 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
     doc.setFontSize(PDF_CONFIG.fonts.body.size);
     doc.setFont('helvetica', 'normal');
     doc.text(
-      `${t('squadManagement.pdf.participants')}: ${squad.participantCount}`, 
-      leftMargin, 
+      `${normalizeLabel(t('squadManagement.pdf.participants'))}: ${squad.participantCount}`,
+      leftMargin,
       yPosition
     );
     yPosition += PDF_CONFIG.spacing.line;
@@ -73,14 +75,14 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
     // Squad Competitions - each on a separate line
     if (squad.competitions && squad.competitions.length > 0) {
       doc.text(
-        `${t('squadManagement.pdf.competitions')}:`, 
-        leftMargin, 
+        `${normalizeLabel(t('squadManagement.pdf.competitions'))}:`,
+        leftMargin,
         yPosition
       );
       yPosition += PDF_CONFIG.spacing.line;
       
       squad.competitions.forEach((comp) => {
-        const compText = comp.number ? `  • ${comp.name} (Nr. ${comp.number})` : `  • ${comp.name}`;
+        const compText = comp.number ? `  - ${comp.name} (Nr. ${comp.number})` : `  - ${comp.name}`;
         doc.text(compText, leftMargin, yPosition);
         yPosition += PDF_CONFIG.spacing.line;
       });

@@ -25,7 +25,7 @@ export function getScoreForParticipant(
   if (!participant) return '';
   
   // Only show existing score if participant has one
-  if (participant.currentScore !== null && participant.currentScore !== undefined && participant.currentScore !== 0) {
+  if (participant.currentScore !== null && participant.currentScore !== undefined) {
     return participant.currentScore.toString();
   }
   

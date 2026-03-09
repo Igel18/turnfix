@@ -369,7 +369,7 @@ export function useJuryData(): UseJuryDataReturn {
             club: participant.clubName || participant.club || 'Unknown Club',
             clubName: participant.clubName || participant.club || 'Unknown Club',
             startNumber: participant.startNumber || (index + 1),
-            status: existingScore ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
+            status: (existingScore !== null && existingScore !== undefined) ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
             currentScore: existingScore,
             wertungenId: wertungenId
           };
@@ -381,7 +381,9 @@ export function useJuryData(): UseJuryDataReturn {
         setParticipants(formattedParticipants);
 
         // Set current participant to first uncompleted
-        const firstUncompletedIndex = formattedParticipants.findIndex(p => !p.currentScore);
+        const firstUncompletedIndex = formattedParticipants.findIndex(
+          p => p.currentScore === null || p.currentScore === undefined
+        );
         const selectedIndex = firstUncompletedIndex >= 0 ? firstUncompletedIndex : 0;
         console.log('🔵 JURY: Setting currentParticipantIndex to', selectedIndex);
         setCurrentParticipantIndex(selectedIndex);
@@ -542,7 +544,7 @@ export function useJuryData(): UseJuryDataReturn {
   // Update score input when current participant changes
   useEffect(() => {
     const existingScore = getScoreForParticipant(currentParticipant);
-    if (existingScore) {
+    if (existingScore !== '') {
       const normalized = normalizeScoreInput(
         existingScore,
         selectedDevice?.int_berechnung || 2

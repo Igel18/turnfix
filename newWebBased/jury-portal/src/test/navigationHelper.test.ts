@@ -27,9 +27,9 @@ describe('Navigation Helper — Score clearing on participant change', () => {
       expect(getScoreForParticipant(participant)).toBe('14.5');
     });
 
-    it('should return empty string for participant with score 0 (not yet scored)', () => {
+    it('should return score string for participant with score 0', () => {
       const participant = { currentScore: 0, wertungenId: null };
-      expect(getScoreForParticipant(participant)).toBe('');
+      expect(getScoreForParticipant(participant)).toBe('0');
     });
   });
 

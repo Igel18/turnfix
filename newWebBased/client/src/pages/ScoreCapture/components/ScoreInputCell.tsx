@@ -35,7 +35,7 @@ interface ScoreInputCellProps {
   scoreValue: string;
   wertungenId?: number; // Added: needed to load/save jury results
   onScoreChange: (participantId: number, disciplineId: number | string, value: string) => void;
-  onSave: (participantId: number, disciplineId: number | string) => Promise<void>;
+  onSave: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<void>;
   onFieldSave: (participantId: number, field: DisciplineField, value: string) => Promise<void>;
   normalizeScoreInput: (value: string, decimalPlaces: number) => string;
   getScorePlaceholder: (decimalPlaces: number) => string;
@@ -181,14 +181,14 @@ export const ScoreInputCell = ({
           if (normalized !== scoreValue) {
             onScoreChange(participantId, disciplineId, normalized);
           }
-          onSave(participantId, disciplineId);
+          onSave(participantId, disciplineId, normalized);
         }}
         onEnter={() => {
           const normalized = normalizeScoreInput(scoreValue, decimalPlaces);
           if (normalized !== scoreValue) {
             onScoreChange(participantId, disciplineId, normalized);
           }
-          onSave(participantId, disciplineId);
+          onSave(participantId, disciplineId, normalized);
         }}
         validation={validation}
         variant="capture"
@@ -215,7 +215,7 @@ export const ScoreInputCell = ({
             if (normalized !== e.target.value) {
               onScoreChange(participantId, disciplineId, normalized);
             }
-            onSave(participantId, disciplineId);
+            onSave(participantId, disciplineId, normalized);
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -225,7 +225,7 @@ export const ScoreInputCell = ({
               if (normalized !== e.currentTarget.value) {
                 onScoreChange(participantId, disciplineId, normalized);
               }
-              onSave(participantId, disciplineId);
+              onSave(participantId, disciplineId, normalized);
               // Blur the input field
               e.currentTarget.blur();
             }
@@ -333,7 +333,7 @@ export const ScoreInputCell = ({
             if (normalized !== lastCalculatedValue.current) {
               lastCalculatedValue.current = normalized;
               onScoreChange(participantId, disciplineId, normalized);
-              onSave(participantId, disciplineId);
+              onSave(participantId, disciplineId, normalized);
             }
           }
         }}

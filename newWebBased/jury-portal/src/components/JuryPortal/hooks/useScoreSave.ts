@@ -278,7 +278,7 @@ export function useScoreSave({
    * Main score submit handler.
    */
   const handleScoreSubmit = useCallback(async () => {
-    if (!currentParticipant || !score || !selectedDevice) return;
+    if (!currentParticipant || score.trim() === '' || !selectedDevice) return;
 
     try {
       setLoading(true);

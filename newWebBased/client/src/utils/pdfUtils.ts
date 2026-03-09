@@ -206,13 +206,14 @@ export const PDF_CONFIG = {
     small: { size: 8, style: 'normal' as const }
   },
   colors: {
-    primary: [0, 102, 204] as [number, number, number],      // Blau - für Header
-    secondary: [100, 100, 100] as [number, number, number],  // Grau - für sekundäre Elemente
+    primary: [229, 236, 246] as [number, number, number],    // Dezentes Blau-Grau für Tabellenkopf
+    secondary: [153, 163, 179] as [number, number, number],  // Neutrales Grau für Linien
+    headingText: [33, 43, 54] as [number, number, number],   // Dunkles Blau-Grau für Kopftexte
     success: [76, 175, 80] as [number, number, number],      // Grün - für Erfolg/Highlights
     warning: [255, 152, 0] as [number, number, number],      // Orange - für Warnungen
     error: [244, 67, 54] as [number, number, number],        // Rot - für Fehler
     text: [0, 0, 0] as [number, number, number],             // Schwarz - Standardtext
-    background: [245, 245, 245] as [number, number, number], // Hellgrau - Hintergrund
+    background: [248, 250, 252] as [number, number, number], // Sehr helles Grau für Zebra-Zeilen
     white: [255, 255, 255] as [number, number, number],      // Weiß
     gold: [255, 215, 0] as [number, number, number],         // Gold - Medaillen
     silver: [192, 192, 192] as [number, number, number],     // Silber - Medaillen
@@ -310,17 +311,17 @@ export const drawRankingBadge = (
 export const getUnifiedTableStyles = () => ({
   headStyles: {
     fillColor: PDF_CONFIG.colors.primary,
-    textColor: PDF_CONFIG.colors.white,
+    textColor: PDF_CONFIG.colors.headingText,
     fontSize: PDF_CONFIG.fonts.header.size,
     fontStyle: 'bold',
     halign: 'center' as const,
     valign: 'middle' as const,
-    cellPadding: 3
+    cellPadding: 2.8
   },
   bodyStyles: {
     fontSize: PDF_CONFIG.fonts.body.size,
-    cellPadding: 2,
-    minCellHeight: 8,
+    cellPadding: 2.2,
+    minCellHeight: 7.2,
     textColor: PDF_CONFIG.colors.text
   },
   alternateRowStyles: {
@@ -334,7 +335,7 @@ export const getUnifiedTableStyles = () => ({
     overflow: 'linebreak' as const,
     cellWidth: 'wrap' as const,
     lineColor: PDF_CONFIG.colors.secondary,
-    lineWidth: 0.1
+    lineWidth: 0.06
   }
 })
 

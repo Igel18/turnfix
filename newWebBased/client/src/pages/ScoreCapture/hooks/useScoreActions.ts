@@ -29,7 +29,7 @@ interface UseScoreActionsProps {
 }
 
 interface UseScoreActionsReturn {
-  saveScore: (participantId: number, disciplineId: number | string) => Promise<void>;
+  saveScore: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<void>;
   saveFieldScore: (participantId: number, field: DisciplineField) => Promise<void>;
   calculateDisciplineScores: (disciplineId: number | string, fields: DisciplineField[]) => Promise<void>;
 }
@@ -46,7 +46,7 @@ export function useScoreActions({
   evaluateFormula
 }: UseScoreActionsProps): UseScoreActionsReturn {
 
-  const saveScore = async (participantId: number, disciplineId: number | string) => {
+  const saveScore = async (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => {
     // For now, we'll use the original competitionId from URL params or context
     // In a more advanced implementation, we'd need to determine which competition
     // the selected discipline belongs to
@@ -54,7 +54,7 @@ export function useScoreActions({
     
     // Get the score value directly from the matrix using the standard key
     const regularKey = `${participantId}-${disciplineId}`
-    let scoreValue = scoreMatrix[regularKey]
+    let scoreValue = overrideScoreValue ?? scoreMatrix[regularKey]
     
     console.log('🔍 saveScore called with:', { 
       participantId, 

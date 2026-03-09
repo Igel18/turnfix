@@ -189,13 +189,13 @@ export default function Meldematrix() {
           },
           totalColumnStyle: {
             halign: 'center',
-            fillColor: [240, 248, 255],
+            fillColor: [236, 241, 247],
             fontStyle: 'bold',
           },
           didParseCell: (data: any) => {
             // Highlight last row (totals row)
             if (data.section === 'body' && data.row.index === tableData.length - 1) {
-              data.cell.styles.fillColor = [240, 248, 255]
+              data.cell.styles.fillColor = [236, 241, 247]
               data.cell.styles.fontStyle = 'bold'
             }
           },

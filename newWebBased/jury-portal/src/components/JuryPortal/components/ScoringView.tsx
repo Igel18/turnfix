@@ -20,6 +20,9 @@ import {
 import FormulaInput from '../../FormulaInput';
 import type { Participant, Device, Squad, DisciplineField } from '../JuryPortal.types';
 
+const hasStoredScore = (value: number | null | undefined): value is number =>
+  value !== null && value !== undefined;
+
 interface ScoringViewProps {
   // Data
   participants: Participant[];
@@ -60,7 +63,7 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   onBack,
   getScoreValidation,
 }) => {
-  const completedCount = participants.filter(p => p.currentScore && p.currentScore > 0).length;
+  const completedCount = participants.filter(p => hasStoredScore(p.currentScore)).length;
   const progressPercent = participants.length ? (completedCount / participants.length) * 100 : 0;
 
   return (
@@ -227,7 +230,7 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
               className={`p-3 sm:p-4 cursor-pointer transition-all active:scale-98 ${
                 index === currentParticipantIndex
                   ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm'
-                  : participant.currentScore && participant.currentScore > 0
+                  : hasStoredScore(participant.currentScore)
                     ? 'bg-green-50 hover:bg-green-100 active:bg-green-200'
                     : 'hover:bg-gray-50 active:bg-gray-100'
               }`}
@@ -239,7 +242,7 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
                     <span className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-bold flex-shrink-0 ${
                       index === currentParticipantIndex
                         ? 'bg-blue-600 text-white'
-                        : participant.currentScore && participant.currentScore > 0
+                        : hasStoredScore(participant.currentScore)
                           ? 'bg-green-600 text-white'
                           : 'bg-gray-200 text-gray-700'
                     }`}>
@@ -257,7 +260,7 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
                 </div>
 
                 <div className="text-right flex-shrink-0">
-                  {participant.currentScore && participant.currentScore > 0 ? (
+                  {hasStoredScore(participant.currentScore) ? (
                     <div className="flex flex-col items-end">
                       <span className="text-base sm:text-lg font-bold text-green-700">
                         {formatScore(
@@ -493,7 +496,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
               <div className="flex flex-col space-y-1.5">
                 <button
                   onClick={onScoreSubmit}
-                  disabled={!score || loading}
+                  disabled={score.trim() === '' || loading}
                   className="w-full bg-green-600 text-white py-2 sm:py-3 px-4 rounded-lg text-sm sm:text-lg font-bold hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all transform active:scale-98"
                 >
                   {loading ? '💾 Speichert...' : '✓ Bewertung speichern'}
