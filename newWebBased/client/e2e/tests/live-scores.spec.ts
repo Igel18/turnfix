@@ -139,12 +139,9 @@ test.describe('Live Scores — Socket.IO Integration', () => {
     // 1. Navigate to the live-scores page and wait for Socket.IO to connect
     await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
     
-    // Wait for the green pulse indicator (Socket.IO connected)
-    const pulseIndicator = page.locator('[class*="animate-pulse"]');
-    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
-    
-    // Give Socket.IO a moment to join the competition room
-    await page.waitForTimeout(1_000);
+    // Wait for actual Socket.IO connection (data-testid changes when connected)
+    const connectedIndicator = page.locator('[data-testid="socket-connected"]');
+    await expect(connectedIndicator).toBeVisible({ timeout: 15_000 });
 
     // 2. Submit a score via the API — this triggers server-side Socket.IO emission
     const participantId = state.womenPids[0];
@@ -172,11 +169,9 @@ test.describe('Live Scores — Socket.IO Integration', () => {
   });
 
   test('multiple scores appear in newest-first order', async ({ page, request }) => {
-    // Navigate and wait for Socket.IO
+    // Navigate and wait for actual Socket.IO connection
     await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
-    const pulseIndicator = page.locator('[class*="animate-pulse"]');
-    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(1_000);
+    await expect(page.locator('[data-testid="socket-connected"]')).toBeVisible({ timeout: 15_000 });
 
     // Submit two scores in sequence
     const firstScore = 10.100;
@@ -210,9 +205,7 @@ test.describe('Live Scores — Socket.IO Integration', () => {
 
   test('score entry shows participant name and discipline', async ({ page, request }) => {
     await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
-    const pulseIndicator = page.locator('[class*="animate-pulse"]');
-    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(1_000);
+    await expect(page.locator('[data-testid="socket-connected"]')).toBeVisible({ timeout: 15_000 });
 
     // Submit a score
     await apiPost(request, '/scores/save-value', {
@@ -238,9 +231,7 @@ test.describe('Live Scores — Socket.IO Integration', () => {
 
   test('score entry shows timestamp', async ({ page, request }) => {
     await page.goto(`/live-scores?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
-    const pulseIndicator = page.locator('[class*="animate-pulse"]');
-    await expect(pulseIndicator.first()).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(1_000);
+    await expect(page.locator('[data-testid="socket-connected"]')).toBeVisible({ timeout: 15_000 });
 
     await apiPost(request, '/scores/save-value', {
       competitionId: state.comp1Id,

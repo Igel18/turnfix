@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 
 interface Event {
   int_eventid: number
@@ -57,41 +57,34 @@ interface EventProviderProps {
 }
 
 export function EventProvider({ children }: EventProviderProps) {
-  const [selectedEvent, setSelectedEventState] = useState<Event | null>(null)
-  const [selectedCompetition, setSelectedCompetitionState] = useState<Competition | null>(null)
-  const [selectedSquad, setSelectedSquadState] = useState<Squad | null>(null)
-  const [selectedDiscipline, setSelectedDisciplineState] = useState<Discipline | null>(null)
+  // Use lazy initializers for synchronous localStorage reads (prevents flash of empty state)
+  const [selectedEvent, setSelectedEventState] = useState<Event | null>(() => {
+    try {
+      const saved = localStorage.getItem('turnfix-selected-event')
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
+  const [selectedCompetition, setSelectedCompetitionState] = useState<Competition | null>(() => {
+    try {
+      const saved = localStorage.getItem('turnfix-selected-competition')
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
+  const [selectedSquad, setSelectedSquadState] = useState<Squad | null>(() => {
+    try {
+      const saved = localStorage.getItem('turnfix-selected-squad')
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
+  const [selectedDiscipline, setSelectedDisciplineState] = useState<Discipline | null>(() => {
+    try {
+      const saved = localStorage.getItem('turnfix-selected-discipline')
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
   const [eventUpdateTrigger, setEventUpdateTrigger] = useState<number>(0)
 
-  // Load persisted selection from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedEvent = localStorage.getItem('turnfix-selected-event')
-      const savedCompetition = localStorage.getItem('turnfix-selected-competition')
-      const savedSquad = localStorage.getItem('turnfix-selected-squad')
-      const savedDiscipline = localStorage.getItem('turnfix-selected-discipline')
-
-      if (savedEvent) {
-        setSelectedEventState(JSON.parse(savedEvent))
-      }
-      if (savedCompetition) {
-        setSelectedCompetitionState(JSON.parse(savedCompetition))
-      }
-      if (savedSquad) {
-        setSelectedSquadState(JSON.parse(savedSquad))
-      }
-      if (savedDiscipline) {
-        setSelectedDisciplineState(JSON.parse(savedDiscipline))
-      }
-    } catch (error) {
-      console.error('Error loading persisted event selection:', error)
-      // Clear invalid data
-      localStorage.removeItem('turnfix-selected-event')
-      localStorage.removeItem('turnfix-selected-competition')
-      localStorage.removeItem('turnfix-selected-squad')
-      localStorage.removeItem('turnfix-selected-discipline')
-    }
-  }, [])
+  // Note: localStorage loading moved to lazy useState initializers above (synchronous, no flash)
 
   // Persist event selection to localStorage
   const setSelectedEvent = (event: Event | null) => {

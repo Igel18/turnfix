@@ -35,15 +35,29 @@ interface LiveScoreUpdatesProps {
 const LiveScoreUpdates = ({ eventId, maxEntries = 10, showSquad = true, className = '' }: LiveScoreUpdatesProps) => {
   const { t } = useTranslation()
   const [liveScores, setLiveScores] = useState<LiveScore[]>([])
+  const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
     if (!eventId) return
 
     const socket = getSocket()
-    
-    // Join the event room to receive score updates
-    console.log('📊 Joining event room:', eventId)
-    socket.emit('join-competition', eventId)
+
+    // Track connection state
+    const handleConnect = () => {
+      console.log('📊 Socket.IO connected, joining event room:', eventId)
+      socket.emit('join-competition', eventId)
+      setIsConnected(true)
+    }
+    const handleDisconnect = () => {
+      setIsConnected(false)
+    }
+
+    // If already connected, join immediately
+    if (socket.connected) {
+      handleConnect()
+    }
+    socket.on('connect', handleConnect)
+    socket.on('disconnect', handleDisconnect)
 
     // Listen for score updates (the server sends 'score-updated' with hyphen)
     const handleScoreUpdate = (data: any) => {
@@ -84,7 +98,10 @@ const LiveScoreUpdates = ({ eventId, maxEntries = 10, showSquad = true, classNam
 
     return () => {
       socket.off('score-updated', handleScoreUpdate)
+      socket.off('connect', handleConnect)
+      socket.off('disconnect', handleDisconnect)
       socket.emit('leave-competition', eventId)
+      setIsConnected(false)
     }
   }, [eventId, maxEntries])
 
@@ -116,7 +133,10 @@ const LiveScoreUpdates = ({ eventId, maxEntries = 10, showSquad = true, classNam
           <div className="flex items-center gap-1 text-blue-100 text-sm">
             <ClockIcon className="h-4 w-4" />
             <span>{t('liveScores.live')}</span>
-            <div className="ml-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <div
+              data-testid={isConnected ? 'socket-connected' : 'socket-disconnected'}
+              className={`ml-1 w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}
+            ></div>
           </div>
         </div>
       </div>
