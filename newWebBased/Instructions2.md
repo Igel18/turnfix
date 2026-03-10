@@ -493,3 +493,8 @@ b) im Formel verwalten sollte es als Warnung dargestellt werden, wenn ein Formel
 Das Suchfeld im Score-Capture sollte wie auf allen anderen Seiten mittels dem Filter Button ein und ausgeblendet werden. Hier bitte keine Sonderlösung sonder 
 den vorhandenen Style von den anderen Seiten übernehmen. Da gibt es bestimmt auch Unified / Shared code. 
 	-> Erledigt ✅ 
+
+66. Dokumentation
+Wir haben ja sehr viel Doku erstellt. 
+Kannst du all diese Dokumente bitte ordentlich aufbereiten und in ein einheitliches look & feel bringen um daraus eine Anwenderdoku und eine Entwicklerdoku zu erstellen. 
+Dann ist es ja so, dass playwright Screenshots der UI machen kann. Wäre es möglich dies zu nutzen und Bilder von der UI in der ANwender-Doku mit anzuhängen? 
