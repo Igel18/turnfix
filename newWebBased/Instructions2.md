@@ -483,7 +483,7 @@ Let me check if there's an API to create discipline fields:
 
 64. Formeln verwalten / Disziplinfelder 
 Bei den Disziplinfeldern gibt es die Möglichkeit dieses Feld als EW Endwert zu definieren. Nach meinem Verständnist ist dieses Feld dann immer die Zuweisung ( = EW). Das bedeutet bei den Formeln müsste dieser Endwert immer als Zusweisung dargestellt werden. 
-Wie war das denn im c++ mit dem Ausgangswert und Endwert und auch Ausgangswert? 
+Wie war das denn im c++ mit dem Ausgangswert und Endwert? 
 a) beim Import von Formeln auf die definition von EW achten
 b) im Formel verwalten sollte es als Warnung dargestellt werden, wenn ein Formelbuchstabe als Endwert definiert ist, aber nicht die Zuweisung (= EW) bekommt. 
 
