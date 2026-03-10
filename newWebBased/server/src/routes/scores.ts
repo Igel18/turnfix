@@ -355,17 +355,20 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
           }
         }
         
-        // Filter stale jury results: When the discipline no longer has a linked formula
-        // (int_formelid IS NULL → formula is null), field-level jury results (non-EW,
-        // non-AW) are from a previous formula configuration and should not be returned.
-        // This matches the client-side filtering in Score Capture and Jury Portal which
-        // only show field-level data when resolveScoringInputMode() === 'linkedFormula'.
-        const filteredJuryResults = (!formula && juryResults.length > 0)
+        // Filter stale jury results: When the discipline has a variable-type built-in
+        // formula (e.g., "1*x") but no linked formula from tfx_formeln, field-level jury
+        // results (non-EW, non-AW) are from a previous linked formula configuration and
+        // should not be returned. This matches the client-side filtering in JuryResultsDisplay,
+        // Score Capture, and Jury Portal.
+        // IMPORTANT: If neither formula exists, jury results are manually entered via
+        // discipline fields and should be preserved (not stale).
+        const isVariableBuiltIn = disciplineFormula && /x/.test(disciplineFormula) && !/[A-Z]/.test(disciplineFormula);
+        const filteredJuryResults = (!formula && isVariableBuiltIn && juryResults.length > 0)
           ? juryResults.filter((jr: any) => jr.isFinalScore || jr.isStartingScore)
           : juryResults;
         
         if (filteredJuryResults.length < juryResults.length) {
-          console.log(`🔧 [Server] Filtered ${juryResults.length - filteredJuryResults.length} stale jury results for wertungenId ${result.id} (no linked formula)`);
+          console.log(`🔧 [Server] Filtered ${juryResults.length - filteredJuryResults.length} stale jury results for wertungenId ${result.id} (variable built-in formula "${disciplineFormula}", no linked formula)`);
         }
         
         return {

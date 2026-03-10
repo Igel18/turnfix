@@ -281,37 +281,47 @@ describe('JuryResultsDisplay stale field handling', () => {
 describe('Server-side stale jury results filtering', () => {
   /**
    * Simulates the server-side filtering logic from scores.ts.
-   * When no linked formula exists, only EW/AW jury results are kept.
+   * Only filters when: no linked formula AND discipline has a variable-type
+   * built-in formula (e.g., "1*x"). If no formula at all, jury results are
+   * manually entered field data and should be preserved.
    */
   function filterStaleJuryResults(
     juryResults: Array<{ isFinalScore?: boolean; isStartingScore?: boolean; fieldName?: string; performance: number | null }>,
-    linkedFormula: string | null
+    linkedFormula: string | null,
+    disciplineFormula: string | null = null
   ): typeof juryResults {
-    if (!linkedFormula && juryResults.length > 0) {
+    const isVariableBuiltIn = disciplineFormula && /x/.test(disciplineFormula) && !/[A-Z]/.test(disciplineFormula);
+    if (!linkedFormula && isVariableBuiltIn && juryResults.length > 0) {
       return juryResults.filter(jr => jr.isFinalScore || jr.isStartingScore);
     }
     return juryResults;
   }
 
-  it('filters out regular fields when no linked formula', () => {
-    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, null);
+  it('filters out regular fields when variable built-in formula and no linked formula', () => {
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, null, '1*x');
     expect(filtered).toEqual([]);
   });
 
-  it('keeps all fields when linked formula exists', () => {
-    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, 'A+B-C');
+  it('keeps all fields when linked formula exists (even with variable built-in)', () => {
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, 'A+B-C', '1*x');
     expect(filtered.length).toBe(3);
   });
 
-  it('keeps EW field when no linked formula', () => {
-    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS_WITH_EW, null);
+  it('keeps all fields when no formula at all (manually entered)', () => {
+    // No linked formula AND no built-in formula → jury results are manual field entries
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, null, null);
+    expect(filtered.length).toBe(3);
+  });
+
+  it('keeps EW field when variable built-in and no linked formula', () => {
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS_WITH_EW, null, '1*x');
     expect(filtered.length).toBe(1);
     expect(filtered[0].isFinalScore).toBe(true);
     expect(filtered[0].fieldName).toBe('Endwert');
   });
 
-  it('keeps both AW and EW when no linked formula', () => {
-    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS_WITH_AW_AND_EW, null);
+  it('keeps both AW and EW when variable built-in and no linked formula', () => {
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS_WITH_AW_AND_EW, null, '1*x');
     expect(filtered.length).toBe(2);
     expect(filtered.some(jr => jr.isFinalScore)).toBe(true);
     expect(filtered.some(jr => jr.isStartingScore)).toBe(true);
@@ -323,13 +333,25 @@ describe('Server-side stale jury results filtering', () => {
   });
 
   it('handles empty jury results array', () => {
-    const filtered = filterStaleJuryResults([], null);
+    const filtered = filterStaleJuryResults([], null, '1*x');
     expect(filtered).toEqual([]);
   });
 
   it('handles empty jury results array with linked formula', () => {
     const filtered = filterStaleJuryResults([], 'A+B-C');
     expect(filtered).toEqual([]);
+  });
+
+  it('filters for "20-x" variable formula', () => {
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, null, '20-x');
+    expect(filtered).toEqual([]);
+  });
+
+  it('does NOT filter for letter-type built-in formula without linked formula', () => {
+    // Discipline has built-in formula like "(10 + A) - B" but no linked formula
+    // This is NOT a variable formula, so jury results should be kept
+    const filtered = filterStaleJuryResults(STALE_JURY_RESULTS, null, '(10 + A) - B');
+    expect(filtered.length).toBe(3);
   });
 });
 
@@ -389,14 +411,29 @@ describe('End-to-end: Formula change from A+B-C to 1*x', () => {
     expect(transformedScore).toBe(5.00);
   });
 
-  it('server-side filter removes stale jury results when no linked formula', () => {
-    // Server: formula (from tfx_formeln) is null after formula change
+  it('server-side filter removes stale jury results when variable built-in and no linked formula', () => {
+    // Server: linked formula (from tfx_formeln) is null after formula change
+    // Built-in formula is "1*x" (variable type)
     const linkedFormula = null;
-    const filtered = (!linkedFormula && STALE_JURY_RESULTS.length > 0)
+    const disciplineFormula = '1*x';
+    const isVariableBuiltIn = disciplineFormula && /x/.test(disciplineFormula) && !/[A-Z]/.test(disciplineFormula);
+    const filtered = (!linkedFormula && isVariableBuiltIn && STALE_JURY_RESULTS.length > 0)
       ? STALE_JURY_RESULTS.filter(jr => jr.isFinalScore || jr.isStartingScore)
       : STALE_JURY_RESULTS;
     
     expect(filtered).toEqual([]);
+  });
+
+  it('server-side filter keeps jury results when no formula at all', () => {
+    // No linked formula, no built-in formula → manually entered field data
+    const linkedFormula = null;
+    const disciplineFormula = null;
+    const isVariableBuiltIn = disciplineFormula && /x/.test(disciplineFormula) && !/[A-Z]/.test(disciplineFormula);
+    const filtered = (!linkedFormula && isVariableBuiltIn && STALE_JURY_RESULTS.length > 0)
+      ? STALE_JURY_RESULTS.filter(jr => jr.isFinalScore || jr.isStartingScore)
+      : STALE_JURY_RESULTS;
+    
+    expect(filtered.length).toBe(3); // All kept
   });
 });
 

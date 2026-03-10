@@ -53,6 +53,7 @@ Beim Erfassen der wertungen: 1. wird die Riege ausgewählt 2. das Gerät. An dem
 
 Bei den Results: 
 In einem Wettkampf gibt es auch nur eine definierte Gerätezahl welche bei jedem Turner gleich ist. Daher wäre es auch hier möglich die Formel im Kopf darzustellen und am Rand nur die Felder zur Eingabe und der Endwert. 
+-> Erledigt ✅ 
 
 7. der Import funktioniert jetz immerhin ohne fehler. Nach dem Import habe ich die disziplinen geprüft. 
 Die Sportart "Turnen" hat einige Geräte. Alle Felder sind Korrekt. Nur die "Einheit" fehlt bei fast allen. Das muss "Pkt." Sein. 
@@ -487,7 +488,7 @@ Wie war das denn im c++ mit dem Ausgangswert und Endwert?
 a) beim Import von Formeln auf die definition von EW achten
 b) im Formel verwalten sollte es als Warnung dargestellt werden, wenn ein Formelbuchstabe als Endwert definiert ist, aber nicht die Zuweisung (= EW) bekommt. 
 	-> Erledigt ✅ 
-	
+
 65. Score-Capture Suche 
 Das Suchfeld im Score-Capture sollte wie auf allen anderen Seiten mittels dem Filter Button ein und ausgeblendet werden. Hier bitte keine Sonderlösung sonder 
 den vorhandenen Style von den anderen Seiten übernehmen. Da gibt es bestimmt auch Unified / Shared code. 
