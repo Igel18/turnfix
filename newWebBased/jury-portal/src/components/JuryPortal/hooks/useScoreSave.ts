@@ -57,11 +57,33 @@ export function useScoreSave({
 
   /**
    * Finds the correct competition ID for the selected discipline.
+   * Priority: participant's assigned competition that has the discipline > any competition with
+   * the discipline > participant's first assigned competition > first available competition.
    */
   const findCompetitionId = (): number | null => {
     if (!selectedDevice) return null;
 
-    // Try to find the competition that contains this discipline
+    // Priority 1: participant's assigned competition that includes this discipline.
+    // This avoids accidentally picking a competition the participant doesn't belong to
+    // when multiple competitions share the same disciplines.
+    const participant = participants.find((p: any) => p.id === currentParticipant?.participantId);
+    const assignedIds = new Set<number>(
+      (participant?.assignedCompetitions ?? []).map(Number).filter((id: number) => id > 0)
+    );
+
+    if (assignedIds.size > 0) {
+      const assignedWithDiscipline = competitions.find(comp =>
+        assignedIds.has(comp.id) &&
+        comp.disciplines?.some(d => d.disciplineId === selectedDevice.disciplineId)
+      );
+
+      if (assignedWithDiscipline) {
+        console.log(`✅ JURY: Found participant's assigned competition ID ${assignedWithDiscipline.id} for discipline ${selectedDevice.disciplineId}`);
+        return assignedWithDiscipline.id;
+      }
+    }
+
+    // Priority 2: any competition that contains this discipline
     const disciplineCompetition = competitions.find(comp =>
       comp.disciplines?.some(d => d.disciplineId === selectedDevice.disciplineId)
     );
@@ -71,11 +93,11 @@ export function useScoreSave({
       return disciplineCompetition.id;
     }
 
-    // Fallback: participant's assigned competitions
-    const participant = participants.find((p: any) => p.id === currentParticipant?.participantId);
-    if (participant?.assignedCompetitions?.length) {
-      console.log(`✅ JURY: Using participant's first assigned competition: ${participant.assignedCompetitions[0]}`);
-      return participant.assignedCompetitions[0];
+    // Priority 3: participant's first assigned competition
+    if (assignedIds.size > 0) {
+      const firstAssigned = [...assignedIds][0];
+      console.log(`✅ JURY: Using participant's first assigned competition: ${firstAssigned}`);
+      return firstAssigned;
     }
 
     // Last resort: first available competition
@@ -93,9 +115,12 @@ export function useScoreSave({
   const saveFormulaFields = async (wertungenId: number, actualCompetitionId: number) => {
     console.log('🔵 JURY: Saving formula field values:', formulaFieldValues, 'with wertungenId:', wertungenId);
 
+    // Filter out Endwert and starting score fields — only input fields map to A, B, C…
+    const inputFields = disciplineFields.filter(f => !f.isEndValue && !f.isStartValue);
+
     for (const [symbol, value] of Object.entries(formulaFieldValues)) {
       const fieldIndex = symbol.charCodeAt(0) - 65; // A=0, B=1, C=2...
-      const disciplineField = disciplineFields[fieldIndex];
+      const disciplineField = inputFields[fieldIndex];
 
       if (!disciplineField) {
         console.warn(`⚠️ JURY: No discipline field found for symbol ${symbol}`);
@@ -292,7 +317,10 @@ export function useScoreSave({
       }
 
       // Check if this is a formula-based discipline
-      const hasFormula = selectedDevice.var_formel && Object.keys(formulaFieldValues).length > 0;
+      // Consider both inline formulas (var_formel) and linked formulas (int_formelid)
+      const hasFormulaText = selectedDevice.var_formel && selectedDevice.var_formel.trim().length > 0;
+      const hasLinkedFormula = Boolean(selectedDevice.int_formelid);
+      const hasFormula = (hasFormulaText || hasLinkedFormula) && Object.keys(formulaFieldValues).length > 0;
 
       if (hasFormula) {
         const success = await handleFormulaSubmit(actualCompetitionId);

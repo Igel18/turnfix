@@ -470,3 +470,16 @@ Die Info: "Eingabemodus
 	Soll im Jury-Portal nicht angezeigt werden. Eher auf der Disziplin seite http://localhost:3001/disciplines 
 
 Die Berechnung für die Build-In-Formel ist im Jury-Portal korrekt. Aber im Score-Capture nicht. 
+
+63. 
+Now I understand both bugs clearly. Let me write the tests, then the fixes.
+
+For the Score-Capture issue: The onFieldChange handler in ScoreInputCell tries to find the field by ID in disciplineFields (which only has real DB field IDs), but FormulaInput/useFormulaFields may assign synthetic IDs (1000+i) for missing fields. The fix is to auto-create missing discipline fields in the database when the formula requires them.
+
+Actually, looking at it more carefully — the real issue is simpler: if a discipline has formula (10+A)-B in the DB, both fields A and B should exist as tfx_disziplinen_felder entries. The bug is that field B doesn't exist yet. But we can't force users to manually create all fields. The fix should be in the code: when useFormulaFields detects missing fields, it should auto-create them via API, OR the onFieldChange handler should handle synthetic fields by creating the DB entry on-the-fly.
+
+Let me check if there's an API to create discipline fields:
+
+64. Formeln verwalten / Disziplinfelder 
+Bei den Disziplinfeldern gibt es die Möglichkeit dieses Feld als EW Endwert zu definieren. Nach meinem Verständnist ist dieses Feld dann immer die Zuweisung ( = EW). Das bedeutet bei den Formeln müsste dieser Endwert immer als Zusweisung dargestellt werden. 
+Wie war das denn im c++ mit dem Ausgangswert und Endwert und auch Ausgangswert? 

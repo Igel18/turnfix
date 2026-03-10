@@ -289,13 +289,15 @@ export const ScoreInputCell = ({
           console.log('🔵 onFieldChange called:', { fieldId, value, wertungenId, participantId });
           
           // Save individual field value
+          // NOTE: We must pass the real participantId (int_teilnehmerid), NOT wertungenId.
+          // The /save-field-score endpoint expects participantId and derives wertungenId itself.
           const field = disciplineFields.find(f => f.id === fieldId);
-          if (field && wertungenId) {
-            _onFieldSave(wertungenId, field, value).catch(error => {
+          if (field && participantId) {
+            _onFieldSave(participantId, field, value).catch(error => {
               console.error('❌ Error saving field value:', error);
             });
           } else {
-            console.warn('⚠️ Cannot save: field or wertungenId missing', { field, wertungenId });
+            console.warn('⚠️ Cannot save: field or participantId missing', { field, participantId, fieldId });
           }
         }}
         onCalculationComplete={(result) => {

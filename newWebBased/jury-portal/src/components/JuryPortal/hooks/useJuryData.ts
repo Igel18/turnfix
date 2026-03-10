@@ -379,7 +379,12 @@ export function useJuryData(): UseJuryDataReturn {
             startNumber: participant.startNumber || (index + 1),
             status: (existingScore !== null && existingScore !== undefined) ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
             currentScore: existingScore,
-            wertungenId: wertungenId
+            wertungenId: wertungenId,
+            // Preserve competition assignments from squad data so findCompetitionId()
+            // can correctly pick the participant's own competition (Priority 1)
+            assignedCompetitions: (participant.competitions || [])
+              .map((c: any) => typeof c === 'object' ? Number(c.id) : Number(c))
+              .filter((id: number) => id > 0),
           };
         });
 

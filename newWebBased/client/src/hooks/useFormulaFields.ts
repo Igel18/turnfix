@@ -177,20 +177,74 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
               debugLog(`🔍 [useFormulaFields] Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
               
               if (missingFieldsCount > 0) {
-                debugLog(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields...`);
+                debugLog(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields via API...`);
                 
-                // Create missing fields
+                // Auto-create missing fields in the database so they get real IDs
+                const createPromises: Promise<any>[] = [];
                 for (let i = nonFinalFields.length; i <= maxLetterIndex; i++) {
                   const letter = getFieldLetter(i);
-                  loadedFields.splice(loadedFields.length - (loadedFields.filter(f => f.isFinalScore).length), 0, {
-                    id: 1000 + i,
-                    name: `Field ${letter}`,
-                    value: '',
-                    normalizedValue: '',
-                    isFinalScore: false,
-                    isStartingScore: false
-                  });
+                  const existingEndwertField = loadedFields.find(f => f.isFinalScore);
+                  const maxSortOrder = Math.max(
+                    ...loadedFields.filter(f => !f.isFinalScore).map(f => (f as any).sortOrder ?? 0),
+                    0
+                  );
+                  createPromises.push(
+                    fetch('/api/discipline-fields', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        disciplineId,
+                        name: `Field ${letter}`,
+                        sortOrder: maxSortOrder + i - nonFinalFields.length + 1,
+                        isFinalScore: false,
+                        isStartingScore: false,
+                        group: existingEndwertField ? (existingEndwertField as any).group ?? 1 : 1,
+                        enabled: true,
+                      }),
+                    })
+                      .then(r => r.json())
+                      .then(created => {
+                        const newId = created?.id ?? created?.int_disziplinen_felderid;
+                        debugLog(`✅ [useFormulaFields] Auto-created field "${letter}" with DB ID ${newId}`);
+                        return {
+                          id: newId ?? 1000 + i, // fallback to synthetic if API fails
+                          name: `Field ${letter}`,
+                          value: '',
+                          normalizedValue: '',
+                          isFinalScore: false,
+                          isStartingScore: false,
+                        };
+                      })
+                      .catch(err => {
+                        console.error(`[useFormulaFields] Failed to auto-create field ${letter}:`, err);
+                        return {
+                          id: 1000 + i,
+                          name: `Field ${letter}`,
+                          value: '',
+                          normalizedValue: '',
+                          isFinalScore: false,
+                          isStartingScore: false,
+                        };
+                      })
+                  );
                 }
+                
+                // Wait for all field creations, then insert into loadedFields
+                Promise.all(createPromises).then(createdFields => {
+                  const finalFields = [...loadedFields];
+                  const endwertCount = finalFields.filter(f => f.isFinalScore).length;
+                  for (const cf of createdFields) {
+                    finalFields.splice(finalFields.length - endwertCount, 0, cf);
+                  }
+                  debugLog('✅ [useFormulaFields] Fields after auto-creation:', finalFields);
+                  setFields(finalFields);
+                  if (onFieldsLoaded) {
+                    onFieldsLoaded(finalFields);
+                  }
+                });
+                
+                // Don't set fields yet — wait for Promise.all above
+                return;
               }
             }
             
