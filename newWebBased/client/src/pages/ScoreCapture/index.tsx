@@ -58,7 +58,9 @@ export default function ScoreCapture() {
   // Local UI state
   const [searchTerm, setSearchTerm] = useState('');
   const [showHelpPanel, setShowHelpPanel] = useState(false);
-  const [showJuryScores, setShowJuryScores] = useState(true);
+  // showJuryScores removed per Point 62: formula fields are always shown based on scoring mode
+  // The scoring input mode (linkedFormula, builtInFormula, direct) determines display automatically
+  const showJuryScores = true;
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || urlSquadName || '');
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
     contextDiscipline ? (contextDiscipline.int_disziplinid || contextDiscipline.var_name) : ''
@@ -452,7 +454,7 @@ export default function ScoreCapture() {
 
       {/* Search */}
       <div className="bg-white p-4 rounded-lg border mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           {/* Search Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -465,22 +467,6 @@ export default function ScoreCapture() {
               placeholder={t('scoreCapture.filters.searchPlaceholder')}
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-
-          {/* Show Jury Scores Toggle */}
-          <div className="flex items-end">
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                type="checkbox"
-                id="showJuryScores"
-                checked={showJuryScores}
-                onChange={(e) => setShowJuryScores(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="showJuryScores" className="text-sm font-medium text-gray-700">
-                {t('scoreCapture.filters.showJuryScores')}
-              </label>
-            </div>
           </div>
         </div>
       </div>

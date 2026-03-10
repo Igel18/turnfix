@@ -6,7 +6,9 @@
  * - Squad selection dropdown
  * - Discipline selection dropdown
  * - Search input for participants
- * - Show Jury Scores toggle
+ * 
+ * Note: showJuryScores checkbox removed per Point 62.
+ * Formula fields are now always shown based on scoring input mode.
  */
 
 import { useTranslation } from 'react-i18next'
@@ -26,10 +28,6 @@ interface ScoreFiltersProps {
   // Search
   searchTerm: string
   onSearchChange: (term: string) => void
-  
-  // Jury scores toggle
-  showJuryScores: boolean
-  onShowJuryScoresChange: (checked: boolean) => void
 }
 
 export const ScoreFilters = ({
@@ -40,9 +38,7 @@ export const ScoreFilters = ({
   activeDiscipline,
   onDisciplineChange,
   searchTerm,
-  onSearchChange,
-  showJuryScores,
-  onShowJuryScoresChange
+  onSearchChange
 }: ScoreFiltersProps) => {
   const { t } = useTranslation()
 
@@ -109,20 +105,6 @@ export const ScoreFilters = ({
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-      </div>
-
-      {/* Show Jury Scores Toggle */}
-      <div className="flex items-center gap-2 pt-2 border-t">
-        <input
-          type="checkbox"
-          id="showJuryScores"
-          checked={showJuryScores}
-          onChange={(e) => onShowJuryScoresChange(e.target.checked)}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <label htmlFor="showJuryScores" className="text-sm font-medium text-gray-700">
-          {t('scoreCapture.filters.showJuryScores')}
-        </label>
       </div>
     </div>
   )

@@ -483,3 +483,7 @@ Let me check if there's an API to create discipline fields:
 64. Formeln verwalten / Disziplinfelder 
 Bei den Disziplinfeldern gibt es die Möglichkeit dieses Feld als EW Endwert zu definieren. Nach meinem Verständnist ist dieses Feld dann immer die Zuweisung ( = EW). Das bedeutet bei den Formeln müsste dieser Endwert immer als Zusweisung dargestellt werden. 
 Wie war das denn im c++ mit dem Ausgangswert und Endwert und auch Ausgangswert? 
+
+65. Score-Capture Suche 
+Das Suchfeld im Score-Capture sollte wie auf allen anderen Seiten mittels dem Filter Button ein und ausgeblendet werden. Hier bitte keine Sonderlösung sonder 
+den vorhandenen Style von den anderen Seiten übernehmen. Da gibt es bestimmt auch Unified / Shared code. 
