@@ -72,13 +72,6 @@ test.describe('Score Entry: Women (Squad RW)', () => {
 
     await selectSquadOption(page, 'RW');
 
-    // Uncheck "Jury-Wertungen anzeigen" for simple view
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
-
     // Verify first participant's first score
     const firstInput = page.locator(
       `input[data-participant="${state.womenPids[0]}"][data-discipline="${state.disciplineIds[0]}"]`
@@ -145,12 +138,6 @@ test.describe('Score Entry: Men (Squad RM)', () => {
 
     await selectSquadOption(page, 'RM');
 
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
-
     // Verify first man's first score
     const firstInput = page.locator(
       `input[data-participant="${state.menPids[0]}"][data-discipline="${state.disciplineIds[0]}"]`
@@ -169,12 +156,6 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     );
 
     await selectSquadOption(page, 'RM');
-
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
 
     // Edit last man's first discipline score
     const lastManPid = state.menPids[9];
@@ -195,12 +176,6 @@ test.describe('Score Entry: Men (Squad RM)', () => {
     // Verify the change persisted (reload page)
     await page.reload({ waitUntil: 'domcontentloaded' });
     await selectSquadOption(page, 'RM');
-
-    const juryCheckbox2 = page.locator('#showJuryScores');
-    if (await juryCheckbox2.isChecked()) {
-      await juryCheckbox2.uncheck();
-      await page.waitForTimeout(500);
-    }
 
     const afterInput = page.locator(
       `input[data-participant="${lastManPid}"][data-discipline="${firstDiscId}"]`
@@ -283,12 +258,6 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
 
     await selectSquadOption(page, 'RW');
 
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
-
     // Use last woman's last discipline to avoid interfering with other tests
     const pid = state.womenPids[9];
     const discId = state.disciplineIds[3];
@@ -334,12 +303,6 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
 
     await selectSquadOption(page, 'RW');
 
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
-
     const pid = state.womenPids[8];
     const discId = state.disciplineIds[3];
     const input = page.locator(`input[data-participant="${pid}"][data-discipline="${discId}"]`);
@@ -381,12 +344,6 @@ test.describe('Score Entry: German Decimal Comma (Regression)', () => {
     );
 
     await selectSquadOption(page, 'RW');
-
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
 
     const pid = state.womenPids[7];
     const discId = state.disciplineIds[3];

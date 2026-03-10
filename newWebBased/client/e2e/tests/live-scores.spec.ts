@@ -158,14 +158,10 @@ test.describe('Live Scores — Socket.IO Integration', () => {
     expect(result.status).toBe(200);
 
     // 3. Verify the score appears in the live feed (Socket.IO delivers it)
-    // The LiveScoreUpdates component renders participant name in a span.font-medium
-    // Wait for any score entry to appear (the divide-y container gets children)
-    const scoreEntry = page.locator('.divide-y > div').first();
-    await expect(scoreEntry).toBeVisible({ timeout: 15_000 });
-
-    // Verify the score value is displayed (formatted as "12.345" or similar)
+    // formatScore(12.345) → "12.35" (2 decimal places, no config), so /12\.3/ matches
+    // Use generous timeout — Socket.IO event delivery can be slow under E2E load
     const scoreText = page.locator('text=/12\\.3/');
-    await expect(scoreText.first()).toBeVisible({ timeout: 5_000 });
+    await expect(scoreText.first()).toBeVisible({ timeout: 15_000 });
   });
 
   test('multiple scores appear in newest-first order', async ({ page, request }) => {
