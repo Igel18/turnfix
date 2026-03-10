@@ -372,13 +372,6 @@ test.describe('Team Competition: Score Capture UI', () => {
 
     await selectSquadOption(page, 'RT');
 
-    // Uncheck jury view for simple score display
-    const juryCheckbox = page.locator('#showJuryScores');
-    if (await juryCheckbox.isChecked()) {
-      await juryCheckbox.uncheck();
-      await page.waitForTimeout(500);
-    }
-
     // Verify first participant's first score (AlphaAUI = 9.50)
     const firstInput = page.locator(
       `input[data-participant="${state.participantIds[0]}"][data-discipline="${state.disciplineIds[0]}"]`

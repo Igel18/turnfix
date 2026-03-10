@@ -470,6 +470,7 @@ Die Info: "Eingabemodus
 	Soll im Jury-Portal nicht angezeigt werden. Eher auf der Disziplin seite http://localhost:3001/disciplines 
 
 Die Berechnung für die Build-In-Formel ist im Jury-Portal korrekt. Aber im Score-Capture nicht. 
+	-> Erledigt ✅
 
 63. 
 Now I understand both bugs clearly. Let me write the tests, then the fixes.
@@ -489,3 +490,4 @@ b) im Formel verwalten sollte es als Warnung dargestellt werden, wenn ein Formel
 65. Score-Capture Suche 
 Das Suchfeld im Score-Capture sollte wie auf allen anderen Seiten mittels dem Filter Button ein und ausgeblendet werden. Hier bitte keine Sonderlösung sonder 
 den vorhandenen Style von den anderen Seiten übernehmen. Da gibt es bestimmt auch Unified / Shared code. 
+	-> Erledigt ✅ 

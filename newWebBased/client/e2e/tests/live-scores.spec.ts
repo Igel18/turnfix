@@ -143,8 +143,15 @@ test.describe('Live Scores — Socket.IO Integration', () => {
     const connectedIndicator = page.locator('[data-testid="socket-connected"]');
     await expect(connectedIndicator).toBeVisible({ timeout: 15_000 });
 
+    // Allow time for the join-competition room membership to propagate on the server.
+    // socket-connected only proves TCP connection, not that the room join has been processed.
+    await page.waitForTimeout(2000);
+
     // 2. Submit a score via the API — this triggers server-side Socket.IO emission
-    const participantId = state.womenPids[0];
+    //    Use womenPids[5] (not [0]) because jury-portal.spec.ts creates tfx_jury_results
+    //    for womenPids[0]/disciplineIds[0] with value 9.87. The save-value endpoint's
+    //    formula recalculation would then emit 9.87 instead of the submitted score.
+    const participantId = state.womenPids[5];
     const disciplineId = state.disciplineIds[0];
     const competitionId = state.comp1Id;
     const scoreValue = 12.345;

@@ -57,6 +57,7 @@ export default function ScoreCapture() {
 
   // Local UI state
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || urlSquadName || '');
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
@@ -411,7 +412,34 @@ export default function ScoreCapture() {
       title={t('scoreCapture.title')}
       subtitle={t('scoreCapture.subtitle')}
       icon={ClipboardDocumentListIcon}
-      showFilters={false}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters(!showFilters)}
+      filterSection={
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('scoreCapture.filters.search')}
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('scoreCapture.filters.searchPlaceholder')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          {/* Reset */}
+          <div className="flex items-end">
+            <button
+              onClick={() => setSearchTerm('')}
+              className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {t('common.resetFilters')}
+            </button>
+          </div>
+        </div>
+      }
       showHelpPanel={showHelpPanel}
       onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
       helpContent={<HelpPanel />}
@@ -448,25 +476,6 @@ export default function ScoreCapture() {
           </div>
         </div>
       )}
-
-      {/* Search */}
-      <div className="bg-white p-4 rounded-lg border mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-          {/* Search Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('scoreCapture.filters.search')}
-            </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('scoreCapture.filters.searchPlaceholder')}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
 
       {participants.length === 0 ? (
         <BlueInfoBox>
