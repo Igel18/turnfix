@@ -436,8 +436,9 @@ export function useJuryData(): UseJuryDataReturn {
           name: f.name,
           sortOrder: f.sortOrder,
           enabled: f.enabled,
-          isEndValue: f.isEndValue || false,
-          isStartValue: f.isStartValue || false
+          // FIX: API returns isFinalScore/isStartingScore, NOT isEndValue/isStartValue
+          isEndValue: f.isFinalScore || false,
+          isStartValue: f.isStartingScore || false
         }));
 
         fields.sort((a, b) => a.sortOrder - b.sortOrder);
@@ -529,19 +530,29 @@ export function useJuryData(): UseJuryDataReturn {
 
         if (data.results && Array.isArray(data.results)) {
           const resultsMap: Record<string, number> = {};
-          const sortedResults = data.results
-            .filter((r: any) => r.isFinalScore === false)
-            .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-          console.log('🔵 JURY: Filtered results (non-final only):', sortedResults);
+          // FIX: Map results by disciplineFieldId instead of fragile positional index.
+          // Build the same input-field list used by saveFormulaFields (excludes Endwert/StartValue).
+          const inputFields = disciplineFields
+            .filter(f => !f.isEndValue && !f.isStartValue)
+            .sort((a, b) => a.sortOrder - b.sortOrder);
 
-          sortedResults.forEach((result: any, index: number) => {
-            const symbol = String.fromCharCode(65 + index);
+          const nonFinalResults = data.results.filter((r: any) => r.isFinalScore === false);
+
+          console.log('🔵 JURY: Filtered results (non-final only):', nonFinalResults);
+          console.log('🔵 JURY: Input fields for symbol mapping:', inputFields.map(f => ({ id: f.id, name: f.name })));
+
+          for (const result of nonFinalResults) {
+            // Find this result's discipline field in the ordered input fields
+            const fieldIndex = inputFields.findIndex(f => f.id === result.disciplineFieldId);
+            if (fieldIndex === -1) continue; // Result for a non-input field — skip
+
+            const symbol = String.fromCharCode(65 + fieldIndex);
             if (result.performance !== null && result.performance !== undefined) {
               resultsMap[symbol] = result.performance;
-              console.log(`🔵 JURY: Mapping ${symbol} = ${result.performance} (${result.fieldName})`);
+              console.log(`🔵 JURY: Mapping ${symbol} = ${result.performance} (fieldId=${result.disciplineFieldId}, ${result.fieldName})`);
             }
-          });
+          }
 
           console.log('🔵 JURY: Mapped jury results to symbols:', resultsMap);
           setLoadedJuryResults(resultsMap);

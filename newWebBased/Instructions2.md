@@ -484,8 +484,7 @@ Let me check if there's an API to create discipline fields:
 Bei den Disziplinfeldern gibt es die Möglichkeit dieses Feld als EW Endwert zu definieren. Nach meinem Verständnist ist dieses Feld dann immer die Zuweisung ( = EW). Das bedeutet bei den Formeln müsste dieser Endwert immer als Zusweisung dargestellt werden. 
 Wie war das denn im c++ mit dem Ausgangswert und Endwert und auch Ausgangswert? 
 a) beim Import von Formeln auf die definition von EW achten
-b) 
-
+b) im Formel verwalten sollte es als Warnung dargestellt werden, wenn ein Formelbuchstabe als Endwert definiert ist, aber nicht die Zuweisung (= EW) bekommt. 
 
 65. Score-Capture Suche 
 Das Suchfeld im Score-Capture sollte wie auf allen anderen Seiten mittels dem Filter Button ein und ausgeblendet werden. Hier bitte keine Sonderlösung sonder 

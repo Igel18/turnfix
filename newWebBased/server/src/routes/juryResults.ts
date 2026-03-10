@@ -102,7 +102,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       LEFT JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
       ${whereClause}
-      ORDER BY df.int_sortierung ASC, jr.int_juryresultsid DESC
+      ORDER BY df.int_sortierung ASC, df.int_disziplinen_felderid ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 

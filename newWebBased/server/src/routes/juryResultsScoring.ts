@@ -200,15 +200,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
                 SELECT 
                   jr.rel_leistung as performance,
                   jr.int_versuch as attempt,
-                  df.var_name as field_name,
-                  df.var_name as field_short_name,
-                  df.int_sortierung as sort_order
+                  df.var_name as "fieldName",
+                  df.var_name as "fieldShortName",
+                  df.int_sortierung as "sortOrder",
+                  df.bol_endwert as "isFinalScore",
+                  df.bol_ausgangswert as "isStartingScore"
                 FROM tfx_jury_results jr
                 LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
                 WHERE jr.int_wertungenid = $1
                   AND df.int_disziplinenid = $2
                   AND jr.int_versuch = $3
-                ORDER BY df.int_sortierung ASC
+                ORDER BY df.int_sortierung ASC, df.int_disziplinen_felderid ASC
               `;
               
               const juryResults = await prisma.$queryRawUnsafe(

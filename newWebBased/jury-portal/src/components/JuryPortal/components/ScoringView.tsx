@@ -415,7 +415,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
                     key={`formula-p${currentParticipant?.id ?? currentParticipantIndex}`}
                     formula={resolvedFormula}
                     decimals={selectedDevice?.int_berechnung || 2}
-                    disciplineFields={disciplineFields}
+                    disciplineFields={disciplineFields.filter(f => !f.isEndValue && !f.isStartValue)}
                     initialValues={loadedJuryResults}
                     onScoreChange={(calculatedScore: number | null, fieldValues: Record<string, number>) => {
                       onCalculationComplete(calculatedScore, fieldValues);
