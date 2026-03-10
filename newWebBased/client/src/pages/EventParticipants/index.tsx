@@ -34,7 +34,7 @@ import {
 } from './components';
 
 // Utilities
-import { setupPDFWithHeaderFooter, addPDFHeaderFooter, getUnifiedTableStyles, createPDFDocument } from '@/utils/pdfUtils';
+import { addPDFHeaderFooter, getUnifiedTableStyles, createPDFDocument } from '@/utils/pdfUtils';
 import { getUnifiedParticipantHeaderLabels } from '@/utils/headerLabels';
 import autoTable from 'jspdf-autotable';
 
@@ -171,9 +171,8 @@ export default function EventParticipants() {
     if (!selectedEvent) return;
 
     const { doc } = createPDFDocument('landscape');
-    
-    // Setup PDF with header/footer
-    setupPDFWithHeaderFooter(doc, selectedEvent, t('eventParticipants.pageTitle'));
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
     const tableData = sortedParticipants.map((p) => [
       `${p.firstname} ${p.lastname}`,
@@ -200,12 +199,15 @@ export default function EventParticipants() {
       body: tableData,
       ...getUnifiedTableStyles(),
       startY: 40,
-      didDrawPage: () => {
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        addPDFHeaderFooter({ doc, event: selectedEvent, documentTitle: t('eventParticipants.pageTitle'), pageWidth, pageHeight });
-      },
     });
+
+    // Add header/footer to ALL pages AFTER table generation
+    // so that getNumberOfPages() returns the correct final total
+    const totalPages = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPDFHeaderFooter({ doc, event: selectedEvent, documentTitle: t('eventParticipants.pageTitle'), pageWidth, pageHeight });
+    }
 
     doc.save(`participants-${eventId}-${new Date().toISOString().split('T')[0]}.pdf`);
   };

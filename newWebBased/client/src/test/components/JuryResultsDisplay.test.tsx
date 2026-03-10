@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react'
 import { JuryResultsDisplay } from '@/pages/Results/components/JuryResultsDisplay'
 
 describe('JuryResultsDisplay', () => {
-  it('shows only formula-relevant symbol fields for variable formula 1*x', () => {
+  it('skips field breakdown for variable formula 1*x (stale fields fix)', () => {
+    // Variable-type formulas skip field-level breakdown because
+    // old jury results from a previous linked formula would be stale.
     render(
       <JuryResultsDisplay
         formula="1*x"
@@ -46,10 +48,13 @@ describe('JuryResultsDisplay', () => {
       />
     )
 
-    expect(screen.getByText(/\(x\)/i)).toBeInTheDocument()
+    // Variable formulas should NOT show any field symbols
+    expect(screen.queryByText(/\(x\)/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/\(A\)/)).not.toBeInTheDocument()
     expect(screen.queryByText(/\(B\)/)).not.toBeInTheDocument()
     expect(screen.queryByText(/\(C\)/)).not.toBeInTheDocument()
+    // Should show the total score
+    expect(screen.getAllByText('5.00').length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows missing formula symbols as placeholders for letter formula', () => {
@@ -217,7 +222,10 @@ describe('JuryResultsDisplay', () => {
     expect(screen.getAllByText('10.00').length).toBeGreaterThan(0)
   })
 
-  it('TDD regression: shows x-field value for 1*x when x is missing but finalScore exists', () => {
+  it('TDD regression: shows only total score for 1*x variable formula (no field breakdown)', () => {
+    // Variable-type formulas (e.g. "1*x") skip field-level breakdown because
+    // old jury results from a previous linked formula would be stale.
+    // This matches the stale-fields fix in JuryResultsDisplay, useExport, and scores.ts.
     render(
       <JuryResultsDisplay
         formula="1*x"
@@ -260,7 +268,9 @@ describe('JuryResultsDisplay', () => {
       />
     )
 
-    expect(screen.getByText(/\(x\)\s*x/i)).toBeInTheDocument()
-    expect(screen.getAllByText('10.00').length).toBeGreaterThanOrEqual(2)
+    // Should show only the total score, no field breakdown (x, Schwierigkeit, Wertung)
+    expect(screen.getAllByText('10.00').length).toBeGreaterThanOrEqual(1)
+    // Should NOT show field symbols for variable formulas
+    expect(screen.queryByText(/\(x\)/i)).not.toBeInTheDocument()
   })
 })

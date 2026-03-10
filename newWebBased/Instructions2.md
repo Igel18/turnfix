@@ -486,7 +486,8 @@ Bei den Disziplinfeldern gibt es die Möglichkeit dieses Feld als EW Endwert zu 
 Wie war das denn im c++ mit dem Ausgangswert und Endwert? 
 a) beim Import von Formeln auf die definition von EW achten
 b) im Formel verwalten sollte es als Warnung dargestellt werden, wenn ein Formelbuchstabe als Endwert definiert ist, aber nicht die Zuweisung (= EW) bekommt. 
-
+	-> Erledigt ✅ 
+	
 65. Score-Capture Suche 
 Das Suchfeld im Score-Capture sollte wie auf allen anderen Seiten mittels dem Filter Button ein und ausgeblendet werden. Hier bitte keine Sonderlösung sonder 
 den vorhandenen Style von den anderen Seiten übernehmen. Da gibt es bestimmt auch Unified / Shared code. 

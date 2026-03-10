@@ -31,6 +31,7 @@ import { preloadIconsForPDF, addIconToPDF, type IconData } from '@/utils/pdfIcon
 import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
 import { 
   buildFieldSymbolsMap, 
+  detectFormulaType,
   formatScore as formatScoreUtil 
 } from '@/utils/formulaUtils'
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types'
@@ -208,7 +209,15 @@ export const useExport = ({
 
         // Use centralized formula utilities
         const formula = participant.formulas?.[discipline]
+        const formulaType = formula ? detectFormulaType(formula) : 'none'
         
+        // Variable-type formulas (e.g. "1*x") have no field breakdown.
+        // Old jury results from a previous linked formula are stale.
+        // This matches JuryResultsDisplay, Score Capture, and Jury Portal behavior.
+        if (formulaType === 'variable') {
+          return formatScore(score)
+        }
+
         // Build field symbols map
         const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
         const fields = Object.values(fieldsMap)
@@ -340,16 +349,21 @@ export const useExport = ({
           }
         }
       },
-      didDrawPage: function () {
-        addPDFHeaderFooter({
-          doc,
-          event: selectedEvent,
-          documentTitle: `Competition Results - ${competitionName}`,
-          pageWidth,
-          pageHeight
-        })
-      }
     })
+
+    // Add header/footer to ALL pages AFTER table generation
+    // so that getNumberOfPages() returns the correct final total
+    const totalPages = (doc as any).internal.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addPDFHeaderFooter({
+        doc,
+        event: selectedEvent,
+        documentTitle: `Competition Results - ${competitionName}`,
+        pageWidth,
+        pageHeight
+      })
+    }
 
     doc.save(`results_${competitionName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
   }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, t])
@@ -433,7 +447,15 @@ export const useExport = ({
 
           // Use centralized formula utilities
           const formula = participant.formulas?.[discipline]
+          const formulaType = formula ? detectFormulaType(formula) : 'none'
           
+          // Variable-type formulas (e.g. "1*x") have no field breakdown.
+          // Old jury results from a previous linked formula are stale.
+          // This matches JuryResultsDisplay, Score Capture, and Jury Portal behavior.
+          if (formulaType === 'variable') {
+            return formatScore(score)
+          }
+
           // Build field symbols map
           const fieldsMap = buildFieldSymbolsMap(juryResults, formula)
           const fields = Object.values(fieldsMap)
@@ -564,18 +586,25 @@ export const useExport = ({
           }
         },
         didDrawPage: function (data: any) {
-          addPDFHeaderFooter({
-            doc,
-            event: selectedEvent,
-            documentTitle: 'Competition Results - All Competitions',
-            pageWidth,
-            pageHeight
-          })
           currentY = (data as any).cursor.y + 15
         }
       })
 
       currentY += 10
+    }
+
+    // Add header/footer to ALL pages AFTER all tables are generated
+    // so that getNumberOfPages() returns the correct final total
+    const totalPages = (doc as any).internal.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addPDFHeaderFooter({
+        doc,
+        event: selectedEvent,
+        documentTitle: 'Competition Results - All Competitions',
+        pageWidth,
+        pageHeight
+      })
     }
 
     doc.save(`results_all_competitions_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)

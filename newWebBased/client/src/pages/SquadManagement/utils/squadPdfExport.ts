@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { 
   setupPDFWithHeaderFooter, 
+  addPDFHeaderFooter,
   addSectionTitle, 
   addBodyText,
   getUnifiedTableStyles
@@ -119,9 +120,6 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
           1: { halign: 'center', cellWidth: 30 }, // Birth Year
           2: { halign: 'left', cellWidth: 70 }    // Club
         },
-        didDrawPage: () => {
-          setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
-        }
       });
 
       // Update yPosition after table
@@ -138,6 +136,16 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
       yPosition += pdfSpacing.section.spacing;
     }
   });
+
+  // Add header/footer to ALL pages AFTER all content is generated
+  // so that getNumberOfPages() returns the correct final total
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const totalPages = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addPDFHeaderFooter({ doc, event: selectedEvent, documentTitle: t('squadManagement.title'), pageWidth, pageHeight });
+  }
 
   // Generate filename with timestamp
   const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');

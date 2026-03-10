@@ -74,7 +74,7 @@ export default function Medallienspiegel() {
       // For landscape A4: width = 297mm, height = 210mm
       const contentArea = getContentArea(297, 210)
       
-      // Add header and footer with landscape dimensions
+      // Build event object for PDF header
       const eventForPDF = {
         int_eventid: selectedEvent.int_eventid,
         var_eventname: selectedEvent.var_eventname || medalData.eventName,
@@ -84,13 +84,8 @@ export default function Medallienspiegel() {
         status: selectedEvent.status || 'completed' as const
       }
 
-      addPDFHeaderFooter({
-        doc,
-        event: eventForPDF,
-        documentTitle: t('pdf.documentTitles.medalStandings'),
-        pageWidth: 297,
-        pageHeight: 210
-      })
+      // Note: Header/footer is added AFTER table generation (see below)
+      // so that getNumberOfPages() returns the correct final total
 
       // Start position for content
       let yPosition = contentArea.startY + 10
@@ -192,16 +187,8 @@ export default function Medallienspiegel() {
           }
         },
         didDrawPage: function(data) {
-          // Add header and footer to each new page
-          addPDFHeaderFooter({
-            doc,
-            event: eventForPDF,
-            documentTitle: t('pdf.documentTitles.medalStandings'),
-            pageWidth: 297,
-            pageHeight: 210
-          })
-          
-          // Adjust next page start position to account for header
+          // Only adjust startY for subsequent pages (header space)
+          // Header/footer is added AFTER table generation for correct page count
           if (data.pageNumber > 1) {
             const headerSpace = 35
             data.settings.startY = headerSpace
@@ -209,27 +196,18 @@ export default function Medallienspiegel() {
         }
       })
 
-      // After table is complete, update all pages with correct page numbers
+      // Add header/footer to ALL pages AFTER table generation
+      // so that getNumberOfPages() returns the correct final total
       const finalPageCount = (doc as any).internal.getNumberOfPages()
       for (let i = 1; i <= finalPageCount; i++) {
         doc.setPage(i)
-        // Clear previous footer area
-        doc.setFillColor(255, 255, 255)
-        doc.rect(10, 210 - 15 - 6, 297 - 20, 15 + 6, 'F')
-        
-        // Add updated footer with correct page count
-        const footerY = 210 - 15
-        doc.setFontSize(8)
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(0, 0, 0)
-        doc.text('created with TurnFix', 10, footerY)
-        doc.text('github.com/Igel18/turnfix', 10, footerY + 4)
-        doc.text(`${i} / ${finalPageCount}`, 297 / 2, footerY + 2, { align: 'center' })
-        
-        const currentDateTime = new Date().toLocaleString('de-DE')
-        doc.text(currentDateTime, 297 - 10, footerY, { align: 'right' })
-        doc.text('GNU GPL v3', 297 - 10, footerY + 4, { align: 'right' })
-        doc.line(10, footerY - 5, 297 - 10, footerY - 5)
+        addPDFHeaderFooter({
+          doc,
+          event: eventForPDF,
+          documentTitle: t('pdf.documentTitles.medalStandings'),
+          pageWidth: 297,
+          pageHeight: 210
+        })
       }
 
       const fileName = `medallienspiegel_${medalData.eventName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`

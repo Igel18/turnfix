@@ -355,11 +355,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
           }
         }
         
+        // Filter stale jury results: When the discipline no longer has a linked formula
+        // (int_formelid IS NULL → formula is null), field-level jury results (non-EW,
+        // non-AW) are from a previous formula configuration and should not be returned.
+        // This matches the client-side filtering in Score Capture and Jury Portal which
+        // only show field-level data when resolveScoringInputMode() === 'linkedFormula'.
+        const filteredJuryResults = (!formula && juryResults.length > 0)
+          ? juryResults.filter((jr: any) => jr.isFinalScore || jr.isStartingScore)
+          : juryResults;
+        
+        if (filteredJuryResults.length < juryResults.length) {
+          console.log(`🔧 [Server] Filtered ${juryResults.length - filteredJuryResults.length} stale jury results for wertungenId ${result.id} (no linked formula)`);
+        }
+        
         return {
           ...result,
           formula,
           disciplineFormula,
-          juryResults: juryResults.map((jr: any) => ({
+          juryResults: filteredJuryResults.map((jr: any) => ({
             id: jr.id,
             disciplineFieldId: jr.disciplineFieldId,
             performance: jr.performance ? parseFloat(jr.performance) : null,
