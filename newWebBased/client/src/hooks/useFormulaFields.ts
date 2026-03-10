@@ -100,9 +100,12 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
   const hasLowercaseVariables = formulaType === 'variable';
 
   // Load discipline fields for letter-based formulas
+  // Also load for variable-type formulas when disciplineId is available,
+  // so we get real DB field IDs for saving (not synthetic ones)
   useEffect(() => {
-    // Skip if formula uses lowercase variables (will be handled by variable-based logic)
-    if (hasLowercaseVariables) {
+    // Skip variable-type formulas ONLY when there's no disciplineId
+    // (in that case, the variable-based useEffect will create synthetic fields)
+    if (hasLowercaseVariables && !disciplineId) {
       return;
     }
 
@@ -292,7 +295,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
     }
   }, [disciplineId, hasLowercaseVariables, effectiveFormula, formulaType, onFieldsLoaded, _initialValues]);
 
-  // Parse variable-based formulas
+  // Parse variable-based formulas (only when no disciplineId — otherwise DB fields are used)
   useEffect(() => {
     if (!effectiveFormula || formulaType !== 'variable') {
       // Don't clear fields if formulaType is 'none' and we have disciplineId
@@ -300,6 +303,12 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
       if (formulaType === 'none' && !disciplineId) {
         setFields([]);
       }
+      return;
+    }
+
+    // When disciplineId is available, the first useEffect loads real DB fields.
+    // Don't overwrite them with synthetic fields here.
+    if (disciplineId) {
       return;
     }
 
