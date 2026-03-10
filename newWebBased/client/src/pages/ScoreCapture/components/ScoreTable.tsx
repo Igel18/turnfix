@@ -36,9 +36,6 @@ interface ScoreTableProps {
   normalizeScoreInput: (value: string, decimalPlaces: number) => string
   getScorePlaceholder: (decimalPlaces: number) => string
   setScoreMatrix: (value: any) => void
-  disciplines: Discipline[]
-  competitionId?: string
-  showJuryScores: boolean
 }
 
 export const ScoreTable = ({
@@ -54,7 +51,6 @@ export const ScoreTable = ({
   saveFieldScore,
   normalizeScoreInput,
   getScorePlaceholder,
-  showJuryScores,
 }: ScoreTableProps) => {
   const { t } = useTranslation()
 
@@ -174,7 +170,6 @@ export const ScoreTable = ({
                         normalizeScoreInput={normalizeScoreInput}
                         getScorePlaceholder={getScorePlaceholder}
                         validation={validation}
-                        showJuryScores={showJuryScores}
                       />
                     </td>
                   )

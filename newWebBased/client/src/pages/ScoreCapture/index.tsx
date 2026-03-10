@@ -58,9 +58,6 @@ export default function ScoreCapture() {
   // Local UI state
   const [searchTerm, setSearchTerm] = useState('');
   const [showHelpPanel, setShowHelpPanel] = useState(false);
-  // showJuryScores removed per Point 62: formula fields are always shown based on scoring mode
-  // The scoring input mode (linkedFormula, builtInFormula, direct) determines display automatically
-  const showJuryScores = true;
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || urlSquadName || '');
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
     contextDiscipline ? (contextDiscipline.int_disziplinid || contextDiscipline.var_name) : ''
@@ -496,9 +493,6 @@ export default function ScoreCapture() {
           normalizeScoreInput={normalizeScoreByDecimalPlaces}
           getScorePlaceholder={(decimalPlaces: number) => '0.' + '0'.repeat(decimalPlaces)}
           setScoreMatrix={setScoreMatrix}
-          disciplines={disciplines}
-          competitionId={competitionId || undefined}
-          showJuryScores={showJuryScores}
         />
       )}
     </EventManagementTemplate>

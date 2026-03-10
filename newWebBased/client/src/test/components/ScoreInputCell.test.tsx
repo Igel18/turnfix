@@ -67,7 +67,6 @@ describe('ScoreInputCell', () => {
         normalizeScoreInput={(value: string) => value}
         getScorePlaceholder={() => '0.00'}
         validation={{ isValid: true }}
-        showJuryScores={true}
       />
     )
 
@@ -133,7 +132,6 @@ describe('ScoreInputCell', () => {
         normalizeScoreInput={(value: string) => value}
         getScorePlaceholder={() => '0.00'}
         validation={{ isValid: true }}
-        showJuryScores={true}
       />
     )
 

@@ -40,7 +40,6 @@ interface ScoreInputCellProps {
   normalizeScoreInput: (value: string, decimalPlaces: number) => string;
   getScorePlaceholder: (decimalPlaces: number) => string;
   validation: { isValid: boolean; message?: string };
-  showJuryScores: boolean;
 }
 
 export const ScoreInputCell = ({
@@ -54,8 +53,7 @@ export const ScoreInputCell = ({
   onFieldSave: _onFieldSave,
   normalizeScoreInput,
   getScorePlaceholder,
-  validation,
-  showJuryScores
+  validation
 }: ScoreInputCellProps) => {
   const disciplineId = discipline.int_disziplinid || discipline.var_name;
   const decimalPlaces = discipline.int_berechnung || 2;
@@ -111,8 +109,9 @@ export const ScoreInputCell = ({
       formulaId: formulaId || null
   });
 
-  const isLinkedFormulaMode = showJuryScores && mode === 'linkedFormula';
-  const isBuiltInFormulaMode = showJuryScores && mode === 'builtInFormula';
+  // Formula fields are always shown based on scoring mode (Point 62)
+  const isLinkedFormulaMode = mode === 'linkedFormula';
+  const isBuiltInFormulaMode = mode === 'builtInFormula';
   const [initialFieldValues, setInitialFieldValues] = useState<Record<number, string>>({});
   const [loadingValues, setLoadingValues] = useState(false);
   const lastCalculatedValue = useRef<string | null>(null);

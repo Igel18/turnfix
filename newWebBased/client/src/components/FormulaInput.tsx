@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useFormulaFields, FormulaField } from '../hooks/useFormulaFields';
 import { getPlaceholder } from '../utils/inputMaskUtils';
+import { detectFormulaType, extractFormulaSymbols } from '@turnfix/shared';
 
 export interface FormulaInputProps {
   inputMask?: string;
@@ -134,10 +135,21 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                   
                   let remainingFormula = effectiveFormula;
                   
-                  // Find each letter variable in order
+                  // Detect formula type to determine how to find variables
+                  const fType = detectFormulaType(effectiveFormula);
+                  const formulaSymbols = extractFormulaSymbols(effectiveFormula);
+                  
+                  // Find each variable in order
                   nonFinalFields.forEach((_field, index) => {
-                    const letter = String.fromCharCode(65 + index); // A, B, C...
-                    const regex = new RegExp(`\\b${letter}\\b`);
+                    // For letter-type formulas, use uppercase A, B, C...
+                    // For variable-type formulas, use the actual symbol from the formula (x, y, z...)
+                    let letter: string;
+                    if (fType === 'variable' && index < formulaSymbols.length) {
+                      letter = formulaSymbols[index]; // e.g. 'x', 'y'
+                    } else {
+                      letter = String.fromCharCode(65 + index); // A, B, C...
+                    }
+                    const regex = new RegExp(`\\b${letter}\\b`, fType === 'variable' ? 'i' : undefined);
                     const match = remainingFormula.search(regex);
                     
                     if (match !== -1) {
