@@ -212,7 +212,7 @@ Name: "{group}\TurnFix deinstallieren"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\TurnFix"; Filename: "{app}\TurnFix-Manager.bat"; WorkingDir: "{app}"; Comment: "TurnFix Verwaltung"; Tasks: desktopicon
 Name: "{commondesktop}\TurnFix Web"; Filename: "http://localhost:3001"; Comment: "TurnFix im Browser öffnen"; Tasks: desktopicon
 ; Tray icon autostart
-Name: "{commonstartup}\TurnFix Tray"; Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\scripts\turnfix-tray.ps1"""; WorkingDir: "{app}"; Comment: "TurnFix Status-Anzeige"; Components: trayicon; Tasks: autostarttray
+Name: "{commonstartup}\TurnFix Tray"; Filename: "{app}\scripts\TurnFixTray.exe"; WorkingDir: "{app}"; Comment: "TurnFix Status-Anzeige"; Components: trayicon; Tasks: autostarttray
 
 [Tasks]
 Name: "desktopicon"; Description: "Desktop-Verknüpfungen erstellen"; GroupDescription: "Zusätzliche Verknüpfungen:"
@@ -659,12 +659,8 @@ begin
     // === Start Tray Icon (if selected) ===
     if IsComponentSelected('trayicon') then
     begin
-      if PowerShellPath <> '' then
-      begin
-        Exec(PowerShellPath,
-          '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + AppPath + '\scripts\turnfix-tray.ps1"',
-          AppPath, SW_HIDE, ewNoWait, ResultCode);
-      end;
+      Exec(AppPath + '\scripts\TurnFixTray.exe', '',
+        AppPath, SW_HIDE, ewNoWait, ResultCode);
     end;
     
     // === Show DB Wizard warning ===

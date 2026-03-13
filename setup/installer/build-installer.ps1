@@ -434,6 +434,45 @@ if (Test-Path $JuryServerDir) {
     Write-Host "  ✓ Jury Server copied" -ForegroundColor Green
 }
 
+# -- Compile TurnFixTray.exe --
+Write-Host "  📦 Compiling TurnFixTray.exe..." -ForegroundColor Cyan
+$trayCs = Join-Path $ScriptDir "scripts\TurnFixTray.cs"
+$trayExe = Join-Path $ScriptDir "scripts\TurnFixTray.exe"
+$trayIco = Join-Path $RepoRoot "resources\turnfix.ico"
+$cscPath = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+if (-not (Test-Path $cscPath)) {
+    $cscPath = Join-Path $env:WINDIR "Microsoft.NET\Framework\v4.0.30319\csc.exe"
+}
+if (Test-Path $cscPath) {
+    $cscArgs = @(
+        "/nologo", "/target:winexe", "/optimize",
+        "/out:$trayExe",
+        "/reference:System.dll",
+        "/reference:System.Drawing.dll",
+        "/reference:System.Windows.Forms.dll",
+        "/reference:System.ServiceProcess.dll"
+    )
+    if (Test-Path $trayIco) {
+        $cscArgs += "/win32icon:$trayIco"
+    }
+    $cscArgs += $trayCs
+    $cscResult = & $cscPath @cscArgs 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  ✓ TurnFixTray.exe compiled" -ForegroundColor Green
+    } else {
+        Write-Host "  ✗ TurnFixTray.exe compilation failed:" -ForegroundColor Red
+        Write-Host $cscResult -ForegroundColor Red
+        throw "TurnFixTray.exe compilation failed"
+    }
+} else {
+    if (Test-Path $trayExe) {
+        Write-Host "  ⚠ csc.exe not found, using pre-built TurnFixTray.exe" -ForegroundColor Yellow
+    } else {
+        Write-Host "  ✗ csc.exe not found and no pre-built TurnFixTray.exe" -ForegroundColor Red
+        throw "Cannot build TurnFixTray.exe: csc.exe not found"
+    }
+}
+
 # -- Copy installer scripts --
 Write-Host "  📦 Copying installer scripts..." -ForegroundColor Cyan
 $scriptsStaging = Join-Path $StagingDir "scripts"
@@ -446,13 +485,17 @@ $scriptFiles = @(
     "configure-service.ps1",
     "configure-firewall.ps1",
     "uninstall-service.ps1",
-    "turnfix-tray.ps1"
+    "TurnFixTray.exe"
 )
 foreach ($sf in $scriptFiles) {
     $src = Join-Path $ScriptDir "scripts\$sf"
     if (Test-Path $src) {
         Copy-Item $src -Destination $scriptsStaging
     }
+}
+# Copy turnfix.ico next to TurnFixTray.exe
+if (Test-Path $trayIco) {
+    Copy-Item $trayIco -Destination $scriptsStaging
 }
 Write-Host "  ✓ Installer scripts copied" -ForegroundColor Green
 

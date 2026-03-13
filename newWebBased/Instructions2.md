@@ -498,3 +498,52 @@ den vorhandenen Style von den anderen Seiten übernehmen. Da gibt es bestimmt au
 Wir haben ja sehr viel Doku erstellt. 
 Kannst du all diese Dokumente bitte ordentlich aufbereiten und in ein einheitliches look & feel bringen um daraus eine Anwenderdoku und eine Entwicklerdoku zu erstellen. 
 Dann ist es ja so, dass playwright Screenshots der UI machen kann. Wäre es möglich dies zu nutzen und Bilder von der UI in der ANwender-Doku mit anzuhängen? 
+Also: 
+- Dokumente Benennung einheitlich (z.B. nach Thema)
+- Dokumenten Inhalt gleicher Style 
+- Anwender (Admin) Doku ohne Technischen Details (Variablennamen, Tabellen, usw.)
+- Jury-Doku mit ausschließlichem Thema Jury-Portal (ggf. als extra Kapitel der Anwenderdoku)
+- Entwickler Doku mit viel Technischen Details (Variablennamen, Tabellen, usw.) 
+- Inhaltsverzeichnis über alle Dokumente 
+- ggf. Bilder der UI 
+- Alle Themen wie 
+	- Systemvoraussetzungen 
+	- Installation 
+	- Ersteinrichtung 
+	- Import von GymNet Veranstaltungen 
+	- usw. 
+	- Bis zum Drucken der Urkunden / Siegerlisten 
+
+Die Doku muss auch mit dem Setup mitgeliefert werden und soll über einen Desktop Icon erreichbar sein. 
+
+67. Teilnehmer hinzufügen 
+Sollte auch direkt in der Veranstaltung funktionieren und dann bei den Athletes angelegt werden 
+
+68. Beim Hinzufügen von Teilnehmern in einer Veranstaltung sollten die Startnummern vergeben werden 
+
+69. Beim Automatischen generieren von Riegen ist die Eingabe der Anzahl der Teilnehmer nicht gut. Man kann die komplette Eingabe in dem Feld nicht löschen. Wenn das nicht valide ist sollte ein roter Rahmen drum rum... 
+
+70. Löschen von Teilnhemern erscheint ein nicht lokalisierter Dialog 
+
+71. Hinzufügen von Teilnehmern ist der Modale Dialog nicht lokalisiert 
+
+72. Beim PDF Export müssen noch ein paar informationen mit dran. 
+Teilnehmerexport: Wettkampfnummer 
+Riegenliste: Wettkampf zusätzlich an die Teilnehmer 
+
+73. Beim Automatischen Riegen erzeugen gehe ich wie folgt vor: 
+1. Analyse wie viele Geräte geturnt werden müssen (je Wettkampf). Manche haben 4-Kampf manche 6-Kampf, das beeinflusst natürlich die Wettkampfdauer und damit die angestrebte Riegengröße 
+2. Analyse wie viele Teilnehmer insgesamt gemeldet sind und wie viele in den einzelnen Wettkämpfen sind 
+3. Überlegung ob alles mit einem Durchgang gemacht wird / werden soll, oder mehrere Durchgänge (In einem Durchgang müssen alle Teilnehmer eines Wettkampfes sein, damit am Ende des Durchgangs für diesen Wettkampf Urkunden und Siegerlisten gedruckt werden können) 
+4. Dann überlege ich wie groß die Riegen sein dürfen. Es kann dann sein, dass man bei zu kleinen Riegen Pausenriegen bekommt. 
+5. Wettkämpfe mit wenig Teilnehmern werden dann ggf. zu den Wettkämpfen mit mehr Teilnehmern zusammengefasst (in Ähnlichen Altersklassen) 
+6. Dann werden diese Wettkämpfe bzw. zusammengefassen Wettkämpfe in Riegen aufgeteilt. Um möglichst gleich große Riegen zu bekommen. 
+7. Die Riegen werden dann so definiert, dass die Teilnehmer von einem Verein möglichst zusammen bleiben. 
+
+74. Filter 
+Wir haben auf fast jeder seite einen Filter. Wenn ein Filter aktiv ist (also Filterkriterien eingestellt), dann muss der Filter angezeigt sein. 
+Andersherum. Wird der Filter mittels dem Button Filter ausgeblendet, muss der Filter zurückgesetzt werden. 
+Wird über die Globale Event Filterfunktion etwas gesucht und ausgewählt, springt man an die entsprechende stelle und auch hier muss dann der Filter angezeigt werden. 
+
+75. Beim dem DB-Wizard werden geräte angelegt. U.a. auch Stufenbarren in verschiedenen konstellationen (mit P, LK usw.). Hier fehlt noch das Icon. Es soll das Icon "Barren" bekommen. 
+	
