@@ -309,10 +309,12 @@ if (Test-Path $envExample) {
     Copy-Item $envExample -Destination (Join-Path $serverStaging ".env.example")
 }
 
-# Copy ecosystem.config.js
-$ecosystemConfig = Join-Path $ServerDir "ecosystem.config.js"
+# Copy ecosystem.config.js (lives in newWebBased/, not server/)
+$ecosystemConfig = Join-Path $WebDir "ecosystem.config.js"
 if (Test-Path $ecosystemConfig) {
     Copy-Item $ecosystemConfig -Destination $serverStaging
+} else {
+    Write-Host "  ⚠ ecosystem.config.js not found at $ecosystemConfig" -ForegroundColor Yellow
 }
 
 # Copy public directory (icons etc.)

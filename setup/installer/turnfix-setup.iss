@@ -169,7 +169,7 @@ Source: "{#MyStagingDir}\server\dist\*"; DestDir: "{app}\server\dist"; Flags: ig
 Source: "{#MyStagingDir}\server\prisma\*"; DestDir: "{app}\server\prisma"; Flags: ignoreversion recursesubdirs; Components: app
 Source: "{#MyStagingDir}\server\node_modules\*"; DestDir: "{app}\server\node_modules"; Flags: ignoreversion recursesubdirs; Components: app
 Source: "{#MyStagingDir}\server\package.json"; DestDir: "{app}\server"; Flags: ignoreversion; Components: app
-Source: "{#MyStagingDir}\server\ecosystem.config.js"; DestDir: "{app}\server"; Flags: ignoreversion; Components: app
+Source: "{#MyStagingDir}\server\ecosystem.config.js"; DestDir: "{app}\server"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
 Source: "{#MyStagingDir}\server\.env.example"; DestDir: "{app}\server"; Flags: ignoreversion; Components: app
 Source: "{#MyStagingDir}\server\public\*"; DestDir: "{app}\server\public"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: app
 

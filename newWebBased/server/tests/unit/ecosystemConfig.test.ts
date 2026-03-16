@@ -13,7 +13,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const ECOSYSTEM_PATH = path.join(__dirname, '..', '..', 'ecosystem.config.js');
+const ECOSYSTEM_PATH = path.join(__dirname, '..', '..', '..', 'ecosystem.config.js');
 
 describe('PM2 ecosystem.config.js', () => {
   let ecosystemContent: string;
