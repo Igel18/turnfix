@@ -493,4 +493,159 @@ describe('Start Number Integration', () => {
       expect(startNumbers).toEqual([1, 2]);
     });
   });
+
+  describe('PUT /api/event-participants/update-details — Start Number on competition reassignment (Point 68)', () => {
+    it('should assign start number when adding new competition via update-details', async () => {
+      const event = await TestUtils.createTestEvent({ name: 'UpdateDetails StartNum Event' });
+      const comp1 = await TestUtils.createTestCompetition({
+        name: 'UpdateDetails Comp A',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+      const comp2 = await TestUtils.createTestCompetition({
+        name: 'UpdateDetails Comp B',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'UpdateDetail',
+        lastName: 'StartNum'
+      });
+
+      // Add participant to comp1 via /add (gets start number 1)
+      await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid
+        })
+        .expect(201);
+
+      // Now use update-details to also assign to comp2
+      await request(participantsApp)
+        .put('/api/event-participants/update-details')
+        .send({
+          participantId: participant.int_teilnehmerid,
+          eventId: event.int_veranstaltungenid,
+          assignedCompetitions: [comp1.int_wettkaempfeid, comp2.int_wettkaempfeid]
+        })
+        .expect(200);
+
+      // Verify the new entry in comp2 has a start number
+      const comp2Entry = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: participant.int_teilnehmerid,
+          int_wettkaempfeid: comp2.int_wettkaempfeid
+        }
+      });
+
+      expect(comp2Entry).not.toBeNull();
+      expect(comp2Entry!.int_startnummer).not.toBeNull();
+      expect(comp2Entry!.int_startnummer).toBeGreaterThan(0);
+    });
+
+    it('should reuse existing start number when reassigning to new competition', async () => {
+      const event = await TestUtils.createTestEvent({ name: 'Reuse StartNum Event' });
+      const comp1 = await TestUtils.createTestCompetition({
+        name: 'Reuse Comp A',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+      const comp2 = await TestUtils.createTestCompetition({
+        name: 'Reuse Comp B',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'Reuse',
+        lastName: 'StartNum'
+      });
+
+      // Add participant to comp1 via /add (gets start number 1)
+      const addResponse = await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid
+        })
+        .expect(201);
+
+      const originalStartNumber = addResponse.body.startNumber;
+
+      // Use update-details to also assign to comp2
+      await request(participantsApp)
+        .put('/api/event-participants/update-details')
+        .send({
+          participantId: participant.int_teilnehmerid,
+          eventId: event.int_veranstaltungenid,
+          assignedCompetitions: [comp1.int_wettkaempfeid, comp2.int_wettkaempfeid]
+        })
+        .expect(200);
+
+      // The comp2 entry should have the SAME start number (event-scoped, same participant)
+      const comp2Entry = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: participant.int_teilnehmerid,
+          int_wettkaempfeid: comp2.int_wettkaempfeid
+        }
+      });
+
+      expect(comp2Entry).not.toBeNull();
+      expect(comp2Entry!.int_startnummer).toBe(originalStartNumber);
+    });
+
+    it('should assign new start number if participant has no existing start number in event', async () => {
+      const event = await TestUtils.createTestEvent({ name: 'New StartNum via UpdateDetails' });
+      const comp1 = await TestUtils.createTestCompetition({
+        name: 'New StartNum Comp A',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+      const comp2 = await TestUtils.createTestCompetition({
+        name: 'New StartNum Comp B',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+
+      // Add a first participant to get start number 1
+      const p1 = await TestUtils.createTestParticipant({ firstName: 'First', lastName: 'P' });
+      await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: p1.int_teilnehmerid
+        })
+        .expect(201);
+
+      // Create another participant directly with a wertung entry that has no start number
+      const p2 = await TestUtils.createTestParticipant({ firstName: 'NoStartNum', lastName: 'P' });
+      await prisma.tfx_wertungen.create({
+        data: {
+          int_teilnehmerid: p2.int_teilnehmerid,
+          int_wettkaempfeid: comp1.int_wettkaempfeid,
+          int_startnummer: null,
+          var_riege: '',
+          int_statusid: 1
+        }
+      });
+
+      // Use update-details to also assign p2 to comp2
+      await request(participantsApp)
+        .put('/api/event-participants/update-details')
+        .send({
+          participantId: p2.int_teilnehmerid,
+          eventId: event.int_veranstaltungenid,
+          assignedCompetitions: [comp1.int_wettkaempfeid, comp2.int_wettkaempfeid]
+        })
+        .expect(200);
+
+      // The comp2 entry should have a valid start number (next available = 2)
+      const comp2Entry = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: p2.int_teilnehmerid,
+          int_wettkaempfeid: comp2.int_wettkaempfeid
+        }
+      });
+
+      expect(comp2Entry).not.toBeNull();
+      expect(comp2Entry!.int_startnummer).not.toBeNull();
+      expect(comp2Entry!.int_startnummer).toBeGreaterThan(0);
+    });
+  });
 });

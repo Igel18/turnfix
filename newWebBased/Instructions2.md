@@ -516,22 +516,24 @@ Also:
 
 Die Doku muss auch mit dem Setup mitgeliefert werden und soll über einen Desktop Icon erreichbar sein. 
 
-67. Teilnehmer hinzufügen 
+67. [Feature] Teilnehmer hinzufügen 
 Sollte auch direkt in der Veranstaltung funktionieren und dann bei den Athletes angelegt werden 
 
-68. Beim Hinzufügen von Teilnehmern in einer Veranstaltung sollten die Startnummern vergeben werden 
+68. [Feature] Beim Hinzufügen von Teilnehmern in einer Veranstaltung sollten die Startnummern vergeben werden 
+	-> Erledigt ✅
 
-69. Beim Automatischen generieren von Riegen ist die Eingabe der Anzahl der Teilnehmer nicht gut. Man kann die komplette Eingabe in dem Feld nicht löschen. Wenn das nicht valide ist sollte ein roter Rahmen drum rum... 
+69. [Bug] Beim Automatischen generieren von Riegen ist die Eingabe der Anzahl der Teilnehmer nicht gut. Man kann die komplette Eingabe in dem Feld nicht löschen. Wenn das nicht valide ist sollte ein roter Rahmen drum rum... 
 
-70. Löschen von Teilnhemern erscheint ein nicht lokalisierter Dialog 
+70. [Bug] Löschen von Teilnhemern erscheint ein nicht lokalisierter Dialog 
 
-71. Hinzufügen von Teilnehmern ist der Modale Dialog nicht lokalisiert 
+71. [Bug] Hinzufügen von Teilnehmern ist der Modale Dialog nicht lokalisiert 
+	-> Erledigt ✅ 
 
-72. Beim PDF Export müssen noch ein paar informationen mit dran. 
+72. [Feature] Beim PDF Export müssen noch ein paar informationen mit dran. 
 Teilnehmerexport: Wettkampfnummer 
 Riegenliste: Wettkampf zusätzlich an die Teilnehmer 
 
-73. Beim Automatischen Riegen erzeugen gehe ich wie folgt vor: 
+73. [Feature] Beim Automatischen Riegen erzeugen gehe ich wie folgt vor: 
 1. Analyse wie viele Geräte geturnt werden müssen (je Wettkampf). Manche haben 4-Kampf manche 6-Kampf, das beeinflusst natürlich die Wettkampfdauer und damit die angestrebte Riegengröße 
 2. Analyse wie viele Teilnehmer insgesamt gemeldet sind und wie viele in den einzelnen Wettkämpfen sind 
 3. Überlegung ob alles mit einem Durchgang gemacht wird / werden soll, oder mehrere Durchgänge (In einem Durchgang müssen alle Teilnehmer eines Wettkampfes sein, damit am Ende des Durchgangs für diesen Wettkampf Urkunden und Siegerlisten gedruckt werden können) 
@@ -540,18 +542,18 @@ Riegenliste: Wettkampf zusätzlich an die Teilnehmer
 6. Dann werden diese Wettkämpfe bzw. zusammengefassen Wettkämpfe in Riegen aufgeteilt. Um möglichst gleich große Riegen zu bekommen. 
 7. Die Riegen werden dann so definiert, dass die Teilnehmer von einem Verein möglichst zusammen bleiben. 
 
-74. Filter 
+74. [Bug] Filter 
 Wir haben auf fast jeder seite einen Filter. Wenn ein Filter aktiv ist (also Filterkriterien eingestellt), dann muss der Filter angezeigt sein. 
 Andersherum. Wird der Filter mittels dem Button Filter ausgeblendet, muss der Filter zurückgesetzt werden. 
 Wird über die Globale Event Filterfunktion etwas gesucht und ausgewählt, springt man an die entsprechende stelle und auch hier muss dann der Filter angezeigt werden. 
 
-75. Beim dem DB-Wizard werden geräte angelegt. U.a. auch Stufenbarren in verschiedenen konstellationen (mit P, LK usw.). Hier fehlt noch das Icon. Es soll das Icon "Barren" bekommen. 
+75. [Bug] Beim dem DB-Wizard werden geräte angelegt. U.a. auch Stufenbarren in verschiedenen konstellationen (mit P, LK usw.). Hier fehlt noch das Icon. Es soll das Icon "Barren" bekommen. 
 
 76. Alter / Geburtsdatum
 Beim Anlegen von Athleten auf der Seite participants kann man das Geburtsdatum angeben. Es wird jedoch nur das Jahr gespeichert, nicht der Tag & Monat. TDD
 	-> Erledigt ✅ 
 
-77. Beim hinzufügen von Teilnehmern zu einer Veranstaltung soll es möglich sein den Wettkampf auszuwählen. Aktuell wird der Teilnehmer einfach irgend einem Wettkampf zugeordnet. 
+77. [Feature] Beim hinzufügen von Teilnehmern zu einer Veranstaltung soll es möglich sein den Wettkampf auszuwählen. Aktuell wird der Teilnehmer einfach irgend einem Wettkampf zugeordnet. 
 Bei der Zuweisung soll es dann auch noch möglich sein den Wettkampf zu filtern (Passende Altersklassen, Passendes Geschlecht). Diese Filter sollten per default aktiviert sein. 
 
 1000. DB erweitern. 
@@ -589,3 +591,5 @@ Aktuell sind die Riegen "nur" an den Teilnehmern gespeichert. Besser wäre eine 
 Die Startzeiten die aktuell an den Wettkämpfen gespeichert sind gehören eigentlich an die Riegen. Das kann dann auch an der neuen Tabelle gespeichert werden. 
 
 
+-> In Arbeit 🚀
+-> Erledigt ✅ 

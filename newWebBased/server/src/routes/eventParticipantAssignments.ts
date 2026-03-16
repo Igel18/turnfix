@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { mapStringGenderToDatabase } from '../utils/genderHelpers';
-import { getNextStartNumberForCompetition } from '../utils/startNumberUtils';
+import { getNextStartNumber, getNextStartNumberForCompetition } from '../utils/startNumberUtils';
 
 const router = Router();
 
@@ -53,25 +53,8 @@ router.post('/add', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'Participant is already registered for this event' });
     }
 
-    // Generate unique start number for this event
-    const maxStartNumber = await prisma.tfx_wertungen.findFirst({
-      where: {
-        tfx_wettkaempfe: {
-          int_veranstaltungenid: validatedData.eventId
-        },
-        int_startnummer: {
-          not: null
-        }
-      },
-      orderBy: {
-        int_startnummer: 'desc'
-      },
-      select: {
-        int_startnummer: true
-      }
-    });
-
-    const nextStartNumber = (maxStartNumber?.int_startnummer || 0) + 1;
+    // Generate unique start number for this event (using shared utility)
+    const nextStartNumber = await getNextStartNumber(validatedData.eventId);
 
     // Create initial score entry to register participant for the event
     const scoreEntry = await prisma.tfx_wertungen.create({
@@ -382,14 +365,24 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
 
       const existingCompetitionIds = existingEntries.map(entry => entry.int_wettkaempfeid);
 
+      // Determine start number for new entries:
+      // Reuse the participant's existing start number in this event, or generate a new one
+      const existingStartNumber = existingEntries
+        .map(e => e.int_startnummer)
+        .find(n => n !== null && n > 0) || null;
+
       // Add new competition assignments (create score entries)
       for (const competitionId of assignedCompetitions) {
         if (!existingCompetitionIds.includes(competitionId)) {
+          // Use existing start number or generate a new one (Point 68)
+          const startNumber = existingStartNumber ?? await getNextStartNumber(eventId);
+
           await prisma.tfx_wertungen.create({
             data: {
               int_teilnehmerid: participantId,
               int_wettkaempfeid: competitionId,
               int_statusid: 1, // Assuming status 1 is active/participating
+              int_startnummer: startNumber, // Auto-assigned start number (Point 68)
               var_riege: squad_name || '',
               bol_startet_nicht: startet_nicht || false
             }
