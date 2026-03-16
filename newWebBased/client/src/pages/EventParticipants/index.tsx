@@ -388,11 +388,12 @@ export default function EventParticipants() {
             </UnifiedModal>
           )}
 
-          {/* Add Participant Modal */}
+          {/* Add Participant Modal - Point 77: pass competitions for selection */}
           <AddParticipantModal
             isOpen={showAddModal}
             onClose={() => setShowAddModal(false)}
             eventId={eventId || ''}
+            competitions={competitions}
             onParticipantAdded={handleParticipantAdded}
           />
 

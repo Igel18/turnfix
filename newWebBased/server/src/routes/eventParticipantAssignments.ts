@@ -11,6 +11,7 @@ const router = Router();
 const addParticipantToEventSchema = z.object({
   eventId: z.number().int().positive(),
   participantId: z.number().int().positive(),
+  competitionId: z.number().int().positive().optional(), // Point 77: optional competition selection
 });
 
 const assignParticipantToCompetitionSchema = z.object({
@@ -31,21 +32,44 @@ router.post('/add', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const validatedData = addParticipantToEventSchema.parse(req.body);
     
-    // Get the first competition for this event to create initial score entry
-    const firstCompetition = await prisma.tfx_wettkaempfe.findFirst({
-      where: { int_veranstaltungenid: validatedData.eventId },
-      orderBy: { int_wettkaempfeid: 'asc' }
-    });
+    // Determine which competition to assign the participant to (Point 77)
+    let targetCompetition;
 
-    if (!firstCompetition) {
+    if (validatedData.competitionId) {
+      // Verify the specified competition belongs to this event
+      targetCompetition = await prisma.tfx_wettkaempfe.findFirst({
+        where: {
+          int_wettkaempfeid: validatedData.competitionId,
+          int_veranstaltungenid: validatedData.eventId
+        }
+      });
+
+      if (!targetCompetition) {
+        return res.status(400).json({
+          message: 'Competition does not belong to this event',
+          competitionId: validatedData.competitionId,
+          eventId: validatedData.eventId
+        });
+      }
+    } else {
+      // Fallback: use the first competition for this event
+      targetCompetition = await prisma.tfx_wettkaempfe.findFirst({
+        where: { int_veranstaltungenid: validatedData.eventId },
+        orderBy: { int_wettkaempfeid: 'asc' }
+      });
+    }
+
+    if (!targetCompetition) {
       return res.status(400).json({ message: 'No competitions found for this event' });
     }
 
-    // Check if participant is already in the event
+    // Check if participant is already in the event (across ALL competitions)
     const existingEntry = await prisma.tfx_wertungen.findFirst({
       where: {
         int_teilnehmerid: validatedData.participantId,
-        int_wettkaempfeid: firstCompetition.int_wettkaempfeid
+        tfx_wettkaempfe: {
+          int_veranstaltungenid: validatedData.eventId
+        }
       }
     });
 
@@ -60,14 +84,14 @@ router.post('/add', authenticateToken, async (req: AuthRequest, res) => {
     const scoreEntry = await prisma.tfx_wertungen.create({
       data: {
         int_teilnehmerid: validatedData.participantId,
-        int_wettkaempfeid: firstCompetition.int_wettkaempfeid,
+        int_wettkaempfeid: targetCompetition.int_wettkaempfeid,
         int_startnummer: nextStartNumber, // Assign unique start number
         var_riege: '', // Will be assigned later
         int_statusid: 1 // Default status
       }
     });
 
-    console.log(`Added participant ${validatedData.participantId} to event ${validatedData.eventId} with start number ${nextStartNumber}`);
+    console.log(`Added participant ${validatedData.participantId} to event ${validatedData.eventId} competition ${targetCompetition.int_wettkaempfeid} with start number ${nextStartNumber}`);
 
     res.status(201).json({
       message: 'Participant added to event successfully',

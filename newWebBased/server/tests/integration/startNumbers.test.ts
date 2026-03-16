@@ -648,4 +648,153 @@ describe('Start Number Integration', () => {
       expect(comp2Entry!.int_startnummer).toBeGreaterThan(0);
     });
   });
+
+  describe('POST /api/event-participants/add — Competition selection (Point 77)', () => {
+    it('should assign participant to specified competition when competitionId is provided', async () => {
+      const event = await TestUtils.createTestEvent({ name: 'CompSelect Event' });
+      const comp1 = await TestUtils.createTestCompetition({
+        name: 'CompSelect Comp A',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+      const comp2 = await TestUtils.createTestCompetition({
+        name: 'CompSelect Comp B',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'CompSelect',
+        lastName: 'Test'
+      });
+
+      // Add participant to comp2 specifically (not the first competition)
+      const response = await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid,
+          competitionId: comp2.int_wettkaempfeid
+        })
+        .expect(201);
+
+      // Verify participant is in comp2, NOT in comp1
+      const comp2Entry = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: participant.int_teilnehmerid,
+          int_wettkaempfeid: comp2.int_wettkaempfeid
+        }
+      });
+      const comp1Entry = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: participant.int_teilnehmerid,
+          int_wettkaempfeid: comp1.int_wettkaempfeid
+        }
+      });
+
+      expect(comp2Entry).not.toBeNull();
+      expect(comp2Entry!.int_startnummer).toBeGreaterThan(0);
+      expect(comp1Entry).toBeNull();
+    });
+
+    it('should still use first competition when competitionId is not provided', async () => {
+      const event = await TestUtils.createTestEvent({ name: 'NoCompId Event' });
+      const comp1 = await TestUtils.createTestCompetition({
+        name: 'NoCompId Comp A',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+      const comp2 = await TestUtils.createTestCompetition({
+        name: 'NoCompId Comp B',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'NoCompId',
+        lastName: 'Test'
+      });
+
+      // Add without competitionId → should default to first competition
+      await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid
+        })
+        .expect(201);
+
+      const comp1Entry = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: participant.int_teilnehmerid,
+          int_wettkaempfeid: comp1.int_wettkaempfeid
+        }
+      });
+
+      expect(comp1Entry).not.toBeNull();
+    });
+
+    it('should reject competitionId that does not belong to the event', async () => {
+      const event1 = await TestUtils.createTestEvent({ name: 'WrongCompId Event1' });
+      const event2 = await TestUtils.createTestEvent({ name: 'WrongCompId Event2' });
+      await TestUtils.createTestCompetition({
+        name: 'WrongCompId Comp1',
+        int_veranstaltungenid: event1.int_veranstaltungenid
+      });
+      const otherComp = await TestUtils.createTestCompetition({
+        name: 'WrongCompId OtherComp',
+        int_veranstaltungenid: event2.int_veranstaltungenid
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'WrongCompId',
+        lastName: 'Test'
+      });
+
+      // Try to add to event1 but with a competition from event2
+      await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event1.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid,
+          competitionId: otherComp.int_wettkaempfeid
+        })
+        .expect(400);
+    });
+
+    it('should check duplicate across event when competitionId is provided', async () => {
+      const event = await TestUtils.createTestEvent({ name: 'DupCheckCompId Event' });
+      const comp1 = await TestUtils.createTestCompetition({
+        name: 'DupCheckCompId Comp A',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+      const comp2 = await TestUtils.createTestCompetition({
+        name: 'DupCheckCompId Comp B',
+        int_veranstaltungenid: event.int_veranstaltungenid
+      });
+
+      const participant = await TestUtils.createTestParticipant({
+        firstName: 'DupCheckCompId',
+        lastName: 'Test'
+      });
+
+      // Add participant to comp1
+      await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid,
+          competitionId: comp1.int_wettkaempfeid
+        })
+        .expect(201);
+
+      // Try to add same participant to comp2 via /add → should fail (already in event)
+      const response = await request(participantsApp)
+        .post('/api/event-participants/add')
+        .send({
+          eventId: event.int_veranstaltungenid,
+          participantId: participant.int_teilnehmerid,
+          competitionId: comp2.int_wettkaempfeid
+        })
+        .expect(400);
+
+      expect(response.body.message).toContain('already');
+    });
+  });
 });
