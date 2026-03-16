@@ -219,6 +219,263 @@ describe('Participants API', () => {
     });
   });
 
+  describe('Birthdate (dat_geburtstag) full date preservation - Point 76', () => {
+    it('should preserve full date (day + month + year) when creating a participant via POST', async () => {
+      // TDD: The user reports that only the year is saved, not day & month
+      const newParticipant = {
+        var_vorname: 'BirthdateTest',
+        var_nachname: 'CreateFullDate',
+        dat_geburtstag: '2012-05-15',  // May 15, 2012 — the format from <input type="date">
+        int_geschlecht: 2,
+        int_vereineid: 1
+      };
+
+      const createResponse = await request(app)
+        .post('/api/participants')
+        .send(newParticipant)
+        .expect(201);
+
+      const createdId = createResponse.body.int_teilnehmerid || createResponse.body.id;
+      expect(createdId).toBeDefined();
+
+      // Read back via GET and verify full date is preserved
+      const getResponse = await request(app)
+        .get(`/api/participants/${createdId}`)
+        .expect(200);
+
+      const returnedDate = getResponse.body.dat_geburtstag;
+      expect(returnedDate).toBeDefined();
+
+      const parsedDate = new Date(returnedDate);
+      expect(parsedDate.getUTCFullYear()).toBe(2012);
+      expect(parsedDate.getUTCMonth() + 1).toBe(5);  // May = month 5
+      expect(parsedDate.getUTCDate()).toBe(15);        // Day 15
+
+      // Also verify bool_nur_jahr is explicitly false (not the DB default of true)
+      expect(getResponse.body.bool_nur_jahr).toBe(false);
+
+      // Cleanup
+      await request(app).delete(`/api/participants/${createdId}`);
+    });
+
+    it('should preserve full date when creating with ISO format string', async () => {
+      const newParticipant = {
+        var_vorname: 'BirthdateTest',
+        var_nachname: 'ISOFormat',
+        dat_geburtstag: '1998-03-20T00:00:00.000Z',  // ISO format from Date.toISOString()
+        int_geschlecht: 1,
+        int_vereineid: 1
+      };
+
+      const createResponse = await request(app)
+        .post('/api/participants')
+        .send(newParticipant)
+        .expect(201);
+
+      const createdId = createResponse.body.int_teilnehmerid || createResponse.body.id;
+
+      const getResponse = await request(app)
+        .get(`/api/participants/${createdId}`)
+        .expect(200);
+
+      const parsedDate = new Date(getResponse.body.dat_geburtstag);
+      expect(parsedDate.getUTCFullYear()).toBe(1998);
+      expect(parsedDate.getUTCMonth() + 1).toBe(3);   // March
+      expect(parsedDate.getUTCDate()).toBe(20);
+
+      // Cleanup
+      await request(app).delete(`/api/participants/${createdId}`);
+    });
+
+    it('should preserve full date when updating birthdate via PUT', async () => {
+      // Create participant first
+      const createResponse = await request(app)
+        .post('/api/participants')
+        .send({
+          var_vorname: 'BirthdateTest',
+          var_nachname: 'UpdateDate',
+          dat_geburtstag: '2010-01-01',
+          int_geschlecht: 1,
+          int_vereineid: 1
+        })
+        .expect(201);
+
+      const createdId = createResponse.body.int_teilnehmerid || createResponse.body.id;
+
+      // Update with a new full date
+      const updateResponse = await request(app)
+        .put(`/api/participants/${createdId}`)
+        .send({
+          dat_geburtstag: '2012-11-23'  // November 23, 2012
+        })
+        .expect(200);
+
+      // Read back and verify
+      const getResponse = await request(app)
+        .get(`/api/participants/${createdId}`)
+        .expect(200);
+
+      const parsedDate = new Date(getResponse.body.dat_geburtstag);
+      expect(parsedDate.getUTCFullYear()).toBe(2012);
+      expect(parsedDate.getUTCMonth() + 1).toBe(11);  // November
+      expect(parsedDate.getUTCDate()).toBe(23);
+
+      // Cleanup
+      await request(app).delete(`/api/participants/${createdId}`);
+    });
+
+    it('should set bool_nur_jahr=false when creating with full date from form', async () => {
+      // When a user enters a full date in the <input type="date"> field,
+      // bool_nur_jahr must be set to false, not the DB default of true
+      const newParticipant = {
+        var_vorname: 'BirthdateTest',
+        var_nachname: 'NurJahrFalse',
+        dat_geburtstag: '2015-08-03',
+        int_geschlecht: 2,
+        int_vereineid: 1
+        // Note: bool_nur_jahr is NOT sent from the frontend form
+      };
+
+      const createResponse = await request(app)
+        .post('/api/participants')
+        .send(newParticipant)
+        .expect(201);
+
+      const createdId = createResponse.body.int_teilnehmerid || createResponse.body.id;
+
+      // Verify bool_nur_jahr is false (not the DB default of true)
+      const getResponse = await request(app)
+        .get(`/api/participants/${createdId}`)
+        .expect(200);
+
+      expect(getResponse.body.bool_nur_jahr).toBe(false);
+
+      // Also verify the date survived with correct month and day
+      const parsedDate = new Date(getResponse.body.dat_geburtstag);
+      expect(parsedDate.getUTCMonth() + 1).toBe(8);  // August
+      expect(parsedDate.getUTCDate()).toBe(3);
+
+      // Cleanup
+      await request(app).delete(`/api/participants/${createdId}`);
+    });
+
+    it('should correctly format date for HTML date input when editing', async () => {
+      // Create participant with specific date
+      const createResponse = await request(app)
+        .post('/api/participants')
+        .send({
+          var_vorname: 'BirthdateTest',
+          var_nachname: 'EditRoundTrip',
+          dat_geburtstag: '2009-12-25',  // Dec 25 2009
+          int_geschlecht: 1,
+          int_vereineid: 1
+        })
+        .expect(201);
+
+      const createdId = createResponse.body.int_teilnehmerid || createResponse.body.id;
+
+      // Fetch participant (simulating what the frontend edit form does)
+      const getResponse = await request(app)
+        .get(`/api/participants/${createdId}`)
+        .expect(200);
+
+      // Simulate frontend formatDateForInput
+      const dateString = getResponse.body.dat_geburtstag;
+      const date = new Date(dateString);
+      const formattedForInput = date.toISOString().split('T')[0];
+
+      expect(formattedForInput).toBe('2009-12-25');
+
+      // Simulate full edit round-trip: form value → API → DB → API → form
+      const updateResponse = await request(app)
+        .put(`/api/participants/${createdId}`)
+        .send({ dat_geburtstag: formattedForInput })
+        .expect(200);
+
+      const verifyResponse = await request(app)
+        .get(`/api/participants/${createdId}`)
+        .expect(200);
+
+      const verifyDate = new Date(verifyResponse.body.dat_geburtstag);
+      expect(verifyDate.getUTCFullYear()).toBe(2009);
+      expect(verifyDate.getUTCMonth() + 1).toBe(12);  // December
+      expect(verifyDate.getUTCDate()).toBe(25);
+
+      // Cleanup
+      await request(app).delete(`/api/participants/${createdId}`);
+    });
+
+    it('should preserve various dates across all months', async () => {
+      // Test dates from different months to ensure no month-specific issues
+      const testDates = [
+        { input: '2010-01-15', year: 2010, month: 1, day: 15 },
+        { input: '2011-02-28', year: 2011, month: 2, day: 28 },
+        { input: '2012-06-30', year: 2012, month: 6, day: 30 },
+        { input: '2013-09-01', year: 2013, month: 9, day: 1 },
+        { input: '2014-12-31', year: 2014, month: 12, day: 31 },
+      ];
+
+      for (const testDate of testDates) {
+        const createResponse = await request(app)
+          .post('/api/participants')
+          .send({
+            var_vorname: 'MonthTest',
+            var_nachname: `Month${testDate.month}`,
+            dat_geburtstag: testDate.input,
+            int_geschlecht: 1,
+            int_vereineid: 1
+          })
+          .expect(201);
+
+        const createdId = createResponse.body.int_teilnehmerid || createResponse.body.id;
+
+        const getResponse = await request(app)
+          .get(`/api/participants/${createdId}`)
+          .expect(200);
+
+        const parsedDate = new Date(getResponse.body.dat_geburtstag);
+        expect(parsedDate.getUTCFullYear()).toBe(testDate.year);
+        expect(parsedDate.getUTCMonth() + 1).toBe(testDate.month);
+        expect(parsedDate.getUTCDate()).toBe(testDate.day);
+
+        // Cleanup
+        await request(app).delete(`/api/participants/${createdId}`);
+      }
+    });
+
+    it('should store date directly in database with full precision', async () => {
+      // Direct database verification - bypasses any API formatting issues
+      const prisma = TestUtils.getPrisma();
+      
+      const participant = await prisma.tfx_teilnehmer.create({
+        data: {
+          var_vorname: 'DBDirect',
+          var_nachname: 'DateCheck',
+          dat_geburtstag: new Date('2012-07-04'),
+          int_geschlecht: 1,
+          int_vereineid: 1,
+          bool_nur_jahr: false
+        }
+      });
+
+      // Read back directly from DB
+      const dbResult = await prisma.$queryRawUnsafe(
+        `SELECT dat_geburtstag FROM tfx_teilnehmer WHERE int_teilnehmerid = $1`,
+        participant.int_teilnehmerid
+      ) as any[];
+
+      const storedDate = new Date(dbResult[0].dat_geburtstag);
+      expect(storedDate.getUTCFullYear()).toBe(2012);
+      expect(storedDate.getUTCMonth() + 1).toBe(7);  // July
+      expect(storedDate.getUTCDate()).toBe(4);
+
+      // Cleanup
+      await prisma.tfx_teilnehmer.delete({
+        where: { int_teilnehmerid: participant.int_teilnehmerid }
+      });
+    });
+  });
+
   describe('DELETE /api/participants/:id', () => {
     it('should delete an existing participant', async () => {
       // Create a participant specifically for deletion

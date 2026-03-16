@@ -233,7 +233,8 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       data.int_vereineid,
       data.int_geschlecht,
       data.dat_geburtstag,
-      data.bool_nur_jahr || false,
+      // If a full date is provided and bool_nur_jahr is not explicitly set, default to false
+      data.bool_nur_jahr !== undefined ? data.bool_nur_jahr : (data.dat_geburtstag ? false : true),
       data.int_startpassnummer || null
     );
     
@@ -296,6 +297,12 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     }
     
     const data = participantUpdateSchema.parse(req.body);
+    
+    // If dat_geburtstag is being updated and bool_nur_jahr is not explicitly set,
+    // auto-set bool_nur_jahr to false (since we have a full date from the form)
+    if (data.dat_geburtstag !== undefined && data.bool_nur_jahr === undefined) {
+      data.bool_nur_jahr = data.dat_geburtstag ? false : true;
+    }
     
     // Build dynamic update query
     const updates: string[] = [];

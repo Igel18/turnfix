@@ -974,6 +974,7 @@
       "createError": "Fehler beim Erstellen des Teilnehmers",
       "updateError": "Fehler beim Aktualisieren des Teilnehmers",
       "saveError": "Fehler beim Speichern des Teilnehmers",
+      "invalidDateFormat": "Bitte ein vollständiges Geburtsdatum eingeben (Tag, Monat und Jahr).",
       "loadError": "Fehler beim Laden der Teilnehmer",
       "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden."
     },

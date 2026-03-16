@@ -546,4 +546,46 @@ Andersherum. Wird der Filter mittels dem Button Filter ausgeblendet, muss der Fi
 Wird über die Globale Event Filterfunktion etwas gesucht und ausgewählt, springt man an die entsprechende stelle und auch hier muss dann der Filter angezeigt werden. 
 
 75. Beim dem DB-Wizard werden geräte angelegt. U.a. auch Stufenbarren in verschiedenen konstellationen (mit P, LK usw.). Hier fehlt noch das Icon. Es soll das Icon "Barren" bekommen. 
-	
+
+76. Alter / Geburtsdatum
+Beim Anlegen von Athleten auf der Seite participants kann man das Geburtsdatum angeben. Es wird jedoch nur das Jahr gespeichert, nicht der Tag & Monat. TDD
+	-> Erledigt ✅ 
+
+77. Beim hinzufügen von Teilnehmern zu einer Veranstaltung soll es möglich sein den Wettkampf auszuwählen. Aktuell wird der Teilnehmer einfach irgend einem Wettkampf zugeordnet. 
+Bei der Zuweisung soll es dann auch noch möglich sein den Wettkampf zu filtern (Passende Altersklassen, Passendes Geschlecht). Diese Filter sollten per default aktiviert sein. 
+
+1000. DB erweitern. 
+1001. Nachdem die alten funktionen jetzt super funktionieren und nicht mehr auf die alte c++ Anwendung angewiesen sind, können wir die DB auch ergänzen bzw. ändern. Dazu müssen wir erst mal ein Prisma Update erstellen denke ich 
+
+1002. Personen -> Kampfrichter 
+Es muss an den Personen die Möglichkeit geben, diesen eine / mehrere Kategorien zuzuordnen (Kampfrichter, Trainer, Melder)
+
+1003. 
+Bei den Riege / Geräte definitionen muss dann Kampfrichter als Zuweisung möglich sein 
+Diese Zuweisung muss auch im Jury-Portal zur Anzeige gebracht werden. 
+
+1004. Anlagen an Geräten / Teilnehmer 
+An den Geräten müssen Anlagen möglich sein. Z.B. Musikstücke für den Boden. 
+
+1004. Anlagen an Disziplinen 
+Die Übungen müssen hinterlegt werden können und zur Anzeige gebracht werden. 
+https://www.kari-turnen.de/index.php 
+
+1005. Bei den Disziplinen / Geräten muss es ein Zusatzfeld geben bei dem man den Typ der Übung auswählen kann (Kür, Pflicht, ...?) 
+
+1006. Bei den Geräten / Teilnehmer muss es Eingabemöglichkeiten für die KaRi geben bei denen sie die Teile aufzeichnen können (bei Kür übungen) 
+
+1007. Gerätereihenfolge 
+Die Gerätereihenfolge (z.B. Olympisch) muss gespeichert werden. Hierfür eignet sich die Tabelle Disziplingruppe. Die Reihenfolge soll immer verwendet werden. 
+
+1008. Gerätewecheslplan / Reihenfolge
+Es muss eine tabellarische Anzeige geben mit den Riegen (Spaltenbezeichnung) und Runden (Runde 1-n als Zeilenbezeichnung). Die Disziplinen sollen dann in den Zellen zur Auswahl stehen (Drop Down, gefiltert nach den Disziplinen die auch in der Riege verfügbar sind).
+Zusätzlich muss noch die "Durchschnittszeit" angegeben werden können (default 3min). Anhand von der Zeit und der Riege mit den meisten Teilnehmern kann dann die Vorgabezeit berechnet werden. 
+Anhand von der Startzeit (1009.) und der Vorgabezeit, kann dann ein "Zeitplan" generiert werden wann die Wechsel sein sollten und wann der Wettkampf zu ende ist. 
+Jetzt haben wir die Vorgabenzeiten und den "Soll Zeitplan" jetzt brauchen wir noch die Ist Zeiten wann die tatsächlich beginnen / aufhören als eingabmöglichkeit. 
+
+1009. Riegen als Tabelle
+Aktuell sind die Riegen "nur" an den Teilnehmern gespeichert. Besser wäre eine separate Tabelle für diese und dann nur noch ein Verweis von den Teilnehmern auf diese Tabelle. Dann ist auch das Caching nicht mehr notwendig. 
+Die Startzeiten die aktuell an den Wettkämpfen gespeichert sind gehören eigentlich an die Riegen. Das kann dann auch an der neuen Tabelle gespeichert werden. 
+
+

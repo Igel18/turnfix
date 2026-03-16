@@ -205,7 +205,9 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING int_teilnehmerid
     `;
-        const result = await prisma_1.default.$queryRawUnsafe(query, data.var_vorname, data.var_nachname, data.int_vereineid, data.int_geschlecht, data.dat_geburtstag, data.bool_nur_jahr || false, data.int_startpassnummer || null);
+        const result = await prisma_1.default.$queryRawUnsafe(query, data.var_vorname, data.var_nachname, data.int_vereineid, data.int_geschlecht, data.dat_geburtstag, 
+        // If a full date is provided and bool_nur_jahr is not explicitly set, default to false
+        data.bool_nur_jahr !== undefined ? data.bool_nur_jahr : (data.dat_geburtstag ? false : true), data.int_startpassnummer || null);
         const participantId = result[0]?.int_teilnehmerid;
         if (!participantId) {
             return res.status(500).json({ message: 'Failed to create participant' });
@@ -259,6 +261,11 @@ router.put('/:id', authBypass_1.authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Invalid participant ID' });
         }
         const data = participantUpdateSchema.parse(req.body);
+        // If dat_geburtstag is being updated and bool_nur_jahr is not explicitly set,
+        // auto-set bool_nur_jahr to false (since we have a full date from the form)
+        if (data.dat_geburtstag !== undefined && data.bool_nur_jahr === undefined) {
+            data.bool_nur_jahr = data.dat_geburtstag ? false : true;
+        }
         // Build dynamic update query
         const updates = [];
         const params = [];

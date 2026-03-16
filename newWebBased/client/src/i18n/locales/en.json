@@ -974,6 +974,7 @@
       "createError": "Error creating participant",
       "updateError": "Error updating participant",
       "saveError": "Failed to save participant",
+      "invalidDateFormat": "Please enter a complete birthdate (day, month and year).",
       "loadError": "Error loading participants",
       "deleteWarning": "This action cannot be undone."
     },

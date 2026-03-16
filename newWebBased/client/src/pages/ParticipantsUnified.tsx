@@ -16,6 +16,7 @@ interface Participant {
   var_nachname: string;
   var_vorname: string;
   dat_geburtstag: string;
+  bool_nur_jahr: boolean;
   int_geschlecht: number;
   int_vereineid: number;
   verein_name: string;
@@ -170,13 +171,22 @@ const ParticipantsUnified: React.FC = () => {
       
       const method = editingParticipant ? 'PUT' : 'POST';
       
+      // Validate that the date is a full date (YYYY-MM-DD), not just a year
+      const dateValue = formData.dat_geburtsdatum;
+      const isFullDate = /^\d{4}-\d{2}-\d{2}$/.test(dateValue);
+      if (dateValue && !isFullDate) {
+        alert(t('participants.messages.invalidDateFormat'));
+        return;
+      }
+
       const requestData = {
         var_nachname: formData.var_nachname,
         var_vorname: formData.var_vorname,
-        dat_geburtstag: formData.dat_geburtsdatum,  // Note: API expects dat_geburtstag
+        dat_geburtstag: dateValue || null,
         int_geschlecht: parseInt(formData.var_geschlecht),
         int_vereineid: formData.int_vereineid,
-        int_startpassnummer: formData.int_startpassnummer ? parseInt(formData.int_startpassnummer) : null
+        int_startpassnummer: formData.int_startpassnummer ? parseInt(formData.int_startpassnummer) : null,
+        bool_nur_jahr: !isFullDate  // Full date from date picker → false; year-only → true
       };
       
       const response = await fetch(url, {
@@ -336,7 +346,11 @@ const ParticipantsUnified: React.FC = () => {
                 {participant.var_vorname} {participant.var_nachname}
               </div>
               <div className="text-sm text-gray-500">
-                {new Date(participant.dat_geburtstag).toLocaleDateString()}
+                {participant.dat_geburtstag 
+                  ? (participant.bool_nur_jahr 
+                    ? new Date(participant.dat_geburtstag).getFullYear().toString()
+                    : new Date(participant.dat_geburtstag).toLocaleDateString())
+                  : '-'}
               </div>
             </div>
           </div>
@@ -378,7 +392,11 @@ const ParticipantsUnified: React.FC = () => {
               </h3>
               <p className="text-sm text-gray-500 flex items-center">
                 <CalendarIcon className="w-4 h-4 mr-1" />
-                {new Date(participant.dat_geburtstag).toLocaleDateString()}
+                {participant.dat_geburtstag 
+                  ? (participant.bool_nur_jahr 
+                    ? new Date(participant.dat_geburtstag).getFullYear().toString()
+                    : new Date(participant.dat_geburtstag).toLocaleDateString())
+                  : '-'}
                 {participant.age && ` (${participant.age} ${t('participants.card.years')})`}
               </p>
             </div>
