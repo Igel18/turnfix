@@ -53,6 +53,8 @@ export interface FilterState {
   genderFilter: string;
   competitionFilter: string;
   clubFilter: string;
+  assignmentStatus: string; // 'all', 'assigned', 'unassigned'
+  birthYear: string; // for Jahrgang filter
 }
 
 /**

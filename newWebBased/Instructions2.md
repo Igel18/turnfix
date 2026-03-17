@@ -557,6 +557,21 @@ Beim Anlegen von Athleten auf der Seite participants kann man das Geburtsdatum a
 Bei der Zuweisung soll es dann auch noch möglich sein den Wettkampf zu filtern (Passende Altersklassen, Passendes Geschlecht). Diese Filter sollten per default aktiviert sein. 
 -> Erledigt ✅
 
+78. [improvement] Riegeneinteilung Filter
+Die Filter bei der Riegeneinteilung müssen besser werden. 
+a) Man muss über zugewiesen und nicht zugewiesenen Teilnehmern filtern können 
+b) der Namensfilter muss in den "Filter" Bereich 
+c) Es muss auch nach Jahrgang gefiltert werden können 
+-> In Arbeit 🚀
+
+79. [improvement] Riegeneinteilung UI 
+Bei den Riegen stehen nicht alle Wettkämpfe dran sondern nur 2 stück 
+Bei den Riegen Details steht bei den Teilnehmern fast keine Info dabei. Hier muss die gleiche Karte wie in der Spalte "Teilnehmer" angezeigt werden, mit den ganzen Details. 
+
+80. [improvement] Riegeneinteilung 
+Beim klick auf den Pfeil zum entfernen eines Teilnehmers aus der Spalte "Riege Details" aktualisiert die UI nicht. erst nach dem manuellen aktualisieren sieht man welche teilnehmer wo drin sind. 
+Es aktualisiert auch nicht diese Spalte, wenn Teilnehmer hinzugefügt werden... 
+
 
 -> Erledigt ✅ 
 -> In Arbeit 🚀

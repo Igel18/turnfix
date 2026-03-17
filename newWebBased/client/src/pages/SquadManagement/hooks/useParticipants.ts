@@ -19,6 +19,8 @@ interface UseParticipantsReturn {
   setGenderFilter: (gender: string) => void;
   setCompetitionFilter: (competition: string) => void;
   setClubFilter: (club: string) => void;
+  setAssignmentStatus: (status: string) => void;
+  setBirthYear: (year: string) => void;
   resetFilters: () => void;
   setCompetitionSelection: (selection: CompetitionSelection) => void;
   loadAvailableParticipants: () => Promise<void>;
@@ -32,7 +34,9 @@ export const useParticipants = (eventId: string | null): UseParticipantsReturn =
     searchTerm: '',
     genderFilter: '',
     competitionFilter: '',
-    clubFilter: ''
+    clubFilter: '',
+    assignmentStatus: 'all',
+    birthYear: ''
   });
   const [competitionSelection, setCompetitionSelection] = useState<CompetitionSelection>({
     id: null,
@@ -116,18 +120,25 @@ export const useParticipants = (eventId: string | null): UseParticipantsReturn =
         `${participant.firstname} ${participant.lastname}`.toLowerCase().includes(filterState.searchTerm.toLowerCase()) ||
         participant.club.toLowerCase().includes(filterState.searchTerm.toLowerCase()) ||
         (participant.competitionNames && participant.competitionNames.toLowerCase().includes(filterState.searchTerm.toLowerCase()));
-      
+
       const matchesGender = !filterState.genderFilter || participant.gender === filterState.genderFilter;
-      
+
       const matchesCompetition = !filterState.competitionFilter || 
         (participant.competitions && participant.competitions.some(comp => 
           comp.name.toLowerCase().includes(filterState.competitionFilter.toLowerCase())
         ));
-      
+
       const matchesClub = !filterState.clubFilter || 
         participant.club.toLowerCase().includes(filterState.clubFilter.toLowerCase());
-      
-      return matchesSearch && matchesGender && matchesCompetition && matchesClub;
+
+      const matchesAssignment =
+        filterState.assignmentStatus === 'all' ||
+        (filterState.assignmentStatus === 'assigned' && participant.squadId != null) ||
+        (filterState.assignmentStatus === 'unassigned' && participant.squadId == null);
+
+      const matchesBirthYear = !filterState.birthYear || String(participant.birthYear) === filterState.birthYear;
+
+      return matchesSearch && matchesGender && matchesCompetition && matchesClub && matchesAssignment && matchesBirthYear;
     });
   }, [availableParticipants, filterState]);
 
@@ -150,12 +161,22 @@ export const useParticipants = (eventId: string | null): UseParticipantsReturn =
     setFilterState(prev => ({ ...prev, clubFilter: club }));
   };
 
+  const setAssignmentStatus = (status: string) => {
+    setFilterState(prev => ({ ...prev, assignmentStatus: status }));
+  };
+
+  const setBirthYear = (year: string) => {
+    setFilterState(prev => ({ ...prev, birthYear: year }));
+  };
+
   const resetFilters = () => {
     setFilterState({
       searchTerm: '',
       genderFilter: '',
       competitionFilter: '',
-      clubFilter: ''
+      clubFilter: '',
+      assignmentStatus: 'all',
+      birthYear: ''
     });
   };
 
@@ -177,6 +198,8 @@ export const useParticipants = (eventId: string | null): UseParticipantsReturn =
     setGenderFilter,
     setCompetitionFilter,
     setClubFilter,
+    setAssignmentStatus,
+    setBirthYear,
     resetFilters,
     setCompetitionSelection,
     loadAvailableParticipants,

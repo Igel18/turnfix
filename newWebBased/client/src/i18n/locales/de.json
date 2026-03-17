@@ -2928,6 +2928,13 @@
       "availablePlural": "Teilnehmer"
     },
     "filters": {
+      "assignmentStatus": "Zuweisungsstatus",
+      "assigned": "Zugewiesen",
+      "unassigned": "Nicht zugewiesen",
+      "name": "Name",
+      "namePlaceholder": "Name, Vorname, Verein...",
+      "birthYear": "Jahrgang",
+      "birthYearPlaceholder": "z.B. 2012",
       "gender": "Geschlecht",
       "competition": "Wettkampf",
       "club": "Verein",

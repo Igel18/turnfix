@@ -65,6 +65,8 @@ const SquadManagementUnified: React.FC = () => {
     setGenderFilter,
     setCompetitionFilter,
     setClubFilter,
+    setAssignmentStatus,
+    setBirthYear,
     resetFilters,
     setCompetitionSelection,
     forceLoadAvailableParticipants,
@@ -197,7 +199,37 @@ const SquadManagementUnified: React.FC = () => {
       onToggleFilters={() => setShowFilters(!showFilters)}
       filterSection={
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            {/* Assignment Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('squadManagement.filters.assignmentStatus')}
+              </label>
+              <select
+                value={filterState.assignmentStatus}
+                onChange={e => setAssignmentStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">{t('squadManagement.filters.all')}</option>
+                <option value="assigned">{t('squadManagement.filters.assigned')}</option>
+                <option value="unassigned">{t('squadManagement.filters.unassigned')}</option>
+              </select>
+            </div>
+
+            {/* Name Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('squadManagement.filters.name')}
+              </label>
+              <input
+                type="text"
+                value={filterState.searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder={t('squadManagement.filters.namePlaceholder')}
+              />
+            </div>
+
             {/* Gender Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -250,6 +282,20 @@ const SquadManagementUnified: React.FC = () => {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Birth Year Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('squadManagement.filters.birthYear')}
+              </label>
+              <input
+                type="text"
+                value={filterState.birthYear}
+                onChange={e => setBirthYear(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder={t('squadManagement.filters.birthYearPlaceholder')}
+              />
             </div>
 
             {/* Reset Button */}

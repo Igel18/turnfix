@@ -2891,6 +2891,13 @@
       "availablePlural": "Participants"
     },
     "filters": {
+      "assignmentStatus": "Assignment Status",
+      "assigned": "Assigned",
+      "unassigned": "Unassigned",
+      "name": "Name",
+      "namePlaceholder": "Name, first name, club...",
+      "birthYear": "Birth Year",
+      "birthYearPlaceholder": "e.g. 2012",
       "gender": "Gender",
       "competition": "Competition",
       "club": "Club",
