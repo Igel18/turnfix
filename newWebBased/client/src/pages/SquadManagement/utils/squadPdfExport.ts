@@ -44,7 +44,9 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
 
   // Content area boundaries – consistent across every page
   const margin = PDF_CONFIG.margins.page;          // 10 mm
-  const contentStartY = PDF_CONFIG.margins.header; // 32 mm  (below header + separator)
+  // Header white background fills y=0..30mm; text cap height for 12pt ≈ 3mm.
+  // Starting at 34mm keeps ascenders (≈31mm) just below the white rect.
+  const contentStartY = PDF_CONFIG.margins.header + 2; // 34 mm
   const contentEndY = pageHeight - PDF_CONFIG.margins.footer; // 272 mm  (above footer)
 
   let yPosition = contentStartY;

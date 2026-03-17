@@ -10,7 +10,7 @@
  *  - competition metadata is rendered for each squad
  *  - jsPDF.save() is called with a non-empty .pdf filename
  *  - header/footer is applied to every page
- *  - consistent yPosition: contentStartY (PDF_CONFIG.margins.header = 32) on all pages
+ *  - consistent yPosition: contentStartY (PDF_CONFIG.margins.header + 2 = 34) on all pages
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -343,12 +343,12 @@ describe('exportSquadsPDF', () => {
   // ── Consistent yPosition on new pages ────────────────────────
 
   describe('consistent yPosition on new pages', () => {
-    it('starts content at PDF_CONFIG.margins.header (32) after a page break', () => {
+    it('starts content at PDF_CONFIG.margins.header + 2 (34) after a page break', () => {
       // Make autoTable push finalY close to the bottom (250mm).
       // yPosition after first table = 250 + paragraph(7) = 257.
       // ensureSpace(31) for squad 2: 257 + 31 = 288 > contentEndY(272) → addPage!
-      // After addPage, yPosition resets to 32 (contentStartY).
-      // The squad title text is the first doc.text() call with y=32 on the new page.
+      // After addPage, yPosition resets to 34 (contentStartY = margins.header + 2).
+      // The squad title text is the first doc.text() call with y=34 on the new page.
       autoTableMock.mockImplementation((doc: any, opts: any) => {
         doc.lastAutoTable = { finalY: 250 };
         autoTableCalls.push(opts);
@@ -357,10 +357,10 @@ describe('exportSquadsPDF', () => {
       const squads = Array.from({ length: 3 }, (_, i) => makeSquad(i + 1, 2));
       exportSquadsPDF({ squads, selectedEvent: makeEvent(), t: makeT() });
 
-      // After a page break, yPosition is reset to 32 (contentStartY).
-      // doc.text(title, margin, yPosition) → third arg === 32 for the first title on new page.
+      // After a page break, yPosition is reset to 34 (contentStartY).
+      // doc.text(title, margin, yPosition) → third arg === 34 for the first title on new page.
       const callsAtPageTop = currentDoc.text.mock.calls.filter(
-        (c: unknown[]) => (c[2] as number) === 32,
+        (c: unknown[]) => (c[2] as number) === 34,
       );
       expect(callsAtPageTop.length).toBeGreaterThan(0);
     });
