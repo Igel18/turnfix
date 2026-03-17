@@ -3032,6 +3032,25 @@
       "noParticipants": "Keine Teilnehmer zugewiesen",
       "notAvailable": "N/A"
     },
+    "wizard": {
+      "titleCreate": "Neue Riege erstellen",
+      "titleEdit": "Riege bearbeiten",
+      "stepNameTitle": "Schritt 1 von 2: Riegenname",
+      "stepParticipantsTitle": "Schritt 2 von 2: Teilnehmer auswählen",
+      "next": "Weiter",
+      "back": "Zurück",
+      "save": "Speichern",
+      "participantsSelected": "{{count}} ausgewählt",
+      "visible": "sichtbar",
+      "selectAll": "Alle auswählen",
+      "deselectAll": "Alle abwählen",
+      "noParticipants": "Keine Teilnehmer gefunden",
+      "filters": {
+        "search": "Name oder Verein suchen...",
+        "allClubs": "Alle Vereine",
+        "allCompetitions": "Alle Wettkämpfe"
+      }
+    },
     "autoAssign": {
       "title": "Automatische Riegeneinteilung",
       "button": "Automatische Zuweisung",

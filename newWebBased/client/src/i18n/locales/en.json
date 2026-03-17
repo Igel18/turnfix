@@ -2995,6 +2995,25 @@
       "noParticipants": "No participants assigned",
       "notAvailable": "N/A"
     },
+    "wizard": {
+      "titleCreate": "Create New Squad",
+      "titleEdit": "Edit Squad",
+      "stepNameTitle": "Step 1 of 2: Squad Name",
+      "stepParticipantsTitle": "Step 2 of 2: Select Participants",
+      "next": "Next",
+      "back": "Back",
+      "save": "Save",
+      "participantsSelected": "{{count}} selected",
+      "visible": "visible",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "noParticipants": "No participants found",
+      "filters": {
+        "search": "Search name or club...",
+        "allClubs": "All clubs",
+        "allCompetitions": "All competitions"
+      }
+    },
     "autoAssign": {
       "title": "Automatic Squad Assignment",
       "button": "Auto Assign",

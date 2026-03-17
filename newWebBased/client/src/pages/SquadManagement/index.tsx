@@ -21,6 +21,7 @@ import { useSquadAssignment } from './hooks/useSquadAssignment';
 // Components
 import { CreateSquadModal } from './components/CreateSquadModal';
 import { AutoAssignDialog } from './components/AutoAssignDialog';
+import { SquadWizardModal } from './components/SquadWizardModal';
 
 // Utils
 import { exportSquadsPDF } from './utils/squadPdfExport';
@@ -46,6 +47,11 @@ const SquadManagementUnified: React.FC = () => {
   const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isAutoAssignOpen, setIsAutoAssignOpen] = useState(false);
+
+  // Wizard state
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardMode, setWizardMode] = useState<'create' | 'edit'>('create');
+  const [wizardSquad, setWizardSquad] = useState<Squad | null>(null);
 
   // Custom hooks for data management
   const {
@@ -141,10 +147,11 @@ const SquadManagementUnified: React.FC = () => {
     exportSquadsPDF({ squads, selectedEvent, t });
   };
 
-  // Edit squad handler
-  const handleEditSquad = (squad: Squad) => {
-    setEditingSquad(squad);
-    setIsEditModalOpen(true);
+  // Open wizard for editing a squad
+  const handleEditSquadWizard = (squad: Squad) => {
+    setWizardSquad(squad);
+    setWizardMode('edit');
+    setIsWizardOpen(true);
   };
 
   // Close edit modal
@@ -167,8 +174,12 @@ const SquadManagementUnified: React.FC = () => {
     ...squadConfig,
     onAssign: handleAssign,
     onUnassign: handleUnassign,
-    onCreateMaster: () => setIsCreateModalOpen(true),
-    onEditMaster: handleEditSquad,
+    onCreateMaster: () => {
+      setWizardMode('create');
+      setWizardSquad(null);
+      setIsWizardOpen(true);
+    },
+    onEditMaster: handleEditSquadWizard,
     onDeleteMaster: deleteSquad,
     onExportPDF: handleExportPDF
   };
@@ -322,7 +333,11 @@ const SquadManagementUnified: React.FC = () => {
       }
       showAddButton={true}
       addButtonText={t('squadManagement.actions.newSquad')}
-      onAdd={() => setIsCreateModalOpen(true)}
+      onAdd={() => {
+        setWizardMode('create');
+        setWizardSquad(null);
+        setIsWizardOpen(true);
+      }}
       customActions={
         <button
           onClick={() => setIsAutoAssignOpen(true)}
@@ -410,6 +425,21 @@ const SquadManagementUnified: React.FC = () => {
             eventId={eventId ? parseInt(eventId) : 0}
             onApplied={handleAutoAssignApplied}
           />
+
+          {/* Squad Wizard (create / edit) */}
+          {eventId && (
+            <SquadWizardModal
+              isOpen={isWizardOpen}
+              onClose={() => setIsWizardOpen(false)}
+              mode={wizardMode}
+              squad={wizardSquad ?? undefined}
+              eventId={eventId}
+              onDone={async () => {
+                await forceLoadSquads();
+                await forceLoadAvailableParticipants();
+              }}
+            />
+          )}
         </div>
       )}
     </EventManagementTemplate>
