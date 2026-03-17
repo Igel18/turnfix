@@ -11,7 +11,8 @@ import {
   addPDFHeaderFooter,
   addSectionTitle, 
   addBodyText,
-  getUnifiedTableStyles
+  getUnifiedTableStyles, 
+  addSeparatorLine
 } from '@/utils/pdfUtils';
 import {
   pdfSpacing,
@@ -36,36 +37,54 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
   const doc = new jsPDF('p', 'mm', 'a4');
   const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
   
+  // Always start at the very top after header/footer
   let yPosition = contentArea.startY + 10;
   const leftMargin = contentArea.startX;
 
-  // Summary
+  // Add fixed offset to ensure first squad name is visible (not hidden behind header)
+    yPosition += 20;
+
+  // If yPosition is too low (e.g. header/footer pushed it down), force a new page and reset
+  if (yPosition > contentArea.endY - 120) {
+    doc.addPage();
+    setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
+    yPosition = contentArea.startY + 10;
+    yPosition += 20;
+  }
+
+  // --- Always render summary and first squad name at the very top of the first page ---
   const totalParticipants = squads.reduce((sum, squad) => sum + squad.participantCount, 0);
   const summaryText = `${t('squadManagement.pdf.totalSquads', { count: squads.length })} | ${t('squadManagement.pdf.totalParticipants', { count: totalParticipants })}`;
   yPosition = addBodyText(doc, summaryText, yPosition, leftMargin);
   yPosition += pdfSpacing.section.spacing;
 
-  // Get unified table styles
   const unifiedStyles = getUnifiedTableStyles();
+  // --- Render summary and first squad name as a fixed block at the top ---
+  // Render summary at the top
+  if (squads.length > 0) {
+    // nothing extra for first squad name here
+  }
 
   // Iterate through squads
   squads.forEach((squad, squadIndex) => {
-    // Check if we need a new page before squad header
+    // Always check for page break before rendering squad name
     if (yPosition > contentArea.endY - 80) {
       doc.addPage();
       setupPDFWithHeaderFooter(doc, selectedEvent, t('squadManagement.title'));
       yPosition = contentArea.startY + 10;
     }
-
+  
     // Squad Name as section title
     yPosition = addSectionTitle(
-      doc, 
-      squad.name || `Riege ${squadIndex + 1}`, 
+      doc,
+      squad.name || `Riege ${squadIndex + 1}`,
       yPosition,
       { fontSize: pdfFonts.sectionTitle.size }
     );
     yPosition += pdfSpacing.section.title;
+    yPosition = addSeparatorLine(doc, yPosition);
 
+    yPosition += pdfSpacing.section.spacing;
     // Squad info: Participant count
     doc.setFontSize(pdfFonts.tableBody.size);
     doc.setFont('helvetica', 'normal');
@@ -84,13 +103,13 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
         yPosition
       );
       yPosition += pdfSpacing.section.spacing;
-      
+
       squad.competitions.forEach((comp) => {
         const compText = comp.number ? `  - ${comp.name} (Nr. ${comp.number})` : `  - ${comp.name}`;
         doc.text(compText, leftMargin, yPosition);
         yPosition += pdfSpacing.section.spacing;
       });
-      
+
       yPosition += pdfSpacing.section.spacing;
     } else {
       yPosition += pdfSpacing.section.spacing;
@@ -98,11 +117,17 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
 
     // Squad Participants Table
     if (squad.participants && squad.participants.length > 0) {
-      // Prepare table data
+      // Prepare table data with competition and start number
       const tableData = squad.participants.map(p => [
         `${p.firstname} ${p.lastname}`,
         p.birthYear ? p.birthYear.toString() : t('squadManagement.pdf.notAvailable'),
-        p.club || t('squadManagement.pdf.noClub')
+        p.club || t('squadManagement.pdf.noClub'),
+        // Competition: show first competition name (or all joined)
+        (p.competitions && p.competitions.length > 0)
+          ? p.competitions.map(c => c.name).join(', ')
+          : t('competitions.fields.name'),
+        // Start number
+        p.startNumber ? p.startNumber.toString() : ''
       ]);
 
       // Add participants table
@@ -110,15 +135,19 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
         head: [[
           t('squadManagement.pdf.name'),
           t('squadManagement.pdf.birthYear'),
-          t('squadManagement.pdf.club')
+          t('squadManagement.pdf.club'),
+          t('competitions.fields.name'), // Competition
+          t('groupTeamScoring.startNumber') // Start number
         ]],
         body: tableData,
         startY: yPosition,
         ...unifiedStyles,
         columnStyles: {
-          0: { halign: 'left', cellWidth: 70 },   // Name
-          1: { halign: 'center', cellWidth: 30 }, // Birth Year
-          2: { halign: 'left', cellWidth: 70 }    // Club
+          0: { halign: 'left', cellWidth: 50 },   // Name
+          1: { halign: 'center', cellWidth: 22 }, // Birth Year
+          2: { halign: 'left', cellWidth: 40 },   // Club
+          3: { halign: 'left', cellWidth: 40 },   // Competition
+          4: { halign: 'center', cellWidth: 22 }  // Start Number
         },
       });
 

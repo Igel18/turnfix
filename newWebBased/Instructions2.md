@@ -532,6 +532,7 @@ Sollte auch direkt in der Veranstaltung funktionieren und dann bei den Athletes 
 72. [Feature] Beim PDF Export müssen noch ein paar informationen mit dran. 
 Teilnehmerexport: Wettkampfnummer 
 Riegenliste: Wettkampf zusätzlich an die Teilnehmer 
+-> In Arbeit 🚀 | Tests fehlen
 
 73. [Feature] Beim Automatischen Riegen erzeugen gehe ich wie folgt vor: 
 1. Analyse wie viele Geräte geturnt werden müssen (je Wettkampf). Manche haben 4-Kampf manche 6-Kampf, das beeinflusst natürlich die Wettkampfdauer und damit die angestrebte Riegengröße 
@@ -573,9 +574,11 @@ Und die Spalte ist in der Höhe ziemlich begrenzt. Das muss viel länger sein...
 80. [improvement] Riegeneinteilung 
 Beim klick auf den Pfeil zum entfernen eines Teilnehmers aus der Spalte "Riege Details" aktualisiert die UI nicht. erst nach dem manuellen aktualisieren sieht man welche teilnehmer wo drin sind. 
 Es aktualisiert auch nicht diese Spalte, wenn Teilnehmer hinzugefügt werden... 
+-> In Arbeit 🚀 | Tests fehlen 
 
-81. Riegenliste PDF 
+81. [Bug] Riegenliste PDF 
 Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt. 
+-> In Arbeit 🚀 | Tests fehlen & die Formatierung ist nicht schön
 
 -> Erledigt ✅ 
 -> In Arbeit 🚀
