@@ -136,7 +136,7 @@ export const useParticipants = (eventId: string | null): UseParticipantsReturn =
         (filterState.assignmentStatus === 'assigned' && participant.squadId != null) ||
         (filterState.assignmentStatus === 'unassigned' && participant.squadId == null);
 
-      const matchesBirthYear = !filterState.birthYear || String(participant.birthYear) === filterState.birthYear;
+      const matchesBirthYear = !filterState.birthYear || String(participant.birthYear).includes(filterState.birthYear);
 
       return matchesSearch && matchesGender && matchesCompetition && matchesClub && matchesAssignment && matchesBirthYear;
     });
