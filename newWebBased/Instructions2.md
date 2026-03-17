@@ -574,6 +574,8 @@ Und die Spalte ist in der Höhe ziemlich begrenzt. Das muss viel länger sein...
 Beim klick auf den Pfeil zum entfernen eines Teilnehmers aus der Spalte "Riege Details" aktualisiert die UI nicht. erst nach dem manuellen aktualisieren sieht man welche teilnehmer wo drin sind. 
 Es aktualisiert auch nicht diese Spalte, wenn Teilnehmer hinzugefügt werden... 
 
+81. Riegenliste PDF 
+Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt. 
 
 -> Erledigt ✅ 
 -> In Arbeit 🚀

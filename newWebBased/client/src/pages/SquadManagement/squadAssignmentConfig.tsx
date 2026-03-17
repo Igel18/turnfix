@@ -60,7 +60,7 @@ export function createSquadConfig({
           <h4 className="font-medium text-gray-900 mb-2">
             {t('squadManagement.squadDetails.participants', { count: squad.participants.length })}
           </h4>
-          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+          <div className="space-y-2">
             {squad.participants.map(participant => {
               const isHighlighted = participantHasSelectedCompetition(participant);
               return (
@@ -88,7 +88,7 @@ export function createSquadConfig({
           <h4 className="font-medium text-gray-900 mb-2">
             {t('squadManagement.squadDetails.assignedCompetitions')}
           </h4>
-          <div className="space-y-1 max-h-[300px] overflow-y-auto">
+          <div className="space-y-1">
             {squad.competitions.map((comp, idx) => {
               const isSelected = comp.id === competitionSelection.id && comp.name === competitionSelection.name;
               return (

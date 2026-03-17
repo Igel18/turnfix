@@ -30,6 +30,8 @@ import { createSquadConfig } from './squadAssignmentConfig';
 import type { Participant, Squad } from './SquadManagement.types';
 
 const SquadManagementUnified: React.FC = () => {
+    // Track selected squad for detail pane (by id)
+    const [selectedSquadId, setSelectedSquadId] = useState<number | string | null>(null);
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
@@ -107,11 +109,19 @@ const SquadManagementUnified: React.FC = () => {
   // Handler for participant removal
   const handleRemoveParticipant = async (participantId: number) => {
     await removeParticipantFromSquad(participantId);
+    // After reload, keep the same squad selected (if it still exists)
+    if (selectedSquadId) {
+      const stillExists = squads.find(s => s.id === selectedSquadId);
+      if (!stillExists && squads.length > 0) {
+        setSelectedSquadId(squads[0].id);
+      }
+    }
   };
 
   // Handler for assignment
   const handleAssign = async (participant: Participant, squadId: number | string) => {
     await assignParticipantToSquad(participant, squadId);
+    setSelectedSquadId(squadId);
   };
 
   // Handler for unassignment
@@ -362,7 +372,7 @@ const SquadManagementUnified: React.FC = () => {
           <UnifiedAssignmentModal
             masterItems={squads}
             availableItems={filteredParticipants}
-            assignments={[]} // Not needed for this implementation
+            assignments={[]}
             config={config}
             isLoading={isLoading}
             eventId={eventId}
@@ -370,6 +380,8 @@ const SquadManagementUnified: React.FC = () => {
               master: t('squadManagement.columnSearch.master'),
               available: t('squadManagement.columnSearch.available')
             }}
+            selectedMaster={selectedSquadId ? squads.find(s => s.id === selectedSquadId) || null : null}
+            onSelectMaster={squad => setSelectedSquadId(squad ? squad.id : null)}
           />
 
           {/* Create Squad Modal */}
