@@ -578,7 +578,7 @@ Es aktualisiert auch nicht diese Spalte, wenn Teilnehmer hinzugefügt werden...
 
 81. [Bug] Riegenliste PDF 
 Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt. 
--> In Arbeit 🚀 | Tests fehlen & die Formatierung ist nicht schön
+-> Erledigt ✅ | Formatierung einheitlich auf allen Seiten, 24 Unit-Tests hinzugefügt
 
 -> Erledigt ✅ 
 -> In Arbeit 🚀
