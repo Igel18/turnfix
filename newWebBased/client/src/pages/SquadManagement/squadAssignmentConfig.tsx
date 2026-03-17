@@ -4,6 +4,7 @@
  */
 
 import { ArrowLeft, Trophy } from 'lucide-react';
+import { ParticipantCard, toParticipantCardData } from '@/components/cards/ParticipantCard';
 import type { AssignmentConfig } from '@/components/assignment';
 import type { Squad, Participant } from './SquadManagement.types';
 
@@ -33,7 +34,7 @@ export function createSquadConfig({
     getMasterMetadata: (squad: Squad) => ({
       itemCount: squad.participantCount,
       subtitle: t('squadManagement.squads.participants', { count: squad.participantCount }),
-      tags: squad.competitions.slice(0, 2).map((comp) => ({
+      tags: squad.competitions.map((comp) => ({
         label: `${comp.name}${comp.number ? ` (Nr. ${comp.number})` : ''}`,
         color: 'bg-gray-100 text-gray-700'
       })),
@@ -59,34 +60,24 @@ export function createSquadConfig({
           <h4 className="font-medium text-gray-900 mb-2">
             {t('squadManagement.squadDetails.participants', { count: squad.participants.length })}
           </h4>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
             {squad.participants.map(participant => {
               const isHighlighted = participantHasSelectedCompetition(participant);
               return (
-                <div
+                <ParticipantCard
                   key={participant.id}
-                  className={`flex items-center justify-between p-2 rounded transition-all ${
-                    isHighlighted 
-                      ? 'bg-blue-100 border border-blue-300 shadow-sm' 
-                      : 'bg-gray-50'
-                  }`}
-                >
-                  <div>
-                    <p className={`text-sm font-medium ${isHighlighted ? 'text-blue-900' : 'text-gray-900'}`}>
-                      {participant.firstname} {participant.lastname}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {participant.club}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => onRemoveParticipant(participant.id)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                    title={t('squadManagement.actions.removeFromSquad')}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                </div>
+                  participant={toParticipantCardData(participant)}
+                  isHighlighted={isHighlighted}
+                  actionButton={
+                    <button
+                      onClick={() => onRemoveParticipant(participant.id)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      title={t('squadManagement.actions.removeFromSquad')}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                  }
+                />
               );
             })}
           </div>
@@ -97,7 +88,7 @@ export function createSquadConfig({
           <h4 className="font-medium text-gray-900 mb-2">
             {t('squadManagement.squadDetails.assignedCompetitions')}
           </h4>
-          <div className="space-y-1">
+          <div className="space-y-1 max-h-[300px] overflow-y-auto">
             {squad.competitions.map((comp, idx) => {
               const isSelected = comp.id === competitionSelection.id && comp.name === competitionSelection.name;
               return (

@@ -562,11 +562,13 @@ Die Filter bei der Riegeneinteilung müssen besser werden.
 a) Man muss über zugewiesen und nicht zugewiesenen Teilnehmern filtern können 
 b) der Namensfilter muss in den "Filter" Bereich 
 c) Es muss auch nach Jahrgang gefiltert werden können 
--> In Arbeit 🚀
+-> In Arbeit 🚀 | Tests fehlen
 
 79. [improvement] Riegeneinteilung UI 
-Bei den Riegen stehen nicht alle Wettkämpfe dran sondern nur 2 stück 
+In der Spalte Riegen stehen nicht alle Wettkämpfe dran sondern nur 2 stück 
 Bei den Riegen Details steht bei den Teilnehmern fast keine Info dabei. Hier muss die gleiche Karte wie in der Spalte "Teilnehmer" angezeigt werden, mit den ganzen Details. 
+Und die Spalte ist in der Höhe ziemlich begrenzt. Das muss viel länger sein... 
+-> In Arbeit 🚀 | Tests fehlen
 
 80. [improvement] Riegeneinteilung 
 Beim klick auf den Pfeil zum entfernen eines Teilnehmers aus der Spalte "Riege Details" aktualisiert die UI nicht. erst nach dem manuellen aktualisieren sieht man welche teilnehmer wo drin sind. 
