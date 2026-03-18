@@ -449,14 +449,43 @@ describe('DatabaseSetupWizard (integration)', () => {
     expect(screen.getByText('turnfix_test', { exact: false })).toBeInTheDocument();
   });
 
-  it('renders all 9 wizard steps', async () => {
+  it('renders all 9 wizard steps across both pages', async () => {
+    const user = userEvent.setup();
+    cbs.onTestConnection.mockResolvedValue({ success: true, message: 'OK' });
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
-    // Wait for render
+
+    // Page 1: steps 1-3 should be visible
     await waitFor(() => {
-      // Look for step numbers
       expect(screen.getByText(/1\./)).toBeInTheDocument();
       expect(screen.getByText(/2\./)).toBeInTheDocument();
       expect(screen.getByText(/3\./)).toBeInTheDocument();
+    });
+
+    // Type a database name so step 0 can execute
+    const dbInput = screen.getByPlaceholderText('turnfix_test');
+    await user.clear(dbInput);
+    await user.type(dbInput, 'test_db');
+
+    // Execute the 3 required steps to enable "Weiter"
+    for (let i = 0; i < 3; i++) {
+      const btn = (await screen.findAllByRole('button')).find(
+        b => b.textContent?.match(/^Ausführen$|^Execute$/),
+      );
+      if (btn) await user.click(btn);
+      await waitFor(() =>
+        expect(screen.queryByText(/Wird ausgeführt/i)).not.toBeInTheDocument(),
+      );
+    }
+
+    // Wait for Weiter button to become enabled (all required steps complete)
+    await waitFor(() => {
+      const btn = screen.getByTestId('wizard-next-btn');
+      expect(btn).not.toBeDisabled();
+    });
+    await user.click(screen.getByTestId('wizard-next-btn'));
+
+    // Page 2: steps 4-9 should now be visible
+    await waitFor(() => {
       expect(screen.getByText(/4\./)).toBeInTheDocument();
       expect(screen.getByText(/5\./)).toBeInTheDocument();
       expect(screen.getByText(/6\./)).toBeInTheDocument();
@@ -466,8 +495,34 @@ describe('DatabaseSetupWizard (integration)', () => {
     });
   });
 
-  it('shows 6 "Optional" badges', async () => {
+  it('shows 6 "Optional" badges on the import page', async () => {
+    const user = userEvent.setup();
+    cbs.onTestConnection.mockResolvedValue({ success: true, message: 'OK' });
     render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
+
+    // Type a database name so step 0 can execute
+    const dbInput = screen.getByPlaceholderText('turnfix_test');
+    await user.clear(dbInput);
+    await user.type(dbInput, 'test_db');
+
+    // Execute the 3 required steps
+    for (let i = 0; i < 3; i++) {
+      const btn = (await screen.findAllByRole('button')).find(
+        b => b.textContent?.match(/^Ausführen$|^Execute$/),
+      );
+      if (btn) await user.click(btn);
+      await waitFor(() =>
+        expect(screen.queryByText(/Wird ausgeführt/i)).not.toBeInTheDocument(),
+      );
+    }
+
+    // Wait for Weiter button to become enabled (all required steps complete)
+    await waitFor(() => {
+      const btn = screen.getByTestId('wizard-next-btn');
+      expect(btn).not.toBeDisabled();
+    });
+    await user.click(screen.getByTestId('wizard-next-btn'));
+
     await waitFor(() => {
       const optionalBadges = screen.getAllByText('Optional');
       expect(optionalBadges.length).toBe(6);

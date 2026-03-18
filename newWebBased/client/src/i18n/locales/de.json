@@ -3091,6 +3091,11 @@
         "number": "Nummeriert (z.B. R01, R02)",
         "none": "Nur Farbe (z.B. Rot, Blau)"
       },
+      "validation": {
+        "maxPerSquad": "Bitte einen Wert zwischen 2 und 50 eingeben",
+        "numberOfProposals": "Bitte einen Wert zwischen 1 und 10 eingeben",
+        "breakCount": "Bitte einen Wert zwischen 0 und 99 eingeben"
+      },
       "generateButton": "Vorschläge generieren",
       "generating": "Wird generiert...",
       "applyButton": "Vorschlag übernehmen",

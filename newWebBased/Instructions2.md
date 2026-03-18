@@ -522,7 +522,8 @@ Sollte auch direkt in der Veranstaltung funktionieren und dann bei den Athletes 
 68. [Feature] Beim Hinzufügen von Teilnehmern in einer Veranstaltung sollten die Startnummern vergeben werden 
 	-> Erledigt ✅
 
-69. [Bug] Beim Automatischen generieren von Riegen ist die Eingabe der Anzahl der Teilnehmer nicht gut. Man kann die komplette Eingabe in dem Feld nicht löschen. Wenn das nicht valide ist sollte ein roter Rahmen drum rum... 
+69. [Bug] Beim Automatischen generieren von Riegen ist die Eingabe der Zahlen (Teilnehmer, Vorschläge, Pausen-Riegen) nicht gut. Man kann die komplette Eingabe in dem Feld nicht löschen. Wenn das nicht valide ist sollte ein roter Rahmen drum rum... 
+	-> Erledigt ✅ | String-basierte Eingabe, roter Rahmen + Fehlermeldung bei ungültigem Wert, Generieren-Button deaktiviert bis alle Felder valide
 
 70. [Bug] Löschen von Teilnhemern erscheint ein nicht lokalisierter Dialog 
 
@@ -584,3 +585,8 @@ Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt.
 Der DB Wizard in der Configuration soll auch den WizardModal verwenden.  
 
 -> Erledigt ✅ | UnifiedDialog durch WizardModal ersetzt, 3-phasiger Indikator (Datenbank → Daten importieren → Fertig) wird aus dem Step-Status abgeleitet
+
+83. Events GymNet Import -> Wizard
+http://localhost:3001/events 
+Der Dialog "Aus Gymnet Importieren" muss auch als Wizard ausgeführt werden. 
+Wichtig ist noch, dass wir mehrere GymNet XML-Dateien gleichzeitig (oder in separaten Dialogen) auswählen können müssen, da Einzelwettkämpfe und Mannschaftswettkämpfe in verschiedenen Dateien kommen (auch wenn diese gleich aufgebaut sind). 

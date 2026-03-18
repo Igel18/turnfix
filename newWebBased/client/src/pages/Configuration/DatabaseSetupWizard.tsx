@@ -197,13 +197,19 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
 
           {/* Footer */}
           <div className="flex justify-between items-center pt-4 border-t">
-            <button onClick={handleReset} className={btnSecondary}>
-              {t('configuration.wizard.reset') || 'Zurücksetzen'}
-            </button>
+            <div className="flex gap-2">
+              <button onClick={handleReset} className={btnSecondary}>
+                {t('configuration.wizard.reset') || 'Zurücksetzen'}
+              </button>
+              <button onClick={onClose} className={btnSecondary}>
+                {t('common.close') || 'Schließen'}
+              </button>
+            </div>
             <button
               onClick={() => setCurrentPhase('import')}
               disabled={!allRequiredStepsComplete}
               className={btnPrimary}
+              data-testid="wizard-next-btn"
             >
               {t('configuration.wizard.next') || 'Weiter'}
               <ArrowRightIcon className="h-4 w-4" />
@@ -294,6 +300,9 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
               </button>
               <button onClick={handleReset} className={btnSecondary}>
                 {t('configuration.wizard.reset') || 'Zurücksetzen'}
+              </button>
+              <button onClick={onClose} className={btnSecondary}>
+                {t('common.close') || 'Schließen'}
               </button>
             </div>
             <button onClick={() => setCurrentPhase('complete')} className={btnPrimary}>

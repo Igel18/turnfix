@@ -3054,6 +3054,11 @@
         "number": "Numbered (e.g. R01, R02)",
         "none": "Color only (e.g. Red, Blue)"
       },
+      "validation": {
+        "maxPerSquad": "Please enter a value between 2 and 50",
+        "numberOfProposals": "Please enter a value between 1 and 10",
+        "breakCount": "Please enter a value between 0 and 99"
+      },
       "generateButton": "Generate Proposals",
       "generating": "Generating...",
       "applyButton": "Apply Proposal",

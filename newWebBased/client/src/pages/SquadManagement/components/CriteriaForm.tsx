@@ -6,7 +6,7 @@
  * ToggleRow: Reusable labelled toggle switch used inside CriteriaForm.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
 // ── ToggleRow ─────────────────────────────────────────────────────────────────
@@ -64,6 +64,38 @@ export const CriteriaForm: React.FC<CriteriaFormProps> = ({
   const updateField = (field: string, value: any) =>
     setCriteria((prev: any) => ({ ...prev, [field]: value }));
 
+  // ── Local string state for numeric inputs ────────────────────────────────
+  // This allows the field to be fully cleared without immediately snapping back
+  // to a fallback value, and lets us show a red border when invalid.
+  const [maxStr, setMaxStr]       = useState(String(criteria.maxParticipantsPerSquad ?? 12));
+  const [propsStr, setPropsStr]   = useState(String(criteria.numberOfProposals ?? 3));
+  const [breakStr, setBreakStr]   = useState(String(criteria.breakCount ?? 0));
+
+  // Sync local strings when the parent criteria object changes externally (e.g. reset).
+  useEffect(() => { setMaxStr(String(criteria.maxParticipantsPerSquad ?? 12)); }, [criteria.maxParticipantsPerSquad]);
+  useEffect(() => { setPropsStr(String(criteria.numberOfProposals ?? 3)); }, [criteria.numberOfProposals]);
+  useEffect(() => { setBreakStr(String(criteria.breakCount ?? 0)); }, [criteria.breakCount]);
+
+  // Validation helpers
+  const maxValid   = /^\d+$/.test(maxStr)   && Number(maxStr) >= 2  && Number(maxStr) <= 50;
+  const propsValid = /^\d+$/.test(propsStr) && Number(propsStr) >= 1 && Number(propsStr) <= 10;
+  const breakValid = /^\d+$/.test(breakStr) && Number(breakStr) >= 0 && Number(breakStr) <= 99;
+
+  const fieldClass = (valid: boolean, hasValue: boolean) =>
+    `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+      !valid && hasValue
+        ? 'border-red-400 focus:ring-red-500'
+        : 'border-gray-300 focus:ring-blue-500'
+    }`;
+
+  // Commit a numeric field to the criteria store on blur / when valid.
+  const commitMax   = (raw: string) => { if (/^\d+$/.test(raw) && Number(raw) >= 2  && Number(raw) <= 50)  updateField('maxParticipantsPerSquad', Number(raw)); };
+  const commitProps = (raw: string) => { if (/^\d+$/.test(raw) && Number(raw) >= 1  && Number(raw) <= 10)  updateField('numberOfProposals', Number(raw)); };
+  const commitBreak = (raw: string) => { if (/^\d+$/.test(raw) && Number(raw) >= 0  && Number(raw) <= 99)  updateField('breakCount', Number(raw)); };
+
+  // Generate is disabled when any required numeric field is invalid.
+  const canGenerate = maxValid && propsValid && breakValid && !isGenerating;
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600">
@@ -77,13 +109,16 @@ export const CriteriaForm: React.FC<CriteriaFormProps> = ({
             {t('squadManagement.autoAssign.fields.maxPerSquad')} <span className="text-red-500">*</span>
           </label>
           <input
-            type="number"
-            min={2}
-            max={50}
-            value={criteria.maxParticipantsPerSquad}
-            onChange={e => updateField('maxParticipantsPerSquad', parseInt(e.target.value) || 12)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            type="text"
+            inputMode="numeric"
+            value={maxStr}
+            onChange={e => { setMaxStr(e.target.value); commitMax(e.target.value); }}
+            onBlur={() => { if (!maxValid) setMaxStr(String(criteria.maxParticipantsPerSquad ?? 12)); }}
+            className={fieldClass(maxValid, maxStr !== '')}
           />
+          {!maxValid && maxStr !== '' && (
+            <p className="text-xs text-red-500 mt-1">{t('squadManagement.autoAssign.validation.maxPerSquad')}</p>
+          )}
           <p className="text-xs text-gray-500 mt-1">{t('squadManagement.autoAssign.hints.maxPerSquad')}</p>
         </div>
 
@@ -93,13 +128,16 @@ export const CriteriaForm: React.FC<CriteriaFormProps> = ({
             {t('squadManagement.autoAssign.fields.numberOfProposals')} <span className="text-red-500">*</span>
           </label>
           <input
-            type="number"
-            min={1}
-            max={10}
-            value={criteria.numberOfProposals}
-            onChange={e => updateField('numberOfProposals', parseInt(e.target.value) || 3)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            type="text"
+            inputMode="numeric"
+            value={propsStr}
+            onChange={e => { setPropsStr(e.target.value); commitProps(e.target.value); }}
+            onBlur={() => { if (!propsValid) setPropsStr(String(criteria.numberOfProposals ?? 3)); }}
+            className={fieldClass(propsValid, propsStr !== '')}
           />
+          {!propsValid && propsStr !== '' && (
+            <p className="text-xs text-red-500 mt-1">{t('squadManagement.autoAssign.validation.numberOfProposals')}</p>
+          )}
           <p className="text-xs text-gray-500 mt-1">{t('squadManagement.autoAssign.hints.numberOfProposals')}</p>
         </div>
 
@@ -126,13 +164,16 @@ export const CriteriaForm: React.FC<CriteriaFormProps> = ({
             {t('squadManagement.autoAssign.fields.breakCount')}
           </label>
           <input
-            type="number"
-            min={0}
-            max={10}
-            value={criteria.breakCount}
-            onChange={e => updateField('breakCount', parseInt(e.target.value) || 0)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            type="text"
+            inputMode="numeric"
+            value={breakStr}
+            onChange={e => { setBreakStr(e.target.value); commitBreak(e.target.value); }}
+            onBlur={() => { if (!breakValid) setBreakStr(String(criteria.breakCount ?? 0)); }}
+            className={fieldClass(breakValid, breakStr !== '')}
           />
+          {!breakValid && breakStr !== '' && (
+            <p className="text-xs text-red-500 mt-1">{t('squadManagement.autoAssign.validation.breakCount')}</p>
+          )}
           <p className="text-xs text-gray-500 mt-1">{t('squadManagement.autoAssign.hints.breakCount')}</p>
         </div>
       </div>
@@ -191,7 +232,7 @@ export const CriteriaForm: React.FC<CriteriaFormProps> = ({
         </button>
         <button
           onClick={onGenerate}
-          disabled={isGenerating}
+          disabled={!canGenerate}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {isGenerating ? (
