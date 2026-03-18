@@ -544,7 +544,7 @@ Riegenliste: Wettkampf zusätzlich an die Teilnehmer
 7. Die Riegen werden dann so definiert, dass die Teilnehmer von einem Verein möglichst zusammen bleiben. 
 
 74. [Bug] Filter 
-Wir haben auf fast jeder seite einen Filter. Wenn ein Filter aktiv ist (also Filterkriterien eingestellt), dann muss der Filter angezeigt sein. 
+Wir haben auf fast jeder Seite einen Filter. Wenn ein Filter aktiv ist (also Filterkriterien eingestellt), dann muss der Filter angezeigt sein. 
 Andersherum. Wird der Filter mittels dem Button Filter ausgeblendet, muss der Filter zurückgesetzt werden. 
 Wird über die Globale Event Filterfunktion etwas gesucht und ausgewählt, springt man an die entsprechende stelle und auch hier muss dann der Filter angezeigt werden. 
 
@@ -579,6 +579,9 @@ Es aktualisiert auch nicht diese Spalte, wenn Teilnehmer hinzugefügt werden...
 81. [Bug] Riegenliste PDF 
 Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt. 
 -> Erledigt ✅ | Formatierung einheitlich auf allen Seiten, 24 Unit-Tests hinzugefügt
+
+82. [Refactoring] Wizard DB 
+Der DB Wizard in der Configuration soll auch den WizardModal verwenden.  
 
 -> Erledigt ✅ 
 -> In Arbeit 🚀

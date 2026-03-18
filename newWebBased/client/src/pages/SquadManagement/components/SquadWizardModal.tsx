@@ -1,30 +1,20 @@
 /**
- * SquadWizardModal
+ * SquadWizardModal — thin presentation component.
+ * All business logic lives in hooks/useSquadWizard.ts.
+ *
  * Two-step wizard for creating or editing a squad.
- * UI matches the AddParticipantModal (EventParticipants) pattern exactly:
- *   - Pill-style step indicator (same as addModal)
- *   - fullHeight + 3xl size for a spacious participant list
  *   Step 1 – Enter / confirm squad name
  *   Step 2 – Select participants with filters (Verein, Wettkampf, Jahrgang, Geschlecht)
  */
 
-import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight, Check, Users, UserPlus } from 'lucide-react';
-import UnifiedModal from '@/components/UnifiedModal';
+import WizardModal from '@/components/WizardModal';
 import { GenderBadge } from '@/components/GenderBadge';
-import { apiGet, apiPost, apiDelete } from '@/utils/api';
-import type { Participant, Squad } from '../SquadManagement.types';
+import type { Squad } from '../SquadManagement.types';
+import { useSquadWizard } from '../hooks/useSquadWizard';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-
-interface WizardFilters {
-  searchTerm: string;
-  club: string;
-  competition: string;
-  birthYear: string;
-  gender: string;
-}
 
 export interface SquadWizardModalProps {
   isOpen: boolean;
@@ -34,8 +24,6 @@ export interface SquadWizardModalProps {
   eventId: string;
   onDone: () => Promise<void>;
 }
-
-type WizardStep = 'name' | 'participants';
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
@@ -49,177 +37,38 @@ export function SquadWizardModal({
 }: SquadWizardModalProps) {
   const { t } = useTranslation();
 
-  const [step, setStep] = useState<WizardStep>('name');
+  const {
+    step,
+    setStep,
+    title,
+    wizardSteps,
+    squadName,
+    setSquadName,
+    nameValid,
+    selectedIds,
+    loadingParticipants,
+    saving,
+    filters,
+    setFilters,
+    allClubs,
+    allCompetitions,
+    filteredParticipants,
+    allFilteredSelected,
+    toggleParticipant,
+    toggleSelectAllFiltered,
+    handleSave,
+  } = useSquadWizard({ isOpen, mode, squad, eventId, onDone, onClose });
 
-  // Step 1
-  const [squadName, setSquadName] = useState('');
-  const nameValid = squadName.trim().length > 0 && squadName.trim().length <= 5;
-
-  // Step 2
-  const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [loadingParticipants, setLoadingParticipants] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [filters, setFilters] = useState<WizardFilters>({
-    searchTerm: '', club: '', competition: '', birthYear: '', gender: '',
-  });
-
-  // ── Reset on open ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isOpen) return;
-    setStep('name');
-    setSquadName(mode === 'edit' && squad ? squad.name : '');
-    setFilters({ searchTerm: '', club: '', competition: '', birthYear: '', gender: '' });
-    setSelectedIds(new Set());
-    setAllParticipants([]);
-    setSaving(false);
-  }, [isOpen]);
-
-  // ── Load participants when entering step 2 ───────────────────────────────────
-  useEffect(() => {
-    if (step !== 'participants') return;
-    loadParticipants();
-  }, [step]);
-
-  const loadParticipants = async () => {
-    setLoadingParticipants(true);
-    try {
-      const data = await apiGet(
-        `/squad-management/available-participants?eventId=${eventId}&includeAvailable=false&_t=${Date.now()}`,
-      );
-      const participants: Participant[] = data.participants || [];
-      setAllParticipants(participants);
-      if (mode === 'edit' && squad) {
-        setSelectedIds(new Set(squad.participants.map((p) => p.id)));
-      }
-    } catch (err) {
-      console.error('SquadWizard: error loading participants', err);
-      setAllParticipants([]);
-    } finally {
-      setLoadingParticipants(false);
-    }
-  };
-
-  // ── Filter option lists ──────────────────────────────────────────────────────
-  const allClubs = useMemo(
-    () => [...new Set(allParticipants.map((p) => p.club).filter(Boolean))].sort(),
-    [allParticipants],
-  );
-
-  const allCompetitions = useMemo(() => {
-    const seen = new Set<number>();
-    const list: { id: number; name: string }[] = [];
-    allParticipants.forEach((p) =>
-      (p.competitions || []).forEach((c) => {
-        if (!seen.has(c.id)) { seen.add(c.id); list.push({ id: c.id, name: c.name }); }
-      }),
-    );
-    return list.sort((a, b) => a.name.localeCompare(b.name));
-  }, [allParticipants]);
-
-  // ── Filtered participants ────────────────────────────────────────────────────
-  const filteredParticipants = useMemo(() => {
-    const search = filters.searchTerm.toLowerCase();
-    return allParticipants.filter((p) => {
-      if (search && !`${p.firstname} ${p.lastname}`.toLowerCase().includes(search) && !p.club.toLowerCase().includes(search))
-        return false;
-      if (filters.club && p.club !== filters.club) return false;
-      if (filters.competition && !(p.competitions || []).some((c) => c.id === parseInt(filters.competition)))
-        return false;
-      if (filters.birthYear && String(p.birthYear) !== filters.birthYear) return false;
-      if (filters.gender && p.gender !== filters.gender) return false;
-      return true;
-    });
-  }, [allParticipants, filters]);
-
-  // ── Selection helpers ────────────────────────────────────────────────────────
-  const allFilteredSelected =
-    filteredParticipants.length > 0 && filteredParticipants.every((p) => selectedIds.has(p.id));
-
-  const toggleParticipant = (id: number) =>
-    setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-
-  const toggleSelectAllFiltered = () => {
-    if (allFilteredSelected) {
-      setSelectedIds((prev) => { const n = new Set(prev); filteredParticipants.forEach((p) => n.delete(p.id)); return n; });
-    } else {
-      setSelectedIds((prev) => { const n = new Set(prev); filteredParticipants.forEach((p) => n.add(p.id)); return n; });
-    }
-  };
-
-  // ── Save ─────────────────────────────────────────────────────────────────────
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const trimmedName = squadName.trim();
-      const eventIdInt = parseInt(eventId);
-
-      if (mode === 'create') {
-        await apiPost('/squad-management/create', { eventId: eventIdInt, name: trimmedName });
-        for (const participantId of selectedIds)
-          await apiPost('/squad-management/assign', { participantId, squadName: trimmedName, eventId: eventIdInt });
-      } else if (mode === 'edit' && squad) {
-        if (trimmedName !== squad.name)
-          await apiPost('/squad-management/update', { eventId: eventIdInt, oldName: squad.name, newName: trimmedName });
-        const previousIds = new Set(squad.participants.map((p) => p.id));
-        for (const id of [...selectedIds].filter((id) => !previousIds.has(id)))
-          await apiPost('/squad-management/assign', { participantId: id, squadName: trimmedName, eventId: eventIdInt });
-        for (const id of [...previousIds].filter((id) => !selectedIds.has(id)))
-          await apiDelete(`/squad-management/unassign?participantId=${id}&eventId=${eventId}`);
-      }
-
-      await onDone();
-      onClose();
-    } catch (err) {
-      console.error('SquadWizard: save error', err);
-      alert(err instanceof Error ? err.message : t('squadManagement.messages.creationFailed', { message: '' }));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ── Dynamic title ────────────────────────────────────────────────────────────
-  const title = step === 'name'
-    ? (mode === 'create' ? t('squadManagement.wizard.titleCreate') : t('squadManagement.wizard.titleEdit'))
-    : t('squadManagement.wizard.stepParticipantsTitle');
-
-  // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <UnifiedModal
+    <WizardModal
       isOpen={isOpen}
       onClose={onClose}
       title={title}
+      steps={wizardSteps}
+      currentStep={step}
       size="3xl"
-      showFooter={false}
       fullHeight={true}
     >
-      {/* ── Step indicator (matches AddParticipantModal exactly) ── */}
-      <div className="mb-5 flex items-center gap-2">
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-          step === 'name'
-            ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-300'
-            : 'bg-green-100 text-green-700'
-        }`}>
-          {step === 'participants' ? (
-            <Check className="w-3.5 h-3.5" />
-          ) : (
-            <span className="w-5 h-5 flex items-center justify-center rounded-full bg-blue-600 text-white text-xs">1</span>
-          )}
-          {t('squadManagement.wizard.stepNameShort')}
-        </div>
-        <ArrowRight className="w-4 h-4 text-gray-400" />
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-          step === 'participants'
-            ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-300'
-            : 'bg-gray-100 text-gray-400'
-        }`}>
-          <span
-            className="w-5 h-5 flex items-center justify-center rounded-full text-white text-xs"
-            style={{ backgroundColor: step === 'participants' ? '#2563eb' : '#9ca3af' }}
-          >2</span>
-          {t('squadManagement.wizard.stepParticipantsShort')}
-        </div>
-      </div>
 
       {/* ══════════════════ STEP 1: Squad name ══════════════════ */}
       {step === 'name' && (
@@ -366,7 +215,11 @@ export function SquadWizardModal({
                     <tr
                       key={p.id}
                       onClick={() => toggleParticipant(p.id)}
-                      className={`cursor-pointer hover:bg-blue-50 transition-colors ${selectedIds.has(p.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}
+                      className={`cursor-pointer hover:bg-blue-50 transition-colors ${
+                        selectedIds.has(p.id)
+                          ? 'bg-blue-50 border-l-4 border-l-blue-500'
+                          : 'border-l-4 border-l-transparent'
+                      }`}
                     >
                       <td className="px-3 py-2 text-center">
                         <input
@@ -381,7 +234,9 @@ export function SquadWizardModal({
                       <td className="px-3 py-2 text-gray-600">{p.club || '–'}</td>
                       <td className="px-3 py-2 text-center text-gray-600">{p.birthYear || '–'}</td>
                       <td className="px-3 py-2 text-center"><GenderBadge value={p.gender} /></td>
-                      <td className="px-3 py-2 text-gray-500 text-xs">{(p.competitions || []).map((c) => c.name).join(', ') || '–'}</td>
+                      <td className="px-3 py-2 text-gray-500 text-xs">
+                        {(p.competitions || []).map((c) => c.name).join(', ') || '–'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -409,7 +264,7 @@ export function SquadWizardModal({
           </div>
         </>
       )}
-    </UnifiedModal>
+    </WizardModal>
   );
 }
 

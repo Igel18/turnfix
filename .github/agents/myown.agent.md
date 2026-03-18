@@ -104,6 +104,7 @@ eg use Table component for all tables.
 eg use BlueInfoBox, YellowInfoBox, PinkInfoBox, RedInfoBox for info boxes.
 eg use Pagination component for pagination.
 eg use Card component for cards.
+eg use WizardModal component for wizard modals.
 
 #### Core Templates
 1. **EventManagementTemplate.tsx** - Base template for all event-related pages
@@ -144,6 +145,7 @@ eg use Card component for cards.
 - Use controlled components with proper state management
 - Validation with clear error messages
 - Use `UnifiedDialog.tsx` for all modal dialogs
+- Wizard modals should use `WizardModal.tsx` for consistent multi-step flows 
 
 **Info Boxes** (Contextual Help):
 - 🔵 **BlueInfoBox**: General information/help
