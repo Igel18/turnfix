@@ -583,5 +583,4 @@ Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt.
 82. [Refactoring] Wizard DB 
 Der DB Wizard in der Configuration soll auch den WizardModal verwenden.  
 
--> Erledigt ✅ 
--> In Arbeit 🚀
+-> Erledigt ✅ | UnifiedDialog durch WizardModal ersetzt, 3-phasiger Indikator (Datenbank → Daten importieren → Fertig) wird aus dem Step-Status abgeleitet

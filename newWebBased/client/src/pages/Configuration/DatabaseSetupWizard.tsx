@@ -11,7 +11,12 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import UnifiedDialog from '@/components/UnifiedDialog';
+import { WizardModal, type WizardStepDef } from '@/components/WizardModal';
+import {
+  CircleStackIcon,
+  ArrowDownTrayIcon,
+  CheckBadgeIcon,
+} from '@heroicons/react/24/outline';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -20,6 +25,13 @@ import {
 import type { DatabaseSetupWizardProps } from './DatabaseSetupWizard.types';
 import { useDatabaseSetupWizard } from './hooks/useDatabaseSetupWizard';
 import WizardStepItem from './components/WizardStepItem';
+
+/** High-level phase indicator steps shown at the top of the wizard. */
+const WIZARD_PHASES: WizardStepDef[] = [
+  { key: 'database', label: 'Datenbank', icon: CircleStackIcon },
+  { key: 'import',   label: 'Daten importieren', icon: ArrowDownTrayIcon },
+  { key: 'complete', label: 'Fertig', icon: CheckBadgeIcon },
+];
 
 export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
   const { isOpen, onClose, currentDbConfig } = props;
@@ -55,12 +67,26 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
     onSaveAndReconnect: props.onSaveAndReconnect,
   });
 
+  // Derive the current high-level phase for the step indicator.
+  // Required steps: indices 0 (create-db), 1 (test-connection), 2 (create-schema).
+  const requiredDone = steps.slice(0, 3).every(
+    (s) => s.status === 'success' || s.status === 'skipped',
+  );
+  const currentPhase = saveCompleted
+    ? 'complete'
+    : requiredDone
+      ? 'import'
+      : 'database';
+
   return (
-    <UnifiedDialog
+    <WizardModal
       isOpen={isOpen}
       onClose={onClose}
       title={t('configuration.wizard.title') || 'Datenbank-Setup-Assistent'}
-      maxWidth="4xl"
+      size="4xl"
+      fullHeight
+      steps={WIZARD_PHASES}
+      currentStep={currentPhase}
     >
       <div className="space-y-6">
         {/* Database Name Input */}
@@ -246,6 +272,6 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
           </div>
         </div>
       </div>
-    </UnifiedDialog>
+    </WizardModal>
   );
 }
