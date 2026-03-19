@@ -597,6 +597,29 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       isFirstDevice: a.bol_erstes_geraet ?? false,
     }));
 
+    // Merge disciplines that have assignments but are not linked to competitions
+    const assignmentDiscIds = new Set(rawAssignments.map(a => a.int_disziplinenid));
+    const missingDiscIds = [...assignmentDiscIds].filter(id => !seenDiscIds.has(id));
+    if (missingDiscIds.length > 0) {
+      const extraRows = await prisma.tfx_disziplinen.findMany({
+        where: { int_disziplinenid: { in: missingDiscIds } },
+        select: { int_disziplinenid: true, var_name: true, var_kurz1: true },
+      });
+      for (const row of extraRows) {
+        disciplines.push({ id: row.int_disziplinenid, name: row.var_name || '', shortName: row.var_kurz1 || '' });
+        seenDiscIds.add(row.int_disziplinenid);
+      }
+    }
+
+    // All disciplines in the system — used for column-picker in the client
+    const allDisciplines = await prisma.tfx_disziplinen.findMany({
+      select: { int_disziplinenid: true, var_name: true, var_kurz1: true },
+      orderBy: { var_name: 'asc' },
+    });
+    const availableDisciplines = allDisciplines
+      .filter(d => !seenDiscIds.has(d.int_disziplinenid))
+      .map(d => ({ id: d.int_disziplinenid, name: d.var_name || '', shortName: d.var_kurz1 || '' }));
+
     // Available squads for dropdowns
     const squadRows = await prisma.tfx_wertungen.findMany({
       where: { tfx_wettkaempfe: { int_veranstaltungenid: eventIdNum }, var_riege: { not: null } },
@@ -610,7 +633,7 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       ? Math.max(...assignments.map(a => a.round))
       : Math.max(squads.length, 1);
 
-    res.json({ disciplines, assignments, squads, maxRound });
+    res.json({ disciplines, availableDisciplines, assignments, squads, maxRound });
   } catch (error) {
     console.error('Error fetching matrix data:', error);
     res.status(500).json({ error: 'Failed to fetch matrix data' });

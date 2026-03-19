@@ -47,6 +47,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [localMaxRound, setLocalMaxRound] = useState(1);
+  const [localDisciplines, setLocalDisciplines] = useState<MatrixData['disciplines']>([]);
   const [savingCell, setSavingCell] = useState<string | null>(null);
 
   const loadMatrix = useCallback(async () => {
@@ -55,6 +56,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
       const data: MatrixData = await apiGet(`/time-planning/matrix?eventId=${eventId}`);
       setMatrixData(data);
       setLocalMaxRound(Math.max(data.maxRound, 1));
+      setLocalDisciplines(data.disciplines);
     } catch (e) {
       console.error('[ScheduleMatrixView] Failed to load matrix data', e);
     } finally {
@@ -115,11 +117,21 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
 
   if (!matrixData) return null;
 
-  const { disciplines, squads } = matrixData;
+  const { squads } = matrixData;
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
 
-  if (disciplines.length === 0) {
+  const localDiscIds = new Set(localDisciplines.map(d => d.id));
+  const availableForPicker = (matrixData.availableDisciplines ?? []).filter(d => !localDiscIds.has(d.id));
+
+  const handleAddColumn = (disciplineIdStr: string) => {
+    const disciplineId = parseInt(disciplineIdStr);
+    if (!disciplineId) return;
+    const disc = (matrixData.availableDisciplines ?? []).find(d => d.id === disciplineId);
+    if (disc) setLocalDisciplines(prev => [...prev, disc]);
+  };
+
+  if (localDisciplines.length === 0 && availableForPicker.length === 0) {
     return (
       <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
         {t('timePlanning.matrix.noDisciplines')}
@@ -142,7 +154,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                 {t('timePlanning.matrix.time')}
               </th>
-              {disciplines.map(disc => (
+              {localDisciplines.map(disc => (
                 <th
                   key={disc.id}
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]"
@@ -163,7 +175,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
                     {roundTime}
                   </td>
-                  {disciplines.map(disc => {
+                  {localDisciplines.map(disc => {
                     const cellKey = `${disc.id}_${round}`;
                     const isSaving = savingCell === cellKey;
                     const value = getCellValue(disc.id, round);
@@ -198,8 +210,8 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
         </table>
       </div>
 
-      {/* Row controls */}
-      <div className="px-4 py-3 border-t bg-gray-50 flex items-center gap-3">
+      {/* Row + Column controls */}
+      <div className="px-4 py-3 border-t bg-gray-50 flex flex-wrap items-center gap-3">
         <button
           onClick={() => setLocalMaxRound(prev => prev + 1)}
           className="inline-flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"
@@ -214,8 +226,38 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
             − {t('timePlanning.matrix.removeRow')}
           </button>
         )}
-        <span className="text-xs text-gray-400 ml-auto">
+        <span className="text-xs text-gray-400">
           {t('timePlanning.matrix.rowsInfo', { count: localMaxRound })}
+        </span>
+
+        {/* Divider */}
+        <span className="h-4 border-l border-gray-300 mx-1" />
+
+        {/* Column controls */}
+        {availableForPicker.length > 0 && (
+          <select
+            value=""
+            onChange={e => handleAddColumn(e.target.value)}
+            className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+          >
+            <option value="">+ {t('timePlanning.matrix.addColumn')}</option>
+            {availableForPicker.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.name}{d.shortName ? ` (${d.shortName})` : ''}
+              </option>
+            ))}
+          </select>
+        )}
+        {localDisciplines.length > 1 && (
+          <button
+            onClick={() => setLocalDisciplines(prev => prev.slice(0, -1))}
+            className="inline-flex items-center px-3 py-1.5 text-sm border border-red-200 rounded-lg text-red-600 bg-white hover:bg-red-50 transition-colors"
+          >
+            − {t('timePlanning.matrix.removeColumn')}
+          </button>
+        )}
+        <span className="text-xs text-gray-400 ml-auto">
+          {t('timePlanning.matrix.columnsInfo', { count: localDisciplines.length })}
         </span>
       </div>
     </div>

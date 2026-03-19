@@ -83,6 +83,8 @@ export interface MatrixAssignment {
 
 export interface MatrixData {
   disciplines: MatrixDiscipline[]
+  /** All disciplines not yet shown as columns — used for the column picker. */
+  availableDisciplines: MatrixDiscipline[]
   assignments: MatrixAssignment[]
   squads: string[]
   maxRound: number

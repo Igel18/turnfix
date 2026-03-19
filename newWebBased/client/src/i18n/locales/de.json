@@ -2325,6 +2325,9 @@
       "addRow": "Zeile hinzufügen",
       "removeRow": "Zeile entfernen",
       "rowsInfo": "{{count}} Zeilen",
+      "addColumn": "Spalte hinzufügen",
+      "removeColumn": "Letzte Spalte entfernen",
+      "columnsInfo": "{{count}} Spalten",
       "noDisciplines": "Keine Geräte für diese Veranstaltung gefunden. Bitte zuerst Wettkämpfe mit Geräten anlegen.",
       "info": "Jede Zeile ist ein Rotationsslot (Interval: {{interval}} Min.). Die Zeit berechnet sich aus der Startzeit des ersten Durchgangs plus dem Rotationsintervall aus den Einstellungen."
     },
