@@ -2283,7 +2283,17 @@
       "sessions": "Sessions",
       "timeline": "Timeline",
       "gantt": "Gantt",
-      "rotation": "Rotation"
+      "rotation": "Rotation",
+      "matrix": "Schedule Table"
+    },
+    "matrix": {
+      "time": "Time",
+      "emptyCell": "No Squad",
+      "addRow": "Add Row",
+      "removeRow": "Remove Row",
+      "rowsInfo": "{{count}} rows",
+      "noDisciplines": "No apparatus found for this event. Please create competitions with apparatus first.",
+      "info": "Each row is one rotation slot (interval: {{interval}} min.). The time is calculated from the first session start time plus the rotation interval from settings."
     },
     "timeRange": {
       "from": "From",

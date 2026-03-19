@@ -593,3 +593,16 @@ Wichtig ist noch, dass wir mehrere GymNet XML-Dateien gleichzeitig (oder in sepa
 84. ✅ [Bug] Teilnehmer hinzufügen 
 Auf der Seite http://localhost:3001/event-participants kann man Teilnehmer mit dem Wizard hinzufügen. In dem WIzard wird eine Liste der TEilnehmer angezeigt. An den Teilnehmern sind auch noch details. Das Jahr wird aber nicht angezeigt, sondern nur "Jahre". TDD
 Fix: i18n keys `eventParticipants.card.years` in de.json and en.json were missing `{{count}}` placeholder ("Jahre" → "{{count}} Jahre"). Added TDD tests in useAddParticipantWizard.test.ts.
+
+85. ✅ [Feature] Time Planning 
+Auf der Seite http://localhost:3001/time-planning 
+soll es eine möglichkeit geben den Zeitlichen Ablauf der Veranstaltung tabellarisch darzustellen. 
+- Die Spaltenbeschriftung sind die Disziplinen 
+- Die Zeilenbeschriftung die Zeiten 
+- Die Startzeit ist aus dem Event ersichtlich 
+- Jede weitere Zeit berechnet sich aus den Voreinstellungen (Anzahl der Teilnehmer * Übungsdauer pro Gerät)
+- Der Schnittpunkt aus Zeit und Disziplin ist eine Riege. Diese Zellen sollen als DropDown dargestellt werden. 
+
+Nun die Frage lässt sich die Zelle / Riegenzuordnung in der DB ohne Änderung der DB speichern? 
+Umsetzen, Testen, Dokumentieren. 
+Fix: Ja – `tfx_riegen_x_disziplinen` speichert die Matrix-Zuordnungen ohne Schema-Änderung: `int_runde`=Zeile, `int_disziplinenid`=Spalte, `var_riege`=Riegenname. Neuer „Zeitplan-Tabelle"-ViewMode in TimePlanning: ScheduleMatrixView-Komponente mit optimistischen Zell-Updates, +/- Zeilen-Steuerung. Server-Endpoints GET /time-planning/matrix und PUT /time-planning/matrix/cell. Pure Helpers `addMinutesToTime`/`calculateRoundTime` exportiert und mit 13 Unit-Tests abgedeckt (scheduleMatrix.test.ts).

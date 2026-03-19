@@ -32,6 +32,7 @@ import TimePlanningRotation, { TimePlanningRotationRef } from '../TimePlanningRo
 // Local Components & Hooks
 import { SessionsView, GanttView, TimeSettingsModal, HelpPanels } from './components';
 import SquadStartDeviceEditor from './components/SquadStartDeviceEditor';
+import { ScheduleMatrixView } from './components/ScheduleMatrixView';
 import { useDragDrop, useTimeCalculation } from './hooks';
 import type { TimeSettings, Competition, Squad, DeviceSchedule, SessionGroup } from './TimePlanning.types';
 import { DEFAULT_TIME_SETTINGS } from './TimePlanning.types';
@@ -56,7 +57,7 @@ export default function TimePlanning() {
   const [extraRounds, setExtraRounds] = useState<number[]>([]);
   const [deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([]);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline' | 'rotation'>('sessions');
+  const [viewMode, setViewMode] = useState<'sessions' | 'gantt' | 'timeline' | 'rotation' | 'matrix'>('sessions');
   const [showTimeSettings, setShowTimeSettings] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -595,13 +596,24 @@ export default function TimePlanning() {
           <button
             type="button"
             onClick={() => setViewMode('rotation')}
-            className={`px-3 py-2 text-sm font-medium border ${
+            className={`px-3 py-2 text-sm font-medium border-t border-b ${
               viewMode === 'rotation'
+                ? 'bg-blue-600 text-white border-blue-600 z-10'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            } -ml-px`}
+          >
+            {t('timePlanning.viewMode.rotation') || 'Rotation'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('matrix')}
+            className={`px-3 py-2 text-sm font-medium border ${
+              viewMode === 'matrix'
                 ? 'bg-blue-600 text-white border-blue-600 z-10'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             } rounded-r-md -ml-px`}
           >
-            {t('timePlanning.viewMode.rotation') || 'Rotation'}
+            {t('timePlanning.viewMode.matrix')}
           </button>
         </div>,
         
@@ -682,7 +694,7 @@ export default function TimePlanning() {
               handleDrop={handleDrop}
               calculateDeviceSchedule={calculateDeviceSchedule}
               setDeviceSchedule={setDeviceSchedule}
-              setViewMode={(mode: string) => setViewMode(mode as 'sessions' | 'gantt' | 'timeline' | 'rotation')}
+              setViewMode={(mode: string) => setViewMode(mode as 'sessions' | 'gantt' | 'timeline' | 'rotation' | 'matrix')}
             />
           )}
           
@@ -776,6 +788,18 @@ export default function TimePlanning() {
                 competitions={competitions}
               />
             </div>
+          )}
+
+          {viewMode === 'matrix' && (
+            <ScheduleMatrixView
+              eventId={eventId!}
+              timeSettings={timeSettings}
+              baseStartTime={
+                sessionGroups.length > 0 && sessionGroups[0].startTime
+                  ? sessionGroups[0].startTime
+                  : null
+              }
+            />
           )}
         </>
       )}

@@ -63,3 +63,27 @@ export const DEFAULT_TIME_SETTINGS: TimeSettings = {
   warmupDurationMinutes: 15,
   rotationIntervalMinutes: 20
 }
+
+// ── Schedule Matrix (Zeitplan-Tabelle) ───────────────────────────────────────
+// Cell assignments stored in tfx_riegen_x_disziplinen without schema changes.
+// int_runde = row (slot index), int_disziplinenid = column, var_riege = squad.
+
+export interface MatrixDiscipline {
+  id: number
+  name: string
+  shortName: string
+}
+
+export interface MatrixAssignment {
+  disciplineId: number
+  round: number
+  squadName: string
+  isFirstDevice: boolean
+}
+
+export interface MatrixData {
+  disciplines: MatrixDiscipline[]
+  assignments: MatrixAssignment[]
+  squads: string[]
+  maxRound: number
+}

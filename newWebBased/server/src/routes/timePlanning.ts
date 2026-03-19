@@ -556,4 +556,116 @@ router.put('/squad-start-device', authenticateToken, async (req: AuthRequest, re
   }
 });
 
+// GET /time-planning/matrix?eventId=X
+// Returns disciplines (columns), existing cell assignments, and available squads for the matrix view.
+// Cell assignments are stored in tfx_riegen_x_disziplinen (no schema change needed):
+//   int_runde = row (rotation slot), int_disziplinenid = column, var_riege = squad name
+router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { eventId } = req.query;
+    if (!eventId) return res.status(400).json({ error: 'Event ID is required' });
+    const eventIdNum = parseInt(eventId as string);
+
+    // Disciplines used in competitions for this event (deduplicated, sorted)
+    const disciplineRows = await prisma.tfx_wettkaempfe_x_disziplinen.findMany({
+      where: { tfx_wettkaempfe: { int_veranstaltungenid: eventIdNum } },
+      select: {
+        int_disziplinenid: true,
+        int_sortierung: true,
+        tfx_disziplinen: { select: { var_name: true, var_kurz1: true } },
+      },
+      orderBy: { int_sortierung: 'asc' },
+    });
+    const seenDiscIds = new Set<number>();
+    const disciplines = disciplineRows
+      .filter(d => { if (seenDiscIds.has(d.int_disziplinenid)) return false; seenDiscIds.add(d.int_disziplinenid); return true; })
+      .map(d => ({
+        id: d.int_disziplinenid,
+        name: d.tfx_disziplinen?.var_name || '',
+        shortName: d.tfx_disziplinen?.var_kurz1 || '',
+      }));
+
+    // Existing matrix cell assignments
+    const rawAssignments = await prisma.tfx_riegen_x_disziplinen.findMany({
+      where: { int_veranstaltungenid: eventIdNum },
+      select: { int_disziplinenid: true, int_runde: true, var_riege: true, bol_erstes_geraet: true },
+    });
+    const assignments = rawAssignments.map(a => ({
+      disciplineId: a.int_disziplinenid,
+      round: a.int_runde ?? 1,
+      squadName: a.var_riege ?? '',
+      isFirstDevice: a.bol_erstes_geraet ?? false,
+    }));
+
+    // Available squads for dropdowns
+    const squadRows = await prisma.tfx_wertungen.findMany({
+      where: { tfx_wettkaempfe: { int_veranstaltungenid: eventIdNum }, var_riege: { not: null } },
+      select: { var_riege: true },
+      distinct: ['var_riege'],
+      orderBy: { var_riege: 'asc' },
+    });
+    const squads = squadRows.map(s => s.var_riege!).filter(Boolean);
+
+    const maxRound = assignments.length > 0
+      ? Math.max(...assignments.map(a => a.round))
+      : Math.max(squads.length, 1);
+
+    res.json({ disciplines, assignments, squads, maxRound });
+  } catch (error) {
+    console.error('Error fetching matrix data:', error);
+    res.status(500).json({ error: 'Failed to fetch matrix data' });
+  }
+});
+
+// PUT /time-planning/matrix/cell
+// Upsert (or delete) a squad assignment for one discipline+round cell.
+// Uses tfx_riegen_x_disziplinen — no schema changes needed.
+router.put('/matrix/cell', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const schema = z.object({
+      eventId: z.number().int().positive(),
+      disciplineId: z.number().int().positive(),
+      round: z.number().int().min(1),
+      squadName: z.string(), // empty string = remove assignment
+    });
+    const { eventId, disciplineId, round, squadName } = schema.parse(req.body);
+
+    if (!squadName) {
+      await prisma.tfx_riegen_x_disziplinen.deleteMany({
+        where: { int_veranstaltungenid: eventId, int_disziplinenid: disciplineId, int_runde: round },
+      });
+      return res.json({ success: true, action: 'deleted' });
+    }
+
+    const existing = await prisma.tfx_riegen_x_disziplinen.findFirst({
+      where: { int_veranstaltungenid: eventId, int_disziplinenid: disciplineId, int_runde: round },
+    });
+
+    if (existing) {
+      await prisma.tfx_riegen_x_disziplinen.update({
+        where: { int_riegen_x_disziplinenid: existing.int_riegen_x_disziplinenid },
+        data: { var_riege: squadName },
+      });
+    } else {
+      const status = await prisma.tfx_status.findFirst({ orderBy: { int_statusid: 'asc' } });
+      if (!status) return res.status(500).json({ error: 'No status available in database' });
+      await prisma.tfx_riegen_x_disziplinen.create({
+        data: {
+          int_veranstaltungenid: eventId,
+          int_disziplinenid: disciplineId,
+          int_statusid: status.int_statusid,
+          var_riege: squadName,
+          int_runde: round,
+          bol_erstes_geraet: false,
+        },
+      });
+    }
+
+    res.json({ success: true, action: 'saved', squadName });
+  } catch (error) {
+    console.error('Error updating matrix cell:', error);
+    res.status(500).json({ error: 'Failed to update matrix cell' });
+  }
+});
+
 export default router;

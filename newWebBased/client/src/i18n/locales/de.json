@@ -2316,7 +2316,17 @@
       "sessions": "Durchgänge",
       "timeline": "Zeitstrahl",
       "gantt": "Gantt",
-      "rotation": "Rotation"
+      "rotation": "Rotation",
+      "matrix": "Zeitplan-Tabelle"
+    },
+    "matrix": {
+      "time": "Zeit",
+      "emptyCell": "Keine Riege",
+      "addRow": "Zeile hinzufügen",
+      "removeRow": "Zeile entfernen",
+      "rowsInfo": "{{count}} Zeilen",
+      "noDisciplines": "Keine Geräte für diese Veranstaltung gefunden. Bitte zuerst Wettkämpfe mit Geräten anlegen.",
+      "info": "Jede Zeile ist ein Rotationsslot (Interval: {{interval}} Min.). Die Zeit berechnet sich aus der Startzeit des ersten Durchgangs plus dem Rotationsintervall aus den Einstellungen."
     },
     "addRound": "Durchgang hinzufügen",
     "timeRange": {
