@@ -192,3 +192,35 @@ describe('useAddParticipantWizard – filteredCompetitions', () => {
     expect(result.current.filteredCompetitions.every(c => c.gender !== 'weiblich')).toBe(true);
   });
 });
+
+// ── Bug #84: age/year number shown alongside "Jahre" ─────────────────────────
+// The wizard participant list renders:
+//   {t('eventParticipants.card.years', { count: participant.age })}
+// Without {{count}} in the translation the year number is swallowed and only
+// "Jahre" is displayed.  These tests guard the translation format.
+
+describe('Bug #84 – eventParticipants.card.years translation includes {{count}}', () => {
+  it('German translation contains {{count}} so age number is shown', async () => {
+    const de = await import('@/i18n/locales/de.json');
+    const key = (de as any).eventParticipants?.card?.years as string;
+    expect(key).toContain('{{count}}');
+  });
+
+  it('English translation contains {{count}} so age number is shown', async () => {
+    const en = await import('@/i18n/locales/en.json');
+    const key = (en as any).eventParticipants?.card?.years as string;
+    expect(key).toContain('{{count}}');
+  });
+
+  it('wizard normalises participant age to a positive number when available', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 1, firstname: 'Anna', lastname: 'Test', club: 'TC', gender: 'female', age: 12, isInEvent: false },
+    ]);
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    expect(result.current.filteredParticipants[0].age).toBeGreaterThan(0);
+  });
+});

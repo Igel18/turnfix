@@ -2809,7 +2809,7 @@
       "status": "Status"
     },
     "card": {
-      "years": "years",
+      "years": "{{count}} years",
       "competitions": "Competitions",
       "squad": "Squad",
       "noSquad": "No Squad",

@@ -583,10 +583,13 @@ Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt.
 
 82. [Refactoring] Wizard DB 
 Der DB Wizard in der Configuration soll auch den WizardModal verwenden.  
-
 -> Erledigt ✅ | UnifiedDialog durch WizardModal ersetzt, 3-phasiger Indikator (Datenbank → Daten importieren → Fertig) wird aus dem Step-Status abgeleitet
 
-83. Events GymNet Import -> Wizard
+83. [improvement] Events GymNet Import -> Wizard
 http://localhost:3001/events 
 Der Dialog "Aus Gymnet Importieren" muss auch als Wizard ausgeführt werden. 
 Wichtig ist noch, dass wir mehrere GymNet XML-Dateien gleichzeitig (oder in separaten Dialogen) auswählen können müssen, da Einzelwettkämpfe und Mannschaftswettkämpfe in verschiedenen Dateien kommen (auch wenn diese gleich aufgebaut sind). 
+
+84. ✅ [Bug] Teilnehmer hinzufügen 
+Auf der Seite http://localhost:3001/event-participants kann man Teilnehmer mit dem Wizard hinzufügen. In dem WIzard wird eine Liste der TEilnehmer angezeigt. An den Teilnehmern sind auch noch details. Das Jahr wird aber nicht angezeigt, sondern nur "Jahre". TDD
+Fix: i18n keys `eventParticipants.card.years` in de.json and en.json were missing `{{count}}` placeholder ("Jahre" → "{{count}} Jahre"). Added TDD tests in useAddParticipantWizard.test.ts.

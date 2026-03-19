@@ -2846,7 +2846,7 @@
       "status": "Status"
     },
     "card": {
-      "years": "Jahre",
+      "years": "{{count}} Jahre",
       "competitions": "Wettkämpfe",
       "squad": "Riege",
       "noSquad": "Keine Riege",
