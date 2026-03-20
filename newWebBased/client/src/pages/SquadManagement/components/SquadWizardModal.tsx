@@ -147,7 +147,11 @@ export function SquadWizardModal({
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">{t('squadManagement.wizard.filters.allCompetitions')}</option>
-              {allCompetitions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {allCompetitions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.number ? `Nr. ${c.number} – ${c.name}` : c.name}
+                </option>
+              ))}
             </select>
             <input
               type="number"
@@ -235,7 +239,11 @@ export function SquadWizardModal({
                       <td className="px-3 py-2 text-center text-gray-600">{p.birthYear || '–'}</td>
                       <td className="px-3 py-2 text-center"><GenderBadge value={p.gender} /></td>
                       <td className="px-3 py-2 text-gray-500 text-xs">
-                        {(p.competitions || []).map((c) => c.name).join(', ') || '–'}
+                        {(p.competitions || []).length === 0
+                          ? '–'
+                          : (p.competitions || []).map((c) =>
+                              c.number ? `Nr. ${c.number} – ${c.name}` : c.name
+                            ).join(', ')}
                       </td>
                     </tr>
                   ))}

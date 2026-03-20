@@ -606,3 +606,6 @@ soll es eine möglichkeit geben den Zeitlichen Ablauf der Veranstaltung tabellar
 Nun die Frage lässt sich die Zelle / Riegenzuordnung in der DB ohne Änderung der DB speichern? 
 Umsetzen, Testen, Dokumentieren. 
 Fix: Ja – `tfx_riegen_x_disziplinen` speichert die Matrix-Zuordnungen ohne Schema-Änderung: `int_runde`=Zeile, `int_disziplinenid`=Spalte, `var_riege`=Riegenname. Neuer „Zeitplan-Tabelle"-ViewMode in TimePlanning: ScheduleMatrixView-Komponente mit optimistischen Zell-Updates, +/- Zeilen-Steuerung. Server-Endpoints GET /time-planning/matrix und PUT /time-planning/matrix/cell. Pure Helpers `addMinutesToTime`/`calculateRoundTime` exportiert und mit 13 Unit-Tests abgedeckt (scheduleMatrix.test.ts).
+
+86. Im Wizard Riegen einteilen im Schritt 2 werden die Wettkämpfe an den TEilnehmern angezeigt. Hier müssen auch noch die WEttkampfnummern in die Tabelle.
+	-> Erledigt ✅ | Competition numbers shown as "Nr. X – Name" in table column and filter dropdown; allCompetitions sorted by number 

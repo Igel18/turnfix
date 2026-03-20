@@ -117,16 +117,21 @@ export function useSquadWizard({
 
   const allCompetitions = useMemo(() => {
     const seen = new Set<number>();
-    const list: { id: number; name: string }[] = [];
+    const list: { id: number; name: string; number: string }[] = [];
     allParticipants.forEach((p) =>
       (p.competitions || []).forEach((c) => {
         if (!seen.has(c.id)) {
           seen.add(c.id);
-          list.push({ id: c.id, name: c.name });
+          list.push({ id: c.id, name: c.name, number: c.number || '' });
         }
       }),
     );
-    return list.sort((a, b) => a.name.localeCompare(b.name));
+    return list.sort((a, b) => {
+      const numA = parseInt(a.number) || 0;
+      const numB = parseInt(b.number) || 0;
+      if (numA !== numB) return numA - numB;
+      return a.name.localeCompare(b.name);
+    });
   }, [allParticipants]);
 
   // ── Filtered participants ────────────────────────────────────────────────────
