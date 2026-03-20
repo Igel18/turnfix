@@ -609,3 +609,7 @@ Fix: Ja – `tfx_riegen_x_disziplinen` speichert die Matrix-Zuordnungen ohne Sch
 
 86. Im Wizard Riegen einteilen im Schritt 2 werden die Wettkämpfe an den TEilnehmern angezeigt. Hier müssen auch noch die WEttkampfnummern in die Tabelle.
 	-> Erledigt ✅ | Competition numbers shown as "Nr. X – Name" in table column and filter dropdown; allCompetitions sorted by number 
+
+87. Im Wizard Riegen einteilen im Schritt 2
+Hier lassen sich Teilnehmer hinzufügen. Aber Aber aus der Riege wieder entfernen geht nicht. Wie könnten wir das lösen, weil eigentlich gefällt mir die UI und das Konzept ganz gut.
+	-> Erledigt ✅ | Im Edit-Modus werden aktuelle Riegenmitglieder in die Teilnehmerliste eingeblendet (oben sortiert, "In Riege"-Badge). Abwählen entfernt den Teilnehmer aus der Riege. 

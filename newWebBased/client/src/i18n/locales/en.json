@@ -3030,6 +3030,7 @@
       "selectAll": "Select all",
       "deselectAll": "Deselect all",
       "noParticipants": "No participants found",
+      "inSquad": "In squad",
       "filters": {
         "search": "Search name or club...",
         "allClubs": "All clubs",

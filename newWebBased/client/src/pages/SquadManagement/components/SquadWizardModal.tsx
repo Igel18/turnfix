@@ -46,6 +46,7 @@ export function SquadWizardModal({
     setSquadName,
     nameValid,
     selectedIds,
+    currentMemberIds,
     loadingParticipants,
     saving,
     filters,
@@ -234,7 +235,14 @@ export function SquadWizardModal({
                           className="rounded"
                         />
                       </td>
-                      <td className="px-3 py-2 font-medium text-gray-900">{p.firstname} {p.lastname}</td>
+                      <td className="px-3 py-2">
+                        <span className="font-medium text-gray-900">{p.firstname} {p.lastname}</span>
+                        {currentMemberIds.has(p.id) && (
+                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                            {t('squadManagement.wizard.inSquad')}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-gray-600">{p.club || '–'}</td>
                       <td className="px-3 py-2 text-center text-gray-600">{p.birthYear || '–'}</td>
                       <td className="px-3 py-2 text-center"><GenderBadge value={p.gender} /></td>

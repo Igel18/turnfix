@@ -60,6 +60,8 @@ export function useSquadWizard({
   // Step 2: participant selection
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  // IDs of participants already in the squad before editing
+  const [currentMemberIds, setCurrentMemberIds] = useState<Set<number>>(new Set());
   const [loadingParticipants, setLoadingParticipants] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -95,10 +97,21 @@ export function useSquadWizard({
       const data = await apiGet(
         `/squad-management/available-participants?eventId=${eventId}&includeAvailable=false&_t=${Date.now()}`,
       );
-      const participants: Participant[] = data.participants || [];
-      setAllParticipants(participants);
-      if (mode === 'edit' && squad) {
-        setSelectedIds(new Set(squad.participants.map((p) => p.id)));
+      const available: Participant[] = data.participants || [];
+
+      if (mode === 'edit' && squad && squad.participants.length > 0) {
+        // Merge current squad members into the list so they are visible and
+        // can be deselected (= removed from the squad) by the user.
+        const availableIds = new Set(available.map((p) => p.id));
+        const currentMembers = squad.participants.filter((p) => !availableIds.has(p.id));
+        const merged = [...currentMembers, ...available];
+        const memberIdSet = new Set(squad.participants.map((p) => p.id));
+        setCurrentMemberIds(memberIdSet);
+        setAllParticipants(merged);
+        setSelectedIds(new Set(memberIdSet));
+      } else {
+        setCurrentMemberIds(new Set());
+        setAllParticipants(available);
       }
     } catch (err) {
       console.error('useSquadWizard: error loading participants', err);
@@ -154,8 +167,14 @@ export function useSquadWizard({
       if (filters.birthYear && String(p.birthYear) !== filters.birthYear) return false;
       if (filters.gender && p.gender !== filters.gender) return false;
       return true;
+    }).sort((a, b) => {
+      // Current squad members appear at the top for easy visibility
+      const aIsMember = currentMemberIds.has(a.id) ? 0 : 1;
+      const bIsMember = currentMemberIds.has(b.id) ? 0 : 1;
+      if (aIsMember !== bIsMember) return aIsMember - bIsMember;
+      return `${a.lastname} ${a.firstname}`.localeCompare(`${b.lastname} ${b.firstname}`);
     });
-  }, [allParticipants, filters]);
+  }, [allParticipants, filters, currentMemberIds]);
 
   // ── Selection helpers ────────────────────────────────────────────────────────
 
@@ -260,6 +279,7 @@ export function useSquadWizard({
     // step 2
     allParticipants,
     selectedIds,
+    currentMemberIds,
     loadingParticipants,
     saving,
     filters,
