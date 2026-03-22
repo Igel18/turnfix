@@ -501,4 +501,97 @@ describe('useResultsData', () => {
     expect(participant.totalScore).toBeCloseTo(10, 2)
     expect(participant.juryResults?.['Boden w']?.length).toBe(4)
   })
+
+  // ─── Item 90: squadName URL filter must NOT restrict Results scores ───────
+
+  it('squadName in URL does NOT filter scores: all participants show their scores regardless of squad', async () => {
+    /**
+     * Bug: when ?squadName=X is in the URL, useResultsData passes squadName to
+     * the scores API → server filters WHERE var_riege = X → participants in other
+     * squads lose their scores.  The Results page must always fetch ALL event
+     * scores, ignoring the squad context.
+     *
+     * Test proof: pass squadName='wGlb' to useResultsData; the mock captures
+     * every URL used to call apiGet.  Assert that NO scores call contains
+     * 'squadName=' in its query string.
+     */
+    const { apiGet } = await import('@/utils/api')
+    const capturedUrls: string[] = []
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      capturedUrls.push(url)
+
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 1, firstname: 'Anna', lastname: 'Squad1', club: 'TV A',
+              startNumber: 1, age: 10, gender: 'weiblich', startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+            {
+              id: 2, firstname: 'Berta', lastname: 'Squad2', club: 'TV B',
+              startNumber: 2, age: 11, gender: 'weiblich', startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+
+      if (url.startsWith('/scores?')) {
+        return {
+          results: [
+            {
+              participantId: 1, competitionId: 1, disciplineName: 'Boden w',
+              score: 9, formula: '1*x',
+              juryResults: [{ fieldName: 'Wertung', fieldShortName: 'x', performance: 9, isFinalScore: false, isStartingScore: false }],
+            },
+            {
+              participantId: 2, competitionId: 1, disciplineName: 'Boden w',
+              score: 7, formula: '1*x',
+              juryResults: [{ fieldName: 'Wertung', fieldShortName: 'x', performance: 7, isFinalScore: false, isStartingScore: false }],
+            },
+          ],
+        }
+      }
+
+      if (url === '/disciplines') return [{ id: 10, name: 'Boden w' }]
+
+      if (url === '/competitions/1/disciplines') {
+        return {
+          disciplines: [
+            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: ':/icons/boden.png' },
+          ],
+        }
+      }
+
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    // Pass squadName='wGlb' (as would happen when navigating from squad page)
+    const { result } = renderHook(() => useResultsData('1', 'wGlb', ''))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([{ id: 1, name: 'Wettkampf 1', number: '0001' }])
+    })
+
+    // ❶ The scores API must NOT have been called with squadName in the query
+    const scoresUrls = capturedUrls.filter(u => u.startsWith('/scores?'))
+    expect(scoresUrls.length).toBeGreaterThan(0) // sanity check
+    for (const url of scoresUrls) {
+      expect(url).not.toContain('squadName=')
+    }
+
+    // ❷ Both participants (regardless of squad) must have their scores
+    const group = result.current.competitionGroups.find(g => g.competitionId === 1)
+    expect(group).toBeTruthy()
+
+    const anna = group!.participants.find(p => p.id === 1)
+    const berta = group!.participants.find(p => p.id === 2)
+
+    expect(anna).toBeTruthy()
+    expect(berta).toBeTruthy()
+    expect(anna!.scores['Boden w']).toBeCloseTo(9, 2)
+    expect(berta!.scores['Boden w']).toBeCloseTo(7, 2)
+  })
 })

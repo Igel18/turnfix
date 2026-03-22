@@ -620,6 +620,7 @@ Hier lassen sich Teilnehmer hinzufügen. Aber Aber aus der Riege wieder entferne
 
 90. Die Wertungen werden in den Ergebnissen nicht angezeigt. Es gibt wohl irgendwie einen Filter der in der URL bei den Ergebnissen gesetzt sein kann. Dann werden nicht alle Wertungen angezeigt. Das darf nicht sein... 
 TDD 
+-> Erledigt ✅ | Ursache: `squadName` aus URL wurde als `WHERE var_riege = ?` an Scores-API übergeben → Wertungen other Riegen gefiltert. Fix: `squadName` wird in `useResultsData` nicht mehr an die Scores-API weitergegeben. TDD: 1 neuer Vitest-Test (RED→GREEN).
 
 91. Im Jury-Portal beim Speichern der Wertung kommt die Meldung Fehler, Wertung wurde nicht angelegt. 
 
@@ -652,5 +653,6 @@ Beim Wechsel der Teilnehmer sollte der Focus direkt in das eingabefeld
 Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar. 
 
 101. Gleiche Punktzahl muss gleiche Plazierung bedeuten! TDD
+-> erledigt
 
 102. Geburtsjahr passt nicht. Der Import funktioniert korrekt. Aber in den UIs der Veranstaltung steht als Geburtsdatum immer 01.01. drin. 

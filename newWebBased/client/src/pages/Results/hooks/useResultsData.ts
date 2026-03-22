@@ -31,7 +31,7 @@ interface UseResultsDataReturn {
 
 export function useResultsData(
   eventId: string | null,
-  squadName: string | null,
+  _squadName: string | null,   // kept for API compatibility; NOT forwarded to scores API (Item 90)
   selectedCompetition: string
 ): UseResultsDataReturn {
   
@@ -87,7 +87,11 @@ export function useResultsData(
         eventId,
         _cb: Date.now().toString()
       });
-      if (squadName) scoresParams.append('squadName', squadName);
+      // Note: squadName is intentionally NOT passed here. The Results page must
+      // always show ALL scores for the event regardless of which squad is in the
+      // URL (it's navigation context only, not a results filter). Passing squadName
+      // caused the server to filter WHERE var_riege = ? and silently hid scores
+      // for participants in other squads. (Fixed: Item 90)
       if (selectedCompetition) scoresParams.append('competitionId', selectedCompetition);
 
       const scoresData = await apiGet(`/scores?${scoresParams}`);
