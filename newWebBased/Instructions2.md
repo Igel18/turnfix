@@ -627,6 +627,7 @@ TDD
 92. im Wettkampf status 
 Wird keine prozent Zahl bei den Geräten angezeigt. 
 TDD mit UI Tests
+-> Erledigt ✅ | Root cause: disciplines_detail used tfx_riegen_x_disziplinen squad-entries (always 0 without "Generate") as denominator. Fix: new per-discipline SQL query counts distinct participants with score entries per discipline; server returns totalParticipants/completedParticipants/percentage; client uses server-provided percentage directly. New: server/src/utils/competitionStatusUtils.ts (13 unit tests), e2e tests in competition-status-percentage.spec.ts.
 
 93. Layout designer 
 - Größer, damit man das Urkundendesign besser ändern kann. ggf. über zoom? 
@@ -639,14 +640,14 @@ TDD mit UI Tests
 
 96. Jury-Portal Sortieren der Teilnehmer ermöglichen ? 
 
-97. Riegen Status wird nicht angezeigt 
+97. [Bug] Riegen Status wird nicht angezeigt 
 Auf der Seite Riegen Status steht immer 0% 
 TDD mit UI Tests
 
-98. Scrollen bei vielen Teilnehmer in der SIegerliste. Hier muss immer die Überschrift Zeile von dem Wettkampf fixiert werden. So wie es auch in Excel möglich ist eine Zeile zu fixieren. Nur soll es halt immer die vom aktuelle Wettkampf sein. 
+98. [Feature] Scrollen bei vielen Teilnehmer in der SIegerliste. Hier muss immer die Überschrift Zeile von dem Wettkampf fixiert werden. So wie es auch in Excel möglich ist eine Zeile zu fixieren. Nur soll es halt immer die vom aktuelle Wettkampf sein. 
 TDD mit UI Tests
 
-99. Jury-Portal: 
+99. [Improvement] Jury-Portal: 
 Beim Wechsel der Teilnehmer sollte der Focus direkt in das eingabefeld 
 
 100. Urkunden als PDF Drucken 
@@ -655,4 +656,12 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 101. Gleiche Punktzahl muss gleiche Plazierung bedeuten! TDD
 -> Erledigt ✅
 
-102. Geburtsdatum passt nicht. Der GymNet-Import funktioniert korrekt. Die Geburtsdaten werden bei den participants richtig angezeigt. Aber in den UIs der Veranstaltung (z.B. event-participants -> Teilnehmer bearbeiten) steht als Geburtsdatum immer 01.01. drin. TDD
+102. [Bug] Geburtsdatum passt nicht. Der GymNet-Import funktioniert korrekt. Die Geburtsdaten werden bei den participants richtig angezeigt. Aber in den UIs der Veranstaltung (z.B. event-participants -> Teilnehmer bearbeiten) steht als Geburtsdatum immer 01.01. drin. TDD
+
+103. [improvement] in der results UI werden im Filter die Wettkämpfe im absteigend angezeigt. Aufsteigend wäre korrekt
+
+104. [Bug] Riegen Status wird nicht angezeigt 
+Auf der Seite Riegen Status steht immer "kein Status". Entweder wird der im Jury-Portal nicht gesetzt oder auf der Seite squad-status nicht richtig angezeigt. 
+TDD mit UI Tests
+
+105. 

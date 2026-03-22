@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import prisma from '../lib/prisma'
+import { buildDisciplineDetails } from '../utils/competitionStatusUtils'
 
 const router = Router()
 
@@ -39,7 +40,11 @@ interface CompetitionStatusData {
     disciplineId: number
     disciplineName: string
     disciplineShort: string
+    /** @deprecated use totalParticipants / completedParticipants / percentage instead */
     totalSquads: number
+    totalParticipants: number
+    completedParticipants: number
+    percentage: number
     statusDistribution: Array<{
       statusId: number
       statusName: string
@@ -90,6 +95,9 @@ router.get('/', async (req, res) => {
     const competitionIds = competitions.map(c => c.int_wettkaempfeid)
     let participantCountByCompetition = new Map<number, number>()
     let completedParticipantDisciplineByCompetition = new Map<number, number>()
+    // Key: "${wettkaempfeid}:${disziplinenid}" → count of distinct participants with a score
+    const perDisciplineCompletedMap = new Map<string, number>()
+
     if (competitionIds.length > 0) {
       const participantCounts = await prisma.$queryRawUnsafe(
         `
@@ -108,8 +116,7 @@ router.get('/', async (req, res) => {
         participantCounts.map(row => [row.int_wettkaempfeid, Number(row.count)])
       )
 
-      // Completed participant×discipline entries: any score recorded for a participant in a discipline
-      // WICHTIG: Nur Teilnehmer zählen, die auch wirklich starten (bol_startet_nicht IS NULL OR bol_startet_nicht = false)
+      // Completed participant×discipline entries: total distinct (participant, discipline) pairs
       const completedPairs = await prisma.$queryRawUnsafe(
         `
         SELECT 
@@ -128,6 +135,29 @@ router.get('/', async (req, res) => {
       completedParticipantDisciplineByCompetition = new Map(
         completedPairs.map(row => [row.int_wettkaempfeid, Number(row.completed_count)])
       )
+
+      // Per-discipline completion: distinct participants with at least one score for each discipline
+      const perDisciplineRows = await prisma.$queryRawUnsafe(
+        `
+        SELECT
+          w.int_wettkaempfeid,
+          wd.int_disziplinenid,
+          COUNT(DISTINCT w.int_teilnehmerid) AS completed_count
+        FROM tfx_wertungen w
+        JOIN tfx_wertungen_details wd ON w.int_wertungenid = wd.int_wertungenid
+        WHERE w.int_wettkaempfeid = ANY($1)
+          AND w.int_teilnehmerid IS NOT NULL
+          AND wd.int_disziplinenid IS NOT NULL
+          AND (w.bol_startet_nicht IS NULL OR w.bol_startet_nicht = false)
+        GROUP BY w.int_wettkaempfeid, wd.int_disziplinenid
+        `,
+        competitionIds
+      ) as Array<{ int_wettkaempfeid: number; int_disziplinenid: number; completed_count: bigint | number }>
+
+      for (const row of perDisciplineRows) {
+        const key = `${row.int_wettkaempfeid}:${row.int_disziplinenid}`
+        perDisciplineCompletedMap.set(key, Number(row.completed_count))
+      }
     }
 
     // Get all squad-discipline statuses for this event
@@ -198,37 +228,45 @@ router.get('/', async (req, res) => {
         overallStatus = 'in_progress'
       }
 
-      // Calculate discipline-level details
-      const disciplineDetails = competitionDisciplineIds.map((disciplineId: number) => {
-        const discipline = competition.tfx_wettkaempfe_x_disziplinen.find(
+      // Calculate discipline-level details using participant completion from scores
+      const disciplineObjects = competitionDisciplineIds.map((disciplineId: number) =>
+        competition.tfx_wettkaempfe_x_disziplinen.find(
           (wd: any) => wd.tfx_disziplinen.int_disziplinenid === disciplineId
         )?.tfx_disziplinen
+      ).filter((d): d is NonNullable<typeof d> => d != null)
 
+      const completedByDiscipline = new Map<number, number>()
+      for (const disciplineId of competitionDisciplineIds) {
+        const key = `${competition.int_wettkaempfeid}:${disciplineId}`
+        completedByDiscipline.set(disciplineId, perDisciplineCompletedMap.get(key) ?? 0)
+      }
+
+      const disciplineDetails = buildDisciplineDetails(
+        disciplineObjects,
+        completedByDiscipline,
+        participantCount
+      ).map(detail => {
+        // Also include legacy squad-status distribution for backwards compatibility
         const disciplineSquadStatuses = relevantSquadDisciplines.filter(
-          sd => sd.int_disziplinenid === disciplineId
+          sd => sd.int_disziplinenid === detail.disciplineId
         )
-
         const disciplineStatusCounts = new Map<number, number>()
         disciplineSquadStatuses.forEach(sd => {
           const statusId = sd.int_statusid || 1
           disciplineStatusCounts.set(statusId, (disciplineStatusCounts.get(statusId) || 0) + 1)
         })
-
         const disciplineStatusDistribution = Array.from(disciplineStatusCounts.entries()).map(([statusId, count]) => {
           const status = allStatuses.find(s => s.int_statusid === statusId) || allStatuses[0]
           return {
             statusId,
-            statusName: status.var_name || 'Unknown',
-            colorCode: status.ary_colorcode || '{128,128,128}',
+            statusName: status?.var_name || 'Unknown',
+            colorCode: status?.ary_colorcode || '{128,128,128}',
             count
           }
         })
-
         return {
-          disciplineId,
-          disciplineName: discipline?.var_name || 'Unknown',
-          disciplineShort: discipline?.var_kurz1 || 'UNK',
-          totalSquads: disciplineSquadStatuses.length,
+          ...detail,
+          totalSquads: disciplineSquadStatuses.length, // legacy
           statusDistribution: disciplineStatusDistribution
         }
       })

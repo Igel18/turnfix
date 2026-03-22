@@ -45,6 +45,9 @@ interface CompetitionStatus {
     disciplineName: string
     disciplineShort: string
     totalSquads: number
+    totalParticipants: number
+    completedParticipants: number
+    percentage: number
     statusDistribution: Array<{
       statusId: number
       statusName: string
@@ -500,10 +503,10 @@ const CompetitionStatusManagement = () => {
                       disciplineList.forEach((discipline) => {
                         const disciplineDetail = comp.disciplines_detail.find((d: any) => d.disciplineId === discipline.id)
                         if (disciplineDetail) {
-                          // Calculate completion for this discipline
-                          const completed = disciplineDetail.statusDistribution?.find((s: any) => classifySquadState(s.statusName, s.statusId) === 'completed')?.count || 0
-                          const total = disciplineDetail.totalSquads || 0
-                          const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
+                          // Use server-computed percentage (participant-based) directly
+                          const percentage = disciplineDetail.percentage ?? 0
+                          const completed = disciplineDetail.completedParticipants ?? 0
+                          const total = disciplineDetail.totalParticipants ?? 0
                           
                           rowData[discipline.id] = {
                             percentage,
@@ -545,9 +548,8 @@ const CompetitionStatusManagement = () => {
                           sortedFilteredCompetitions.forEach(comp => {
                             const disciplineDetail = comp.disciplines_detail.find((d: any) => d.disciplineId === discipline.id)
                             if (disciplineDetail) {
-                              const completed = disciplineDetail.statusDistribution?.find((s: any) => classifySquadState(s.statusName, s.statusId) === 'completed')?.count || 0
-                              totalCompleted += completed
-                              totalSquads += disciplineDetail.totalSquads || 0
+                              totalCompleted += disciplineDetail.completedParticipants ?? 0
+                              totalSquads += disciplineDetail.totalParticipants ?? 0
                             }
                           })
                           
