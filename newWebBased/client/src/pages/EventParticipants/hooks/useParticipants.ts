@@ -102,6 +102,7 @@ export function useParticipants({ eventId }: UseParticipantsProps): UseParticipa
         club: p.club || p.verein_name || '',
         clubId: p.clubId || p.int_vereineid || 0,
         gender: normalizeGender(p.gender || p.geschlecht_name || p.int_geschlecht),
+        birthday: p.birthday || undefined,
         birthYear: p.birthYear || p.int_gebjahr || new Date().getFullYear(),
         age: p.age || 0,
         squad_name: p.squad_name || p.var_riege || '',
@@ -260,6 +261,7 @@ export function useParticipants({ eventId }: UseParticipantsProps): UseParticipa
                 lastname: updatedData.lastname,
                 clubId: updatedData.clubId,
                 club: clubs.find((c) => c.id === updatedData.clubId)?.name || p.club,
+                birthday: updatedData.birthday || p.birthday,
                 birthYear: updatedData.birthday
                   ? new Date(updatedData.birthday).getFullYear()
                   : p.birthYear,

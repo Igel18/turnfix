@@ -30,7 +30,12 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
     firstname: participant.firstname,
     lastname: participant.lastname,
     clubId: participant.clubId,
-    birthday: participant.birthYear ? `${participant.birthYear}-01-01` : '',
+    // Use full birthday if available (API returns YYYY-MM-DD), otherwise fall back to year-only
+    birthday: participant.birthday
+      ? participant.birthday
+      : participant.birthYear
+      ? `${participant.birthYear}-01-01`
+      : '',
     gender: normalizedGender,
     squad_name: participant.squad_name || '',
     startet_nicht: participant.startet_nicht,

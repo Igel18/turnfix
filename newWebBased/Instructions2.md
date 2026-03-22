@@ -658,6 +658,7 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 -> Erledigt ✅
 
 102. [Bug] Geburtsdatum passt nicht. Der GymNet-Import funktioniert korrekt. Die Geburtsdaten werden bei den participants richtig angezeigt. Aber in den UIs der Veranstaltung (z.B. event-participants -> Teilnehmer bearbeiten) steht als Geburtsdatum immer 01.01. drin. TDD
+-> Erledigt ✅ | Root cause: Server mapped `dat_geburtstag` → `birthYear` (year only) — day/month lost. `EditParticipantForm` constructed date as `YYYY-01-01`. Fix: New `participantBirthdayUtils.ts` with `formatBirthday()` (uses UTC methods for DATE columns); server now returns `birthday: YYYY-MM-DD` alongside `birthYear`; `EditParticipantForm` uses `participant.birthday` with year-only fallback. TDD: 10 server unit tests + 6 client component tests (RED→GREEN). `Participant` type updated with `birthday?: string`.
 
 103. [improvement] in der results UI werden im Filter die Wettkämpfe im absteigend angezeigt. Aufsteigend wäre korrekt
 

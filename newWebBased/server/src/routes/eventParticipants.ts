@@ -4,6 +4,7 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { mapDatabaseGenderToGerman, getGermanGenderCaseStatement } from '../utils/genderHelpers';
 import { getNextStartNumber } from '../utils/startNumberUtils';
+import { formatBirthday } from '../utils/participantBirthdayUtils';
 import assignmentRouter from './eventParticipantAssignments';
 
 const router = Router();
@@ -124,6 +125,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           clubId: participant.int_vereineid || 0,
           gender: mapDatabaseGenderToGerman(participant.int_geschlecht),
           rawGenderValue: participant.int_geschlecht,  // For debugging
+          birthday: formatBirthday(participant.dat_geburtstag),
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.dat_geburtstag ? 
             new Date().getFullYear() - new Date(participant.dat_geburtstag).getFullYear() : null,
@@ -176,6 +178,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
           gender: participant.gender as 'männlich' | 'weiblich' | 'unbekannt',
           rawGenderValue: participant.raw_gender_value,  // For debugging
+          birthday: formatBirthday(participant.dat_geburtstag),
           birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
           age: participant.age ? Number(participant.age) : null,
           squad_name: participant.squad_name || null,
@@ -231,6 +234,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         clubId: participant.int_vereineid ? Number(participant.int_vereineid) : 0,
         gender: participant.gender as 'männlich' | 'weiblich' | 'unbekannt',
         rawGenderValue: participant.raw_gender_value,  // For debugging
+        birthday: formatBirthday(participant.dat_geburtstag),
         birthYear: participant.dat_geburtstag ? new Date(participant.dat_geburtstag).getFullYear() : null,
         age: participant.age ? Number(participant.age) : null,
         squad_name: null, // Available participants don't have squads assigned

@@ -14,6 +14,7 @@ export interface Participant {
   clubId: number;
   gender: GenderValue;
   birthYear: number;
+  birthday?: string; // Full date as YYYY-MM-DD (Issue #102)
   age: number;
   squad_name?: string;
   startet_nicht: boolean;
