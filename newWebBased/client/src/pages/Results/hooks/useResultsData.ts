@@ -10,6 +10,7 @@ import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
 import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
+import { assignRanks } from '@/utils/rankingUtils';
 
 interface UseResultsDataReturn {
   ranking: Participant[];
@@ -356,9 +357,8 @@ export function useResultsData(
 
       if (selectedCompetition) {
         participantsList.sort((a, b) => b.totalScore - a.totalScore);
-        participantsList.forEach((participant, index) => {
-          participant.rank = index + 1;
-        });
+        const ranked = assignRanks(participantsList);
+        ranked.forEach((r, i) => { participantsList[i].rank = r.rank; });
         setRanking(participantsList);
         setCompetitionGroups([]);
         setDisciplineFormulas(selectedCompetitionFormulaMap);
@@ -414,9 +414,8 @@ export function useResultsData(
           });
 
           participants.sort((a, b) => b.totalScore - a.totalScore);
-          participants.forEach((participant, index) => {
-            participant.rank = index + 1;
-          });
+          const rankedGroup = assignRanks(participants);
+          rankedGroup.forEach((r, i) => { participants[i].rank = r.rank; });
 
           groups.push({
             competitionId,

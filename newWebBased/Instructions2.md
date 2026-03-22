@@ -613,3 +613,44 @@ Fix: Ja – `tfx_riegen_x_disziplinen` speichert die Matrix-Zuordnungen ohne Sch
 87. Im Wizard Riegen einteilen im Schritt 2
 Hier lassen sich Teilnehmer hinzufügen. Aber Aber aus der Riege wieder entfernen geht nicht. Wie könnten wir das lösen, weil eigentlich gefällt mir die UI und das Konzept ganz gut.
 	-> Erledigt ✅ | Im Edit-Modus werden aktuelle Riegenmitglieder in die Teilnehmerliste eingeblendet (oben sortiert, "In Riege"-Badge). Abwählen entfernt den Teilnehmer aus der Riege. 
+
+88. In den Live-Wertungen werden die Wertungen mit 0,0 angezeigt. TDD mit UI Tests
+
+89. Die Wertungen die eingegeben werden, werden nicht im alten Turnfix angezeigt 
+
+90. Die Wertungen werden in den Ergebnissen nicht angezeigt. Es gibt wohl irgendwie einen Filter der in der URL bei den Ergebnissen gesetzt sein kann. Dann werden nicht alle Wertungen angezeigt. Das darf nicht sein... 
+TDD 
+
+91. Im Jury-Portal beim Speichern der Wertung kommt die Meldung Fehler, Wertung wurde nicht angelegt. 
+
+92. im Wettkampf status 
+Wird keine prozent Zahl bei den Geräten angezeigt. 
+TDD mit UI Tests
+
+93. Layout designer 
+- Größer, damit man das Urkundendesign besser ändern kann. ggf. über zoom? 
+- Ist es möglich ein PDF in Hintergrund zu laden (so wie auch die PNGs halt zusätzlich)? 
+
+94. Die Buttons in der TrayApp "Server stoppen" "Server neustarten" funktionieren nicht. 
+TDD 
+
+95. Im PDF results steht keine Überschrift mit dem Wettkampf bezeichnung 
+
+96. Jury-Portal Sortieren der Teilnehmer ermöglichen ? 
+
+97. Riegen Status wird nicht angezeigt 
+Auf der Seite Riegen Status steht immer 0% 
+TDD mit UI Tests
+
+98. Scrollen bei vielen Teilnehmer in der SIegerliste. Hier muss immer die Überschrift Zeile von dem Wettkampf fixiert werden. So wie es auch in Excel möglich ist eine Zeile zu fixieren. Nur soll es halt immer die vom aktuelle Wettkampf sein. 
+TDD mit UI Tests
+
+99. Jury-Portal: 
+Beim Wechsel der Teilnehmer sollte der Focus direkt in das eingabefeld 
+
+100. Urkunden als PDF Drucken 
+Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar. 
+
+101. Gleiche Punktzahl muss gleiche Plazierung bedeuten! TDD
+
+102. Geburtsjahr passt nicht. Der Import funktioniert korrekt. Aber in den UIs der Veranstaltung steht als Geburtsdatum immer 01.01. drin. 
