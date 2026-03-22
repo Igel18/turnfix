@@ -387,7 +387,7 @@ export function useScoreSave({
           eventId: selectedEvent,
           squadName: selectedSquad?.name,
           disciplineId: selectedDevice?.disciplineId,
-          status: 'Leistung erfasst'
+          status: 'Leistungen erfasst'
         }),
       });
     } catch (error) {

@@ -640,9 +640,10 @@ TDD mit UI Tests
 
 96. Jury-Portal Sortieren der Teilnehmer ermöglichen ? 
 
-97. [Bug] Riegen Status wird nicht angezeigt 
+97. [Bug] Wettkampf Status wird nicht angezeigt 
 Auf der Seite Riegen Status steht immer 0% 
 TDD mit UI Tests
+-> Erledigt ✅
 
 98. [Feature] Scrollen bei vielen Teilnehmer in der SIegerliste. Hier muss immer die Überschrift Zeile von dem Wettkampf fixiert werden. So wie es auch in Excel möglich ist eine Zeile zu fixieren. Nur soll es halt immer die vom aktuelle Wettkampf sein. 
 TDD mit UI Tests
@@ -663,5 +664,13 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 104. [Bug] Riegen Status wird nicht angezeigt 
 Auf der Seite Riegen Status steht immer "kein Status". Entweder wird der im Jury-Portal nicht gesetzt oder auf der Seite squad-status nicht richtig angezeigt. 
 TDD mit UI Tests
+-> Erledigt ✅ | Root cause: POST /api/squad-management/complete war ein Stub — hat DB nie aktualisiert. Fix: 3 Probleme behoben: (1) Endpoint implementiert: findet Status via findStatusByName() (case-insensitive + Wort-Matching) und schreibt in tfx_riegen_x_disziplinen; (2) authenticateToken entfernt — Jury-Portal sendet kein Auth-Token; (3) Status-Name-Tippfehler korrigiert: 'Leistung erfasst' → 'Leistungen erfasst' in useScoreSave.ts. Socket.IO-Event 'squad-status-updated' wird nach Update emittiert. Neues: server/src/utils/squadStatusUtils.ts (10 Unit-Tests), server/tests/unit/squadDisciplineComplete.test.ts, client/e2e/tests/squad-status-complete.spec.ts.
 
 105. 
+LK / KÜR: 
+D + 10 - E - P = EW 
+10 ist default, kein fixer wert,
+auch nicht AW, AUsgangswert da das nur ein Teilausgang ist. 
+
+P: 
+10 + AW - E = EW 

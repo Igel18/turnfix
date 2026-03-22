@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
+import { findStatusByName } from '../utils/squadStatusUtils';
 
 const router = Router();
 
@@ -323,7 +324,9 @@ router.delete('/delete', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Mark squad as completed for a specific device/discipline
-router.post('/complete', authenticateToken, async (req: AuthRequest, res) => {
+// NOTE: No authenticateToken here — this endpoint must be accessible from the
+// jury portal which does not carry auth tokens.
+router.post('/complete', async (req, res) => {
   try {
     const { eventId, squadName, disciplineId, status } = req.body;
     
@@ -333,20 +336,55 @@ router.post('/complete', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ message: 'All fields are required: eventId, squadName, disciplineId, status' });
     }
 
-    // Update the squad status for this discipline
-    // Since we don't have a specific squad completion table, we'll log this for now
-    // In a full implementation, you might want to create a squad_status table
-    console.log(`Squad "${squadName}" marked as "${status}" for discipline ${disciplineId} in event ${eventId}`);
-    
-    // For now, we'll just return success
-    // In a real implementation, you might update a database table tracking squad completion status
+    // Find the matching status in the database (case-insensitive + partial match)
+    const allStatuses = await prisma.tfx_status.findMany({ orderBy: { int_statusid: 'asc' } });
+    const normalizedStatuses = allStatuses.map(s => ({ int_statusid: s.int_statusid, var_name: s.var_name ?? '' }));
+    const matchedStatus = findStatusByName(normalizedStatuses, status);
+
+    if (!matchedStatus) {
+      console.warn(`⚠️ Squad Complete: No matching status found for name "${status}". Available: ${allStatuses.map(s => s.var_name ?? '').join(', ')}`);
+      return res.status(400).json({
+        message: `No status found matching "${status}"`,
+        availableStatuses: allStatuses.map(s => s.var_name ?? ''),
+      });
+    }
+
+    // Update tfx_riegen_x_disziplinen for the matching squad-discipline row
+    const updated = await prisma.tfx_riegen_x_disziplinen.updateMany({
+      where: {
+        int_veranstaltungenid: Number(eventId),
+        var_riege: String(squadName),
+        int_disziplinenid: Number(disciplineId),
+      },
+      data: {
+        int_statusid: matchedStatus.int_statusid,
+      },
+    });
+
+    console.log(`✅ Squad "${squadName}" marked as "${matchedStatus.var_name}" (id ${matchedStatus.int_statusid}) for discipline ${disciplineId} in event ${eventId}. Updated ${updated.count} rows.`);
+
+    // Emit Socket.IO event so the squad-status page updates in real-time
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`competition-${eventId}`).emit('squad-status-updated', {
+        eventId: Number(eventId),
+        squadName,
+        disciplineId: Number(disciplineId),
+        statusId: matchedStatus.int_statusid,
+        statusName: matchedStatus.var_name,
+      });
+    }
+
     res.json({
+      success: true,
       message: 'Squad marked as completed',
-      eventId: eventId,
-      squadName: squadName,
-      disciplineId: disciplineId,
-      status: status,
-      timestamp: new Date().toISOString()
+      eventId: Number(eventId),
+      squadName,
+      disciplineId: Number(disciplineId),
+      statusId: matchedStatus.int_statusid,
+      statusName: matchedStatus.var_name,
+      updatedRows: updated.count,
+      timestamp: new Date().toISOString(),
     });
 
   } catch (error) {
