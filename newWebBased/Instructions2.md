@@ -679,3 +679,11 @@ P:
 
 106. [Bug] results UI 
 Wenn hier ein Filter von Wettkämpfen gesetzt wird, werden Geräte ohne Wertung ausgeblendet. Das sollte nicht sein.
+-> Erledigt ✅ | Root cause: `setDisciplines()` was called with `Array.from(disciplineSet)` which only contains disciplines that had at least one score entry. Fix: when `selectedCompetition` is active and `selectedCompetitionDisciplineInfoData` was populated from `GET /competitions/{id}/disciplines`, use those API disciplines instead — so ALL configured disciplines appear as columns regardless of whether scores exist yet. TDD: 2 new tests in `useResultsData.test.ts` (RED→GREEN): "Bug #106: competition filter shows disciplines without scores" and "Bug #106: no-filter mode uses per-competition API disciplines". File: `client/src/pages/Results/hooks/useResultsData.ts`.
+
+107. [Bug] results view - Live Updates 
+nach dem eingeben einer Wertung sollte das aktualisiert werden. 
+
+108. [Improvement] automatisch Status Gedruckt setzen beim Export von PDF / Urkunden 
+
+109. [Bug?] Bei gleicher Platzierung wegen gleichem Endwert gibt es ja jetzt den gleichen Platz. Der darauffolgende platz wir dann frei gelassen. Ist das so implementiert? TDD fall es behoben werden muss. 

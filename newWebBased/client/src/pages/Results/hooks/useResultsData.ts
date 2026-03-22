@@ -448,7 +448,14 @@ export function useResultsData(
         setSelectedCompetitionDisciplineInfo([]);
       }
 
-      setDisciplines(Array.from(disciplineSet).sort());
+      // Bug #106 fix: when a competition filter is active, use ALL configured disciplines
+      // for that competition (from the API), not just disciplines that happen to have scores.
+      // This ensures devices/disciplines without scores are still shown as columns.
+      if (selectedCompetition && selectedCompetitionDisciplineInfoData.length > 0) {
+        setDisciplines(selectedCompetitionDisciplineInfoData.map(d => d.name).sort());
+      } else {
+        setDisciplines(Array.from(disciplineSet).sort());
+      }
       setEventName(`Event ${eventId}`);
     } catch (error) {
       console.error('Error fetching event ranking:', error);

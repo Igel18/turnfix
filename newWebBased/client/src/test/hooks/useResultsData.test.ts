@@ -594,4 +594,143 @@ describe('useResultsData', () => {
     expect(anna!.scores['Boden w']).toBeCloseTo(9, 2)
     expect(berta!.scores['Boden w']).toBeCloseTo(7, 2)
   })
+
+  it('Bug #106: when competition filter is set, disciplines without scores are still shown in disciplines list', async () => {
+    // Regression test: previously setDisciplines() only contained disciplines that had scores.
+    // When a competition filter is active, ALL configured disciplines for that competition
+    // must appear, even if no participant has a score for them yet.
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 1,
+              firstname: 'Max',
+              lastname: 'Muster',
+              club: 'TV Test',
+              startNumber: 1,
+              age: 10,
+              gender: 'männlich',
+              startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+      if (url.startsWith('/scores?')) {
+        // Only Boden has a score — Reck and Barren have no scores yet
+        return {
+          results: [
+            {
+              participantId: 1,
+              competitionId: 1,
+              disciplineName: 'Boden m',
+              score: 8.5,
+              formula: '1*x',
+              juryResults: [],
+            },
+          ],
+        }
+      }
+      if (url === '/disciplines') {
+        return [
+          { id: 10, name: 'Boden m' },
+          { id: 11, name: 'Reck m' },
+          { id: 12, name: 'Barren m' },
+        ]
+      }
+      if (url === '/competitions/1/disciplines') {
+        // Competition has 3 disciplines configured — all should appear in the results
+        return {
+          disciplines: [
+            { var_name: 'Boden m', var_formel: '1*x', var_kurz1: 'BOD', var_icon: '' },
+            { var_name: 'Reck m', var_formel: '1*x', var_kurz1: 'REC', var_icon: '' },
+            { var_name: 'Barren m', var_formel: '1*x', var_kurz1: 'BAR', var_icon: '' },
+          ],
+        }
+      }
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    // selectedCompetition = '1' (active filter); _squadName is the 2nd param (unused)
+    const { result } = renderHook(() => useResultsData('1', null, '1'))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([{ id: 1, name: 'Wettkampf 1', number: '0001' }])
+    })
+
+    // ALL 3 disciplines must be present in the disciplines list, not just 'Boden m'
+    expect(result.current.disciplines).toContain('Boden m')
+    expect(result.current.disciplines).toContain('Reck m')
+    expect(result.current.disciplines).toContain('Barren m')
+    expect(result.current.disciplines.length).toBe(3)
+  })
+
+  it('Bug #106: without competition filter (all competitions view), disciplines list is union of all scored disciplines', async () => {
+    // When no competition filter is active, disciplines are built from actual scores (existing correct behaviour).
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 1,
+              firstname: 'Anna',
+              lastname: 'Test',
+              club: 'TV Test',
+              startNumber: 1,
+              age: 10,
+              gender: 'weiblich',
+              startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+      if (url.startsWith('/scores?')) {
+        return {
+          results: [
+            {
+              participantId: 1,
+              competitionId: 1,
+              disciplineName: 'Boden w',
+              score: 7,
+              formula: '1*x',
+              juryResults: [],
+            },
+          ],
+        }
+      }
+      if (url === '/disciplines') {
+        return [{ id: 10, name: 'Boden w' }]
+      }
+      if (url === '/competitions/1/disciplines') {
+        return {
+          disciplines: [
+            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: '' },
+            { var_name: 'Sprung w', var_formel: '1*x', var_kurz1: 'SPR', var_icon: '' },
+          ],
+        }
+      }
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    // No competition filter (selectedCompetition = null)
+    const { result } = renderHook(() => useResultsData('1', null, ''))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([{ id: 1, name: 'Wettkampf 1', number: '0001' }])
+    })
+
+    // In no-filter mode the table-level disciplines list comes from scores only.
+    // The per-competition group uses the API disciplines (Sprung w appears there).
+    // Verify the per-group disciplines include the API disciplines
+    const group = result.current.competitionGroups.find(g => g.competitionId === 1)
+    expect(group).toBeTruthy()
+    expect(group!.disciplines).toContain('Boden w')
+    expect(group!.disciplines).toContain('Sprung w')
+  })
 })
