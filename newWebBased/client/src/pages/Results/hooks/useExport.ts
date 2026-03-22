@@ -242,12 +242,15 @@ export const useExport = ({
     // Get unified table styles
     const unifiedStyles = getUnifiedTableStyles()
 
+    // Add competition name as visible heading above the table
+    addSectionTitle(doc, competitionName, 60)
+
     // Generate table with jury results support
     autoTable(doc, {
       ...unifiedStyles,
       head: [headers],
       body: tableData,
-      startY: 60,
+      startY: 75,
       headStyles: {
         ...(unifiedStyles.headStyles || {}),
         minCellHeight: 9

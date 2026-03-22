@@ -632,10 +632,10 @@ TDD mit UI Tests
 - Größer, damit man das Urkundendesign besser ändern kann. ggf. über zoom? 
 - Ist es möglich ein PDF in Hintergrund zu laden (so wie auch die PNGs halt zusätzlich)? 
 
-94. Die Buttons in der TrayApp "Server stoppen" "Server neustarten" funktionieren nicht. 
-TDD 
+94. Die Buttons in der TrayApp "Server stoppen" "Server neustarten" funktionieren nicht.  
 
 95. Im PDF results steht keine Überschrift mit dem Wettkampf bezeichnung 
+-> Erledigt ✅ addSectionTitle(doc, competitionName, 60) vor autoTable in exportSingleCompetitionPDF eingefügt; startY: 60 → 75
 
 96. Jury-Portal Sortieren der Teilnehmer ermöglichen ? 
 
@@ -653,6 +653,6 @@ Beim Wechsel der Teilnehmer sollte der Focus direkt in das eingabefeld
 Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar. 
 
 101. Gleiche Punktzahl muss gleiche Plazierung bedeuten! TDD
--> erledigt
+-> Erledigt ✅
 
 102. Geburtsdatum passt nicht. Der GymNet-Import funktioniert korrekt. Die Geburtsdaten werden bei den participants richtig angezeigt. Aber in den UIs der Veranstaltung (z.B. event-participants -> Teilnehmer bearbeiten) steht als Geburtsdatum immer 01.01. drin. TDD
