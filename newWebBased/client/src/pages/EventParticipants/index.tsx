@@ -66,9 +66,13 @@ export default function EventParticipants() {
   const [genderFilter, setGenderFilter] = useState('');
 
   // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
+  // Also open the filter panel so the active filter is visible to the user.
   useEffect(() => {
     const prefill = searchParams.get('prefillSearch');
-    if (prefill) setSearchTerm(prefill);
+    if (prefill) {
+      setSearchTerm(prefill);
+      setShowFilters(true);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [clubFilter, setClubFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('');
@@ -269,7 +273,13 @@ export default function EventParticipants() {
       subtitle={t('eventParticipants.subtitle')}
       icon={Users}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={() => {
+        if (showFilters) {
+          // Closing the filter panel → reset all active filters
+          handleResetFilters();
+        }
+        setShowFilters(prev => !prev);
+      }}
       filterSection={
         <ParticipantFilters
           participants={allParticipants}

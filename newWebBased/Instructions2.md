@@ -655,4 +655,4 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 101. Gleiche Punktzahl muss gleiche Plazierung bedeuten! TDD
 -> erledigt
 
-102. Geburtsjahr passt nicht. Der Import funktioniert korrekt. Aber in den UIs der Veranstaltung steht als Geburtsdatum immer 01.01. drin. 
+102. Geburtsdatum passt nicht. Der GymNet-Import funktioniert korrekt. Die Geburtsdaten werden bei den participants richtig angezeigt. Aber in den UIs der Veranstaltung (z.B. event-participants -> Teilnehmer bearbeiten) steht als Geburtsdatum immer 01.01. drin. TDD
