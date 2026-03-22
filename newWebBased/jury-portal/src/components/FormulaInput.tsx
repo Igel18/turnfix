@@ -146,6 +146,7 @@ const FormulaInput: React.FC<FormulaInputProps> = ({
               onBlur={() => handleFieldBlur(symbol)}
               placeholder={getFieldPlaceholder()}
               disabled={disabled}
+              autoFocus={index === 0}
               className="w-full text-lg text-center p-2 border-2 rounded-lg focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>

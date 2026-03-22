@@ -326,6 +326,22 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
   const [resolvedFormula, setResolvedFormula] = React.useState<string>(selectedDevice?.var_formel || '');
   const [formulaLoading, setFormulaLoading] = React.useState(false);
 
+  // Focus the score input whenever the active participant changes
+  const simpleInputRef = React.useRef<HTMLInputElement>(null);
+  const builtInInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    // Small delay to allow React to finish rendering the updated UI
+    const timer = setTimeout(() => {
+      if (simpleInputRef.current) {
+        simpleInputRef.current.focus();
+      } else if (builtInInputRef.current) {
+        builtInInputRef.current.focus();
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [currentParticipantIndex]);
+
   React.useEffect(() => {
     let isActive = true;
 
@@ -426,6 +442,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
                 )
               ) : inputMode === 'builtInFormula' ? (
                 <BuiltInFormulaInput
+                  inputRef={builtInInputRef}
                   formula={resolvedFormula}
                   variable="x"
                   value={score}
@@ -465,6 +482,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
                   </label>
                   <div className="relative">
                     <input
+                      ref={simpleInputRef}
                       type="text"
                       inputMode="decimal"
                       value={score}

@@ -68,6 +68,9 @@ export interface BuiltInFormulaInputProps {
 
   /** Optional data attribute for E2E selectors */
   dataDiscipline?: number | string;
+
+  /** Ref forwarded to the inner <input> element */
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 /**
@@ -104,7 +107,8 @@ export const BuiltInFormulaInput: React.FC<BuiltInFormulaInputProps> = ({
   variant = 'capture',
   showFormulaDisplay = true,
   dataParticipant,
-  dataDiscipline
+  dataDiscipline,
+  inputRef
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -152,6 +156,7 @@ export const BuiltInFormulaInput: React.FC<BuiltInFormulaInputProps> = ({
           </label>
           <div className="relative">
             <input
+              ref={inputRef}
               type="text"
               inputMode="decimal"
               value={value}
@@ -206,6 +211,7 @@ export const BuiltInFormulaInput: React.FC<BuiltInFormulaInputProps> = ({
 
         {/* Input Field */}
         <input
+          ref={inputRef}
           type="text"
           inputMode="decimal"
           value={value}

@@ -650,6 +650,7 @@ TDD mit UI Tests
 
 99. [Improvement] Jury-Portal: 
 Beim Wechsel der Teilnehmer sollte der Focus direkt in das eingabefeld 
+-> Erledigt ✅ | Focus is set on the score input field on participant switch for all 3 input modes: simple (useRef+useEffect with 50ms timeout), builtInFormula (new inputRef prop on BuiltInFormulaInput wired via ref), linkedFormula (FormulaInput already re-keyed per participant so it remounts; added autoFocus={index === 0} to the first field). Files: shared/src/components/BuiltInFormulaInput.tsx, jury-portal/src/components/JuryPortal/components/ScoringView.tsx, jury-portal/src/components/FormulaInput.tsx
 
 100. Urkunden als PDF Drucken 
 Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar. 
@@ -675,3 +676,6 @@ auch nicht AW, AUsgangswert da das nur ein Teilausgang ist.
 
 P: 
 10 + AW - E = EW 
+
+106. [Bug] results UI 
+Wenn hier ein Filter von Wettkämpfen gesetzt wird, werden Geräte ohne Wertung ausgeblendet. Das sollte nicht sein.
