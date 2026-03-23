@@ -302,65 +302,63 @@ export function ParticipantStatusManagement() {
       showFilters={showFilters}
       onToggleFilters={() => setShowFilters(!showFilters)}
       filterSection={
-        showFilters ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('participantStatus.filters.squad')}
-                </label>
-                <select
-                  value={filterSquad}
-                  onChange={e => setFilterSquad(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-                  <option value="">{t('participantStatus.filters.allSquads')}</option>
-                  {uniqueSquads.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('participantStatus.filters.competition')}
-                </label>
-                <select
-                  value={filterCompetition}
-                  onChange={e => setFilterCompetition(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-                  <option value="">{t('participantStatus.filters.allCompetitions')}</option>
-                  {uniqueCompetitions.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('participantStatus.filters.status')}
-                </label>
-                <select
-                  value={filterStatus}
-                  onChange={e => setFilterStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-                  <option value="">{t('participantStatus.filters.allStatuses')}</option>
-                  {uniqueStatuses.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={() => { setFilterSquad(''); setFilterCompetition(''); setFilterStatus('') }}
-                  className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  {t('common.resetFilters')}
-                </button>
-              </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('participantStatus.filters.squad')}
+              </label>
+              <select
+                value={filterSquad}
+                onChange={e => setFilterSquad(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="">{t('participantStatus.filters.allSquads')}</option>
+                {uniqueSquads.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('participantStatus.filters.competition')}
+              </label>
+              <select
+                value={filterCompetition}
+                onChange={e => setFilterCompetition(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="">{t('participantStatus.filters.allCompetitions')}</option>
+                {uniqueCompetitions.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('participantStatus.filters.status')}
+              </label>
+              <select
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="">{t('participantStatus.filters.allStatuses')}</option>
+                {uniqueStatuses.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => { setFilterSquad(''); setFilterCompetition(''); setFilterStatus('') }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {t('common.resetFilters')}
+              </button>
             </div>
           </div>
-        ) : null
+        </div>
       }
       showViewToggle={false}
       showAddButton={false}
