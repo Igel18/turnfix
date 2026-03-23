@@ -15,6 +15,7 @@ const NAME_KEY_MAP: Record<string, string> = {
   'Time Planning':            'managementCenter.eventManagement.eventSetup.timePlanning.title',
   'Meldematrix':              'managementCenter.eventManagement.eventSetup.meldematrix.title',
   'Squad Status':             'managementCenter.eventManagement.competitionDay.squadStatus.title',
+  'Participant Status':       'managementCenter.eventManagement.competitionDay.participantStatus.title',
   'Competition Status':       'managementCenter.eventManagement.competitionDay.competitionStatus.title',
   'Live Scores':              'managementCenter.eventManagement.competitionDay.liveScores.title',
   'Individual Scoring':       'managementCenter.eventManagement.competitionDay.individualScoring.title',

@@ -743,16 +743,40 @@ d. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffn
 
 113. in der URL gibt es immer noch squadName 
 http://localhost:3001/event-participants?eventId=289&squadName=aaa
-
 Generell sollte gelten: Das ist ja ein Filter über die URL. Dies benötigen wir eigentlich ja nur bei der EventId. Wenn es anders möglich ist den Filter von von der Management UI in die einzelnen UIs zu übergeben wäre das denke ich besser. 
 Generell sollte beim "Alle Filter zurücksetzen" in einer der Event Spezifischen UIs nur noch der Event Filter aktiv sein! 
 -> Erledigt ✅ | ManagementCenter baut URLs jetzt nur noch mit `?eventId=...` (kein `competitionId` / `squadName` mehr). EventContext (localStorage) überträgt competition/squad/discipline zur Zielseite. `urlSquadName` aus ScoreCapture und Results entfernt, `_squadName`-Parameter aus `useResultsData` entfernt. 1368/1368 Tests grün.
 
 114. ManagementCenter.tsx refactoring 
 die Datei ist ziemlich groß und könnte ein refactoring vertragen? 
+-> Erledigt ✅
 
 115. Im alten c++ code konnte man für jeden Teilnehmer einen Status vergeben (nicht nur für die Riege). 
 Wie könnte das jetzt im neuen code aussehen? In der Management UI unter Wettkampftag ein neuer Bereich "Teilnehmer Status"? 
 Kann man beide Statuse in der DB separat handeln? 
+Dann könnte man ggf. bei der eingabe der Wertung den Status aktualisieren auf "Wertung erfasst" und das auch anzeigen (im Jury-Portal & score-Capture). Und auch editierbar machen, sodass wenn man keine wertung eingibt den Status manuell ändern kann (z.B. "keine Wertung verfügbar"). 
+Und dann den Riegenstatus aktualisieren auf "Fertig erfasst" wenn alle auf "Wertung erfasst" oder "keine Wertung verfügbar" stehen? 
+Zur Umsetzung: 
+- TDD, 
+- möglist wenig abhängikeiten im Code zu der DB, ggf. nur ein einer stelle
+- Dokumentation 
+-> Erledigt ✅
+Design-Entscheidungen:
+- DB trennt Teilnehmer-Status (tfx_wertungen.int_statusid) und Riegenstatus (tfx_riegen_x_disziplinen.int_statusid) bereits — kein Schema-Change nötig
+- Status-IDs werden zur Laufzeit per Name aus tfx_status gelesen (via findStatusByName + normalizeStatusName aus squadStatusUtils), nie hardcoded
+- Kein neuer Status in der DB — "Leistungen erfasst" (id=2) = "Wertung erfasst"; "Keine Wertung verfügbar" wird als neuer Status über die Status-Verwaltungs-UI angelegt
+- Alle DB-Zugriffe gebündelt in server/src/utils/participantStatusService.ts (Single Responsibility)
+- participantStatusService ist vollständig pure / testbar: DB-Adapter per Dependency Injection injizierbar
+- ~~Auto-Propagation nach Wertungserfassung~~ → ENTFERNT: tfx_wertungen.int_statusid ist 1× pro Teilnehmer × Wettkampf (nicht je Gerät), daher kann nach einem einzelnen Gerät nicht automatisch "Wertung erfasst" gesetzt werden.
+- Kein Automatismus für Teilnehmer-Status: Status wird ausschließlich manuell über die Teilnehmer-Status-Verwaltungsseite gesetzt.
+- Status wird NICHT in der Wertungserfassung (Score Capture / Jury-Portal) angezeigt oder bearbeitet.
+- onScoreSaved() bleibt im Service als utility, wird aber nicht mehr vom save-value Handler aufgerufen.
+Neue Dateien:
+- server/src/utils/participantStatusService.ts — Service (pure functions + DB adapter)
+- server/tests/unit/participantStatus.test.ts — TDD Unit Tests (kein DB-Zugriff)
+- server/src/routes/participant-status.ts — REST API (GET alle, PATCH manuell)
+- client/src/pages/ParticipantStatusManagement.tsx — Neue UI-Seite (erreichbar über ManagementCenter → Wettkampftag → Teilnehmer Status)
 
+
+------------------------------------------------------------
 -> Erledigt ✅

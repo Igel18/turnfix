@@ -24,6 +24,7 @@ import DisciplinesUnified from '@/pages/DisciplinesUnified'
 import DisciplineFieldsUnified from '@/pages/DisciplineFieldsUnified'
 import SquadManagement from '@/pages/SquadManagement'
 import { SquadStatusManagement } from '@/pages/SquadStatusManagement'
+import { ParticipantStatusManagement } from '@/pages/ParticipantStatusManagement'
 import CompetitionStatusManagement from '@/pages/CompetitionStatusManagement'
 import EventParticipants from '@/pages/EventParticipants'
 import CertificateLayouts from '@/pages/CertificateLayouts'
@@ -71,6 +72,7 @@ function App() {
             <Route path="/squads" element={<SquadManagement />} />
             <Route path="/time-planning" element={<TimePlanning />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />
+            <Route path="/participant-status" element={<ParticipantStatusManagement />} />
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/live-scores" element={<LiveScoresPage />} />
             <Route path="/event-participants" element={<EventParticipants />} />

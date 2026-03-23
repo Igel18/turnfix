@@ -109,6 +109,7 @@ export const eventSetupActions: ActionItem[] = [
 
 export const competitionDayActions: ActionItem[] = [
   { name: 'Squad Status', description: 'Manage status for squad-discipline combinations', href: '/squad-status', icon: ClipboardDocumentListIcon, color: 'bg-purple-500' },
+  { name: 'Participant Status', description: 'View and update individual participant status during competition', href: '/participant-status', icon: UserIcon, color: 'bg-pink-500' },
   { name: 'Competition Status', description: 'Monitor live competition progress', href: '/competition-status', icon: TrophyIcon, color: 'bg-green-500' },
   { name: 'Live Scores', description: 'Live score updates and recent results', href: '/live-scores', icon: ClipboardDocumentListIcon, color: 'bg-indigo-500' },
   { name: 'Individual Scoring', description: 'Enter competition results and scores for individual participants', href: '/score-capture', icon: ClipboardDocumentListIcon, color: 'bg-orange-500' },

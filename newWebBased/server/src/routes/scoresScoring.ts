@@ -12,6 +12,7 @@ import prisma from '../lib/prisma';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
 
+
 const router = Router();
 
 // Save/update score value (simple endpoint for score capture)
@@ -263,7 +264,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
       console.warn(`⚠️ No eventId found for competitionId ${actualCompetitionId}, skipping Socket.IO emission`);
       console.warn(`⚠️ Query result was:`, eventIdResult);
     }
-    
+
     res.json({
       success: true,
       message: 'Score saved successfully with synchronization',

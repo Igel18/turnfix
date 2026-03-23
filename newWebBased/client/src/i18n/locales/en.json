@@ -137,6 +137,10 @@
           "title": "Squad Status",
           "description": "Manage status for squad-discipline combinations"
         },
+        "participantStatus": {
+          "title": "Participant Status",
+          "description": "View and manage individual participant status during competition"
+        },
         "individualScoring": {
           "title": "Individual Scoring",
           "description": "Enter competition results and scores for individual participants"
@@ -2402,6 +2406,36 @@
     "step3": "The system automatically creates squad-discipline combinations based on the competitions of assigned participants",
     "note": "Note: Squad-discipline combinations are automatically generated when participants are assigned to squads.",
     "autoGenerateInfo": "Alternatively, you can use the 'Auto-generate Combinations' button to create all combinations for existing squads and disciplines."
+  },
+  "participantStatus": {
+    "title": "Participant Status Management",
+    "subtitle": "Manage status for {{count}} participant entries",
+    "selectEvent": "Select Event",
+    "selectEventMessage": "Please select an event",
+    "chooseEvent": "Choose an event...",
+    "noEventSelected": "No Event Selected",
+    "pleaseSelectEvent": "Please select an event from the dropdown above or from the event context.",
+    "clickToEdit": "Click to edit",
+    "showing": "{{shown}} of {{total}} entries",
+    "filters": {
+      "squad": "Squad",
+      "allSquads": "All Squads",
+      "competition": "Competition",
+      "allCompetitions": "All Competitions",
+      "status": "Status",
+      "allStatuses": "All Statuses"
+    },
+    "table": {
+      "name": "Name",
+      "squad": "Squad",
+      "competition": "Competition",
+      "status": "Status"
+    },
+    "noDataTitle": "No participant status entries found",
+    "noDataForEvent": "No score entries with status available for the selected event.",
+    "messages": {
+      "updateError": "Failed to update status"
+    }
   },
   "competitionStatus": {
     "title": "Competition Status Management",

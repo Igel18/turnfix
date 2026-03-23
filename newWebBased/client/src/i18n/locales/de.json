@@ -137,6 +137,10 @@
           "title": "Riegen-Status",
           "description": "Status für Riegen-Disziplin-Kombinationen verwalten"
         },
+        "participantStatus": {
+          "title": "Teilnehmer-Status",
+          "description": "Status für einzelne Teilnehmer verwalten und nachverfolgen"
+        },
         "individualScoring": {
           "title": "Einzel-Wertung",
           "description": "Wettkampfergebnisse und Noten für Einzelteilnehmer eingeben"
@@ -2436,6 +2440,36 @@
     "step3": "Das System erstellt automatisch die Riege-Disziplin-Kombinationen basierend auf den Wettkämpfen der zugewiesenen Teilnehmer",
     "note": "Hinweis: Die Riege-Disziplin-Kombinationen werden automatisch generiert, wenn Teilnehmer Riegen zugewiesen werden.",
     "autoGenerateInfo": "Alternativ können Sie den Button 'Kombinationen automatisch generieren' verwenden, um alle Kombinationen für existierende Riegen und Disziplinen zu erstellen."
+  },
+  "participantStatus": {
+    "title": "Teilnehmer-Status-Verwaltung",
+    "subtitle": "Status für {{count}} Teilnehmer-Einträge verwalten",
+    "selectEvent": "Veranstaltung auswählen",
+    "selectEventMessage": "Bitte wählen Sie eine Veranstaltung aus",
+    "chooseEvent": "Eine Veranstaltung auswählen...",
+    "noEventSelected": "Keine Veranstaltung ausgewählt",
+    "pleaseSelectEvent": "Bitte wählen Sie eine Veranstaltung aus dem Dropdown-Menü oder dem Veranstaltungskontext aus.",
+    "clickToEdit": "Klicken zum Bearbeiten",
+    "showing": "{{shown}} von {{total}} Einträgen",
+    "filters": {
+      "squad": "Riege",
+      "allSquads": "Alle Riegen",
+      "competition": "Wettkampf",
+      "allCompetitions": "Alle Wettkämpfe",
+      "status": "Status",
+      "allStatuses": "Alle Status"
+    },
+    "table": {
+      "name": "Name",
+      "squad": "Riege",
+      "competition": "Wettkampf",
+      "status": "Status"
+    },
+    "noDataTitle": "Keine Teilnehmer-Status-Einträge gefunden",
+    "noDataForEvent": "Für die ausgewählte Veranstaltung sind keine Wertungen mit Status verfügbar.",
+    "messages": {
+      "updateError": "Fehler beim Aktualisieren des Status"
+    }
   },
   "competitionStatus": {
     "title": "Wettkampfstatus-Verwaltung",
