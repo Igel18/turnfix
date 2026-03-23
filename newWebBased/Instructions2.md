@@ -705,18 +705,22 @@ nach dem eingeben einer Wertung sollte das aktualisiert werden.
 110. Analyzer (Konzept)
 Für die Veranstaltung muss ein Analyzer entstehen der auf verschiedene misskonfigurationen hinweisen soll: 
 a. Wo wäre hier der richtige Platz? Prominent in der Management UI oder hinter einer Kachel versteckt? 
-b. Es müssen verschiedene Punkte geprüft werden: 
+b. Wenn aktualisiert sich der Analyzer? 
+c. Es müssen verschiedene Punkte geprüft werden: 
 	- Sind bei jedem Teilnehmer die Startnummern vergeben 
 	- Sind jedem Wettkampf min. 1 Disziplin zugeordnet 
 	- Ist jeder Disziplin die max. Punktzahl zugeordnet 
 	- ist jedem Teilnehmer 1 Wettkampf zugeordenet 
 	- Ist der zugeordnete Wettkampf in der richtigen Altersklasse / geschlecht? 
 	- Ist jedem Teilnehmer eine Riege zugeordnet 
-	- Hat jeder Teilnehmer an jedem Gerät eine Wertung (alternativ markiert als "nimmt nicht Teil"). 
-c. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffnen um das Problem zu beheben. 
+	- Hat jeder Teilnehmer an jedem Gerät eine Wertung (alternativ markiert als "nimmt nicht Teil"), bzw. Status gesezt Wertung erfasst.. 
+	- Riegenstatus-Verwaltung: ist die Kombination generiert? warum muss man das separat anstoßen? kann das nicht automtisch passieren? 
+	- Ist der Status richtig gesetzt (geht das überhaupt), z.B. Wertung erfasst bei dem Teilnehmer, Gerät fertig bei der Riege
+	- Gibt es mehrere gleich plazierte (das ist hilfreich für die Siegerehrung insbesondere bei den Plätzen 1-3, da hier oft Gold, Silber, Broze vergeben wird. Dann bräuchte man ja 2x die gleiche Medallie/Pokal). 
+d. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffnen um das Problem zu beheben. 
 
-111. Was passiert wenn einem Teilnehmer mehr wie 1 Wettkampf zugeordnet ist? Lässt sich das aktuell handeln? 
--> Erledigt ✅ | Multi-Wettkampf-Teilnehmer vollständig unterstützt:
+111. [Idee] Was passiert wenn einem Teilnehmer mehr wie 1 Wettkampf zugeordnet ist? Lässt sich das aktuell handeln? 
+ Multi-Wettkampf-Teilnehmer vollständig unterstützt:
 
 **Architektur**:
 - DB: `tfx_wertungen` enthält einen Datensatz pro Teilnehmer × Wettkampf (kein UNIQUE-Constraint → mehrere Einträge möglich).
@@ -747,5 +751,8 @@ Generell sollte beim "Alle Filter zurücksetzen" in einer der Event Spezifischen
 114. ManagementCenter.tsx refactoring 
 die Datei ist ziemlich groß und könnte ein refactoring vertragen? 
 
+115. Im alten c++ code konnte man für jeden Teilnehmer einen Status vergeben (nicht nur für die Riege). 
+Wie könnte das jetzt im neuen code aussehen? In der Management UI unter Wettkampftag ein neuer Bereich "Teilnehmer Status"? 
+Kann man beide Statuse in der DB separat handeln? 
 
 -> Erledigt ✅
