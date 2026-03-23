@@ -49,7 +49,6 @@ export default function ScoreCapture() {
   // URL parameters as fallback (for direct navigation)
   const urlEventId = searchParams.get('eventId');
   const urlCompetitionId = searchParams.get('competitionId');
-  const urlSquadName = searchParams.get('squadName');
 
   // Use context values or URL parameters
   const eventId = selectedEvent?.int_eventid.toString() || urlEventId;
@@ -59,7 +58,7 @@ export default function ScoreCapture() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
-  const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || urlSquadName || '');
+  const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || '');
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
     contextDiscipline ? (contextDiscipline.int_disziplinid || contextDiscipline.var_name) : ''
   );

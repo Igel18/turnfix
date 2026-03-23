@@ -31,7 +31,6 @@ interface UseResultsDataReturn {
 
 export function useResultsData(
   eventId: string | null,
-  _squadName: string | null,   // kept for API compatibility; NOT forwarded to scores API (Item 90)
   selectedCompetition: string
 ): UseResultsDataReturn {
   

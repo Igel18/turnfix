@@ -742,6 +742,10 @@ http://localhost:3001/event-participants?eventId=289&squadName=aaa
 
 Generell sollte gelten: Das ist ja ein Filter über die URL. Dies benötigen wir eigentlich ja nur bei der EventId. Wenn es anders möglich ist den Filter von von der Management UI in die einzelnen UIs zu übergeben wäre das denke ich besser. 
 Generell sollte beim "Alle Filter zurücksetzen" in einer der Event Spezifischen UIs nur noch der Event Filter aktiv sein! 
+-> Erledigt ✅ | ManagementCenter baut URLs jetzt nur noch mit `?eventId=...` (kein `competitionId` / `squadName` mehr). EventContext (localStorage) überträgt competition/squad/discipline zur Zielseite. `urlSquadName` aus ScoreCapture und Results entfernt, `_squadName`-Parameter aus `useResultsData` entfernt. 1368/1368 Tests grün.
+
+114. ManagementCenter.tsx refactoring 
+die Datei ist ziemlich groß und könnte ein refactoring vertragen? 
 
 
 -> Erledigt ✅

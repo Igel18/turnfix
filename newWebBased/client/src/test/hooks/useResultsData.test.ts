@@ -105,7 +105,7 @@ describe('useResultsData', () => {
       throw new Error(`Unhandled apiGet URL in test: ${url}`)
     })
 
-    const { result } = renderHook(() => useResultsData('1', null, ''))
+    const { result } = renderHook(() => useResultsData('1', ''))
 
     await act(async () => {
       await result.current.fetchEventRanking([
@@ -243,7 +243,7 @@ describe('useResultsData', () => {
       throw new Error(`Unhandled apiGet URL in test: ${url}`)
     })
 
-    const { result } = renderHook(() => useResultsData('1', null, ''))
+    const { result } = renderHook(() => useResultsData('1', ''))
 
     await act(async () => {
       await result.current.fetchEventRanking([
@@ -333,7 +333,7 @@ describe('useResultsData', () => {
       throw new Error(`Unhandled apiGet URL in test: ${url}`)
     })
 
-    const { result } = renderHook(() => useResultsData('1', null, ''))
+    const { result } = renderHook(() => useResultsData('1', ''))
 
     await act(async () => {
       await result.current.fetchEventRanking([
@@ -407,7 +407,7 @@ describe('useResultsData', () => {
       throw new Error(`Unhandled apiGet URL in test: ${url}`)
     })
 
-    const { result } = renderHook(() => useResultsData('1', null, '1'))
+    const { result } = renderHook(() => useResultsData('1', '1'))
 
     await act(async () => {
       await result.current.fetchEventRanking([
@@ -485,7 +485,7 @@ describe('useResultsData', () => {
       throw new Error(`Unhandled apiGet URL in test: ${url}`)
     })
 
-    const { result } = renderHook(() => useResultsData('1', null, '1'))
+    const { result } = renderHook(() => useResultsData('1', '1'))
 
     await act(async () => {
       await result.current.fetchEventRanking([
@@ -506,13 +506,11 @@ describe('useResultsData', () => {
 
   it('squadName in URL does NOT filter scores: all participants show their scores regardless of squad', async () => {
     /**
-     * Bug: when ?squadName=X is in the URL, useResultsData passes squadName to
-     * the scores API → server filters WHERE var_riege = X → participants in other
-     * squads lose their scores.  The Results page must always fetch ALL event
-     * scores, ignoring the squad context.
+     * Fix: squadName URL parameter has been removed from useResultsData entirely.
+     * The hook no longer accepts or forwards squadName. The Results page must
+     * always fetch ALL event scores, ignoring any squad context.
      *
-     * Test proof: pass squadName='wGlb' to useResultsData; the mock captures
-     * every URL used to call apiGet.  Assert that NO scores call contains
+     * This test verifies structurally that NO scores call ever contains
      * 'squadName=' in its query string.
      */
     const { apiGet } = await import('@/utils/api')
@@ -569,7 +567,7 @@ describe('useResultsData', () => {
     })
 
     // Pass squadName='wGlb' (as would happen when navigating from squad page)
-    const { result } = renderHook(() => useResultsData('1', 'wGlb', ''))
+    const { result } = renderHook(() => useResultsData('1', ''))
 
     await act(async () => {
       await result.current.fetchEventRanking([{ id: 1, name: 'Wettkampf 1', number: '0001' }])
@@ -655,7 +653,7 @@ describe('useResultsData', () => {
     })
 
     // selectedCompetition = '1' (active filter); _squadName is the 2nd param (unused)
-    const { result } = renderHook(() => useResultsData('1', null, '1'))
+    const { result } = renderHook(() => useResultsData('1', '1'))
 
     await act(async () => {
       await result.current.fetchEventRanking([{ id: 1, name: 'Wettkampf 1', number: '0001' }])
@@ -719,7 +717,7 @@ describe('useResultsData', () => {
     })
 
     // No competition filter (selectedCompetition = null)
-    const { result } = renderHook(() => useResultsData('1', null, ''))
+    const { result } = renderHook(() => useResultsData('1', ''))
 
     await act(async () => {
       await result.current.fetchEventRanking([{ id: 1, name: 'Wettkampf 1', number: '0001' }])

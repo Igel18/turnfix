@@ -313,9 +313,7 @@ export function ManagementCenter() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { 
-    selectedEvent, 
-    selectedCompetition, 
-    selectedSquad
+    selectedEvent
   } = useEvent()
 
   // UI state - load from localStorage
@@ -705,7 +703,7 @@ export function ManagementCenter() {
                         return (
                           <Link
                             key={action.name}
-                            to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
+                            to={`${action.href}?eventId=${selectedEvent.int_eventid}`}
                             className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
                           >
                             <div className="flex flex-col items-center text-center space-y-3">
@@ -768,7 +766,7 @@ export function ManagementCenter() {
                         const Icon = action.icon
                         const linkUrl = action.external 
                           ? action.href 
-                          : `${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`
+                          : `${action.href}?eventId=${selectedEvent.int_eventid}`
                         
                         if (action.external) {
                           return (
@@ -869,7 +867,7 @@ export function ManagementCenter() {
                         return (
                           <Link
                             key={action.name}
-                            to={`${action.href}?eventId=${selectedEvent.int_eventid}${selectedCompetition ? `&competitionId=${selectedCompetition.id}` : ''}${selectedSquad ? `&squadName=${encodeURIComponent(selectedSquad.squad_name)}` : ''}`}
+                            to={`${action.href}?eventId=${selectedEvent.int_eventid}`}
                             className="group bg-gray-50 p-4 rounded-lg border hover:shadow-md hover:bg-white transition-all"
                           >
                             <div className="flex flex-col items-center text-center space-y-3">

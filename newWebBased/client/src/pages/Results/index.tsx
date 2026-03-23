@@ -47,11 +47,9 @@ const Results = () => {
   
   // URL parameters
   const urlEventId = searchParams.get('eventId')
-  const urlSquadName = searchParams.get('squadName')
   
   // Event ID from context or URL
   const eventId = selectedEvent?.int_eventid.toString() || urlEventId
-  const squadName = urlSquadName
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('')
@@ -77,7 +75,7 @@ const Results = () => {
     isLoading,
     fetchCompetitions,
     fetchEventRanking
-  } = useResultsData(eventId, squadName, selectedCompetition)
+  } = useResultsData(eventId, selectedCompetition)
 
   // Helpers Hook - Formatting utilities
   const {
