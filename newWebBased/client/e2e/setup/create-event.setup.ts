@@ -238,7 +238,7 @@ test.describe.serial('Setup: Create Event A', () => {
   // ─── Step 5: Assign Participants ───────────────────────────────
 
   test('12. Add participants to event and assign to competitions', async ({ request }) => {
-    // Add women to event (auto-assigns to first competition)
+    // Add women to event (auto-assigns to first competition = comp1 women's)
     for (const pid of state.womenPids) {
       const r = await apiPost(request, '/event-participants/add', {
         eventId: state.eventId,
@@ -246,33 +246,18 @@ test.describe.serial('Setup: Create Event A', () => {
       });
       expect(r.status).toBe(201);
     }
-    console.log(`✓ Added ${state.womenPids.length} women to event`);
+    console.log(`✓ Added ${state.womenPids.length} women to event (comp1)`);
 
-    // Add men to event (auto-assigns to first competition)
+    // Add men directly to comp2 (men's competition) by specifying competitionId
     for (const pid of state.menPids) {
       const r = await apiPost(request, '/event-participants/add', {
         eventId: state.eventId,
-        participantId: pid,
-      });
-      expect(r.status).toBe(201);
-    }
-    console.log(`✓ Added ${state.menPids.length} men to event`);
-
-    // Assign men to comp2 (men's competition)
-    for (const pid of state.menPids) {
-      const r = await apiPost(request, '/event-participants/assign', {
         participantId: pid,
         competitionId: state.comp2Id,
       });
       expect(r.status).toBe(201);
     }
-    console.log(`✓ Assigned men to comp2`);
-
-    // Unassign men from comp1 (they were auto-assigned there)
-    for (const pid of state.menPids) {
-      await (await request.delete(`${API_BASE}/event-participants/unassign?participantId=${pid}&competitionId=${state.comp1Id}`));
-    }
-    console.log(`✓ Unassigned men from comp1`);
+    console.log(`✓ Added ${state.menPids.length} men to event (comp2)`);
   });
 
   // ─── Step 6: Squads ────────────────────────────────────────────
