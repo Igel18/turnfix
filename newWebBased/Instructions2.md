@@ -683,7 +683,26 @@ Wenn hier ein Filter von Wettkämpfen gesetzt wird, werden Geräte ohne Wertung 
 
 107. [Bug] results view - Live Updates 
 nach dem eingeben einer Wertung sollte das aktualisiert werden. 
+-> Erledigt ✅ | Root cause: Results page socket effect was missing `socket.emit('join-competition', eventId)`. The server emits `score-updated` only to room `competition-{eventId}`, so without joining the room the client never received events. Fix: added `socket.emit('join-competition', eventId)` on effect start and `socket.emit('leave-competition', eventId)` in cleanup, matching the working pattern from Medallienspiegel.tsx. File: `client/src/pages/Results/index.tsx`.
 
 108. [Improvement] automatisch Status Gedruckt setzen beim Export von PDF / Urkunden 
 
-109. [Bug?] Bei gleicher Platzierung wegen gleichem Endwert gibt es ja jetzt den gleichen Platz. Der darauffolgende platz wir dann frei gelassen. Ist das so implementiert? TDD fall es behoben werden muss. 
+109. [Bug?] Bei gleicher Platzierung wegen gleichem Endwert gibt es ja jetzt den gleichen Platz. Der darauffolgende platz wir dann frei gelassen. Ist das so implementiert? TDD fall es behoben werden muss.
+-> Erledigt ✅ | Bereits korrekt implementiert als Teil von #101. `assignRanks()` in `client/src/utils/rankingUtils.ts` verwendet 1-2-2-4 (olympisches) Ranking: gleiche Punktzahl → gleicher Platz, nächster Platz wird übersprungen. Beispiel: [100, 95, 95, 90] → [1, 2, 2, 4]. 8 Unit-Tests in `rankingUtils.test.ts` decken alle Fälle ab (2-Wege, 3-Wege, Mitte, alle gleich). 
+
+110. Analyzer (Konzept)
+Für die Veranstaltung muss ein Analyzer entstehen der auf verschiedene misskonfigurationen hinweisen soll: 
+a. Wo wäre hier der richtige Platz? Prominent in der Management UI oder hinter einer Kachel versteckt? 
+b. Es müssen verschiedene Punkte geprüft werden: 
+	- Sind bei jedem Teilnehmer die Startnummern vergeben 
+	- Sind jedem Wettkampf min. 1 Disziplin zugeordnet 
+	- Ist jeder Disziplin die max. Punktzahl zugeordnet 
+	- ist jedem Teilnehmer 1 Wettkampf zugeordenet 
+	- Ist der zugeordnete Wettkampf in der richtigen Altersklasse / geschlecht? 
+	- Ist jedem Teilnehmer eine Riege zugeordnet 
+	- Hat jeder Teilnehmer an jedem Gerät eine Wertung (alternativ markiert als "nimmt nicht Teil"). 
+c. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffnen um das Problem zu beheben. 
+
+111. Was passiert wenn einem Teilnehmer mehr wie 1 Wettkampf zugeordnet ist? Lässt sich das aktuell handeln? 
+
+-> Erledigt ✅

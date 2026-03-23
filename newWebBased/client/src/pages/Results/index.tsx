@@ -129,6 +129,7 @@ const Results = () => {
     if (!eventId) return
 
     const socket = getSocket()
+    socket.emit('join-competition', eventId)
     
     const handleScoreUpdate = () => {
       console.log('Score updated, refreshing results...')
@@ -139,6 +140,7 @@ const Results = () => {
     socket.on('competition-updated', handleScoreUpdate)
 
     return () => {
+      socket.emit('leave-competition', eventId)
       socket.off('score-updated', handleScoreUpdate)
       socket.off('competition-updated', handleScoreUpdate)
     }
