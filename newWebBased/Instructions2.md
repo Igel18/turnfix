@@ -706,5 +706,31 @@ b. Es müssen verschiedene Punkte geprüft werden:
 c. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffnen um das Problem zu beheben. 
 
 111. Was passiert wenn einem Teilnehmer mehr wie 1 Wettkampf zugeordnet ist? Lässt sich das aktuell handeln? 
+-> Erledigt ✅ | Multi-Wettkampf-Teilnehmer vollständig unterstützt:
+
+**Architektur**:
+- DB: `tfx_wertungen` enthält einen Datensatz pro Teilnehmer × Wettkampf (kein UNIQUE-Constraint → mehrere Einträge möglich).
+- API `GET /event-participants`: `DISTINCT ON (int_teilnehmerid)` liefert genau einen Datensatz pro Teilnehmer; eine Second-Query befüllt `assignedCompetitions: number[]` mit ALLEN Wettkampf-IDs dieses Teilnehmers.
+- `update-details` Endpoint: Verwaltet Hinzufügen / Entfernen von Wettkampf-Zuordnungen über das Edit-Formular.
+
+**event-participants Seite**:
+- Wettkampf-Filter-Dropdown: Zeigt nur Teilnehmer des gewählten Wettkampfs (Client-seitiger Filter auf `assignedCompetitions`).
+- "Wettkämpfe"-Spalte im Table: Zeigt jetzt die echten Wettkampf-Namen als Pills/Badges (statt nur "2 Wettkämpfe").
+- Filter zurücksetzen leert auch den Wettkampf-Filter.
+
+**Results Seite**:
+- `flatMap` über `participant.assignedCompetitions` erstellt pro Wettkampf-Zuordnung einen Ranking-Eintrag → Teilnehmer erscheint in JEDER seiner Wettkampf-Gruppen.
+- Scores werden über `participantId:competitionId`-Key referenziert → keine Score-Vermischung zwischen Wettkämpfen möglich.
+
+**Tests**: 21 Unit-Tests in `client/src/test/pages/multiCompetitionParticipant.test.ts`, 9 E2E-Tests in `client/e2e/tests/multi-competition-participant.spec.ts`.
+
+112. event-participants Filter muss im Wettkampf erweitert werden.
+-> Erledigt ✅ | Wettkampf-Filter hinzugefügt (siehe #111). Dropdown erscheint automatisch sobald eine Veranstaltung ≥ 2 Wettkämpfe hat.
+113. in der URL gibt es immer noch squadName 
+http://localhost:3001/event-participants?eventId=289&squadName=aaa
+
+Generell sollte gelten: Das ist ja ein Filter über die URL. Dies benötigen wir eigentlich ja nur bei der EventId. Wenn es anders möglich ist den Filter von von der Management UI in die einzelnen UIs zu übergeben wäre das denke ich besser. 
+Generell sollte beim "Alle Filter zurücksetzen" in einer der Event Spezifischen UIs nur noch der Event Filter aktiv sein! 
+
 
 -> Erledigt ✅

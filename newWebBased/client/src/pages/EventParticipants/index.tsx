@@ -64,6 +64,7 @@ export default function EventParticipants() {
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
+  const [competitionFilter, setCompetitionFilter] = useState('');
 
   // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
   // Also open the filter panel so the active filter is visible to the user.
@@ -87,7 +88,7 @@ export default function EventParticipants() {
   // Pagination Hook
   const pagination = usePagination({
     itemsPerPage: 50,
-    resetDependencies: [searchTerm, genderFilter, clubFilter, ageFilter],
+    resetDependencies: [searchTerm, genderFilter, clubFilter, ageFilter, competitionFilter],
   });
 
   // Sorting Hook
@@ -125,8 +126,14 @@ export default function EventParticipants() {
       filtered = filtered.filter((p) => p.age >= min && (max ? p.age <= max : true));
     }
 
+    // Competition filter: show only participants assigned to this competition
+    if (competitionFilter) {
+      const compId = parseInt(competitionFilter);
+      filtered = filtered.filter((p) => p.assignedCompetitions.includes(compId));
+    }
+
     return filtered;
-  }, [allParticipants, searchTerm, genderFilter, clubFilter, ageFilter]);
+  }, [allParticipants, searchTerm, genderFilter, clubFilter, ageFilter, competitionFilter]);
 
   // Sort and paginate
   const sortedParticipants = sortData(filteredParticipants);
@@ -149,6 +156,7 @@ export default function EventParticipants() {
     setGenderFilter('');
     setClubFilter('');
     setAgeFilter('');
+    setCompetitionFilter('');
   };
 
   const handleEditParticipant = (participant: Participant) => {
@@ -283,14 +291,17 @@ export default function EventParticipants() {
       filterSection={
         <ParticipantFilters
           participants={allParticipants}
+          competitions={competitions}
           searchTerm={searchTerm}
           genderFilter={genderFilter}
           clubFilter={clubFilter}
           ageFilter={ageFilter}
+          competitionFilter={competitionFilter}
           onSearchChange={setSearchTerm}
           onGenderChange={setGenderFilter}
           onClubChange={setClubFilter}
           onAgeChange={setAgeFilter}
+          onCompetitionChange={setCompetitionFilter}
           onReset={handleResetFilters}
         />
       }
@@ -350,6 +361,7 @@ export default function EventParticipants() {
                   ) : (
                     <ParticipantTable
                       participants={paginatedParticipants}
+                      competitions={competitions}
                       sortKey={sortKey || 'lastname'}
                       sortDirection={sortDirection}
                       onSort={handleSort}

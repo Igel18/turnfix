@@ -5,31 +5,37 @@
 
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Participant } from '../EventParticipants.types';
+import type { Participant, Competition } from '../EventParticipants.types';
 
 interface ParticipantFiltersProps {
   participants: Participant[];
+  competitions: Competition[];
   searchTerm: string;
   genderFilter: string;
   clubFilter: string;
   ageFilter: string;
+  competitionFilter: string;
   onSearchChange: (value: string) => void;
   onGenderChange: (value: string) => void;
   onClubChange: (value: string) => void;
   onAgeChange: (value: string) => void;
+  onCompetitionChange: (value: string) => void;
   onReset: () => void;
 }
 
 export const ParticipantFilters: React.FC<ParticipantFiltersProps> = ({
   participants,
+  competitions,
   searchTerm,
   genderFilter,
   clubFilter,
   ageFilter,
+  competitionFilter,
   onSearchChange,
   onGenderChange,
   onClubChange,
   onAgeChange,
+  onCompetitionChange,
   onReset,
 }) => {
   const { t } = useTranslation();
@@ -44,7 +50,7 @@ export const ParticipantFilters: React.FC<ParticipantFiltersProps> = ({
   }, [participants]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
       {/* Search */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -113,6 +119,27 @@ export const ParticipantFilters: React.FC<ParticipantFiltersProps> = ({
           <option value="17+">{t('eventParticipants.filters.ageGroups.17+')}</option>
         </select>
       </div>
+
+      {/* Competition Filter */}
+      {competitions.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('eventParticipants.filters.competition')}
+          </label>
+          <select
+            value={competitionFilter}
+            onChange={(e) => onCompetitionChange(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">{t('eventParticipants.filters.allCompetitions')}</option>
+            {competitions.map((comp) => (
+              <option key={comp.id} value={comp.id.toString()}>
+                {comp.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Reset Button */}
       <div className="flex items-end">

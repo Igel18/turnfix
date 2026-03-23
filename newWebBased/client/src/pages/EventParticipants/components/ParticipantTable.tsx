@@ -10,10 +10,11 @@ import { SortableTableHeader } from '@/components/SortableTableHeader';
 import { GenderBadge } from '@/components/GenderBadge';
 import { UnifiedActionButtons } from '@/components/templates/EventManagementTemplate';
 import { getUnifiedParticipantHeaderLabels } from '@/utils/headerLabels';
-import type { Participant } from '../EventParticipants.types';
+import type { Participant, Competition } from '../EventParticipants.types';
 
 interface ParticipantTableProps {
   participants: Participant[];
+  competitions: Competition[];
   sortKey: string;
   sortDirection: 'asc' | 'desc';
   onSort: (key: string) => void;
@@ -24,6 +25,7 @@ interface ParticipantTableProps {
 
 export const ParticipantTable: React.FC<ParticipantTableProps> = ({
   participants,
+  competitions,
   sortKey,
   sortDirection,
   onSort,
@@ -158,13 +160,22 @@ export const ParticipantTable: React.FC<ParticipantTableProps> = ({
               </td>
 
               {/* Competitions */}
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {participant.assignedCompetitions &&
-                participant.assignedCompetitions.length > 0 ? (
-                  <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded">
-                    {participant.assignedCompetitions.length}{' '}
-                    {t('eventParticipants.table.competitionsCount')}
-                  </span>
+              <td className="px-6 py-4 text-sm text-gray-500">
+                {participant.assignedCompetitions && participant.assignedCompetitions.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {participant.assignedCompetitions.map((compId) => {
+                      const comp = competitions.find((c) => c.id === compId);
+                      return (
+                        <span
+                          key={compId}
+                          className="inline-block px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full"
+                          title={comp?.name}
+                        >
+                          {comp?.name ?? `#${compId}`}
+                        </span>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <span className="text-gray-400">-</span>
                 )}

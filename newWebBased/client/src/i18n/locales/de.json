@@ -2820,6 +2820,8 @@
       "gender": "Geschlecht",
       "club": "Verein",
       "ageGroup": "Altersgruppe",
+      "competition": "Wettkampf",
+      "allCompetitions": "Alle Wettkämpfe",
       "all": "Alle",
       "ageGroups": {
         "6-8": "6-8 Jahre",

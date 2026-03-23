@@ -2783,6 +2783,8 @@
       "gender": "Gender",
       "club": "Club",
       "ageGroup": "Age Group",
+      "competition": "Competition",
+      "allCompetitions": "All Competitions",
       "all": "All",
       "ageGroups": {
         "6-8": "6-8 years",
