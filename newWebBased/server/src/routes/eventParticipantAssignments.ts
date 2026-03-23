@@ -393,13 +393,6 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
 
     // Handle competition assignments if provided
     if (assignedCompetitions !== undefined && Array.isArray(assignedCompetitions)) {
-      // Enforce 1:1 rule: participant can only be in ONE competition per event
-      if (assignedCompetitions.length > 1) {
-        return res.status(400).json({
-          message: 'A participant can only be assigned to one competition per event.'
-        });
-      }
-
       // Get all competitions for this event
       const eventCompetitions = await prisma.tfx_wettkaempfe.findMany({
         where: { int_veranstaltungenid: eventId }

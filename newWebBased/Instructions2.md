@@ -718,6 +718,7 @@ c. Es müssen verschiedene Punkte geprüft werden:
 	- Ist der Status richtig gesetzt (geht das überhaupt), z.B. Wertung erfasst bei dem Teilnehmer, Gerät fertig bei der Riege
 	- Gibt es mehrere gleich plazierte (das ist hilfreich für die Siegerehrung insbesondere bei den Plätzen 1-3, da hier oft Gold, Silber, Broze vergeben wird. Dann bräuchte man ja 2x die gleiche Medallie/Pokal). 
 d. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffnen um das Problem zu beheben. 
+-> Erledigt ✅ 
 
 111. [Idee] Was passiert wenn einem Teilnehmer mehr wie 1 Wettkampf zugeordnet ist? Lässt sich das aktuell handeln? 
  Multi-Wettkampf-Teilnehmer vollständig unterstützt:
@@ -784,7 +785,7 @@ Beim Gerätturnen (national und international) ist es üblich, nach Anzahl der G
     Bei Gleichstand Gold → mehr Silber entscheidet.
     Bei weiterem Gleichstand → mehr Bronze.
     Bleibt Gleichstand → gleiche Platzierung (z. B. geteilte Platzierung).
-
+-> Erledigt ✅
 
 ------------------------------------------------------------
 -> Erledigt ✅

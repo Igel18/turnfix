@@ -24,7 +24,7 @@ import request from 'supertest'
 // Mock prisma lib before any import that transitively loads it
 // ============================================================================
 
-const mockQueryRawUnsafe = jest.fn()
+const mockQueryRawUnsafe = jest.fn<() => Promise<any[]>>()
 
 jest.mock('../../src/lib/prisma', () => ({
   __esModule: true,
@@ -66,7 +66,7 @@ function mockSequential(...results: any[][]) {
 // ============================================================================
 
 describe('checkMissingStartNumbers', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when count = 0', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }])
@@ -109,7 +109,7 @@ describe('checkMissingStartNumbers', () => {
 // ============================================================================
 
 describe('checkCompetitionsWithoutDisciplines', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when all competitions have disciplines', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([])
@@ -135,7 +135,7 @@ describe('checkCompetitionsWithoutDisciplines', () => {
 // ============================================================================
 
 describe('checkDisciplinesWithoutMaxScore', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when all disciplines have max score', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([])
@@ -160,7 +160,7 @@ describe('checkDisciplinesWithoutMaxScore', () => {
 // ============================================================================
 
 describe('checkGenderAgeMismatch', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when no mismatches', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }])
@@ -190,7 +190,7 @@ describe('checkGenderAgeMismatch', () => {
 // ============================================================================
 
 describe('checkParticipantsWithoutSquad', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when all participants have a squad', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }])
@@ -213,7 +213,7 @@ describe('checkParticipantsWithoutSquad', () => {
 // ============================================================================
 
 describe('checkMissingScoreDetails', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when all scores are captured', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }])
@@ -236,7 +236,7 @@ describe('checkMissingScoreDetails', () => {
 // ============================================================================
 
 describe('checkSquadCombination', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when no squads defined (nothing to generate)', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([{ squad_count: 0 }])
@@ -271,7 +271,7 @@ describe('checkSquadCombination', () => {
 // ============================================================================
 
 describe('checkDuplicateTopPlacements', () => {
-  beforeEach(() => mockQueryRawUnsafe.mockReset())
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
 
   it('returns ok when no tied top-3 placements', async () => {
     mockQueryRawUnsafe.mockResolvedValueOnce([])
@@ -313,8 +313,9 @@ describe('GET /event/:eventId (HTTP layer)', () => {
   })
 
   it('returns response with checks array and summary object', async () => {
-    // 8 checks × 1-2 queries each – just return empty/zero for all
-    mockQueryRawUnsafe.mockResolvedValue([{ c: 0, squad_count: 0 }])
+    // 8 checks × 1-2 queries each – return empty array for all
+    // (arrays use .length for count; c-based checks use [0]?.c ?? 0 = 0)
+    mockQueryRawUnsafe.mockResolvedValue([])
 
     const res = await request(app).get('/analyzer/event/1')
     expect(res.status).toBe(200)
@@ -326,8 +327,8 @@ describe('GET /event/:eventId (HTTP layer)', () => {
   })
 
   it('summary correctly sums ok/warning/error/info from checks', async () => {
-    // Return zero counts → all 8 checks should be ok
-    mockQueryRawUnsafe.mockResolvedValue([{ c: 0, squad_count: 0 }])
+    // Return empty arrays → all 8 checks should be ok
+    mockQueryRawUnsafe.mockResolvedValue([])
 
     const res = await request(app).get('/analyzer/event/1')
     expect(res.status).toBe(200)
