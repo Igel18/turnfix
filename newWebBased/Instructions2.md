@@ -585,6 +585,16 @@ Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt.
 Der DB Wizard in der Configuration soll auch den WizardModal verwenden.  
 -> Erledigt ✅ | UnifiedDialog durch WizardModal ersetzt, 3-phasiger Indikator (Datenbank → Daten importieren → Fertig) wird aus dem Step-Status abgeleitet
 
+---
+
+## Zukunftsideen (noch nicht umgesetzt)
+
+Z1. [Idee] Wettkampf-Auswahl in der Wertungserfassung
+Aktueller Stand: Jede Person darf nur einem Wettkampf pro Veranstaltung zugeordnet werden (1:1-Regel, seit #113 im Backend durchgesetzt). Als Workaround für mehrere Wettkämpfe kann eine separate Veranstaltung angelegt werden.
+Idee für die Zukunft: Falls mehrere Wettkämpfe pro Person doch benötigt werden, könnte in der Wertungserfassung ein Schritt "0 – Wettkampf auswählen" vor der Riegen-Auswahl eingebaut werden. Der Selector würde nur erscheinen, wenn die Veranstaltung mehr als einen Wettkampf hat, und würde Teilnehmer sowie Disziplinen auf den gewählten Wettkampf beschränken.
+Betroffene Dateien: ScoreCapture/index.tsx, SquadDisciplineSelector.tsx, useScoreValidation.ts
+
+
 83. [improvement] Events GymNet Import -> Wizard
 http://localhost:3001/events 
 Der Dialog "Aus Gymnet Importieren" muss auch als Wizard ausgeführt werden. 
@@ -726,6 +736,7 @@ c. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffn
 
 112. event-participants Filter muss im Wettkampf erweitert werden.
 -> Erledigt ✅ | Wettkampf-Filter hinzugefügt (siehe #111). Dropdown erscheint automatisch sobald eine Veranstaltung ≥ 2 Wettkämpfe hat.
+
 113. in der URL gibt es immer noch squadName 
 http://localhost:3001/event-participants?eventId=289&squadName=aaa
 

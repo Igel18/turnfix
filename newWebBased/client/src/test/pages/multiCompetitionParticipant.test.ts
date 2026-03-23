@@ -1,15 +1,15 @@
 /**
- * Multi-Competition Participant Tests
+ * Competition Filter / Participant-Competition Display Tests
  *
  * Verifies the following behaviour:
- *   1. Participants assigned to multiple competitions can be filtered by competition
- *      in the event-participants page (client-side filter on assignedCompetitions[]).
- *   2. The results page's flatMap logic correctly creates one entry per competition
- *      for participants assigned to multiple competitions.
- *   3. The competition names column shows actual names, not just a count.
+ *   1. Participants can be filtered by competition in the event-participants page
+ *      (client-side filter on assignedCompetitions[]).
+ *   2. The results page's flatMap logic correctly creates one entry per participant
+ *      per competition.
+ *   3. The competition names column shows the competition name, not just an ID.
  *
- * Tests use pure logic helpers (no React renderer) to stay fast and
- * dependency-free.
+ * Rule: Each participant can only be assigned to ONE competition per event.
+ * Tests use pure logic helpers (no React renderer) to stay fast.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -114,50 +114,29 @@ const bob: MockParticipant = {
   club: 'SV Test',
 };
 
-const charlie: MockParticipant = {
-  id: 3,
-  firstname: 'Charlie',
-  lastname: 'Schmidt',
-  isInEvent: true,
-  assignedCompetitions: [10, 20],  // BOTH competitions
-  startet_nicht: false,
-  age: 9,
-  gender: 'männlich',
-  club: 'TV Test',
-};
-
-const allParticipants: MockParticipant[] = [alice, bob, charlie];
+const allParticipants: MockParticipant[] = [alice, bob];
 
 // ─── 1. Competition filter (event-participants page) ─────────────────────────
 
 describe('Event-Participants competition filter', () => {
   it('shows all participants when no competition filter is active', () => {
     const result = applyCompetitionFilter(allParticipants, '');
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(2);
   });
 
   it('shows only Comp1 participants when filtered by Comp1', () => {
     const result = applyCompetitionFilter(allParticipants, '10');
     expect(result.map((p) => p.id)).toContain(alice.id);
-    expect(result.map((p) => p.id)).toContain(charlie.id);
     expect(result.map((p) => p.id)).not.toContain(bob.id);
   });
 
   it('shows only Comp2 participants when filtered by Comp2', () => {
     const result = applyCompetitionFilter(allParticipants, '20');
     expect(result.map((p) => p.id)).toContain(bob.id);
-    expect(result.map((p) => p.id)).toContain(charlie.id);
     expect(result.map((p) => p.id)).not.toContain(alice.id);
   });
 
-  it('shows participant assigned to both competitions in BOTH competition filters', () => {
-    const inComp1 = applyCompetitionFilter(allParticipants, '10');
-    const inComp2 = applyCompetitionFilter(allParticipants, '20');
-    expect(inComp1.map((p) => p.id)).toContain(charlie.id);
-    expect(inComp2.map((p) => p.id)).toContain(charlie.id);
-  });
-
-  it('returns empty list when no participant belongs to a non-existing competition', () => {
+  it('returns empty list for a non-existing competition ID', () => {
     const result = applyCompetitionFilter(allParticipants, '999');
     expect(result).toHaveLength(0);
   });
@@ -176,11 +155,8 @@ describe('Competition name display', () => {
     expect(resolveCompetitionNames([10], competitions)).toEqual(['AK 8 männlich']);
   });
 
-  it('resolves multiple competition names', () => {
-    const names = resolveCompetitionNames([10, 20], competitions);
-    expect(names).toContain('AK 8 männlich');
-    expect(names).toContain('AK 10 männlich');
-    expect(names).toHaveLength(2);
+  it('resolves single competition name for a normal participant', () => {
+    expect(resolveCompetitionNames([20], competitions)).toEqual(['AK 10 männlich']);
   });
 
   it('falls back to #id when competition is not found', () => {
@@ -192,38 +168,27 @@ describe('Competition name display', () => {
   });
 });
 
-// ─── 3. Results page flatMap creates one entry per competition ────────────────
+// ─── 3. Results page flatMap creates one entry per participant ────────────────
 
-describe('Results page: multi-competition flatMap', () => {
+describe('Results page: flatMap creates one entry per participant-competition pair', () => {
   it('creates one entry for a single-competition participant', () => {
     const entries = buildResultsEntries([alice]);
     expect(entries).toHaveLength(1);
     expect(entries[0]).toEqual({ participantId: 1, competitionId: 10 });
   });
 
-  it('creates two entries for a participant in two competitions', () => {
-    const entries = buildResultsEntries([charlie]);
+  it('creates two entries for two participants each in different competitions', () => {
+    const entries = buildResultsEntries([alice, bob]);
     expect(entries).toHaveLength(2);
-    expect(entries).toContainEqual({ participantId: 3, competitionId: 10 });
-    expect(entries).toContainEqual({ participantId: 3, competitionId: 20 });
-  });
-
-  it('creates a total of 4 entries for 3 participants (alice:1, bob:1, charlie:2)', () => {
-    const entries = buildResultsEntries(allParticipants);
-    expect(entries).toHaveLength(4);
+    expect(entries).toContainEqual({ participantId: 1, competitionId: 10 });
+    expect(entries).toContainEqual({ participantId: 2, competitionId: 20 });
   });
 
   it('excludes participants with startet_nicht=true from results', () => {
-    const dq = { ...charlie, startet_nicht: true };
+    const dq = { ...alice, id: 5, startet_nicht: true };
     const entries = buildResultsEntries([alice, bob, dq]);
-    expect(entries).toHaveLength(2); // only alice and bob
+    expect(entries).toHaveLength(2);
     expect(entries.map((e) => e.participantId)).not.toContain(dq.id);
-  });
-
-  it('deduplices duplicate competition IDs in assignedCompetitions', () => {
-    const dup: MockParticipant = { ...charlie, assignedCompetitions: [10, 10, 20] };
-    const entries = buildResultsEntries([dup]);
-    expect(entries).toHaveLength(2); // deduped to [10, 20]
   });
 
   it('ignores invalid competition IDs (0, NaN)', () => {
@@ -247,25 +212,17 @@ describe('Results page: scoresMap key format', () => {
     expect(participantCompetitionKey(1, 10)).toBe('1:10');
   });
 
-  it('generates distinct keys for same participant in different competitions', () => {
-    const keyComp1 = participantCompetitionKey(3, 10);
-    const keyComp2 = participantCompetitionKey(3, 20);
-    expect(keyComp1).not.toBe(keyComp2);
-  });
-
   it('generates distinct keys for different participants in same competition', () => {
-    const keyAlice  = participantCompetitionKey(1, 10);
+    const keyAlice = participantCompetitionKey(1, 10);
     const keyBob   = participantCompetitionKey(2, 10);
     expect(keyAlice).not.toBe(keyBob);
   });
 
-  it('all four participant:competition combinations have unique keys', () => {
+  it('both participant:competition combinations have unique keys', () => {
     const keys = new Set([
       participantCompetitionKey(alice.id, 10),
       participantCompetitionKey(bob.id, 20),
-      participantCompetitionKey(charlie.id, 10),
-      participantCompetitionKey(charlie.id, 20),
     ]);
-    expect(keys.size).toBe(4);
+    expect(keys.size).toBe(2);
   });
 });

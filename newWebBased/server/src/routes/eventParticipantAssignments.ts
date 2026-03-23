@@ -195,7 +195,7 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const validatedData = assignParticipantToCompetitionSchema.parse(req.body);
     
-    // Check if assignment already exists
+    // Check if assignment already exists for this exact competition
     const existingAssignment = await prisma.tfx_wertungen.findFirst({
       where: {
         int_teilnehmerid: validatedData.participantId,
@@ -205,6 +205,30 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
 
     if (existingAssignment) {
       return res.status(400).json({ message: 'Participant is already assigned to this competition' });
+    }
+
+    // Enforce 1:1 rule: participant can only be in ONE competition per event
+    const competitionEvent = await prisma.tfx_wettkaempfe.findUnique({
+      where: { int_wettkaempfeid: validatedData.competitionId },
+      select: { int_veranstaltungenid: true }
+    });
+
+    if (competitionEvent) {
+      const existingEventAssignment = await prisma.tfx_wertungen.findFirst({
+        where: {
+          int_teilnehmerid: validatedData.participantId,
+          tfx_wettkaempfe: {
+            int_veranstaltungenid: competitionEvent.int_veranstaltungenid
+          }
+        }
+      });
+
+      if (existingEventAssignment) {
+        return res.status(409).json({
+          message: 'Participant is already assigned to another competition in this event. A participant can only be in one competition per event.',
+          currentCompetitionId: existingEventAssignment.int_wettkaempfeid
+        });
+      }
     }
 
     // Generate unique start number for this event
@@ -369,6 +393,13 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
 
     // Handle competition assignments if provided
     if (assignedCompetitions !== undefined && Array.isArray(assignedCompetitions)) {
+      // Enforce 1:1 rule: participant can only be in ONE competition per event
+      if (assignedCompetitions.length > 1) {
+        return res.status(400).json({
+          message: 'A participant can only be assigned to one competition per event.'
+        });
+      }
+
       // Get all competitions for this event
       const eventCompetitions = await prisma.tfx_wettkaempfe.findMany({
         where: { int_veranstaltungenid: eventId }
