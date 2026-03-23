@@ -615,6 +615,7 @@ Hier lassen sich Teilnehmer hinzufügen. Aber Aber aus der Riege wieder entferne
 	-> Erledigt ✅ | Im Edit-Modus werden aktuelle Riegenmitglieder in die Teilnehmerliste eingeblendet (oben sortiert, "In Riege"-Badge). Abwählen entfernt den Teilnehmer aus der Riege. 
 
 88. In den Live-Wertungen werden die Wertungen mit 0,0 angezeigt. TDD mit UI Tests
+-> Erledigt ✅ | Root cause: `save-value` jury results SQL in `scoresScoring.ts` used snake_case column aliases (`field_name`, `sort_order`, `is_final_score`, `is_starting_score`) instead of camelCase (`"fieldName"`, `"sortOrder"`, `"isFinalScore"`, `"isStartingScore"`). `buildFieldSymbolsMap` only reads camelCase properties, so field-name matching always failed. For lowercase formula variables (e.g. `x` in `1*x`) there is no fallback-by-order mechanism → `valuesMap = {}` → `calculateFormula("1*x", {})` replaces `x` with `0` → returns `0` (not null) → overrides the correct body score → socket emits `score: 0` → Live view shows "0,0". Fix: Changed SQL aliases to camelCase (matching `juryResultsScoring.ts`). Added safety net: if formula recalculation yields `0` but body score is clearly non-zero, trust body score. TDD: 12 unit tests in `shared/src/__tests__/liveScoreCalculation.test.ts` (1 RED → 12 GREEN). Files: `server/src/routes/scoresScoring.ts`, `shared/src/__tests__/liveScoreCalculation.test.ts`.
 
 89. Die Wertungen die eingegeben werden, werden nicht im alten Turnfix angezeigt 
 

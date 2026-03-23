@@ -165,13 +165,18 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
           console.log(`🧮 Formula found: "${formula}", fetching jury results for recalculation...`);
           
           // Fetch jury results for this participant/discipline
+          // NOTE: aliases MUST use camelCase (double-quoted) to match what
+          // buildFieldSymbolsMap() expects. snake_case aliases cause field-name
+          // matching to fail → valuesMap stays empty → calculateFormula returns 0
+          // for custom formulas (e.g. "1*x") → live score shows "0.0". Bug #88.
           const juryResultsQuery = `
             SELECT 
               jr.rel_leistung as performance,
-              df.int_sortierung as sort_order,
-              df.var_name as field_name,
-              df.bol_endwert as is_final_score,
-              df.bol_ausgangswert as is_starting_score
+              df.int_sortierung as "sortOrder",
+              df.var_name as "fieldName",
+              df.var_name as "fieldShortName",
+              df.bol_endwert as "isFinalScore",
+              df.bol_ausgangswert as "isStartingScore"
             FROM tfx_jury_results jr
             LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
             WHERE jr.int_wertungenid = $1
@@ -202,10 +207,20 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
             const result = calculateFormula(formula, valuesMap);
             
             if (result !== null) {
-              calculatedScore = result;
-              console.log(`✅ Formula calculated successfully: ${result}`);
+              // Safety net: if formula gives 0 but stored score is clearly non-zero,
+              // trust the stored body score instead. This prevents the bug where
+              // missing/unmatched variables are replaced with 0 and produce a wrong 0.
+              const bodyScoreFloat = parseFloat(score);
+              const resultLooksWrong = result === 0 && Math.abs(bodyScoreFloat) > 0.01;
+              if (resultLooksWrong) {
+                console.warn(`⚠️ Formula returned 0 but body score is ${bodyScoreFloat}. Trusting body score. (check SQL column aliases and jury results)`);
+                // calculatedScore keeps its previous value (parseFloat(score))
+              } else {
+                calculatedScore = result;
+                console.log(`✅ Formula calculated successfully: ${result}`);
+              }
               
-              if (Math.abs(result - parseFloat(score)) > 0.01) {
+              if (!resultLooksWrong && Math.abs(result - parseFloat(score)) > 0.01) {
                 console.warn(`⚠️ Score mismatch! Stored: ${score}, Calculated: ${result}`);
               }
             } else {
