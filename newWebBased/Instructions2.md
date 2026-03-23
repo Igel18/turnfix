@@ -644,7 +644,33 @@ TDD mit UI Tests
 - Größer, damit man das Urkundendesign besser ändern kann. ggf. über zoom? 
 - Ist es möglich ein PDF in Hintergrund zu laden (so wie auch die PNGs halt zusätzlich)? 
 
+Ja, das ist technisch machbar. Hier die Analyse:
+
+Aktueller Stand
+Designer-Canvas: reines HTML/CSS mit <img>-Tags
+PDF-Export: jsPDF mit addImage() für Rasterbilder
+Keine PDF-Rendering-Bibliothek installiert (nur jsPDF für Erstellung, nicht Anzeige)
+Wie es funktionieren würde
+Mit pdfjs-dist (Mozilla pdf.js):
+
+Im Designer (Bearbeitungsansicht): PDF-Seite via pdf.js auf ein <canvas> rendern → als Hintergrundbild anzeigen
+Beim PDF-Export: PDF-Seite auf Canvas rendern → Canvas zu PNG-DataURL konvertieren → doc.addImage() aufrufen
+Der PDF-Hintergrund wird dabei als Rasterbild gerendert, hat damit keine Transparenz — genau wie du beschrieben hast. Das wäre kein Problem, da Background-Elemente ohnhin immer unten liegen.
+
+Einschränkungen
+Immer nur eine Seite des PDFs darstellbar (normalerweise Seite 1)
+Die PDF-Qualität im Export hängt von der Render-Auflösung ab (DPI konfigurierbar)
+pdfjs-dist ist eine relativ große Abhängigkeit (~2MB)
+Aufwand
+Mittel — ca. 3–4 Stunden Implementierung:
+
+pdfjs-dist installieren
+Upload-Filter (accept) um .pdf erweitern
+Im LayoutDesigner: PDF-Elemente via Canvas rendern
+In useCertificates.ts: PDF-Seite vor dem Export in ein Bild konvertieren
+
 94. [Bug] Die Buttons in der TrayApp "Server stoppen" "Server neustarten" funktionieren nicht.  
+-> Erledigt ✅
 
 95. Im PDF results steht keine Überschrift mit dem Wettkampf bezeichnung 
 -> Erledigt ✅ addSectionTitle(doc, competitionName, 60) vor autoTable in exportSingleCompetitionPDF eingefügt; startY: 60 → 75

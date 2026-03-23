@@ -42,6 +42,8 @@ namespace TurnFixTray
         private string installDir;
         private string serviceName = "TurnFixServer";
         private string juryServiceName = "TurnFixJuryServer";
+        private string pm2ServerName = "turnfix-server";
+        private string pm2JuryName = "turnfix-jury-server";
         private int serverPort = 3001;
         private int juryPort = 3002;
         private int checkIntervalMs = 5000;
@@ -486,6 +488,7 @@ namespace TurnFixTray
             {
                 if (File.Exists(nssmPath))
                 {
+                    Log("Using NSSM: " + command + " " + svcName);
                     var psi = new ProcessStartInfo(nssmPath, command + " " + svcName)
                     {
                         WindowStyle = ProcessWindowStyle.Hidden,
@@ -494,8 +497,9 @@ namespace TurnFixTray
                     var p = Process.Start(psi);
                     if (p != null) p.WaitForExit(10000);
                 }
-                else
+                else if (IsWindowsServiceInstalled(svcName))
                 {
+                    Log("Using ServiceController: " + command + " " + svcName);
                     using (var sc = new ServiceController(svcName))
                     {
                         if (command == "start")
@@ -510,10 +514,51 @@ namespace TurnFixTray
                         }
                     }
                 }
+                else
+                {
+                    // PM2 fallback (default for dev/production without Windows services)
+                    string pm2Name = svcName == serviceName ? pm2ServerName : pm2JuryName;
+                    Log("Using PM2: " + command + " " + pm2Name);
+                    RunPm2Command(command, pm2Name);
+                }
             }
             catch (Exception ex)
             {
                 Log("Service command '" + command + " " + svcName + "' failed: " + ex.Message);
+            }
+        }
+
+        private bool IsWindowsServiceInstalled(string name)
+        {
+            try
+            {
+                using (var sc = new ServiceController(name))
+                {
+                    var status = sc.Status; // throws InvalidOperationException if not installed
+                    return true;
+                }
+            }
+            catch { return false; }
+        }
+
+        private void RunPm2Command(string command, string pm2Name)
+        {
+            try
+            {
+                // Use 'cmd /c pm2 ...' so pm2 is found via PATH (pm2.cmd on Windows)
+                var psi = new ProcessStartInfo("cmd.exe", "/c pm2 " + command + " " + pm2Name)
+                {
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true,
+                    WorkingDirectory = installDir
+                };
+                var p = Process.Start(psi);
+                if (p != null) p.WaitForExit(30000);
+                Log("PM2 " + command + " " + pm2Name + " done");
+            }
+            catch (Exception ex)
+            {
+                Log("RunPm2Command failed: " + ex.Message);
             }
         }
 

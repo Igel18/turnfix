@@ -28,6 +28,8 @@ if (-not $InstallDir) {
 
 $ServiceName      = "TurnFixServer"
 $JuryServiceName  = "TurnFixJuryServer"
+$Pm2ServerName    = "turnfix-server"
+$Pm2JuryName      = "turnfix-jury-server"
 $ServerPort       = 3001
 $JuryPort         = 3002
 $CheckIntervalMs  = 5000
@@ -242,18 +244,53 @@ $miJuryStatus.Enabled = $false
 [void]$menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator))
 
 # -- Service controls --
-$miStart = New-Object System.Windows.Forms.ToolStripMenuItem
+# Helper: run a PM2 command (stop/start/restart) for a given process name
+function Invoke-Pm2Command {
+    param([string]$Command, [string]$ProcessName)
+    try {
+        Write-TrayLog "PM2 $Command $ProcessName"
+        $result = Start-Process "cmd.exe" -ArgumentList "/c pm2 $Command $ProcessName" `
+            -WindowStyle Hidden -Wait -PassThru -ErrorAction SilentlyContinue
+        Write-TrayLog "PM2 $Command $ProcessName exit=$($result.ExitCode)"
+    } catch {
+        Write-TrayLog "PM2 $Command $ProcessName failed: $_"
+    }
+}
+
+# Helper: check if a Windows service is installed
+function Test-ServiceInstalled {
+    param([string]$Name)
+    try {
+        $svc = Get-Service -Name $Name -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+# Helper: run stop/start/restart via NSSM → Windows Service → PM2
+function Invoke-ServerCommand {
+    param([string]$Command, [string]$ServiceNameParam, [string]$Pm2Name)
+    if (Test-Path $NssmPath) {
+        Write-TrayLog "NSSM $Command $ServiceNameParam"
+        Start-Process $NssmPath -ArgumentList "$Command $ServiceNameParam" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
+    } elseif (Test-ServiceInstalled $ServiceNameParam) {
+        Write-TrayLog "ServiceController $Command $ServiceNameParam"
+        switch ($Command) {
+            'start'   { Start-Service   -Name $ServiceNameParam -ErrorAction SilentlyContinue }
+            'stop'    { Stop-Service    -Name $ServiceNameParam -Force -ErrorAction SilentlyContinue }
+            'restart' { Restart-Service -Name $ServiceNameParam -Force -ErrorAction SilentlyContinue }
+        }
+    } else {
+        Invoke-Pm2Command -Command $Command -ProcessName $Pm2Name
+    }
+}
 $miStart.Text = "Server starten"
 $miStart.Image = $null
 $miStart.Add_Click({
     try {
-        if (Test-Path $NssmPath) {
-            Start-Process $NssmPath -ArgumentList "start $ServiceName" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
-            Start-Process $NssmPath -ArgumentList "start $JuryServiceName" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
-        } else {
-            Start-Service -Name $ServiceName -ErrorAction SilentlyContinue
-            Start-Service -Name $JuryServiceName -ErrorAction SilentlyContinue
-        }
+        Invoke-ServerCommand -Command 'start' -ServiceNameParam $ServiceName    -Pm2Name $Pm2ServerName
+        Invoke-ServerCommand -Command 'start' -ServiceNameParam $JuryServiceName -Pm2Name $Pm2JuryName
     } catch {}
     Start-Sleep -Seconds 2
     Update-ServiceStatus
@@ -264,13 +301,8 @@ $miStop = New-Object System.Windows.Forms.ToolStripMenuItem
 $miStop.Text = "Server stoppen"
 $miStop.Add_Click({
     try {
-        if (Test-Path $NssmPath) {
-            Start-Process $NssmPath -ArgumentList "stop $ServiceName" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
-            Start-Process $NssmPath -ArgumentList "stop $JuryServiceName" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
-        } else {
-            Stop-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
-            Stop-Service -Name $JuryServiceName -Force -ErrorAction SilentlyContinue
-        }
+        Invoke-ServerCommand -Command 'stop' -ServiceNameParam $ServiceName    -Pm2Name $Pm2ServerName
+        Invoke-ServerCommand -Command 'stop' -ServiceNameParam $JuryServiceName -Pm2Name $Pm2JuryName
     } catch {}
     Start-Sleep -Seconds 2
     Update-ServiceStatus
@@ -281,13 +313,8 @@ $miRestart = New-Object System.Windows.Forms.ToolStripMenuItem
 $miRestart.Text = "Server neustarten"
 $miRestart.Add_Click({
     try {
-        if (Test-Path $NssmPath) {
-            Start-Process $NssmPath -ArgumentList "restart $ServiceName" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
-            Start-Process $NssmPath -ArgumentList "restart $JuryServiceName" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
-        } else {
-            Restart-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
-            Restart-Service -Name $JuryServiceName -Force -ErrorAction SilentlyContinue
-        }
+        Invoke-ServerCommand -Command 'restart' -ServiceNameParam $ServiceName    -Pm2Name $Pm2ServerName
+        Invoke-ServerCommand -Command 'restart' -ServiceNameParam $JuryServiceName -Pm2Name $Pm2JuryName
     } catch {}
     Start-Sleep -Seconds 3
     Update-ServiceStatus
