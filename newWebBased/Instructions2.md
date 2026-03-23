@@ -630,23 +630,23 @@ Wird keine prozent Zahl bei den Geräten angezeigt.
 TDD mit UI Tests
 -> Erledigt ✅ | Root cause: disciplines_detail used tfx_riegen_x_disziplinen squad-entries (always 0 without "Generate") as denominator. Fix: new per-discipline SQL query counts distinct participants with score entries per discipline; server returns totalParticipants/completedParticipants/percentage; client uses server-provided percentage directly. New: server/src/utils/competitionStatusUtils.ts (13 unit tests), e2e tests in competition-status-percentage.spec.ts.
 
-93. Layout designer 
+93. [Improvement] Layout designer 
 - Größer, damit man das Urkundendesign besser ändern kann. ggf. über zoom? 
 - Ist es möglich ein PDF in Hintergrund zu laden (so wie auch die PNGs halt zusätzlich)? 
 
-94. Die Buttons in der TrayApp "Server stoppen" "Server neustarten" funktionieren nicht.  
+94. [Bug] Die Buttons in der TrayApp "Server stoppen" "Server neustarten" funktionieren nicht.  
 
 95. Im PDF results steht keine Überschrift mit dem Wettkampf bezeichnung 
 -> Erledigt ✅ addSectionTitle(doc, competitionName, 60) vor autoTable in exportSingleCompetitionPDF eingefügt; startY: 60 → 75
 
-96. Jury-Portal Sortieren der Teilnehmer ermöglichen ? 
+96. [Feature] Jury-Portal Sortieren der Teilnehmer ermöglichen ? 
 
 97. [Bug] Wettkampf Status wird nicht angezeigt 
 Auf der Seite Riegen Status steht immer 0% 
 TDD mit UI Tests
 -> Erledigt ✅
 
-98. [Feature] Scrollen bei vielen Teilnehmer in der SIegerliste. Hier muss immer die Überschrift Zeile von dem Wettkampf fixiert werden. So wie es auch in Excel möglich ist eine Zeile zu fixieren. Nur soll es halt immer die vom aktuelle Wettkampf sein. 
+98. [Feature] Scrollen bei vielen Teilnehmer in der Siegerliste. Hier muss immer die Überschrift Zeile von dem Wettkampf fixiert werden. So wie es auch in Excel möglich ist eine Zeile zu fixieren. Nur soll es halt immer die vom aktuelle Wettkampf sein. 
 TDD mit UI Tests
 
 99. [Improvement] Jury-Portal: 
@@ -655,6 +655,7 @@ Beim Wechsel der Teilnehmer sollte der Focus direkt in das eingabefeld
 
 100. Urkunden als PDF Drucken 
 Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar. 
+-> Erledigt ✅
 
 101. Gleiche Punktzahl muss gleiche Plazierung bedeuten! TDD
 -> Erledigt ✅

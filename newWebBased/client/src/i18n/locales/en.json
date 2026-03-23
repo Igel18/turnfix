@@ -2571,7 +2571,10 @@
       "debugMode": "Debug Mode",
       "debugModeHint": "Shows field boundaries and coordinates for layout development",
       "generating": "Generating...",
-      "generatePDF": "Generate PDF"
+      "generatePDF": "Generate PDF",
+      "sortOrder": "PDF Order",
+      "sortOrderDesc": "Last place first",
+      "sortOrderAsc": "1st place first"
     },
     "filters": {
       "competition": "Competition",

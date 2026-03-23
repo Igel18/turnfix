@@ -2605,7 +2605,10 @@
       "debugMode": "Debug-Modus",
       "debugModeHint": "Zeigt Feldgrenzen und Koordinaten zur Layout-Entwicklung",
       "generating": "Generiere...",
-      "generatePDF": "PDF generieren"
+      "generatePDF": "PDF generieren",
+      "sortOrder": "Reihenfolge im PDF",
+      "sortOrderDesc": "Letzter Platz zuerst",
+      "sortOrderAsc": "1. Platz zuerst"
     },
     "filters": {
       "competition": "Wettkampf",

@@ -26,6 +26,8 @@ interface CertificateDialogProps {
   isPrinting: boolean
   onGenerate: () => void
   paperFormats: Record<PaperFormat, { width: number; height: number; name: string }>
+  sortOrder: 'asc' | 'desc'
+  onSortOrderChange: (order: 'asc' | 'desc') => void
 }
 
 export const CertificateDialog = ({
@@ -39,7 +41,9 @@ export const CertificateDialog = ({
   onPaperFormatChange,
   isPrinting,
   onGenerate,
-  paperFormats
+  paperFormats,
+  sortOrder,
+  onSortOrderChange
 }: CertificateDialogProps) => {
   const { t } = useTranslation()
 
@@ -109,6 +113,36 @@ export const CertificateDialog = ({
         <p className="text-xs text-gray-500 mt-1">
           {t('results.certificate.paperFormatHint')}
         </p>
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('results.certificate.sortOrder')}
+        </label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onSortOrderChange('desc')}
+            className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
+              sortOrder === 'desc'
+                ? 'bg-purple-100 border-purple-500 text-purple-700'
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            ↓ {t('results.certificate.sortOrderDesc')}
+          </button>
+          <button
+            type="button"
+            onClick={() => onSortOrderChange('asc')}
+            className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
+              sortOrder === 'asc'
+                ? 'bg-purple-100 border-purple-500 text-purple-700'
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            ↑ {t('results.certificate.sortOrderAsc')}
+          </button>
+        </div>
       </div>
 
       <div className="mb-4">

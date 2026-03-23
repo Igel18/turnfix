@@ -63,6 +63,7 @@ const Results = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false)
   const [selectedPaperFormat, setSelectedPaperFormat] = useState<PaperFormat>('A4')
   const [certificatesToPrint, setCertificatesToPrint] = useState<any[]>([])
+  const [certificateSortOrder, setCertificateSortOrder] = useState<'asc' | 'desc'>('desc')
 
   // Data Hook - Loads all results data
   const {
@@ -190,8 +191,15 @@ const Results = () => {
 
   // Handle certificate generation
   const handleGenerateCertificates = () => {
+    // Sort participants by rank: desc = last place first (default), asc = 1st place first
+    const sortedParticipants = [...certificatesToPrint].sort((a, b) => {
+      const rankA = a.rank ?? 0
+      const rankB = b.rank ?? 0
+      return certificateSortOrder === 'desc' ? rankB - rankA : rankA - rankB
+    })
+
     generateCertificates(
-      certificatesToPrint,
+      sortedParticipants,
       contextSelectedLayout as any,
       selectedPaperFormat,
       competitions,
@@ -312,6 +320,8 @@ const Results = () => {
             isPrinting={isPrintingCertificates}
             onGenerate={handleGenerateCertificates}
             paperFormats={PAPER_FORMATS}
+            sortOrder={certificateSortOrder}
+            onSortOrderChange={setCertificateSortOrder}
           />
         </div>
       )}
