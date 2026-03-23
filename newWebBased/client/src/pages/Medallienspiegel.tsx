@@ -102,16 +102,16 @@ export default function Medallienspiegel() {
       ]
 
       // Summary statistics
-      const tableData = medalData.standings
-        .sort((a, b) => {
-          // Sort by total medals desc, then by gold desc, then by silver desc
-          if (a.totalMedals !== b.totalMedals) return b.totalMedals - a.totalMedals
-          if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold
-          if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver
-          return b.totalBronze - a.totalBronze
-        })
-        .map((standing, index) => ({
-          rank: index + 1,
+      const sortedForPdf = [...medalData.standings].sort((a, b) => {
+        // Sort by gold desc → silver desc → bronze desc (gymnastics ranking)
+        if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold
+        if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver
+        if (a.totalBronze !== b.totalBronze) return b.totalBronze - a.totalBronze
+        return a.clubName.localeCompare(b.clubName)
+      })
+      const pdfRanks = computeMedalRanks(sortedForPdf)
+      const tableData = sortedForPdf.map((standing, index) => ({
+          rank: pdfRanks[index],
           clubName: standing.clubName,
           gold: standing.totalGold,
           silver: standing.totalSilver,
@@ -319,15 +319,36 @@ export default function Medallienspiegel() {
   )
 }
 
+// Gymnastics ranking: gold first, silver as tiebreaker, then bronze.
+// Clubs with identical gold/silver/bronze share the same rank.
+function computeMedalRanks(sorted: MedalStanding[]): number[] {
+  const ranks: number[] = []
+  for (let i = 0; i < sorted.length; i++) {
+    if (i === 0) {
+      ranks.push(1)
+    } else {
+      const prev = sorted[i - 1]
+      const curr = sorted[i]
+      if (curr.totalGold === prev.totalGold && curr.totalSilver === prev.totalSilver && curr.totalBronze === prev.totalBronze) {
+        ranks.push(ranks[i - 1])
+      } else {
+        ranks.push(i + 1)
+      }
+    }
+  }
+  return ranks
+}
+
 function MedalTable({ standings }: { standings: MedalStanding[] }) {
   const { t } = useTranslation()
-  // Sort standings by total medals desc, then by gold desc, then by silver desc
+  // Sort by gold desc → silver desc → bronze desc (gymnastics ranking)
   const sortedStandings = [...standings].sort((a, b) => {
-    if (a.totalMedals !== b.totalMedals) return b.totalMedals - a.totalMedals
     if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold
     if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver
-    return b.totalBronze - a.totalBronze
+    if (a.totalBronze !== b.totalBronze) return b.totalBronze - a.totalBronze
+    return a.clubName.localeCompare(b.clubName)
   })
+  const ranks = computeMedalRanks(sortedStandings)
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -362,7 +383,7 @@ function MedalTable({ standings }: { standings: MedalStanding[] }) {
           {sortedStandings.map((standing, index) => (
             <tr key={standing.clubId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {index + 1}
+                {ranks[index]}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">{standing.clubName}</div>
@@ -399,13 +420,14 @@ function MedalTable({ standings }: { standings: MedalStanding[] }) {
 
 function MedalGrid({ standings }: { standings: MedalStanding[] }) {
   const { t } = useTranslation()
-  // Sort standings by total medals desc, then by gold desc, then by silver desc
+  // Sort by gold desc → silver desc → bronze desc (gymnastics ranking)
   const sortedStandings = [...standings].sort((a, b) => {
-    if (a.totalMedals !== b.totalMedals) return b.totalMedals - a.totalMedals
     if (a.totalGold !== b.totalGold) return b.totalGold - a.totalGold
     if (a.totalSilver !== b.totalSilver) return b.totalSilver - a.totalSilver
-    return b.totalBronze - a.totalBronze
+    if (a.totalBronze !== b.totalBronze) return b.totalBronze - a.totalBronze
+    return a.clubName.localeCompare(b.clubName)
   })
+  const ranks = computeMedalRanks(sortedStandings)
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -415,7 +437,7 @@ function MedalGrid({ standings }: { standings: MedalStanding[] }) {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-md bg-indigo-500 text-white font-bold">
-                  {index + 1}
+                  {ranks[index]}
                 </div>
               </div>
               <div className="ml-4 flex-1">
