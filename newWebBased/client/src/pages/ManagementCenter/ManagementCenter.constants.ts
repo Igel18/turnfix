@@ -9,6 +9,7 @@ import {
   UserGroupIcon,
   TrophyIcon,
   ClipboardDocumentListIcon,
+  ClipboardDocumentCheckIcon,
   ChartBarIcon,
   MapIcon,
   BuildingLibraryIcon,
@@ -97,6 +98,7 @@ export const getDatabaseManagementActions = (statistics: Statistics): DbActionIt
 ]
 
 export const eventSetupActions: ActionItem[] = [
+  { name: 'Event Analyzer', description: 'Check event configuration and find issues', href: '/analyzer', icon: ClipboardDocumentCheckIcon, color: 'bg-orange-500' },
   { name: 'Manage Events', description: 'Create and configure events', href: '/event-management', icon: CalendarDaysIcon, color: 'bg-blue-500' },
   { name: 'View Competitions', description: 'Define competitions and disciplines', href: '/competitions', icon: TrophyIcon, color: 'bg-yellow-500' },
   { name: 'Event Participants', description: 'Add participants to event and assign to competitions', href: '/event-participants', icon: UserGroupIcon, color: 'bg-indigo-500' },

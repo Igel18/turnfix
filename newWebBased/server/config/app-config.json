@@ -2,9 +2,9 @@
   "database": {
     "db_host": "localhost",
     "db_port": 5432,
-    "db_name": "turnfix20260307_4",
+    "db_name": "turnfix",
     "db_user": "postgres",
-    "db_password": "75c59420d5287436c29375ff556557c2:cc3ff50de424d5a499c7f8321510c108",
+    "db_password": "4ae238208ab89946ca0d4517ead0011c:20909921f887ca498050b510ba0767aa",
     "db_ssl": false
   },
   "application": {

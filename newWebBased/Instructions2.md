@@ -777,6 +777,14 @@ Neue Dateien:
 - server/src/routes/participant-status.ts — REST API (GET alle, PATCH manuell)
 - client/src/pages/ParticipantStatusManagement.tsx — Neue UI-Seite (erreichbar über ManagementCenter → Wettkampftag → Teilnehmer Status)
 
+116. Im Medallienspiegel muss die Rangfolge anders berechnet werden: 
+Beim Gerätturnen (national und international) ist es üblich, nach Anzahl der Goldmedaillen zu rangieren, mit Silber und Bronze als Tiebreaker. Also:
+
+    Mehr Gold = besser.
+    Bei Gleichstand Gold → mehr Silber entscheidet.
+    Bei weiterem Gleichstand → mehr Bronze.
+    Bleibt Gleichstand → gleiche Platzierung (z. B. geteilte Platzierung).
+
 
 ------------------------------------------------------------
 -> Erledigt ✅

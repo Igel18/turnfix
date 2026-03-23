@@ -12,6 +12,7 @@ import { useManagementStatistics } from './hooks/useManagementStatistics'
 import { useCollapsibleSections } from './hooks/useCollapsibleSections'
 import { DatabaseManagementSection } from './components/DatabaseManagementSection'
 import { EventWorkflowSteps } from './components/EventWorkflowSteps'
+import { AnalyzerBanner } from '@/pages/Analyzer/components/AnalyzerBanner'
 
 export function ManagementCenter() {
   const { t } = useTranslation()
@@ -36,6 +37,8 @@ export function ManagementCenter() {
           {t('managementCenter.subtitle')}
         </p>
       </div>
+
+      {selectedEvent && <AnalyzerBanner eventId={selectedEvent.int_eventid} />}
 
       <div className="space-y-8">
         <DatabaseManagementSection

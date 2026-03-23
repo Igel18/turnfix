@@ -3326,6 +3326,87 @@
       "size": "Size",
       "modified": "Modified"
     }
+  },
+  "analyzer": {
+    "title": "Event Analyzer",
+    "subtitle": "Configuration check and issue analysis",
+    "refresh": "Refresh",
+    "noEvent": "No event selected",
+    "noEventDescription": "Select an event to start the analysis.",
+    "allOk": "All checks passed",
+    "allOkDescription": "The event is fully configured and ready.",
+    "andMore": "... and {{count}} more",
+    "okChecksNote": "{{count}} check(s) with no issues",
+    "summary": {
+      "errors": "Errors",
+      "warnings": "Warnings",
+      "infos": "Info",
+      "ok": "OK"
+    },
+    "categories": {
+      "setup": "Setup & Configuration",
+      "capture": "Score Capture",
+      "squads": "Squad Management",
+      "results": "Results"
+    },
+    "banner": {
+      "title": "Analyzer",
+      "allOk": "All configured ✓",
+      "issues": "{{count}} issue(s) found",
+      "openDetails": "Show details"
+    },
+    "checks": {
+      "missing_start_numbers": {
+        "title": "Missing start numbers",
+        "description": "{{count}} participant(s) have no start number assigned.",
+        "descriptionOk": "All participants have a start number.",
+        "action": "Open participant management",
+        "quickAction": "Generate start numbers"
+      },
+      "competitions_without_disciplines": {
+        "title": "Competitions without disciplines",
+        "description": "{{count}} competition(s) have no discipline assigned.",
+        "descriptionOk": "All competitions have at least one discipline.",
+        "action": "Manage competitions"
+      },
+      "disciplines_without_max_score": {
+        "title": "Disciplines without max score",
+        "description": "{{count}} discipline assignment(s) have no maximum score set.",
+        "descriptionOk": "All disciplines have a maximum score.",
+        "action": "Manage competitions"
+      },
+      "gender_age_mismatch": {
+        "title": "Age group / gender mismatch",
+        "description": "{{count}} participant(s) are assigned to an incompatible competition.",
+        "descriptionOk": "All participants match their competition.",
+        "action": "Check participants"
+      },
+      "participants_without_squad": {
+        "title": "Participants without squad",
+        "description": "{{count}} participant(s) are not assigned to any squad.",
+        "descriptionOk": "All participants have a squad assignment.",
+        "action": "Open squad management"
+      },
+      "missing_score_details": {
+        "title": "Missing scores",
+        "description": "{{count}} participant(s) have missing scores on one or more apparatuses.",
+        "descriptionOk": "All scores have been captured.",
+        "action": "Open score capture"
+      },
+      "squad_combination_not_generated": {
+        "title": "Squad combination not generated",
+        "description": "Apparatus rotation not generated for {{count}} squad(s).",
+        "descriptionOk": "Squad combinations are generated.",
+        "action": "Open squad management",
+        "quickAction": "Generate combinations"
+      },
+      "duplicate_top_placements": {
+        "title": "Tied top placements (1st–3rd)",
+        "description": "{{count}} competition(s) have tied placements in 1st–3rd.",
+        "descriptionOk": "No tied placements in the top 3.",
+        "action": "Check results"
+      }
+    }
   }
 }
 

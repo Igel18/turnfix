@@ -97,6 +97,7 @@ const groupScores_1 = __importDefault(require("./routes/groupScores"));
 const teamScores_1 = __importDefault(require("./routes/teamScores"));
 const eventSearch_1 = __importDefault(require("./routes/eventSearch"));
 const participant_status_1 = __importDefault(require("./routes/participant-status"));
+const analyzer_1 = __importDefault(require("./routes/analyzer"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
@@ -262,6 +263,7 @@ app.use('/api/scores', groupScores_1.default);
 app.use('/api/scores', teamScores_1.default);
 app.use('/api/event-search', eventSearch_1.default);
 app.use('/api/participant-status', participant_status_1.default);
+app.use('/api/analyzer', analyzer_1.default);
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {
     const path = require('path');

@@ -104,6 +104,7 @@ import groupScoresRoutes from './routes/groupScores';
 import teamScoresRoutes from './routes/teamScores';
 import eventSearchRoutes from './routes/eventSearch';
 import participantStatusRoutes from './routes/participant-status';
+import analyzerRoutes from './routes/analyzer';
 
 const app = express();
 const server = createServer(app);
@@ -284,6 +285,7 @@ app.use('/api/scores', groupScoresRoutes);
 app.use('/api/scores', teamScoresRoutes);
 app.use('/api/event-search', eventSearchRoutes);
 app.use('/api/participant-status', participantStatusRoutes);
+app.use('/api/analyzer', analyzerRoutes);
 
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {

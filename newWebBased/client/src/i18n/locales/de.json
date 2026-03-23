@@ -3381,6 +3381,87 @@
       "size": "Größe",
       "modified": "Geändert"
     }
+  },
+  "analyzer": {
+    "title": "Veranstaltungs-Analyzer",
+    "subtitle": "Konfigurationsprüfung und Problemanalyse",
+    "refresh": "Aktualisieren",
+    "noEvent": "Keine Veranstaltung ausgewählt",
+    "noEventDescription": "Wählen Sie eine Veranstaltung aus, um die Analyse zu starten.",
+    "allOk": "Alle Prüfungen erfolgreich",
+    "allOkDescription": "Die Veranstaltung ist vollständig konfiguriert und bereit.",
+    "andMore": "... und {{count}} weitere",
+    "okChecksNote": "{{count}} Prüfung(en) ohne Befund",
+    "summary": {
+      "errors": "Fehler",
+      "warnings": "Warnungen",
+      "infos": "Hinweise",
+      "ok": "OK"
+    },
+    "categories": {
+      "setup": "Setup & Konfiguration",
+      "capture": "Wertungserfassung",
+      "squads": "Riegenverwaltung",
+      "results": "Ergebnisse"
+    },
+    "banner": {
+      "title": "Analyzer",
+      "allOk": "Alles konfiguriert ✓",
+      "issues": "{{count}} Problem(e) gefunden",
+      "openDetails": "Details anzeigen"
+    },
+    "checks": {
+      "missing_start_numbers": {
+        "title": "Fehlende Startnummern",
+        "description": "{{count}} Teilnehmer haben noch keine Startnummer.",
+        "descriptionOk": "Alle Teilnehmer haben eine Startnummer.",
+        "action": "Teilnehmerverwaltung öffnen",
+        "quickAction": "Startnummern generieren"
+      },
+      "competitions_without_disciplines": {
+        "title": "Wettkämpfe ohne Disziplinen",
+        "description": "{{count}} Wettkampf/Wettkämpfe haben keine Disziplin zugeordnet.",
+        "descriptionOk": "Alle Wettkämpfe haben mindestens eine Disziplin.",
+        "action": "Wettkämpfe verwalten"
+      },
+      "disciplines_without_max_score": {
+        "title": "Disziplinen ohne Maximalpunktzahl",
+        "description": "{{count}} Disziplin-Zuordnung(en) haben keine Maximalpunktzahl.",
+        "descriptionOk": "Alle Disziplinen haben eine Maximalpunktzahl.",
+        "action": "Wettkämpfe verwalten"
+      },
+      "gender_age_mismatch": {
+        "title": "Altersklassen- / Geschlechtsfehler",
+        "description": "{{count}} Teilnehmer sind einem falschen Wettkampf zugeordnet.",
+        "descriptionOk": "Alle Teilnehmer passen zu ihrem Wettkampf.",
+        "action": "Teilnehmer prüfen"
+      },
+      "participants_without_squad": {
+        "title": "Teilnehmer ohne Riege",
+        "description": "{{count}} Teilnehmer sind keiner Riege zugeordnet.",
+        "descriptionOk": "Alle Teilnehmer haben eine Riegenzuordnung.",
+        "action": "Riegenverwaltung öffnen"
+      },
+      "missing_score_details": {
+        "title": "Fehlende Wertungen",
+        "description": "{{count}} Teilnehmer haben noch nicht an allen Geräten eine Wertung.",
+        "descriptionOk": "Alle Wertungen sind erfasst.",
+        "action": "Wertungserfassung öffnen"
+      },
+      "squad_combination_not_generated": {
+        "title": "Riegenkombination nicht generiert",
+        "description": "Gerätereihenfolge für {{count}} Riege(n) nicht generiert.",
+        "descriptionOk": "Riegenkombinationen sind generiert.",
+        "action": "Riegenverwaltung öffnen",
+        "quickAction": "Kombinationen generieren"
+      },
+      "duplicate_top_placements": {
+        "title": "Mehrfachplatzierungen (Plätze 1–3)",
+        "description": "{{count}} Wettkampf/Wettkämpfe: gleichrangige Platzierungen in 1–3.",
+        "descriptionOk": "Keine Mehrfachplatzierungen in den Top-3.",
+        "action": "Ergebnisse prüfen"
+      }
+    }
   }
 }
 
