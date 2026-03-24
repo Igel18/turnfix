@@ -1,7 +1,7 @@
 {
   "$comment": "GymNet preset data for TurnFix database initialization. Edit this file to change disciplines/formulas without rebuilding.",
   "version": "2.0",
-  "maxPresetDisciplineId": 78,
+  "maxPresetDisciplineId": 83,
 
   "_help": {
     "_overview": "Diese Datei definiert alle Formeln und Disziplinen (Geräte) für den GymNet-Import. Änderungen hier wirken sich beim nächsten DB-Wizard-Lauf aus — kein Rebuild nötig.",
@@ -87,6 +87,12 @@
       "formula": "1*x",
       "type": 0,
       "description": "Einfache Durchreichung (Wertung → Endwert = 1*x)"
+    },
+    {
+      "name": "Pause",
+      "formula": "0",
+      "type": 0,
+      "description": "Pause — gibt immer 0 zurück (kein Score)"
     }
   ],
   "devices": [
@@ -2122,6 +2128,101 @@
         {
           "name": "Endwert",
           "sortierung": 4
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Pause1",
+      "anzeigename": "Pause1",
+      "kurzname": "PAU1",
+      "eingabemaske": "0",
+      "einheit": "",
+      "symbol": ":/icons/hourglass.png",
+      "formula": "Pause",
+      "sport": "Pause",
+      "bol_m": true,
+      "bol_w": true,
+      "fields": [
+        {
+          "name": "Endwert",
+          "sortierung": 1
+        }
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Pause2",
+      "anzeigename": "Pause2",
+      "kurzname": "PAU2",
+      "eingabemaske": "0",
+      "einheit": "",
+      "symbol": ":/icons/hourglass.png",
+      "formula": "Pause",
+      "sport": "Pause",
+      "bol_m": true,
+      "bol_w": true,
+      "fields": [
+        {
+          "name": "Endwert",
+          "sortierung": 1
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "name": "Pause3",
+      "anzeigename": "Pause3",
+      "kurzname": "PAU3",
+      "eingabemaske": "0",
+      "einheit": "",
+      "symbol": ":/icons/hourglass.png",
+      "formula": "Pause",
+      "sport": "Pause",
+      "bol_m": true,
+      "bol_w": true,
+      "fields": [
+        {
+          "name": "Endwert",
+          "sortierung": 1
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "name": "Pause4",
+      "anzeigename": "Pause4",
+      "kurzname": "PAU4",
+      "eingabemaske": "0",
+      "einheit": "",
+      "symbol": ":/icons/hourglass.png",
+      "formula": "Pause",
+      "sport": "Pause",
+      "bol_m": true,
+      "bol_w": true,
+      "fields": [
+        {
+          "name": "Endwert",
+          "sortierung": 1
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "name": "Pause5",
+      "anzeigename": "Pause5",
+      "kurzname": "PAU5",
+      "eingabemaske": "0",
+      "einheit": "",
+      "symbol": ":/icons/hourglass.png",
+      "formula": "Pause",
+      "sport": "Pause",
+      "bol_m": true,
+      "bol_w": true,
+      "fields": [
+        {
+          "name": "Endwert",
+          "sortierung": 1
         }
       ]
     }

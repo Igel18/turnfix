@@ -826,6 +826,7 @@ Fix (in gymnetDbImport.ts): Added a name-based fallback. After querying the disc
 119. UI Zeitplanung "time-planning"
 Das Register Zeitplan-Tabelle sieht schon ganz gut aus. a.) Stelle ich aber in der 1. Zeile die Riegen ein, werden diese nicht persistent gepeichert. 
 b.) Es muss möglich sein die Spalten zu verschieben, oder die Geräte/Disziplinen in der Überschrift zu ändern. Denke verschieben ist besser, da dann nicht die Geräte gewechselt werden müssen. Oder gibt es eine andere gute UI funktion um das umzusetzen?  
+-> Erledigt ✅
 
 120. Jury-Portal - Auswahl Riege & Gerät optimieren
 Im Jury-Portal werden aktuell immer das Event, die Riege und dann das Geräte ausgewählt. 
