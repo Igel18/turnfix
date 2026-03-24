@@ -844,8 +844,10 @@ Solche Pausen-Disziplinen (5 Stück) müssen über den DB-Wizard angelegt werden
 122. Zeitplanung 
 a.) Drucken der Zeitplan-Tabelle muss noch implementiert werden. 
 -> Erledigt ✅
-b.) Durchgänge hinzufügen geht nicht in der Zeitplan Tabelle bzw. sollte dann ausgeblendet sein. 
+b.) Durchgänge hinzufügen geht nicht in der Zeitplan Tabelle. Dann sollte es da ausgeblendet sein, oder? 
+-> Erledigt ✅
 c.) in der Zeitplan-Tabelle sollten auch die Durchgänge visualisiert werden. 
+-> Erledigt ✅
 d.) eine Riege kann zu einer Zeit nur an einem Gerät sein. Wird über das drop down eine "vorhandene" Riege ausgewählt, muss diese vorhandene als "-Keine Riege-" gesetzt werden. 
 e.) Wizard für die Zeitplanung: 1. Startzeit der Veranstaltung einstellen (default 08:00 Uhr) 2. Zeit pro Teilnehmer einstellen (default 3min) 3. Zuweisen der Wettkämpfe zu Durchgängen (ggf. hinzufügen von Durchgängen) 4. Zuweisen der Riegen zu Bahnen. 
 Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmittag; Bahn z.B. Boden 1, Boden 2) ggf. hinzufügen von Bahnen 5. Generieren eines Vorschlags im Round Robin prinzip, und auch Update der Rotation Tabelle & Zeitplan Tabelle 
@@ -856,9 +858,14 @@ h.) Time-planning index.tsx refactoring
 -> Erledigt ✅
 
 123. Modale dialoge umbauen zu Wizard 
+a.) Standard button zum Aufruf des Wizards in der Kopfzeile ggf. zusätzlich zum Standardbutton "Hinzufügen" 
+b.) Standard button zum Aufruf des Wizards an Elementen (z.B. Riegen in der Riegeneinteilung)? 
+c.) 
 | Create/Edit Discipline | DisciplineFormModal | HIGH (15+ fields) | UnifiedDialog |
 | Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
 | Import GymNet XML | EventImportModal | HIGH (file + progress) | UnifiedDialog |
+
+
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Work 

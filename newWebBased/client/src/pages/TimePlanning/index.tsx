@@ -208,13 +208,15 @@ export default function TimePlanning() {
       loading={loading}
       customBelowActions={
         <div className="flex space-x-2">
-          <button
-            onClick={handleAddRound}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <span className="text-xl mr-2">+</span>
-            {t('timePlanning.addRound', 'Durchgang hinzufügen')}
-          </button>
+          {viewMode !== 'matrix' && (
+            <button
+              onClick={handleAddRound}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <span className="text-xl mr-2">+</span>
+              {t('timePlanning.addRound', 'Durchgang hinzufügen')}
+            </button>
+          )}
 
           {viewMode === 'rotation' && (
             <button
@@ -401,6 +403,7 @@ export default function TimePlanning() {
                   ? sessionGroups[0].startTime
                   : null
               }
+              sessionGroups={sessionGroups}
               onRegisterPrint={fn => { matrixPrintFnRef.current = fn; }}
             />
           )}

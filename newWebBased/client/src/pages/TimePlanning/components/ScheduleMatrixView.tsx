@@ -85,9 +85,11 @@ interface ScheduleMatrixViewProps {
   } | null;
   /** Callback to register the printMatrix function with the parent (for header button). */
   onRegisterPrint?: (fn: () => Promise<void>) => void;
+  /** Session groups for visual Durchgang separators (when there are 2+ sessions). */
+  sessionGroups?: { session: number; startTime: string | null }[];
 }
 
-export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selectedEvent, onRegisterPrint }: ScheduleMatrixViewProps) {
+export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selectedEvent, onRegisterPrint, sessionGroups }: ScheduleMatrixViewProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
@@ -261,6 +263,22 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
 
+  // Determine which session (Durchgang) a given round time belongs to.
+  // Returns the session with the latest startTime that is <= roundTime.
+  // Only active when there are 2+ sessions (single-session events need no header).
+  const getSessionForTime = (roundTime: string): { session: number; startTime: string } | null => {
+    if (!sessionGroups || sessionGroups.length < 2) return null;
+    let best: { session: number; startTime: string } | null = null;
+    for (const sg of sessionGroups) {
+      if (sg.startTime && sg.startTime <= roundTime) {
+        if (!best || sg.startTime > best.startTime) {
+          best = { session: sg.session, startTime: sg.startTime };
+        }
+      }
+    }
+    return best;
+  };
+
   const localDiscIds = new Set(localDisciplines.map(d => d.id));
   const availableForPicker = (matrixData.availableDisciplines ?? []).filter(d => !localDiscIds.has(d.id));
 
@@ -350,42 +368,58 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {Array.from({ length: localMaxRound }, (_, i) => i + 1).map(round => {
+            {Array.from({ length: localMaxRound }, (_, i) => i + 1).map((round, idx) => {
               const roundTime = calculateRoundTime(startTime, round, intervalMinutes);
+              const sessionInfo = getSessionForTime(roundTime);
+              const prevRoundTime = idx > 0 ? calculateRoundTime(startTime, round - 1, intervalMinutes) : null;
+              const prevSessionInfo = prevRoundTime ? getSessionForTime(prevRoundTime) : null;
+              const isNewSession = sessionInfo !== null && sessionInfo.session !== prevSessionInfo?.session;
               return (
-                <tr key={round} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
-                    {roundTime}
-                  </td>
-                  {localDisciplines.map(disc => {
-                    const cellKey = `${disc.id}_${round}`;
-                    const isSaving = savingCell === cellKey;
-                    const value = getCellValue(disc.id, round);
-                    return (
-                      <td key={disc.id} className="px-3 py-2">
-                        <select
-                          value={value}
-                          onChange={e => handleCellChange(disc.id, round, e.target.value)}
-                          disabled={isSaving}
-                          className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                            isSaving
-                              ? 'opacity-50 cursor-wait bg-gray-100 border-gray-300'
-                              : value
-                              ? 'bg-blue-50 border-blue-300 text-blue-800'
-                              : 'bg-white border-gray-300 text-gray-500'
-                          }`}
-                        >
-                          <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>
-                          {squads.map(squad => (
-                            <option key={squad} value={squad}>
-                              {squad}
-                            </option>
-                          ))}
-                        </select>
+                <React.Fragment key={round}>
+                  {isNewSession && (
+                    <tr className="bg-blue-600 text-white">
+                      <td colSpan={localDisciplines.length + 1} className="px-4 py-2 font-semibold text-sm">
+                        {t('timePlanning.round', 'Durchgang')} {sessionInfo!.session}
+                        <span className="ml-3 font-normal opacity-90 text-xs">
+                          {t('timePlanning.startTime', 'Startzeit')}: {sessionInfo!.startTime}
+                        </span>
                       </td>
-                    );
-                  })}
-                </tr>
+                    </tr>
+                  )}
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
+                      {roundTime}
+                    </td>
+                    {localDisciplines.map(disc => {
+                      const cellKey = `${disc.id}_${round}`;
+                      const isSaving = savingCell === cellKey;
+                      const value = getCellValue(disc.id, round);
+                      return (
+                        <td key={disc.id} className="px-3 py-2">
+                          <select
+                            value={value}
+                            onChange={e => handleCellChange(disc.id, round, e.target.value)}
+                            disabled={isSaving}
+                            className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                              isSaving
+                                ? 'opacity-50 cursor-wait bg-gray-100 border-gray-300'
+                                : value
+                                ? 'bg-blue-50 border-blue-300 text-blue-800'
+                                : 'bg-white border-gray-300 text-gray-500'
+                            }`}
+                          >
+                            <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>
+                            {squads.map(squad => (
+                              <option key={squad} value={squad}>
+                                {squad}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </React.Fragment>
               );
             })}
           </tbody>
