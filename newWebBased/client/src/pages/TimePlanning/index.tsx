@@ -74,6 +74,7 @@ export default function TimePlanning() {
   
   // Ref to TimePlanningRotation child component (Point 121: call addBahn from parent)
   const rotationRef = useRef<TimePlanningRotationRef>(null);
+  const matrixPrintFnRef = useRef<(() => Promise<void>) | null>(null);
 
   // Gantt chart time range
   const [ganttStartTime, setGanttStartTime] = useState('07:00');
@@ -670,7 +671,7 @@ export default function TimePlanning() {
 
         <button
           key="export"
-          onClick={exportTimeplan}
+          onClick={viewMode === 'matrix' ? () => matrixPrintFnRef.current?.() : exportTimeplan}
           className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
         >
           <DocumentChartBarIcon className="h-4 w-4 mr-2" />
@@ -820,6 +821,7 @@ export default function TimePlanning() {
                   ? sessionGroups[0].startTime
                   : null
               }
+              onRegisterPrint={(fn) => { matrixPrintFnRef.current = fn; }}
             />
           )}
         </>
