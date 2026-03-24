@@ -844,6 +844,7 @@ Solche Pausen-Disziplinen (5 Stück) müssen über den DB-Wizard angelegt werden
 a.) Drucken der Zeitplan-Tabelle muss noch implementiert werden. 
 b.) Durchgänge hinzufügen geht nicht in der Zeitplan Tabelle bzw. sollte dann ausgeblendet sein. 
 c.) in der Zeitplan-Tabelle sollten auch die Durchgänge visualisiert werden. 
+d.) eine Riege kann zu einer Zeit nur an einem Gerät sein. Wird über das drop down eine "vorhandene" Riege ausgewählt, muss diese vorhandene als "-Keine Riege-" gesetzt werden. 
 
 ------------------------------------------------------------
 -> Erledigt ✅
