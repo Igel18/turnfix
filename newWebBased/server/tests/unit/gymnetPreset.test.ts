@@ -150,14 +150,14 @@ describe('GymNet Preset Import', () => {
   // ---------- All 78 disciplines created ----------
 
   describe('Discipline creation completeness', () => {
-    it('should create exactly 76 disciplines (IDs 29+30 intentionally unused)', () => {
+    it('should create exactly 81 disciplines (IDs 29+30 intentionally unused)', () => {
       const expectedCount = Object.keys(DISCIPLINE_IDS).length;
-      expect(expectedCount).toBe(76); // IDs 29 and 30 are intentionally not assigned
+      expect(expectedCount).toBe(81); // IDs 29 and 30 are intentionally not assigned; 79-83 are Pause slots
       expect(mockDb._disciplines.length).toBe(expectedCount);
     });
 
     it('should have created all disciplines with correct count in result', () => {
-      expect(result.createdDevices).toBe(76);
+      expect(result.createdDevices).toBe(81);
     });
 
     it('should not have IDs 29 or 30 (intentionally unused)', () => {

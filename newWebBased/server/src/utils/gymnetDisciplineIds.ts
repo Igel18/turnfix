@@ -153,6 +153,16 @@ export const DISCIPLINE_IDS = {
   // AK DEVICES (78)
   // ===================================================================
   BODEN_AK: 78,           // Boden AK
+
+  // ===================================================================
+  // PAUSE PLACEHOLDER DEVICES (79-83)
+  // Used as workaround slots in time planning when a squad needs a break.
+  // ===================================================================
+  PAUSE1: 79,             // Pause 1
+  PAUSE2: 80,             // Pause 2
+  PAUSE3: 81,             // Pause 3
+  PAUSE4: 82,             // Pause 4
+  PAUSE5: 83,             // Pause 5
 } as const;
 
 /**
@@ -249,7 +259,12 @@ export const DISCIPLINE_NAMES: Record<number, string> = {
   [DISCIPLINE_IDS.SPRUNG_TURN10]: 'Sprung Turn10® Basis',
   // AK
   [DISCIPLINE_IDS.BODEN_AK]: 'Boden AK',
+  [DISCIPLINE_IDS.PAUSE1]: 'Pause1',
+  [DISCIPLINE_IDS.PAUSE2]: 'Pause2',
+  [DISCIPLINE_IDS.PAUSE3]: 'Pause3',
+  [DISCIPLINE_IDS.PAUSE4]: 'Pause4',
+  [DISCIPLINE_IDS.PAUSE5]: 'Pause5',
 };
 
 /** Highest discipline ID used by the preset. Used to reset the DB sequence. */
-export const MAX_PRESET_DISCIPLINE_ID = 78;
+export const MAX_PRESET_DISCIPLINE_ID = 83;

@@ -45,7 +45,7 @@ describe('Event Participants API', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(Array.isArray(response.body) || response.body.eventParticipants).toBeTruthy();
+      expect(Array.isArray(response.body) || response.body.participants).toBeTruthy();
     });
 
     it('should support filtering by event', async () => {
