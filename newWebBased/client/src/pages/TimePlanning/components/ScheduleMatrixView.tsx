@@ -246,12 +246,34 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
         [t('timePlanning.matrix.time'), ...localDisciplines.map(d => d.shortName || d.name)],
       ];
 
-      const body = Array.from({ length: localMaxRound }, (_, i) => {
-        const round = i + 1;
+      const colCount = localDisciplines.length + 1; // time column + discipline columns
+      const body: any[] = [];
+      let lastSession: number | null = null;
+
+      Array.from({ length: localMaxRound }, (_, i) => i + 1).forEach(round => {
         const timeStr = calculateRoundTime(startTimePdf, round, interval);
-        return [timeStr, ...localDisciplines.map(d => {
-          return matrixData?.assignments.find(a => a.disciplineId === d.id && a.round === round)?.squadName || '';
-        })];
+
+        // Insert a Durchgang section header row when session changes
+        if (sessionGroups && sessionGroups.length >= 2) {
+          // Find which session this round belongs to (latest startTime <= roundTime)
+          let bestSg: { session: number; startTime: string } | null = null;
+          for (const sg of sessionGroups) {
+            if (sg.startTime && sg.startTime <= timeStr) {
+              if (!bestSg || sg.startTime > bestSg.startTime) {
+                bestSg = { session: sg.session, startTime: sg.startTime };
+              }
+            }
+          }
+          if (bestSg && bestSg.session !== lastSession) {
+            lastSession = bestSg.session;
+            const label = `${t('timePlanning.round', 'Durchgang')} ${bestSg.session}  –  ${t('timePlanning.startTime', 'Startzeit')}: ${bestSg.startTime}`;
+            body.push([{ content: label, colSpan: colCount, styles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', fontSize: 9 } }]);
+          }
+        }
+
+        body.push([timeStr, ...localDisciplines.map(d =>
+          matrixData?.assignments.find(a => a.disciplineId === d.id && a.round === round)?.squadName || ''
+        )]);
       });
 
       autoTable(doc, {

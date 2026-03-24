@@ -854,7 +854,7 @@ e.) Wizard für die Zeitplanung: 1. Startzeit der Veranstaltung einstellen (defa
 Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmittag; Bahn z.B. Boden 1, Boden 2) ggf. hinzufügen von Bahnen 5. Generieren eines Vorschlags im Round Robin prinzip, und auch Update der Rotation Tabelle & Zeitplan Tabelle 
 f.) überlüssige UIs können entfernt werden. (Gantt, Zeitstrahl) 
 -> Erledigt ✅
-g.) Die Zeitslots je durchgang sollten berechnet werden (einheitlich für die ganze Zeitplanung). Und zwar: Anzahl der Teilnehmer in der Größten Riege * Anzahl Minuten / Gerät 
+g.) Auf der Seite "Durchgänge" werden für jede Riege die Zeiten berechnet. Diese berechnung muss auch für die Zeitplan-Tabelle verfügbar sein. Die Zeitslots je Runde sollen anhand diesen Berechnungen angezeigt werden. 
 h.) Time-planning index.tsx refactoring 
 -> Erledigt ✅
 
