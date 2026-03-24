@@ -16,7 +16,7 @@
  */
 
 import prisma from '../lib/prisma';
-import { wedDisNrToTurnFixId, getDisciplinesForCompetition } from './gymnetMapping';
+import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition } from './gymnetMapping';
 import { resolveBereich } from './competitionHelpers';
 import { generateStartNumbersForEvent } from './startNumberUtils';
 import type { ExtractedData } from './gymnetXmlParser';
@@ -438,16 +438,31 @@ async function linkDisciplines(
           continue;
         }
 
-        const turnfixId = wedDisNrToTurnFixId(wedDisNr);
+        let turnfixId = wedDisNrToTurnFixId(wedDisNr);
         if (turnfixId === null) {
           console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}")`);
           results.devices.errors++;
           continue;
         }
 
-        const disciplineCheck = await prisma.$queryRawUnsafe(`
+        let disciplineCheck = await prisma.$queryRawUnsafe(`
           SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen WHERE int_disziplinenid = $1 LIMIT 1
         `, turnfixId) as any[];
+
+        // Name-based fallback: if preset ID has a different discipline than expected,
+        // look up by the canonical name. This handles production DBs where discipline IDs
+        // were assigned historically in a different order than the gymnet preset scheme.
+        const expectedDisciplineName = wedDisNrToName(wedDisNr);
+        if (expectedDisciplineName && disciplineCheck.length > 0 && disciplineCheck[0].var_name !== expectedDisciplineName) {
+          const byName = await prisma.$queryRawUnsafe(`
+            SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen WHERE var_name = $1 LIMIT 1
+          `, expectedDisciplineName) as any[];
+          if (byName.length > 0) {
+            console.log(`    🔄 Name fallback: preset ID ${turnfixId} has "${disciplineCheck[0].var_name}" (expected "${expectedDisciplineName}"), using ID ${byName[0].int_disziplinenid}`);
+            disciplineCheck = byName;
+            turnfixId = byName[0].int_disziplinenid;
+          }
+        }
 
         if (disciplineCheck.length === 0) {
           console.log(`    ⚠️ TurnFix discipline ID ${turnfixId} not found in DB`);

@@ -813,5 +813,15 @@ Beim Gerätturnen (national und international) ist es üblich, nach Anzahl der G
     Bleibt Gleichstand → gleiche Platzierung (z. B. geteilte Platzierung).
 -> Erledigt ✅
 
+117. Modale dialoge 
+Wir haben einige Modale dialoge mit vielen Einstellmöglichkeiten. Manche könnten doch sinnvollerweise in Wizards umgewandelt werden, oder? VIelleicht erstellen wir mal eine übersicht über alle modalen dialoge und deren anzahl an einstellmöglichkeiten / komplexität. Und machen dann in myown ein Abschnitt wann man so 
+
+118. UI-Tests 
+Root Cause: The production database has different discipline IDs than the gymnet preset scheme expects. Specifically, preset IDs 7–10 were occupied by male disciplines (Pauschenpferd, Reck, Ringe, Sprung) instead of the expected female disciplines (Sprung w, Stufenbarren, Schwebebalken, Boden w). When linkDisciplines looked up ID 7 and found "Pauschenpferd" (male-only), it failed the gender check for a female-only competition and skipped the discipline — resulting in only 2 of 4 disciplines being linked.
+
+Fix (in gymnetDbImport.ts): Added a name-based fallback. After querying the discipline at the preset ID, if the found discipline name doesn't match the expected canonical name (from wedDisNrToName), it tries a name lookup in the DB instead. If that succeeds (e.g. finding "Sprung w" at its actual production DB ID), the correct ID is used for linking. This is safe and non-destructive — no existing DB records are modified.
+
+-> vielleicht wäre für den Test auch hilfreich, immer mit einer neuen DB anzufangen und immer erst denn DB-Wizard drüber laufen zu lassen. Dann gibt es keine Probleme mit den IDs beim import. 
+
 ------------------------------------------------------------
 -> Erledigt ✅
