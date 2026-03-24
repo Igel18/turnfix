@@ -2326,6 +2326,7 @@
     "matrix": {
       "time": "Zeit",
       "emptyCell": "Keine Riege",
+      "conflictTooltip": "Diese Riege ist in diesem Zeitslot bereits einem anderen Gerät zugewiesen!",
       "addRow": "Zeile hinzufügen",
       "removeRow": "Zeile entfernen",
       "rowsInfo": "{{count}} Zeilen",

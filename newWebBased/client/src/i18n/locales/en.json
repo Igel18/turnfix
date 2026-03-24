@@ -2293,6 +2293,7 @@
     "matrix": {
       "time": "Time",
       "emptyCell": "No Squad",
+      "conflictTooltip": "This squad is already assigned to another apparatus in this time slot!",
       "addRow": "Add Row",
       "removeRow": "Remove Row",
       "rowsInfo": "{{count}} rows",

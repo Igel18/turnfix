@@ -67,6 +67,34 @@ export function calculateRoundTime(baseTime: string, round: number, intervalMinu
   return addMinutesToTime(baseTime, (round - 1) * intervalMinutes);
 }
 
+/**
+ * Compute the set of conflicting cell keys ("disciplineId_round") where the
+ * same squad is assigned to more than one discipline in the same round.
+ * Pure function — safe to call in tests without any React context.
+ */
+export function buildConflictCells(assignments: { disciplineId: number; round: number; squadName: string }[]): Set<string> {
+  const result = new Set<string>();
+  // round → squadName → [disciplineIds]
+  const byRound = new Map<number, Map<string, number[]>>();
+  for (const a of assignments) {
+    if (!a.squadName) continue;
+    if (!byRound.has(a.round)) byRound.set(a.round, new Map());
+    const bySquad = byRound.get(a.round)!;
+    if (!bySquad.has(a.squadName)) bySquad.set(a.squadName, []);
+    bySquad.get(a.squadName)!.push(a.disciplineId);
+  }
+  for (const [round, bySquad] of byRound) {
+    for (const discIds of bySquad.values()) {
+      if (discIds.length > 1) {
+        for (const discId of discIds) {
+          result.add(`${discId}_${round}`);
+        }
+      }
+    }
+  }
+  return result;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface ScheduleMatrixViewProps {
@@ -279,6 +307,10 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
     return best;
   };
 
+  // Build a Set of "disciplineId_round" keys for every cell where the same
+  // squad appears in more than one discipline in the same round (conflict).
+  const conflictCells = buildConflictCells(matrixData?.assignments ?? []);
+
   const localDiscIds = new Set(localDisciplines.map(d => d.id));
   const availableForPicker = (matrixData.availableDisciplines ?? []).filter(d => !localDiscIds.has(d.id));
 
@@ -394,15 +426,19 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                       const cellKey = `${disc.id}_${round}`;
                       const isSaving = savingCell === cellKey;
                       const value = getCellValue(disc.id, round);
+                      const isConflict = conflictCells.has(cellKey);
                       return (
                         <td key={disc.id} className="px-3 py-2">
                           <select
                             value={value}
                             onChange={e => handleCellChange(disc.id, round, e.target.value)}
                             disabled={isSaving}
+                            title={isConflict ? t('timePlanning.matrix.conflictTooltip', 'Diese Riege ist in diesem Zeitslot bereits einem anderen Gerät zugewiesen!') : undefined}
                             className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                               isSaving
                                 ? 'opacity-50 cursor-wait bg-gray-100 border-gray-300'
+                                : isConflict
+                                ? 'bg-red-50 border-red-500 border-2 text-red-800 ring-1 ring-red-400'
                                 : value
                                 ? 'bg-blue-50 border-blue-300 text-blue-800'
                                 : 'bg-white border-gray-300 text-gray-500'

@@ -849,6 +849,7 @@ b.) Durchgänge hinzufügen geht nicht in der Zeitplan Tabelle. Dann sollte es d
 c.) in der Zeitplan-Tabelle sollten auch die Durchgänge visualisiert werden. 
 -> Erledigt ✅
 d.) eine Riege kann zu einer Zeit nur an einem Gerät sein. Wird über das drop down eine "vorhandene" Riege ausgewählt, muss diese vorhandene als "-Keine Riege-" gesetzt werden. 
+-> Erledigt ✅
 e.) Wizard für die Zeitplanung: 1. Startzeit der Veranstaltung einstellen (default 08:00 Uhr) 2. Zeit pro Teilnehmer einstellen (default 3min) 3. Zuweisen der Wettkämpfe zu Durchgängen (ggf. hinzufügen von Durchgängen) 4. Zuweisen der Riegen zu Bahnen. 
 Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmittag; Bahn z.B. Boden 1, Boden 2) ggf. hinzufügen von Bahnen 5. Generieren eines Vorschlags im Round Robin prinzip, und auch Update der Rotation Tabelle & Zeitplan Tabelle 
 f.) überlüssige UIs können entfernt werden. (Gantt, Zeitstrahl) 
