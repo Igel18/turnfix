@@ -823,5 +823,21 @@ Fix (in gymnetDbImport.ts): Added a name-based fallback. After querying the disc
 
 -> vielleicht wäre für den Test auch hilfreich, immer mit einer neuen DB anzufangen und immer erst denn DB-Wizard drüber laufen zu lassen. Dann gibt es keine Probleme mit den IDs beim import. 
 
+119. UI Zeitplanung "time-planning"
+Das Register Zeitplan-Tabelle sieht schon ganz gut aus. a.) Stelle ich aber in der 1. Zeile die Riegen ein, werden diese nicht persistent gepeichert. 
+b.) Es muss möglich sein die Spalten zu verschieben, oder die Geräte/Disziplinen in der Überschrift zu ändern. Denke verschieben ist besser, da dann nicht die Geräte gewechselt werden müssen. Oder gibt es eine andere gute UI funktion um das umzusetzen?  
+
+120. Jury-Portal - Auswahl Riege & Gerät optimieren
+Im Jury-Portal werden aktuell immer das Event, die Riege und dann das Geräte ausgewählt. 
+An welchem gerät die Kampfrichter sitzen, wissen sie ja eigentlich. Aber welche Riege jetzt dran ist, ist nicht immer klar. 
+Daher wäre es doch schön, wenn die Riegen die aufgrund der aktuellen Zeit dran sind farbig hinterlegt sind. 
+Und dann noch ersichtlich ist, welches denn jetzt das Gerät ist, an dem die Riege sein sollte, oder? 
+Die Info müsste man ja aus der Zeitplantabelle von der Zeitplanung bekommen. 
+
+121. Disziplinen "Pause" hinzufügen 
+manchmal müssen Riegen eine Pause machen, bevor sie ans nächste Gerät können. Dafür bedarf es als "WorkAround" eine Diszplin die mit Pause benannt ist. 
+Solche Pausen-Disziplinen (5 Stück) müssen über den DB-Wizard angelegt werden. Als Build in Formel wird diesen eine 0 hinterlegt. Ein Pause Icon wäre auch ganz schön. Kürzel PAU1 - PAU5. Name und Anzeigename "Pause1"- "Pause5" Als Sportart wäre dann noch "Pause" hinzuzufügen und die Pausen Disziplinen diesen zuzuweisen. 
+
+
 ------------------------------------------------------------
 -> Erledigt ✅

@@ -629,9 +629,12 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
     });
     const squads = squadRows.map(s => s.var_riege!).filter(Boolean);
 
-    const maxRound = assignments.length > 0
+    // Always show at least as many rows as there are squads, so the table
+    // does not visually "collapse" after the user fills only some rows.
+    const maxAssignedRound = assignments.length > 0
       ? Math.max(...assignments.map(a => a.round))
-      : Math.max(squads.length, 1);
+      : 0;
+    const maxRound = Math.max(maxAssignedRound, squads.length, 1);
 
     res.json({ disciplines, availableDisciplines, assignments, squads, maxRound });
   } catch (error) {

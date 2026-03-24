@@ -2300,7 +2300,9 @@
       "removeColumn": "Remove Last Column",
       "columnsInfo": "{{count}} columns",
       "noDisciplines": "No apparatus found for this event. Please create competitions with apparatus first.",
-      "info": "Each row is one rotation slot (interval: {{interval}} min.). The time is calculated from the first session start time plus the rotation interval from settings."
+      "info": "Each row is one rotation slot (interval: {{interval}} min.). The time is calculated from the first session start time plus the rotation interval from settings.",
+      "dragHint": "Drag columns to reorder",
+      "saveError": "Failed to save. Please try again."
     },
     "timeRange": {
       "from": "From",

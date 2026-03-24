@@ -441,4 +441,155 @@ describe('TimePlanning', () => {
       expect(withOrder[2]).toEqual({ name: 'B', order: 3 });
     });
   });
+
+  // ── Schedule Matrix (Zeitplan-Tabelle) ──────────────────────────────────────
+
+  describe('ScheduleMatrix — calculateRoundTime', () => {
+    // Pure helpers, exported from ScheduleMatrixView for unit testing
+    function addMinutes(timeStr: string, minutes: number): string {
+      const [h, m] = timeStr.split(':').map(Number);
+      const total = h * 60 + m + minutes;
+      return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    }
+    function calcRoundTime(base: string, round: number, interval: number): string {
+      return addMinutes(base, (round - 1) * interval);
+    }
+
+    it('round 1 equals base time', () => {
+      expect(calcRoundTime('09:00', 1, 20)).toBe('09:00');
+    });
+
+    it('round 2 is base + interval', () => {
+      expect(calcRoundTime('09:00', 2, 20)).toBe('09:20');
+    });
+
+    it('round 5 with 30 min interval', () => {
+      expect(calcRoundTime('08:00', 5, 30)).toBe('10:00');
+    });
+
+    it('wraps correctly past midnight', () => {
+      expect(calcRoundTime('23:50', 2, 20)).toBe('00:10');
+    });
+  });
+
+  describe('ScheduleMatrix — applyColOrder', () => {
+    type Disc = { id: number; name: string; shortName: string };
+    const discs: Disc[] = [
+      { id: 1, name: 'Boden', shortName: 'BO' },
+      { id: 2, name: 'Sprung', shortName: 'SP' },
+      { id: 3, name: 'Reck', shortName: 'RE' },
+    ];
+
+    function applyColOrder(disciplines: Disc[], savedIds: number[]): Disc[] {
+      if (savedIds.length === 0) return disciplines;
+      return [...disciplines].sort((a, b) => {
+        const ia = savedIds.indexOf(a.id);
+        const ib = savedIds.indexOf(b.id);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+
+    it('returns original order when no saved ids', () => {
+      const result = applyColOrder(discs, []);
+      expect(result.map(d => d.id)).toEqual([1, 2, 3]);
+    });
+
+    it('reorders according to saved ids', () => {
+      const result = applyColOrder(discs, [3, 1, 2]);
+      expect(result.map(d => d.id)).toEqual([3, 1, 2]);
+    });
+
+    it('appends unknown disciplines at the end', () => {
+      const result = applyColOrder(discs, [2]);
+      expect(result[0].id).toBe(2);
+      // remaining in stable order at the end
+      expect(result.slice(1).map(d => d.id)).toContain(1);
+      expect(result.slice(1).map(d => d.id)).toContain(3);
+    });
+
+    it('handles empty disciplines array', () => {
+      const result = applyColOrder([], [1, 2]);
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('ScheduleMatrix — localStorage column order', () => {
+    const eventId = 'test-event-42';
+    const storageKey = `schedule-matrix-cols-${eventId}`;
+
+    function loadColOrder(id: string): number[] {
+      try {
+        const v = localStorage.getItem(`schedule-matrix-cols-${id}`);
+        return v ? (JSON.parse(v) as number[]) : [];
+      } catch { return []; }
+    }
+    function saveColOrder(id: string, disciplines: { id: number }[]): void {
+      localStorage.setItem(
+        `schedule-matrix-cols-${id}`,
+        JSON.stringify(disciplines.map(d => d.id))
+      );
+    }
+
+    beforeEach(() => {
+      localStorage.removeItem(storageKey);
+    });
+
+    it('returns empty array when nothing saved', () => {
+      expect(loadColOrder(eventId)).toEqual([]);
+    });
+
+    it('saves and loads column order', () => {
+      saveColOrder(eventId, [{ id: 3 }, { id: 1 }, { id: 2 }]);
+      expect(loadColOrder(eventId)).toEqual([3, 1, 2]);
+    });
+
+    it('returns empty array on corrupt localStorage entry', () => {
+      localStorage.setItem(storageKey, 'not valid json {{{');
+      expect(loadColOrder(eventId)).toEqual([]);
+    });
+
+    it('isolates storage per eventId', () => {
+      saveColOrder('event-A', [{ id: 10 }, { id: 20 }]);
+      saveColOrder('event-B', [{ id: 99 }]);
+      expect(loadColOrder('event-A')).toEqual([10, 20]);
+      expect(loadColOrder('event-B')).toEqual([99]);
+    });
+  });
+
+  describe('ScheduleMatrix — maxRound calculation (server logic)', () => {
+    /**
+     * Replicates the server-side maxRound logic from timePlanning.ts:
+     *   maxRound = Math.max(maxAssignedRound, squads.length, 1)
+     */
+    function calcMaxRound(assignments: { round: number }[], squads: string[]): number {
+      const maxAssignedRound = assignments.length > 0
+        ? Math.max(...assignments.map(a => a.round))
+        : 0;
+      return Math.max(maxAssignedRound, squads.length, 1);
+    }
+
+    it('returns 1 when no assignments and no squads', () => {
+      expect(calcMaxRound([], [])).toBe(1);
+    });
+
+    it('returns squads.length when no assignments yet', () => {
+      expect(calcMaxRound([], ['A', 'B', 'C'])).toBe(3);
+    });
+
+    it('returns highest assigned round', () => {
+      expect(calcMaxRound([{ round: 1 }, { round: 4 }, { round: 2 }], ['A', 'B'])).toBe(4);
+    });
+
+    it('prefers squads.length over max round when squads > rounds', () => {
+      expect(calcMaxRound([{ round: 1 }], ['A', 'B', 'C', 'D', 'E'])).toBe(5);
+    });
+
+    it('partial row fill does not shrink the table below squad count', () => {
+      // Only row 1 of 3 squads has data — table must still show 3 rows
+      expect(calcMaxRound([{ round: 1 }], ['A', 'B', 'C'])).toBe(3);
+    });
+  });
 });
