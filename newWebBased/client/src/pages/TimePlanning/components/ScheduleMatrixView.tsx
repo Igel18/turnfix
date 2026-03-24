@@ -15,7 +15,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
 import { apiGet, apiPut } from '@/utils/api';
-import type { TimeSettings, MatrixData, MatrixDiscipline } from '../TimePlanning.types';
+import type { TimeSettings, MatrixData, MatrixDiscipline, SessionGroup } from '../TimePlanning.types';
 
 // ── localStorage column-order helpers ────────────────────────────────────────
 
@@ -68,6 +68,69 @@ export function calculateRoundTime(baseTime: string, round: number, intervalMinu
 }
 
 /**
+ * Build a round → time map for the schedule matrix.
+ *
+ * The rotation interval for each session is derived from:
+ *   maxSquadParticipantCount × exerciseDurationMinutes
+ * (the same formula used in the Durchgänge view).
+ *
+ * Sessions are separated by their configured startTime.  The number of rounds
+ * that fit in a session is:  floor((nextSessionStart - thisSessionStart) / interval).
+ * The last (or only) session receives all remaining rounds.
+ *
+ * Falls back to an empty map when sessionGroups is empty/missing, so callers
+ * can fall back to the simple calculateRoundTime helper.
+ */
+export function buildRoundTimeMap(
+  totalRounds: number,
+  sessionGroups: Pick<SessionGroup, 'session' | 'startTime' | 'squads'>[],
+  exerciseDurationMinutes: number,
+  fallbackIntervalMinutes: number
+): Map<number, string> {
+  const result = new Map<number, string>();
+
+  const sorted = [...sessionGroups]
+    .filter(sg => sg.startTime)
+    .sort((a, b) => (a.startTime! < b.startTime! ? -1 : 1));
+
+  if (sorted.length === 0) return result;
+
+  const toMinutes = (t: string): number => {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  let currentRound = 1;
+  for (let si = 0; si < sorted.length; si++) {
+    const sg = sorted[si];
+    const maxParticipants =
+      sg.squads.length > 0
+        ? Math.max(...sg.squads.map(s => s.participantCount || 1))
+        : 1;
+    const interval = Math.max(
+      1,
+      maxParticipants > 0 ? maxParticipants * exerciseDurationMinutes : fallbackIntervalMinutes
+    );
+    const start = sg.startTime!;
+
+    let roundsInSession: number;
+    if (si < sorted.length - 1) {
+      const nextStart = sorted[si + 1].startTime!;
+      const durationMinutes = toMinutes(nextStart) - toMinutes(start);
+      roundsInSession = Math.max(1, Math.floor(durationMinutes / interval));
+    } else {
+      roundsInSession = totalRounds - currentRound + 1;
+    }
+
+    for (let idx = 0; idx < roundsInSession && currentRound <= totalRounds; idx++, currentRound++) {
+      result.set(currentRound, addMinutesToTime(start, idx * interval));
+    }
+  }
+
+  return result;
+}
+
+/**
  * Compute the set of conflicting cell keys ("disciplineId_round") where the
  * same squad is assigned to more than one discipline in the same round.
  * Pure function — safe to call in tests without any React context.
@@ -113,8 +176,8 @@ interface ScheduleMatrixViewProps {
   } | null;
   /** Callback to register the printMatrix function with the parent (for header button). */
   onRegisterPrint?: (fn: () => Promise<void>) => void;
-  /** Session groups for visual Durchgang separators (when there are 2+ sessions). */
-  sessionGroups?: { session: number; startTime: string | null }[];
+  /** Session groups for visual Durchgang separators and per-session interval calculation. */
+  sessionGroups?: SessionGroup[];
 }
 
 export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selectedEvent, onRegisterPrint, sessionGroups }: ScheduleMatrixViewProps) {
@@ -242,6 +305,16 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       const startTimePdf = baseStartTime || '09:00';
       const interval = timeSettings.rotationIntervalMinutes;
 
+      // Use the same per-session interval calculation as the UI
+      const pdfRoundTimeMap = buildRoundTimeMap(
+        localMaxRound,
+        sessionGroups ?? [],
+        timeSettings.exerciseDurationMinutes,
+        interval
+      );
+      const getPdfRoundTime = (r: number): string =>
+        pdfRoundTimeMap.get(r) ?? calculateRoundTime(startTimePdf, r, interval);
+
       const head = [
         [t('timePlanning.matrix.time'), ...localDisciplines.map(d => d.shortName || d.name)],
       ];
@@ -251,7 +324,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       let lastSession: number | null = null;
 
       Array.from({ length: localMaxRound }, (_, i) => i + 1).forEach(round => {
-        const timeStr = calculateRoundTime(startTimePdf, round, interval);
+        const timeStr = getPdfRoundTime(round);
 
         // Insert a Durchgang section header row when session changes
         if (sessionGroups && sessionGroups.length >= 2) {
@@ -312,6 +385,17 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const { squads } = matrixData;
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
+
+  // Per-session rotation intervals based on max squad size × exercise duration.
+  // Falls back to the fixed rotationIntervalMinutes when no sessionGroups are available.
+  const roundTimeMap = buildRoundTimeMap(
+    localMaxRound,
+    sessionGroups ?? [],
+    timeSettings.exerciseDurationMinutes,
+    intervalMinutes
+  );
+  const getRoundTime = (round: number): string =>
+    roundTimeMap.get(round) ?? calculateRoundTime(startTime, round, intervalMinutes);
 
   // Determine which session (Durchgang) a given round time belongs to.
   // Returns the session with the latest startTime that is <= roundTime.
@@ -423,9 +507,9 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {Array.from({ length: localMaxRound }, (_, i) => i + 1).map((round, idx) => {
-              const roundTime = calculateRoundTime(startTime, round, intervalMinutes);
+              const roundTime = getRoundTime(round);
               const sessionInfo = getSessionForTime(roundTime);
-              const prevRoundTime = idx > 0 ? calculateRoundTime(startTime, round - 1, intervalMinutes) : null;
+              const prevRoundTime = idx > 0 ? getRoundTime(round - 1) : null;
               const prevSessionInfo = prevRoundTime ? getSessionForTime(prevRoundTime) : null;
               const isNewSession = sessionInfo !== null && sessionInfo.session !== prevSessionInfo?.session;
               return (

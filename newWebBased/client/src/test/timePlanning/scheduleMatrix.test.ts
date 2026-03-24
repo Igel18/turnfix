@@ -8,6 +8,7 @@ import {
   addMinutesToTime,
   calculateRoundTime,
   buildConflictCells,
+  buildRoundTimeMap,
 } from '../../pages/TimePlanning/components/ScheduleMatrixView';
 
 // ── addMinutesToTime ──────────────────────────────────────────────────────────
@@ -176,5 +177,94 @@ describe('buildConflictCells', () => {
     expect(result.has('2_2')).toBe(true);
     expect(result.has('3_3')).toBe(false);
     expect(result.size).toBe(4);
+  });
+});
+
+// ── buildRoundTimeMap ─────────────────────────────────────────────────────────
+
+// Helper: create a minimal squad object for test inputs
+const squad = (name: string, participantCount: number) => ({
+  name,
+  participantCount,
+  competitions: [],
+  competitionIds: [],
+});
+
+describe('buildRoundTimeMap', () => {
+  it('returns empty map when sessionGroups is empty', () => {
+    const result = buildRoundTimeMap(5, [], 3, 20);
+    expect(result.size).toBe(0);
+  });
+
+  it('returns empty map when no session has a startTime', () => {
+    const sg = [{ session: 1, startTime: null, squads: [squad('wBlu', 5)] }];
+    const result = buildRoundTimeMap(3, sg, 3, 20);
+    expect(result.size).toBe(0);
+  });
+
+  it('single session: interval = maxParticipants × exerciseDuration', () => {
+    // 6 participants × 3 min = 18 min interval
+    const sg = [{ session: 1, startTime: '09:00', squads: [squad('wBlu', 6), squad('wRot', 4)] }];
+    const result = buildRoundTimeMap(3, sg, 3, 20);
+    expect(result.get(1)).toBe('09:00');
+    expect(result.get(2)).toBe('09:18'); // +18 min
+    expect(result.get(3)).toBe('09:36'); // +36 min
+  });
+
+  it('single session with one squad: covers all rounds', () => {
+    // 5 participants × 3 min = 15 min interval
+    const sg = [{ session: 1, startTime: '08:00', squads: [squad('wGrn', 5)] }];
+    const result = buildRoundTimeMap(4, sg, 3, 20);
+    expect(result.get(1)).toBe('08:00');
+    expect(result.get(2)).toBe('08:15');
+    expect(result.get(3)).toBe('08:30');
+    expect(result.get(4)).toBe('08:45');
+  });
+
+  it('two sessions: each session uses its own interval and start time', () => {
+    // Session 1: 6 participants × 3 min = 18 min, starts 09:00, window = 3h = 180 min → 10 rounds
+    // Session 2: 4 participants × 3 min = 12 min, starts 12:00
+    const sg = [
+      { session: 1, startTime: '09:00', squads: [squad('wBlu', 6)] },
+      { session: 2, startTime: '12:00', squads: [squad('wRot', 4)] },
+    ];
+    // 180 min / 18 min = 10 rounds in session 1
+    const result = buildRoundTimeMap(14, sg, 3, 20);
+    expect(result.get(1)).toBe('09:00');
+    expect(result.get(2)).toBe('09:18');
+    expect(result.get(10)).toBe('11:42'); // 09:00 + 9×18min = 09:00 + 162min = 11:42
+    // Session 2 starts at round 11
+    expect(result.get(11)).toBe('12:00');
+    expect(result.get(12)).toBe('12:12'); // +12 min
+    expect(result.get(14)).toBe('12:36'); // +36 min
+  });
+
+  it('two sessions: session with no squads falls back to 1×exerciseDuration', () => {
+    const sg = [
+      { session: 1, startTime: '09:00', squads: [] },               // no squads → maxPart=1 → interval=3
+      { session: 2, startTime: '09:30', squads: [squad('wBlu', 5)] }, // 5×3=15
+    ];
+    // Session 1: 30 min / 3 = 10 rounds; but totalRounds=4 so session 1 gets 4 (min of window and total remaining)
+    const result = buildRoundTimeMap(4, sg, 3, 20);
+    // Actually 30 min / 3 = 10 rounds → session 1 gets min(10, 4) = 4... all go to session 1
+    expect(result.get(1)).toBe('09:00');
+    expect(result.get(2)).toBe('09:03');
+    expect(result.get(3)).toBe('09:06');
+    expect(result.get(4)).toBe('09:09');
+  });
+
+  it('falls back to fallbackInterval when squads have 0 participants', () => {
+    // participantCount=0 → maxParticipants=1 (Math.max(1,...)), interval = 1×3 = 3
+    const sg = [{ session: 1, startTime: '10:00', squads: [squad('wBlu', 0)] }];
+    const result = buildRoundTimeMap(2, sg, 3, 20);
+    expect(result.get(1)).toBe('10:00');
+    expect(result.get(2)).toBe('10:03'); // 1×3 = 3 min interval
+  });
+
+  it('covers exactly totalRounds even if computed session capacity exceeds it', () => {
+    const sg = [{ session: 1, startTime: '09:00', squads: [squad('wBlu', 3)] }]; // interval=9
+    const result = buildRoundTimeMap(3, sg, 3, 20);
+    expect(result.size).toBe(3);
+    expect(result.get(3)).toBe('09:18');
   });
 });
