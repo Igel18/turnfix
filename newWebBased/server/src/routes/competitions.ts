@@ -27,6 +27,7 @@ import {
   buildUpdateResponse,
   formatTime,
   parseTimeInput,
+  normalizeNullableTime,
   ageToBirthYear,
   type BereichInfo
 } from '../utils/competitionHelpers';
@@ -58,10 +59,10 @@ const createCompetitionSchema = z.object({
   round: z.number().min(1).max(10).optional(),
   track: z.number().min(1).max(20).optional(),
   competitionType: z.number().min(0).max(2).optional(),
-  startTime: z.string().optional(),
-  startDate: z.string().optional(),
-  warmupTime: z.string().optional(),
-  warmupDate: z.string().optional(),
+  startTime: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
+  warmupTime: z.string().nullable().optional(),
+  warmupDate: z.string().nullable().optional(),
   qualifiers: z.number().min(0).max(999).optional(),
   evaluations: z.number().min(1).max(10).optional(),
   dropWorstScore: z.boolean().optional(),
@@ -340,8 +341,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       validatedData.manualSort || false,
       validatedData.useApparatusPoints || false,
       validatedData.dropCount || 0,
-      parseTimeInput(validatedData.startTime, validatedData.startDate),
-      parseTimeInput(validatedData.warmupTime, validatedData.warmupDate)
+      parseTimeInput(normalizeNullableTime(validatedData.startTime), normalizeNullableTime(validatedData.startDate)),
+      parseTimeInput(normalizeNullableTime(validatedData.warmupTime), normalizeNullableTime(validatedData.warmupDate))
     ) as any[];
 
     const competitionId = insertedCompetition[0].int_wettkaempfeid;

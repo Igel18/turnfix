@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
+import { buildMatrixCellDeleteWhere, deduplicateAssignments } from '../utils/matrixHelpers';
 
 import { z } from 'zod';
 
@@ -585,17 +586,13 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
         shortName: d.tfx_disziplinen?.var_kurz1 || '',
       }));
 
-    // Existing matrix cell assignments
+    // Existing matrix cell assignments — deduplicated to remove legacy
+    // int_runde=NULL rows that may coexist with explicit int_runde=1 rows.
     const rawAssignments = await prisma.tfx_riegen_x_disziplinen.findMany({
       where: { int_veranstaltungenid: eventIdNum },
       select: { int_disziplinenid: true, int_runde: true, var_riege: true, bol_erstes_geraet: true },
     });
-    const assignments = rawAssignments.map(a => ({
-      disciplineId: a.int_disziplinenid,
-      round: a.int_runde ?? 1,
-      squadName: a.var_riege ?? '',
-      isFirstDevice: a.bol_erstes_geraet ?? false,
-    }));
+    const assignments = deduplicateAssignments(rawAssignments);
 
     // Merge disciplines that have assignments but are not linked to competitions
     const assignmentDiscIds = new Set(rawAssignments.map(a => a.int_disziplinenid));
@@ -656,36 +653,28 @@ router.put('/matrix/cell', authenticateToken, async (req: AuthRequest, res) => {
     });
     const { eventId, disciplineId, round, squadName } = schema.parse(req.body);
 
+    // Always delete all matching rows first (handles both legacy int_runde=NULL
+    // and explicit int_runde=N rows) to prevent ghost duplicates, then recreate.
+    await prisma.tfx_riegen_x_disziplinen.deleteMany({
+      where: buildMatrixCellDeleteWhere(eventId, disciplineId, round) as any,
+    });
+
     if (!squadName) {
-      await prisma.tfx_riegen_x_disziplinen.deleteMany({
-        where: { int_veranstaltungenid: eventId, int_disziplinenid: disciplineId, int_runde: round },
-      });
       return res.json({ success: true, action: 'deleted' });
     }
 
-    const existing = await prisma.tfx_riegen_x_disziplinen.findFirst({
-      where: { int_veranstaltungenid: eventId, int_disziplinenid: disciplineId, int_runde: round },
+    const status = await prisma.tfx_status.findFirst({ orderBy: { int_statusid: 'asc' } });
+    if (!status) return res.status(500).json({ error: 'No status available in database' });
+    await prisma.tfx_riegen_x_disziplinen.create({
+      data: {
+        int_veranstaltungenid: eventId,
+        int_disziplinenid: disciplineId,
+        int_statusid: status.int_statusid,
+        var_riege: squadName,
+        int_runde: round,
+        bol_erstes_geraet: false,
+      },
     });
-
-    if (existing) {
-      await prisma.tfx_riegen_x_disziplinen.update({
-        where: { int_riegen_x_disziplinenid: existing.int_riegen_x_disziplinenid },
-        data: { var_riege: squadName },
-      });
-    } else {
-      const status = await prisma.tfx_status.findFirst({ orderBy: { int_statusid: 'asc' } });
-      if (!status) return res.status(500).json({ error: 'No status available in database' });
-      await prisma.tfx_riegen_x_disziplinen.create({
-        data: {
-          int_veranstaltungenid: eventId,
-          int_disziplinenid: disciplineId,
-          int_statusid: status.int_statusid,
-          var_riege: squadName,
-          int_runde: round,
-          bol_erstes_geraet: false,
-        },
-      });
-    }
 
     res.json({ success: true, action: 'saved', squadName });
   } catch (error) {

@@ -47,10 +47,10 @@ const createCompetitionSchema = zod_1.z.object({
     round: zod_1.z.number().min(1).max(10).optional(),
     track: zod_1.z.number().min(1).max(20).optional(),
     competitionType: zod_1.z.number().min(0).max(2).optional(),
-    startTime: zod_1.z.string().optional(),
-    startDate: zod_1.z.string().optional(),
-    warmupTime: zod_1.z.string().optional(),
-    warmupDate: zod_1.z.string().optional(),
+    startTime: zod_1.z.string().nullable().optional(),
+    startDate: zod_1.z.string().nullable().optional(),
+    warmupTime: zod_1.z.string().nullable().optional(),
+    warmupDate: zod_1.z.string().nullable().optional(),
     qualifiers: zod_1.z.number().min(0).max(999).optional(),
     evaluations: zod_1.z.number().min(1).max(10).optional(),
     dropWorstScore: zod_1.z.boolean().optional(),
@@ -267,7 +267,7 @@ router.post('/', authBypass_1.authenticateToken, async (req, res) => {
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
         $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
       ) RETURNING int_wettkaempfeid
-    `, validatedData.eventId, bereich.int_bereicheid, validatedData.number || null, validatedData.name, birthYearFrom, birthYearTo, validatedData.competitionType ?? 0, validatedData.qualifiers || 0, validatedData.evaluations || 1, validatedData.dropWorstScore || false, validatedData.showAgeGroup || false, validatedData.isOptionalCompetition || false, validatedData.round || 1, validatedData.track || 1, validatedData.showInfo || false, validatedData.useCompulsoryProgram || false, validatedData.sortAscending || false, validatedData.manualSort || false, validatedData.useApparatusPoints || false, validatedData.dropCount || 0, (0, competitionHelpers_1.parseTimeInput)(validatedData.startTime, validatedData.startDate), (0, competitionHelpers_1.parseTimeInput)(validatedData.warmupTime, validatedData.warmupDate));
+    `, validatedData.eventId, bereich.int_bereicheid, validatedData.number || null, validatedData.name, birthYearFrom, birthYearTo, validatedData.competitionType ?? 0, validatedData.qualifiers || 0, validatedData.evaluations || 1, validatedData.dropWorstScore || false, validatedData.showAgeGroup || false, validatedData.isOptionalCompetition || false, validatedData.round || 1, validatedData.track || 1, validatedData.showInfo || false, validatedData.useCompulsoryProgram || false, validatedData.sortAscending || false, validatedData.manualSort || false, validatedData.useApparatusPoints || false, validatedData.dropCount || 0, (0, competitionHelpers_1.parseTimeInput)((0, competitionHelpers_1.normalizeNullableTime)(validatedData.startTime), (0, competitionHelpers_1.normalizeNullableTime)(validatedData.startDate)), (0, competitionHelpers_1.parseTimeInput)((0, competitionHelpers_1.normalizeNullableTime)(validatedData.warmupTime), (0, competitionHelpers_1.normalizeNullableTime)(validatedData.warmupDate)));
         const competitionId = insertedCompetition[0].int_wettkaempfeid;
         // Link disciplines
         for (let i = 0; i < validatedData.disciplines.length; i++) {

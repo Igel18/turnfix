@@ -182,6 +182,23 @@ export function parseTimeInput(time: string | undefined, date?: string): Date | 
   return new Date(1970, 0, 1, parseInt(hours), parseInt(minutes), 0, 0);
 }
 
+/**
+ * Normalize a time value that may arrive as null from the client or legacy DB.
+ *
+ * The competition update route receives `startTime` / `warmupTime` from the
+ * client as `string | null | undefined`.  `parseTimeInput` only accepts
+ * `string | undefined`.  Passing `null` directly caused a Zod / TS error in
+ * production against the real DB where those columns are NULL.
+ *
+ * Rule: null  → undefined (= "no value, leave as-is / write NULL to DB")
+ *       ""    → undefined (empty string is the same as no value)
+ *       "HH:MM" → "HH:MM" (valid time string, pass through)
+ */
+export function normalizeNullableTime(value: string | null | undefined): string | undefined {
+  if (value === null || value === undefined || value.trim() === '') return undefined;
+  return value;
+}
+
 // ============================================================================
 // Age ↔ Birth-Year Conversion
 // ============================================================================
@@ -358,10 +375,10 @@ export function buildUpdateData(
 
   // Time fields — local timezone only
   if (validatedData.startTime !== undefined) {
-    updateData.tim_startzeit = parseTimeInput(validatedData.startTime || undefined);
+    updateData.tim_startzeit = parseTimeInput(normalizeNullableTime(validatedData.startTime));
   }
   if (validatedData.warmupTime !== undefined) {
-    updateData.tim_einturnen = parseTimeInput(validatedData.warmupTime || undefined);
+    updateData.tim_einturnen = parseTimeInput(normalizeNullableTime(validatedData.warmupTime));
   }
 
   if (validatedData.qualifiers !== undefined) updateData.int_qualifikation = validatedData.qualifiers;
