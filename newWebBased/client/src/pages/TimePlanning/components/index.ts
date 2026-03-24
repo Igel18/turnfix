@@ -5,5 +5,5 @@
 
 export { HelpPanels } from './HelpPanels';
 export { SessionsView } from './SessionsView';
-export { GanttView } from './GanttView';
 export { TimeSettingsModal } from './TimeSettingsModal';
+export { EditCompetitionModal } from './EditCompetitionModal';
