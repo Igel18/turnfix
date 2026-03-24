@@ -48,7 +48,11 @@ export default function TimePlanning() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [squads, setSquads] = useState<Squad[]>([]);
   const [squadDisciplines, setSquadDisciplines] = useState<any[]>([]);
-  const [timeSettings, setTimeSettings] = useState<TimeSettings>(DEFAULT_TIME_SETTINGS);
+  const [timeSettings, setTimeSettings] = useState<TimeSettings>(() => {
+    // Settings are stored in localStorage per event (no dedicated DB column exists)
+    // They are loaded again when the eventId changes (see loadData).
+    return DEFAULT_TIME_SETTINGS;
+  });
   
   // Cache for competitionId -> disciplines (useRef to persist across renders)
   const disciplineCache = useRef<{ [competitionId: number]: any[] }>({});
@@ -86,6 +90,23 @@ export default function TimePlanning() {
     }
   });
 
+  // ====== TIME SETTINGS — localStorage persistence ======
+  const TIME_SETTINGS_KEY = (id: string) => `time-planning-settings-${id}`;
+
+  const loadTimeSettingsFromStorage = (id: string): TimeSettings => {
+    try {
+      const raw = localStorage.getItem(TIME_SETTINGS_KEY(id));
+      if (raw) return { ...DEFAULT_TIME_SETTINGS, ...JSON.parse(raw) };
+    } catch { /* ignore */ }
+    return DEFAULT_TIME_SETTINGS;
+  };
+
+  const saveTimeSettingsToStorage = (id: string, settings: TimeSettings) => {
+    try {
+      localStorage.setItem(TIME_SETTINGS_KEY(id), JSON.stringify(settings));
+    } catch { /* ignore */ }
+  };
+
   // ====== DATA LOADING ======
   const refetch = () => {
     loadData();
@@ -93,6 +114,7 @@ export default function TimePlanning() {
 
   useEffect(() => {
     if (eventId) {
+      setTimeSettings(loadTimeSettingsFromStorage(eventId));
       loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -367,13 +389,11 @@ export default function TimePlanning() {
 
   // ====== EVENT HANDLERS ======
   
-  const saveTimeSettings = async () => {
-    try {
-      await apiPut(`/events/${eventId}/time-settings`, timeSettings);
-      setShowTimeSettings(false);
-    } catch (error) {
-      console.error('Error saving time settings:', error);
+  const saveTimeSettings = () => {
+    if (eventId) {
+      saveTimeSettingsToStorage(eventId, timeSettings);
     }
+    setShowTimeSettings(false);
   };
 
   const generateAutomaticSchedule = () => {

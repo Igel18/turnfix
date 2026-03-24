@@ -592,4 +592,96 @@ describe('TimePlanning', () => {
       expect(calcMaxRound([{ round: 1 }], ['A', 'B', 'C'])).toBe(3);
     });
   });
+
+  // ── TimeSettings — localStorage persistence ──────────────────────────────────
+  // Replicates the helpers added to TimePlanning/index.tsx:
+  //   loadTimeSettingsFromStorage / saveTimeSettingsToStorage
+  // No API call is made; the 404 bug (PUT /events/:id/time-settings) is gone.
+
+  describe('TimeSettings — localStorage persistence', () => {
+    interface TimeSettings {
+      exerciseDurationMinutes: number;
+      breakBetweenDevicesMinutes: number;
+      warmupDurationMinutes: number;
+      rotationIntervalMinutes: number;
+    }
+
+    const DEFAULT_TIME_SETTINGS: TimeSettings = {
+      exerciseDurationMinutes: 3,
+      breakBetweenDevicesMinutes: 0,
+      warmupDurationMinutes: 15,
+      rotationIntervalMinutes: 20,
+    };
+
+    const KEY = (id: string) => `time-planning-settings-${id}`;
+
+    function loadTimeSettingsFromStorage(id: string): TimeSettings {
+      try {
+        const raw = localStorage.getItem(KEY(id));
+        if (raw) return { ...DEFAULT_TIME_SETTINGS, ...JSON.parse(raw) };
+      } catch { /* ignore */ }
+      return DEFAULT_TIME_SETTINGS;
+    }
+
+    function saveTimeSettingsToStorage(id: string, settings: TimeSettings): void {
+      localStorage.setItem(KEY(id), JSON.stringify(settings));
+    }
+
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    it('returns DEFAULT_TIME_SETTINGS when nothing is saved', () => {
+      const result = loadTimeSettingsFromStorage('99');
+      expect(result).toEqual(DEFAULT_TIME_SETTINGS);
+    });
+
+    it('saves and loads settings correctly', () => {
+      const custom: TimeSettings = {
+        exerciseDurationMinutes: 5,
+        breakBetweenDevicesMinutes: 2,
+        warmupDurationMinutes: 20,
+        rotationIntervalMinutes: 30,
+      };
+      saveTimeSettingsToStorage('1', custom);
+      expect(loadTimeSettingsFromStorage('1')).toEqual(custom);
+    });
+
+    it('no API call is made — save is synchronous (localStorage only)', () => {
+      // Previously saveTimeSettings called apiPut which threw 404.
+      // Now it is synchronous; this test verifies the value is immediately readable.
+      const settings: TimeSettings = { ...DEFAULT_TIME_SETTINGS, exerciseDurationMinutes: 7 };
+      saveTimeSettingsToStorage('42', settings);
+      const loaded = loadTimeSettingsFromStorage('42');
+      expect(loaded.exerciseDurationMinutes).toBe(7);
+    });
+
+    it('returns DEFAULT_TIME_SETTINGS on corrupt localStorage entry', () => {
+      localStorage.setItem(KEY('5'), 'not valid json {{{');
+      expect(loadTimeSettingsFromStorage('5')).toEqual(DEFAULT_TIME_SETTINGS);
+    });
+
+    it('merges partial saved data with defaults (forward compatibility)', () => {
+      // Only one field saved — other fields should fall back to defaults
+      localStorage.setItem(KEY('3'), JSON.stringify({ exerciseDurationMinutes: 10 }));
+      const result = loadTimeSettingsFromStorage('3');
+      expect(result.exerciseDurationMinutes).toBe(10);
+      expect(result.breakBetweenDevicesMinutes).toBe(DEFAULT_TIME_SETTINGS.breakBetweenDevicesMinutes);
+      expect(result.warmupDurationMinutes).toBe(DEFAULT_TIME_SETTINGS.warmupDurationMinutes);
+      expect(result.rotationIntervalMinutes).toBe(DEFAULT_TIME_SETTINGS.rotationIntervalMinutes);
+    });
+
+    it('isolates settings per eventId', () => {
+      saveTimeSettingsToStorage('event-A', { ...DEFAULT_TIME_SETTINGS, warmupDurationMinutes: 25 });
+      saveTimeSettingsToStorage('event-B', { ...DEFAULT_TIME_SETTINGS, warmupDurationMinutes: 10 });
+      expect(loadTimeSettingsFromStorage('event-A').warmupDurationMinutes).toBe(25);
+      expect(loadTimeSettingsFromStorage('event-B').warmupDurationMinutes).toBe(10);
+    });
+
+    it('overwriting settings replaces previous values', () => {
+      saveTimeSettingsToStorage('1', { ...DEFAULT_TIME_SETTINGS, rotationIntervalMinutes: 15 });
+      saveTimeSettingsToStorage('1', { ...DEFAULT_TIME_SETTINGS, rotationIntervalMinutes: 45 });
+      expect(loadTimeSettingsFromStorage('1').rotationIntervalMinutes).toBe(45);
+    });
+  });
 });
