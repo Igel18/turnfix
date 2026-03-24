@@ -11,42 +11,26 @@
  * Column order is persisted in localStorage per eventId (no schema change needed).
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
 import { apiGet, apiPut } from '@/utils/api';
-import type { TimeSettings, MatrixData, MatrixDiscipline, SessionGroup } from '../TimePlanning.types';
+import type { TimeSettings, MatrixData, SessionGroup } from '../TimePlanning.types';
+import {
+  parseStoredColumns,
+  serializeColumns,
+  buildColumnList,
+  consolidateColumns,
+  addDisciplineColumn,
+  removeLastDisciplineColumn,
+  removeDisciplineColumn,
+  reorderColumns,
+  colKey,
+  type StoredColumn,
+  type DisciplineColumn,
+} from '../matrixColumnHelpers';
 
-// ── localStorage column-order helpers ────────────────────────────────────────
-
-function loadColOrder(eventId: string): number[] {
-  try {
-    const v = localStorage.getItem(`schedule-matrix-cols-${eventId}`);
-    return v ? (JSON.parse(v) as number[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveColOrder(eventId: string, disciplines: MatrixDiscipline[]): void {
-  localStorage.setItem(
-    `schedule-matrix-cols-${eventId}`,
-    JSON.stringify(disciplines.map(d => d.id))
-  );
-}
-
-/** Re-order disciplines according to saved ids; unknowns are appended at the end. */
-function applyColOrder(disciplines: MatrixDiscipline[], savedIds: number[]): MatrixDiscipline[] {
-  if (savedIds.length === 0) return disciplines;
-  return [...disciplines].sort((a, b) => {
-    const ia = savedIds.indexOf(a.id);
-    const ib = savedIds.indexOf(b.id);
-    if (ia === -1 && ib === -1) return 0;
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
-}
+const LS_KEY = (eventId: string) => `schedule-matrix-cols-${eventId}`;
 
 // ── Pure helpers (exported for unit testing) ─────────────────────────────────
 
@@ -185,13 +169,19 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [localMaxRound, setLocalMaxRound] = useState(1);
-  const [localDisciplines, setLocalDisciplines] = useState<MatrixDiscipline[]>([]);
+  const [storedColumns, setStoredColumns] = useState<StoredColumn[]>([]);
   const [savingCell, setSavingCell] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Drag-and-drop column state
-  const [dragColId, setDragColId] = useState<number | null>(null);
-  const [dragOverColId, setDragOverColId] = useState<number | null>(null);
+  // Derived: fully resolved column list (discipline + pause in stored order)
+  const localColumns = useMemo(
+    () => buildColumnList(storedColumns, matrixData?.disciplines ?? []),
+    [storedColumns, matrixData]
+  );
+
+  // Drag-and-drop column state (string key: 'd|<id>' or 'p|<pauseId>')
+  const [dragColKey, setDragColKey] = useState<string | null>(null);
+  const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
 
   const loadMatrix = useCallback(async () => {
     setLoading(true);
@@ -199,9 +189,16 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       const data: MatrixData = await apiGet(`/time-planning/matrix?eventId=${eventId}`);
       setMatrixData(data);
       setLocalMaxRound(Math.max(data.maxRound, 1));
-      // Apply saved column order (persisted in localStorage per event)
-      const savedOrder = loadColOrder(eventId);
-      setLocalDisciplines(applyColOrder(data.disciplines, savedOrder));
+      // Restore / initialise column order from localStorage
+      let stored = parseStoredColumns(localStorage.getItem(LS_KEY(eventId)));
+      if (stored.length === 0) {
+        // First visit: seed with default discipline order from API
+        stored = data.disciplines.map(d => ({ t: 'd' as const, id: d.id }));
+      } else {
+        // Ensure disciplines added to competitions after last save are appended
+        stored = consolidateColumns(stored, data.disciplines);
+      }
+      setStoredColumns(stored);
     } catch (e) {
       console.error('[ScheduleMatrixView] Failed to load matrix data', e);
     } finally {
@@ -253,40 +250,50 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
 
   // ── Column drag-and-drop ─────────────────────────────────────────────────────
 
-  const handleColDragStart = (e: React.DragEvent, id: number) => {
-    setDragColId(id);
+  const handleColDragStart = (e: React.DragEvent, key: string) => {
+    setDragColKey(key);
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleColDragOver = (e: React.DragEvent, id: number) => {
+  const handleColDragOver = (e: React.DragEvent, key: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    setDragOverColId(id);
+    setDragOverColKey(key);
   };
 
-  const handleColDrop = (e: React.DragEvent, targetId: number) => {
+  const handleColDrop = (e: React.DragEvent, targetKey: string) => {
     e.preventDefault();
-    if (dragColId === null || dragColId === targetId) {
-      setDragColId(null);
-      setDragOverColId(null);
+    if (!dragColKey || dragColKey === targetKey) {
+      setDragColKey(null);
+      setDragOverColKey(null);
       return;
     }
-    setLocalDisciplines(prev => {
-      const next = [...prev];
-      const fromIdx = next.findIndex(d => d.id === dragColId);
-      const toIdx = next.findIndex(d => d.id === targetId);
-      const [item] = next.splice(fromIdx, 1);
-      next.splice(toIdx, 0, item);
-      saveColOrder(eventId, next);
+    const keyToStoredIdx = (k: string): number => {
+      if (k.startsWith('d|')) {
+        const id = parseInt(k.slice(2));
+        return storedColumns.findIndex(s => s.t === 'd' && s.id === id);
+      }
+      if (k.startsWith('p|')) {
+        const id = k.slice(2);
+        return storedColumns.findIndex(s => s.t === 'p' && s.id === id);
+      }
+      return -1;
+    };
+    const fromIdx = keyToStoredIdx(dragColKey);
+    const toIdx   = keyToStoredIdx(targetKey);
+    if (fromIdx === -1 || toIdx === -1) { setDragColKey(null); setDragOverColKey(null); return; }
+    setStoredColumns(prev => {
+      const next = reorderColumns(prev, fromIdx, toIdx);
+      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
       return next;
     });
-    setDragColId(null);
-    setDragOverColId(null);
+    setDragColKey(null);
+    setDragOverColKey(null);
   };
 
   const handleColDragEnd = () => {
-    setDragColId(null);
-    setDragOverColId(null);
+    setDragColKey(null);
+    setDragOverColKey(null);
   };
 
   // ── printMatrix — defined here (before early returns) to satisfy Rules of Hooks ──
@@ -315,11 +322,14 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       const getPdfRoundTime = (r: number): string =>
         pdfRoundTimeMap.get(r) ?? calculateRoundTime(startTimePdf, r, interval);
 
+      // PDF only shows discipline columns (pause columns are visual spacers only)
+      const pdfColumns = localColumns.filter((c): c is DisciplineColumn => c.kind === 'discipline');
+
       const head = [
-        [t('timePlanning.matrix.time'), ...localDisciplines.map(d => d.shortName || d.name)],
+        [t('timePlanning.matrix.time'), ...pdfColumns.map(d => d.shortName || d.name)],
       ];
 
-      const colCount = localDisciplines.length + 1; // time column + discipline columns
+      const colCount = pdfColumns.length + 1; // time column + discipline columns
       const body: any[] = [];
       let lastSession: number | null = null;
 
@@ -344,7 +354,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
           }
         }
 
-        body.push([timeStr, ...localDisciplines.map(d =>
+        body.push([timeStr, ...pdfColumns.map(d =>
           matrixData?.assignments.find(a => a.disciplineId === d.id && a.round === round)?.squadName || ''
         )]);
       });
@@ -362,7 +372,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
     } catch (err) {
       console.error('[ScheduleMatrixView] PDF print failed', err);
     }
-  }, [localMaxRound, localDisciplines, matrixData, baseStartTime, timeSettings, selectedEvent, eventId, t]);
+  }, [localMaxRound, localColumns, matrixData, baseStartTime, timeSettings, selectedEvent, eventId, t]);
 
   // Register print function with parent so the header button can trigger it
   useEffect(() => {
@@ -417,31 +427,61 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   // squad appears in more than one discipline in the same round (conflict).
   const conflictCells = buildConflictCells(matrixData?.assignments ?? []);
 
-  const localDiscIds = new Set(localDisciplines.map(d => d.id));
-  const availableForPicker = (matrixData.availableDisciplines ?? []).filter(d => !localDiscIds.has(d.id));
+  // localColumns is derived via useMemo (declared above printMatrix for closure access)
+  const discColumnsCount = localColumns.filter(c => c.kind === 'discipline').length;
+
+  const shownDiscIds = new Set(
+    localColumns.filter((c): c is DisciplineColumn => c.kind === 'discipline').map(c => c.id)
+  );
+  const availableForPicker = (matrixData.availableDisciplines ?? []).filter(d => !shownDiscIds.has(d.id));
 
   const handleAddColumn = (disciplineIdStr: string) => {
     const disciplineId = parseInt(disciplineIdStr);
     if (!disciplineId) return;
-    const disc = (matrixData.availableDisciplines ?? []).find(d => d.id === disciplineId);
-    if (disc) {
-      setLocalDisciplines(prev => {
-        const next = [...prev, disc];
-        saveColOrder(eventId, next);
-        return next;
-      });
-    }
-  };
-
-  const handleRemoveLastColumn = () => {
-    setLocalDisciplines(prev => {
-      const next = prev.slice(0, -1);
-      saveColOrder(eventId, next);
+    setStoredColumns(prev => {
+      const next = addDisciplineColumn(prev, disciplineId);
+      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
       return next;
     });
   };
 
-  if (localDisciplines.length === 0 && availableForPicker.length === 0) {
+  const handleRemoveLastColumn = () => {
+    setStoredColumns(prev => {
+      const next = removeLastDisciplineColumn(prev);
+      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
+      return next;
+    });
+  };
+
+  /** Remove a specific (unlinked) discipline column from the visible matrix. */
+  const handleRemoveUnlinkedColumn = (disciplineId: number) => {
+    setStoredColumns(prev => {
+      const next = removeDisciplineColumn(prev, disciplineId);
+      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
+      return next;
+    });
+  };
+
+  // IDs of disciplines not linked to any competition for this event.
+  const unlinkeddiscIds = new Set((matrixData.availableDisciplines ?? []).map(d => d.id));
+
+  // A discipline column is considered a "pause" (removable) when:
+  //   - it is not linked to any competition (availableDisciplines), OR
+  //   - its name starts with "Pause" (case-insensitive convention)
+  // This covers Pause3/Pause4 that happen to be linked to a competition.
+  const isDisciplineRemovable = (col: DisciplineColumn): boolean =>
+    unlinkeddiscIds.has(col.id) || /^pause/i.test(col.name);
+
+  // Backward-compat: handler for old localStorage pause columns (kind==='pause')
+  const removePauseFromStored = (pauseId: string) => {
+    setStoredColumns(prev => {
+      const next = prev.filter(s => !(s.t === 'p' && s.id === pauseId));
+      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
+      return next;
+    });
+  };
+
+  if (discColumnsCount === 0 && availableForPicker.length === 0) {
     return (
       <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
         {t('timePlanning.matrix.noDisciplines')}
@@ -476,33 +516,80 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                 {t('timePlanning.matrix.time')}
               </th>
-              {localDisciplines.map(disc => (
-                <th
-                  key={disc.id}
-                  draggable
-                  onDragStart={e => handleColDragStart(e, disc.id)}
-                  onDragOver={e => handleColDragOver(e, disc.id)}
-                  onDrop={e => handleColDrop(e, disc.id)}
-                  onDragEnd={handleColDragEnd}
-                  className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] select-none transition-colors ${
-                    dragColId === disc.id
-                      ? 'opacity-40 bg-blue-50'
-                      : dragOverColId === disc.id
-                      ? 'bg-blue-100 border-l-2 border-blue-400'
-                      : 'cursor-grab hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-1">
-                    <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                    <div>
-                      <div className="font-semibold text-gray-800">{disc.shortName || disc.name}</div>
-                      {disc.shortName && disc.name !== disc.shortName && (
-                        <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{disc.name}</div>
+              {localColumns.map(col => {
+                const key = colKey(col);
+                const isDragging = dragColKey === key;
+                const isDragOver = dragOverColKey === key;
+
+                if (col.kind === 'pause') {
+                  return (
+                    <th
+                      key={key}
+                      draggable
+                      onDragStart={e => handleColDragStart(e, key)}
+                      onDragOver={e => handleColDragOver(e, key)}
+                      onDrop={e => handleColDrop(e, key)}
+                      onDragEnd={handleColDragEnd}
+                      className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[80px] select-none transition-colors ${
+                        isDragging
+                          ? 'opacity-40 bg-gray-100'
+                          : isDragOver
+                          ? 'bg-gray-200 border-l-2 border-gray-400'
+                          : 'cursor-grab hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1">
+                        <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                        <span className="text-gray-400 italic flex-1 normal-case font-normal">{col.label}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removePauseFromStored(col.id); }}
+                          className="text-gray-300 hover:text-red-500 transition-colors ml-1 flex-shrink-0 leading-none"
+                          title={t('timePlanning.matrix.removeUnlinked')}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </th>
+                  );
+                }
+
+                return (
+                  <th
+                    key={key}
+                    draggable
+                    onDragStart={e => handleColDragStart(e, key)}
+                    onDragOver={e => handleColDragOver(e, key)}
+                    onDrop={e => handleColDrop(e, key)}
+                    onDragEnd={handleColDragEnd}
+                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] select-none transition-colors ${
+                      isDragging
+                        ? 'opacity-40 bg-blue-50'
+                        : isDragOver
+                        ? 'bg-blue-100 border-l-2 border-blue-400'
+                        : 'cursor-grab hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-800">{col.shortName || col.name}</div>
+                        {col.shortName && col.name !== col.shortName && (
+                          <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{col.name}</div>
+                        )}
+                      </div>
+                      {isDisciplineRemovable(col) && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemoveUnlinkedColumn(col.id); }}
+                          className="text-gray-300 hover:text-red-500 transition-colors ml-1 flex-shrink-0 leading-none"
+                          title={t('timePlanning.matrix.removeUnlinked')}
+                        >
+                          ✕
+                        </button>
                       )}
                     </div>
-                  </div>
-                </th>
-              ))}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -520,7 +607,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                 <React.Fragment key={round}>
                   {isNewSession && (
                     <tr className="bg-blue-600 text-white">
-                      <td colSpan={localDisciplines.length + 1} className="px-4 py-2 font-semibold text-sm">
+                      <td colSpan={localColumns.length + 1} className="px-4 py-2 font-semibold text-sm">
                         {t('timePlanning.round', 'Durchgang')} {sessionInfo!.session}
                         <span className="ml-3 font-normal opacity-90 text-xs">
                           {t('timePlanning.startTime', 'Startzeit')}: {sessionInfo!.startTime}
@@ -532,16 +619,21 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
                       {roundTime}
                     </td>
-                    {localDisciplines.map(disc => {
-                      const cellKey = `${disc.id}_${round}`;
+                    {localColumns.map(col => {
+                      if (col.kind === 'pause') {
+                        return (
+                          <td key={colKey(col)} className="px-3 py-2 bg-gray-50 border-x border-gray-100" />
+                        );
+                      }
+                      const cellKey = `${col.id}_${round}`;
                       const isSaving = savingCell === cellKey;
-                      const value = getCellValue(disc.id, round);
+                      const value = getCellValue(col.id, round);
                       const isConflict = conflictCells.has(cellKey);
                       return (
-                        <td key={disc.id} className="px-3 py-2">
+                        <td key={colKey(col)} className="px-3 py-2">
                           <select
                             value={value}
-                            onChange={e => handleCellChange(disc.id, round, e.target.value)}
+                            onChange={e => handleCellChange(col.id, round, e.target.value)}
                             disabled={isSaving}
                             title={isConflict ? t('timePlanning.matrix.conflictTooltip', 'Diese Riege ist in diesem Zeitslot bereits einem anderen Gerät zugewiesen!') : undefined}
                             className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
@@ -610,16 +702,16 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
             ))}
           </select>
         )}
-        {localDisciplines.length > 1 && (
+        {discColumnsCount > 1 && (
           <button
             onClick={handleRemoveLastColumn}
             className="inline-flex items-center px-3 py-1.5 text-sm border border-red-200 rounded-lg text-red-600 bg-white hover:bg-red-50 transition-colors"
           >
-            − {t('timePlanning.matrix.removeColumn')}
+            − {t('timePlanning.matrix.hideColumn')}
           </button>
         )}
         <span className="text-xs text-gray-400 ml-auto">
-          {t('timePlanning.matrix.columnsInfo', { count: localDisciplines.length })}
+          {t('timePlanning.matrix.columnsInfo', { count: localColumns.length })}
         </span>
       </div>
     </div>
