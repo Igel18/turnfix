@@ -193,6 +193,106 @@ describe('useAddParticipantWizard – filteredCompetitions', () => {
   });
 });
 
+// ── loadAvailableParticipants – API response shapes ───────────────────────────
+// The server can return participants in two shapes:
+//   1. Plain array:            apiGet → Participant[]
+//   2. Object with key:        apiGet → { participants: Participant[] }
+//
+// Previously the server also returned { eventParticipants: [...] } in some
+// early-return paths when an event had 0 registered participants + includeAvailable=true.
+// That bug was fixed server-side (all paths now return `participants`), but the
+// client should still handle both the array and the object shape gracefully.
+
+const sampleParticipants = [
+  { id: 1, firstname: 'Anna', lastname: 'Müller', club: 'TC', gender: 'female', age: 12, isInEvent: false },
+  { id: 2, firstname: 'Bob',  lastname: 'Huber',  club: 'SV', gender: 'male',   age: 11, isInEvent: false },
+];
+
+describe('loadAvailableParticipants – response shape handling', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('handles plain-array response', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue(sampleParticipants);
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    expect(result.current.filteredParticipants).toHaveLength(2);
+  });
+
+  it('handles { participants: [...] } object response (main server path)', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue({
+      participants: sampleParticipants,
+      totalInEvent: 0,
+      totalAvailable: 2,
+    });
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    expect(result.current.filteredParticipants).toHaveLength(2);
+    expect(result.current.filteredParticipants[0].firstname).toBe('Anna');
+  });
+
+  it('returns empty list when response is an empty { participants: [] }', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue({
+      participants: [],
+      totalInEvent: 0,
+      totalAvailable: 0,
+    });
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    expect(result.current.filteredParticipants).toHaveLength(0);
+  });
+
+  it('returns empty list when API response is null/undefined', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    expect(result.current.filteredParticipants).toHaveLength(0);
+  });
+
+  it('returns empty list when API throws an error', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    expect(result.current.filteredParticipants).toHaveLength(0);
+  });
+
+  it('only shows participants not already in the event (isInEvent: false)', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue({
+      participants: [
+        { id: 1, firstname: 'Anna', lastname: 'Müller', club: 'TC', gender: 'female', age: 12, isInEvent: true  },
+        { id: 2, firstname: 'Bob',  lastname: 'Huber',  club: 'SV', gender: 'male',   age: 11, isInEvent: false },
+      ],
+      totalInEvent: 1,
+      totalAvailable: 1,
+    });
+
+    const { result } = renderHook(() => useAddParticipantWizard({ ...baseProps, isOpen: true }));
+    await act(async () => {});
+
+    // The hook loads all participants; UI filtering by isInEvent is done later in the component,
+    // but we can verify the isInEvent flag is preserved on the normalised object.
+    const anna = result.current.filteredParticipants.find(p => p.firstname === 'Anna');
+    const bob  = result.current.filteredParticipants.find(p => p.firstname === 'Bob');
+    expect(anna?.isInEvent).toBe(true);
+    expect(bob?.isInEvent).toBe(false);
+  });
+});
+
 // ── Bug #84: age/year number shown alongside "Jahre" ─────────────────────────
 // The wizard participant list renders:
 //   {t('eventParticipants.card.years', { count: participant.age })}

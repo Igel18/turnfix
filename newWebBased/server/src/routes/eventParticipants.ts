@@ -31,7 +31,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     
     if (!eventId) {
       // Return empty array when no eventId is provided for test compatibility
-      return res.json({ eventParticipants: [] });
+      return res.json({ participants: [] });
     }
 
     // Debug: Add more detailed logging to understand what's happening
@@ -138,7 +138,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         
         console.log(`Returning ${formattedAllParticipants.length} participants (0 in event)`);
         return res.json({ 
-          eventParticipants: formattedAllParticipants,
+          participants: formattedAllParticipants,
           totalInEvent: 0,
           totalAvailable: formattedAllParticipants.length,
           message: `Event ${eventId} has no registered participants yet. Showing all available participants for assignment.`
@@ -146,7 +146,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       } else {
         console.log(`Returning 0 participants (0 in event)`);
         return res.json({ 
-          eventParticipants: [],
+          participants: [],
           totalInEvent: 0,
           totalAvailable: 0,
           message: `Event ${eventId} has no registered participants yet.`

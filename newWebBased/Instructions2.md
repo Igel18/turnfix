@@ -838,7 +838,7 @@ Die Info müsste man ja aus der Zeitplantabelle von der Zeitplanung bekommen.
 121. Disziplinen "Pause" hinzufügen 
 manchmal müssen Riegen eine Pause machen, bevor sie ans nächste Gerät können. Dafür bedarf es als "WorkAround" eine Diszplin die mit Pause benannt ist. 
 Solche Pausen-Disziplinen (5 Stück) müssen über den DB-Wizard angelegt werden. Als Build in Formel wird diesen eine 0 hinterlegt. Ein Pause Icon wäre auch ganz schön. Kürzel PAU1 - PAU5. Name und Anzeigename "Pause1"- "Pause5" Als Sportart wäre dann noch "Pause" hinzuzufügen und die Pausen Disziplinen diesen zuzuweisen. 
-
+-> Erledigt ✅
 
 ------------------------------------------------------------
 -> Erledigt ✅
