@@ -855,6 +855,7 @@ Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmitt
 f.) überlüssige UIs können entfernt werden. (Gantt, Zeitstrahl) 
 -> Erledigt ✅
 g.) Auf der Seite "Durchgänge" werden für jede Riege die Zeiten berechnet. Diese berechnung muss auch für die Zeitplan-Tabelle verfügbar sein. Die Zeitslots je Runde sollen anhand diesen Berechnungen angezeigt werden. 
+-> Erledigt ✅
 h.) Time-planning index.tsx refactoring 
 -> Erledigt ✅
 

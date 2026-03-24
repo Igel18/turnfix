@@ -512,6 +512,10 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
               const prevRoundTime = idx > 0 ? getRoundTime(round - 1) : null;
               const prevSessionInfo = prevRoundTime ? getSessionForTime(prevRoundTime) : null;
               const isNewSession = sessionInfo !== null && sessionInfo.session !== prevSessionInfo?.session;
+              // Only offer squads that belong to this Durchgang; fall back to global list.
+              const sessionSquads: string[] = sessionInfo
+                ? ((sessionGroups ?? []).find(sg => sg.session === sessionInfo.session)?.squads.map(s => s.name) ?? squads)
+                : squads;
               return (
                 <React.Fragment key={round}>
                   {isNewSession && (
@@ -551,7 +555,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                             }`}
                           >
                             <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>
-                            {squads.map(squad => (
+                            {sessionSquads.map(squad => (
                               <option key={squad} value={squad}>
                                 {squad}
                               </option>
