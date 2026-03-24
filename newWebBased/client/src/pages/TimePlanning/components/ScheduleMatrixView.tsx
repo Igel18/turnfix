@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, PrinterIcon } from 'lucide-react';
 import { apiGet, apiPut } from '@/utils/api';
 import type { TimeSettings, MatrixData, MatrixDiscipline } from '../TimePlanning.types';
 
@@ -74,9 +74,11 @@ interface ScheduleMatrixViewProps {
   timeSettings: TimeSettings;
   /** Earliest competition start time (HH:MM) used as round-1 anchor. Falls back to '09:00'. */
   baseStartTime: string | null;
+  /** The selected event (used for PDF header). */
+  selectedEvent?: { var_eventname?: string; dat_eventstartdate?: string } | null;
 }
 
-export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: ScheduleMatrixViewProps) {
+export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selectedEvent }: ScheduleMatrixViewProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
@@ -84,6 +86,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
   const [localDisciplines, setLocalDisciplines] = useState<MatrixDiscipline[]>([]);
   const [savingCell, setSavingCell] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [printing, setPrinting] = useState(false);
 
   // Drag-and-drop column state
   const [dragColId, setDragColId] = useState<number | null>(null);
@@ -224,6 +227,59 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
       saveColOrder(eventId, next);
       return next;
     });
+  };
+
+  const printMatrix = async () => {
+    if (printing) return;
+    setPrinting(true);
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const autoTableModule = await import('jspdf-autotable');
+      const autoTable = autoTableModule.default;
+
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+      const startTimePdf = baseStartTime || '09:00';
+      const interval = timeSettings.rotationIntervalMinutes;
+      const eventTitle = selectedEvent?.var_eventname ?? '';
+      const title = t('timePlanning.matrix.printTitle');
+
+      // Header
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, 14, 15);
+      if (eventTitle) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(eventTitle, 14, 22);
+      }
+
+      const head = [
+        [t('timePlanning.matrix.time'), ...localDisciplines.map(d => d.shortName || d.name)],
+      ];
+
+      const body = Array.from({ length: localMaxRound }, (_, i) => {
+        const round = i + 1;
+        const timeStr = calculateRoundTime(startTimePdf, round, interval);
+        return [timeStr, ...localDisciplines.map(d => getCellValue(d.id, round) || '')];
+      });
+
+      autoTable(doc, {
+        startY: eventTitle ? 27 : 20,
+        head,
+        body,
+        theme: 'striped',
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 22 } },
+      });
+
+      doc.save(`zeitplan-tabelle-${eventId}.pdf`);
+    } catch (err) {
+      console.error('[ScheduleMatrixView] PDF print failed', err);
+    } finally {
+      setPrinting(false);
+    }
   };
 
   if (localDisciplines.length === 0 && availableForPicker.length === 0) {
@@ -382,6 +438,19 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime }: Sch
         <span className="text-xs text-gray-400 ml-auto">
           {t('timePlanning.matrix.columnsInfo', { count: localDisciplines.length })}
         </span>
+
+        {/* Divider */}
+        <span className="h-4 border-l border-gray-300 mx-1" />
+
+        {/* Print button */}
+        <button
+          onClick={printMatrix}
+          disabled={printing || localDisciplines.length === 0}
+          className="inline-flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <PrinterIcon className="w-4 h-4 mr-1.5" />
+          {printing ? '...' : t('timePlanning.matrix.print')}
+        </button>
       </div>
     </div>
   );

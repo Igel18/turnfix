@@ -814,6 +814,7 @@ export default function TimePlanning() {
             <ScheduleMatrixView
               eventId={eventId!}
               timeSettings={timeSettings}
+              selectedEvent={selectedEvent}
               baseStartTime={
                 sessionGroups.length > 0 && sessionGroups[0].startTime
                   ? sessionGroups[0].startTime

@@ -684,4 +684,100 @@ describe('TimePlanning', () => {
       expect(loadTimeSettingsFromStorage('1').rotationIntervalMinutes).toBe(45);
     });
   });
+
+  // ── ScheduleMatrix — printMatrix PDF body generation ─────────────────────────
+  // Replicates the body-building logic from printMatrix() in ScheduleMatrixView.tsx:
+  //   body = Array.from({ length: maxRound }, (_, i) => {
+  //     const round = i + 1;
+  //     return [calculateRoundTime(startTime, round, interval), ...disciplines.map(d => getCellValue(d.id, round) || '')];
+  //   });
+
+  describe('ScheduleMatrix — printMatrix PDF body generation', () => {
+    function buildPdfBody(
+      maxRound: number,
+      startTime: string,
+      intervalMinutes: number,
+      disciplines: { id: number }[],
+      assignments: { disciplineId: number; round: number; squadName: string }[]
+    ): string[][] {
+      function addMinutesToTime(timeStr: string, minutes: number): string {
+        const [hours, mins] = timeStr.split(':').map(Number);
+        const totalMinutes = hours * 60 + mins + minutes;
+        const newHours = Math.floor(totalMinutes / 60) % 24;
+        const newMins = totalMinutes % 60;
+        return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
+      }
+      function calculateRoundTime(baseTime: string, round: number, interval: number): string {
+        return addMinutesToTime(baseTime, (round - 1) * interval);
+      }
+      const getCellValue = (discId: number, round: number): string =>
+        assignments.find(a => a.disciplineId === discId && a.round === round)?.squadName ?? '';
+
+      return Array.from({ length: maxRound }, (_, i) => {
+        const round = i + 1;
+        return [calculateRoundTime(startTime, round, intervalMinutes), ...disciplines.map(d => getCellValue(d.id, round) || '')];
+      });
+    }
+
+    const disciplines = [{ id: 10 }, { id: 20 }];
+    const BASE = '09:00';
+    const INTERVAL = 20;
+
+    it('produces the specified number of rows', () => {
+      expect(buildPdfBody(3, BASE, INTERVAL, disciplines, []).length).toBe(3);
+    });
+
+    it('first column of each row is the calculated round time', () => {
+      const body = buildPdfBody(2, BASE, INTERVAL, disciplines, []);
+      expect(body[0][0]).toBe('09:00');
+      expect(body[1][0]).toBe('09:20');
+    });
+
+    it('fills cell values from assignments', () => {
+      const assignments = [
+        { disciplineId: 10, round: 1, squadName: 'Riege A' },
+        { disciplineId: 20, round: 2, squadName: 'Riege B' },
+      ];
+      const body = buildPdfBody(2, BASE, INTERVAL, disciplines, assignments);
+      expect(body[0][1]).toBe('Riege A'); // round 1, disc 10
+      expect(body[0][2]).toBe('');        // round 1, disc 20 — empty
+      expect(body[1][1]).toBe('');        // round 2, disc 10 — empty
+      expect(body[1][2]).toBe('Riege B'); // round 2, disc 20
+    });
+
+    it('empty assignment list produces only empty cells', () => {
+      const body = buildPdfBody(1, BASE, INTERVAL, disciplines, []);
+      expect(body[0]).toEqual(['09:00', '', '']);
+    });
+
+    it('column count = 1 (time) + number of disciplines', () => {
+      const body = buildPdfBody(1, BASE, INTERVAL, disciplines, []);
+      expect(body[0].length).toBe(3);
+    });
+
+    it('column count matches when only one discipline given', () => {
+      const body = buildPdfBody(1, BASE, INTERVAL, [{ id: 99 }], []);
+      expect(body[0].length).toBe(2); // time + 1 discipline
+    });
+
+    it('respects custom baseStartTime', () => {
+      const body = buildPdfBody(2, '08:30', 15, [{ id: 1 }], []);
+      expect(body[0][0]).toBe('08:30');
+      expect(body[1][0]).toBe('08:45');
+    });
+
+    it('generates 10 rows when maxRound is 10', () => {
+      const body = buildPdfBody(10, BASE, INTERVAL, [{ id: 1 }], []);
+      expect(body.length).toBe(10);
+      expect(body[9][0]).toBe('12:00'); // 09:00 + 9*20 = 09:00 + 180 min
+    });
+
+    it('falls back to empty string when assignment exists for different round', () => {
+      const assignments = [{ disciplineId: 10, round: 2, squadName: 'Riege C' }];
+      const body = buildPdfBody(3, BASE, INTERVAL, [{ id: 10 }], assignments);
+      expect(body[0][1]).toBe('');       // round 1 — no assignment
+      expect(body[1][1]).toBe('Riege C'); // round 2 — has assignment
+      expect(body[2][1]).toBe('');       // round 3 — no assignment
+    });
+  });
 });

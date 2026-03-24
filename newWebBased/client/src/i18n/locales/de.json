@@ -2335,7 +2335,9 @@
       "noDisciplines": "Keine Geräte für diese Veranstaltung gefunden. Bitte zuerst Wettkämpfe mit Geräten anlegen.",
       "info": "Jede Zeile ist ein Rotationsslot (Interval: {{interval}} Min.). Die Zeit berechnet sich aus der Startzeit des ersten Durchgangs plus dem Rotationsintervall aus den Einstellungen.",
       "dragHint": "Spalten per Drag & Drop verschieben",
-      "saveError": "Fehler beim Speichern. Bitte erneut versuchen."
+      "saveError": "Fehler beim Speichern. Bitte erneut versuchen.",
+      "print": "Drucken",
+      "printTitle": "Zeitplan-Tabelle"
     },
     "addRound": "Durchgang hinzufügen",
     "timeRange": {

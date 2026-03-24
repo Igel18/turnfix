@@ -814,7 +814,8 @@ Beim Gerätturnen (national und international) ist es üblich, nach Anzahl der G
 -> Erledigt ✅
 
 117. Modale dialoge 
-Wir haben einige Modale dialoge mit vielen Einstellmöglichkeiten. Manche könnten doch sinnvollerweise in Wizards umgewandelt werden, oder? VIelleicht erstellen wir mal eine übersicht über alle modalen dialoge und deren anzahl an einstellmöglichkeiten / komplexität. Und machen dann in myown ein Abschnitt wann man so 
+Wir haben einige Modale dialoge mit vielen Einstellmöglichkeiten. Manche könnten doch sinnvollerweise in Wizards umgewandelt werden, oder? VIelleicht erstellen wir mal eine übersicht über alle modalen dialoge und deren anzahl an einstellmöglichkeiten / komplexität. Und machen dann in myown ein Abschnitt wann man ein wizard verwendet und wann ein modaler dialog reicht. 
+-> Erledigt ✅
 
 118. UI-Tests 
 Root Cause: The production database has different discipline IDs than the gymnet preset scheme expects. Specifically, preset IDs 7–10 were occupied by male disciplines (Pauschenpferd, Reck, Ringe, Sprung) instead of the expected female disciplines (Sprung w, Stufenbarren, Schwebebalken, Boden w). When linkDisciplines looked up ID 7 and found "Pauschenpferd" (male-only), it failed the gender check for a female-only competition and skipped the discipline — resulting in only 2 of 4 disciplines being linked.
@@ -847,7 +848,15 @@ c.) in der Zeitplan-Tabelle sollten auch die Durchgänge visualisiert werden.
 d.) eine Riege kann zu einer Zeit nur an einem Gerät sein. Wird über das drop down eine "vorhandene" Riege ausgewählt, muss diese vorhandene als "-Keine Riege-" gesetzt werden. 
 e.) Wizard für die Zeitplanung: 1. Startzeit der Veranstaltung einstellen (default 08:00 Uhr) 2. Zeit pro Teilnehmer einstellen (default 3min) 3. Zuweisen der Wettkämpfe zu Durchgängen (ggf. hinzufügen von Durchgängen) 4. Zuweisen der Riegen zu Bahnen. 
 Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmittag; Bahn z.B. Boden 1, Boden 2) 5. Generieren eines Vorschlags im Round Robin prinzip, und auch Update der Rotation Tabelle & Zeitplan Tabelle 
+f.) überlüssige UIs können entfernt werden. (Gantt, Zeitstrahl) 
+g.) Die Zeitslots je durchgang sollten berechnet werden (einheitlich für die ganze Zeitplanung). Und zwar: Anzahl der Teilnehmer in der Größten Riege * Anzahl Minuten / Gerät 
 
 
+123. Modale dialoge umbauen zu Wizard 
+| Create/Edit Discipline | DisciplineFormModal | HIGH (15+ fields) | UnifiedDialog |
+| Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
+| Import GymNet XML | EventImportModal | HIGH (file + progress) | UnifiedDialog |
 ------------------------------------------------------------
 -> Erledigt ✅
+-> In Work 
+-> obsolete 

@@ -94,7 +94,8 @@ Then Show pagination controls in the UI using this information.
 #### Component Reusability
 Always look for existing patterns and components before creating new ones.
 eg Gander Badge component is used in multiple places.
-eg use UnifiedDialog for all dialogs.
+eg use UnifiedDialog for all simple modal dialogs (≤ 7 fields, single screen).
+eg use WizardModal for multi-step flows (step 2 depends on step 1, preview/confirm, 8+ fields).
 eg use UnifiedFilter for all filter sections.
 eg use UnifiedPageHeader for all page headers.
 eg use Table component for all tables.
@@ -141,6 +142,64 @@ eg use Card component for cards.
 - Use controlled components with proper state management
 - Validation with clear error messages
 - Use `UnifiedDialog.tsx` for all modal dialogs
+- Wizard modals should use `WizardModal.tsx` for consistent multi-step flows
+
+**When to use UnifiedDialog (modal dialog) vs WizardModal:**
+
+Use **UnifiedDialog** (simple modal) when:
+- The task has **≤ 7 fields** that fit on one screen without scrolling
+- The user needs to fill in one cohesive form (e.g., create/edit a club, person, squad, formula)
+- All fields are always visible — no branching logic based on earlier inputs
+- The action is quick and reversible (no long-running process)
+- Examples: `SportFormModal`, `ClubFormModal`, `ParticipantFormModal`, `EventFormModal`
+
+Use **WizardModal** (multi-step) when:
+- The task has **2 or more logically separate phases** where step 2 depends on input from step 1
+- **8+ fields** that would overwhelm a single screen
+- The user must **search/select** from a large list before making a secondary choice (select participant → assign to competition)
+- The process includes a **preview or confirmation step** before committing (auto-assign proposals)
+- A **long-running background operation** with progress feedback is part of the flow (e.g., database import)
+- Examples: `AddParticipantModal` (select person → assign competition), `AutoAssignDialog` (configure → preview → confirm), `DatabaseSetupWizard` (setup → import → done)
+
+**Decision checklist:**
+```
+≤ 7 fields AND single screen AND no step dependency  →  UnifiedDialog
+─────────────────────────────────────────────────────────────────────
+OR any of:
+  • Fields ≥ 8, split into logical groups
+  • Step 2 list depends on Step 1 choice
+  • Confirmation/preview step needed
+  • Background process with progress                  →  WizardModal
+```
+
+**Existing dialog inventory (for reference, do not create duplicates):**
+
+| Dialog | Component | Complexity | Type |
+|--------|-----------|------------|------|
+| Create/Edit Sport | SportFormModal | LOW (1 field) | UnifiedDialog |
+| Create/Edit Formula | FormulaFormModal | LOW (3) | UnifiedDialog |
+| Create/Edit Squad (name only) | CreateSquadModal | LOW (1) | UnifiedDialog |
+| Create/Edit Group | GroupFormModal | LOW (2) | UnifiedDialog |
+| Create/Edit Location | LocationFormModal | MEDIUM (4) | UnifiedDialog |
+| Create/Edit Status | StatusFormModal | MEDIUM (4) | UnifiedDialog |
+| Create/Edit Team | TeamFormModal | MEDIUM (5) | UnifiedDialog |
+| Create/Edit Event | EventFormModal | MEDIUM (5) | UnifiedDialog |
+| Create/Edit Club | ClubFormModal | MEDIUM (5) | UnifiedDialog |
+| Create/Edit Participant | ParticipantFormModal | MEDIUM (6) | UnifiedDialog |
+| Create/Edit Person | PersonFormModal | MEDIUM (8) | UnifiedDialog |
+| Create/Edit Discipline Field | DisciplineFieldFormModal | MEDIUM (7) | UnifiedDialog |
+| Configure Label Print | LabelConfigModal | MEDIUM (9) | UnifiedDialog |
+| Time Planning Settings | TimeSettingsModal | MEDIUM (4) | UnifiedDialog |
+| Create/Edit Discipline Group | DisciplineGroupFormModal | MEDIUM (+multi-select) | UnifiedDialog |
+| Manage Group Members | GroupMembersModal | MEDIUM (dynamic list) | UnifiedDialog |
+| Manage Team Penalties | TeamPenaltiesModal | MEDIUM (dynamic list) | UnifiedDialog |
+| Create/Edit Discipline | DisciplineFormModal | HIGH (15+ fields) | UnifiedDialog |
+| Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
+| Import GymNet XML | EventImportModal | HIGH (file + progress) | UnifiedDialog |
+| Add Participant to Event | AddParticipantModal | HIGH (2-step) | **WizardModal** |
+| Create Squad with Members | SquadWizardModal | HIGH (2-step) | **WizardModal** |
+| Auto-Assign Squads | AutoAssignDialog | HIGH (3-step) | **WizardModal** |
+| Database Setup | DatabaseSetupWizard | HIGH (3-step) | **WizardModal** |
 
 **Info Boxes** (Contextual Help):
 - 🔵 **BlueInfoBox**: General information/help
