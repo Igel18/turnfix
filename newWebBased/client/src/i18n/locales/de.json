@@ -2358,6 +2358,7 @@
     "loadingData": "Daten werden geladen...",
     "warmupTime": "Einturnen",
     "startTime": "Startzeit",
+    "oclock": "Uhr",
     "eventDate": "Veranstaltungsdatum",
     "dateInfo": "Das Datum wird vom Veranstaltungsdatum übernommen. Nur die Uhrzeit kann individuell eingestellt werden.",
     "endTime": "Endzeit",
@@ -2398,23 +2399,21 @@
         "schedule": "Zeitplan"
       },
       "step1": {
-        "hint": "Legen Sie die Startzeit der Veranstaltung fest. Diese wird als Basiszeit für alle Zeitberechnungen verwendet.",
-        "startTimeLabel": "Startzeit der Veranstaltung"
+        "hint": "Legen Sie die Startzeit für jeden Durchgang fest. Diese werden beim Generieren an den Wettkämpfen gespeichert und für die Zeitplan-Tabelle verwendet."
       },
       "step2": {
-        "hint": "Definieren Sie die Zeitparameter für den Wettkampftag."
+        "hint": "Definieren Sie die Zeitparameter für den Wettkampftag.",
+        "rotationIntervalInfo": "Das Rotationsintervall wird als Fallback verwendet, wenn keine Startzeiten gesetzt sind. Normalerweise berechnet sich das Intervall automatisch aus (max. Teilnehmer × Übungsdauer)."
       },
       "step3": {
-        "hint": "Weisen Sie jeden Wettkampf einem Durchgang zu (z.B. Vormittag, Nachmittag). Vergeben Sie optional einen Namen für jeden Durchgang.",
-        "labelPlaceholder": "z.B. Vormittag",
-        "sessionLabel": "Bezeichnung Durchgang",
+        "hint": "Weisen Sie jeden Wettkampf einem Durchgang zu.",
         "roundColumn": "Durchgang",
-        "competitionColumn": "Wettkampf"
+        "competitionColumn": "Wettkampf",
+        "addDurchgang": "Neuer Durchgang"
       },
       "step4": {
-        "hint": "Weisen Sie jeden Wettkampf einer Bahn zu (z.B. Boden 1, Boden 2). Vergeben Sie optional einen Namen für jede Bahn.",
-        "bahnLabel": "Bezeichnung Bahn",
-        "bahnPlaceholder": "z.B. Boden 1",
+        "hint": "Weisen Sie jeden Wettkampf einer Bahn zu.",
+        "bahnLabel": "Bahn",
         "bahnColumn": "Bahn",
         "newBahn": "Neue Bahn",
         "competitionColumn": "Wettkampf"

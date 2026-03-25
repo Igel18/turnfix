@@ -35,27 +35,6 @@ const WIZARD_STEP_ORDER: WizardStep[] = [
   'schedule',
 ];
 
-const LS_LABELS_KEY = (eventId: string) => `time-planning-wizard-labels-${eventId}`;
-
-interface StoredLabels {
-  sessionLabels: Record<number, string>;
-  bahnLabels: Record<number, string>;
-}
-
-function loadLabels(eventId: string): StoredLabels {
-  try {
-    const raw = localStorage.getItem(LS_LABELS_KEY(eventId));
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return { sessionLabels: {}, bahnLabels: {} };
-}
-
-function saveLabels(eventId: string, labels: StoredLabels) {
-  try {
-    localStorage.setItem(LS_LABELS_KEY(eventId), JSON.stringify(labels));
-  } catch { /* ignore */ }
-}
-
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export interface UseTimePlanningWizardProps {
@@ -91,8 +70,14 @@ export function useTimePlanningWizard({
   const isFirstStep = currentStep === WIZARD_STEP_ORDER[0];
   const isLastStep = currentStep === WIZARD_STEP_ORDER[WIZARD_STEP_ORDER.length - 1];
 
-  // ── Step 1: Start time ───────────────────────────────────────────────────
-  const [startTime, setStartTime] = useState<string>('08:00');
+  // ── Step 1: Per-Durchgang start times ────────────────────────────────────
+  // durchgangStartTimes[1] = start time for Durchgang 1, etc.
+  // These are saved to tfx_wettkaempfe.tim_startzeit during the generate step.
+  const [durchgangStartTimes, setDurchgangStartTimesState] = useState<Record<number, string>>({ 1: '08:00' });
+
+  const setDurchgangStartTime = useCallback((round: number, time: string) => {
+    setDurchgangStartTimesState(prev => ({ ...prev, [round]: time }));
+  }, []);
 
   // ── Step 2: Timing ───────────────────────────────────────────────────────
   // Synced with timeSettings — changes are applied immediately via setTimeSettings.
@@ -105,18 +90,9 @@ export function useTimePlanningWizard({
   });
   const [pendingBahnen, setPendingBahnen] = useState<Record<number, number>>(() => {
     const m: Record<number, number> = {};
-    for (const c of competitions) if (c.int_bahn != null) m[c.id] = c.int_bahn;
+    for (const c of competitions) m[c.id] = c.int_bahn ?? 1;
     return m;
   });
-
-  const [sessionLabels, setSessionLabels] = useState<Record<number, string>>({});
-  const [bahnLabels, setBahnLabels] = useState<Record<number, string>>({});
-
-  useEffect(() => {
-    const { sessionLabels: sl, bahnLabels: bl } = loadLabels(eventId);
-    setSessionLabels(sl);
-    setBahnLabels(bl);
-  }, [eventId]);
 
   // Re-initialise pending assignments when competitions prop changes
   useEffect(() => {
@@ -132,8 +108,19 @@ export function useTimePlanningWizard({
     });
   }, [competitions]);
 
-  // Derived max round
-  const maxRound = Math.max(1, ...Object.values(pendingRounds));
+  // Derived max round — also tracks Durchgänge the user added manually
+  const [minMaxRound, setMinMaxRound] = useState<number>(1);
+  const derivedMaxRound = Object.values(pendingRounds).length > 0
+    ? Math.max(...Object.values(pendingRounds))
+    : 1;
+  const maxRound = Math.max(minMaxRound, derivedMaxRound, 1);
+
+  const addDurchgang = useCallback(() => {
+    const newMax = maxRound + 1;
+    setMinMaxRound(newMax);
+    // Pre-fill a start time for the new Durchgang (empty — user must fill it)
+    setDurchgangStartTimesState(prev => prev[newMax] !== undefined ? prev : { ...prev, [newMax]: '' });
+  }, [maxRound]);
 
   const setCompetitionRound = useCallback((compId: number, round: number) => {
     setPendingRounds(prev => ({ ...prev, [compId]: round }));
@@ -142,22 +129,6 @@ export function useTimePlanningWizard({
   const setCompetitionBahn = useCallback((compId: number, bahn: number) => {
     setPendingBahnen(prev => ({ ...prev, [compId]: bahn }));
   }, []);
-
-  const setSessionLabel = useCallback((session: number, label: string) => {
-    setSessionLabels(prev => {
-      const next = { ...prev, [session]: label };
-      saveLabels(eventId, { sessionLabels: next, bahnLabels });
-      return next;
-    });
-  }, [eventId, bahnLabels]);
-
-  const setBahnLabel = useCallback((bahn: number, label: string) => {
-    setBahnLabels(prev => {
-      const next = { ...prev, [bahn]: label };
-      saveLabels(eventId, { sessionLabels, bahnLabels: next });
-      return next;
-    });
-  }, [eventId, sessionLabels]);
 
   // ── Step 3 → DB save ─────────────────────────────────────────────────────
   const [savingRounds, setSavingRounds] = useState(false);
@@ -281,6 +252,7 @@ export function useTimePlanningWizard({
       const result = await apiPost('/time-planning/wizard/generate', {
         eventId: Number(eventId),
         rounds: roundsPayload,
+        durchgangStartTimes,
       });
       setGenerationResult(result as GenerationResult);
       invalidateCache('/api/time-planning');
@@ -292,7 +264,7 @@ export function useTimePlanningWizard({
     } finally {
       setGenerating(false);
     }
-  }, [eventId, durchgangData, startAssignments, onRefetch]);
+  }, [eventId, durchgangData, startAssignments, durchgangStartTimes, onRefetch]);
 
   // ── Step navigation with side-effects ────────────────────────────────────
 
@@ -329,6 +301,7 @@ export function useTimePlanningWizard({
     setStartAssignments({});
     setSavingRounds(false);
     setSavingBahnen(false);
+    setMinMaxRound(1);
   }, []);
 
   return {
@@ -341,9 +314,9 @@ export function useTimePlanningWizard({
     isLastStep,
     reset,
 
-    // Step 1
-    startTime,
-    setStartTime,
+    // Step 1 — per-Durchgang start times (saved to DB in generate step)
+    durchgangStartTimes,
+    setDurchgangStartTime,
 
     // Step 2 (timeSettings handled by parent via props)
     timeSettings,
@@ -353,15 +326,12 @@ export function useTimePlanningWizard({
     pendingRounds,
     setCompetitionRound,
     maxRound,
-    sessionLabels,
-    setSessionLabel,
+    addDurchgang,
     savingRounds,
 
     // Step 4
     pendingBahnen,
     setCompetitionBahn,
-    bahnLabels,
-    setBahnLabel,
     savingBahnen,
 
     // Step 5

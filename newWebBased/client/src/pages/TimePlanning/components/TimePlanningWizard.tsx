@@ -2,9 +2,9 @@
  * TimePlanningWizard
  *
  * 6-step guided wizard for setting up the event time plan:
- *   1. startTime  — Event start time
+ *   1. startTime  — Start times per Durchgang (saved to tim_startzeit on generate)
  *   2. timing     — Exercise duration / timing settings
- *   3. rounds     — Assign competitions to Durchgänge
+ *   3. rounds     — Assign competitions to Durchgänge + set start time per Durchgang
  *   4. lanes      — Assign competitions to Bahnen
  *   5. generate   — Review start assignments & generate round-robin
  *   6. schedule   — Summary + open matrix for fine-tuning
@@ -18,9 +18,10 @@ import {
   TableCellsIcon,
   SparklesIcon,
   CheckCircleIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import WizardModal, { type WizardStepDef } from '@/components/WizardModal';
-import { YellowInfoBox } from '@/components/InfoBoxes';
+import { YellowInfoBox, BlueInfoBox } from '@/components/InfoBoxes';
 import type { Competition, TimeSettings } from '../TimePlanning.types';
 import {
   useTimePlanningWizard,
@@ -112,22 +113,26 @@ export function TimePlanningWizard({
     </div>
   );
 
-  // ── Step 1: Start time ───────────────────────────────────────────────────
+  // ── Step 1: Start times per Durchgang ────────────────────────────────────
   const step1 = (
     <div className="space-y-5">
       <YellowInfoBox>{t('timePlanning.wizard.step1.hint')}</YellowInfoBox>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('timePlanning.wizard.step1.startTimeLabel')}
-          </label>
-          <input
-            type="time"
-            value={wizard.startTime}
-            onChange={e => wizard.setStartTime(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <div className="space-y-3">
+        {Array.from({ length: wizard.maxRound }, (_, i) => i + 1).map(r => (
+          <div key={r} className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-700 w-32">
+              {t('timePlanning.session')} {r}
+            </span>
+            <input
+              type="time"
+              value={wizard.durchgangStartTimes[r] ?? ''}
+              onChange={e => wizard.setDurchgangStartTime(r, e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('timePlanning.timeSettings.warmupDuration')}
@@ -154,6 +159,7 @@ export function TimePlanningWizard({
   const step2 = (
     <div className="space-y-5">
       <YellowInfoBox>{t('timePlanning.wizard.step2.hint')}</YellowInfoBox>
+      <BlueInfoBox>{t('timePlanning.wizard.step2.rotationIntervalInfo')}</BlueInfoBox>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {[
           { key: 'exerciseDurationMinutes',    label: t('timePlanning.timeSettings.exerciseDuration'),    min: 1, max: 60 },
@@ -187,20 +193,6 @@ export function TimePlanningWizard({
   const step3 = (
     <div className="space-y-4">
       <YellowInfoBox>{t('timePlanning.wizard.step3.hint')}</YellowInfoBox>
-      {/* Session label inputs */}
-      <div className="flex flex-wrap gap-3 mb-2">
-        {Array.from({ length: wizard.maxRound }, (_, i) => i + 1).map(r => (
-          <div key={r} className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{t('timePlanning.session')} {r}:</span>
-            <input
-              value={wizard.sessionLabels[r] ?? ''}
-              onChange={e => wizard.setSessionLabel(r, e.target.value)}
-              placeholder={t('timePlanning.wizard.step3.labelPlaceholder')}
-              className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        ))}
-      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm divide-y divide-gray-200 border rounded">
           <thead className="bg-gray-50">
@@ -222,7 +214,6 @@ export function TimePlanningWizard({
                     {allRounds.map(r => (
                       <option key={r} value={r}>
                         {t('timePlanning.session')} {r}
-                        {wizard.sessionLabels[r] ? ` — ${wizard.sessionLabels[r]}` : ''}
                       </option>
                     ))}
                   </select>
@@ -232,6 +223,14 @@ export function TimePlanningWizard({
           </tbody>
         </table>
       </div>
+      <button
+        type="button"
+        onClick={wizard.addDurchgang}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100"
+      >
+        <PlusIcon className="h-4 w-4" />
+        {t('timePlanning.wizard.step3.addDurchgang')}
+      </button>
       {navButtons}
     </div>
   );
@@ -244,20 +243,6 @@ export function TimePlanningWizard({
   const step4 = (
     <div className="space-y-4">
       <YellowInfoBox>{t('timePlanning.wizard.step4.hint')}</YellowInfoBox>
-      {/* Bahn label inputs */}
-      <div className="flex flex-wrap gap-3 mb-2">
-        {allBahnen.map(b => (
-          <div key={b} className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{t('timePlanning.wizard.step4.bahnLabel')} {b}:</span>
-            <input
-              value={wizard.bahnLabels[b] ?? ''}
-              onChange={e => wizard.setBahnLabel(b, e.target.value)}
-              placeholder={t('timePlanning.wizard.step4.bahnPlaceholder')}
-              className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        ))}
-      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm divide-y divide-gray-200 border rounded">
           <thead className="bg-gray-50">
@@ -272,9 +257,6 @@ export function TimePlanningWizard({
               <tr key={c.id}>
                 <td className="px-3 py-2 text-gray-500 text-xs">
                   {t('timePlanning.session')} {wizard.pendingRounds[c.id] ?? c.round}
-                  {wizard.sessionLabels[wizard.pendingRounds[c.id] ?? c.round]
-                    ? ` — ${wizard.sessionLabels[wizard.pendingRounds[c.id] ?? c.round]}`
-                    : ''}
                 </td>
                 <td className="px-3 py-2 text-gray-800">{c.number} {c.name}</td>
                 <td className="px-3 py-2">
@@ -286,7 +268,6 @@ export function TimePlanningWizard({
                     {allBahnen.map(b => (
                       <option key={b} value={b}>
                         {t('timePlanning.wizard.step4.bahnLabel')} {b}
-                        {wizard.bahnLabels[b] ? ` — ${wizard.bahnLabels[b]}` : ''}
                       </option>
                     ))}
                     <option value={(Math.max(...allBahnen) + 1)}>
@@ -317,7 +298,9 @@ export function TimePlanningWizard({
             <div key={d.durchgang} className="border rounded-lg overflow-hidden">
               <div className="bg-gray-50 px-3 py-2 font-medium text-sm text-gray-700">
                 {t('timePlanning.session')} {d.durchgang}
-                {wizard.sessionLabels[d.durchgang] ? ` — ${wizard.sessionLabels[d.durchgang]}` : ''}
+                {wizard.durchgangStartTimes[d.durchgang]
+                  ? ` — ${wizard.durchgangStartTimes[d.durchgang]} ${t('timePlanning.oclock', 'Uhr')}`
+                  : ''}
               </div>
               <table className="min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-gray-100">

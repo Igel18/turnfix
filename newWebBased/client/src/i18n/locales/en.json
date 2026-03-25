@@ -2324,6 +2324,7 @@
     "loadingData": "Loading data...",
     "warmupTime": "Warm-up",
     "startTime": "Start Time",
+    "oclock": "o'clock",
     "eventDate": "Event Date",
     "dateInfo": "The date is taken from the event date. Only the time can be set individually.",
     "endTime": "End Time",
@@ -2364,23 +2365,21 @@
         "schedule": "Schedule"
       },
       "step1": {
-        "hint": "Set the start time of the event. This will be used as the base time for all time calculations.",
-        "startTimeLabel": "Event Start Time"
+        "hint": "Set the start time for each session. These are saved to the competitions when generating and used for the schedule table."
       },
       "step2": {
-        "hint": "Define the time parameters for the competition day."
+        "hint": "Define the time parameters for the competition day.",
+        "rotationIntervalInfo": "The rotation interval is used as a fallback when no start times are set on the competitions. Normally the interval is automatically calculated from (max. participants × exercise duration)."
       },
       "step3": {
-        "hint": "Assign each competition to a session (e.g. Morning, Afternoon). Optionally give each session a name.",
-        "labelPlaceholder": "e.g. Morning",
-        "sessionLabel": "Session Label",
+        "hint": "Assign each competition to a session.",
         "roundColumn": "Session",
-        "competitionColumn": "Competition"
+        "competitionColumn": "Competition",
+        "addDurchgang": "New Session"
       },
       "step4": {
-        "hint": "Assign each competition to a lane (e.g. Floor 1, Floor 2). Optionally give each lane a name.",
-        "bahnLabel": "Lane Label",
-        "bahnPlaceholder": "e.g. Floor 1",
+        "hint": "Assign each competition to a lane.",
+        "bahnLabel": "Lane",
         "bahnColumn": "Lane",
         "newBahn": "New Lane",
         "competitionColumn": "Competition"

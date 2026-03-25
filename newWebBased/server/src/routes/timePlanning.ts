@@ -796,9 +796,11 @@ router.post('/wizard/generate', authenticateToken, async (req: AuthRequest, res)
           startAssignments: z.record(z.string(), z.number()).optional().default({}),
         }),
       ),
+      // Per-Durchgang start times (HH:MM) to save to tfx_wettkaempfe.tim_startzeit
+      durchgangStartTimes: z.record(z.string(), z.string()).optional(),
     });
 
-    const { eventId, rounds } = schema.parse(req.body);
+    const { eventId, rounds, durchgangStartTimes } = schema.parse(req.body);
 
     // Fetch a valid default status (required FK in tfx_riegen_x_disziplinen)
     const defaultStatus = await prisma.tfx_status.findFirst({
@@ -908,6 +910,21 @@ router.post('/wizard/generate', authenticateToken, async (req: AuthRequest, res)
       }),
       prisma.tfx_riegen_x_disziplinen.createMany({ data: allCells }),
     ]);
+
+    // ── Save per-Durchgang start times to tfx_wettkaempfe.tim_startzeit ──────
+    if (durchgangStartTimes && Object.keys(durchgangStartTimes).length > 0) {
+      for (const [dStr, timeStr] of Object.entries(durchgangStartTimes)) {
+        if (!timeStr) continue;
+        const d = Number(dStr);
+        const [h, m] = timeStr.split(':').map(Number);
+        // Use local time (1970-01-01) to avoid UTC offset issues with TIME columns
+        const timeDt = new Date(1970, 0, 1, h, m, 0, 0);
+        await prisma.tfx_wettkaempfe.updateMany({
+          where: { int_veranstaltungenid: eventId, int_durchgang: d },
+          data: { tim_startzeit: timeDt },
+        });
+      }
+    }
 
     res.json({
       success: true,
