@@ -2447,7 +2447,7 @@
         "schedule": "Zeitplan"
       },
       "step1": {
-        "hint": "Legen Sie die Startzeit für jeden Durchgang fest. Diese werden beim Generieren an den Wettkämpfen gespeichert und für die Zeitplan-Tabelle verwendet."
+        "hint": "Die Durchgänge wurden im vorherigen Schritt festgelegt. Legen Sie nun die Startzeit für jeden Durchgang fest. Diese werden beim Generieren an den Wettkämpfen gespeichert und für die Zeitplan-Tabelle verwendet."
       },
       "step2": {
         "hint": "Definieren Sie die Zeitparameter für den Wettkampftag.",
@@ -2482,7 +2482,8 @@
         "durchgaengeCount": "{{count}} Durchgänge verarbeitet",
         "noResult": "Bitte kehren Sie zu Schritt 5 zurück und generieren Sie den Zeitplan.",
         "nextSteps": "Der Zeitplan wurde generiert. Öffnen Sie jetzt die Zeitplan-Tabelle, um die Rotation zu überprüfen und anzupassen.",
-        "openMatrix": "Zeitplan-Tabelle öffnen"
+        "openMatrix": "Zeitplan-Tabelle öffnen",
+        "close": "Schließen"
       }
     }
   },

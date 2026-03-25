@@ -11,7 +11,7 @@ import type { Competition, TimeSettings } from '../TimePlanning.types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type WizardStep = 'startTime' | 'timing' | 'rounds' | 'lanes' | 'generate' | 'schedule';
+export type WizardStep = 'timing' | 'rounds' | 'startTime' | 'lanes' | 'generate' | 'schedule';
 
 export interface DurchgangData {
   durchgang: number;
@@ -27,9 +27,9 @@ export interface GenerationResult {
 }
 
 const WIZARD_STEP_ORDER: WizardStep[] = [
-  'startTime',
   'timing',
   'rounds',
+  'startTime',
   'lanes',
   'generate',
   'schedule',
@@ -55,7 +55,7 @@ export function useTimePlanningWizard({
   onClose,
 }: UseTimePlanningWizardProps) {
   // ── Step navigation ──────────────────────────────────────────────────────
-  const [currentStep, setCurrentStep] = useState<WizardStep>('startTime');
+  const [currentStep, setCurrentStep] = useState<WizardStep>('timing');
 
   const goNext = useCallback(() => {
     const idx = WIZARD_STEP_ORDER.indexOf(currentStep);
@@ -121,6 +121,17 @@ export function useTimePlanningWizard({
     // Pre-fill a start time for the new Durchgang (empty — user must fill it)
     setDurchgangStartTimesState(prev => prev[newMax] !== undefined ? prev : { ...prev, [newMax]: '' });
   }, [maxRound]);
+
+  // ── Step 4: Max lane tracking (for addBahn button) ───────────────────────
+  const [minMaxBahn, setMinMaxBahn] = useState<number>(4);
+  const derivedMaxBahn = Object.values(pendingBahnen).length > 0
+    ? Math.max(...Object.values(pendingBahnen))
+    : 1;
+  const maxBahn = Math.max(minMaxBahn, derivedMaxBahn);
+
+  const addBahn = useCallback(() => {
+    setMinMaxBahn(prev => prev + 1);
+  }, []);
 
   const setCompetitionRound = useCallback((compId: number, round: number) => {
     setPendingRounds(prev => ({ ...prev, [compId]: round }));
@@ -294,7 +305,7 @@ export function useTimePlanningWizard({
 
   // Reset wizard state when re-opened
   const reset = useCallback(() => {
-    setCurrentStep('startTime');
+    setCurrentStep('timing');
     setGenerationResult(null);
     setGenerationError(null);
     setDurchgangData([]);
@@ -302,6 +313,7 @@ export function useTimePlanningWizard({
     setSavingRounds(false);
     setSavingBahnen(false);
     setMinMaxRound(1);
+    setMinMaxBahn(4);
   }, []);
 
   return {
@@ -332,6 +344,8 @@ export function useTimePlanningWizard({
     // Step 4
     pendingBahnen,
     setCompetitionBahn,
+    maxBahn,
+    addBahn,
     savingBahnen,
 
     // Step 5

@@ -452,7 +452,7 @@ export default function TimePlanning() {
       {showWizard && eventId && (
         <TimePlanningWizard
           isOpen={showWizard}
-          onClose={() => setShowWizard(false)}
+          onClose={() => { setShowWizard(false); refetch(); }}
           eventId={eventId}
           competitions={competitions}
           timeSettings={timeSettings}
@@ -464,6 +464,7 @@ export default function TimePlanning() {
           onViewMatrix={() => {
             setViewMode('matrix');
             setShowWizard(false);
+            refetch();
           }}
         />
       )}

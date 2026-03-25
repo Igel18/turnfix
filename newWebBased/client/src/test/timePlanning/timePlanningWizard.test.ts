@@ -146,10 +146,12 @@ describe('useTimePlanningWizard', () => {
     );
   }
 
-  it('starts on startTime step', () => {
+
+  it('starts on timing step', () => {
     const { result } = makeWrapper();
-    expect(result.current.currentStep).toBe('startTime');
+    expect(result.current.currentStep).toBe('timing');
   });
+
 
   it('isFirstStep is true on the first step', () => {
     const { result } = makeWrapper();
@@ -157,31 +159,55 @@ describe('useTimePlanningWizard', () => {
     expect(result.current.isLastStep).toBe(false);
   });
 
-  it('goNext advances to timing step', async () => {
+
+  it('goNext advances to rounds step', async () => {
     const { result } = makeWrapper();
     await act(async () => {
       await result.current.goNext();
     });
-    expect(result.current.currentStep).toBe('timing');
+    expect(result.current.currentStep).toBe('rounds');
   });
+
+  it('goNext advances through all steps in order (generateRoundRobin required for last step)', async () => {
+    const { result } = makeWrapper();
+    const expectedSteps = ['timing', 'rounds', 'startTime', 'lanes', 'generate'];
+    for (let i = 1; i < expectedSteps.length; i++) {
+      await act(async () => {
+        await result.current.goNext();
+      });
+      expect(result.current.currentStep).toBe(expectedSteps[i]);
+    }
+    // Should not advance past 'generate' with goNext
+    await act(async () => {
+      await result.current.goNext();
+    });
+    expect(result.current.currentStep).toBe('generate');
+    // Now call generateRoundRobin to advance to 'schedule'
+    await act(async () => {
+      await result.current.generateRoundRobin();
+    });
+    expect(result.current.currentStep).toBe('schedule');
+  });
+
 
   it('goBack does nothing on the first step', () => {
     const { result } = makeWrapper();
     act(() => {
       result.current.goBack();
     });
-    expect(result.current.currentStep).toBe('startTime');
+    expect(result.current.currentStep).toBe('timing');
   });
+
 
   it('goBack returns to previous step', async () => {
     const { result } = makeWrapper();
     await act(async () => {
-      await result.current.goNext(); // → timing
+      await result.current.goNext(); // → rounds
     });
     act(() => {
-      result.current.goBack(); // → startTime
+      result.current.goBack(); // → timing
     });
-    expect(result.current.currentStep).toBe('startTime');
+    expect(result.current.currentStep).toBe('timing');
   });
 
   it('setCompetitionRound updates pendingRounds', () => {
@@ -201,40 +227,19 @@ describe('useTimePlanningWizard', () => {
     expect(result.current.pendingBahnen[2]).toBe(4);
   });
 
-  it('setSessionLabel updates session labels', () => {
-    const { result } = makeWrapper();
-    act(() => {
-      result.current.setSessionLabel(1, 'Vormittag');
-    });
-    expect(result.current.sessionLabels[1]).toBe('Vormittag');
-  });
 
-  it('setBahnLabel updates bahn labels', () => {
-    const { result } = makeWrapper();
-    act(() => {
-      result.current.setBahnLabel(2, 'Boden 2');
-    });
-    expect(result.current.bahnLabels[2]).toBe('Boden 2');
-  });
 
-  it('setStartTime updates startTime', () => {
-    const { result } = makeWrapper();
-    act(() => {
-      result.current.setStartTime('09:30');
-    });
-    expect(result.current.startTime).toBe('09:30');
-  });
 
-  it('reset returns to startTime step', async () => {
+  it('reset returns to timing step', async () => {
     const { result } = makeWrapper();
     await act(async () => {
-      await result.current.goNext(); // → timing
       await result.current.goNext(); // → rounds
+      await result.current.goNext(); // → startTime
     });
     act(() => {
       result.current.reset();
     });
-    expect(result.current.currentStep).toBe('startTime');
+    expect(result.current.currentStep).toBe('timing');
   });
 
   it('maxRound derives from pendingRounds', () => {

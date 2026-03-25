@@ -2413,7 +2413,7 @@
         "schedule": "Schedule"
       },
       "step1": {
-        "hint": "Set the start time for each session. These are saved to the competitions when generating and used for the schedule table."
+        "hint": "The sessions were defined in the previous step. Now set the start time for each session. These are saved to the competitions when generating and used for the schedule table."
       },
       "step2": {
         "hint": "Define the time parameters for the competition day.",
@@ -2448,7 +2448,8 @@
         "durchgaengeCount": "{{count}} sessions processed",
         "noResult": "Please go back to step 5 and generate the schedule.",
         "nextSteps": "The schedule has been generated. Open the schedule table now to review and adjust the rotation.",
-        "openMatrix": "Open Schedule Table"
+        "openMatrix": "Open Schedule Table",
+        "close": "Close"
       }
     }
   },

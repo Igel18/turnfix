@@ -2,9 +2,9 @@
  * TimePlanningWizard
  *
  * 6-step guided wizard for setting up the event time plan:
- *   1. startTime  — Start times per Durchgang (saved to tim_startzeit on generate)
- *   2. timing     — Exercise duration / timing settings
- *   3. rounds     — Assign competitions to Durchgänge + set start time per Durchgang
+ *   1. timing     — Exercise duration / timing settings (incl. warmup)
+ *   2. rounds     — Assign competitions to Durchgänge
+ *   3. startTime  — Start time per Durchgang (defined in previous step)
  *   4. lanes      — Assign competitions to Bahnen
  *   5. generate   — Review start assignments & generate round-robin
  *   6. schedule   — Summary + open matrix for fine-tuning
@@ -45,9 +45,9 @@ interface TimePlanningWizardProps {
 
 function buildSteps(t: ReturnType<typeof useTranslation>['t']): WizardStepDef[] {
   return [
-    { key: 'startTime', label: t('timePlanning.wizard.steps.startTime'), icon: ClockIcon },
     { key: 'timing',    label: t('timePlanning.wizard.steps.timing'),    icon: ClockIcon },
     { key: 'rounds',    label: t('timePlanning.wizard.steps.rounds'),    icon: CalendarDaysIcon },
+    { key: 'startTime', label: t('timePlanning.wizard.steps.startTime'), icon: ClockIcon },
     { key: 'lanes',     label: t('timePlanning.wizard.steps.lanes'),     icon: ArrowsRightLeftIcon },
     { key: 'generate',  label: t('timePlanning.wizard.steps.generate'),  icon: SparklesIcon },
     { key: 'schedule',  label: t('timePlanning.wizard.steps.schedule'),  icon: TableCellsIcon },
@@ -113,50 +113,8 @@ export function TimePlanningWizard({
     </div>
   );
 
-  // ── Step 1: Start times per Durchgang ────────────────────────────────────
-  const step1 = (
-    <div className="space-y-5">
-      <YellowInfoBox>{t('timePlanning.wizard.step1.hint')}</YellowInfoBox>
-      <div className="space-y-3">
-        {Array.from({ length: wizard.maxRound }, (_, i) => i + 1).map(r => (
-          <div key={r} className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700 w-32">
-              {t('timePlanning.session')} {r}
-            </span>
-            <input
-              type="time"
-              value={wizard.durchgangStartTimes[r] ?? ''}
-              onChange={e => wizard.setDurchgangStartTime(r, e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-            />
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('timePlanning.timeSettings.warmupDuration')}
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number" min="0" max="60"
-              value={wizard.timeSettings.warmupDurationMinutes}
-              onChange={e => wizard.setTimeSettings({
-                ...wizard.timeSettings,
-                warmupDurationMinutes: parseInt(e.target.value) || 0,
-              })}
-              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-sm text-gray-500">{t('timePlanning.minutes')}</span>
-          </div>
-        </div>
-      </div>
-      {navButtons}
-    </div>
-  );
-
-  // ── Step 2: Timing ───────────────────────────────────────────────────────
-  const step2 = (
+  // ── Step 1 (timing): Timing settings incl. warmup ──────────────────────
+  const stepTiming = (
     <div className="space-y-5">
       <YellowInfoBox>{t('timePlanning.wizard.step2.hint')}</YellowInfoBox>
       <BlueInfoBox>{t('timePlanning.wizard.step2.rotationIntervalInfo')}</BlueInfoBox>
@@ -165,6 +123,7 @@ export function TimePlanningWizard({
           { key: 'exerciseDurationMinutes',    label: t('timePlanning.timeSettings.exerciseDuration'),    min: 1, max: 60 },
           { key: 'rotationIntervalMinutes',    label: t('timePlanning.timeSettings.rotationInterval'),    min: 5, max: 120 },
           { key: 'breakBetweenDevicesMinutes', label: t('timePlanning.timeSettings.breakBetweenDevices'), min: 0, max: 60 },
+          { key: 'warmupDurationMinutes',      label: t('timePlanning.timeSettings.warmupDuration'),      min: 0, max: 60 },
         ].map(({ key, label, min, max }) => (
           <div key={key}>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -187,10 +146,10 @@ export function TimePlanningWizard({
     </div>
   );
 
-  // ── Step 3: Rounds ───────────────────────────────────────────────────────
+  // ── Step 2 (rounds): Assign competitions to Durchgänge ──────────────
   const allRounds = Array.from({ length: wizard.maxRound + 1 }, (_, i) => i + 1);
 
-  const step3 = (
+  const stepRounds = (
     <div className="space-y-4">
       <YellowInfoBox>{t('timePlanning.wizard.step3.hint')}</YellowInfoBox>
       <div className="overflow-x-auto">
@@ -235,12 +194,33 @@ export function TimePlanningWizard({
     </div>
   );
 
-  // ── Step 4: Lanes ────────────────────────────────────────────────────────
-  const allBahnen = Array.from(
-    new Set([...Object.values(wizard.pendingBahnen), 1, 2, 3, 4]),
-  ).sort((a, b) => a - b);
+  // ── Step 3 (startTime): Start time per Durchgang (defined above) ────────
+  const stepStartTime = (
+    <div className="space-y-5">
+      <YellowInfoBox>{t('timePlanning.wizard.step1.hint')}</YellowInfoBox>
+      <div className="space-y-3">
+        {Array.from({ length: wizard.maxRound }, (_, i) => i + 1).map(r => (
+          <div key={r} className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-700 w-32">
+              {t('timePlanning.session')} {r}
+            </span>
+            <input
+              type="time"
+              value={wizard.durchgangStartTimes[r] ?? ''}
+              onChange={e => wizard.setDurchgangStartTime(r, e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+        ))}
+      </div>
+      {navButtons}
+    </div>
+  );
 
-  const step4 = (
+  // ── Step 4 (lanes): Assign competitions to Bahnen ────────────────────
+  const allBahnen = Array.from({ length: wizard.maxBahn }, (_, i) => i + 1);
+
+  const stepLanes = (
     <div className="space-y-4">
       <YellowInfoBox>{t('timePlanning.wizard.step4.hint')}</YellowInfoBox>
       <div className="overflow-x-auto">
@@ -270,9 +250,6 @@ export function TimePlanningWizard({
                         {t('timePlanning.wizard.step4.bahnLabel')} {b}
                       </option>
                     ))}
-                    <option value={(Math.max(...allBahnen) + 1)}>
-                      + {t('timePlanning.wizard.step4.newBahn')}
-                    </option>
                   </select>
                 </td>
               </tr>
@@ -280,12 +257,20 @@ export function TimePlanningWizard({
           </tbody>
         </table>
       </div>
+      <button
+        type="button"
+        onClick={wizard.addBahn}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100"
+      >
+        <PlusIcon className="h-4 w-4" />
+        {t('timePlanning.wizard.step4.newBahn')}
+      </button>
       {navButtons}
     </div>
   );
 
-  // ── Step 5: Generate ─────────────────────────────────────────────────────
-  const step5 = (
+  // ── Step 5 (generate): Review & generate ─────────────────────────────────────────────────────
+  const stepGenerate = (
     <div className="space-y-4">
       <YellowInfoBox>{t('timePlanning.wizard.step5.hint')}</YellowInfoBox>
       {wizard.loadingDurchgangData ? (
@@ -365,8 +350,8 @@ export function TimePlanningWizard({
     </div>
   );
 
-  // ── Step 6: Schedule summary ─────────────────────────────────────────────
-  const step6 = (
+  // ── Step 6 (schedule): Summary ────────────────────────────────────
+  const stepSchedule = (
     <div className="space-y-5">
       {wizard.generationResult ? (
         <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -387,13 +372,21 @@ export function TimePlanningWizard({
         <button onClick={wizard.goBack} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
           {t('common.back')}
         </button>
-        <button
-          onClick={handleOpenMatrix}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <TableCellsIcon className="h-4 w-4" />
-          {t('timePlanning.wizard.step6.openMatrix')}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            {t('timePlanning.wizard.step6.close', 'Schließen')}
+          </button>
+          <button
+            onClick={handleOpenMatrix}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <TableCellsIcon className="h-4 w-4" />
+            {t('timePlanning.wizard.step6.openMatrix')}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -401,12 +394,12 @@ export function TimePlanningWizard({
   // ── Render ───────────────────────────────────────────────────────────────
 
   const stepContent: Record<WizardStep, React.ReactNode> = {
-    startTime: step1,
-    timing: step2,
-    rounds: step3,
-    lanes: step4,
-    generate: step5,
-    schedule: step6,
+    timing: stepTiming,
+    rounds: stepRounds,
+    startTime: stepStartTime,
+    lanes: stepLanes,
+    generate: stepGenerate,
+    schedule: stepSchedule,
   };
 
   return (
