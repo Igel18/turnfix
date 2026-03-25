@@ -11,7 +11,7 @@
  *   index.tsx (this file)           – orchestration           (~130 lines)
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { DatabaseManagementTemplate } from '../../components/DatabaseManagementTemplate'
@@ -21,6 +21,7 @@ import { exportToCSV, getEventCSVData } from '../../utils/csvExport'
 import { useEventsData } from './hooks/useEventsData'
 import EventFormModal from './components/EventFormModal'
 import EventImportModal from './components/EventImportModal'
+import EventImportWizard from './components/EventImportWizard'
 import EventCard from './components/EventCard'
 import EventTableRow from './components/EventTableRow'
 import type { Event } from './Events.types'
@@ -56,6 +57,8 @@ const Events: React.FC = () => {
     sortData,
     getSortValue,
   } = useEventsData()
+
+  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false)
 
   const handleExportCSV = () => {
     const csvData = getEventCSVData(events)
@@ -144,12 +147,18 @@ const Events: React.FC = () => {
           />
         )}
         additionalContent={
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-2">
             <button
               onClick={openImportModal}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               {t('events.importButton')}
+            </button>
+            <button
+              onClick={() => setIsImportWizardOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100"
+            >
+              ✨ {t('events.importWizard.openButton')}
             </button>
           </div>
         }
@@ -168,6 +177,14 @@ const Events: React.FC = () => {
       <EventImportModal
         isOpen={isImportModalOpen}
         onClose={closeImportModal}
+        venues={venues}
+        onImportComplete={fetchEvents}
+      />
+
+      {/* Import Wizard */}
+      <EventImportWizard
+        isOpen={isImportWizardOpen}
+        onClose={() => setIsImportWizardOpen(false)}
         venues={venues}
         onImportComplete={fetchEvents}
       />

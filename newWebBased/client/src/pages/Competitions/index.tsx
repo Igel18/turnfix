@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Trophy } from 'lucide-react';
 import { EventManagementTemplate } from '../../components/templates/EventManagementTemplate';
 import CompetitionFormModal from '../../components/CompetitionFormModalNew';
+import CompetitionFormWizard from '../../components/CompetitionFormWizard';
 import { useEvent } from '../../contexts/EventContext';
 import { useCompetitions } from './hooks/useCompetitions';
 import { CompetitionFilters } from './components/CompetitionFilters';
@@ -57,6 +58,9 @@ const Competitions: React.FC = () => {
     if (prefill) setSearchTerm(prefill);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardCompetition, setWizardCompetition] = useState<any | null>(null);
+
   const getStatusBadge = (status: string) => {
     const statusStyles = {
       upcoming: 'bg-blue-100 text-blue-800',
@@ -72,6 +76,15 @@ const Competitions: React.FC = () => {
         title={t('competitions.title')}
         description={t('competitions.description')}
         onAdd={openCreateModal}
+        customActions={
+          <button
+            type="button"
+            onClick={() => { setWizardCompetition(null); setIsWizardOpen(true); }}
+            className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 whitespace-nowrap"
+          >
+            ✨ {t('competitionForm.wizard.openButton', 'Neuer Wettkampf (Assistent)')}
+          </button>
+        }
         onRefresh={loadCompetitions}
         onExportCSV={handleExportCSV}
         addButtonText={t('competitions.createButton')}
@@ -151,6 +164,15 @@ const Competitions: React.FC = () => {
         bulkMaxScore={bulkMaxScore}
         setBulkMaxScore={setBulkMaxScore}
         handleBulkMaxScore={handleBulkMaxScoreApply}
+      />
+
+      {/* Competition Form Wizard */}
+      <CompetitionFormWizard
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        editingCompetition={wizardCompetition}
+        eventId={eventId}
+        onSaved={loadCompetitions}
       />
     </>
   );

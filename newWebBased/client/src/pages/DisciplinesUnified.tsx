@@ -5,6 +5,8 @@ import { BlueInfoBox } from '../components/InfoBoxes';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader'
 import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import DisciplineFormModal from '../components/DisciplineFormModal';
+import DisciplineFormWizard from '../components/DisciplineFormWizard';
+import type { EditingDiscipline } from '../components/DisciplineFormWizard/useDisciplineWizard';
 import { 
   CogIcon, 
   PencilIcon, 
@@ -90,6 +92,8 @@ const DisciplinesUnified: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardDiscipline, setWizardDiscipline] = useState<EditingDiscipline | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Sorting state
@@ -769,6 +773,17 @@ const DisciplinesUnified: React.FC = () => {
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
         addLabel={t('disciplines.addDiscipline')}
+        additionalContent={
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => { setWizardDiscipline(null); setIsWizardOpen(true); }}
+              className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100"
+            >
+              ✨ {t('disciplines.wizard.openButton', 'Neue Disziplin (Assistent)')}
+            </button>
+          </div>
+        }
         onEdit={handleEdit}
         onDelete={(discipline) => handleDelete(discipline.id)}
         viewStorageKey="disciplines-view"
@@ -791,6 +806,15 @@ const DisciplinesUnified: React.FC = () => {
           sports={sports}
         />
       )}
+
+      <DisciplineFormWizard
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        editingDiscipline={wizardDiscipline}
+        formulas={formulas}
+        sports={sports}
+        onSaved={async () => { await fetchDisciplines(); }}
+      />
     </>
   );
 };
