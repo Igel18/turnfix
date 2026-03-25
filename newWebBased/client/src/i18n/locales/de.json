@@ -2382,7 +2382,62 @@
     "startDeviceInfo": "Startgerät auswählen",
     "startDeviceDescription": "Wählen Sie für jede Riege das Gerät aus, an dem sie ihre Rotation beginnen soll. Dies verhindert Konflikte, wenn mehrere Riegen gleichzeitig starten.",
     "noSquadsFound": "Keine Riegen für diesen Wettkampf gefunden",
-    "noStartDeviceSelected": "Kein Startgerät ausgewählt"
+    "noStartDeviceSelected": "Kein Startgerät ausgewählt",
+    "wizard": {
+      "title": "Zeitplanung-Assistent",
+      "startButton": "Assistent",
+      "next": "Weiter",
+      "back": "Zurück",
+      "saving": "Speichern...",
+      "steps": {
+        "startTime": "Startzeit",
+        "timing": "Zeiteinstellungen",
+        "rounds": "Durchgänge",
+        "lanes": "Bahnen",
+        "generate": "Generieren",
+        "schedule": "Zeitplan"
+      },
+      "step1": {
+        "hint": "Legen Sie die Startzeit der Veranstaltung fest. Diese wird als Basiszeit für alle Zeitberechnungen verwendet.",
+        "startTimeLabel": "Startzeit der Veranstaltung"
+      },
+      "step2": {
+        "hint": "Definieren Sie die Zeitparameter für den Wettkampftag."
+      },
+      "step3": {
+        "hint": "Weisen Sie jeden Wettkampf einem Durchgang zu (z.B. Vormittag, Nachmittag). Vergeben Sie optional einen Namen für jeden Durchgang.",
+        "labelPlaceholder": "z.B. Vormittag",
+        "sessionLabel": "Bezeichnung Durchgang",
+        "roundColumn": "Durchgang",
+        "competitionColumn": "Wettkampf"
+      },
+      "step4": {
+        "hint": "Weisen Sie jeden Wettkampf einer Bahn zu (z.B. Boden 1, Boden 2). Vergeben Sie optional einen Namen für jede Bahn.",
+        "bahnLabel": "Bezeichnung Bahn",
+        "bahnPlaceholder": "z.B. Boden 1",
+        "bahnColumn": "Bahn",
+        "newBahn": "Neue Bahn",
+        "competitionColumn": "Wettkampf"
+      },
+      "step5": {
+        "hint": "Definieren Sie für jede Riege das Startgerät. Klicken Sie auf 'Auto-Zuweisen' für eine automatische Verteilung, dann auf 'Round Robin generieren'.",
+        "startDevice": "Startgerät",
+        "autoAssign": "Auto-Zuweisen",
+        "generate": "Round Robin generieren",
+        "generating": "Generiere...",
+        "noData": "Keine Daten verfügbar. Bitte prüfen Sie, ob Wettkämpfe und Riegen vorhanden sind.",
+        "squadColumn": "Riege",
+        "disciplineColumn": "Startgerät"
+      },
+      "step6": {
+        "success": "Round-Robin-Rotation erfolgreich generiert!",
+        "cellsGenerated": "{{count}} Rotationsslots generiert",
+        "durchgaengeCount": "{{count}} Durchgänge verarbeitet",
+        "noResult": "Bitte kehren Sie zu Schritt 5 zurück und generieren Sie den Zeitplan.",
+        "nextSteps": "Der Zeitplan wurde generiert. Öffnen Sie jetzt die Zeitplan-Tabelle, um die Rotation zu überprüfen und anzupassen.",
+        "openMatrix": "Zeitplan-Tabelle öffnen"
+      }
+    }
   },
   "meldematrix": {
     "title": "Meldematrix",

@@ -19,6 +19,7 @@ import {
   ArrowPathIcon,
   DocumentChartBarIcon,
   InformationCircleIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 
 import { useEvent } from '@/contexts/EventContext';
@@ -33,6 +34,7 @@ import {
   TimeSettingsModal,
   HelpPanels,
   EditCompetitionModal,
+  TimePlanningWizard,
 } from './components';
 import SquadStartDeviceEditor from './components/SquadStartDeviceEditor';
 import { ScheduleMatrixView } from './components/ScheduleMatrixView';
@@ -81,6 +83,7 @@ export default function TimePlanning() {
   const [showTimeSettings, setShowTimeSettings] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [editingStartDevices, setEditingStartDevices] = useState<{
     competitionId: number;
@@ -268,6 +271,15 @@ export default function TimePlanning() {
         </div>,
 
         <button
+          key="wizard"
+          onClick={() => setShowWizard(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700"
+        >
+          <SparklesIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.wizard.startButton', 'Assistent')}
+        </button>,
+
+        <button
           key="settings"
           onClick={() => setShowTimeSettings(true)}
           className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
@@ -435,6 +447,26 @@ export default function TimePlanning() {
         onSave={handleSaveCompetitionTimes}
         onChange={setEditingCompetition}
       />
+
+      {/* Time Planning Wizard */}
+      {showWizard && eventId && (
+        <TimePlanningWizard
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          eventId={eventId}
+          competitions={competitions}
+          timeSettings={timeSettings}
+          setTimeSettings={(s) => {
+            setTimeSettings(s);
+            saveTimeSettingsToStorage(eventId, s);
+          }}
+          onRefetch={refetch}
+          onViewMatrix={() => {
+            setViewMode('matrix');
+            setShowWizard(false);
+          }}
+        />
+      )}
 
       {/* Squad Start Device Editor */}
       {editingStartDevices && eventId && (

@@ -2348,7 +2348,62 @@
     "startDeviceInfo": "Select Start Apparatus",
     "startDeviceDescription": "Select the apparatus where each squad should start their rotation. This prevents conflicts when multiple squads start simultaneously.",
     "noSquadsFound": "No squads found for this competition",
-    "noStartDeviceSelected": "No start apparatus selected"
+    "noStartDeviceSelected": "No start apparatus selected",
+    "wizard": {
+      "title": "Time Planning Wizard",
+      "startButton": "Wizard",
+      "next": "Next",
+      "back": "Back",
+      "saving": "Saving...",
+      "steps": {
+        "startTime": "Start Time",
+        "timing": "Time Settings",
+        "rounds": "Sessions",
+        "lanes": "Lanes",
+        "generate": "Generate",
+        "schedule": "Schedule"
+      },
+      "step1": {
+        "hint": "Set the start time of the event. This will be used as the base time for all time calculations.",
+        "startTimeLabel": "Event Start Time"
+      },
+      "step2": {
+        "hint": "Define the time parameters for the competition day."
+      },
+      "step3": {
+        "hint": "Assign each competition to a session (e.g. Morning, Afternoon). Optionally give each session a name.",
+        "labelPlaceholder": "e.g. Morning",
+        "sessionLabel": "Session Label",
+        "roundColumn": "Session",
+        "competitionColumn": "Competition"
+      },
+      "step4": {
+        "hint": "Assign each competition to a lane (e.g. Floor 1, Floor 2). Optionally give each lane a name.",
+        "bahnLabel": "Lane Label",
+        "bahnPlaceholder": "e.g. Floor 1",
+        "bahnColumn": "Lane",
+        "newBahn": "New Lane",
+        "competitionColumn": "Competition"
+      },
+      "step5": {
+        "hint": "Define the starting apparatus for each squad. Click 'Auto-Assign' for automatic distribution, then click 'Generate Round Robin'.",
+        "startDevice": "Start Apparatus",
+        "autoAssign": "Auto-Assign",
+        "generate": "Generate Round Robin",
+        "generating": "Generating...",
+        "noData": "No data available. Please check that competitions and squads exist.",
+        "squadColumn": "Squad",
+        "disciplineColumn": "Start Apparatus"
+      },
+      "step6": {
+        "success": "Round-Robin rotation successfully generated!",
+        "cellsGenerated": "{{count}} rotation slots generated",
+        "durchgaengeCount": "{{count}} sessions processed",
+        "noResult": "Please go back to step 5 and generate the schedule.",
+        "nextSteps": "The schedule has been generated. Open the schedule table now to review and adjust the rotation.",
+        "openMatrix": "Open Schedule Table"
+      }
+    }
   },
   "meldematrix": {
     "title": "Registration Matrix",
