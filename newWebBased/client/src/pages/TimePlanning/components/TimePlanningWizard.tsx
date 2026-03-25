@@ -323,16 +323,6 @@ export function TimePlanningWizard({
             >
               {t('timePlanning.wizard.step5.autoAssign')}
             </button>
-            <button
-              onClick={wizard.generateRoundRobin}
-              disabled={wizard.generating}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              <SparklesIcon className="h-4 w-4" />
-              {wizard.generating
-                ? t('timePlanning.wizard.step5.generating')
-                : t('timePlanning.wizard.step5.generate')}
-            </button>
           </div>
 
           {wizard.generationError && (
