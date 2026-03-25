@@ -702,6 +702,26 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 103. [improvement] in der results UI werden im Filter die Wettkämpfe im absteigend angezeigt. Aufsteigend wäre korrekt
 
 104. [Bug] Riegen Status wird nicht angezeigt 
+
+---
+
+## Technische Schuld
+
+### TD-01: Hard-coded „Pause"-Erkennung per Name-Präfix
+
+**Datei:** `client/src/pages/TimePlanning/components/ScheduleMatrixView.tsx` → `isDisciplineRemovable()`
+
+**Problem:** Ob eine Disziplin eine Pausenspalte ist (und damit aus der Matrix entfernt werden darf), wird per Regex `/^pause/i` auf den Anzeigenamen geprüft. Das ist ein Workaround, weil `tfx_disziplinen` kein dediziertes Feld (z. B. `bol_pause`) besitzt.
+
+**Risiko:** Benennt jemand eine echte Disziplin mit „Pause…" im Namen, erscheint ungewollt ein ×-Button.
+
+**Saubere Lösung (sobald DB-Schema angepasst werden darf):**
+1. Spalte `bol_pause BOOLEAN DEFAULT false` in `tfx_disziplinen` ergänzen
+2. Prisma-Schema regenerieren (`npx prisma db pull`)
+3. Alle bestehenden Pause-Disziplinen einmalig per Migration auf `bol_pause = true` setzen
+4. API/Mapping: Feld `isPause: boolean` an den Client weitergeben
+5. `isDisciplineRemovable` auf `col.isPause === true` umstellen
+6. Regex-Check und TODO-Kommentar im Code entfernen
 Auf der Seite Riegen Status steht immer "kein Status". Entweder wird der im Jury-Portal nicht gesetzt oder auf der Seite squad-status nicht richtig angezeigt. 
 TDD mit UI Tests
 -> Erledigt ✅ | Root cause: POST /api/squad-management/complete war ein Stub — hat DB nie aktualisiert. Fix: 3 Probleme behoben: (1) Endpoint implementiert: findet Status via findStatusByName() (case-insensitive + Wort-Matching) und schreibt in tfx_riegen_x_disziplinen; (2) authenticateToken entfernt — Jury-Portal sendet kein Auth-Token; (3) Status-Name-Tippfehler korrigiert: 'Leistung erfasst' → 'Leistungen erfasst' in useScoreSave.ts. Socket.IO-Event 'squad-status-updated' wird nach Update emittiert. Neues: server/src/utils/squadStatusUtils.ts (10 Unit-Tests), server/tests/unit/squadDisciplineComplete.test.ts, client/e2e/tests/squad-status-complete.spec.ts.
@@ -851,13 +871,16 @@ c.) in der Zeitplan-Tabelle sollten auch die Durchgänge visualisiert werden.
 d.) eine Riege kann zu einer Zeit nur an einem Gerät sein. Wird über das drop down eine "vorhandene" Riege ausgewählt, muss diese vorhandene als "-Keine Riege-" gesetzt werden. 
 -> Erledigt ✅
 e.) Wizard für die Zeitplanung: 1. Startzeit der Veranstaltung einstellen (default 08:00 Uhr) 2. Zeit pro Teilnehmer einstellen (default 3min) 3. Zuweisen der Wettkämpfe zu Durchgängen (ggf. hinzufügen von Durchgängen) 4. Zuweisen der Riegen zu Bahnen. 
-Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmittag; Bahn z.B. Boden 1, Boden 2) ggf. hinzufügen von Bahnen 5. Generieren eines Vorschlags im Round Robin prinzip, und auch Update der Rotation Tabelle & Zeitplan Tabelle 
+Immer auch eine Beschreibung dazu mitliefern (Durchgang z.B. vormittag, nachmittag; Bahn z.B. Boden 1, Boden 2) ggf. hinzufügen von Bahnen 5. Generieren eines Vorschlags im Round Robin prinzip, und auch Update der Rotation Tabelle & Zeitplan Tabelle 6. Anpassen der Zeitplan Tabelle
+Tests 
+-> Erledigt ✅
 f.) überlüssige UIs können entfernt werden. (Gantt, Zeitstrahl) 
 -> Erledigt ✅
 g.) Auf der Seite "Durchgänge" werden für jede Riege die Zeiten berechnet. Diese berechnung muss auch für die Zeitplan-Tabelle verfügbar sein. Die Zeitslots je Runde sollen anhand diesen Berechnungen angezeigt werden. 
 -> Erledigt ✅
 h.) Time-planning index.tsx refactoring 
 -> Erledigt ✅
+i.) Veranstaltungs-Analyzer um Zeitplan verfollständigen: Sind Zeiten eingestellt am Wettkamp, sind allen Riegen / Disziplin kombination eingestellt. 
 
 123. Modale dialoge umbauen zu Wizard 
 a.) Standard button zum Aufruf des Wizards in der Kopfzeile ggf. zusätzlich zum Standardbutton "Hinzufügen" 

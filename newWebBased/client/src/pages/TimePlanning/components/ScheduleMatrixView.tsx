@@ -469,6 +469,10 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   //   - it is not linked to any competition (availableDisciplines), OR
   //   - its name starts with "Pause" (case-insensitive convention)
   // This covers Pause3/Pause4 that happen to be linked to a competition.
+  //
+  // TODO [TECH-DEBT TD-01]: The /^pause/i name check is a workaround because
+  // tfx_disziplinen has no dedicated bol_pause flag. Once the DB schema can be
+  // extended, replace this with `col.isPause === true` (see Instructions2.md).
   const isDisciplineRemovable = (col: DisciplineColumn): boolean =>
     unlinkeddiscIds.has(col.id) || /^pause/i.test(col.name);
 
