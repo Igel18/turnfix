@@ -890,7 +890,11 @@ c.)
 | Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
 | Import GymNet XML | EventImportModal | HIGH (file + progress) | UnifiedDialog |
 
-
+124. Altersüberprüfung bei Wettkämpfen
+Bei Wettkämpfen wird aktuell genau der Geburtstag zur Altersüberprüfung herangezogen. In der Praxis wird es jedoch anders umgesetzt. Und zwar nur das Geburtsjahr. 
+Die genaue Altersprüfung soll im Code erhalten bleiben. Die mit dem reinen Jahr soll als default hinterlegt sein und auch eine Checkbox im Wettkampf hinzugefügt werden, die jedoch ausgegraut ist, da es hierfür kein DB feld gibt. 
+Ist das verständlich? 
+Auch tests und Docu 
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Work 

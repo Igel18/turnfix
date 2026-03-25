@@ -8,6 +8,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve('./src'),
+      // Resolve shared package to TS source (same as vite.config.ts) so Vitest
+      // always picks up the latest code without needing a dist rebuild.
+      '@turnfix/shared': path.resolve('../shared/src/index.ts'),
     },
   },
   test: {

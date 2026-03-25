@@ -2160,6 +2160,11 @@
       "useApparatusPoints": {
         "label": "Use Apparatus Points",
         "description": "Enable apparatus-specific point scoring"
+      },
+      "ageCheckByYearOnly": {
+        "label": "Birth year check (default)",
+        "description": "Only the birth year is verified, not the exact date of birth. Matches standard German gymnastics practice.",
+        "noDbFieldTooltip": "This behaviour is fixed as the default. A DB field to toggle it does not exist yet."
       }
     },
     "disciplines": {

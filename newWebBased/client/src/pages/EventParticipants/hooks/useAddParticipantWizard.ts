@@ -15,6 +15,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiGet, apiPost } from '@/utils/api';
 import { normalizeGender } from '@/utils/genderHelpers';
+import { ageMatchesByBirthYear } from '@turnfix/shared';
 import type { GenderValue } from '@/utils/genderHelpers';
 import type { Participant, Competition } from '../EventParticipants.types';
 
@@ -40,6 +41,9 @@ export function genderMatchesCompetition(
 /**
  * Returns true when the participant's age falls inside the competition's
  * age window (inclusive).  Ages <= 0 are treated as "unknown" and always pass.
+ *
+ * @deprecated Prefer `ageMatchesByBirthYear` from `@turnfix/shared` for the
+ *   standard year-only check.  This function is kept for backward compatibility.
  */
 export function ageMatchesCompetition(
   participantAge: number,
@@ -217,7 +221,16 @@ export function useAddParticipantWizard({
     if (!selectedParticipant) return competitions;
     return competitions.filter((comp) => {
       if (filterByGender && !genderMatchesCompetition(selectedParticipant.gender, comp.gender)) return false;
-      if (filterByAge && !ageMatchesCompetition(selectedParticipant.age, comp)) return false;
+      if (filterByAge) {
+        // DEFAULT: year-only check (Jahrgangsprüfung)
+        const birthYear = selectedParticipant.birthYear;
+        if (birthYear && birthYear > 0) {
+          if (!ageMatchesByBirthYear(birthYear, comp.ageFrom, comp.ageTo)) return false;
+        } else {
+          // Fallback to computed age when birthYear is not available
+          if (!ageMatchesCompetition(selectedParticipant.age, comp)) return false;
+        }
+      }
       return true;
     });
   }, [competitions, selectedParticipant, filterByGender, filterByAge]);

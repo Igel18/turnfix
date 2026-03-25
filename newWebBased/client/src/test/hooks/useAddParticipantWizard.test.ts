@@ -15,6 +15,7 @@ import {
   ageMatchesCompetition,
   useAddParticipantWizard,
 } from '@/pages/EventParticipants/hooks/useAddParticipantWizard';
+import { ageMatchesByBirthYear } from '@turnfix/shared';
 import type { Competition } from '@/pages/EventParticipants/EventParticipants.types';
 
 // ── Mock API ──────────────────────────────────────────────────────────────────
@@ -322,5 +323,149 @@ describe('Bug #84 – eventParticipants.card.years translation includes {{count}
     await act(async () => {});
 
     expect(result.current.filteredParticipants[0].age).toBeGreaterThan(0);
+  });
+});
+
+// ── ageMatchesByBirthYear() (from @turnfix/shared) ────────────────────────────
+// Year-only check — the DEFAULT mode used by filteredCompetitions.
+// German gymnastics practice: only the birth *year* matters, not the exact date.
+
+describe('ageMatchesByBirthYear', () => {
+  const YEAR = new Date().getFullYear();
+
+  it('returns true when year-age is exactly at ageFrom boundary', () => {
+    expect(ageMatchesByBirthYear(YEAR - 10, 10, 14, YEAR)).toBe(true);
+  });
+
+  it('returns true when year-age is exactly at ageTo boundary', () => {
+    expect(ageMatchesByBirthYear(YEAR - 14, 10, 14, YEAR)).toBe(true);
+  });
+
+  it('returns true for year-age inside the range', () => {
+    expect(ageMatchesByBirthYear(YEAR - 12, 10, 14, YEAR)).toBe(true);
+  });
+
+  it('returns false when year-age is below ageFrom', () => {
+    expect(ageMatchesByBirthYear(YEAR - 9, 10, 14, YEAR)).toBe(false);
+  });
+
+  it('returns false when year-age is above ageTo', () => {
+    expect(ageMatchesByBirthYear(YEAR - 15, 10, 14, YEAR)).toBe(false);
+  });
+
+  it('handles inverted ageFrom/ageTo (normalises to min/max)', () => {
+    // ageFrom=14, ageTo=10 — same range, just stored backwards
+    expect(ageMatchesByBirthYear(YEAR - 12, 14, 10, YEAR)).toBe(true);
+    expect(ageMatchesByBirthYear(YEAR - 9,  14, 10, YEAR)).toBe(false);
+  });
+
+  it('returns true when birthYear is 0 (unknown — never block)', () => {
+    expect(ageMatchesByBirthYear(0, 10, 14, YEAR)).toBe(true);
+  });
+
+  it('uses current year as default for eventYear', () => {
+    // If no eventYear supplied, current year is used — should behave identically
+    expect(ageMatchesByBirthYear(YEAR - 12, 10, 14)).toBe(true);
+    expect(ageMatchesByBirthYear(YEAR - 9,  10, 14)).toBe(false);
+  });
+
+  it('KEY DIFFERENCE vs exact check: December-born passes year-only (birth year qualifies even if b-day not yet reached)', () => {
+    // Person born December 2011, event in March 2026 → year-only age = 15 → passes ageFrom=15
+    // With exact check (month/day), today is March and b-day is December → age=14 → would FAIL
+    const birthYear = YEAR - 15; // e.g. 2011 if current year is 2026
+    expect(ageMatchesByBirthYear(birthYear, 15, 18, YEAR)).toBe(true);
+  });
+});
+
+// ── filteredCompetitions uses birthYear (ageMatchesByBirthYear) ───────────────
+// When a participant has a birthYear, filteredCompetitions uses ageMatchesByBirthYear
+// (year-only check). Falls back to ageMatchesCompetition when birthYear is absent.
+
+describe('useAddParticipantWizard – filteredCompetitions with birthYear', () => {
+  const YEAR = new Date().getFullYear();
+
+  const competitions = [
+    makeCompetition({ id: 1, gender: 'gemischt', ageFrom: 10, ageTo: 12 }), // 10–12 year olds
+    makeCompetition({ id: 2, gender: 'gemischt', ageFrom: 13, ageTo: 15 }), // 13–15 year olds
+    makeCompetition({ id: 3, gender: 'gemischt', ageFrom: 16, ageTo: 18 }), // 16–18 year olds
+  ];
+
+  it('shows only age-appropriate competitions when participant has birthYear', async () => {
+    const { apiGet } = await import('@/utils/api');
+    // Participant born in YEAR-11 → year-only age = 11 → fits comp id=1 (10–12)
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([
+      {
+        id: 99, firstname: 'Max', lastname: 'Test', club: '',
+        gender: 'male', age: 11, birthYear: YEAR - 11, isInEvent: false,
+      },
+    ]);
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+
+    await act(async () => {
+      result.current.handleSelectParticipant(result.current.filteredParticipants[0]);
+    });
+
+    // Year-only age=11 → only comp id=1 (ageFrom=10, ageTo=12) qualifies
+    const ids = result.current.filteredCompetitions.map(c => c.id);
+    expect(ids).toContain(1);
+    expect(ids).not.toContain(2);
+    expect(ids).not.toContain(3);
+  });
+
+  it('passes December-born participant who qualifies by year but not by exact date', async () => {
+    const { apiGet } = await import('@/utils/api');
+    // Participant born YEAR-15 (December), year-only age=15 → fits comp id=2 (13–15)
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([
+      {
+        id: 99, firstname: 'Lisa', lastname: 'Test', club: '',
+        gender: 'female', age: 14, // exact age is 14 (b-day not yet this year)
+        birthYear: YEAR - 15,      // but birth YEAR gives year-age=15
+        isInEvent: false,
+      },
+    ]);
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+
+    await act(async () => {
+      result.current.handleSelectParticipant(result.current.filteredParticipants[0]);
+    });
+
+    // Year-only: age=15 → comp id=2 (13–15) passes even though exact age is 14
+    const ids = result.current.filteredCompetitions.map(c => c.id);
+    expect(ids).toContain(2);
+    expect(ids).not.toContain(3);
+  });
+
+  it('falls back to ageMatchesCompetition when birthYear is 0', async () => {
+    const { apiGet } = await import('@/utils/api');
+    // birthYear=0 (unknown) → fallback uses age=11 → fits comp id=1
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([
+      {
+        id: 99, firstname: 'Tom', lastname: 'Test', club: '',
+        gender: 'male', age: 11, birthYear: 0, isInEvent: false,
+      },
+    ]);
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+
+    await act(async () => {
+      result.current.handleSelectParticipant(result.current.filteredParticipants[0]);
+    });
+
+    // Fallback age=11 → comp id=1 (10–12) passes
+    const ids = result.current.filteredCompetitions.map(c => c.id);
+    expect(ids).toContain(1);
+    expect(ids).not.toContain(2);
+    expect(ids).not.toContain(3);
   });
 });

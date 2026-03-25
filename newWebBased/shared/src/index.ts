@@ -8,6 +8,7 @@
  *   import { ... } from '@turnfix/shared/dist/scoreFormatter'
  */
 
+export * from './ageCheckUtils';
 export * from './formulaUtils';
 export * from './builtInFormulaHelper';
 export * from './genderHelpers';

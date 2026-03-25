@@ -2193,6 +2193,11 @@
       "useApparatusPoints": {
         "label": "Gerätepunkte verwenden",
         "description": "Gerätespezifische Punktwertung aktivieren"
+      },
+      "ageCheckByYearOnly": {
+        "label": "Jahrgangsprüfung (Standard)",
+        "description": "Es wird nur das Geburtsjahr geprüft, nicht der genaue Geburtstag. Entspricht der Praxis im deutschen Turnbetrieb.",
+        "noDbFieldTooltip": "Dieses Verhalten ist im Standard festgelegt. Ein DB-Feld für diese Einstellung existiert noch nicht."
       }
     },
     "disciplines": {

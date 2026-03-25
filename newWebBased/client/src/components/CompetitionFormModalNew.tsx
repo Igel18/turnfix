@@ -766,6 +766,19 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       <span className="text-sm font-medium text-gray-700">{t('competitionForm.behavior.useApparatusPoints.label')}</span>
                     </label>
                     <p className="text-xs text-gray-500 ml-6">{t('competitionForm.behavior.useApparatusPoints.description')}</p>
+
+                    {/* Age check mode — no DB field, year-only is always the default */}
+                    <label className="flex items-center opacity-50 cursor-not-allowed" title={t('competitionForm.behavior.ageCheckByYearOnly.noDbFieldTooltip')}>
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled
+                        readOnly
+                        className="mr-2 rounded cursor-not-allowed"
+                      />
+                      <span className="text-sm font-medium text-gray-500">{t('competitionForm.behavior.ageCheckByYearOnly.label')}</span>
+                    </label>
+                    <p className="text-xs text-gray-400 ml-6">{t('competitionForm.behavior.ageCheckByYearOnly.description')}</p>
                   </div>
                 </div>
               </div>

@@ -6,15 +6,27 @@
 import { useTranslation } from 'react-i18next';
 import { mapEnglishGenderToGerman, type GenderValue } from '@/utils/genderHelpers';
 import { debugLog } from '@/utils/debug';
+import { ageMatchesByBirthYear, ageMatchesExact } from '@turnfix/shared';
 import type { Competition, CompetitionValidation } from '../EventParticipants.types';
 
 export function useParticipantValidation() {
   const { t } = useTranslation();
 
   /**
-   * Calculate age from birthday string
-   * @param birthday - Birthday in YYYY-MM-DD format
-   * @returns Age in years
+   * Calculate age by birth year only (DEFAULT mode).
+   * Month and day are ignored — only the year of birth matters.
+   * This matches German gymnastics practice (Jahrgangsprüfung).
+   */
+  const calculateAgeByYear = (birthday: string): number => {
+    if (!birthday) return 0;
+    const birthYear = new Date(birthday).getFullYear();
+    if (!birthYear || isNaN(birthYear)) return 0;
+    return new Date().getFullYear() - birthYear;
+  };
+
+  /**
+   * Calculate exact age from birthday string (considers month and day).
+   * Kept for reference; not used as the default.
    */
   const calculateAge = (birthday: string): number => {
     if (!birthday) return 0;
@@ -41,17 +53,22 @@ export function useParticipantValidation() {
     gender: GenderValue
   ): CompetitionValidation => {
     const reasons: string[] = [];
-    const age = calculateAge(birthday);
 
-    // Age validation
-    if (age > 0 && (age < competition.ageFrom || age > competition.ageTo)) {
-      reasons.push(
-        t('eventParticipants.editParticipant.ageWarning', {
-          age,
-          ageFrom: competition.ageFrom,
-          ageTo: competition.ageTo,
-        })
-      );
+    // Age validation — year-only (DEFAULT / Jahrgangsprüfung):
+    // Use birth year only; month and day are irrelevant.
+    // See shared/src/ageCheckUtils.ts for both modes.
+    if (birthday) {
+      const birthYear = new Date(birthday).getFullYear();
+      if (birthYear > 0 && !ageMatchesByBirthYear(birthYear, competition.ageFrom, competition.ageTo)) {
+        const age = calculateAgeByYear(birthday);
+        reasons.push(
+          t('eventParticipants.editParticipant.ageWarning', {
+            age,
+            ageFrom: competition.ageFrom,
+            ageTo: competition.ageTo,
+          })
+        );
+      }
     }
 
     // Gender validation
@@ -95,7 +112,11 @@ export function useParticipantValidation() {
   };
 
   return {
-    calculateAge,
+    calculateAge,        // exact method (kept for completeness)
+    calculateAgeByYear, // year-only method (DEFAULT)
     validateCompetition,
+    // Re-export shared helpers for convenience
+    ageMatchesByBirthYear,
+    ageMatchesExact,
   };
 }
