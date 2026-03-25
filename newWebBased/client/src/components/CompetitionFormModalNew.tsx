@@ -1,95 +1,14 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import UnifiedModal from './UnifiedModal';
-
-// Interface for discipline data from API
-interface Discipline {
-  id: number;
-  name: string;
-  short_name: string;
-  display_name: string;
-  male_allowed: boolean;
-  female_allowed: boolean;
-  icon: string;
-}
-
-// Interface for form data
-interface CompetitionFormData {
-  number?: string;
-  name: string;
-  description: string;
-  gender: 'männlich' | 'weiblich' | 'gemischt';
-  areaId: number | null;
-  ageFrom: number;
-  ageTo: number;
-  disciplines: { disciplineId: number; maxScore: number }[];
-  
-  // Additional competition settings
-  round: number;                    // int_durchgang - Competition round/session
-  track: number;                    // int_bahn - Track/lane number
-  competitionType: number;          // int_typ - Competition type (0=Individual, 1=Team, 2=Group)
-  startTime?: string;               // tim_startzeit - Start time (HH:MM format)
-  warmupTime?: string;              // tim_einturnen - Warm-up time (HH:MM format)
-  qualifiers: number;               // int_qualifikation - Number of qualifiers
-  evaluations?: number;             // int_wertungen - Number of evaluations
-  dropWorstScore: boolean;          // bol_streichwertung - Drop worst score
-  showAgeGroup: boolean;            // bol_ak_anzeigen - Show age group
-  isOptionalCompetition: boolean;   // bol_wahlwettkampf - Optional competition
-  showInfo: boolean;                // bol_info_anzeigen - Show info
-  useCompulsoryProgram: boolean;    // bol_kp - Use compulsory program
-  sortAscending: boolean;           // bol_sortasc - Sort ascending
-  manualSort: boolean;              // bol_mansort - Manual sort
-  useApparatusPoints: boolean;      // bol_gerpkt - Use apparatus points
-  dropCount: number;                // int_anz_streich - Number of scores to drop
-}
-
-// Interface for competition (for editing)
-interface Competition {
-  id: number;
-  number?: string;
-  name: string;
-  description: string;
-  gender: 'männlich' | 'weiblich' | 'gemischt';
-  areaId?: number | null;
-  areaName?: string | null;
-  ageFrom: number;
-  ageTo: number;
-  disciplines: { disciplineId: number; name: string; maxScore: number }[];
-  
-  // Additional competition settings
-  round: number;
-  track: number;
-  competitionType: number;
-  startTime?: string;
-  warmupTime?: string;
-  qualifiers: number;
-  evaluations?: number;
-  dropWorstScore: boolean;
-  showAgeGroup: boolean;
-  isOptionalCompetition: boolean;
-  showInfo: boolean;
-  useCompulsoryProgram: boolean;
-  sortAscending: boolean;
-  manualSort: boolean;
-  useApparatusPoints: boolean;
-  dropCount: number;
-}
-
-interface CompetitionFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  editingCompetition: Competition | null;
-  formData: CompetitionFormData;
-  setFormData: React.Dispatch<React.SetStateAction<CompetitionFormData>>;
-  onSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
-  bulkMaxScore: string;
-  setBulkMaxScore: React.Dispatch<React.SetStateAction<string>>;
-  handleBulkMaxScore: () => void;
-}
+import type { CompetitionFormModalProps } from './CompetitionFormModal.types';
+import {
+  useCompetitionFormDisciplines,
+  getDisciplineGenderLabel,
+} from './useCompetitionFormDisciplines';
 
 const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   isOpen,
@@ -101,260 +20,41 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   loading,
   bulkMaxScore,
   setBulkMaxScore,
-  handleBulkMaxScore: _handleBulkMaxScore // Renamed to avoid unused variable warning
+  handleBulkMaxScore: _handleBulkMaxScore,
 }) => {
-  // Translation hook
   const { t } = useTranslation();
-  
-  // State for modal-specific data
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
-  const [areas, setAreas] = useState<{ int_bereicheid: number; var_name: string | null; bol_maennlich: boolean | null; bol_weiblich: boolean | null }[]>([]);
-  const [disciplineGroups, setDisciplineGroups] = useState<{ 
-    int_disziplinen_gruppenid: number; 
-    var_name: string; 
-    disciplines: Array<{ int_disziplinenid: number; position: number }> 
-  }[]>([]);
-  const [selectedDisciplineGroup, setSelectedDisciplineGroup] = useState<number | null>(null);
-  const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>([]);
-  const [showIncompatibleMessage, setShowIncompatibleMessage] = useState(false);
-  const [disciplineSearch, setDisciplineSearch] = useState('');
-  const [showSelectedOnly, setShowSelectedOnly] = useState(false);
-  
-  // Track previous gender to detect changes
-  const previousGenderRef = useRef<string>(formData.gender);
-  // Track whether disciplines have been loaded from API (prevents race condition)
-  const disciplinesLoadedRef = useRef<boolean>(false);
 
-  // Reset refs when modal opens to prevent stale state
-  useEffect(() => {
-    if (isOpen) {
-      // Sync previousGenderRef with current formData.gender to prevent
-      // the incompatibility effect from firing on modal open
-      previousGenderRef.current = formData.gender;
-      disciplinesLoadedRef.current = false;
-    }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  const {
+    disciplines,
+    areas,
+    disciplineGroups,
+    selectedDisciplineGroup,
+    filteredDisciplines,
+    displayedDisciplines,
+    showIncompatibleMessage,
+    disciplineSearch,
+    setDisciplineSearch,
+    showSelectedOnly,
+    setShowSelectedOnly,
+    handleDisciplineGroupChange,
+    handleDisciplineToggle,
+    handleSelectAllVisible,
+    handleDeselectAllVisible,
+    handleBulkSelectGroup,
+  } = useCompetitionFormDisciplines({ isOpen, formData, setFormData, bulkMaxScore });
 
   // Age groups for dropdowns
   const ageGroups = Array.from({ length: 50 }, (_, i) => ({
     value: i + 1,
-    label: `${i + 1} years`
+    label: `${i + 1} years`,
   }));
 
-  // Load disciplines and discipline groups
-  useEffect(() => {
-    const fetchDisciplines = async () => {
-      try {
-        const response = await fetch('/api/disciplines');
-        const data = await response.json();
-        setDisciplines(data);
-        disciplinesLoadedRef.current = true;
-      } catch (error) {
-        console.error('Error fetching disciplines:', error);
-      }
-    };
-
-    const fetchDisciplineGroups = async () => {
-      try {
-        const response = await fetch('/api/discipline-groups');
-        const data = await response.json();
-        // Extract disciplineGroups array from response
-        const groups = data.disciplineGroups || [];
-        setDisciplineGroups(groups);
-      } catch (error) {
-        console.error('Error fetching discipline groups:', error);
-      }
-    };
-
-    const fetchAreas = async () => {
-      try {
-        const response = await fetch('/api/areas?limit=1000');
-        const data = await response.json();
-        setAreas(data.areas || []);
-      } catch (error) {
-        console.error('Error fetching areas:', error);
-      }
-    };
-
-    if (isOpen) {
-      fetchDisciplines();
-      fetchDisciplineGroups();
-      fetchAreas();
-    }
-  }, [isOpen]);
-
-  // Filter disciplines by gender compatibility and selected group
-  useEffect(() => {
-    // Get discipline IDs that belong to the selected group
-    let groupDisciplineIds: number[] = [];
-    if (selectedDisciplineGroup !== null) {
-      const selectedGroup = disciplineGroups.find(g => g.int_disziplinen_gruppenid === selectedDisciplineGroup);
-      if (selectedGroup) {
-        groupDisciplineIds = selectedGroup.disciplines.map(d => d.int_disziplinenid);
-      }
-    }
-    
-    let filtered = disciplines.filter(discipline => {
-      const genderMatch = formData.gender === 'gemischt' || 
-        (formData.gender === 'männlich' && discipline.male_allowed) ||
-        (formData.gender === 'weiblich' && discipline.female_allowed);
-      
-      // If a group is selected, only show disciplines that are part of that group
-      const groupMatch = selectedDisciplineGroup === null || groupDisciplineIds.includes(discipline.id);
-      
-      return genderMatch && groupMatch;
+  const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean) =>
+    getDisciplineGenderLabel(maleAllowed, femaleAllowed, {
+      both: t('competitionForm.disciplines.genderCompatibility.both'),
+      male: t('competitionForm.disciplines.genderCompatibility.male'),
+      female: t('competitionForm.disciplines.genderCompatibility.female'),
     });
-
-    setFilteredDisciplines(filtered);
-  }, [disciplines, formData.gender, selectedDisciplineGroup, disciplineGroups]);
-
-  // Remove incompatible disciplines when gender changes
-  useEffect(() => {
-    // Guard: Don't run until disciplines have been loaded from API
-    // This prevents the race condition where gender changes before disciplines load,
-    // causing all disciplines to be wiped out
-    if (!disciplinesLoadedRef.current) return;
-    if (disciplines.length === 0) return;
-    
-    if (previousGenderRef.current !== formData.gender) {
-      // Compute compatible disciplines directly from source data instead of relying
-      // on filteredDisciplines state, which may be stale from the previous render
-      const compatibleDisciplines = disciplines.filter(discipline => {
-        return formData.gender === 'gemischt' || 
-          (formData.gender === 'männlich' && discipline.male_allowed) ||
-          (formData.gender === 'weiblich' && discipline.female_allowed);
-      });
-      const compatibleDisciplineIds = compatibleDisciplines.map(d => d.id);
-      
-      const currentDisciplineIds = formData.disciplines.map(d => d.disciplineId);
-      const incompatibleDisciplines = currentDisciplineIds.filter(id => !compatibleDisciplineIds.includes(id));
-      
-      if (incompatibleDisciplines.length > 0) {
-        const updatedDisciplines = formData.disciplines.filter(d => compatibleDisciplineIds.includes(d.disciplineId));
-        setFormData(prev => ({ ...prev, disciplines: updatedDisciplines }));
-        setShowIncompatibleMessage(true);
-        
-        setTimeout(() => setShowIncompatibleMessage(false), 5000);
-      }
-      
-      previousGenderRef.current = formData.gender;
-    }
-  }, [formData.gender, disciplines, formData.disciplines, setFormData]);
-
-  const handleDisciplineGroupChange = (groupId: number | null) => {
-    setSelectedDisciplineGroup(groupId);
-  };
-
-  // Disciplines visible in the list (after search + showSelectedOnly filtering)
-  const displayedDisciplines = useMemo(() => {
-    let result = filteredDisciplines;
-
-    if (showSelectedOnly) {
-      const selectedIds = formData.disciplines.map(d => d.disciplineId);
-      result = result.filter(d => selectedIds.includes(d.id));
-    }
-
-    if (disciplineSearch.trim()) {
-      const search = disciplineSearch.toLowerCase().trim();
-      result = result.filter(d =>
-        d.name?.toLowerCase().includes(search) ||
-        d.short_name?.toLowerCase().includes(search) ||
-        d.display_name?.toLowerCase().includes(search)
-      );
-    }
-
-    return result;
-  }, [filteredDisciplines, disciplineSearch, showSelectedOnly, formData.disciplines]);
-
-  const handleSelectAllVisible = () => {
-    const visibleIds = displayedDisciplines.map(d => d.id);
-    const defaultMaxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
-    setFormData(prev => {
-      const existingMap = new Map(prev.disciplines.map(d => [d.disciplineId, d]));
-      visibleIds.forEach(id => {
-        if (!existingMap.has(id)) {
-          existingMap.set(id, { disciplineId: id, maxScore: defaultMaxScore });
-        }
-      });
-      return { ...prev, disciplines: Array.from(existingMap.values()) };
-    });
-  };
-
-  const handleDeselectAllVisible = () => {
-    const visibleIds = new Set(displayedDisciplines.map(d => d.id));
-    setFormData(prev => ({
-      ...prev,
-      disciplines: prev.disciplines.filter(d => !visibleIds.has(d.disciplineId))
-    }));
-  };
-
-  const handleBulkSelectGroup = () => {
-    // If no group is selected, just apply max score to already selected disciplines
-    if (selectedDisciplineGroup === null) {
-      // Apply bulk max score to all currently selected disciplines
-      if (bulkMaxScore) {
-        const maxScore = parseFloat(bulkMaxScore);
-        if (!isNaN(maxScore) && maxScore > 0) {
-          setFormData(prev => ({
-            ...prev,
-            disciplines: prev.disciplines.map(d => ({ ...d, maxScore }))
-          }));
-        }
-      }
-      return;
-    }
-    
-    // Get all disciplines from the selected group
-    const selectedGroup = disciplineGroups.find(g => g.int_disziplinen_gruppenid === selectedDisciplineGroup);
-    if (!selectedGroup) return;
-    
-    const groupDisciplineIds = selectedGroup.disciplines.map(d => d.int_disziplinenid);
-    
-    // Get disciplines that match the current gender and are in the group
-    const disciplinesToSelect = filteredDisciplines
-      .filter(d => groupDisciplineIds.includes(d.id))
-      .map(d => d.id);
-    
-    const maxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
-    
-    // Create new disciplines array: keep existing selections not in this group, add/update group disciplines
-    const existingNonGroupDisciplines = formData.disciplines.filter(d => !groupDisciplineIds.includes(d.disciplineId));
-    const newGroupDisciplines = disciplinesToSelect.map(disciplineId => ({
-      disciplineId,
-      maxScore
-    }));
-    
-    setFormData(prev => ({
-      ...prev,
-      disciplines: [...existingNonGroupDisciplines, ...newGroupDisciplines]
-    }));
-  };
-
-  const handleDisciplineToggle = (disciplineId: number) => {
-    setFormData(prev => {
-      const isSelected = prev.disciplines.some(d => d.disciplineId === disciplineId);
-      
-      if (isSelected) {
-        return {
-          ...prev,
-          disciplines: prev.disciplines.filter(d => d.disciplineId !== disciplineId)
-        };
-      } else {
-        const defaultMaxScore = bulkMaxScore ? parseFloat(bulkMaxScore) || 0 : 0;
-        return {
-          ...prev,
-          disciplines: [...prev.disciplines, { disciplineId, maxScore: defaultMaxScore }]
-        };
-      }
-    });
-  };
-
-  const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean) => {
-    if (maleAllowed && femaleAllowed) return t('competitionForm.disciplines.genderCompatibility.both');
-    if (maleAllowed) return t('competitionForm.disciplines.genderCompatibility.male');
-    if (femaleAllowed) return t('competitionForm.disciplines.genderCompatibility.female');
-    return '';
-  };
 
   return (
     <UnifiedModal

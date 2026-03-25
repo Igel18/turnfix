@@ -885,7 +885,7 @@ i.) Veranstaltungs-Analyzer um Zeitplan verfollständigen: Sind Zeiten eingestel
 123. Modale dialoge umbauen zu Wizard 
 a.) Standard button zum Aufruf des Wizards in der Kopfzeile ggf. zusätzlich zum Standardbutton "Hinzufügen" 
 b.) Standard button zum Aufruf des Wizards an Elementen (z.B. Riegen in der Riegeneinteilung)? 
-c.) 
+c.) TDD! 
 | Create/Edit Discipline | DisciplineFormModal | HIGH (15+ fields) | UnifiedDialog |
 | Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
 | Import GymNet XML | EventImportModal | HIGH (file + progress) | UnifiedDialog |
@@ -895,6 +895,8 @@ Bei Wettkämpfen wird aktuell genau der Geburtstag zur Altersüberprüfung heran
 Die genaue Altersprüfung soll im Code erhalten bleiben. Die mit dem reinen Jahr soll als default hinterlegt sein und auch eine Checkbox im Wettkampf hinzugefügt werden, die jedoch ausgegraut ist, da es hierfür kein DB feld gibt. 
 Ist das verständlich? 
 Auch tests und Docu 
+-> Erledigt ✅
+
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Work 
