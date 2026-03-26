@@ -635,6 +635,14 @@ Files modified:
 - Write small modular functions which can be reused across components 
 - use separate components for complex UI parts
 - use sepaerate types files (e.g. ScoreCapture.types.ts)
+- use same icons across the application for the same actions (e.g. pencil icon for edit, trash icon for delete, etc.)
+- Use the same patterns for similar features (e.g. edit discipline, edit club, edit participant, etc.)
+- Use the same patterns for similar UI elements (e.g. filter sections, page headers, dialogs, etc.)
+- Use the same patterns for similar workflows (e.g. creating a new entity, editing an existing entity, deleting an entity, etc.)
+- Use the same patterns for similar data handling (e.g. field mapping, error handling, loading states, etc.)
+- Use the same patterns for similar API interactions (e.g. fetching data, updating data, deleting data, etc.)
+- Use the same patterns for similar UI interactions (e.g. button placement, form layout, etc.)
+- Use the same patterns for similar user flows (e.g. creating a new competition, adding participants, generating PDFs, etc.)  
 
 ### DON'T ❌
 - Modify database schema

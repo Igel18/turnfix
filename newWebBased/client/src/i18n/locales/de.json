@@ -848,7 +848,7 @@
       }
     },
     "importWizard": {
-      "openButton": "XML importieren (Assistent)",
+      "openButton": "GymNet XML importieren (Assistent)",
       "title": "GymNet XML importieren",
       "steps": {
         "fileDetails": "Datei & Details",

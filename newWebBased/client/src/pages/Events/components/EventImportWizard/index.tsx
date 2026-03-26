@@ -13,6 +13,9 @@ import WizardModal from '../../../../components/WizardModal'
 import { useEventImportWizard } from './useEventImportWizard'
 import type { Venue, DisciplineHint } from '../../Events.types'
 
+// StepProps type for all step and navbar components
+type StepProps = { wizard: ReturnType<typeof useEventImportWizard> }
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface EventImportWizardProps {
@@ -41,15 +44,19 @@ const EventImportWizard: React.FC<EventImportWizardProps> = ({
       currentStep={wizard.step}
       size={wizard.step === 'results' ? 'lg' : 'md'}
     >
-      {wizard.step === 'fileDetails' && (
+      {wizard.step === 'eventDetails' && (
         <>
-          <StepFileDetails wizard={wizard} venues={venues} />
-          <NavBarFileDetails wizard={wizard} />
+          <StepEventDetails wizard={wizard} venues={venues} />
+          <NavBarEventDetails wizard={wizard} />
         </>
       )}
-      {wizard.step === 'importing' && (
-        <StepImporting wizard={wizard} />
+      {wizard.step === 'fileSelection' && (
+        <>
+          <StepFileSelection wizard={wizard} />
+          <NavBarFileSelection wizard={wizard} />
+        </>
       )}
+      {wizard.step === 'importing' && <StepImporting wizard={wizard} />}
       {wizard.step === 'results' && (
         <>
           <StepResults wizard={wizard} />
@@ -62,41 +69,14 @@ const EventImportWizard: React.FC<EventImportWizardProps> = ({
 
 export default EventImportWizard
 
-// ── Step 1: File Details ──────────────────────────────────────────────────────
-
-interface StepProps {
-  wizard: ReturnType<typeof useEventImportWizard>
-}
-
-const StepFileDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, venues }) => {
+// ── Step 1: Event Details ─────────────────────────────────────────────
+const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, venues }) => {
   const { t } = useTranslation()
-  const { importFile, setImportFile, importEventData, setImportEventData, errorMessage, setErrorMessage } = wizard
-
+  const { importEventData, setImportEventData, errorMessage, setErrorMessage } = wizard
   return (
     <div className="space-y-4">
-      {/* File selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('events.import.selectFile')} <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="file"
-          accept=".xml"
-          onChange={(e) => {
-            setImportFile(e.target.files?.[0] || null)
-            setErrorMessage(null)
-          }}
-          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {importFile && (
-          <p className="text-xs text-green-600 mt-1">✓ {importFile.name}</p>
-        )}
-      </div>
-
-      {/* Event metadata from XML */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
         <h4 className="text-sm font-medium text-blue-800">{t('events.import.eventDetails', 'Veranstaltungsdetails')}</h4>
-
         <div>
           <label className="block text-xs font-medium text-blue-800 mb-1">
             {t('events.import.eventName')} <span className="text-red-500">*</span>
@@ -109,7 +89,6 @@ const StepFileDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, ve
             className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-blue-800 mb-1">
@@ -134,7 +113,6 @@ const StepFileDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, ve
             />
           </div>
         </div>
-
         <div>
           <label className="block text-xs font-medium text-blue-800 mb-1">
             {t('events.import.location')}
@@ -145,15 +123,14 @@ const StepFileDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, ve
             className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">{t('events.import.locationPlaceholder')}</option>
-            {venues.map((venue) => (
+            {venues.map((venue: Venue) => (
               <option key={venue.int_wettkampforteid} value={venue.int_wettkampforteid}>
                 {venue.var_name}
-                {venue.var_ort && ` (${venue.var_ort})`}
+                {venue.var_ort ? ` (${venue.var_ort})` : ''}
               </option>
             ))}
           </select>
         </div>
-
         <div>
           <label className="block text-xs font-medium text-blue-800 mb-1">
             {t('events.import.description')}
@@ -167,29 +144,91 @@ const StepFileDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, ve
           />
         </div>
       </div>
-
-      {/* Error */}
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-sm text-red-700">❌ {errorMessage}</p>
         </div>
       )}
-
-      {/* Info box */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <h4 className="text-sm font-medium text-yellow-800 mb-2">{t('events.import.information.title')}</h4>
-        <ul className="text-xs text-yellow-700 space-y-1">
-          <li>• {t('events.import.information.eventInfo')}</li>
-          <li>• {t('events.import.information.competitions')}</li>
-          <li>• {t('events.import.information.participants')}</li>
-          <li>• {t('events.import.information.clubsUpdate')}</li>
-          <li>• {t('events.import.information.participantsUpdate')}</li>
-          <li>• {t('events.import.information.noDisciplineGuessing', 'Disziplinen werden nur zugewiesen, wenn sie explizit in der XML-Datei enthalten sind.')}</li>
-        </ul>
+        <p className="text-xs text-yellow-800">{t('events.import.information.text')}</p>
       </div>
     </div>
   )
 }
+
+// ── Step 2: File Selection ─────────────────────────────────────────────
+const StepFileSelection: React.FC<StepProps> = ({ wizard }) => {
+  const { t } = useTranslation()
+  const { importFiles, setImportFiles, errorMessage, setErrorMessage } = wizard
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('events.import.selectFile')} <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="file"
+          accept=".xml"
+          multiple
+          onChange={(e) => {
+            setImportFiles(e.target.files ? Array.from(e.target.files) : [])
+            setErrorMessage(null)
+          }}
+          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        {importFiles.length > 0 && (
+          <ul className="text-xs text-green-600 mt-1 list-disc list-inside">
+            {importFiles.map((f: File) => <li key={f.name}>✓ {f.name}</li>)}
+          </ul>
+        )}
+      </div>
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-700">❌ {errorMessage}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Navigation bars for new steps ─────────────────────────────────────
+const NavBarEventDetails: React.FC<StepProps> = ({ wizard }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex justify-end mt-6 pt-4 border-t">
+      <button
+        onClick={wizard.goNextFromEventDetails}
+        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700"
+        disabled={!wizard.canGoNextEventDetails}
+      >
+        {t('events.importWizard.next', 'Weiter')}
+      </button>
+    </div>
+  )
+}
+
+const NavBarFileSelection: React.FC<StepProps> = ({ wizard }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex justify-between mt-6 pt-4 border-t">
+      <button
+        onClick={wizard.goBackFromFileSelection}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+      >
+        {t('common.back', 'Zurück')}
+      </button>
+      <button
+        onClick={wizard.goNextFromFileSelection}
+        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700"
+        disabled={!wizard.canGoNextFileSelection}
+      >
+        {t('events.importWizard.next', 'Weiter')}
+      </button>
+    </div>
+  )
+}
+
 
 // ── Step 2: Importing (progress) ──────────────────────────────────────────────
 

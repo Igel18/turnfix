@@ -897,6 +897,13 @@ Ist das verständlich?
 Auch tests und Docu 
 -> Erledigt ✅
 
+125. Eingabe der Wertungen Score-Capture
+Ob eine Wertung für eine Build In Formel oder ein DB-Feld eingegeben wird soll egal sein. Für beide Fälle wird eine einheitliche UI verwendet. Die Eingabe/Anzeige der Wertung soll jetzt etwas schöner werden: 
+1. Wird zuerst eine Riege, dann das Gerät und dann eine Person ausgewählt, wird ein Modales Fenster geöffnet bei dem die einzelnen Felder eingegeben werden (gleiche UI wie im Jury-Portal). 
+
+
+
+
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Work 

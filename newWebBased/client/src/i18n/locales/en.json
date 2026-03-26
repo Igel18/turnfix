@@ -848,7 +848,7 @@
       }
     },
     "importWizard": {
-      "openButton": "Import XML (Wizard)",
+      "openButton": "Import GymNet XML (Wizard)",
       "title": "Import GymNet XML",
       "steps": {
         "fileDetails": "File & Details",
