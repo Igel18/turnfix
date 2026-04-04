@@ -12,6 +12,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserGroupIcon } from '@heroicons/react/24/outline';
+import { useFilterPanel } from '@/hooks';
 
 // Context
 import { useEvent } from '@/contexts/EventContext';
@@ -43,7 +44,6 @@ export function Groups() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
 
   // Form Data (for existing GroupFormModal)
   const [formData, setFormData] = useState<GroupFormData>({
@@ -51,9 +51,14 @@ export function Groups() {
     clubId: ''
   });
 
-  // Filters
+  // Page-level filters (for the left participant column)
   const [searchFilter, setSearchFilter] = useState('');
   const [clubFilter, setClubFilter] = useState<string>('');
+
+  // useFilterPanel: auto-show when active, reset on close
+  const isAnyFilterActive = searchFilter !== '' || clubFilter !== '';
+  const resetPageFilters = () => { setSearchFilter(''); setClubFilter(''); };
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, resetPageFilters);
 
   // Data Hooks
   const {
@@ -221,7 +226,7 @@ export function Groups() {
       icon={UserGroupIcon}
       showEventContext={true}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       showHelpPanel={showHelpPanel}
       onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
       helpContent={<GroupsHelpPanel />}

@@ -41,7 +41,7 @@ const Competitions: React.FC = () => {
     statusFilter,
     setStatusFilter,
     showFilters,
-    setShowFilters,
+    toggleFilters,
     handleSubmit,
     handleEdit,
     handleDelete,
@@ -95,7 +95,7 @@ const Competitions: React.FC = () => {
         viewStorageKey="competitions-view"
         defaultView="table"
         showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
+        onToggleFilters={toggleFilters}
         itemCount={competitions.length}
         filterSection={
           <CompetitionFilters

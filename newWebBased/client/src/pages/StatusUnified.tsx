@@ -4,6 +4,7 @@ import { PencilIcon, TrashIcon, SwatchIcon, CheckIcon, XMarkIcon } from '@heroic
 import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate';
 import StatusFormModal from '../components/StatusFormModal';
 import { BlueInfoBox, GreenInfoBox, RedInfoBox, InfoList, FeatureList } from '../components/InfoBoxes';
+import { useFilterPanel } from '@/hooks';
 
 interface Status {
   int_statusid: number;
@@ -25,7 +26,8 @@ const StatusUnified: React.FC = () => {
   // Filter states
   const [visibilityFilter, setVisibilityFilter] = useState('');
   const [colorTypeFilter, setColorTypeFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const isAnyFilterActive = visibilityFilter !== '' || colorTypeFilter !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setVisibilityFilter(''); setColorTypeFilter(''); });
 
   // Help panel state
   const [showHelpPanel, setShowHelpPanel] = useState(false);
@@ -475,7 +477,7 @@ const StatusUnified: React.FC = () => {
         filterOptions={filterOptions}
         onClearAllFilters={handleClearAllFilters}
         showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
+        onToggleFilters={toggleFilters}
         showHelpPanel={showHelpPanel}
         onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
         helpContent={helpContent}

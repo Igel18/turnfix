@@ -10,6 +10,8 @@ import { useEvent } from '@/contexts/EventContext'
 import { apiGet, apiRequest } from '@/utils/api'
 import getSocket from '@/utils/socket'
 import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
+import { useFilterPanel } from '@/hooks'
+import { StatusBadge } from '@/components/status'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,63 +40,6 @@ interface Event {
   var_eventname: string
 }
 
-// ─── Color helper (shared with SquadStatusManagement pattern) ─────────────────
-
-function getStatusColor(colorCode: string | null): { style: React.CSSProperties; className: string } {
-  if (!colorCode) return { style: {}, className: 'bg-gray-100 text-gray-800 border border-gray-200' }
-
-  try {
-    let rgbValues: number[] = []
-
-    if (colorCode.startsWith('{') && colorCode.endsWith('}')) {
-      rgbValues = colorCode.slice(1, -1).split(',').map(v => parseInt(v.trim()))
-    } else if (colorCode.startsWith('rgb(') && colorCode.endsWith(')')) {
-      rgbValues = colorCode.slice(4, -1).split(',').map(v => parseInt(v.trim()))
-    } else if (colorCode.startsWith('#')) {
-      const hex = colorCode.slice(1)
-      rgbValues = [
-        parseInt(hex.slice(0, 2), 16),
-        parseInt(hex.slice(2, 4), 16),
-        parseInt(hex.slice(4, 6), 16),
-      ]
-    } else {
-      rgbValues = colorCode.split(',').map(v => parseInt(v.trim()))
-    }
-
-    if (rgbValues.length === 3 && rgbValues.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
-      const [r, g, b] = rgbValues
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000
-
-      let bgR, bgG, bgB, textR, textG, textB
-
-      if (brightness < 128) {
-        bgR = Math.min(255, r + Math.max(180, 255 - r))
-        bgG = Math.min(255, g + Math.max(180, 255 - g))
-        bgB = Math.min(255, b + Math.max(180, 255 - b))
-        textR = Math.max(0, Math.min(r * 0.3, 80))
-        textG = Math.max(0, Math.min(g * 0.3, 80))
-        textB = Math.max(0, Math.min(b * 0.3, 80))
-      } else {
-        bgR = r; bgG = g; bgB = b
-        textR = textG = textB = brightness > 180 ? 0 : 255
-      }
-
-      return {
-        style: {
-          backgroundColor: `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`,
-          color: `rgb(${Math.round(textR)}, ${Math.round(textG)}, ${Math.round(textB)})`,
-          borderColor: `rgb(${r}, ${g}, ${b})`,
-        },
-        className: 'border',
-      }
-    }
-  } catch {
-    // fall through to fallback
-  }
-
-  return { style: {}, className: 'bg-gray-100 text-gray-800 border border-gray-200' }
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ParticipantStatusManagement() {
@@ -116,7 +61,8 @@ export function ParticipantStatusManagement() {
   const [filterSquad, setFilterSquad] = useState('')
   const [filterCompetition, setFilterCompetition] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const isAnyFilterActive = filterSquad !== '' || filterCompetition !== '' || filterStatus !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setFilterSquad(''); setFilterCompetition(''); setFilterStatus(''); });
 
   // Editing
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -300,7 +246,7 @@ export function ParticipantStatusManagement() {
       searchTerm=""
       onSearchChange={() => {}}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       filterSection={
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -426,7 +372,6 @@ export function ParticipantStatusManagement() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {sortedData.map(p => {
-                    const colorInfo = getStatusColor(p.statusColor)
                     const isEditing = editingId === p.wertungenId
                     const isSaving = savingId === p.wertungenId
 
@@ -478,12 +423,11 @@ export function ParticipantStatusManagement() {
                               title={t('participantStatus.clickToEdit')}
                               className="inline-flex items-center"
                             >
-                              <span
-                                style={colorInfo.style}
-                                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${colorInfo.className} cursor-pointer hover:opacity-80 transition-opacity`}
-                              >
-                                {p.statusName || '—'}
-                              </span>
+                              <StatusBadge
+                                label={p.statusName}
+                                colorCode={p.statusColor}
+                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                              />
                             </button>
                           )}
                         </td>

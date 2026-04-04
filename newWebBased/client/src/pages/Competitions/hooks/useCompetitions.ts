@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { debugLog } from '../../../utils/debug';
 import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../../../utils/api';
 import { Competition, CompetitionFormData } from '../Competitions.types';
+import { useFilterPanel } from '../../../hooks';
 
 export interface UseCompetitionsProps {
   eventId?: string | null;
@@ -49,7 +50,8 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
   const [genderFilter, setGenderFilter] = useState('');
   const [areaFilter, setAreaFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const isAnyFilterActive = searchTerm !== '' || genderFilter !== '' || areaFilter !== '' || statusFilter !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setSearchTerm(''); setGenderFilter(''); setAreaFilter(''); setStatusFilter(''); });
   
   // Form state
   const [formData, setFormData] = useState<CompetitionFormData>(getInitialFormData());
@@ -399,7 +401,7 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
     statusFilter,
     setStatusFilter,
     showFilters,
-    setShowFilters,
+    toggleFilters,
     
     // Handlers
     handleSubmit,

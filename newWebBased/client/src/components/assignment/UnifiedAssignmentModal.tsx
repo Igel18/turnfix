@@ -151,7 +151,7 @@ export function UnifiedAssignmentModal<
           <DetailPane
             key={
               selectedMaster 
-                ? `detail-${selectedMaster.id}-${(selectedMaster as any).members?.length ?? 0}-${(selectedMaster as any).memberCount ?? 0}`
+                ? `detail-${selectedMaster.id}-${(selectedMaster as any).participants?.length ?? (selectedMaster as any).members?.length ?? 0}-${(selectedMaster as any).participantCount ?? (selectedMaster as any).memberCount ?? 0}`
                 : 'no-selection'
             }
             selectedItem={selectedMaster}

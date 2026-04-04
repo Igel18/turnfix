@@ -8,6 +8,7 @@ import {
 import { EventManagementTemplate } from '../components/templates/EventManagementTemplate'
 import MatrixView, { MatrixCountCell, MatrixColumn, MatrixRow } from '../components/MatrixView'
 import { exportWideTablePDF } from '../utils/pdfUtils'
+import { useFilterPanel } from '@/hooks'
 
 interface Club {
   id: number
@@ -41,9 +42,10 @@ export default function Meldematrix() {
   const [registrationData, setRegistrationData] = useState<RegistrationData>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
   const [genderFilter, setGenderFilter] = useState<string>('all')
   const [clubFilter, setClubFilter] = useState<string>('')
+  const isAnyFilterActive = genderFilter !== 'all' || clubFilter !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setGenderFilter('all'); setClubFilter(''); });
 
   useEffect(() => {
     if (!eventId) return
@@ -257,7 +259,7 @@ export default function Meldematrix() {
       subtitle={t('meldematrix.subtitle')}
       icon={TableCellsIcon}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       searchTerm={clubFilter}
       onSearchChange={setClubFilter}
       searchPlaceholder={t('meldematrix.searchPlaceholder')}

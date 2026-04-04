@@ -3,9 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { 
   TrophyIcon,
-  ExclamationTriangleIcon,
-  TableCellsIcon
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
+import { StatusBadge, ViewModeToggle } from '@/components/status'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixColumn, MatrixRow } from '@/components/MatrixView'
 import { exportToCSV, getCompetitionStatusCSVData } from '@/utils/csvExport'
@@ -15,6 +15,7 @@ import { useEvent } from '@/contexts/EventContext'
 import { apiGet } from '@/utils/api'
 import getSocket from '@/utils/socket'
 import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
+import { useFilterPanel } from '@/hooks'
 
 // Types
 interface CompetitionStatus {
@@ -72,7 +73,8 @@ const CompetitionStatusManagement = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterGender, setFilterGender] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const isAnyFilterActive = searchTerm !== '' || filterStatus !== '' || filterGender !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setSearchTerm(''); setFilterStatus(''); setFilterGender(''); });
 
   // View options
   const [viewMode, setViewMode] = useState<'table' | 'grid' | 'matrix'>('matrix')
@@ -139,79 +141,6 @@ const CompetitionStatusManagement = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Get status color style from actual color code
-  const getStatusColor = (colorCode: string): { style: React.CSSProperties; className: string } => {
-    if (!colorCode) return { 
-      style: {}, 
-      className: 'bg-gray-100 text-gray-800 border border-gray-200' 
-    }
-    
-    try {
-      // Handle different color code formats
-      let rgbValues: number[] = []
-      
-      if (colorCode.startsWith('{') && colorCode.endsWith('}')) {
-        // Format: {255,0,0}
-        const cleanCode = colorCode.slice(1, -1)
-        rgbValues = cleanCode.split(',').map(v => parseInt(v.trim()))
-      } else if (colorCode.startsWith('rgb(') && colorCode.endsWith(')')) {
-        // Format: rgb(255,0,0)
-        const cleanCode = colorCode.slice(4, -1)
-        rgbValues = cleanCode.split(',').map(v => parseInt(v.trim()))
-      } else if (colorCode.startsWith('#')) {
-        // Format: #ff0000
-        const hex = colorCode.slice(1)
-        rgbValues = [
-          parseInt(hex.slice(0, 2), 16),
-          parseInt(hex.slice(2, 4), 16),
-          parseInt(hex.slice(4, 6), 16)
-        ]
-      } else {
-        // Try to parse as comma-separated values
-        rgbValues = colorCode.split(',').map(v => parseInt(v.trim()))
-      }
-      
-      if (rgbValues.length === 3 && rgbValues.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
-        const [r, g, b] = rgbValues
-        
-        // Calculate brightness to determine if we need light or dark background
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000
-        
-        let bgR, bgG, bgB, textR, textG, textB
-        
-        if (brightness < 128) {
-          // Dark color - use lighter background with darker text
-          bgR = Math.min(255, r + Math.max(180, 255 - r))
-          bgG = Math.min(255, g + Math.max(180, 255 - g))
-          bgB = Math.min(255, b + Math.max(180, 255 - b))
-          textR = Math.max(0, Math.min(r * 0.3, 80))
-          textG = Math.max(0, Math.min(g * 0.3, 80))
-          textB = Math.max(0, Math.min(b * 0.3, 80))
-        } else {
-          // Light color - use the original color as background with white text
-          bgR = r
-          bgG = g
-          bgB = b
-          textR = textG = textB = brightness > 180 ? 0 : 255
-        }
-        
-        return {
-          style: {
-            backgroundColor: `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`,
-            color: `rgb(${Math.round(textR)}, ${Math.round(textG)}, ${Math.round(textB)})`,
-            borderColor: `rgb(${r}, ${g}, ${b})`
-          },
-          className: 'border'
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to parse color code:', colorCode, error)
-    }
-    
-    // Fallback to generic color mapping
-    return { style: {}, className: 'bg-gray-100 text-gray-800 border border-gray-200' }
   }
 
   // Get overall status color based on status
@@ -339,7 +268,7 @@ const CompetitionStatusManagement = () => {
       onSearchChange={setSearchTerm}
       searchPlaceholder={t('competitionStatus.searchPlaceholder')}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       filterSection={
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -395,44 +324,7 @@ const CompetitionStatusManagement = () => {
           // Live Update Indicator
           <LiveUpdateIndicator key="live-indicator" label={t('common.liveUpdates')} />,
           // View Mode Toggle (3 options: Matrix, Table, Grid)
-          <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
-            <button
-              type="button"
-              onClick={() => setViewMode('matrix')}
-              className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
-                viewMode === 'matrix'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-              title="Matrix View"
-            >
-              <TableCellsIcon className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-2 text-sm font-medium border-t border-b ${
-                viewMode === 'table'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-              title="Table View"
-            >
-              List
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-2 text-sm font-medium rounded-r-md border ${
-                viewMode === 'grid'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-              title="Grid View"
-            >
-              Grid
-            </button>
-          </div>
+          <ViewModeToggle key="view-toggle" viewMode={viewMode} onChange={setViewMode} />
         ]}
       >
         {() => (
@@ -641,7 +533,7 @@ const CompetitionStatusManagement = () => {
                       currentSortDirection={sortDirection}
                       onSort={handleSort}
                     />
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('competitionStatus.table.squadStates')}
                     </th>
                     <SortableTableHeader
@@ -651,10 +543,10 @@ const CompetitionStatusManagement = () => {
                       currentSortDirection={sortDirection}
                       onSort={handleSort}
                     />
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('competitionStatus.table.squads')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('competitionStatus.table.details')}
                     </th>
                   </tr>
@@ -662,7 +554,7 @@ const CompetitionStatusManagement = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {sortedFilteredCompetitions.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
                             {item.name}{item.number ? ` (${t('competitionStatus.numberAbbrev')} ${item.number})` : ''}
@@ -672,38 +564,34 @@ const CompetitionStatusManagement = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         {item.ageFrom}-{item.ageTo} {t('competitionStatus.years')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         <GenderBadge value={item.gender} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         {(() => { const s = getAggregatedOverallStatus(item); return (
-                        <span 
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(getOverallStatusColor(s)).className}`}
-                          style={getStatusColor(getOverallStatusColor(s)).style}
-                        >
-                          {s === 'completed' ? t('competitionStatus.statusLabels.completed') : s === 'in_progress' ? t('competitionStatus.statusLabels.inProgress') : t('competitionStatus.statusLabels.notStarted')}
-                        </span>
+                        <StatusBadge
+                          colorCode={getOverallStatusColor(s)}
+                          label={s === 'completed' ? t('competitionStatus.statusLabels.completed') : s === 'in_progress' ? t('competitionStatus.statusLabels.inProgress') : t('competitionStatus.statusLabels.notStarted')}
+                        />
                         )})()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         {(() => { const statuses = getStatusManagementSummary(item); return (
                           <div className="flex flex-wrap gap-1">
                             {statuses.map(status => (
-                              <span 
+                              <StatusBadge
                                 key={status.statusId}
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${getStatusColor(status.colorCode).className}`} 
-                                style={getStatusColor(status.colorCode).style}
-                              >
-                                {status.statusName}: {status.count}
-                              </span>
+                                label={`${status.statusName}: ${status.count}`}
+                                colorCode={status.colorCode}
+                              />
                             ))}
                           </div>
                         )})()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
@@ -719,7 +607,7 @@ const CompetitionStatusManagement = () => {
                           Leistungen erfasst: {item.completedSquadDisciplines} / {item.totalSquadDisciplines}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex flex-wrap gap-1">
                           {item.disciplines_detail.map((discipline: {
                             disciplineId: number;
@@ -731,7 +619,7 @@ const CompetitionStatusManagement = () => {
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         <div className="text-xs">
                           <div>{t('competitionStatus.details.participants')}: {item.participantCount}</div>
                           <div>{t('competitionStatus.details.totalParticipantsDiscipline')}: {item.totalSquadDisciplines}</div>
@@ -767,11 +655,11 @@ const CompetitionStatusManagement = () => {
                       <div>
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('competitionStatus.grid.status')}</label>
                         {(() => { const s = getAggregatedOverallStatus(item); return (
-                          <div 
-                            className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(getOverallStatusColor(s)).className}`}
-                            style={getStatusColor(getOverallStatusColor(s)).style}
-                          >
-                            {s === 'completed' ? t('competitionStatus.statusLabels.completed') : s === 'in_progress' ? t('competitionStatus.statusLabels.inProgress') : t('competitionStatus.statusLabels.notStarted')}
+                          <div className="mt-1">
+                            <StatusBadge
+                              colorCode={getOverallStatusColor(s)}
+                              label={s === 'completed' ? t('competitionStatus.statusLabels.completed') : s === 'in_progress' ? t('competitionStatus.statusLabels.inProgress') : t('competitionStatus.statusLabels.notStarted')}
+                            />
                           </div>
                         )})()}
                       </div>

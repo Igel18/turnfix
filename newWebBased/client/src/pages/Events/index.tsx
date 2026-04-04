@@ -48,7 +48,7 @@ const Events: React.FC = () => {
     searchTerm,
     setSearchTerm,
     showFilters,
-    setShowFilters,
+    toggleFilters,
     getFilterConfig,
     handleClearAllFilters,
     sortKey,
@@ -78,7 +78,7 @@ const Events: React.FC = () => {
         onSearchChange={setSearchTerm}
         searchPlaceholder={t('events.searchPlaceholder')}
         showFilters={showFilters}
-        onToggleFilters={() => setShowFilters(!showFilters)}
+        onToggleFilters={toggleFilters}
         filterOptions={getFilterConfig()}
         onClearAllFilters={handleClearAllFilters}
         onExportCSV={handleExportCSV}

@@ -8,6 +8,7 @@ import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { UsersIcon } from '@heroicons/react/24/outline';
+import { useFilterPanel } from '@/hooks';
 
 // Context & Hooks
 import { useEvent } from '@/contexts/EventContext';
@@ -38,7 +39,6 @@ const Teams: React.FC = () => {
 
   // State
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -46,6 +46,11 @@ const Teams: React.FC = () => {
   // Filter State
   const [filterClub, setFilterClub] = useState('');
   const [filterCompetition, setFilterCompetition] = useState('');
+
+  // useFilterPanel: auto-show when active, reset on close
+  const isAnyFilterActiveTeams = filterClub !== '' || filterCompetition !== '';
+  const resetTeamFilters = () => { setFilterClub(''); setFilterCompetition(''); };
+  const { showFilters, toggleFilters: toggleTeamFilters } = useFilterPanel(isAnyFilterActiveTeams, resetTeamFilters);
   
   // Form Data
   const [formData, setFormData] = useState<TeamFormData>({
@@ -236,7 +241,7 @@ const Teams: React.FC = () => {
       loading={teamsLoading}
       onRefresh={handleRefresh}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleTeamFilters}
       showHelpPanel={showHelpPanel}
       onToggleHelpPanel={() => setShowHelpPanel(!showHelpPanel)}
       helpContent={

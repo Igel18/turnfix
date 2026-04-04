@@ -5,18 +5,18 @@ import {
   PencilIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  UserGroupIcon,
-  SparklesIcon,
-  TableCellsIcon
+  UserGroupIcon
 } from '@heroicons/react/24/outline'
+import { StatusBadge, ViewModeToggle, getStatusColor } from '@/components/status'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import MatrixView, { MatrixStatusBadge, MatrixColumn, MatrixRow, MatrixCellProps } from '@/components/MatrixView'
 import { exportToCSV, getSquadStatusCSVData } from '@/utils/csvExport'
 import { useEvent } from '@/contexts/EventContext'
-import { apiGet, apiPost } from '@/utils/api'
+import { apiGet } from '@/utils/api'
 import getSocket from '@/utils/socket'
 import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
 import SortableTableHeader, { useTableSort } from '@/components/SortableTableHeader'
+import { useFilterPanel } from '@/hooks'
 
 // Types
 interface SquadDisciplineStatus {
@@ -67,12 +67,13 @@ export function SquadStatusManagement() {
   const [filterSquad, setFilterSquad] = useState('')
   const [filterDiscipline, setFilterDiscipline] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  
-  // View options - keep manual state for 3-option toggle (matrix/table/grid)
+  const isAnyFilterActive = filterSquad !== '' || filterDiscipline !== '' || filterStatus !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setFilterSquad(''); setFilterDiscipline(''); setFilterStatus(''); });
+
+  // View options - 3-option toggle (matrix/table/grid)
   const [viewMode, setViewMode] = useState<'table' | 'grid' | 'matrix'>('matrix')
+
   const [editingItem, setEditingItem] = useState<SquadDisciplineStatus | null>(null)
-  const [generating, setGenerating] = useState(false)
 
   // Sorting hook
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort()
@@ -147,29 +148,6 @@ export function SquadStatusManagement() {
     }
   }
 
-  // Auto-generate squad-discipline combinations
-  const generateCombinations = async () => {
-    if (!selectedEventId) return
-
-    try {
-      setGenerating(true)
-      
-      const response = await apiPost('/squad-disciplines/generate', {
-        eventId: parseInt(selectedEventId)
-      })
-
-      if (response.success) {
-        alert(`${t('squadStatus.generateSuccess')}\n\n${t('squadStatus.created')}: ${response.created}\n${t('squadStatus.existing')}: ${response.existing}\n${t('squadStatus.total')}: ${response.total}`)
-        await loadData() // Reload data to show new combinations
-      }
-    } catch (error: any) {
-      console.error('Error generating squad disciplines:', error)
-      alert(t('squadStatus.generateError') + ': ' + (error.message || 'Unknown error'))
-    } finally {
-      setGenerating(false)
-    }
-  }
-
   // Update status
   const updateStatus = async (item: SquadDisciplineStatus, newStatusId: number) => {
     try {
@@ -208,89 +186,6 @@ export function SquadStatusManagement() {
       console.error('Error updating status:', error)
       alert('Failed to update status due to network error')
     }
-  }
-
-  // Get status color style from actual color code
-  const getStatusColor = (colorCode: string): { style: React.CSSProperties; className: string } => {
-    if (!colorCode) return { 
-      style: {}, 
-      className: 'bg-gray-100 text-gray-800 border border-gray-200' 
-    }
-    
-    try {
-      // Handle different color code formats
-      let rgbValues: number[] = []
-      
-      if (colorCode.startsWith('{') && colorCode.endsWith('}')) {
-        // Format: {255,0,0}
-        const cleanCode = colorCode.slice(1, -1)
-        rgbValues = cleanCode.split(',').map(v => parseInt(v.trim()))
-      } else if (colorCode.startsWith('rgb(') && colorCode.endsWith(')')) {
-        // Format: rgb(255,0,0)
-        const cleanCode = colorCode.slice(4, -1)
-        rgbValues = cleanCode.split(',').map(v => parseInt(v.trim()))
-      } else if (colorCode.startsWith('#')) {
-        // Format: #ff0000
-        const hex = colorCode.slice(1)
-        rgbValues = [
-          parseInt(hex.slice(0, 2), 16),
-          parseInt(hex.slice(2, 4), 16),
-          parseInt(hex.slice(4, 6), 16)
-        ]
-      } else {
-        // Try to parse as comma-separated values
-        rgbValues = colorCode.split(',').map(v => parseInt(v.trim()))
-      }
-      
-      if (rgbValues.length === 3 && rgbValues.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
-        const [r, g, b] = rgbValues
-        
-        // Calculate brightness to determine if we need light or dark background
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000
-        
-        let bgR, bgG, bgB, textR, textG, textB
-        
-        if (brightness < 128) {
-          // Dark color - use lighter background with darker text
-          bgR = Math.min(255, r + Math.max(180, 255 - r))
-          bgG = Math.min(255, g + Math.max(180, 255 - g))
-          bgB = Math.min(255, b + Math.max(180, 255 - b))
-          textR = Math.max(0, Math.min(r * 0.3, 80))
-          textG = Math.max(0, Math.min(g * 0.3, 80))
-          textB = Math.max(0, Math.min(b * 0.3, 80))
-        } else {
-          // Light color - use the original color as background with white text
-          bgR = r
-          bgG = g
-          bgB = b
-          textR = textG = textB = brightness > 180 ? 0 : 255
-        }
-        
-        return {
-          style: {
-            backgroundColor: `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`,
-            color: `rgb(${Math.round(textR)}, ${Math.round(textG)}, ${Math.round(textB)})`,
-            borderColor: `rgb(${r}, ${g}, ${b})`
-          },
-          className: 'border'
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to parse color code:', colorCode, error)
-    }
-    
-    // Fallback to generic color mapping
-    if (colorCode.includes('255,0,0') || colorCode.includes('#ff0000') || colorCode.includes('red')) {
-      return { style: {}, className: 'bg-red-100 text-red-800 border border-red-200' }
-    } else if (colorCode.includes('0,255,0') || colorCode.includes('#00ff00') || colorCode.includes('green')) {
-      return { style: {}, className: 'bg-green-100 text-green-800 border border-green-200' }
-    } else if (colorCode.includes('255,255,0') || colorCode.includes('#ffff00') || colorCode.includes('yellow')) {
-      return { style: {}, className: 'bg-yellow-100 text-yellow-800 border border-yellow-200' }
-    } else if (colorCode.includes('0,0,255') || colorCode.includes('#0000ff') || colorCode.includes('blue')) {
-      return { style: {}, className: 'bg-blue-100 text-blue-800 border border-blue-200' }
-    }
-    
-    return { style: {}, className: 'bg-gray-100 text-gray-800 border border-gray-200' }
   }
 
   // Filter data
@@ -388,7 +283,7 @@ export function SquadStatusManagement() {
       searchTerm=""
       onSearchChange={() => {}}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       filterSection={
         showFilters ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -465,50 +360,7 @@ export function SquadStatusManagement() {
         // Live Update Indicator
         <LiveUpdateIndicator key="live-indicator" label={t('common.liveUpdates')} />,
         // View Mode Toggle (3 options: Matrix, Table, Grid)
-        <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
-          <button
-            type="button"
-            onClick={() => setViewMode('matrix')}
-            className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
-              viewMode === 'matrix'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <TableCellsIcon className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('table')}
-            className={`px-3 py-2 text-sm font-medium border-t border-b ${
-              viewMode === 'table'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            List
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('grid')}
-            className={`px-3 py-2 text-sm font-medium rounded-r-md border ${
-              viewMode === 'grid'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Grid
-          </button>
-        </div>,
-        <button
-          key="generate"
-          onClick={generateCombinations}
-          disabled={generating}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <SparklesIcon className="h-5 w-5 mr-2" />
-          {generating ? t('squadStatus.generating') : t('squadStatus.generateButton')}
-        </button>
+        <ViewModeToggle key="view-toggle" viewMode={viewMode} onChange={setViewMode} />,
       ]}
     >
       {() => (
@@ -668,22 +520,22 @@ export function SquadStatusManagement() {
                     currentSortDirection={sortDirection}
                     onSort={handleSort}
                   />
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.actions')}</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('squadStatus.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedFilteredData.map((item: SquadDisciplineStatus) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.squadName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       <div>
                         <div className="font-medium">{item.disciplineName}</div>
                         <div className="text-gray-500">{item.disciplineShort}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       {editingItem?.id === item.id ? (
                         <div className="flex items-center space-x-2">
                           <select
@@ -705,25 +557,20 @@ export function SquadStatusManagement() {
                           </button>
                         </div>
                       ) : (
-                        <span 
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status.colorCode).className}`}
-                          style={getStatusColor(item.status.colorCode).style}
-                        >
-                          {item.status.name}
-                        </span>
+                        <StatusBadge label={item.status.name} colorCode={item.status.colorCode} />
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {item.round || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {item.isFirstApparatus ? (
                         <CheckCircleIcon className="h-5 w-5 text-green-500" />
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       {editingItem?.id !== item.id && (
                         <button
                           onClick={() => setEditingItem(item)}
@@ -773,11 +620,8 @@ export function SquadStatusManagement() {
                       ))}
                     </select>
                   ) : (
-                    <div 
-                      className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status.colorCode).className}`}
-                      style={getStatusColor(item.status.colorCode).style}
-                    >
-                      {item.status.name}
+                    <div className="mt-1">
+                      <StatusBadge label={item.status.name} colorCode={item.status.colorCode} />
                     </div>
                   )}
                 </div>

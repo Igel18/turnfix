@@ -3,3 +3,5 @@
  */
 
 export { useServerSyncedSelection } from './useServerSyncedSelection';
+export { useFilterPanel } from './useFilterPanel';
+export type { UseFilterPanelReturn } from './useFilterPanel';

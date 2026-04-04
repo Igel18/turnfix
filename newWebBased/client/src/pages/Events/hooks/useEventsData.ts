@@ -8,6 +8,7 @@ import { useEvent } from '../../../contexts/EventContext'
 import { useTableSort } from '../../../components/SortableTableHeader'
 import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../../../utils/api'
 import { debugLog } from '../../../utils/debug'
+import { useFilterPanel } from '../../../hooks'
 import type { Event, Venue, EventFormData } from '../Events.types'
 
 // ── Status helpers ──────────────────────────────────────────────────────────
@@ -45,7 +46,8 @@ export function useEventsData() {
   // Filter state
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const isAnyFilterActive = searchTerm !== '' || selectedStatus !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => { setSearchTerm(''); setSelectedStatus(''); });
 
   // Sorting
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_eventname', 'asc')
@@ -252,7 +254,7 @@ export function useEventsData() {
     setSearchTerm,
     selectedStatus,
     showFilters,
-    setShowFilters,
+    toggleFilters,
     getFilterConfig,
     handleClearAllFilters,
     // Sorting

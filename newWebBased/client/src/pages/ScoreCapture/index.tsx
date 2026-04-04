@@ -32,6 +32,7 @@ import {
   useSquadDisciplineStatus,
   useScoreHandlers
 } from './hooks';
+import { useFilterPanel } from '@/hooks';
 
 // All 4 components (ScoreFilters not used - replaced by SquadDisciplineSelector)
 import {
@@ -56,7 +57,8 @@ export default function ScoreCapture() {
 
   // Local UI state
   const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const isAnyFilterActive = searchTerm !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, () => setSearchTerm(''));
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [activeSquad, setActiveSquad] = useState<string>(contextSquad?.squad_name || '');
   const [activeDiscipline, setActiveDiscipline] = useState<number | string | ''>(
@@ -418,7 +420,7 @@ export default function ScoreCapture() {
       subtitle={t('scoreCapture.subtitle')}
       icon={ClipboardDocumentListIcon}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       filterSection={
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Search */}

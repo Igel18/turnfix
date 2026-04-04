@@ -962,7 +962,10 @@ Abstimmung, welche Felder und Workflows im Detail abgedeckt werden sollen (z.B. 
 126. Race conditions werden mit pg_advisory_xact_lock
 zu vermeiden. Wird das dann auch dem User als sinnvolle Fehlermeldung ausgegeben? 
 
+127. Refactoring competitionstatusmanagement.tsx und squadstatusmanagement.tsx: 
+lassen sich hier einheitliche UIs bauen sodass man auch unified sachen auslager kann? 
+
 ------------------------------------------------------------
 -> Erledigt ✅
--> In Work 
+-> In Arbeit 🚀
 -> obsolete 

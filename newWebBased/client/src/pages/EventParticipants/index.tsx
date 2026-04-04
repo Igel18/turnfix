@@ -15,6 +15,7 @@ import { TagIcon } from '@heroicons/react/24/outline';
 // Context & Hooks
 import { useEvent } from '@/contexts/EventContext';
 import { usePagination } from '@/hooks/usePagination';
+import { useFilterPanel } from '@/hooks';
 import { useTableSort } from '@/components/SortableTableHeader';
 
 // Local Hooks & Types
@@ -66,18 +67,32 @@ export default function EventParticipants() {
   const [genderFilter, setGenderFilter] = useState('');
   const [competitionFilter, setCompetitionFilter] = useState('');
 
-  // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
-  // Also open the filter panel so the active filter is visible to the user.
+  const [clubFilter, setClubFilter] = useState('');
+  const [ageFilter, setAgeFilter] = useState('');
+
+  // handleResetFilters must be declared before useFilterPanel to avoid TDZ error
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setGenderFilter('');
+    setClubFilter('');
+    setAgeFilter('');
+    setCompetitionFilter('');
+  };
+
+  // useFilterPanel: auto-show when active, reset on close
+  const isAnyFilterActive =
+    searchTerm !== '' || genderFilter !== '' || clubFilter !== '' ||
+    ageFilter !== '' || competitionFilter !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, handleResetFilters);
+
+  // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation).
+  // useFilterPanel auto-shows the panel when isAnyFilterActive becomes true.
   useEffect(() => {
     const prefill = searchParams.get('prefillSearch');
     if (prefill) {
       setSearchTerm(prefill);
-      setShowFilters(true);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [clubFilter, setClubFilter] = useState('');
-  const [ageFilter, setAgeFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
 
   // UI States
   const [showEditModal, setShowEditModal] = useState(false);
@@ -151,14 +166,6 @@ export default function EventParticipants() {
   });
 
   // Handlers
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setGenderFilter('');
-    setClubFilter('');
-    setAgeFilter('');
-    setCompetitionFilter('');
-  };
-
   const handleEditParticipant = (participant: Participant) => {
     setSelectedParticipant(participant);
     setShowEditModal(true);
@@ -281,13 +288,7 @@ export default function EventParticipants() {
       subtitle={t('eventParticipants.subtitle')}
       icon={Users}
       showFilters={showFilters}
-      onToggleFilters={() => {
-        if (showFilters) {
-          // Closing the filter panel → reset all active filters
-          handleResetFilters();
-        }
-        setShowFilters(prev => !prev);
-      }}
+      onToggleFilters={toggleFilters}
       filterSection={
         <ParticipantFilters
           participants={allParticipants}

@@ -28,6 +28,7 @@ import {
   useCertificates, 
   useExport 
 } from './hooks'
+import { useFilterPanel } from '@/hooks'
 
 // Components
 import { 
@@ -55,7 +56,11 @@ const Results = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCompetition, setSelectedCompetition] = useState<string>('')
   const [genderFilter, setGenderFilter] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+
+  // useFilterPanel: auto-show when active, reset on close
+  const isAnyFilterActiveResults = searchTerm !== '' || genderFilter !== '';
+  const resetResultsFilters = () => { setSearchTerm(''); setGenderFilter(''); };
+  const { showFilters, toggleFilters: toggleResultsFilters } = useFilterPanel(isAnyFilterActiveResults, resetResultsFilters);
   const [showDisciplineScores, setShowDisciplineScores] = useState(true)
   const [showJuryScores] = useState(true)
   const [showCertificateModal, setShowCertificateModal] = useState(false)
@@ -239,7 +244,7 @@ const Results = () => {
       searchPlaceholder={t('results.searchPlaceholder')}
       onSearchChange={setSearchTerm}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleResultsFilters}
       filterSection={filterSectionJSX}
       showExportCSV={true}
       onExportCSV={exportResultsCSV}

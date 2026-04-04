@@ -98,7 +98,7 @@ export function MasterList<TMaster extends BaseMasterItem>({
               {metadata.tags && metadata.tags.length > 0 && (
                 <div className="mt-2">
                   <div className="flex flex-wrap gap-1">
-                    {metadata.tags.slice(0, 2).map((tag, idx) => (
+                    {metadata.tags.slice(0, 5).map((tag, idx) => (
                       <span 
                         key={idx} 
                         className={`px-2 py-1 rounded text-xs ${
@@ -108,9 +108,9 @@ export function MasterList<TMaster extends BaseMasterItem>({
                         {tag.label}
                       </span>
                     ))}
-                    {metadata.tags.length > 2 && (
+                    {metadata.tags.length > 5 && (
                       <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                        +{metadata.tags.length - 2} more
+                        +{metadata.tags.length - 5} more
                       </span>
                     )}
                   </div>

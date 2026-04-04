@@ -14,6 +14,7 @@ import { useEvent } from '@/contexts/EventContext';
 import { UnifiedAssignmentModal } from '@/components/assignment';
 
 // Hooks
+import { useFilterPanel } from '@/hooks';
 import { useSquads } from './hooks/useSquads';
 import { useParticipants } from './hooks/useParticipants';
 import { useSquadAssignment } from './hooks/useSquadAssignment';
@@ -45,7 +46,6 @@ const SquadManagementUnified: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
   const [isAutoAssignOpen, setIsAutoAssignOpen] = useState(false);
 
   // Wizard state
@@ -80,6 +80,16 @@ const SquadManagementUnified: React.FC = () => {
     forceLoadAvailableParticipants,
     participantHasSelectedCompetition
   } = useParticipants(eventId);
+
+  // useFilterPanel: auto-show when active, reset on close
+  const isAnyFilterActive =
+    filterState.searchTerm !== '' ||
+    filterState.genderFilter !== '' ||
+    filterState.competitionFilter !== '' ||
+    filterState.clubFilter !== '' ||
+    filterState.assignmentStatus !== 'all' ||
+    filterState.birthYear !== '';
+  const { showFilters, toggleFilters } = useFilterPanel(isAnyFilterActive, resetFilters);
 
   // Pre-fill search from ?prefillSearch= URL param (set by EventSearchPalette navigation)
   useEffect(() => {
@@ -217,7 +227,7 @@ const SquadManagementUnified: React.FC = () => {
       onSearchChange={setSearchTerm}
       searchPlaceholder={t('squadManagement.searchPlaceholder')}
       showFilters={showFilters}
-      onToggleFilters={() => setShowFilters(!showFilters)}
+      onToggleFilters={toggleFilters}
       filterSection={
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
