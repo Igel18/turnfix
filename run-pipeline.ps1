@@ -113,6 +113,11 @@ Invoke-Step -Name "Build Shared (@turnfix/shared)" -Skip:$SkipBuild -Action {
 
 # ── 2. Build Server + Client ──────────────────────────────────────────────
 Invoke-Step -Name "Build Server + Client" -Skip:$SkipBuild -Action {
+    # Browserslist-Datenbank aktualisieren (caniuse-lite), damit Vite/PostCSS
+    # aktuelle Browser-Targets kennt und keine Warnung ausgibt.
+    Set-Location $ClientDir
+    npx update-browserslist-db@latest --yes 2>&1 | Out-Null
+
     Set-Location $WebDir
     npm run build
 }

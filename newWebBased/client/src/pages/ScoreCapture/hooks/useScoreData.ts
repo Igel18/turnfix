@@ -42,7 +42,7 @@ interface UseScoreDataReturn {
   setCompetitions: (competitions: Competition[]) => void;
   setStatuses: (statuses: Status[]) => void;
   setExistingScores: (scores: Score[]) => void;
-  setSquadDisciplineStatuses: (statuses: { [key: string]: number }) => void;
+  setSquadDisciplineStatuses: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
 }
 
 // Helper function to add delay between API calls

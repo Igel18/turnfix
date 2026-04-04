@@ -2,14 +2,13 @@
  * Tests for useEventImportWizard hook
  *
  * Covers:
- *  - Initial state (starts at fileDetails step)
- *  - canGoNext: false without file or eventName; true with both
- *  - goNext: advances to 'importing' and triggers file upload
- *  - Auto-advance: 'importing' → 'results' when importState becomes 'completed'
- *  - Auto-advance: 'importing' → 'results' when importState becomes 'error'
- *  - resetAndClose: invalidates cache & calls onImportComplete on success
- *  - resetAndClose: does NOT invalidate cache on error
- *  - retry: resets state and goes back to fileDetails
+ *  - Initial state (starts at eventDetails step)
+ *  - canGoNextEventDetails / canGoNextFileSelection
+ *  - goNextFromEventDetails / goNextFromFileSelection
+ *  - Auto-advance: importing → results on completed/error
+ *  - resetAndClose: calls onImportComplete on success
+ *  - resetAndClose: does NOT call onImportComplete on error
+ *  - retry: resets state and goes back to fileSelection
  *  - handleAcceptHint: POSTs to /api/events/accept-discipline-suggestions
  */
 
@@ -34,10 +33,6 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/utils/debug', () => ({
   debugLog: vi.fn(),
-}));
-
-vi.mock('@/utils/api', () => ({
-  invalidateCache: vi.fn(),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -70,29 +65,33 @@ const successImportResponse = {
   hints: [],
   extractedData: {
     clubs: [], competitions: [], participants: [], devices: [], teams: [],
-    summary: {
-      clubsCount: 2,
-      competitionsCount: 3,
-      participantsCount: 10,
-      devicesCount: 5,
-      teamsCount: 0,
-    },
+    summary: { clubsCount: 2, competitionsCount: 3, participantsCount: 10, devicesCount: 5, teamsCount: 0 },
   },
 };
 
 const makeFile = (name = 'test.xml') =>
   new File(['<data>test</data>'], name, { type: 'text/xml' });
 
+/** Helper: advance hook from eventDetails → fileSelection */
+function setEventName(result: ReturnType<typeof renderHook<ReturnType<typeof useEventImportWizard>, unknown>>['result'], name = 'Test Event') {
+  act(() => {
+    result.current.setImportEventData(d => ({ ...d, eventName: name }));
+  });
+  act(() => {
+    result.current.goNextFromEventDetails();
+  });
+}
+
 // ── Initial state ─────────────────────────────────────────────────────────────
 
 describe('useEventImportWizard – initial state', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('starts at fileDetails step', () => {
+  it('starts at eventDetails step', () => {
     const { result } = renderHook(() =>
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
-    expect(result.current.step).toBe('fileDetails');
+    expect(result.current.step).toBe('eventDetails');
   });
 
   it('importState is idle initially', () => {
@@ -106,7 +105,7 @@ describe('useEventImportWizard – initial state', () => {
     const { result } = renderHook(() =>
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
-    expect(result.current.importFile).toBeNull();
+    expect(result.current.importFiles).toHaveLength(0);
   });
 });
 
@@ -115,7 +114,7 @@ describe('useEventImportWizard – initial state', () => {
 describe('useEventImportWizard – reset on open', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('resets to fileDetails and clears import state on re-open', async () => {
+  it('resets to eventDetails and clears import state on re-open', async () => {
     const { result, rerender } = renderHook(
       (props: { isOpen: boolean }) =>
         useEventImportWizard({ ...baseProps, ...props }),
@@ -123,57 +122,95 @@ describe('useEventImportWizard – reset on open', () => {
     );
     rerender({ isOpen: true });
     await act(async () => {});
-    expect(result.current.step).toBe('fileDetails');
-    expect(result.current.importFile).toBeNull();
+    expect(result.current.step).toBe('eventDetails');
+    expect(result.current.importFiles).toHaveLength(0);
     expect(result.current.errorMessage).toBeNull();
   });
 });
 
-// ── canGoNext ─────────────────────────────────────────────────────────────────
+// ── canGoNext (step-specific) ─────────────────────────────────────────────────
 
-describe('useEventImportWizard – canGoNext', () => {
+describe('useEventImportWizard – canGoNextEventDetails', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('false when eventName is empty', () => {
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+    expect(result.current.canGoNextEventDetails).toBe(false);
+  });
+
+  it('false when eventName is whitespace only', () => {
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+    act(() => {
+      result.current.setImportEventData(d => ({ ...d, eventName: '   ' }));
+    });
+    expect(result.current.canGoNextEventDetails).toBe(false);
+  });
+
+  it('true when eventName is filled', () => {
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+    act(() => {
+      result.current.setImportEventData(d => ({ ...d, eventName: 'WK 2025' }));
+    });
+    expect(result.current.canGoNextEventDetails).toBe(true);
+  });
+});
+
+describe('useEventImportWizard – canGoNextFileSelection', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('false when no file selected', () => {
     const { result } = renderHook(() =>
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
-    act(() =>
-      result.current.setImportEventData(d => ({ ...d, eventName: 'Test Event' })),
-    );
-    expect(result.current.canGoNext).toBe(false);
+    expect(result.current.canGoNextFileSelection).toBe(false);
   });
 
-  it('false when file selected but no eventName', () => {
+  it('true when file is selected', () => {
     const { result } = renderHook(() =>
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
     act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: '   ' }));
+      result.current.setImportFiles([makeFile()]);
     });
-    expect(result.current.canGoNext).toBe(false);
-  });
-
-  it('true when file selected AND eventName is filled', () => {
-    const { result } = renderHook(() =>
-      useEventImportWizard({ ...baseProps, isOpen: true }),
-    );
-    act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'Test Event' }));
-    });
-    expect(result.current.canGoNext).toBe(true);
+    expect(result.current.canGoNextFileSelection).toBe(true);
   });
 });
 
-// ── goNext ────────────────────────────────────────────────────────────────────
+// ── Navigation ────────────────────────────────────────────────────────────────
 
-describe('useEventImportWizard – goNext', () => {
+describe('useEventImportWizard – navigation', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('advances to importing step when canGoNext is true', async () => {
-    // Intercept the fetch call so it stays in uploading state
+  it('goNextFromEventDetails advances to fileSelection when name is set', () => {
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+    act(() => {
+      result.current.setImportEventData(d => ({ ...d, eventName: 'Test' }));
+    });
+    act(() => {
+      result.current.goNextFromEventDetails();
+    });
+    expect(result.current.step).toBe('fileSelection');
+  });
+
+  it('goNextFromEventDetails does nothing when name is empty', () => {
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+    act(() => {
+      result.current.goNextFromEventDetails();
+    });
+    expect(result.current.step).toBe('eventDetails');
+  });
+
+  it('goNextFromFileSelection starts import when file is set', async () => {
     server.use(
       http.post('/api/events/import-gymnet', async () => {
         await new Promise(() => {}); // never resolves
@@ -184,22 +221,28 @@ describe('useEventImportWizard – goNext', () => {
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
 
-    act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'Test' }));
-    });
+    setEventName(result);
 
-    act(() => result.current.goNext());
+    act(() => {
+      result.current.setImportFiles([makeFile()]);
+    });
+    act(() => {
+      result.current.goNextFromFileSelection();
+    });
 
     expect(result.current.step).toBe('importing');
   });
 
-  it('does nothing when canGoNext is false (no file)', () => {
+  it('goBackFromFileSelection returns to eventDetails', () => {
     const { result } = renderHook(() =>
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
-    act(() => result.current.goNext());
-    expect(result.current.step).toBe('fileDetails');
+    setEventName(result);
+    expect(result.current.step).toBe('fileSelection');
+    act(() => {
+      result.current.goBackFromFileSelection();
+    });
+    expect(result.current.step).toBe('eventDetails');
   });
 });
 
@@ -219,14 +262,14 @@ describe('useEventImportWizard – auto-advance', () => {
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
 
+    setEventName(result);
+
     act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'WK 2025' }));
+      result.current.setImportFiles([makeFile()]);
     });
 
     await act(async () => {
-      result.current.goNext();
-      // Wait for fetch + state updates
+      result.current.goNextFromFileSelection();
       await new Promise(r => setTimeout(r, 50));
     });
 
@@ -245,13 +288,14 @@ describe('useEventImportWizard – auto-advance', () => {
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
 
+    setEventName(result);
+
     act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'WK 2025' }));
+      result.current.setImportFiles([makeFile()]);
     });
 
     await act(async () => {
-      result.current.goNext();
+      result.current.goNextFromFileSelection();
       await new Promise(r => setTimeout(r, 50));
     });
 
@@ -265,8 +309,7 @@ describe('useEventImportWizard – auto-advance', () => {
 describe('useEventImportWizard – resetAndClose', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('calls invalidateCache and onImportComplete on successful import', async () => {
-    const { invalidateCache } = await import('@/utils/api');
+  it('calls onImportComplete and onClose on successful import', async () => {
     const onImportComplete = vi.fn();
     const onClose = vi.fn();
 
@@ -277,33 +320,26 @@ describe('useEventImportWizard – resetAndClose', () => {
     );
 
     const { result } = renderHook(() =>
-      useEventImportWizard({
-        ...baseProps,
-        isOpen: true,
-        onImportComplete,
-        onClose,
-      }),
+      useEventImportWizard({ ...baseProps, isOpen: true, onImportComplete, onClose }),
     );
 
+    setEventName(result);
     act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'WK 2025' }));
+      result.current.setImportFiles([makeFile()]);
     });
 
     await act(async () => {
-      result.current.goNext();
+      result.current.goNextFromFileSelection();
       await new Promise(r => setTimeout(r, 50));
     });
 
     act(() => result.current.resetAndClose());
 
-    expect(invalidateCache).toHaveBeenCalledWith('/events');
     expect(onImportComplete).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('does NOT call invalidateCache or onImportComplete on error import', async () => {
-    const { invalidateCache } = await import('@/utils/api');
+  it('does NOT call onImportComplete on error import', async () => {
     const onImportComplete = vi.fn();
     const onClose = vi.fn();
 
@@ -314,27 +350,21 @@ describe('useEventImportWizard – resetAndClose', () => {
     );
 
     const { result } = renderHook(() =>
-      useEventImportWizard({
-        ...baseProps,
-        isOpen: true,
-        onImportComplete,
-        onClose,
-      }),
+      useEventImportWizard({ ...baseProps, isOpen: true, onImportComplete, onClose }),
     );
 
+    setEventName(result);
     act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'WK 2025' }));
+      result.current.setImportFiles([makeFile()]);
     });
 
     await act(async () => {
-      result.current.goNext();
+      result.current.goNextFromFileSelection();
       await new Promise(r => setTimeout(r, 50));
     });
 
     act(() => result.current.resetAndClose());
 
-    expect(invalidateCache).not.toHaveBeenCalled();
     expect(onImportComplete).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
@@ -345,7 +375,7 @@ describe('useEventImportWizard – resetAndClose', () => {
 describe('useEventImportWizard – retry', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('resets importState to idle and goes back to fileDetails', async () => {
+  it('resets importState to idle and goes back to fileSelection', async () => {
     server.use(
       http.post('/api/events/import-gymnet', () =>
         HttpResponse.json({ success: false, message: 'error' }, { status: 500 }),
@@ -356,13 +386,13 @@ describe('useEventImportWizard – retry', () => {
       useEventImportWizard({ ...baseProps, isOpen: true }),
     );
 
+    setEventName(result);
     act(() => {
-      result.current.setImportFile(makeFile());
-      result.current.setImportEventData(d => ({ ...d, eventName: 'WK 2025' }));
+      result.current.setImportFiles([makeFile()]);
     });
 
     await act(async () => {
-      result.current.goNext();
+      result.current.goNextFromFileSelection();
       await new Promise(r => setTimeout(r, 50));
     });
 
@@ -370,7 +400,7 @@ describe('useEventImportWizard – retry', () => {
 
     act(() => result.current.retry());
 
-    expect(result.current.step).toBe('fileDetails');
+    expect(result.current.step).toBe('fileSelection');
     expect(result.current.importState).toBe('idle');
     expect(result.current.errorMessage).toBeNull();
   });
@@ -430,7 +460,7 @@ describe('useEventImportWizard – handleAcceptHint', () => {
       competition: 'AK 10',
       competitionId: 42,
       type: 'suggestion',
-      disciplines: [], // empty
+      disciplines: [],
       message: '',
     };
 
@@ -462,11 +492,9 @@ describe('useEventImportWizard – handleAcceptHint', () => {
       message: '',
     };
 
-    // First call — should go through
     await act(async () => { await result.current.handleAcceptHint(hint); });
     expect(callCount).toBe(1);
 
-    // Second call on same hint — should be skipped (already accepted)
     await act(async () => { await result.current.handleAcceptHint(hint); });
     expect(callCount).toBe(1);
   });

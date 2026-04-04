@@ -72,7 +72,7 @@ export default EventImportWizard
 // ── Step 1: Event Details ─────────────────────────────────────────────
 const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, venues }) => {
   const { t } = useTranslation()
-  const { importEventData, setImportEventData, errorMessage, setErrorMessage } = wizard
+  const { importEventData, setImportEventData, errorMessage } = wizard
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
@@ -447,29 +447,6 @@ const StepResults: React.FC<StepProps> = ({ wizard }) => {
 }
 
 // ── NavBars ───────────────────────────────────────────────────────────────────
-
-const NavBarFileDetails: React.FC<StepProps> = ({ wizard }) => {
-  const { t } = useTranslation()
-  return (
-    <div className="flex justify-between pt-4 border-t mt-4">
-      <button
-        type="button"
-        onClick={wizard.resetAndClose}
-        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm"
-      >
-        {t('common.cancel', 'Abbrechen')}
-      </button>
-      <button
-        type="button"
-        onClick={wizard.goNext}
-        disabled={!wizard.canGoNext}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
-      >
-        {t('events.importWizard.next')}
-      </button>
-    </div>
-  )
-}
 
 const NavBarResults: React.FC<StepProps> = ({ wizard }) => {
   const { t } = useTranslation()

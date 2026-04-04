@@ -299,6 +299,8 @@ if (process.env.DEBUG === 'true') {
 ---
 
 ## 🧪 Testing & Quality
+### Testing Strategy
+- Always write tests for new features and bug fixes
 
 ## Unit tests ##
 - Use Vitest for unit testing of client components and utilities

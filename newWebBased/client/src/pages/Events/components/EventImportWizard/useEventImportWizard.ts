@@ -11,7 +11,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { debugLog } from '../../../../utils/debug'
-import { invalidateCache } from '../../../../utils/api'
 import type { WizardStepDef } from '../../../../components/WizardModal'
 import type { Venue, ImportEventData, ImportApiResult, DisciplineHint } from '../../Events.types'
 import { EMPTY_IMPORT_DATA } from '../../Events.types'

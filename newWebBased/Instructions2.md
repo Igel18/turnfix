@@ -702,6 +702,7 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 103. [improvement] in der results UI werden im Filter die Wettkämpfe im absteigend angezeigt. Aufsteigend wäre korrekt
 
 104. [Bug] Riegen Status wird nicht angezeigt 
+-> Erledigt ✅ | Root cause: useSquadDisciplineStatus-Hook (1) empfing squadDisciplineStatuses nie von useScoreData (squadStatus immer null), (2) rief falschen Endpoint apiPost('/squad-disciplines') statt PUT /:squadName/:disciplineId/status auf. Fix: Hook akzeptiert squadDisciplineStatuses als Prop + onSquadDisciplineStatusChange-Callback; index.tsx leitet Daten durch; fetch PUT für Save. TDD: 12 Unit-Tests in useSquadDisciplineStatus.test.ts.
 
 ---
 
@@ -898,9 +899,65 @@ Auch tests und Docu
 -> Erledigt ✅
 
 125. Eingabe der Wertungen Score-Capture
-Ob eine Wertung für eine Build In Formel oder ein DB-Feld eingegeben wird soll egal sein. Für beide Fälle wird eine einheitliche UI verwendet. Die Eingabe/Anzeige der Wertung soll jetzt etwas schöner werden: 
+-> UI Konzept für die Eingabe von Wertungen
+Ob eine Wertung für eine Build In Formel oder ein DB-Feld eingegeben wird, soll egal sein. Für beide Fälle wird eine einheitliche UI verwendet. Sowohl für die Anzeige der Formel, als auch für die Eingabe der Werte. Die Eingabe/Anzeige der Wertung soll jetzt etwas schöner werden da sie aktuell viel Platz benötigt (zumindest bei DB-Formeln). 
 1. Wird zuerst eine Riege, dann das Gerät und dann eine Person ausgewählt, wird ein Modales Fenster geöffnet bei dem die einzelnen Felder eingegeben werden (gleiche UI wie im Jury-Portal). 
+2. Der Endwert wird bei DB-Formeln nicht berechnet (bei der DB-Formel)
+3. der Doppelte Rahmen bei der DB-Formel ist unpraktisch
+4. Die Geräte-Formel soll am Gerät angezeigt werden (vlg. results UI), nicht im Header. 
 
+-> Umsetzen in komplett neuer UI mit Tests
+-> Konsequente Trennung von Einabe UI und Result view
+
+# Zielsetzung
+Einheitliche, intuitive Wertungseingabe für alle Nutzergruppen (Jury, Admin, Auswertung)
+Konsistentes UI/UX über alle Plattformen (Score-Capture, Jury-Portal, Ergebnisansicht)
+Fehlervermeidung und schnelle Korrekturmöglichkeiten
+Direkte Rückmeldung über Plausibilität und Status der Eingaben
+Optimale Unterstützung für Einzel- und Sammelwertungen (z.B. Mannschaft, Einzel, Gerätefinale)
+## 1. Zentrale Score-Capture-Komponente
+Wiederverwendbare Komponente für alle Wertungseingaben (Backend, Jury-Portal, ggf. mobile)
+Props/Config steuern Modus (Einzel, Team, Gerätewertung, etc.), Disziplin, erlaubte Wertebereiche, Pflichtfelder
+UI-Elemente:
+Tabellarische Eingabe (ähnlich Excel): Zeilen = Teilnehmer, Spalten = Wertungsfelder (D, E, Penalty, etc.)
+Direkte Inline-Bearbeitung (Fokus springt automatisch zum nächsten Feld)
+Farbliche Markierung für offene, fehlerhafte oder bestätigte Felder
+Schnellnavigation (Tastatur, Buttons, ggf. Barcode/QR für Teilnehmer)
+Undo/Redo für schnelle Korrekturen
+## 2. Jury-Portal Integration
+Live-Statusanzeige: Welche Wertungen sind offen, gespeichert, bestätigt?
+Rollenbasierte Ansicht:
+Jury-Mitglied: Nur eigene Wertungen, ggf. mit Plausibilitätscheck
+Jury-Leiter: Übersicht aller Wertungen, Freigabe/Bestätigung, Korrektur
+Synchronisation:
+Echtzeit-Feedback (WebSocket): Änderungen sofort sichtbar für alle berechtigten Nutzer
+Locking/Claiming: Wertung kann „reserviert“ werden, um Doppelbearbeitung zu vermeiden
+## 3. Ergebnisansicht & Kontrolle
+Direkte Verknüpfung: Von Ergebnisliste zur Wertungseingabe (z.B. Klick auf Teilnehmer öffnet Score-Capture)
+Status-Icons: Zeigen an, ob Wertung vollständig, plausibel, bestätigt, oder fehlerhaft ist
+Korrekturmodus: Nachträgliche Änderungen mit Protokollierung (Audit-Log)
+Vergleichsansicht: Originalwertungen vs. Korrekturen (z.B. bei Einsprüchen)
+## 4. UX-Standards & Validierung
+Einheitliche Validierung: Pflichtfelder, Wertebereiche, Plausibilitätsregeln (z.B. D+E ≤ Max)
+Sofortige Rückmeldung: Fehler/Erfolg direkt am Feld (Tooltip, Farbe, Icon)
+Barrierefreiheit: Klare Kontraste, Tastaturbedienung, Screenreader-Support
+Internationalisierung: Alle Texte und Fehlermeldungen lokalisiert
+5. Technische Umsetzung (Vorschlag)
+Zentrale Komponente: ScoreCaptureTable in shared/
+Hooks: useScoreCapture, useScoreValidation
+State-Management: React Context oder Zustand für lokale Änderungen, Server-Sync via API/WebSocket
+API: Einheitliche Endpunkte für Wertung speichern, validieren, bestätigen, zurücksetzen
+Socket.io: Für Live-Updates und Statuswechsel
+6. Beispiel-Workflow
+Jury-Portal: Jury-Mitglied öffnet Score-Capture, gibt Wertung ein → Sofortige Validierung → Speichern → Status „offen“
+Jury-Leiter: Sieht alle offenen Wertungen, prüft, bestätigt → Status „bestätigt“
+Ergebnisansicht: Zeigt Status, ermöglicht Korrektur (mit Protokoll)
+Admin: Kann Wertungen zurücksetzen oder korrigieren (mit Begründung)
+7. Mockup/Skizze (optional)
+Tabellarische Ansicht mit Status-Icons, Inline-Editing, Navigation, Validierungsfarben
+Jury-Portal: Übersicht aller Geräte/Wettkämpfe, Filter nach Status, Schnellzugriff auf Score-Capture
+Nächster Schritt:
+Abstimmung, welche Felder und Workflows im Detail abgedeckt werden sollen (z.B. Spezialfälle Mannschaft, Gerätefinale, etc.), dann UI-Prototyp und technische Feinspezifikation.
 
 
 

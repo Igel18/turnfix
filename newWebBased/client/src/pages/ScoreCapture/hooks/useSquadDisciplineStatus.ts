@@ -9,17 +9,17 @@
  */
 
 import { useState, useEffect } from 'react';
-import { apiPost } from '@/utils/api';
 
 interface UseSquadDisciplineStatusProps {
   eventId: string | null;
   activeSquad: string;
   activeDiscipline: number | string | '';
+  squadDisciplineStatuses: { [key: string]: number };
+  onSquadDisciplineStatusChange?: (key: string, statusId: number) => void;
 }
 
 interface UseSquadDisciplineStatusReturn {
   squadStatus: number | null;
-  squadDisciplineStatuses: { [key: string]: number };
   setSquadStatus: (status: number | null) => void;
   handleSquadStatusChange: (statusId: string) => Promise<void>;
 }
@@ -27,50 +27,49 @@ interface UseSquadDisciplineStatusReturn {
 export function useSquadDisciplineStatus({
   eventId,
   activeSquad,
-  activeDiscipline
+  activeDiscipline,
+  squadDisciplineStatuses,
+  onSquadDisciplineStatusChange
 }: UseSquadDisciplineStatusProps): UseSquadDisciplineStatusReturn {
   const [squadStatus, setSquadStatus] = useState<number | null>(null);
-  const [squadDisciplineStatuses, setSquadDisciplineStatuses] = useState<{ [key: string]: number }>({});
 
-  // Load squad-discipline statuses from API
-  // NOTE: This is now handled in useScoreData hook, so we skip the duplicate load here
-  // to avoid 404 errors on the old /squad-discipline-status endpoint
-  useEffect(() => {
-    // Skip - data is loaded via useScoreData hook
-    // The squadDisciplineStatuses prop is passed from parent component
-  }, [eventId, activeSquad, activeDiscipline]);
-
-  // Update squad status when selection changes
+  // Update squad status whenever the selection or the loaded status map changes
   useEffect(() => {
     if (activeSquad && activeDiscipline) {
       const key = `${activeSquad}-${activeDiscipline}`;
-      setSquadStatus(squadDisciplineStatuses[key] || null);
+      setSquadStatus(squadDisciplineStatuses[key] ?? null);
+    } else {
+      setSquadStatus(null);
     }
   }, [activeSquad, activeDiscipline, squadDisciplineStatuses]);
 
-  // Handler for squad status change
+  // Handler for squad status change – uses PUT /:squadName/:disciplineId/status
   const handleSquadStatusChange = async (statusId: string) => {
     const numericStatusId = parseInt(statusId);
     if (isNaN(numericStatusId) || !activeSquad || !activeDiscipline || !eventId) {
       return;
     }
 
+    const disciplineId = typeof activeDiscipline === 'number' ? activeDiscipline : null;
+    if (!disciplineId) return;
+
     setSquadStatus(numericStatusId);
 
     const key = `${activeSquad}-${activeDiscipline}`;
-    setSquadDisciplineStatuses(prev => ({
-      ...prev,
-      [key]: numericStatusId
-    }));
+    onSquadDisciplineStatusChange?.(key, numericStatusId);
 
-    // Save to API using the correct endpoint
     try {
-      await apiPost('/squad-disciplines', {
-        eventId: Number(eventId),
-        squadName: activeSquad,
-        disciplineId: typeof activeDiscipline === 'number' ? activeDiscipline : null,
-        statusId: numericStatusId
-      });
+      const response = await fetch(
+        `/api/squad-disciplines/${encodeURIComponent(activeSquad)}/${disciplineId}/status?eventId=${eventId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ statusId: numericStatusId })
+        }
+      );
+      if (!response.ok) {
+        console.error('Failed to save squad-discipline status:', await response.text());
+      }
     } catch (error) {
       console.error('Failed to save squad-discipline status:', error);
     }
@@ -78,7 +77,6 @@ export function useSquadDisciplineStatus({
 
   return {
     squadStatus,
-    squadDisciplineStatuses,
     setSquadStatus,
     handleSquadStatusChange
   };

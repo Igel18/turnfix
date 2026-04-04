@@ -202,8 +202,15 @@ test.describe('Import: Events Page UI', () => {
     const modal = page.locator('.fixed.inset-0.z-50');
     await modal.waitFor({ timeout: 5000 });
 
-    await expect(modal.locator('input[type="file"]')).toBeVisible();
+    // Step 1: eventDetails – text input (event name) and date inputs are visible
     await expect(modal.locator('input[type="text"]').first()).toBeVisible();
+
+    // Advance to step 2 (fileSelection) by filling name and clicking Weiter
+    await modal.locator('input[type="text"]').first().fill('Test Veranstaltung');
+    await modal.getByRole('button', { name: /weiter/i }).click();
+
+    // Step 2: fileSelection – file input must be visible
+    await expect(modal.locator('input[type="file"]')).toBeVisible({ timeout: 5000 });
   });
 
   test('import modal has date inputs', async ({ page }) => {

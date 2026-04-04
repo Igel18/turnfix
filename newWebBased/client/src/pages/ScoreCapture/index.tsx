@@ -74,6 +74,8 @@ export default function ScoreCapture() {
     statuses,
     existingScores,
     setExistingScores,
+    squadDisciplineStatuses,
+    setSquadDisciplineStatuses,
     loading,
     isInitializing,
     loadInitialData
@@ -158,7 +160,11 @@ export default function ScoreCapture() {
   const { squadStatus, handleSquadStatusChange } = useSquadDisciplineStatus({
     eventId,
     activeSquad,
-    activeDiscipline
+    activeDiscipline,
+    squadDisciplineStatuses,
+    onSquadDisciplineStatusChange: (key, statusId) => {
+      setSquadDisciplineStatuses(prev => ({ ...prev, [key]: statusId }));
+    }
   });
 
   // Hook 8: Event Handlers
