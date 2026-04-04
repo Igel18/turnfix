@@ -22,6 +22,7 @@ import { getScoreToSave, resolveScoringInputMode } from '@turnfix/shared';
 import { useJuryData } from './hooks/useJuryData';
 import { useScoreSave } from './hooks/useScoreSave';
 import { useLiveScoreUpdates } from './hooks/useLiveScoreUpdates';
+import { useActiveSquads } from './hooks/useActiveSquads';
 import EventSelection from './components/EventSelection';
 import SquadSelection from './components/SquadSelection';
 import DeviceSelection from './components/DeviceSelection';
@@ -59,6 +60,11 @@ const JuryPortal: React.FC = () => {
     setParticipants: data.setParticipants,
   });
 
+  // Time-based squad highlighting (Feature 120)
+  const { activeSquadInfos, currentTime, refresh: refreshActiveSquads } = useActiveSquads(
+    data.selectedEvent
+  );
+
   // ─── Step Routing ──────────────────────────────────────────────────────────
 
   if (step === 'event') {
@@ -81,11 +87,16 @@ const JuryPortal: React.FC = () => {
       <SquadSelection
         squads={data.squads}
         loading={data.loading}
+        activeSquadInfos={activeSquadInfos}
+        currentTime={currentTime}
         onSquadSelect={(squad) => {
           data.setSelectedSquad(squad);
           setStep('device');
         }}
-        onBack={() => setStep('event')}
+        onBack={() => {
+          refreshActiveSquads();
+          setStep('event');
+        }}
       />
     );
   }

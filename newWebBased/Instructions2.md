@@ -856,6 +856,7 @@ An welchem gerät die Kampfrichter sitzen, wissen sie ja eigentlich. Aber welche
 Daher wäre es doch schön, wenn die Riegen die aufgrund der aktuellen Zeit dran sind farbig hinterlegt sind. 
 Und dann noch ersichtlich ist, welches denn jetzt das Gerät ist, an dem die Riege sein sollte, oder? 
 Die Info müsste man ja aus der Zeitplantabelle von der Zeitplanung bekommen. 
+-> Erledigt ✅
 
 121. Disziplinen "Pause" hinzufügen 
 manchmal müssen Riegen eine Pause machen, bevor sie ans nächste Gerät können. Dafür bedarf es als "WorkAround" eine Diszplin die mit Pause benannt ist. 
@@ -964,6 +965,7 @@ zu vermeiden. Wird das dann auch dem User als sinnvolle Fehlermeldung ausgegeben
 
 127. Refactoring competitionstatusmanagement.tsx und squadstatusmanagement.tsx: 
 lassen sich hier einheitliche UIs bauen sodass man auch unified sachen auslager kann? 
+-> Erledigt ✅
 
 ------------------------------------------------------------
 -> Erledigt ✅

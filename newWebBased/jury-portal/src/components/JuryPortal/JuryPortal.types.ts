@@ -61,6 +61,26 @@ export interface Competition {
 
 export type JuryStep = 'event' | 'squad' | 'device' | 'scoring';
 
+/** Per-squad time-based status returned by /api/time-planning/active-squads */
+export interface ActiveSquadInfo {
+  squadName: string;
+  /** 'active'   — currently on the floor
+   *  'upcoming' — starting within the next 30 minutes
+   *  'past'     — all rotation slots have finished
+   *  'unknown'  — no time planning data available */
+  status: 'active' | 'upcoming' | 'past' | 'unknown';
+  /** Name of the device the squad is (or will be) at */
+  currentDeviceName: string | null;
+  currentDisciplineId: number | null;
+  /** Human-readable time string, e.g. "10:15 – 10:45 Uhr" or "ab 11:00 Uhr" */
+  timeInfo: string;
+}
+
+export interface ActiveSquadsResponse {
+  currentTime: string; // HH:MM
+  squadInfos: ActiveSquadInfo[];
+}
+
 // API configuration — delegates to the shared serverOrigin utility
 import { getApiBaseUrl } from '../../utils/serverOrigin';
 export const API_BASE_URL = getApiBaseUrl();
