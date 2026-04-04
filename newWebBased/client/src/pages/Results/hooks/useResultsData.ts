@@ -364,11 +364,11 @@ export function useResultsData(
       if (selectedCompetition) {
         const selectedCompetitionData = availableCompetitions.find(c => c.id === parseInt(selectedCompetition));
         const sortAscending: boolean = selectedCompetitionData?.sortAscending ?? false;
+        // sortAndRank returns a new array: correctly sorted + ranks assigned.
+        // Use it directly — do NOT assign ranks back by index (that maps ranked[i]
+        // onto participantsList[i] which are different participants).
         const ranked = sortAndRank(participantsList, sortAscending);
-        ranked.forEach((r, i) => { participantsList[i].rank = r.rank; });
-        // Re-sort participantsList in-place to match the ranked order
-        participantsList.sort((a, b) => sortAscending ? a.rank - b.rank : a.rank - b.rank);
-        setRanking(participantsList);
+        setRanking(ranked);
         setCompetitionGroups([]);
         setDisciplineFormulas(selectedCompetitionFormulaMap);
         setSelectedCompetitionDisciplineInfo(selectedCompetitionDisciplineInfoData);
@@ -428,13 +428,14 @@ export function useResultsData(
             participant.totalScore = computeTotalScore(disciplineScores, groupDropWorst, groupDropCount);
           });
 
+          // sortAndRank returns a new sorted array with ranks assigned.
+          // Use it directly for the group — never assign back by index.
           const rankedGroup = sortAndRank(participants, groupSortAscending);
-          rankedGroup.forEach((r, i) => { participants[i].rank = r.rank; });
 
           groups.push({
             competitionId,
             competitionName,
-            participants,
+            participants: rankedGroup,
             disciplines: competitionDisciplines.sort(),
             disciplineInfo: competitionDisciplineInfo.sort((a, b) => a.name.localeCompare(b.name))
           });

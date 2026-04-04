@@ -13,6 +13,7 @@ export * from './formulaUtils';
 export * from './builtInFormulaHelper';
 export * from './genderHelpers';
 export * from './iconUtils';
+export * from './rankingUtils';
 export * from './socketConfig';
 export * from './eventDateUtils';
 export * from './scoringInputMode';
