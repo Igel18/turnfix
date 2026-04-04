@@ -2526,6 +2526,8 @@
     "noEventSelected": "No Event Selected",
     "pleaseSelectEvent": "Please select an event from the dropdown above or from the event context.",
     "clickToEdit": "Click to edit",
+    "selectStatus": "Select status...",
+    "setStatus": "Set status",
     "showing": "{{shown}} of {{total}} entries",
     "filters": {
       "squad": "Squad",

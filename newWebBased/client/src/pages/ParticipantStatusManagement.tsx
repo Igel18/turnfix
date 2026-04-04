@@ -403,12 +403,16 @@ export function ParticipantStatusManagement() {
                             <div className="flex items-center gap-2">
                               <select
                                 autoFocus
-                                defaultValue={p.statusId}
+                                defaultValue={p.statusId || ''}
                                 disabled={isSaving}
-                                onChange={e => updateStatus(p.wertungenId, Number(e.target.value))}
+                                onChange={e => {
+                                  const val = Number(e.target.value)
+                                  if (val > 0) updateStatus(p.wertungenId, val)
+                                }}
                                 onBlur={() => setEditingId(null)}
                                 className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
                               >
+                                <option value="" disabled>{t('participantStatus.selectStatus')}</option>
                                 {statusOptions.map(opt => (
                                   <option key={opt.id} value={opt.id}>{opt.name}</option>
                                 ))}
@@ -423,11 +427,17 @@ export function ParticipantStatusManagement() {
                               title={t('participantStatus.clickToEdit')}
                               className="inline-flex items-center"
                             >
-                              <StatusBadge
-                                label={p.statusName}
-                                colorCode={p.statusColor}
-                                className="cursor-pointer hover:opacity-80 transition-opacity"
-                              />
+                              {p.statusName ? (
+                                <StatusBadge
+                                  label={p.statusName}
+                                  colorCode={p.statusColor}
+                                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                                />
+                              ) : (
+                                <span className="text-xs text-gray-400 italic hover:text-gray-600 transition-colors">
+                                  {t('participantStatus.setStatus')}
+                                </span>
+                              )}
                             </button>
                           )}
                         </td>

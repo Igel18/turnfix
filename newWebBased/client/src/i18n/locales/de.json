@@ -2560,6 +2560,8 @@
     "noEventSelected": "Keine Veranstaltung ausgewählt",
     "pleaseSelectEvent": "Bitte wählen Sie eine Veranstaltung aus dem Dropdown-Menü oder dem Veranstaltungskontext aus.",
     "clickToEdit": "Klicken zum Bearbeiten",
+    "selectStatus": "Status auswählen...",
+    "setStatus": "Status setzen",
     "showing": "{{shown}} von {{total}} Einträgen",
     "filters": {
       "squad": "Riege",
