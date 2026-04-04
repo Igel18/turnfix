@@ -444,6 +444,87 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
       return res.status(500).json({ error: 'Failed to save field score' });
     }
 
+    // ✨ UPDATE tfx_wertungen_details for old TurnFix compatibility
+    // The old system reads tfx_wertungen_details.rel_leistung for results display.
+    // ensureWertungsDetailsEntry (called above) only creates a NULL placeholder.
+    // Here we compute the formula result (or use the endwert field directly) and persist it.
+    try {
+      const kp = validatedData.type || 0;
+
+      // Check if this specific field is the final score field (bol_endwert=true)
+      const fieldEndwertQuery = `
+        SELECT bol_endwert FROM tfx_disziplinen_felder WHERE int_disziplinen_felderid = $1
+      `;
+      const fieldEndwertResult = await prisma.$queryRawUnsafe(fieldEndwertQuery, validatedData.disciplineFieldId) as any[];
+      const isEndwertField = fieldEndwertResult[0]?.bol_endwert || false;
+
+      if (isEndwertField) {
+        // This field directly holds the final score — save it as-is
+        await ScoreSynchronizer.updateWertungsDetailsScore(
+          wertungenId, disciplineId, validatedData.performance, validatedData.attempt, kp
+        );
+        console.log(`✅ [save-field-score] Updated tfx_wertungen_details with endwert field value: ${validatedData.performance}`);
+      } else {
+        // Try to compute a formula result from all currently saved field values
+        const formulaQuery = `
+          SELECT COALESCE(f.var_formel, d.var_formel) as formula
+          FROM tfx_disziplinen d
+          LEFT JOIN tfx_formeln f ON d.int_formelid = f.int_formelid
+          WHERE d.int_disziplinenid = $1
+        `;
+        const formulaResult = await prisma.$queryRawUnsafe(formulaQuery, disciplineId) as any[];
+        const formula = formulaResult[0]?.formula;
+
+        if (formula) {
+          // Fetch all saved jury-result field values for this participant/discipline/attempt
+          // Exclude endwert fields (those are the result placeholder, not input values)
+          const juryFieldsQuery = `
+            SELECT
+              jr.rel_leistung as performance,
+              df.var_name as "fieldName",
+              df.int_sortierung as "sortOrder",
+              df.bol_endwert as "isFinalScore",
+              df.bol_ausgangswert as "isStartingScore"
+            FROM tfx_jury_results jr
+            LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
+            WHERE jr.int_wertungenid = $1
+              AND df.int_disziplinenid = $2
+              AND jr.int_versuch = $3
+              AND df.bol_endwert = false
+              AND df.bol_enabled = true
+            ORDER BY df.int_sortierung ASC
+          `;
+          const juryFields = await prisma.$queryRawUnsafe(
+            juryFieldsQuery, wertungenId, disciplineId, validatedData.attempt
+          ) as any[];
+
+          if (juryFields && juryFields.length > 0) {
+            const fieldsMap = buildFieldSymbolsMap(juryFields, formula);
+            const valuesMap: Record<string, number> = {};
+
+            Object.values(fieldsMap).forEach(field => {
+              if (field.value !== null) {
+                valuesMap[field.symbol] = field.value;
+              }
+            });
+
+            const calculatedScore = calculateFormula(formula, valuesMap);
+            if (calculatedScore !== null) {
+              await ScoreSynchronizer.updateWertungsDetailsScore(
+                wertungenId, disciplineId, calculatedScore, validatedData.attempt, kp
+              );
+              console.log(`✅ [save-field-score] Updated tfx_wertungen_details via formula "${formula}": ${calculatedScore}`);
+            } else {
+              console.log(`ℹ️ [save-field-score] Formula not fully computable yet (missing values) — skipping tfx_wertungen_details update`);
+            }
+          }
+        }
+      }
+    } catch (updateError) {
+      // Non-critical: jury result was saved, only the legacy sync failed
+      console.error('⚠️ [save-field-score] Failed to update tfx_wertungen_details (non-critical):', updateError);
+    }
+
     res.json({ 
       success: true, 
       message: 'Field score saved successfully',

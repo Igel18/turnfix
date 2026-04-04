@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import scoringRouter from './juryResultsScoring';
+import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 
 const router = Router();
 
@@ -218,20 +219,15 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
         const { int_disziplinenid, bol_endwert, int_wertungenid } = disciplineResult[0];
 
         if (bol_endwert) {
-          // This is the final score field - update tfx_wertungen_details
+          // This is the final score field - upsert tfx_wertungen_details (handles missing rows too)
           console.log(`💾 Updating tfx_wertungen_details: wertungenId=${int_wertungenid}, disciplineId=${int_disziplinenid}, score=${validatedData.performance}`);
           
-          const updateDetailsQuery = `
-            UPDATE tfx_wertungen_details
-            SET rel_leistung = $1
-            WHERE int_wertungenid = $2 AND int_disziplinenid = $3
-          `;
-          
-          await prisma.$executeRawUnsafe(
-            updateDetailsQuery,
-            validatedData.performance,
+          await ScoreSynchronizer.updateWertungsDetailsScore(
             int_wertungenid,
-            int_disziplinenid
+            int_disziplinenid,
+            validatedData.performance!,
+            1,  // attempt (default)
+            0   // kp (default)
           );
 
           console.log('✅ Updated tfx_wertungen_details with final score');

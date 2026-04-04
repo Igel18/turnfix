@@ -296,8 +296,8 @@ export function useScoreActions({
       if (calculatedScore !== null && !isNaN(calculatedScore)) {
         console.log(`Calculated score for ${participant.firstname} ${participant.lastname}: ${calculatedScore}`)
         
-        // Save the calculated score
-        await saveScore(participant.id, disciplineId)
+        // Save the calculated score (pass override so saveScore doesn't look in scoreMatrix)
+        await saveScore(participant.id, disciplineId as number, calculatedScore)
       }
     }
   }

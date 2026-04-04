@@ -10,7 +10,7 @@ import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
 import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
-import { assignRanks } from '@/utils/rankingUtils';
+import { computeTotalScore, sortAndRank } from '@/utils/rankingUtils';
 
 interface UseResultsDataReturn {
   ranking: Participant[];
@@ -315,8 +315,11 @@ export function useResultsData(
             recalculatedScores[discipline] = scoreForRanking;
           });
           
-          // Calculate total from recalculated scores
-          const totalScore = Object.values(recalculatedScores).reduce((sum: number, score: number) => sum + score, 0);
+          // Calculate total from recalculated scores, respecting Streichwertung
+          const currentComp = availableCompetitions.find(c => c.id === competitionId);
+          const dropWorstScore: boolean = currentComp?.dropWorstScore ?? false;
+          const dropCount: number = currentComp?.dropCount ?? 0;
+          const totalScore = computeTotalScore(recalculatedScores, dropWorstScore, dropCount);
 
           return {
             id: participant.id,
@@ -359,9 +362,12 @@ export function useResultsData(
         });
 
       if (selectedCompetition) {
-        participantsList.sort((a, b) => b.totalScore - a.totalScore);
-        const ranked = assignRanks(participantsList);
+        const selectedCompetitionData = availableCompetitions.find(c => c.id === parseInt(selectedCompetition));
+        const sortAscending: boolean = selectedCompetitionData?.sortAscending ?? false;
+        const ranked = sortAndRank(participantsList, sortAscending);
         ranked.forEach((r, i) => { participantsList[i].rank = r.rank; });
+        // Re-sort participantsList in-place to match the ranked order
+        participantsList.sort((a, b) => sortAscending ? a.rank - b.rank : a.rank - b.rank);
         setRanking(participantsList);
         setCompetitionGroups([]);
         setDisciplineFormulas(selectedCompetitionFormulaMap);
@@ -409,15 +415,20 @@ export function useResultsData(
             }));
           }
 
+          const groupCompetition = availableCompetitions.find(c => c.id === competitionId);
+          const groupSortAscending: boolean = groupCompetition?.sortAscending ?? false;
+          const groupDropWorst: boolean = groupCompetition?.dropWorstScore ?? false;
+          const groupDropCount: number = groupCompetition?.dropCount ?? 0;
+
           participants.forEach(participant => {
-            const competitionSpecificTotal = competitionDisciplines.reduce((sum, discipline) => {
-              return sum + (participant.scores[discipline] || 0);
-            }, 0);
-            participant.totalScore = competitionSpecificTotal;
+            const disciplineScores = competitionDisciplines.reduce((acc, discipline) => {
+              acc[discipline] = participant.scores[discipline] || 0;
+              return acc;
+            }, {} as Record<string, number>);
+            participant.totalScore = computeTotalScore(disciplineScores, groupDropWorst, groupDropCount);
           });
 
-          participants.sort((a, b) => b.totalScore - a.totalScore);
-          const rankedGroup = assignRanks(participants);
+          const rankedGroup = sortAndRank(participants, groupSortAscending);
           rankedGroup.forEach((r, i) => { participants[i].rank = r.rank; });
 
           groups.push({

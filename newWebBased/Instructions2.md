@@ -959,7 +959,8 @@ Jury-Portal: Übersicht aller Geräte/Wettkämpfe, Filter nach Status, Schnellzu
 Nächster Schritt:
 Abstimmung, welche Felder und Workflows im Detail abgedeckt werden sollen (z.B. Spezialfälle Mannschaft, Gerätefinale, etc.), dann UI-Prototyp und technische Feinspezifikation.
 
-
+126. Race conditions werden mit pg_advisory_xact_lock
+zu vermeiden. Wird das dann auch dem User als sinnvolle Fehlermeldung ausgegeben? 
 
 ------------------------------------------------------------
 -> Erledigt ✅
