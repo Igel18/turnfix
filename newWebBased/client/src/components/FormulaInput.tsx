@@ -124,8 +124,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
       {!loadingFormula && fields.length > 0 && (
         <>
           {/* Formula Breakdown with Inline Inputs */}
-          <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-xl border-2 border-purple-300 shadow-sm">
-            <div className={`flex flex-wrap items-center justify-center ${sizeClasses.gap}`}>
+          <div className={`flex flex-wrap items-center justify-center ${sizeClasses.gap}`}>
               {effectiveFormula ? (
                 // Show formula with constants and operators
                 (() => {
@@ -294,13 +293,12 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
               )}
             </div>
             
-            {/* Show unit at the end if available */}
-            {unit && (
-              <div className="text-lg font-medium text-green-700 ml-2 flex items-center mt-2">
-                {unit}
-              </div>
-            )}
-          </div>
+          {/* Show unit at the end if available */}
+          {unit && (
+            <div className="text-lg font-medium text-green-700 ml-2 flex items-center mt-2">
+              {unit}
+            </div>
+          )}
 
           {/* Error Display */}
           {formulaError && (

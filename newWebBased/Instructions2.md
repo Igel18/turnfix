@@ -924,15 +924,12 @@ Tabellarische Eingabe (ähnlich Excel): Zeilen = Teilnehmer, Spalten = Wertungsf
 Direkte Inline-Bearbeitung (Fokus springt automatisch zum nächsten Feld)
 Farbliche Markierung für offene, fehlerhafte oder bestätigte Felder
 Schnellnavigation (Tastatur, Buttons, ggf. Barcode/QR für Teilnehmer)
+Riegenstatus & Teilnehmerstatus kann direkt geändert werden 
 Undo/Redo für schnelle Korrekturen
 ## 2. Jury-Portal Integration
 Live-Statusanzeige: Welche Wertungen sind offen, gespeichert, bestätigt?
-Rollenbasierte Ansicht:
-Jury-Mitglied: Nur eigene Wertungen, ggf. mit Plausibilitätscheck
-Jury-Leiter: Übersicht aller Wertungen, Freigabe/Bestätigung, Korrektur
 Synchronisation:
 Echtzeit-Feedback (WebSocket): Änderungen sofort sichtbar für alle berechtigten Nutzer
-Locking/Claiming: Wertung kann „reserviert“ werden, um Doppelbearbeitung zu vermeiden
 ## 3. Ergebnisansicht & Kontrolle
 Direkte Verknüpfung: Von Ergebnisliste zur Wertungseingabe (z.B. Klick auf Teilnehmer öffnet Score-Capture)
 Status-Icons: Zeigen an, ob Wertung vollständig, plausibel, bestätigt, oder fehlerhaft ist
@@ -960,12 +957,25 @@ Jury-Portal: Übersicht aller Geräte/Wettkämpfe, Filter nach Status, Schnellzu
 Nächster Schritt:
 Abstimmung, welche Felder und Workflows im Detail abgedeckt werden sollen (z.B. Spezialfälle Mannschaft, Gerätefinale, etc.), dann UI-Prototyp und technische Feinspezifikation.
 
+Ok. 
+Wir haben mit dem Punkt 125 schon ein Konzept für die Wertungserfassung gemacht. Jetzt folgendes: 
+Es soll eine Komplett neue Seite gebaut werden (die Alte bleibt!) sodass sich die Person im Wettkampfbüro aussuchen kann welche Seite verwendet wird. 
+Diese Seite soll den einheitlichen Header verwenden (ein Filter ist nicht notwendig). Darunter soll die Riegen & Disziplinauswahl angezeigt werden (Wie in der View "score-capture"). Darunter soll die Wertungserfassung angezeigt werden Visuell soll es genauso aussehen wie im Jury-Portal die Eingabe der Wertungen (Links die Liste, rechts die ausgewählte Person mit den Eingabefeldern). Dazu muss ja nicht neu erfunden werden, sondern nur "wiederverwenden" 
+Zusätzlich: 
+- Alles was wiederverwente (öfter verwendet) wird, soll in separate Klassen/Dateien ausgelagert werden. Sodass kein Code doppelt ist. 
+- An der Eingabe der Person soll zusätzlich noch der "Status" der Person angezeigt werden. Dieser soll auf "Wertung erfasst" gesetzt werden, sobald der Button "Wertung speichern" gedrückt wird. 
+- 
+
 126. Race conditions werden mit pg_advisory_xact_lock
 zu vermeiden. Wird das dann auch dem User als sinnvolle Fehlermeldung ausgegeben? 
 
 127. Refactoring competitionstatusmanagement.tsx und squadstatusmanagement.tsx: 
 lassen sich hier einheitliche UIs bauen sodass man auch unified sachen auslager kann? 
 -> Erledigt ✅
+
+128. Personen Status soll bei den Veranstaltungsteilnehmern editierbar sein, wenn man auf den Stift geht um eine person zu editieren. 
+
+129. Auf der Seite "participant-status" wir kein Status angezeigt. 
 
 ------------------------------------------------------------
 -> Erledigt ✅
