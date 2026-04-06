@@ -45,9 +45,9 @@ export interface ScoringPanelProps {
   onSave: (scoreOverride?: string | number) => void;
   onNavigate: (direction: 'prev' | 'next') => void;
   getScoreValidation: (value: string) => { isValid: boolean; message: string };
-  /** All available status options for the dropdown */
+  /** All available status options — kept for future re-activation; see TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC */
   statuses: Status[];
-  /** Called when user selects a new status from the dropdown */
+  /** Status change handler — kept for future re-activation; see TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC */
   onStatusChange: (wertungenId: number, statusId: number) => Promise<void>;
 }
 
@@ -65,10 +65,11 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
   onSave,
   onNavigate,
   getScoreValidation,
-  statuses,
-  onStatusChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  statuses: _statuses,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onStatusChange: _onStatusChange,
 }) => {
-  const [statusChanging, setStatusChanging] = useState(false);
   const { t } = useTranslation();
 
   // Resolve linked formula (with caching)
@@ -181,39 +182,11 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
           <h2 className="text-lg sm:text-xl font-bold text-gray-900">{participant.name}</h2>
           <p className="text-sm text-gray-600">{participant.clubName}</p>
 
-          {/* Status selector */}
-          <div className="mt-2 flex flex-col items-center gap-1">
-            {participant.wertungenId != null && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-medium">{t('scoreCaptureV2.status')}:</span>
-                <select
-                  data-testid="status-select"
-                  value={participant.statusId ?? ''}
-                  disabled={statusChanging}
-                  onChange={async (e) => {
-                    const newId = parseInt(e.target.value, 10);
-                    if (!isNaN(newId) && participant.wertungenId != null) {
-                      setStatusChanging(true);
-                      try {
-                        await onStatusChange(participant.wertungenId, newId);
-                      } finally {
-                        setStatusChanging(false);
-                      }
-                    }
-                  }}
-                  className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 cursor-pointer"
-                >
-                  <option value="">{t('scoreCaptureV2.noStatus')}</option>
-                  {statuses.map(s => (
-                    <option key={s.int_statusid} value={s.int_statusid}>
-                      {s.var_name}
-                    </option>
-                  ))}
-                </select>
-                {statusChanging && <span className="text-xs text-gray-400">…</span>}
-              </div>
-            )}
-          </div>
+          {/* STATUS SELECTOR — hidden, tech debt
+               @see TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC in @turnfix/shared/statusColorUtils
+               tfx_wertungen.statusId is NOT per-device; showing it here is misleading.
+               Re-enable once the DB carries a per-device status column.
+          */}
         </div>
 
         {/* Discipline formula display */}

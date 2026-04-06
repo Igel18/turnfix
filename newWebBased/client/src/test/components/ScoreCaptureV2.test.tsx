@@ -406,7 +406,8 @@ describe('ScoringPanel', () => {
     expect(nextBtn.disabled).toBe(true);
   });
 
-  it('shows status badge when wertungenId is null but statusName is set', () => {
+  // TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC — status badge hidden until DB has per-device status column
+  it.skip('shows status badge when wertungenId is null but statusName is set', () => {
     const participant = makeParticipant({
       wertungenId: null,
       statusName: 'Wertung erfasst',
@@ -433,7 +434,8 @@ describe('ScoringPanel', () => {
     expect(badge.textContent).toBe('Wertung erfasst');
   });
 
-  it('shows hint text when wertungenId and statusName are both null', () => {
+  // TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC — hint text hidden alongside the status section
+  it.skip('shows hint text when wertungenId and statusName are both null', () => {
     const participant = makeParticipant({ wertungenId: null, statusName: null });
     render(
       <ScoringPanel
@@ -455,7 +457,8 @@ describe('ScoringPanel', () => {
     expect(screen.getByText('scoreCaptureV2.statusAfterSave')).toBeTruthy();
   });
 
-  it('shows status dropdown when wertungenId is set', () => {
+  // TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC — status dropdown hidden until DB has per-device status column
+  it.skip('shows status dropdown when wertungenId is set', () => {
     const participant = makeParticipant({
       wertungenId: 42,
       statusId: 2,
@@ -483,7 +486,8 @@ describe('ScoringPanel', () => {
     expect(select.value).toBe('2');
   });
 
-  it('dropdown shows all status options', () => {
+  // TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC — status dropdown hidden
+  it.skip('dropdown shows all status options', () => {
     const participant = makeParticipant({ wertungenId: 42, statusId: 1 });
     render(
       <ScoringPanel
@@ -509,7 +513,8 @@ describe('ScoringPanel', () => {
     expect(optionTexts).toContain('Abwesend');
   });
 
-  it('calls onStatusChange with wertungenId and selected statusId on dropdown change', async () => {
+  // TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC — status dropdown hidden
+  it.skip('calls onStatusChange with wertungenId and selected statusId on dropdown change', async () => {
     const onStatusChange = vi.fn(async () => {});
     const participant = makeParticipant({ wertungenId: 99, statusId: 1 });
     render(

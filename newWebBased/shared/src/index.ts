@@ -25,4 +25,4 @@ export { StatusBadge, type StatusBadgeProps } from './components/StatusBadge';
 export { StatusDropdown, type StatusDropdownProps } from './components/StatusDropdown';
 
 // Status color utilities & types
-export { getStatusColor, STATUS_TABLE_STYLES, type StatusOption } from './statusColorUtils';
+export { getStatusColor, STATUS_TABLE_STYLES, TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC, type StatusOption } from './statusColorUtils';

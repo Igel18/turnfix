@@ -9,7 +9,11 @@
 import React from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { MISSING_ICON_EMOJI, getMissingIconUrl } from '../../../utils/iconUtils';
-import { StatusBadge } from '@turnfix/shared';
+// TODO (Tech Debt): StatusBadge removed from participant sidebar because the participant status
+// in tfx_wertungen is NOT device-specific — one participant has one status across all disciplines.
+// Once the DB is extended to store per-device/per-discipline statuses, StatusBadge from
+// @turnfix/shared can be re-added here with the device-scoped status value.
+// import { StatusBadge } from '@turnfix/shared';
 import { normalizeScoreInput, getScorePlaceholder, formatScore } from '../../../utils/scoreFormatter';
 import { 
   applyBuiltInFormula, 
@@ -266,11 +270,8 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
                   </div>
                 </div>
 
-                <div className="text-right flex-shrink-0">                  {participant.statusName && (
-                    <div className="flex justify-end mb-1">
-                      <StatusBadge name={participant.statusName} colorCode={participant.statusColor ?? null} className="text-xs" />
-                    </div>
-                  )}                  {hasStoredScore(participant.currentScore) ? (
+                <div className="text-right flex-shrink-0">
+                  {hasStoredScore(participant.currentScore) ? (
                     <div className="flex flex-col items-end">
                       <span className="text-base sm:text-lg font-bold text-green-700">
                         {formatScore(

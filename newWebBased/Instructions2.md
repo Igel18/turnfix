@@ -956,6 +956,12 @@ Line |
      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      | File not found
 
+132. im Veranstaltungs-Analyzer muss nach dem Event alle Teilnehmer den Status "Leistung erfasst" oder Nimmt nicht teil haben. 
+-> Erledigt ✅
+
+133. Der Status Badge der Teilnehmer ist ja gar nicht Gerätespezifisch. Daher ist es quatsch diesen im Jury-Portal bei der Wertungseingabe anzuzeigen. 
+Das muss ausgeblendet werden und als technische Schuld gekennzeichnet, falls mal die DB erweitert wird. 
+-> Erledigt ✅
 
 ------------------------------------------------------------
 -> Erledigt ✅

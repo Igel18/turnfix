@@ -25,6 +25,26 @@ export interface StatusOption {
   colorCode: string | null;
 }
 
+// ─── Tech debt: status is per-wertung (global), not per-device ─────────────────
+
+/**
+ * Both ScoreCaptureV2 (ScoringPanel) and the jury-portal (ScoringView) display
+ * the participant status while the user is entering a score for a specific
+ * device (Gerät).  However, `tfx_wertungen.statusId` stores a single status
+ * per wertung row and is NOT scoped to an individual device — it is a dataset-
+ * level flag (e.g. "Leistungen erfasst").
+ *
+ * Showing this value in a device-scoped scoring view is therefore misleading.
+ * Both views hide the status UI until the database is extended with a proper
+ * per-device status column.
+ *
+ * Tracked here so both apps reference the same explanation.
+ *
+ * Re-enable when: tfx_wertungen_details (or a new table) carries a per-device
+ * status column and the API surfaces it via the scoring endpoints.
+ */
+export const TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC = true as const;
+
 // ─── Canonical table style constants ─────────────────────────────────────────
 
 export const STATUS_TABLE_STYLES = {
