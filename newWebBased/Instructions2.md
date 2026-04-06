@@ -941,7 +941,20 @@ squad-status -> die hinterlegte Farbe ist gut, aber das X beim Editieren gefäll
 participant-status 
 event-participants edit dialog 
 score-capture -> hier steht nochmal der aktuelle Status unter dem Drop-Down. Das ist überflüssig. 
+-> In Arbeit 🚀
 
+131. [Bug] build pipeline: bei der auswahl skip download 
+╔════════════════════════════════════════════════════════════╗
+║          TurnFix Installer Build Script                    ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ Inno Setup gefunden: C:\Program Files (x86)\Inno Setup 6\ISCC.exe
+s): Response status code does not indicate success: 404 (Not Found).
+Invoke-WebRequest: C:\Users\Dominik Prudlo\Documents\GitHub\turnfix\setup\installer\build-installer.ps1:105:9
+Line |
+ 105 |          Invoke-WebRequest -Uri $nodeUrl -OutFile $nodeZip -UseBasicPa …
+     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | File not found
 
 
 ------------------------------------------------------------

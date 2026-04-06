@@ -9,6 +9,7 @@
 import React from 'react';
 import { Users, Trophy } from 'lucide-react';
 import { MISSING_ICON_EMOJI, getMissingIconUrl } from '../../../utils/iconUtils';
+import { StatusBadge } from '@turnfix/shared';
 import { normalizeScoreInput, getScorePlaceholder, formatScore } from '../../../utils/scoreFormatter';
 import { 
   applyBuiltInFormula, 
@@ -265,8 +266,11 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
                   </div>
                 </div>
 
-                <div className="text-right flex-shrink-0">
-                  {hasStoredScore(participant.currentScore) ? (
+                <div className="text-right flex-shrink-0">                  {participant.statusName && (
+                    <div className="flex justify-end mb-1">
+                      <StatusBadge name={participant.statusName} colorCode={participant.statusColor ?? null} className="text-xs" />
+                    </div>
+                  )}                  {hasStoredScore(participant.currentScore) ? (
                     <div className="flex flex-col items-end">
                       <span className="text-base sm:text-lg font-bold text-green-700">
                         {formatScore(
@@ -444,7 +448,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
                     >
                       <option value="">Kein Status</option>
                       {statuses.map(s => (
-                        <option key={s.int_statusid} value={s.int_statusid}>{s.var_name}</option>
+                        <option key={s.id} value={s.id}>{s.name}</option>
                       ))}
                     </select>
                     {statusChanging && <span className="text-xs text-gray-400">…</span>}

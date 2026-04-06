@@ -61,10 +61,10 @@ const JuryPortal: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statusId }),
       });
-      const statusOption = data.statuses.find(s => s.int_statusid === statusId);
+      const statusOption = data.statuses.find(s => s.id === statusId);
       data.setParticipants(prev => prev.map(p =>
         p.wertungenId === wertungenId
-          ? { ...p, statusId, statusName: statusOption?.var_name ?? null, statusColor: statusOption?.ary_colorcode ?? null }
+          ? { ...p, statusId, statusName: statusOption?.name ?? null, statusColor: statusOption?.colorCode ?? null }
           : p
       ));
     } catch (err) {

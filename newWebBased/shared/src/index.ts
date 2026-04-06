@@ -21,3 +21,8 @@ export * from './scoringInputMode';
 // React components (separate export to avoid bundler issues)
 export { BuiltInFormulaInput, type BuiltInFormulaInputProps } from './components/BuiltInFormulaInput';
 export { LinkedFormulaInput, type LinkedFormulaInputProps, type LinkedFormulaFieldDef } from './components/LinkedFormulaInput';
+export { StatusBadge, type StatusBadgeProps } from './components/StatusBadge';
+export { StatusDropdown, type StatusDropdownProps } from './components/StatusDropdown';
+
+// Status color utilities & types
+export { getStatusColor, STATUS_TABLE_STYLES, type StatusOption } from './statusColorUtils';

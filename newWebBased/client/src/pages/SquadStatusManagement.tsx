@@ -445,9 +445,9 @@ export function SquadStatusManagement() {
                       e.stopPropagation()
                       setEditingItem(null)
                     }}
-                    className="text-xs text-gray-500 hover:text-gray-700"
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
                   >
-                    ✕
+                    Abbrechen
                   </button>
                 </div>
               )

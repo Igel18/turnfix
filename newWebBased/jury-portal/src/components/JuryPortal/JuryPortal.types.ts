@@ -26,12 +26,13 @@ export interface Participant {
   statusColor?: string | null;
 }
 
-/** Available status option from /api/participant-status/statuses */
-export interface JuryStatus {
-  int_statusid: number;
-  var_name: string;
-  ary_colorcode: string | null;
-}
+import type { StatusOption } from '@turnfix/shared';
+
+/**
+ * Available status option from /api/participant-status/statuses
+ * Maps to StatusOption { id, name, colorCode } — the canonical server shape.
+ */
+export type JuryStatus = StatusOption;
 
 export interface Squad {
   id: number;

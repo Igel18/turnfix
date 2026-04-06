@@ -17,7 +17,6 @@ import {
   normalizeValueForCalculation,
   extractFormulaSymbols,
 } from '@turnfix/shared';
-import { StatusBadge } from '@/components/status';
 import { normalizeScoreInput, getScorePlaceholder } from '@/utils/scoreFormatter';
 import type { Discipline, DisciplineField, Status } from '@/types/ScoreCapture.types';
 import type { ParticipantListItem } from '../ScoreCaptureV2.types';
@@ -184,7 +183,7 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
 
           {/* Status selector */}
           <div className="mt-2 flex flex-col items-center gap-1">
-            {participant.wertungenId != null ? (
+            {participant.wertungenId != null && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500 font-medium">{t('scoreCaptureV2.status')}:</span>
                 <select
@@ -213,12 +212,6 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
                 </select>
                 {statusChanging && <span className="text-xs text-gray-400">…</span>}
               </div>
-            ) : (
-              participant.statusName ? (
-                <StatusBadge label={participant.statusName} colorCode={participant.statusColor} />
-              ) : (
-                <span className="text-xs text-gray-400 italic">{t('scoreCaptureV2.statusAfterSave')}</span>
-              )
             )}
           </div>
         </div>
