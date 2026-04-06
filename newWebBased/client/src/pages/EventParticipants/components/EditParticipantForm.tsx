@@ -3,20 +3,23 @@
  * Point 122: Separation of Concerns - Extracted from EventParticipants.tsx
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   EditParticipantFormProps,
   EditParticipantData,
   Competition,
+  StatusOption,
 } from '../EventParticipants.types';
 import { useParticipantValidation } from '../hooks/useParticipantValidation';
 import { normalizeGender } from '@/utils/genderHelpers';
+import { apiGet } from '@/utils/api';
 
 export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
   participant,
   clubs,
   competitions,
+  statusOptions: statusOptionsProp,
   onSave,
   onCancel,
 }) => {
@@ -25,6 +28,15 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
 
   // Normalize gender on initial load
   const normalizedGender = normalizeGender(participant.gender);
+
+  const [statusOptions, setStatusOptions] = useState<StatusOption[]>(statusOptionsProp || []);
+
+  useEffect(() => {
+    if (statusOptionsProp && statusOptionsProp.length > 0) return;
+    apiGet('/participant-status/statuses')
+      .then((data: StatusOption[]) => setStatusOptions(Array.isArray(data) ? data : []))
+      .catch(console.error);
+  }, [statusOptionsProp]);
 
   const [formData, setFormData] = useState<EditParticipantData>({
     firstname: participant.firstname,
@@ -41,6 +53,7 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
     startet_nicht: participant.startet_nicht,
     bol_ak: participant.bol_ak || false,
     var_comment: participant.var_comment || '',
+    statusId: participant.statusId ?? 1,
     assignedCompetitions: participant.assignedCompetitions || [],
   });
   const [saving, setSaving] = useState(false);
@@ -189,6 +202,25 @@ export const EditParticipantForm: React.FC<EditParticipantFormProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder={t('eventParticipants.editParticipant.squadPlaceholder')}
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('eventParticipants.editParticipant.status')}
+          </label>
+          <select
+            value={formData.statusId ?? ''}
+            onChange={(e) =>
+              setFormData({ ...formData, statusId: parseInt(e.target.value) || undefined })
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {statusOptions.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex items-center">

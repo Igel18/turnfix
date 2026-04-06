@@ -21,6 +21,7 @@ export interface Participant {
   bol_ak: boolean;
   var_comment?: string;
   startNumber?: number | null;
+  statusId?: number;
   isInEvent: boolean;
   assignedCompetitions: number[];
   registrationDate?: string;
@@ -51,7 +52,15 @@ export interface EditParticipantData {
   startet_nicht: boolean;
   bol_ak: boolean;
   var_comment: string;
+  statusId?: number;
   assignedCompetitions: number[];
+}
+
+// Status option for the edit form
+export interface StatusOption {
+  id: number;
+  name: string;
+  colorCode: string | null;
 }
 
 // Club data structure
@@ -66,6 +75,7 @@ export interface EditParticipantFormProps {
   eventId: string;
   clubs: Club[];
   competitions: Competition[];
+  statusOptions?: StatusOption[];
   onSave: (data: EditParticipantData) => Promise<void>;
   onCancel: () => void;
 }

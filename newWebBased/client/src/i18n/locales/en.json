@@ -2912,6 +2912,7 @@
       "female": "Female",
       "squad": "Squad",
       "squadPlaceholder": "Enter squad name",
+      "status": "Person Status",
       "notStarting": "Not Starting",
       "competitionAssignments": "Competition Assignments",
       "loadingCompetitions": "Loading competitions...",

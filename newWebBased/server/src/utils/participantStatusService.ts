@@ -352,7 +352,7 @@ export function makeDbAdapter(prisma: PrismaClient): DbAdapter {
         FROM tfx_wertungen w
         INNER JOIN tfx_wettkaempfe wk ON wk.int_wettkaempfeid = w.int_wettkaempfeid
         LEFT  JOIN tfx_teilnehmer  t  ON t.int_teilnehmerid   = w.int_teilnehmerid
-        INNER JOIN tfx_status      s  ON s.int_statusid       = w.int_statusid
+        LEFT  JOIN tfx_status      s  ON s.int_statusid       = w.int_statusid
         WHERE wk.int_veranstaltungenid = ${eventId}
           AND w.int_teilnehmerid IS NOT NULL
         ORDER BY w.int_startnummer ASC NULLS LAST, t.var_nachname ASC

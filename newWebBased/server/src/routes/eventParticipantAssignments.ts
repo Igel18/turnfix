@@ -339,7 +339,7 @@ router.put('/update-status', authenticateToken, async (req: AuthRequest, res) =>
 // Update participant details (name, club, birthday, gender, squad, competitions)
 router.put('/update-details', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { participantId, eventId, firstname, lastname, clubId, birthday, gender, squad_name, startet_nicht, assignedCompetitions } = req.body;
+    const { participantId, eventId, firstname, lastname, clubId, birthday, gender, squad_name, startet_nicht, bol_ak, var_comment, statusId, assignedCompetitions } = req.body;
 
     if (!participantId || !eventId) {
       return res.status(400).json({ message: 'Participant ID and Event ID are required' });
@@ -373,12 +373,15 @@ router.put('/update-details', authenticateToken, async (req: AuthRequest, res) =
       });
     }
 
-    // Update squad and participation status in tfx_wertungen table
-    if (squad_name !== undefined || startet_nicht !== undefined) {
+    // Update squad, participation status, bol_ak, var_comment, and statusId in tfx_wertungen table
+    if (squad_name !== undefined || startet_nicht !== undefined || bol_ak !== undefined || var_comment !== undefined || statusId !== undefined) {
       const updateData: any = {};
       
       if (squad_name !== undefined) updateData.var_riege = squad_name;
       if (startet_nicht !== undefined) updateData.bol_startet_nicht = startet_nicht;
+      if (bol_ak !== undefined) updateData.bol_ak = bol_ak;
+      if (var_comment !== undefined) updateData.var_comment = var_comment;
+      if (statusId !== undefined && Number.isInteger(statusId) && statusId > 0) updateData.int_statusid = statusId;
 
       await prisma.tfx_wertungen.updateMany({
         where: {

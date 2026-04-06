@@ -904,58 +904,11 @@ Auch tests und Docu
 Ob eine Wertung für eine Build In Formel oder ein DB-Feld eingegeben wird, soll egal sein. Für beide Fälle wird eine einheitliche UI verwendet. Sowohl für die Anzeige der Formel, als auch für die Eingabe der Werte. Die Eingabe/Anzeige der Wertung soll jetzt etwas schöner werden da sie aktuell viel Platz benötigt (zumindest bei DB-Formeln). 
 1. Wird zuerst eine Riege, dann das Gerät und dann eine Person ausgewählt, wird ein Modales Fenster geöffnet bei dem die einzelnen Felder eingegeben werden (gleiche UI wie im Jury-Portal). 
 2. Der Endwert wird bei DB-Formeln nicht berechnet (bei der DB-Formel)
-3. der Doppelte Rahmen bei der DB-Formel ist unpraktisch
+3. der Doppelte Rahmen bei der DB-Formel ist unpraktisch -> Erledigt ✅
 4. Die Geräte-Formel soll am Gerät angezeigt werden (vlg. results UI), nicht im Header. 
 
 -> Umsetzen in komplett neuer UI mit Tests
 -> Konsequente Trennung von Einabe UI und Result view
-
-# Zielsetzung
-Einheitliche, intuitive Wertungseingabe für alle Nutzergruppen (Jury, Admin, Auswertung)
-Konsistentes UI/UX über alle Plattformen (Score-Capture, Jury-Portal, Ergebnisansicht)
-Fehlervermeidung und schnelle Korrekturmöglichkeiten
-Direkte Rückmeldung über Plausibilität und Status der Eingaben
-Optimale Unterstützung für Einzel- und Sammelwertungen (z.B. Mannschaft, Einzel, Gerätefinale)
-## 1. Zentrale Score-Capture-Komponente
-Wiederverwendbare Komponente für alle Wertungseingaben (Backend, Jury-Portal, ggf. mobile)
-Props/Config steuern Modus (Einzel, Team, Gerätewertung, etc.), Disziplin, erlaubte Wertebereiche, Pflichtfelder
-UI-Elemente:
-Tabellarische Eingabe (ähnlich Excel): Zeilen = Teilnehmer, Spalten = Wertungsfelder (D, E, Penalty, etc.)
-Direkte Inline-Bearbeitung (Fokus springt automatisch zum nächsten Feld)
-Farbliche Markierung für offene, fehlerhafte oder bestätigte Felder
-Schnellnavigation (Tastatur, Buttons, ggf. Barcode/QR für Teilnehmer)
-Riegenstatus & Teilnehmerstatus kann direkt geändert werden 
-Undo/Redo für schnelle Korrekturen
-## 2. Jury-Portal Integration
-Live-Statusanzeige: Welche Wertungen sind offen, gespeichert, bestätigt?
-Synchronisation:
-Echtzeit-Feedback (WebSocket): Änderungen sofort sichtbar für alle berechtigten Nutzer
-## 3. Ergebnisansicht & Kontrolle
-Direkte Verknüpfung: Von Ergebnisliste zur Wertungseingabe (z.B. Klick auf Teilnehmer öffnet Score-Capture)
-Status-Icons: Zeigen an, ob Wertung vollständig, plausibel, bestätigt, oder fehlerhaft ist
-Korrekturmodus: Nachträgliche Änderungen mit Protokollierung (Audit-Log)
-Vergleichsansicht: Originalwertungen vs. Korrekturen (z.B. bei Einsprüchen)
-## 4. UX-Standards & Validierung
-Einheitliche Validierung: Pflichtfelder, Wertebereiche, Plausibilitätsregeln (z.B. D+E ≤ Max)
-Sofortige Rückmeldung: Fehler/Erfolg direkt am Feld (Tooltip, Farbe, Icon)
-Barrierefreiheit: Klare Kontraste, Tastaturbedienung, Screenreader-Support
-Internationalisierung: Alle Texte und Fehlermeldungen lokalisiert
-5. Technische Umsetzung (Vorschlag)
-Zentrale Komponente: ScoreCaptureTable in shared/
-Hooks: useScoreCapture, useScoreValidation
-State-Management: React Context oder Zustand für lokale Änderungen, Server-Sync via API/WebSocket
-API: Einheitliche Endpunkte für Wertung speichern, validieren, bestätigen, zurücksetzen
-Socket.io: Für Live-Updates und Statuswechsel
-6. Beispiel-Workflow
-Jury-Portal: Jury-Mitglied öffnet Score-Capture, gibt Wertung ein → Sofortige Validierung → Speichern → Status „offen“
-Jury-Leiter: Sieht alle offenen Wertungen, prüft, bestätigt → Status „bestätigt“
-Ergebnisansicht: Zeigt Status, ermöglicht Korrektur (mit Protokoll)
-Admin: Kann Wertungen zurücksetzen oder korrigieren (mit Begründung)
-7. Mockup/Skizze (optional)
-Tabellarische Ansicht mit Status-Icons, Inline-Editing, Navigation, Validierungsfarben
-Jury-Portal: Übersicht aller Geräte/Wettkämpfe, Filter nach Status, Schnellzugriff auf Score-Capture
-Nächster Schritt:
-Abstimmung, welche Felder und Workflows im Detail abgedeckt werden sollen (z.B. Spezialfälle Mannschaft, Gerätefinale, etc.), dann UI-Prototyp und technische Feinspezifikation.
 
 Ok. 
 Wir haben mit dem Punkt 125 schon ein Konzept für die Wertungserfassung gemacht. Jetzt folgendes: 
@@ -964,7 +917,8 @@ Diese Seite soll den einheitlichen Header verwenden (ein Filter ist nicht notwen
 Zusätzlich: 
 - Alles was wiederverwente (öfter verwendet) wird, soll in separate Klassen/Dateien ausgelagert werden. Sodass kein Code doppelt ist. 
 - An der Eingabe der Person soll zusätzlich noch der "Status" der Person angezeigt werden. Dieser soll auf "Wertung erfasst" gesetzt werden, sobald der Button "Wertung speichern" gedrückt wird. 
-- 
+- Der Status soll dann auch auf der Seite "participant-status" visualisiert werden. 
+Wichtig sind auch Tests. 
 
 126. Race conditions werden mit pg_advisory_xact_lock
 zu vermeiden. Wird das dann auch dem User als sinnvolle Fehlermeldung ausgegeben? 
@@ -974,8 +928,10 @@ lassen sich hier einheitliche UIs bauen sodass man auch unified sachen auslager 
 -> Erledigt ✅
 
 128. Personen Status soll bei den Veranstaltungsteilnehmern editierbar sein, wenn man auf den Stift geht um eine person zu editieren. 
+-> Erledigt ✅
 
 129. Auf der Seite "participant-status" wir kein Status angezeigt. 
+-> Erledigt ✅
 
 ------------------------------------------------------------
 -> Erledigt ✅

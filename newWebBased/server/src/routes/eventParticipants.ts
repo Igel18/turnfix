@@ -54,6 +54,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           w.bol_startet_nicht,
           w.int_startnummer,
           w.int_wertungenid,
+          w.int_statusid as status_id,
           ${getGermanGenderCaseStatement('t', 'gender')},
           t.int_geschlecht as raw_gender_value,
           CASE 
@@ -185,6 +186,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           startet_nicht: participant.bol_startet_nicht || false,
           startNumber: participant.int_startnummer ? Number(participant.int_startnummer) : null,
           wertungenId: participant.int_wertungenid ? Number(participant.int_wertungenid) : null,
+          statusId: participant.status_id ? Number(participant.status_id) : 1,
           isInEvent: true,
           assignedCompetitions: (assignments as any[]).map(a => Number(a.int_wettkaempfeid)),
           registrationDate: participant.registration_date
@@ -241,6 +243,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         startet_nicht: false, // Available participants are not marked as not starting
         startNumber: null, // Available participants don't have start numbers yet
         wertungenId: null, // Available participants don't have wertungenId yet
+        statusId: 1, // Default status for available participants
         isInEvent: false,
         assignedCompetitions: [],
         registrationDate: undefined

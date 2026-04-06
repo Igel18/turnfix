@@ -271,6 +271,7 @@ export function useParticipants({ eventId }: UseParticipantsProps): UseParticipa
                 startet_nicht: updatedData.startet_nicht,
                 bol_ak: updatedData.bol_ak,
                 var_comment: updatedData.var_comment,
+                statusId: updatedData.statusId,
                 assignedCompetitions: updatedData.assignedCompetitions,
               }
             : p
