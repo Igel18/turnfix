@@ -2726,6 +2726,27 @@
       }
     }
   },
+  "scoreCaptureV2": {
+    "title": "Wertungserfassung (Jury-Ansicht)",
+    "subtitle": "Jury-Ansicht: Teilnehmerliste links, Wertungseingabe rechts",
+    "participants": "Teilnehmer ({{count}})",
+    "progress": "Fortschritt",
+    "noParticipants": "Keine Teilnehmer in dieser Riege für die gewählte Disziplin",
+    "selectParticipant": "Wählen Sie einen Teilnehmer aus der Liste",
+    "formula": "Geräte-Formel",
+    "unit": "Einheit",
+    "formulaLoading": "Formel wird geladen...",
+    "enterScore": "Wertung eingeben",
+    "saving": "Speichert...",
+    "saveScore": "Wertung speichern",
+    "prev": "Vorheriger",
+    "next": "Nächster",
+    "participantCounter": "Teilnehmer {{current}} von {{total}}",
+    "noEventSelected": "Bitte wählen Sie eine Veranstaltung aus",
+    "status": "Status",
+    "noStatus": "Kein Status",
+    "statusUpdated": "Status aktualisiert"
+  },
   "results": {
     "title": "Wettkampfergebnisse",
     "subtitle": "Ranglisten und Platzierungen",

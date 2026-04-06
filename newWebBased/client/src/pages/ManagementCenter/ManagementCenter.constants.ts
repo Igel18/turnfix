@@ -115,6 +115,7 @@ export const competitionDayActions: ActionItem[] = [
   { name: 'Competition Status', description: 'Monitor live competition progress', href: '/competition-status', icon: TrophyIcon, color: 'bg-green-500' },
   { name: 'Live Scores', description: 'Live score updates and recent results', href: '/live-scores', icon: ClipboardDocumentListIcon, color: 'bg-indigo-500' },
   { name: 'Individual Scoring', description: 'Enter competition results and scores for individual participants', href: '/score-capture', icon: ClipboardDocumentListIcon, color: 'bg-orange-500' },
+  { name: 'Individual Scoring (Jury View)', description: 'Jury-style split-view score capture: participant list left, score input right', href: '/score-capture-v2', icon: ClipboardDocumentCheckIcon, color: 'bg-orange-600' },
   { name: 'Group Scoring', description: 'Enter scores for TeamGym groups with component breakdown', href: '/group-scoring', icon: UserGroupIcon, color: 'bg-cyan-500', badge: 'Beta' },
   { name: 'Team Scoring', description: 'Enter scores for competition teams (Mannschaften)', href: '/team-scoring', icon: UserGroupIcon, color: 'bg-teal-500', badge: 'Beta' },
   { name: 'Jury Portal', description: 'Simplified jury interface for competition day (opens in new window on port 3002)', href: `${window.location.protocol}//${window.location.hostname}:3002/jury`, icon: TrophyIcon, color: 'bg-blue-600', external: true },

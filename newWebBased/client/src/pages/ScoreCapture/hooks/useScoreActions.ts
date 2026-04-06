@@ -29,7 +29,8 @@ interface UseScoreActionsProps {
 }
 
 interface UseScoreActionsReturn {
-  saveScore: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<void>;
+  /** Returns the wertungenId (int_wertungenid) on success, null on failure */
+  saveScore: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<number | null>;
   saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>;
   calculateDisciplineScores: (disciplineId: number | string, fields: DisciplineField[]) => Promise<void>;
 }
@@ -46,11 +47,11 @@ export function useScoreActions({
   evaluateFormula
 }: UseScoreActionsProps): UseScoreActionsReturn {
 
-  const saveScore = async (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => {
+  const saveScore = async (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number): Promise<number | null> => {
     // For now, we'll use the original competitionId from URL params or context
     // In a more advanced implementation, we'd need to determine which competition
     // the selected discipline belongs to
-    if (!competitionId && !disciplineId) return
+    if (!competitionId && !disciplineId) return null
     
     // Get the score value directly from the matrix using the standard key
     const regularKey = `${participantId}-${disciplineId}`
@@ -66,7 +67,7 @@ export function useScoreActions({
     
     if (scoreValue === '' || scoreValue === null || scoreValue === undefined) {
       console.log('❌ No valid score value to save:', scoreValue)
-      return
+      return null
     }
     
     // Only save if we have a valid numeric discipline ID
@@ -84,13 +85,13 @@ export function useScoreActions({
         numericDisciplineId = discipline.int_disziplinid
       } else {
         console.log('❌ Cannot save score: invalid discipline ID:', disciplineId)
-        return // Skip saving if we can't resolve to a numeric ID
+        return null // Skip saving if we can't resolve to a numeric ID
       }
     }
     
     if (!numericDisciplineId) {
       console.log('❌ Cannot save score: no valid numeric discipline ID found')
-      return
+      return null
     }
 
     try {
@@ -142,7 +143,7 @@ export function useScoreActions({
               console.error('❌   - Participant:', participant);
               console.error('❌   - Available competitions:', competitions);
               alert('Error: Could not determine competition for this discipline. Please check that the discipline is properly assigned to a competition.');
-              return;
+              return null;
             }
           }
         }
@@ -166,24 +167,17 @@ export function useScoreActions({
       
       if (response.success) {
         console.log('✅ Score saved successfully to database:', response)
-        
-        // Auto-set status to "Leistung erfasst" (ID: 9) when score is saved
-        // DISABLED: Status management not available until database schema is updated
-        // const leistungErfasstStatus = statuses.find(s => s.var_name === 'Leistungen erfasst')
-        // if (leistungErfasstStatus && !participantStatuses[participantId]) {
-        //   saveParticipantStatus(participantId, leistungErfasstStatus.int_statusid)
-        // }
-        
-        // Optionally show success message
-        // You could add a toast notification here
+        return (response.wertungenId as number) ?? null
       } else {
         console.error('❌ API returned failure:', response)
         alert('Failed to save score: ' + (response.error || 'Unknown error'))
+        return null
       }
       
     } catch (error) {
       console.error('❌ Error saving score:', error)
       alert('Failed to save score')
+      return null
     }
   }
 

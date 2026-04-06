@@ -44,6 +44,7 @@ import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
 import TeamScoreCapture from '@/pages/GroupTeamScoring/TeamScoreCapture'
 import Documents from '@/pages/Documents'
 import Analyzer from '@/pages/Analyzer'
+import ScoreCaptureV2 from '@/pages/ScoreCaptureV2'
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
             <Route path="/participants" element={<ParticipantsUnified />} />
             <Route path="/results" element={<Results />} />
             <Route path="/score-capture" element={<ScoreCapture />} />
+            <Route path="/score-capture-v2" element={<ScoreCaptureV2 />} />
             <Route path="/group-scoring" element={<GroupScoreCapture />} />
             <Route path="/team-scoring" element={<TeamScoreCapture />} />
             <Route path="/competitions" element={<Competitions />} />

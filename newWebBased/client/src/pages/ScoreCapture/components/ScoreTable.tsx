@@ -30,7 +30,7 @@ interface ScoreTableProps {
   getParticipantCompetitions: (participant: Participant) => string[]
   handleScoreChange: (participantId: number, disciplineId: number | string, value: string) => void
   handleFieldScoreChange: (participantId: number, fieldId: number, value: string) => void
-  saveScore: (participantId: number, disciplineId: number | string) => Promise<void>
+  saveScore: (participantId: number, disciplineId: number | string) => Promise<number | null>
   saveFieldScore: (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => Promise<void>
   parseFormulaDisplay: (formula: string, fields: DisciplineField[], finalFieldName: string) => string | null
   normalizeScoreInput: (value: string, decimalPlaces: number) => string

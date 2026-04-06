@@ -2692,6 +2692,27 @@
       }
     }
   },
+  "scoreCaptureV2": {
+    "title": "Score Capture (Jury View)",
+    "subtitle": "Jury view: participant list on the left, score input on the right",
+    "participants": "Participants ({{count}})",
+    "progress": "Progress",
+    "noParticipants": "No participants in this squad for the selected discipline",
+    "selectParticipant": "Select a participant from the list",
+    "formula": "Apparatus Formula",
+    "unit": "Unit",
+    "formulaLoading": "Loading formula...",
+    "enterScore": "Enter score",
+    "saving": "Saving...",
+    "saveScore": "Save Score",
+    "prev": "Previous",
+    "next": "Next",
+    "participantCounter": "Participant {{current}} of {{total}}",
+    "noEventSelected": "Please select an event",
+    "status": "Status",
+    "noStatus": "No Status",
+    "statusUpdated": "Status updated"
+  },
   "results": {
     "title": "Competition Results",
     "subtitle": "Rankings and Placements",

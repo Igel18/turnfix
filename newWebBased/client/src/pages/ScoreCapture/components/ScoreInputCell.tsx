@@ -35,7 +35,7 @@ interface ScoreInputCellProps {
   scoreValue: string;
   wertungenId?: number; // Added: needed to load/save jury results
   onScoreChange: (participantId: number, disciplineId: number | string, value: string) => void;
-  onSave: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<void>;
+  onSave: (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number) => Promise<number | null | void>;
   onFieldSave: (participantId: number, field: DisciplineField, value: string) => Promise<void>;
   normalizeScoreInput: (value: string, decimalPlaces: number) => string;
   getScorePlaceholder: (decimalPlaces: number) => string;

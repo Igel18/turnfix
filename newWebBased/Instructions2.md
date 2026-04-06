@@ -912,13 +912,15 @@ Ob eine Wertung für eine Build In Formel oder ein DB-Feld eingegeben wird, soll
 
 Ok. 
 Wir haben mit dem Punkt 125 schon ein Konzept für die Wertungserfassung gemacht. Jetzt folgendes: 
-Es soll eine Komplett neue Seite gebaut werden (die Alte bleibt!) sodass sich die Person im Wettkampfbüro aussuchen kann welche Seite verwendet wird. 
+Es soll eine Komplett neue Seite gebaut werden (die Alte bleibt!) sodass sich die Person im Wettkampfbüro aussuchen kann welche Seite verwendet wird (unter dem Expander Wettkapftag). 
 Diese Seite soll den einheitlichen Header verwenden (ein Filter ist nicht notwendig). Darunter soll die Riegen & Disziplinauswahl angezeigt werden (Wie in der View "score-capture"). Darunter soll die Wertungserfassung angezeigt werden Visuell soll es genauso aussehen wie im Jury-Portal die Eingabe der Wertungen (Links die Liste, rechts die ausgewählte Person mit den Eingabefeldern). Dazu muss ja nicht neu erfunden werden, sondern nur "wiederverwenden" 
 Zusätzlich: 
 - Alles was wiederverwente (öfter verwendet) wird, soll in separate Klassen/Dateien ausgelagert werden. Sodass kein Code doppelt ist. 
 - An der Eingabe der Person soll zusätzlich noch der "Status" der Person angezeigt werden. Dieser soll auf "Wertung erfasst" gesetzt werden, sobald der Button "Wertung speichern" gedrückt wird. 
 - Der Status soll dann auch auf der Seite "participant-status" visualisiert werden. 
 Wichtig sind auch Tests. 
+Sind noch Fragen offen? 
+-> Erledigt ✅
 
 126. Race conditions werden mit pg_advisory_xact_lock
 zu vermeiden. Wird das dann auch dem User als sinnvolle Fehlermeldung ausgegeben? 
