@@ -20,6 +20,17 @@ export interface Participant {
   clubName: string;
   wertungenId?: number;
   assignedCompetitions?: number[];
+  /** Participant status fields */
+  statusId?: number | null;
+  statusName?: string | null;
+  statusColor?: string | null;
+}
+
+/** Available status option from /api/participant-status/statuses */
+export interface JuryStatus {
+  int_statusid: number;
+  var_name: string;
+  ary_colorcode: string | null;
 }
 
 export interface Squad {

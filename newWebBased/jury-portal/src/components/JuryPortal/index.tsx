@@ -53,6 +53,25 @@ const JuryPortal: React.FC = () => {
     setScore: data.setScore,
   });
 
+  const handleStatusChange = async (wertungenId: number, statusId: number) => {
+    try {
+      const { API_BASE_URL } = await import('./JuryPortal.types');
+      await fetch(`${API_BASE_URL}/participant-status/${wertungenId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statusId }),
+      });
+      const statusOption = data.statuses.find(s => s.int_statusid === statusId);
+      data.setParticipants(prev => prev.map(p =>
+        p.wertungenId === wertungenId
+          ? { ...p, statusId, statusName: statusOption?.var_name ?? null, statusColor: statusOption?.ary_colorcode ?? null }
+          : p
+      ));
+    } catch (err) {
+      console.error('Failed to update participant status:', err);
+    }
+  };
+
   // Real-time score updates via Socket.IO
   useLiveScoreUpdates({
     selectedEvent: data.selectedEvent,
@@ -159,6 +178,8 @@ const JuryPortal: React.FC = () => {
       onDeviceComplete={handleDeviceComplete}
       onBack={() => setStep('device')}
       getScoreValidation={getScoreValidation}
+      statuses={data.statuses}
+      onStatusChange={handleStatusChange}
     />
   );
 };

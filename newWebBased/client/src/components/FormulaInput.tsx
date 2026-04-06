@@ -23,6 +23,7 @@ export interface FormulaInputProps {
   showTitle?: boolean;
   className?: string;
   compact?: boolean; // New: compact mode for table display
+  juryStyle?: boolean; // Jury-portal-style vertical layout
   initialValues?: Record<number, string>; // Field ID -> value mapping
   onFieldsLoaded?: (fields: FormulaField[]) => void;
   onFieldChange?: (fieldId: number, value: string) => void;
@@ -43,6 +44,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
   showTitle = true,
   className = '',
   compact = false, // Default to full size
+  juryStyle = false,
   initialValues = {},
   onFieldsLoaded,
   onFieldChange,
@@ -71,6 +73,48 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
   });
 
   const placeholder = inputMask ? getPlaceholder(inputMask) : '';
+
+  // ── Jury-portal style: simple vertical field list ──────────────────────────
+  if (juryStyle) {
+    // Show only as many inputs as there are formula symbols (mirrors jury portal behaviour)
+    const symbols = extractFormulaSymbols(effectiveFormula);
+    const allNonFinal = fields.filter(f => !f.isFinalScore);
+    const visibleFields = symbols.length > 0 ? allNonFinal.slice(0, symbols.length) : allNonFinal;
+    const decimalPlaces = calculationType === 2 ? 2 : 3;
+    return (
+      <div className={`space-y-3 ${className}`}>
+        {loadingFormula && (
+          <div className="text-sm text-gray-500 text-center py-4">Formel wird geladen...</div>
+        )}
+        {!loadingFormula && visibleFields.map((field) => (
+          <div key={field.id}>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {field.name}
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={field.value}
+              onChange={(e) => updateFieldValue(field.id, e.target.value)}
+              onBlur={() => normalizeFieldValue(field.id)}
+              placeholder={'0.' + '0'.repeat(decimalPlaces)}
+              className="w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold text-blue-900 bg-blue-50"
+            />
+          </div>
+        ))}
+        {!loadingFormula && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="text-xs font-medium text-gray-600 mb-1">Berechnetes Ergebnis:</div>
+            <div className="text-3xl font-bold text-green-900 text-center">
+              {calculatedResult !== null
+                ? calculatedResult.toFixed(decimalPlaces).replace('.', ',')
+                : '-'}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Conditional sizing based on compact prop
   const sizeClasses = compact ? {

@@ -935,6 +935,15 @@ lassen sich hier einheitliche UIs bauen sodass man auch unified sachen auslager 
 129. Auf der Seite "participant-status" wir kein Status angezeigt. 
 -> Erledigt ✅
 
+130. Einheitliches UI-Element für den Status. 
+Es gibt verschiedene UI-Elemente um den Status zu visualisieren. Das muss vereinheitlicht werden und als unified oder common oder so ausgelagert, sodass es wiederverwendbar / testbar / einheitlich ist. 
+squad-status -> die hinterlegte Farbe ist gut, aber das X beim Editieren gefällt mir nicht 
+participant-status 
+event-participants edit dialog 
+score-capture -> hier steht nochmal der aktuelle Status unter dem Drop-Down. Das ist überflüssig. 
+
+
+
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀

@@ -2745,7 +2745,8 @@
     "noEventSelected": "Bitte wählen Sie eine Veranstaltung aus",
     "status": "Status",
     "noStatus": "Kein Status",
-    "statusUpdated": "Status aktualisiert"
+    "statusUpdated": "Status aktualisiert",
+    "statusAfterSave": "Status nach Speichern einer Wertung änderbar"
   },
   "results": {
     "title": "Wettkampfergebnisse",

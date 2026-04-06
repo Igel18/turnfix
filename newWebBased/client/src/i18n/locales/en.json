@@ -2711,7 +2711,8 @@
     "noEventSelected": "Please select an event",
     "status": "Status",
     "noStatus": "No Status",
-    "statusUpdated": "Status updated"
+    "statusUpdated": "Status updated",
+    "statusAfterSave": "Status editable after saving a score"
   },
   "results": {
     "title": "Competition Results",

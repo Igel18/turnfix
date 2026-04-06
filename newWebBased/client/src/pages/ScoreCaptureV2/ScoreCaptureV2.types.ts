@@ -21,6 +21,8 @@ export interface ParticipantListItem {
   clubName: string;
   /** Score in the currently selected discipline (null = not yet scored) */
   currentScore: number | null;
+  /** wertungenId used to update participant status via PATCH API */
+  wertungenId: number | null;
   statusId: number | null;
   statusName: string | null;
   statusColor: string | null;

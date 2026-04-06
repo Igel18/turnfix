@@ -344,6 +344,32 @@ export default function ScoreCaptureV2() {
     }
   };
 
+  const handleStatusChange = async (wertungenId: number, statusId: number) => {
+    try {
+      await apiRequest(`/participant-status/${wertungenId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ statusId }),
+      });
+      const statusOption = statuses.find(s => s.int_statusid === statusId);
+      setParticipantStatuses(prev => {
+        const entry = Object.entries(prev).find(([, r]) => r.wertungenId === wertungenId);
+        if (!entry) return prev;
+        const [key, record] = entry;
+        return {
+          ...prev,
+          [key]: {
+            ...record,
+            statusId,
+            statusName: statusOption?.var_name ?? null,
+            statusColor: statusOption?.ary_colorcode ?? null,
+          },
+        };
+      });
+    } catch (err) {
+      console.error('Failed to update participant status:', err);
+    }
+  };
+
   const handleFieldChange = (fieldId: number, value: string) => {
     if (!filteredParticipants[currentIndex]) return;
     handleFieldScoreChange(filteredParticipants[currentIndex].id, fieldId, value);
@@ -373,6 +399,7 @@ export default function ScoreCaptureV2() {
       startNumber: p.startNumber ?? null,
       clubName: p.club ?? '',
       currentScore: isNaN(currentScore as number) ? null : currentScore,
+      wertungenId: statusRecord?.wertungenId ?? null,
       statusId: statusRecord?.statusId ?? null,
       statusName: statusRecord?.statusName ?? null,
       statusColor: statusRecord?.statusColor ?? null,
@@ -479,6 +506,8 @@ export default function ScoreCaptureV2() {
               onFieldChange={handleFieldChange}
               onSave={handleSave}
               onNavigate={handleNavigate}
+              statuses={statuses}
+              onStatusChange={handleStatusChange}
               getScoreValidation={(v) => {
                 const disciplineId = selectedDiscipline?.int_disziplinid || selectedDiscipline?.var_name || '';
                 const result = getScoreValidation(disciplineId, v);

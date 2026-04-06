@@ -15,10 +15,10 @@ import {
   detectFormulaType, 
   normalizeValueForCalculation,
   resolveScoringInputMode, 
-  BuiltInFormulaInput 
+  BuiltInFormulaInput,
+  LinkedFormulaInput,
 } from '@turnfix/shared';
-import FormulaInput from '../../FormulaInput';
-import type { Participant, Device, Squad, DisciplineField } from '../JuryPortal.types';
+import type { Participant, Device, Squad, DisciplineField, JuryStatus } from '../JuryPortal.types';
 
 const hasStoredScore = (value: number | null | undefined): value is number =>
   value !== null && value !== undefined;
@@ -43,6 +43,8 @@ interface ScoringViewProps {
   onDeviceComplete: () => void;
   onBack: () => void;
   getScoreValidation: (scoreValue: string) => { isValid: boolean; message: string };
+  statuses: JuryStatus[];
+  onStatusChange: (wertungenId: number, statusId: number) => Promise<void>;
 }
 
 const ScoringView: React.FC<ScoringViewProps> = ({
@@ -62,6 +64,8 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   onDeviceComplete,
   onBack,
   getScoreValidation,
+  statuses,
+  onStatusChange,
 }) => {
   const completedCount = participants.filter(p => hasStoredScore(p.currentScore)).length;
   const progressPercent = participants.length ? (completedCount / participants.length) * 100 : 0;
@@ -104,6 +108,8 @@ const ScoringView: React.FC<ScoringViewProps> = ({
           onScoreSubmit={onScoreSubmit}
           onParticipantSelect={onParticipantSelect}
           getScoreValidation={getScoreValidation}
+          statuses={statuses}
+          onStatusChange={onStatusChange}
         />
       </div>
     </div>
@@ -306,6 +312,8 @@ interface ScoreInputPanelProps {
   onScoreSubmit: () => void;
   onParticipantSelect: (index: number) => void;
   getScoreValidation: (scoreValue: string) => { isValid: boolean; message: string };
+  statuses: JuryStatus[];
+  onStatusChange: (wertungenId: number, statusId: number) => Promise<void>;
 }
 
 const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
@@ -322,9 +330,12 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
   onScoreSubmit,
   onParticipantSelect,
   getScoreValidation,
+  statuses,
+  onStatusChange,
 }) => {
   const [resolvedFormula, setResolvedFormula] = React.useState<string>(selectedDevice?.var_formel || '');
   const [formulaLoading, setFormulaLoading] = React.useState(false);
+  const [statusChanging, setStatusChanging] = React.useState(false);
 
   // Focus the score input whenever the active participant changes
   const simpleInputRef = React.useRef<HTMLInputElement>(null);
@@ -409,6 +420,44 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
               </div>
               <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-0.5">{currentParticipant.name}</h2>
               <p className="text-xs sm:text-sm text-gray-600">{currentParticipant.club}</p>
+
+              {/* Status */}
+              <div className="mt-2 flex justify-center">
+                {currentParticipant.wertungenId != null ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 font-medium">Status:</span>
+                    <select
+                      value={currentParticipant.statusId ?? ''}
+                      disabled={statusChanging}
+                      onChange={async (e) => {
+                        const newId = parseInt(e.target.value, 10);
+                        if (!isNaN(newId) && currentParticipant.wertungenId != null) {
+                          setStatusChanging(true);
+                          try {
+                            await onStatusChange(currentParticipant.wertungenId, newId);
+                          } finally {
+                            setStatusChanging(false);
+                          }
+                        }
+                      }}
+                      className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 cursor-pointer"
+                    >
+                      <option value="">Kein Status</option>
+                      {statuses.map(s => (
+                        <option key={s.int_statusid} value={s.int_statusid}>{s.var_name}</option>
+                      ))}
+                    </select>
+                    {statusChanging && <span className="text-xs text-gray-400">…</span>}
+                  </div>
+                ) : currentParticipant.statusName ? (
+                  <span
+                    className="text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: currentParticipant.statusColor ?? '#e5e7eb', color: '#111' }}
+                  >
+                    {currentParticipant.statusName}
+                  </span>
+                ) : null}
+              </div>
             </div>
 
             {/* Score Input Section */}
@@ -427,17 +476,19 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
                 formulaLoading && !resolvedFormula ? (
                   <div className="text-center text-sm text-gray-500 py-6">Formel wird geladen...</div>
                 ) : (
-                  <FormulaInput
+                  <LinkedFormulaInput
                     key={`formula-p${currentParticipant?.id ?? currentParticipantIndex}`}
                     formula={resolvedFormula}
                     decimals={selectedDevice?.int_berechnung || 2}
-                    disciplineFields={disciplineFields.filter(f => !f.isEndValue && !f.isStartValue)}
+                    disciplineFields={disciplineFields
+                      .filter(f => !f.isEndValue && !f.isStartValue)
+                      .map(f => ({ id: f.id, name: f.name }))}
                     initialValues={loadedJuryResults}
-                    onScoreChange={(calculatedScore: number | null, fieldValues: Record<string, number>) => {
+                    onScoreChange={(calculatedScore, fieldValues) => {
                       onCalculationComplete(calculatedScore, fieldValues);
                     }}
                     disabled={loading}
-                    showFormulaDisplay={false}
+                    autoFocusFirst={true}
                   />
                 )
               ) : inputMode === 'builtInFormula' ? (

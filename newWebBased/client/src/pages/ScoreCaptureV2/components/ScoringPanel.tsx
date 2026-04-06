@@ -11,14 +11,15 @@ import { useTranslation } from 'react-i18next';
 import {
   resolveScoringInputMode,
   BuiltInFormulaInput,
+  LinkedFormulaInput,
   applyBuiltInFormula,
   detectFormulaType,
   normalizeValueForCalculation,
+  extractFormulaSymbols,
 } from '@turnfix/shared';
-import { FormulaInput } from '@/components/FormulaInput';
 import { StatusBadge } from '@/components/status';
 import { normalizeScoreInput, getScorePlaceholder } from '@/utils/scoreFormatter';
-import type { Discipline, DisciplineField } from '@/types/ScoreCapture.types';
+import type { Discipline, DisciplineField, Status } from '@/types/ScoreCapture.types';
 import type { ParticipantListItem } from '../ScoreCaptureV2.types';
 
 const linkedFormulaCache = new Map<number, string>();
@@ -45,6 +46,10 @@ export interface ScoringPanelProps {
   onSave: (scoreOverride?: string | number) => void;
   onNavigate: (direction: 'prev' | 'next') => void;
   getScoreValidation: (value: string) => { isValid: boolean; message: string };
+  /** All available status options for the dropdown */
+  statuses: Status[];
+  /** Called when user selects a new status from the dropdown */
+  onStatusChange: (wertungenId: number, statusId: number) => Promise<void>;
 }
 
 export const ScoringPanel: React.FC<ScoringPanelProps> = ({
@@ -61,7 +66,10 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
   onSave,
   onNavigate,
   getScoreValidation,
+  statuses,
+  onStatusChange,
 }) => {
+  const [statusChanging, setStatusChanging] = useState(false);
   const { t } = useTranslation();
 
   // Resolve linked formula (with caching)
@@ -173,11 +181,46 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
           </div>
           <h2 className="text-lg sm:text-xl font-bold text-gray-900">{participant.name}</h2>
           <p className="text-sm text-gray-600">{participant.clubName}</p>
-          {participant.statusName && (
-            <div className="mt-1 flex justify-center">
-              <StatusBadge label={participant.statusName} colorCode={participant.statusColor} />
-            </div>
-          )}
+
+          {/* Status selector */}
+          <div className="mt-2 flex flex-col items-center gap-1">
+            {participant.wertungenId != null ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-medium">{t('scoreCaptureV2.status')}:</span>
+                <select
+                  data-testid="status-select"
+                  value={participant.statusId ?? ''}
+                  disabled={statusChanging}
+                  onChange={async (e) => {
+                    const newId = parseInt(e.target.value, 10);
+                    if (!isNaN(newId) && participant.wertungenId != null) {
+                      setStatusChanging(true);
+                      try {
+                        await onStatusChange(participant.wertungenId, newId);
+                      } finally {
+                        setStatusChanging(false);
+                      }
+                    }
+                  }}
+                  className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 cursor-pointer"
+                >
+                  <option value="">{t('scoreCaptureV2.noStatus')}</option>
+                  {statuses.map(s => (
+                    <option key={s.int_statusid} value={s.int_statusid}>
+                      {s.var_name}
+                    </option>
+                  ))}
+                </select>
+                {statusChanging && <span className="text-xs text-gray-400">…</span>}
+              </div>
+            ) : (
+              participant.statusName ? (
+                <StatusBadge label={participant.statusName} colorCode={participant.statusColor} />
+              ) : (
+                <span className="text-xs text-gray-400 italic">{t('scoreCaptureV2.statusAfterSave')}</span>
+              )
+            )}
+          </div>
         </div>
 
         {/* Discipline formula display */}
@@ -203,22 +246,27 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
                 {t('scoreCaptureV2.formulaLoading')}
               </div>
             ) : (
-              <FormulaInput
+              <LinkedFormulaInput
                 key={`formula-p${participant.id}`}
                 formula={resolvedFormula}
-                formulaId={(discipline as any)?.int_formelid}
-                calculationType={decimalPlaces}
-                unit={unit}
-                disciplineId={discipline?.int_disziplinid}
-                initialValues={Object.fromEntries(
-                  disciplineFields
-                    .filter(f => !f.isFinalScore && !f.isStartingScore)
-                    .map(f => [f.id, ''])
-                )}
-                onFieldChange={(fieldId, value) => onFieldChange(fieldId, value)}
-                onCalculationComplete={(result) => setLinkedCalcResult(result)}
-                compact={false}
-                showTitle={false}
+                decimals={decimalPlaces}
+                disciplineFields={disciplineFields
+                  .filter(f => !f.isFinalScore && !f.isStartingScore)
+                  .map(f => ({ id: f.id, name: f.name }))}
+                onScoreChange={(result, fieldValues) => {
+                  setLinkedCalcResult(result);
+                  // Notify parent for per-field API saves (symbol[i] → field[i].id)
+                  const symbols = extractFormulaSymbols(resolvedFormula);
+                  const nonFinal = disciplineFields.filter(f => !f.isFinalScore && !f.isStartingScore);
+                  symbols.forEach((sym, idx) => {
+                    const f = nonFinal[idx];
+                    if (f && fieldValues[sym] !== undefined) {
+                      onFieldChange(f.id, String(fieldValues[sym]));
+                    }
+                  });
+                }}
+                disabled={loading}
+                autoFocusFirst={true}
               />
             )
           ) : inputMode === 'builtInFormula' ? (

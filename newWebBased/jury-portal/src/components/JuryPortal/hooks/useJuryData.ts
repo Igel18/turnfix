@@ -13,7 +13,7 @@ import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/n
 import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
 import { computeEffectiveParticipantScore } from '../../../utils/effectiveParticipantScore';
 import { computeEffectiveJuryResults } from '../../../utils/effectiveJuryResults';
-import type { Participant, Squad, Device, DisciplineField, Competition } from '../JuryPortal.types';
+import type { Participant, Squad, Device, DisciplineField, Competition, JuryStatus } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
 interface UseJuryDataReturn {
@@ -28,6 +28,7 @@ interface UseJuryDataReturn {
   loadedJuryResults: Record<string, number>;
   formulaFieldValues: Record<string, number>;
   currentParticipant: Participant | undefined;
+  statuses: JuryStatus[];
 
   // State
   selectedEvent: number | null;
@@ -70,12 +71,21 @@ export function useJuryData(): UseJuryDataReturn {
   const [disciplineFields, setDisciplineFields] = useState<DisciplineField[]>([]);
   const [formulaFieldValues, setFormulaFieldValues] = useState<Record<string, number>>({});
   const [loadedJuryResults, setLoadedJuryResults] = useState<Record<string, number>>({});
+  const [statuses, setStatuses] = useState<JuryStatus[]>([]);
 
   // Auto-filter settings - persist in localStorage
   const [filterToday, setFilterToday] = useState<boolean>(() => {
     const saved = localStorage.getItem('juryPortal_filterToday');
     return saved !== null ? saved === 'true' : true; // Default: enabled
   });
+
+  // Fetch available status options once on mount
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/participant-status/statuses`)
+      .then(r => r.json())
+      .then(data => setStatuses(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   // Fetch events
   useEffect(() => {
@@ -380,6 +390,9 @@ export function useJuryData(): UseJuryDataReturn {
             status: (existingScore !== null && existingScore !== undefined) ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
             currentScore: existingScore,
             wertungenId: wertungenId,
+            statusId: null as number | null,
+            statusName: null as string | null,
+            statusColor: null as string | null,
             // Preserve competition assignments from squad data so findCompetitionId()
             // can correctly pick the participant's own competition (Priority 1)
             assignedCompetitions: (participant.competitions || [])
@@ -389,6 +402,30 @@ export function useJuryData(): UseJuryDataReturn {
         });
 
         const formattedParticipants = await Promise.all(formattedParticipantsPromises);
+
+        // Merge participant status data
+        try {
+          const statusRes = await fetch(`${API_BASE_URL}/participant-status?eventId=${selectedEvent}`);
+          if (statusRes.ok) {
+            const statusData = await statusRes.json();
+            const statusMap: Record<number, { statusId: number | null; statusName: string | null; statusColor: string | null }> = {};
+            (statusData.participants || []).forEach((s: any) => {
+              statusMap[s.participantId] = {
+                statusId: s.statusId ?? null,
+                statusName: s.statusName ?? null,
+                statusColor: s.statusColor ?? null,
+              };
+            });
+            formattedParticipants.forEach(p => {
+              const rec = statusMap[p.participantId];
+              if (rec) {
+                p.statusId = rec.statusId;
+                p.statusName = rec.statusName;
+                p.statusColor = rec.statusColor;
+              }
+            });
+          }
+        } catch {/* status load failure is non-fatal */}
 
         console.log('🟢 JURY: Formatted participants for scoring with scores:', formattedParticipants);
         setParticipants(formattedParticipants);
@@ -596,6 +633,7 @@ export function useJuryData(): UseJuryDataReturn {
     loadedJuryResults: effectiveLoadedJuryResults,
     formulaFieldValues,
     currentParticipant,
+    statuses,
 
     selectedEvent,
     selectedSquad,

@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -66,11 +66,18 @@ const makeParticipant = (overrides: Partial<ParticipantListItem> = {}): Particip
   startNumber: 5,
   clubName: 'TV Beispiel',
   currentScore: null,
+  wertungenId: null,
   statusId: null,
   statusName: null,
   statusColor: null,
   ...overrides,
 });
+
+const mockStatuses = [
+  { int_statusid: 1, var_name: 'Angemeldet', ary_colorcode: '#cccccc', bol_bogen: false, bol_karte: false },
+  { int_statusid: 2, var_name: 'Wertung erfasst', ary_colorcode: '#00cc66', bol_bogen: false, bol_karte: false },
+  { int_statusid: 3, var_name: 'Abwesend', ary_colorcode: '#ff4444', bol_bogen: false, bol_karte: false },
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ParticipantList tests
@@ -185,6 +192,11 @@ describe('ScoringPanel', () => {
     } as Response)));
   });
 
+  const defaultStatusProps = {
+    statuses: mockStatuses,
+    onStatusChange: vi.fn(async () => {}),
+  };
+
   it('renders empty state when no participant', () => {
     render(
       <ScoringPanel
@@ -200,6 +212,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     // Shows select participant message
@@ -222,6 +235,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     expect(screen.getByText('Anna Muster')).toBeTruthy();
@@ -244,6 +258,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     expect(screen.getByTestId('save-score-button')).toBeTruthy();
@@ -266,6 +281,7 @@ describe('ScoringPanel', () => {
         onSave={onSave}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     fireEvent.click(screen.getByTestId('save-score-button'));
@@ -288,6 +304,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     expect(screen.getByText(/scoreCaptureV2\.saving/)).toBeTruthy();
@@ -310,6 +327,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={onNavigate}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     fireEvent.click(screen.getByTestId('nav-prev-button'));
@@ -333,6 +351,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={onNavigate}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     fireEvent.click(screen.getByTestId('nav-next-button'));
@@ -355,6 +374,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     const prevBtn = screen.getByTestId('nav-prev-button') as HTMLButtonElement;
@@ -378,6 +398,7 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     const nextBtn = screen.getByTestId('nav-next-button') as HTMLButtonElement;
@@ -385,8 +406,9 @@ describe('ScoringPanel', () => {
     expect(nextBtn.disabled).toBe(true);
   });
 
-  it('shows status badge for participant with status', () => {
+  it('shows status badge when wertungenId is null but statusName is set', () => {
     const participant = makeParticipant({
+      wertungenId: null,
       statusName: 'Wertung erfasst',
       statusColor: '#00ff00',
     });
@@ -404,9 +426,115 @@ describe('ScoringPanel', () => {
         onSave={vi.fn()}
         onNavigate={vi.fn()}
         getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
       />
     );
     const badge = screen.getByTestId('status-badge');
     expect(badge.textContent).toBe('Wertung erfasst');
   });
+
+  it('shows hint text when wertungenId and statusName are both null', () => {
+    const participant = makeParticipant({ wertungenId: null, statusName: null });
+    render(
+      <ScoringPanel
+        participant={participant}
+        discipline={mockDiscipline}
+        disciplineFields={[]}
+        score=""
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={vi.fn()}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
+      />
+    );
+    expect(screen.getByText('scoreCaptureV2.statusAfterSave')).toBeTruthy();
+  });
+
+  it('shows status dropdown when wertungenId is set', () => {
+    const participant = makeParticipant({
+      wertungenId: 42,
+      statusId: 2,
+      statusName: 'Wertung erfasst',
+    });
+    render(
+      <ScoringPanel
+        participant={participant}
+        discipline={mockDiscipline}
+        disciplineFields={[]}
+        score=""
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={vi.fn()}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
+      />
+    );
+    const select = screen.getByTestId('status-select') as HTMLSelectElement;
+    expect(select).toBeTruthy();
+    expect(select.value).toBe('2');
+  });
+
+  it('dropdown shows all status options', () => {
+    const participant = makeParticipant({ wertungenId: 42, statusId: 1 });
+    render(
+      <ScoringPanel
+        participant={participant}
+        discipline={mockDiscipline}
+        disciplineFields={[]}
+        score=""
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={vi.fn()}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
+      />
+    );
+    const options = screen.getAllByRole('option') as HTMLOptionElement[];
+    const optionTexts = options.map(o => o.textContent);
+    expect(optionTexts).toContain('Angemeldet');
+    expect(optionTexts).toContain('Wertung erfasst');
+    expect(optionTexts).toContain('Abwesend');
+  });
+
+  it('calls onStatusChange with wertungenId and selected statusId on dropdown change', async () => {
+    const onStatusChange = vi.fn(async () => {});
+    const participant = makeParticipant({ wertungenId: 99, statusId: 1 });
+    render(
+      <ScoringPanel
+        participant={participant}
+        discipline={mockDiscipline}
+        disciplineFields={[]}
+        score=""
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={vi.fn()}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        statuses={mockStatuses}
+        onStatusChange={onStatusChange}
+      />
+    );
+    const select = screen.getByTestId('status-select');
+    await act(async () => {
+      fireEvent.change(select, { target: { value: '3' } });
+    });
+    expect(onStatusChange).toHaveBeenCalledWith(99, 3);
+  });
 });
+

@@ -20,3 +20,4 @@ export * from './scoringInputMode';
 
 // React components (separate export to avoid bundler issues)
 export { BuiltInFormulaInput, type BuiltInFormulaInputProps } from './components/BuiltInFormulaInput';
+export { LinkedFormulaInput, type LinkedFormulaInputProps, type LinkedFormulaFieldDef } from './components/LinkedFormulaInput';
