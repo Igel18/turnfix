@@ -425,6 +425,7 @@ export default function EventParticipants() {
             isOpen={showLabelModal}
             onClose={() => setShowLabelModal(false)}
             onPrint={generateLabelsPDF}
+            participantCount={filteredParticipants.length}
           />
         </div>
       )}

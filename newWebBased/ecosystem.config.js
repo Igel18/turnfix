@@ -9,6 +9,10 @@ module.exports = {
       watch: false,
       max_memory_restart: '500M',
       env: {
+        NODE_ENV: 'production',
+        PORT: 3001
+      },
+      env_development: {
         NODE_ENV: 'development',
         PORT: 3001
       },
@@ -30,6 +34,11 @@ module.exports = {
       watch: false,
       max_memory_restart: '200M',
       env: {
+        NODE_ENV: 'production',
+        JURY_PORT: 3002,
+        MAIN_SERVER_URL: 'http://localhost:3001'
+      },
+      env_development: {
         NODE_ENV: 'development',
         JURY_PORT: 3002,
         MAIN_SERVER_URL: 'http://localhost:3001'

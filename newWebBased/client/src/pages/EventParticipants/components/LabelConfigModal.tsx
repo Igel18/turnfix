@@ -20,15 +20,18 @@ export interface LabelConfig {
   marginRight: number;
   marginBottom: number;
   showBorders: boolean;
+  startRow: number;
+  startColumn: number;
 }
 
 interface LabelConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPrint: (config: LabelConfig) => void;
+  participantCount: number;
 }
 
-export function LabelConfigModal({ isOpen, onClose, onPrint }: LabelConfigModalProps) {
+export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }: LabelConfigModalProps) {
   const { t } = useTranslation();
   
   const [config, setConfig] = useState<LabelConfig>({
@@ -41,6 +44,8 @@ export function LabelConfigModal({ isOpen, onClose, onPrint }: LabelConfigModalP
     marginRight: 8, // mm
     marginBottom: 13, // mm
     showBorders: true,
+    startRow: 1,
+    startColumn: 1,
   });
 
   // Load label configuration from server on mount
@@ -65,6 +70,8 @@ export function LabelConfigModal({ isOpen, onClose, onPrint }: LabelConfigModalP
           marginRight: p.label_margin_right ?? 8,
           marginBottom: p.label_margin_bottom ?? 13,
           showBorders: p.label_show_borders ?? true,
+          startRow: 1,
+          startColumn: 1,
         });
       }
     } catch (error) {
@@ -230,17 +237,67 @@ export function LabelConfigModal({ isOpen, onClose, onPrint }: LabelConfigModalP
           </label>
         </div>
 
-        {/* Preview Info */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">{t('eventParticipants.labelConfig.previewInfo')}</h4>
-          <p className="text-sm text-gray-600">
-            {t('eventParticipants.labelConfig.labelsPerPage', {
-              count: config.rows * config.columns,
-              rows: config.rows,
-              columns: config.columns,
-            })}
-          </p>
+        {/* Start Row / Start Column (48c) */}
+        <div>
+          <h4 className="font-medium text-gray-900 mb-2">{t('eventParticipants.labelConfig.startPositionTitle')}</h4>
+          <p className="text-xs text-gray-500 mb-3">{t('eventParticipants.labelConfig.startPositionHint')}</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.startRow')}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={config.rows}
+                value={config.startRow}
+                onChange={(e) => setConfig({ ...config, startRow: Math.max(1, Math.min(config.rows, parseInt(e.target.value) || 1)) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.labelConfig.startColumn')}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={config.columns}
+                value={config.startColumn}
+                onChange={(e) => setConfig({ ...config, startColumn: Math.max(1, Math.min(config.columns, parseInt(e.target.value) || 1)) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Preview Info (48b) */}
+        {(() => {
+          const labelsPerPage = config.rows * config.columns;
+          const skippedPositions = (config.startRow - 1) * config.columns + (config.startColumn - 1);
+          const availableOnFirstPage = labelsPerPage - skippedPositions;
+          const totalLabels = participantCount;
+          const pagesNeeded = totalLabels <= 0
+            ? 0
+            : availableOnFirstPage >= totalLabels
+              ? 1
+              : 1 + Math.ceil((totalLabels - availableOnFirstPage) / labelsPerPage);
+          return (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">{t('eventParticipants.labelConfig.previewInfo')}</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>{t('eventParticipants.labelConfig.labelsPerPage', { rows: config.rows, columns: config.columns, count: labelsPerPage })}</li>
+                <li>{t('eventParticipants.labelConfig.participantCount', { count: totalLabels })}</li>
+                {skippedPositions > 0 && (
+                  <li>{t('eventParticipants.labelConfig.skippedLabels', { count: skippedPositions })}</li>
+                )}
+                {totalLabels > 0 && (
+                  <li className="font-medium">{t('eventParticipants.labelConfig.pagesNeeded', { pages: pagesNeeded })}</li>
+                )}
+              </ul>
+            </div>
+          );
+        })()}
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-3 mt-6">
