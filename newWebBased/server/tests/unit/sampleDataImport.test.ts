@@ -56,7 +56,7 @@ jest.mock('../../src/utils/debug', () => ({
 }));
 
 // Import AFTER mocks are set up
-import { importSampleData, SampleDataStats } from '../../src/utils/sampleDataImport';
+import { importSampleData, loadSampleData, SampleDataStats } from '../../src/utils/sampleDataImport';
 
 describe('importSampleData', () => {
   beforeEach(() => {
@@ -400,5 +400,97 @@ describe('importSampleData', () => {
         expect(call[0].data.var_font.length).toBeLessThanOrEqual(150);
       });
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('loadSampleData()', () => {
+  it('returns an object without errors', () => {
+    const data = loadSampleData();
+    expect(data).toBeDefined();
+    expect(typeof data).toBe('object');
+  });
+
+  it('has a country with var_name and var_kuerzel', () => {
+    const { country } = loadSampleData();
+    expect(typeof country.var_name).toBe('string');
+    expect(country.var_name.length).toBeGreaterThan(0);
+    expect(typeof country.var_kuerzel).toBe('string');
+    expect(country.var_kuerzel.length).toBeGreaterThan(0);
+  });
+
+  it('has an association with var_name and var_kuerzel', () => {
+    const { association } = loadSampleData();
+    expect(typeof association.var_name).toBe('string');
+    expect(typeof association.var_kuerzel).toBe('string');
+  });
+
+  it('has a region with var_name and var_kuerzel', () => {
+    const { region } = loadSampleData();
+    expect(typeof region.var_name).toBe('string');
+    expect(typeof region.var_kuerzel).toBe('string');
+  });
+
+  it('has a club with var_name', () => {
+    const { club } = loadSampleData();
+    expect(typeof club.var_name).toBe('string');
+    expect(club.var_name.length).toBeGreaterThan(0);
+  });
+
+  it('has at least one participant', () => {
+    const { participants } = loadSampleData();
+    expect(Array.isArray(participants)).toBe(true);
+    expect(participants.length).toBeGreaterThan(0);
+  });
+
+  it('every participant has required fields with valid types', () => {
+    const { participants } = loadSampleData();
+    for (const p of participants) {
+      expect(typeof p.var_vorname).toBe('string');
+      expect(typeof p.var_nachname).toBe('string');
+      expect(typeof p.int_geschlecht).toBe('number');
+      expect(typeof p.dat_geburtstag).toBe('string');
+      expect(isNaN(new Date(p.dat_geburtstag).getTime())).toBe(false);
+      expect(typeof p.bool_nur_jahr).toBe('boolean');
+    }
+  });
+
+  it('has both a male (1) and a female (2) participant', () => {
+    const { participants } = loadSampleData();
+    const genders = participants.map((p) => p.int_geschlecht);
+    expect(genders).toContain(1);
+    expect(genders).toContain(2);
+  });
+
+  it('has a venue with all address fields', () => {
+    const { venue } = loadSampleData();
+    expect(typeof venue.var_name).toBe('string');
+    expect(typeof venue.var_adresse).toBe('string');
+    expect(typeof venue.var_plz).toBe('string');
+    expect(typeof venue.var_ort).toBe('string');
+  });
+
+  it('has a layout with var_name, txt_comment and a non-empty fields array', () => {
+    const { layout } = loadSampleData();
+    expect(typeof layout.var_name).toBe('string');
+    expect(typeof layout.txt_comment).toBe('string');
+    expect(Array.isArray(layout.fields)).toBe(true);
+    expect(layout.fields.length).toBeGreaterThan(0);
+  });
+
+  it('every layout field has all required numeric and string properties', () => {
+    const { layout } = loadSampleData();
+    for (const f of layout.fields) {
+      expect(typeof f.int_typ).toBe('number');
+      expect(typeof f.var_font).toBe('string');
+      expect(typeof f.rel_x).toBe('number');
+      expect(typeof f.rel_y).toBe('number');
+      expect(typeof f.rel_w).toBe('number');
+      expect(typeof f.rel_h).toBe('number');
+      expect(typeof f.var_value).toBe('string');
+      expect(typeof f.int_align).toBe('number');
+      expect(typeof f.int_layer).toBe('number');
+    }
   });
 });

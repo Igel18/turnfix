@@ -1,6 +1,6 @@
 /**
  * Sample Data Import for the Database Setup Wizard.
- * 
+ *
  * Creates ONE sample record each for:
  * - Land (Country)
  * - Verband (Association)
@@ -9,14 +9,55 @@
  * - Teilnehmer (Athlete/Participant) - one male, one female
  * - Wettkampfort (Venue)
  * - Layout (Certificate Layout)
- * 
- * These serve as reference data so the UI is not empty after a fresh DB setup.
+ *
+ * All seed values are stored in src/data/sampleData.json – edit that file
+ * to change names, fields or layout definitions without touching this code.
+ *
  * Uses the dynamic Prisma client to support wizard's custom DB connections.
  */
 
 import { PrismaClient } from '@prisma/client';
 import prisma from '../db/connection';
 import { isDebug } from './debug';
+import rawSampleData from '../data/sampleData.json';
+
+// ─── Types matching sampleData.json ──────────────────────────────────────────
+
+export interface SampleLayoutField {
+  int_typ: number;
+  var_font: string;
+  rel_x: number;
+  rel_y: number;
+  rel_w: number;
+  rel_h: number;
+  var_value: string;
+  int_align: number;
+  int_layer: number;
+}
+
+export interface SampleParticipant {
+  var_vorname: string;
+  var_nachname: string;
+  int_geschlecht: number;
+  /** ISO date string, e.g. "2010-06-15" */
+  dat_geburtstag: string;
+  bool_nur_jahr: boolean;
+}
+
+export interface SampleData {
+  country: { var_name: string; var_kuerzel: string };
+  association: { var_name: string; var_kuerzel: string };
+  region: { var_name: string; var_kuerzel: string };
+  club: { var_name: string };
+  participants: SampleParticipant[];
+  venue: { var_name: string; var_adresse: string; var_plz: string; var_ort: string };
+  layout: { var_name: string; txt_comment: string; fields: SampleLayoutField[] };
+}
+
+/** Returns the sample data loaded from sampleData.json. Exported for testing. */
+export function loadSampleData(): SampleData {
+  return rawSampleData as SampleData;
+}
 
 export interface SampleDataStats {
   createdCountries: number;
@@ -32,7 +73,7 @@ export interface SampleDataStats {
 /**
  * Import sample data into the database.
  * Uses the provided Prisma client (for wizard custom DB) or falls back to the default client.
- * 
+ *
  * Each record is only created if the table is currently empty,
  * to avoid duplicates when re-running the wizard.
  */
@@ -41,7 +82,8 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   stats: SampleDataStats;
 }> {
   const db = customClient || prisma;
-  
+  const data = loadSampleData();
+
   const stats: SampleDataStats = {
     createdCountries: 0,
     createdAssociations: 0,
@@ -63,8 +105,8 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   if (countryCount === 0) {
     const country = await db.tfx_laender.create({
       data: {
-        var_name: 'Deutschland',
-        var_kuerzel: 'DE',
+        var_name: data.country.var_name,
+        var_kuerzel: data.country.var_kuerzel,
       },
     });
     countryId = country.int_laenderid;
@@ -83,8 +125,8 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   if (associationCount === 0) {
     const association = await db.tfx_verbaende.create({
       data: {
-        var_name: 'Muster-Turnverband',
-        var_kuerzel: 'MTV',
+        var_name: data.association.var_name,
+        var_kuerzel: data.association.var_kuerzel,
         int_laenderid: countryId,
       },
     });
@@ -104,8 +146,8 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   if (regionCount === 0) {
     const region = await db.tfx_gaue.create({
       data: {
-        var_name: 'Muster-Turngau',
-        var_kuerzel: 'MTG',
+        var_name: data.region.var_name,
+        var_kuerzel: data.region.var_kuerzel,
         int_verbaendeid: associationId,
       },
     });
@@ -125,7 +167,7 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   if (clubCount === 0) {
     const club = await db.tfx_vereine.create({
       data: {
-        var_name: 'TV Musterstadt',
+        var_name: data.club.var_name,
         int_gaueid: regionId,
       },
     });
@@ -139,33 +181,23 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
     if (isDebug()) console.log('🔍 DEBUG: Clubs already exist, skipping');
   }
 
-  // 5. Participants (Teilnehmer) - one male, one female
+  // 5. Participants (Teilnehmer)
   const participantCount = await db.tfx_teilnehmer.count();
   if (participantCount === 0) {
-    const maleParticipant = await db.tfx_teilnehmer.create({
-      data: {
-        var_vorname: 'Max',
-        var_nachname: 'Mustermann',
-        int_geschlecht: 1, // 1 = male
-        int_vereineid: clubId,
-        dat_geburtstag: new Date('2010-06-15'),
-        bool_nur_jahr: false,
-      },
-    });
-    const femaleParticipant = await db.tfx_teilnehmer.create({
-      data: {
-        var_vorname: 'Erika',
-        var_nachname: 'Musterfrau',
-        int_geschlecht: 2, // 2 = female
-        int_vereineid: clubId,
-        dat_geburtstag: new Date('2011-03-22'),
-        bool_nur_jahr: false,
-      },
-    });
-    stats.createdParticipants = 2;
-    if (isDebug()) {
-      console.log('🔍 DEBUG: Created sample participants:', maleParticipant, femaleParticipant);
+    for (const p of data.participants) {
+      await db.tfx_teilnehmer.create({
+        data: {
+          var_vorname: p.var_vorname,
+          var_nachname: p.var_nachname,
+          int_geschlecht: p.int_geschlecht,
+          int_vereineid: clubId,
+          dat_geburtstag: new Date(p.dat_geburtstag),
+          bool_nur_jahr: p.bool_nur_jahr,
+        },
+      });
     }
+    stats.createdParticipants = data.participants.length;
+    if (isDebug()) console.log('🔍 DEBUG: Created', data.participants.length, 'sample participants');
   } else {
     stats.skipped.push('participants');
     if (isDebug()) console.log('🔍 DEBUG: Participants already exist, skipping');
@@ -176,10 +208,10 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   if (venueCount === 0) {
     const venue = await db.tfx_wettkampforte.create({
       data: {
-        var_name: 'Muster-Sporthalle',
-        var_adresse: 'Turnstraße 1',
-        var_plz: '12345',
-        var_ort: 'Musterstadt',
+        var_name: data.venue.var_name,
+        var_adresse: data.venue.var_adresse,
+        var_plz: data.venue.var_plz,
+        var_ort: data.venue.var_ort,
       },
     });
     stats.createdVenues = 1;
@@ -194,39 +226,12 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
   if (layoutCount === 0) {
     const layout = await db.tfx_layouts.create({
       data: {
-        var_name: 'Standard-Urkunde',
-        txt_comment: 'Muster-Layout für Urkunden. Kann in der Layout-Verwaltung angepasst werden.',
+        var_name: data.layout.var_name,
+        txt_comment: data.layout.txt_comment,
       },
     });
 
-    // Create layout fields based on a real working certificate layout.
-    // int_typ: 0 = DB field, 1 = Static text, 2 = Image, 3 = Line
-    // int_align: 0 = Left, 1 = Center, 2 = Right
-    // DB field var_value mapping:
-    //   "3" = Name (Teilnehmer), "4" = Verein (Club), "5" = Platz (Rank),
-    //   "6" = Punkte (Score), "15" = Wettkampfnummer (Competition number)
-    const layoutFields = [
-      // Name of participant - large, bold, centered
-      { int_typ: 0, var_font: 'Tahoma,20,-1,5,50,0,0,0,0,0', rel_x: 35.79, rel_y: 144.64, rel_w: 137.01, rel_h: 9.95, var_value: '3', int_align: 1, int_layer: 0 },
-      // Place/Rank - large, bold, centered
-      { int_typ: 0, var_font: 'Tahoma,20,-1,5,75,0,0,0,0,0', rel_x: 82.59, rel_y: 208.17, rel_w: 43.62, rel_h: 11.01, var_value: '5', int_align: 1, int_layer: 1 },
-      // Static text "Platz" - centered
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 82.59, rel_y: 187.62, rel_w: 43.20, rel_h: 6.99, var_value: 'Platz', int_align: 1, int_layer: 2 },
-      // Static text "erreichte mit" - centered
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 53.79, rel_y: 169.84, rel_w: 43.41, rel_h: 4.66, var_value: 'erreichte mit ', int_align: 1, int_layer: 3 },
-      // Score/Points - DB field, centered
-      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 82.38, rel_y: 169.84, rel_w: 42.78, rel_h: 4.66, var_value: '6', int_align: 1, int_layer: 4 },
-      // Static text "Punkten" - centered
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 103.77, rel_y: 169.84, rel_w: 42.78, rel_h: 5.93, var_value: 'Punkten', int_align: 1, int_layer: 5 },
-      // Competition number - DB field, right-aligned
-      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 98.45, rel_y: 178.02, rel_w: 48.17, rel_h: 6.15, var_value: '15', int_align: 2, int_layer: 7 },
-      // Static text "im Wettkampf Nr." - centered
-      { int_typ: 1, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 73.42, rel_y: 177.81, rel_w: 43.92, rel_h: 9.34, var_value: 'im Wettkampf Nr.', int_align: 1, int_layer: 8 },
-      // Club/Verein - DB field, centered
-      { int_typ: 0, var_font: 'Tahoma,12,-1,5,50,0,0,0,0,0', rel_x: 63.87, rel_y: 155.96, rel_w: 80.63, rel_h: 9.97, var_value: '4', int_align: 1, int_layer: 9 },
-    ];
-
-    for (const field of layoutFields) {
+    for (const field of data.layout.fields) {
       await db.tfx_layout_felder.create({
         data: {
           int_layoutid: layout.int_layoutid,
@@ -236,14 +241,14 @@ export async function importSampleData(customClient?: PrismaClient | null): Prom
     }
 
     stats.createdLayouts = 1;
-    if (isDebug()) console.log('🔍 DEBUG: Created sample layout with', layoutFields.length, 'fields:', layout);
+    if (isDebug()) console.log('🔍 DEBUG: Created sample layout with', data.layout.fields.length, 'fields:', layout);
   } else {
     stats.skipped.push('layouts');
     if (isDebug()) console.log('🔍 DEBUG: Layouts already exist, skipping');
   }
 
-  const totalCreated = stats.createdCountries + stats.createdAssociations 
-    + stats.createdRegions + stats.createdClubs + stats.createdParticipants 
+  const totalCreated = stats.createdCountries + stats.createdAssociations
+    + stats.createdRegions + stats.createdClubs + stats.createdParticipants
     + stats.createdVenues + stats.createdLayouts;
 
   console.log(`✅ Sample data import complete: ${totalCreated} records created, ${stats.skipped.length} categories skipped`);

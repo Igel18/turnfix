@@ -1,0 +1,54 @@
+{
+  "country": {
+    "var_name": "Deutschland",
+    "var_kuerzel": "DE"
+  },
+  "association": {
+    "var_name": "Muster-Turnverband",
+    "var_kuerzel": "MTV"
+  },
+  "region": {
+    "var_name": "Muster-Turngau",
+    "var_kuerzel": "MTG"
+  },
+  "club": {
+    "var_name": "TV Musterstadt"
+  },
+  "participants": [
+    {
+      "var_vorname": "Max",
+      "var_nachname": "Mustermann",
+      "int_geschlecht": 1,
+      "dat_geburtstag": "2010-06-15",
+      "bool_nur_jahr": false
+    },
+    {
+      "var_vorname": "Erika",
+      "var_nachname": "Musterfrau",
+      "int_geschlecht": 2,
+      "dat_geburtstag": "2011-03-22",
+      "bool_nur_jahr": false
+    }
+  ],
+  "venue": {
+    "var_name": "Muster-Sporthalle",
+    "var_adresse": "Turnstraße 1",
+    "var_plz": "12345",
+    "var_ort": "Musterstadt"
+  },
+  "layout": {
+    "var_name": "Standard-Urkunde",
+    "txt_comment": "Muster-Layout für Urkunden. Kann in der Layout-Verwaltung angepasst werden.",
+    "fields": [
+      { "int_typ": 0, "var_font": "Tahoma,20,-1,5,50,0,0,0,0,0", "rel_x": 35.79, "rel_y": 144.64, "rel_w": 137.01, "rel_h": 9.95,  "var_value": "3",                "int_align": 1, "int_layer": 0 },
+      { "int_typ": 0, "var_font": "Tahoma,20,-1,5,75,0,0,0,0,0", "rel_x": 82.59, "rel_y": 208.17, "rel_w": 43.62,  "rel_h": 11.01, "var_value": "5",                "int_align": 1, "int_layer": 1 },
+      { "int_typ": 1, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 82.59, "rel_y": 187.62, "rel_w": 43.20,  "rel_h": 6.99,  "var_value": "Platz",            "int_align": 1, "int_layer": 2 },
+      { "int_typ": 1, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 53.79, "rel_y": 169.84, "rel_w": 43.41,  "rel_h": 4.66,  "var_value": "erreichte mit ",   "int_align": 1, "int_layer": 3 },
+      { "int_typ": 0, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 82.38, "rel_y": 169.84, "rel_w": 42.78,  "rel_h": 4.66,  "var_value": "6",                "int_align": 1, "int_layer": 4 },
+      { "int_typ": 1, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 103.77,"rel_y": 169.84, "rel_w": 42.78,  "rel_h": 5.93,  "var_value": "Punkten",          "int_align": 1, "int_layer": 5 },
+      { "int_typ": 0, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 98.45, "rel_y": 178.02, "rel_w": 48.17,  "rel_h": 6.15,  "var_value": "15",               "int_align": 2, "int_layer": 7 },
+      { "int_typ": 1, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 73.42, "rel_y": 177.81, "rel_w": 43.92,  "rel_h": 9.34,  "var_value": "im Wettkampf Nr.", "int_align": 1, "int_layer": 8 },
+      { "int_typ": 0, "var_font": "Tahoma,12,-1,5,50,0,0,0,0,0", "rel_x": 63.87, "rel_y": 155.96, "rel_w": 80.63,  "rel_h": 9.97,  "var_value": "4",                "int_align": 1, "int_layer": 9 }
+    ]
+  }
+}

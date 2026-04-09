@@ -941,7 +941,7 @@ squad-status -> die hinterlegte Farbe ist gut, aber das X beim Editieren gefäll
 participant-status 
 event-participants edit dialog 
 score-capture -> hier steht nochmal der aktuelle Status unter dem Drop-Down. Das ist überflüssig. 
--> In Arbeit 🚀
+-> Erledigt ✅
 
 131. [Bug] build pipeline: bei der auswahl skip download 
 ╔════════════════════════════════════════════════════════════╗
@@ -955,6 +955,7 @@ Line |
  105 |          Invoke-WebRequest -Uri $nodeUrl -OutFile $nodeZip -UseBasicPa …
      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      | File not found
+-> Erledigt ✅
 
 132. im Veranstaltungs-Analyzer muss nach dem Event alle Teilnehmer den Status "Leistung erfasst" oder Nimmt nicht teil haben. 
 -> Erledigt ✅
@@ -963,6 +964,40 @@ Line |
 Das muss ausgeblendet werden und als technische Schuld gekennzeichnet, falls mal die DB erweitert wird. 
 -> Erledigt ✅
 
+
+🚀 In Arbeit (unvollständig)
+#	Titel
+72	PDF Export – Wettkampfnummer bei Teilnehmer- & Riegenlistenexport (Tests fehlen)
+78	Riegeneinteilung Filter – Zugewiesen/Nicht-zugewiesen, Jahrgang, Namensfilter-Position (Tests fehlen)
+79	Riegeneinteilung UI – Alle Wettkämpfe in Riegenspalte, Details-Karte, Höhe der Spalte (Tests fehlen)
+80	Riegeneinteilung – UI aktualisiert nicht nach Entfernen/Hinzufügen von Teilnehmern (Tests fehlen)
+125	Score-Capture – Komplette neue UI (vereinheitlicht, modal, inline-editing)
+❌ Offen (kein Status)
+#	Titel	Priorität
+4	PDF Siegerliste – Formel in der Überschrift anzeigen	mittel
+45c	Riegeneinteilung – Ausgeglichene Riegengrößen	niedrig
+48b	Etiketten – Vorschau-Info beim Drucken/PDF fehlt	niedrig
+48c	Etiketten – "Start in Zeile" Funktion	niedrig
+61	Sample Data – aus JSON importieren statt hardcodiert in SampleDataImport.ts	mittel
+66	Dokumentation – Anwender-/Entwicklerdoku mit einheitlichem Design, inkl. Playwright-Screenshots	mittel
+67	Feature: Teilnehmer direkt in Veranstaltung hinzufügen (& in Athletes anlegen)	mittel
+70	Bug: Dialog beim Löschen von Teilnehmern nicht lokalisiert	niedrig
+73	Riegeneinteilung Konzept – Analyse Geräteanzahl/Durchgänge/Zusammenführung kleiner Wettkämpfe	niedrig
+74	Bug: Filter – aktiver Filter muss sichtbar sein; Ausblenden = Zurücksetzen	mittel
+75	Bug: Stufenbarren-Icon fehlt im DB-Wizard (soll "Barren"-Icon erhalten)	niedrig
+83	GymNet Import → Wizard + mehrere XMLs gleichzeitig importieren	mittel
+89	Bug: Wertungen werden nicht im alten TurnFix angezeigt	hoch
+93	Layout-Designer – Zoom, PDF als Hintergrund laden	niedrig
+96	Feature: Jury-Portal – Teilnehmer sortieren	niedrig
+98	Feature: Siegerliste – Überschrift fixieren bei vielen Teilnehmern	niedrig
+103	Improvement: Results-Filter – Wettkämpfe aufsteigend sortieren	niedrig
+104	Bug: Riegen-Status wird nicht angezeigt	hoch
+108	Improvement: Status "Gedruckt" automatisch setzen beim PDF-Export	niedrig
+110i	Analyzer – Zeitplan in Veranstaltungs-Analyzer integrieren	niedrig
+120	Feature: Jury-Portal – aktuelle Riegen zeitbasiert hervorheben	mittel
+122i	Analyzer – Zeitplan-Analyse (Zeiten & Riegen/Disziplin-Kombinationen)	niedrig
+123	Modale Dialoge → Wizard (Disziplin, Wettkampf, GymNet-Import)	niedrig
+TD-01	Technische Schuld: "Pause"-Erkennung per Name-Regex in ScheduleMatrixView.tsx	niedrig
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀

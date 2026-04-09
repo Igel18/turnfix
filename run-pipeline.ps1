@@ -156,8 +156,9 @@ Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) 
 
 # ── 7. Installer erstellen ────────────────────────────────────────────────
 Invoke-Step -Name "Installer erstellen (Inno Setup)" -Skip:$SkipInstaller -Action {
-    $installerArgs = @("-SkipBuild")           # Build wurde oben bereits gemacht
-    if ($SkipDownload) { $installerArgs += "-SkipDownload" }
+    # Hashtable splatting so switches are passed as named parameters, not positional strings
+    $installerArgs = @{ SkipBuild = $true }
+    if ($SkipDownload) { $installerArgs['SkipDownload'] = $true }
     & $InstallerScript @installerArgs
 }
 
