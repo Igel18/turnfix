@@ -329,7 +329,7 @@ b.) Zudem wird keine Vorschau-Info beim Drucken/Pdf-Erzeugen der Etiketten angez
 	-> Erledigt ✅  
 c.) Ein Start in Zeile wäre gut. Dann hat man nicht so viel Ausschuss. 
 	-> Erledigt ✅  
-	
+
 49. Jury-Portal Werte berechnen 
 Ist bei einer Disziplin eine Formel hinterlegt (ohne DB-Felder), dann werden jetzt die Variablen (z.B. x) korrekt in dem Jury-Portal angezeigt. Aber nach der Eingabe des Werts sollte ein Ergebnis berechnet werden (anhand der Formel). Aber das passiert nicht. 
 Bitte prüfen, beheben, Tests schreiben, Doku erstellen. Und prüfen ob dies im management score capture richtig funktioniert. 
@@ -769,6 +769,12 @@ c. Es müssen verschiedene Punkte geprüft werden:
 d. Beim klick auf den jeweiligen Punkt soll sich auch die entsprechende UI öffnen um das Problem zu beheben. 
 -> Erledigt ✅ 
 
+110i. Analyzer – Zeitplan in Veranstaltungs-Analyzer integrieren
+-> Erledigt ✅ | Neue Kategorie `schedule` (Zeitplanung) im Analyzer. Neuer Check `schedule_missing_start_times`: Wettkämpfe ohne `tim_startzeit` (Severity info, Link `/time-planning`). Neue Kategorie in `AnalyzerCategory` type (Client + Server), `CATEGORY_ORDER` in `index.tsx`, i18n (de/en). Dateien: `server/src/routes/analyzer.ts`, `client/src/pages/Analyzer/Analyzer.types.ts`, `client/src/pages/Analyzer/index.tsx`.
+
+122i. Analyzer – Zeitplan-Analyse (Zeiten & Riegen/Disziplin-Kombinationen)
+-> Erledigt ✅ | Neuer Check `schedule_matrix_incomplete`: Vergleicht erwartete (Riegen × Disziplinen) vs. tatsächliche Einträge in `tfx_riegen_x_disziplinen`. Nur aktiv wenn Matrix bereits generiert wurde (sonst handled by `squad_combination_not_generated`). Severity warning, Link `/time-planning`. Details zeigen welche Riege/Disziplin-Kombination fehlt.
+
 111. [Idee] Was passiert wenn einem Teilnehmer mehr wie 1 Wettkampf zugeordnet ist? Lässt sich das aktuell handeln? 
  Multi-Wettkampf-Teilnehmer vollständig unterstützt:
 
@@ -978,9 +984,6 @@ Das muss ausgeblendet werden und als technische Schuld gekennzeichnet, falls mal
 #	Titel	Priorität
 4	PDF Siegerliste – Formel in der Überschrift anzeigen	mittel
 45c	Riegeneinteilung – Ausgeglichene Riegengrößen	niedrig
-48b	Etiketten – Vorschau-Info beim Drucken/PDF fehlt	niedrig
-48c	Etiketten – "Start in Zeile" Funktion	niedrig
-61	Sample Data – aus JSON importieren statt hardcodiert in SampleDataImport.ts	mittel
 66	Dokumentation – Anwender-/Entwicklerdoku mit einheitlichem Design, inkl. Playwright-Screenshots	mittel
 67	Feature: Teilnehmer direkt in Veranstaltung hinzufügen (& in Athletes anlegen)	mittel
 70	Bug: Dialog beim Löschen von Teilnehmern nicht lokalisiert	niedrig
@@ -988,16 +991,11 @@ Das muss ausgeblendet werden und als technische Schuld gekennzeichnet, falls mal
 74	Bug: Filter – aktiver Filter muss sichtbar sein; Ausblenden = Zurücksetzen	mittel
 75	Bug: Stufenbarren-Icon fehlt im DB-Wizard (soll "Barren"-Icon erhalten)	niedrig
 83	GymNet Import → Wizard + mehrere XMLs gleichzeitig importieren	mittel
-89	Bug: Wertungen werden nicht im alten TurnFix angezeigt	hoch
 93	Layout-Designer – Zoom, PDF als Hintergrund laden	niedrig
 96	Feature: Jury-Portal – Teilnehmer sortieren	niedrig
 98	Feature: Siegerliste – Überschrift fixieren bei vielen Teilnehmern	niedrig
 103	Improvement: Results-Filter – Wettkämpfe aufsteigend sortieren	niedrig
-104	Bug: Riegen-Status wird nicht angezeigt	hoch
 108	Improvement: Status "Gedruckt" automatisch setzen beim PDF-Export	niedrig
-110i	Analyzer – Zeitplan in Veranstaltungs-Analyzer integrieren	niedrig
-120	Feature: Jury-Portal – aktuelle Riegen zeitbasiert hervorheben	mittel
-122i	Analyzer – Zeitplan-Analyse (Zeiten & Riegen/Disziplin-Kombinationen)	niedrig
 123	Modale Dialoge → Wizard (Disziplin, Wettkampf, GymNet-Import)	niedrig
 TD-01	Technische Schuld: "Pause"-Erkennung per Name-Regex in ScheduleMatrixView.tsx	niedrig
 ------------------------------------------------------------

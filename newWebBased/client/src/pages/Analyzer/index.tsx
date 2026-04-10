@@ -29,7 +29,7 @@ import type { AnalyzerCategory, AnalyzerCheck } from './Analyzer.types'
 // Category order + metadata
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CATEGORY_ORDER: AnalyzerCategory[] = ['setup', 'capture', 'squads', 'results']
+const CATEGORY_ORDER: AnalyzerCategory[] = ['setup', 'schedule', 'capture', 'squads', 'results']
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Summary card
@@ -74,7 +74,7 @@ export default function Analyzer() {
     ? CATEGORY_ORDER.reduce<Record<AnalyzerCategory, AnalyzerCheck[]>>((acc, cat) => {
         acc[cat] = data.checks.filter(c => c.category === cat)
         return acc
-      }, { setup: [], capture: [], squads: [], results: [] })
+      }, { setup: [], schedule: [], capture: [], squads: [], results: [] })
     : null
 
   const allOk = data?.summary

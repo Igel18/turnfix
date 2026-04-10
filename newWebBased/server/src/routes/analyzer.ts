@@ -16,6 +16,8 @@
  *   6. missing_score_details         – wertungen missing detail rows for disciplines
  *   7. squad_combination_not_generated – squads defined but riegen_x_disziplinen empty
  *   8. duplicate_top_placements      – tied ranks 1–3 in any competition
+ *   9. schedule_missing_start_times  – competitions without tim_startzeit (Point 110i)
+ *  10. schedule_matrix_incomplete    – squad/discipline rotation matrix incomplete (Point 122i)
  */
 
 import { Router, Request, Response } from 'express'
@@ -35,7 +37,7 @@ export interface AnalyzerDetail {
 
 export interface AnalyzerCheckResult {
   id: string
-  category: 'setup' | 'capture' | 'squads' | 'results'
+  category: 'setup' | 'schedule' | 'capture' | 'squads' | 'results'
   severity: 'error' | 'warning' | 'info'
   status: 'ok' | 'error' | 'warning' | 'info'
   affectedCount: number
@@ -82,6 +84,11 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
       missingScoreDetails,
       squadCombinationCheck,
       duplicateTopPlacements,
+      missingStartTimes,
+      scheduleMatrixIncomplete,
+      participantsWithoutCompetition,
+      competitionsWithoutParticipants,
+      competitionsWithoutRound,
     ] = await Promise.all([
       checkMissingStartNumbers(eventId),
       checkCompetitionsWithoutDisciplines(eventId),
@@ -91,6 +98,11 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
       checkMissingScoreDetails(eventId),
       checkSquadCombination(eventId),
       checkDuplicateTopPlacements(eventId),
+      checkMissingStartTimes(eventId),
+      checkScheduleMatrixIncomplete(eventId),
+      checkParticipantsWithoutCompetition(eventId),
+      checkCompetitionsWithoutParticipants(eventId),
+      checkCompetitionsWithoutRound(eventId),
     ])
 
     const checks: AnalyzerCheckResult[] = [
@@ -102,6 +114,11 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
       missingScoreDetails,
       squadCombinationCheck,
       duplicateTopPlacements,
+      missingStartTimes,
+      scheduleMatrixIncomplete,
+      participantsWithoutCompetition,
+      competitionsWithoutParticipants,
+      competitionsWithoutRound,
     ]
 
     const summary: AnalyzerSummary = {
@@ -498,6 +515,245 @@ export async function checkDuplicateTopPlacements(eventId: number): Promise<Anal
     affectedCount: count,
     details: rows.slice(0, 5).map(r => ({ id: Number(r.id), label: String(r.label) })),
     actionRoute: '/results',
+  }
+}
+
+// ============================================================================
+// Check: Competitions without start time (Point 110i)
+// ============================================================================
+
+export async function checkMissingStartTimes(eventId: number): Promise<AnalyzerCheckResult> {
+  const rows: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT wk.int_wettkaempfeid AS id,
+           COALESCE(wk.var_name, 'WK ' || wk.int_wettkaempfeid) AS label
+    FROM tfx_wettkaempfe wk
+    WHERE wk.int_veranstaltungenid = $1
+      AND wk.tim_startzeit IS NULL
+    ORDER BY wk.var_name
+  `, eventId)
+
+  const count = rows.length
+
+  return {
+    id: 'schedule_missing_start_times',
+    category: 'schedule',
+    severity: 'info',
+    status: count === 0 ? 'ok' : 'info',
+    affectedCount: count,
+    details: rows.slice(0, 5).map(r => ({ id: Number(r.id), label: String(r.label) })),
+    actionRoute: '/time-planning',
+  }
+}
+
+// ============================================================================
+// Check: Squad-discipline rotation matrix incomplete (Point 122i)
+// ============================================================================
+
+export async function checkScheduleMatrixIncomplete(eventId: number): Promise<AnalyzerCheckResult> {
+  // Only relevant if the matrix has been generated at all
+  const generatedRows: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT COUNT(*) AS c FROM tfx_riegen_x_disziplinen WHERE int_veranstaltungenid = $1
+  `, eventId)
+  const generatedCount = Number(generatedRows[0]?.c ?? 0)
+
+  if (generatedCount === 0) {
+    // Matrix not generated yet → handled by squad_combination_not_generated check
+    return {
+      id: 'schedule_matrix_incomplete',
+      category: 'schedule',
+      severity: 'warning',
+      status: 'ok',
+      affectedCount: 0,
+      details: [],
+      actionRoute: '/time-planning',
+    }
+  }
+
+  // Compare expected count (squads × disciplines) vs actual assignments
+  const countRows: any[] = await (prisma as any).$queryRawUnsafe(`
+    WITH expected_squads AS (
+      SELECT DISTINCT w.var_riege
+      FROM tfx_wertungen w
+      JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1
+        AND w.var_riege IS NOT NULL AND TRIM(w.var_riege) <> ''
+    ),
+    expected_disciplines AS (
+      SELECT DISTINCT wxd.int_disziplinenid
+      FROM tfx_wettkaempfe_x_disziplinen wxd
+      JOIN tfx_wettkaempfe wk ON wxd.int_wettkaempfeid = wk.int_wettkaempfeid
+      WHERE wk.int_veranstaltungenid = $1
+    ),
+    actual_assignments AS (
+      SELECT DISTINCT var_riege, int_disziplinenid
+      FROM tfx_riegen_x_disziplinen
+      WHERE int_veranstaltungenid = $1
+        AND var_riege IS NOT NULL
+    )
+    SELECT
+      (SELECT COUNT(*) FROM expected_squads) * (SELECT COUNT(*) FROM expected_disciplines) AS expected,
+      (SELECT COUNT(*) FROM actual_assignments) AS actual
+  `, eventId)
+
+  const expected = Number(countRows[0]?.expected ?? 0)
+  const actual   = Number(countRows[0]?.actual ?? 0)
+  const missing  = expected > actual ? expected - actual : 0
+
+  let details: AnalyzerDetail[] = []
+  if (missing > 0) {
+    const detailRows: any[] = await (prisma as any).$queryRawUnsafe(`
+      WITH expected_squads AS (
+        SELECT DISTINCT w.var_riege
+        FROM tfx_wertungen w
+        JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+        WHERE wk.int_veranstaltungenid = $1
+          AND w.var_riege IS NOT NULL AND TRIM(w.var_riege) <> ''
+      ),
+      expected_disciplines AS (
+        SELECT DISTINCT wxd.int_disziplinenid, d.var_name AS disziplin_name
+        FROM tfx_wettkaempfe_x_disziplinen wxd
+        JOIN tfx_wettkaempfe wk ON wxd.int_wettkaempfeid = wk.int_wettkaempfeid
+        JOIN tfx_disziplinen d  ON wxd.int_disziplinenid = d.int_disziplinenid
+        WHERE wk.int_veranstaltungenid = $1
+      ),
+      expected_pairs AS (
+        SELECT s.var_riege, ed.int_disziplinenid, ed.disziplin_name
+        FROM expected_squads s CROSS JOIN expected_disciplines ed
+      ),
+      actual_assignments AS (
+        SELECT DISTINCT var_riege, int_disziplinenid
+        FROM tfx_riegen_x_disziplinen
+        WHERE int_veranstaltungenid = $1 AND var_riege IS NOT NULL
+      )
+      SELECT ROW_NUMBER() OVER () AS id,
+             ep.var_riege || ' → ' || ep.disziplin_name AS label
+      FROM expected_pairs ep
+      LEFT JOIN actual_assignments aa
+        ON ep.var_riege = aa.var_riege AND ep.int_disziplinenid = aa.int_disziplinenid
+      WHERE aa.var_riege IS NULL
+      ORDER BY ep.var_riege, ep.disziplin_name
+      LIMIT 5
+    `, eventId)
+    details = detailRows.map(r => ({ id: Number(r.id), label: String(r.label) }))
+  }
+
+  return {
+    id: 'schedule_matrix_incomplete',
+    category: 'schedule',
+    severity: 'warning',
+    status: missing === 0 ? 'ok' : 'warning',
+    affectedCount: missing,
+    details,
+    actionRoute: '/time-planning',
+  }
+}
+
+// ============================================================================
+// Check: Participants without valid competition assignment (data integrity)
+// ============================================================================
+
+export async function checkParticipantsWithoutCompetition(eventId: number): Promise<AnalyzerCheckResult> {
+  const countRows: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT COUNT(*) AS c
+    FROM tfx_wertungen w
+    WHERE w.int_teilnehmerid IS NOT NULL
+      AND w.bol_startet_nicht IS NOT TRUE
+      AND NOT EXISTS (
+        SELECT 1 FROM tfx_wettkaempfe wk
+        WHERE wk.int_wettkaempfeid = w.int_wettkaempfeid
+          AND wk.int_veranstaltungenid = $1
+      )
+  `, eventId)
+
+  const count = Number(countRows[0]?.c ?? 0)
+
+  let details: AnalyzerDetail[] = []
+  if (count > 0) {
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(`
+      SELECT w.int_wertungenid AS id,
+             COALESCE(t.var_vorname, '') || ' ' || COALESCE(t.var_nachname, '') AS label
+      FROM tfx_wertungen w
+      JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
+      WHERE w.int_teilnehmerid IS NOT NULL
+        AND w.bol_startet_nicht IS NOT TRUE
+        AND NOT EXISTS (
+          SELECT 1 FROM tfx_wettkaempfe wk
+          WHERE wk.int_wettkaempfeid = w.int_wettkaempfeid
+            AND wk.int_veranstaltungenid = $1
+        )
+      ORDER BY t.var_nachname
+      LIMIT 5
+    `, eventId)
+    details = rows.map(r => ({ id: Number(r.id), label: String(r.label).trim() }))
+  }
+
+  return {
+    id: 'participants_without_competition',
+    category: 'setup',
+    severity: 'error',
+    status: count === 0 ? 'ok' : 'error',
+    affectedCount: count,
+    details,
+    actionRoute: '/event-participants',
+  }
+}
+
+// ============================================================================
+// Check: Competitions without participants
+// ============================================================================
+
+export async function checkCompetitionsWithoutParticipants(eventId: number): Promise<AnalyzerCheckResult> {
+  const rows: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT wk.int_wettkaempfeid AS id,
+           COALESCE(wk.var_name, 'WK ' || wk.int_wettkaempfeid) AS label
+    FROM tfx_wettkaempfe wk
+    WHERE wk.int_veranstaltungenid = $1
+      AND NOT EXISTS (
+        SELECT 1 FROM tfx_wertungen w
+        WHERE w.int_wettkaempfeid = wk.int_wettkaempfeid
+          AND w.int_teilnehmerid IS NOT NULL
+          AND w.bol_startet_nicht IS NOT TRUE
+      )
+    ORDER BY wk.var_name
+  `, eventId)
+
+  const count = rows.length
+
+  return {
+    id: 'competitions_without_participants',
+    category: 'setup',
+    severity: 'warning',
+    status: count === 0 ? 'ok' : 'warning',
+    affectedCount: count,
+    details: rows.slice(0, 5).map(r => ({ id: Number(r.id), label: String(r.label) })),
+    actionRoute: '/event-participants',
+  }
+}
+
+// ============================================================================
+// Check: Competitions without a round (Durchgang) configured
+// ============================================================================
+
+export async function checkCompetitionsWithoutRound(eventId: number): Promise<AnalyzerCheckResult> {
+  const rows: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT wk.int_wettkaempfeid AS id,
+           COALESCE(wk.var_name, 'WK ' || wk.int_wettkaempfeid) AS label
+    FROM tfx_wettkaempfe wk
+    WHERE wk.int_veranstaltungenid = $1
+      AND (wk.int_durchgang IS NULL OR wk.int_durchgang = 0)
+    ORDER BY wk.var_name
+  `, eventId)
+
+  const count = rows.length
+
+  return {
+    id: 'competitions_without_round',
+    category: 'schedule',
+    severity: 'info',
+    status: count === 0 ? 'ok' : 'info',
+    affectedCount: count,
+    details: rows.slice(0, 5).map(r => ({ id: Number(r.id), label: String(r.label) })),
+    actionRoute: '/time-planning',
   }
 }
 

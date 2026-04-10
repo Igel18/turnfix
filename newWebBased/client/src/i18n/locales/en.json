@@ -3486,6 +3486,7 @@
     },
     "categories": {
       "setup": "Setup & Configuration",
+      "schedule": "Time Planning",
       "capture": "Score Capture",
       "squads": "Squad Management",
       "results": "Results"
@@ -3546,6 +3547,36 @@
         "description": "{{count}} competition(s) have tied placements in 1st–3rd.",
         "descriptionOk": "No tied placements in the top 3.",
         "action": "Check results"
+      },
+      "schedule_missing_start_times": {
+        "title": "Missing start times",
+        "description": "{{count}} competition(s) have no start time set.",
+        "descriptionOk": "All competitions have a start time.",
+        "action": "Open time planning"
+      },
+      "schedule_matrix_incomplete": {
+        "title": "Rotation matrix incomplete",
+        "description": "{{count}} squad/discipline assignment(s) missing in rotation matrix.",
+        "descriptionOk": "Rotation matrix is complete.",
+        "action": "Open time planning"
+      },
+      "participants_without_competition": {
+        "title": "Participants without valid competition",
+        "description": "{{count}} participant(s) are not assigned to a valid competition in this event.",
+        "descriptionOk": "All participants are assigned to a valid competition.",
+        "action": "Open participant management"
+      },
+      "competitions_without_participants": {
+        "title": "Competitions without participants",
+        "description": "{{count}} competition(s) have no active participants.",
+        "descriptionOk": "All competitions have at least one active participant.",
+        "action": "Open participant management"
+      },
+      "competitions_without_round": {
+        "title": "Competitions without round",
+        "description": "{{count}} competition(s) are not assigned to any round (Durchgang).",
+        "descriptionOk": "All competitions have a round configured.",
+        "action": "Open time planning"
       }
     }
   }

@@ -3541,6 +3541,7 @@
     },
     "categories": {
       "setup": "Setup & Konfiguration",
+      "schedule": "Zeitplanung",
       "capture": "Wertungserfassung",
       "squads": "Riegenverwaltung",
       "results": "Ergebnisse"
@@ -3601,6 +3602,36 @@
         "description": "{{count}} Wettkampf/Wettkämpfe: gleichrangige Platzierungen in 1–3.",
         "descriptionOk": "Keine Mehrfachplatzierungen in den Top-3.",
         "action": "Ergebnisse prüfen"
+      },
+      "schedule_missing_start_times": {
+        "title": "Fehlende Startzeiten",
+        "description": "{{count}} Wettkampf/Wettkämpfe haben keine Startzeit gesetzt.",
+        "descriptionOk": "Alle Wettkämpfe haben eine Startzeit.",
+        "action": "Zeitplanung öffnen"
+      },
+      "schedule_matrix_incomplete": {
+        "title": "Gerätereihenfolge unvollständig",
+        "description": "{{count}} Riegen/Disziplin-Zuordnung(en) fehlen in der Rotationsmatrix.",
+        "descriptionOk": "Rotationsmatrix ist vollständig.",
+        "action": "Zeitplanung öffnen"
+      },
+      "participants_without_competition": {
+        "title": "Teilnehmer ohne gültigen Wettkampf",
+        "description": "{{count}} Teilnehmer/in sind keinem gültigen Wettkampf dieser Veranstaltung zugeordnet.",
+        "descriptionOk": "Alle Teilnehmer sind einem gültigen Wettkampf zugeordnet.",
+        "action": "Teilnehmerverwaltung öffnen"
+      },
+      "competitions_without_participants": {
+        "title": "Wettkämpfe ohne Teilnehmer",
+        "description": "{{count}} Wettkampf/Wettkämpfe hat/haben keine aktiven Teilnehmer.",
+        "descriptionOk": "Alle Wettkämpfe haben mindestens einen aktiven Teilnehmer.",
+        "action": "Teilnehmerverwaltung öffnen"
+      },
+      "competitions_without_round": {
+        "title": "Wettkämpfe ohne Durchgang",
+        "description": "{{count}} Wettkampf/Wettkämpfe ist/sind keinem Durchgang zugeordnet.",
+        "descriptionOk": "Alle Wettkämpfe haben einen Durchgang gesetzt.",
+        "action": "Zeitplanung öffnen"
       }
     }
   }

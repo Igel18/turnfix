@@ -47,6 +47,11 @@ import {
   checkMissingScoreDetails,
   checkSquadCombination,
   checkDuplicateTopPlacements,
+  checkMissingStartTimes,
+  checkScheduleMatrixIncomplete,
+  checkParticipantsWithoutCompetition,
+  checkCompetitionsWithoutParticipants,
+  checkCompetitionsWithoutRound,
 } from '../../src/routes/analyzer'
 
 // Also import the router so we can test the HTTP layer
@@ -293,6 +298,190 @@ describe('checkDuplicateTopPlacements', () => {
 })
 
 // ============================================================================
+// Tests – checkMissingStartTimes (Point 110i)
+// ============================================================================
+
+describe('checkMissingStartTimes', () => {
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+
+  it('returns ok when all competitions have a start time', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([])
+    const result = await checkMissingStartTimes(1)
+    expect(result.id).toBe('schedule_missing_start_times')
+    expect(result.status).toBe('ok')
+    expect(result.affectedCount).toBe(0)
+    expect(result.category).toBe('schedule')
+  })
+
+  it('returns info when competitions lack start time', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([
+      { id: 5, label: 'Gerätvierkampf männlich' },
+      { id: 6, label: 'Pflicht Damen P4' },
+    ])
+    const result = await checkMissingStartTimes(1)
+    expect(result.status).toBe('info')
+    expect(result.severity).toBe('info')
+    expect(result.affectedCount).toBe(2)
+    expect(result.details).toHaveLength(2)
+    expect(result.details[0].label).toBe('Gerätvierkampf männlich')
+    expect(result.actionRoute).toBe('/time-planning')
+  })
+
+  it('limits details to 5', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([
+      { id: 1, label: 'A' }, { id: 2, label: 'B' }, { id: 3, label: 'C' },
+      { id: 4, label: 'D' }, { id: 5, label: 'E' }, { id: 6, label: 'F' },
+    ])
+    const result = await checkMissingStartTimes(1)
+    expect(result.affectedCount).toBe(6)
+    expect(result.details).toHaveLength(5)
+  })
+})
+
+// ============================================================================
+// Tests – checkScheduleMatrixIncomplete (Point 122i)
+// ============================================================================
+
+describe('checkScheduleMatrixIncomplete', () => {
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+
+  it('returns ok when matrix not yet generated (handled by other check)', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }]) // generatedCount = 0
+    const result = await checkScheduleMatrixIncomplete(1)
+    expect(result.id).toBe('schedule_matrix_incomplete')
+    expect(result.status).toBe('ok')
+    expect(result.category).toBe('schedule')
+    expect(result.affectedCount).toBe(0)
+  })
+
+  it('returns ok when matrix is complete (expected == actual)', async () => {
+    mockSequential(
+      [{ c: 9 }],                        // matrix generated (9 rows)
+      [{ expected: 9, actual: 9 }],      // fully complete
+    )
+    const result = await checkScheduleMatrixIncomplete(1)
+    expect(result.status).toBe('ok')
+    expect(result.affectedCount).toBe(0)
+  })
+
+  it('returns warning when matrix is incomplete', async () => {
+    mockSequential(
+      [{ c: 6 }],                        // matrix partially generated
+      [{ expected: 9, actual: 6 }],      // 3 missing
+      [                                  // detail rows
+        { id: 1, label: 'Riege A → Boden' },
+        { id: 2, label: 'Riege A → Reck' },
+        { id: 3, label: 'Riege B → Pferd' },
+      ],
+    )
+    const result = await checkScheduleMatrixIncomplete(1)
+    expect(result.status).toBe('warning')
+    expect(result.severity).toBe('warning')
+    expect(result.affectedCount).toBe(3)
+    expect(result.details).toHaveLength(3)
+    expect(result.details[0].label).toBe('Riege A → Boden')
+    expect(result.actionRoute).toBe('/time-planning')
+  })
+
+  it('returns ok when actual > expected (surplus rows from old config)', async () => {
+    mockSequential(
+      [{ c: 12 }],
+      [{ expected: 9, actual: 12 }],
+    )
+    const result = await checkScheduleMatrixIncomplete(1)
+    expect(result.status).toBe('ok')
+    expect(result.affectedCount).toBe(0)
+  })
+})
+
+// ============================================================================
+// Tests – checkParticipantsWithoutCompetition
+// ============================================================================
+
+describe('checkParticipantsWithoutCompetition', () => {
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+
+  it('returns ok when all participants have a competition', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }])
+    const result = await checkParticipantsWithoutCompetition(1)
+    expect(result.id).toBe('participants_without_competition')
+    expect(result.status).toBe('ok')
+    expect(result.category).toBe('setup')
+  })
+
+  it('returns error when participants have no competition', async () => {
+    mockSequential(
+      [{ c: 2 }],
+      [
+        { id: 100, label: 'Max Mustermann' },
+        { id: 101, label: 'Anna Schmidt' },
+      ],
+    )
+    const result = await checkParticipantsWithoutCompetition(1)
+    expect(result.status).toBe('error')
+    expect(result.severity).toBe('error')
+    expect(result.affectedCount).toBe(2)
+    expect(result.details).toHaveLength(2)
+    expect(result.actionRoute).toBe('/event-participants')
+  })
+})
+
+// ============================================================================
+// Tests – checkCompetitionsWithoutParticipants
+// ============================================================================
+
+describe('checkCompetitionsWithoutParticipants', () => {
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+
+  it('returns ok when all competitions have participants', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([])
+    const result = await checkCompetitionsWithoutParticipants(1)
+    expect(result.id).toBe('competitions_without_participants')
+    expect(result.status).toBe('ok')
+    expect(result.category).toBe('setup')
+  })
+
+  it('returns warning when a competition has no participants', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([
+      { id: 7, label: 'Pflicht Damen P5' },
+    ])
+    const result = await checkCompetitionsWithoutParticipants(1)
+    expect(result.status).toBe('warning')
+    expect(result.severity).toBe('warning')
+    expect(result.affectedCount).toBe(1)
+    expect(result.details[0].label).toBe('Pflicht Damen P5')
+    expect(result.actionRoute).toBe('/event-participants')
+  })
+})
+
+// ============================================================================
+// Tests – checkCompetitionsWithoutRound
+// ============================================================================
+
+describe('checkCompetitionsWithoutRound', () => {
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+
+  it('returns ok when all competitions have a round (Durchgang) set', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([])
+    const result = await checkCompetitionsWithoutRound(1)
+    expect(result.id).toBe('competitions_without_round')
+    expect(result.status).toBe('ok')
+    expect(result.category).toBe('schedule')
+  })
+
+  it('returns info when competitions have no round configured', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([
+      { id: 3, label: 'Gerätvierkampf' },
+    ])
+    const result = await checkCompetitionsWithoutRound(1)
+    expect(result.status).toBe('info')
+    expect(result.severity).toBe('info')
+    expect(result.affectedCount).toBe(1)
+    expect(result.actionRoute).toBe('/time-planning')
+  })
+})
+
+// ============================================================================
 // Tests – HTTP endpoint
 // ============================================================================
 
@@ -313,21 +502,21 @@ describe('GET /event/:eventId (HTTP layer)', () => {
   })
 
   it('returns response with checks array and summary object', async () => {
-    // 8 checks × 1-2 queries each – return empty array for all
+    // 13 checks × 1-2 queries each – return empty array for all
     // (arrays use .length for count; c-based checks use [0]?.c ?? 0 = 0)
     mockQueryRawUnsafe.mockResolvedValue([])
 
     const res = await request(app).get('/analyzer/event/1')
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.checks)).toBe(true)
-    expect(res.body.checks).toHaveLength(8)
+    expect(res.body.checks).toHaveLength(13)
     expect(typeof res.body.summary).toBe('object')
     expect(typeof res.body.summary.total).toBe('number')
-    expect(res.body.summary.total).toBe(8)
+    expect(res.body.summary.total).toBe(13)
   })
 
   it('summary correctly sums ok/warning/error/info from checks', async () => {
-    // Return empty arrays → all 8 checks should be ok
+    // Return empty arrays → all 13 checks should be ok
     mockQueryRawUnsafe.mockResolvedValue([])
 
     const res = await request(app).get('/analyzer/event/1')

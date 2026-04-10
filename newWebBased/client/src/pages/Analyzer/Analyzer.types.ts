@@ -4,7 +4,7 @@
 
 export type AnalyzerSeverity = 'error' | 'warning' | 'info'
 export type AnalyzerStatus = 'ok' | 'error' | 'warning' | 'info'
-export type AnalyzerCategory = 'setup' | 'capture' | 'squads' | 'results'
+export type AnalyzerCategory = 'setup' | 'schedule' | 'capture' | 'squads' | 'results'
 
 export interface AnalyzerDetail {
   id: number
