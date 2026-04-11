@@ -652,8 +652,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-2">
-        <div className="bg-white rounded-lg shadow-xl w-full flex flex-col" style={{ maxHeight: 'calc(100vh - 1rem)', maxWidth: 'calc(100vw - 1rem)' }}>
+    <div className="fixed inset-0 z-50">
+        <div className="bg-white w-full h-full flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex-1">
@@ -862,16 +862,15 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             </div>
 
             {/* Canvas */}
-            <div className="flex-1 p-4 flex flex-col overflow-hidden">
-              <div className="border border-gray-300 bg-white relative overflow-auto flex-1">
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 bg-gray-300 overflow-auto">
+                <div className="flex min-h-full min-w-full items-center justify-center p-8">
                 <div 
                   ref={canvasRef}
-                  className="relative bg-white"
+                  className="relative bg-white shadow-2xl flex-shrink-0"
                   style={{ 
                     width: `${canvasSize.width * zoom}px`, 
-                    height: `${canvasSize.height * zoom}px`,
-                    transform: 'scale(1)',
-                    transformOrigin: 'top left'
+                    height: `${canvasSize.height * zoom}px`
                   }}
                 >
                   {/* Grid */}
@@ -971,10 +970,11 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     </div>
                   ))}
                 </div>
+                </div>
               </div>
               
               {/* Canvas Info */}
-              <div className="mt-2 text-xs text-gray-500 space-y-1">
+              <div className="flex-none px-3 py-1 text-xs text-gray-500 bg-gray-50 border-t border-gray-200 flex flex-wrap gap-x-4">
                 <div>{t('layoutDesigner.canvas')}: {PAPER_FORMATS[paperFormat].label} ({canvasSize.width} × {canvasSize.height}px) | {t('layoutDesigner.zoom')}: {Math.round(zoom * 100)}% | {t('layoutDesigner.fields')}: {fields.length}</div>
                 {selectedField && (
                   <div className="text-blue-600">
