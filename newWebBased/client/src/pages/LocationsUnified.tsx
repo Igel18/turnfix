@@ -9,6 +9,7 @@ import {
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import LocationFormModal from '../components/LocationFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 
 interface Location {
   int_wettkampforteid: number;
@@ -40,6 +41,7 @@ const LocationsUnified: React.FC = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
     var_name: '',
     var_adresse: '',
@@ -129,9 +131,11 @@ const LocationsUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('venues.messages.confirmDelete'))) return;
-    
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/venues/${id}`, {
         method: 'DELETE'
@@ -353,6 +357,16 @@ const LocationsUnified: React.FC = () => {
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleSubmit}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('venues.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

@@ -7,6 +7,7 @@ import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import DisciplineFormModal from '../components/DisciplineFormModal';
 import DisciplineFormWizard from '../components/DisciplineFormWizard';
 import type { EditingDiscipline } from '../components/DisciplineFormWizard/useDisciplineWizard';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 import { 
   CogIcon, 
   PencilIcon, 
@@ -94,6 +95,7 @@ const DisciplinesUnified: React.FC = () => {
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardDiscipline, setWizardDiscipline] = useState<EditingDiscipline | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Sorting state
@@ -240,9 +242,11 @@ const DisciplinesUnified: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('disciplines.messages.confirmDelete'))) return;
-    
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/disciplines/${id}`, {
         method: 'DELETE'
@@ -814,6 +818,16 @@ const DisciplinesUnified: React.FC = () => {
         formulas={formulas}
         sports={sports}
         onSaved={async () => { await fetchDisciplines(); }}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('disciplines.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

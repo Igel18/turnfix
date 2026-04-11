@@ -12,6 +12,7 @@ import { useCertificateLayout } from '@/contexts/CertificateLayoutContext'
 import LayoutDesigner from '@/components/LayoutDesigner'
 import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../utils/api'
 import { BlueInfoBox } from '@/components/InfoBoxes'
+import { UnifiedConfirmModal } from '@/components/UnifiedModal'
 import { useTranslation } from 'react-i18next'
 
 // Database field descriptions from C++ code (_global.cpp)
@@ -72,6 +73,7 @@ const CertificateLayouts: React.FC = () => {
   const [showDesigner, setShowDesigner] = useState(false)
   const [selectedLayout, setSelectedLayout] = useState<Layout | null>(null)
   const [showHelpPanel, setShowHelpPanel] = useState(false)
+  const [pendingDeleteLayout, setPendingDeleteLayout] = useState<Layout | null>(null)
   
   // Sorting
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc')
@@ -145,14 +147,12 @@ const CertificateLayouts: React.FC = () => {
   }
 
   // Delete layout
-  const handleDeleteLayout = async (layout: Layout) => {
+  const handleDeleteLayout = (layout: Layout) => {
     console.log('Delete button clicked for layout:', layout)
-    
-    if (!confirm(t('certificateLayouts.confirmDelete'))) {
-      console.log('Delete cancelled by user')
-      return
-    }
+    setPendingDeleteLayout(layout)
+  }
 
+  const executeDeleteLayout = async (layout: Layout) => {
     console.log('Attempting to delete layout:', layout.int_layoutid)
     try {
       const response = await apiDelete(`/layouts/${layout.int_layoutid}`)
@@ -647,6 +647,16 @@ const CertificateLayouts: React.FC = () => {
           onFieldsChange={handleFieldsChange}
         />
       )}
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteLayout !== null}
+        onClose={() => setPendingDeleteLayout(null)}
+        onConfirm={() => executeDeleteLayout(pendingDeleteLayout!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('certificateLayouts.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   )
 }

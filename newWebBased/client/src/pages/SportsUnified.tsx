@@ -9,6 +9,7 @@ import {
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import SportFormModal from '../components/SportFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 
 interface Sport {
   int_sportid: number;
@@ -42,6 +43,7 @@ const SportsUnified: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSport, setEditingSport] = useState<Sport | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
     var_name: ''
   });
@@ -151,9 +153,11 @@ const SportsUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('sports.messages.confirmDelete'))) return;
-    
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/sports/${id}`, {
         method: 'DELETE'
@@ -352,6 +356,16 @@ const SportsUnified: React.FC = () => {
         setFormData={setFormData}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('sports.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

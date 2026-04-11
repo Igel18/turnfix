@@ -7,7 +7,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, openFilterAndSearch } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, openFilterAndSearch, confirmDeleteModal } from '../helpers';
 
 const TS = Date.now();
 const TEST_NAME = `E2E_Verein_${TS}`;
@@ -175,9 +175,9 @@ test.describe.serial('Master Data: Clubs', () => {
 
     const row = page.locator('tr', { hasText: EDITED_NAME });
     if ((await row.count()) > 0) {
-      page.once('dialog', async dialog => await dialog.accept());
       const deleteButton = row.locator('button[title="Verein löschen"], button[title="Delete club"], button[title="Delete Club"]').first();
       await deleteButton.click();
+      await confirmDeleteModal(page);
       await page.waitForTimeout(2000);
       await page.reload({ waitUntil: 'networkidle' });
       await expect(page.locator('body')).not.toContainText(EDITED_NAME);

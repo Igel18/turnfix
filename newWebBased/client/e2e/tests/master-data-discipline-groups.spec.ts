@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog, openFilterAndSearch } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog, openFilterAndSearch, confirmDeleteModal } from '../helpers';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -103,10 +103,8 @@ test.describe.serial('Master Data: Discipline Groups', () => {
       const deleteButton = row.getByRole('button', { name: /löschen|delete|entfernen/i }).first();
       await deleteButton.click();
 
-      const confirmButton = page.getByRole('button', { name: /löschen|delete|ja|yes|bestätigen|confirm/i }).first();
-      if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await confirmButton.click();
-      }
+      // Confirm deletion via UnifiedConfirmModal (scoped to modal, not page)
+      await confirmDeleteModal(page);
       await page.waitForTimeout(1000);
     }
   });

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
-import UnifiedModal from '@/components/UnifiedModal';
+import UnifiedModal, { UnifiedConfirmModal } from '@/components/UnifiedModal';
 import { debugLog } from '@/utils/debug';
 
 interface Region {
@@ -28,6 +28,7 @@ const Regions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState<Region | null>(null);
+  const [pendingDeleteRegion, setPendingDeleteRegion] = useState<Region | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVerband, setSelectedVerband] = useState<string | number>('');
   
@@ -164,11 +165,11 @@ const Regions: React.FC = () => {
     }
   };
 
-  const handleDelete = async (region: Region) => {
-    if (!window.confirm(t('regions.messages.confirmDelete', { name: region.var_name }))) {
-      return;
-    }
+  const handleDelete = (region: Region) => {
+    setPendingDeleteRegion(region);
+  };
 
+  const executeDelete = async (region: Region) => {
     try {
       const response = await fetch(`/api/regions/${region.int_gaueid}`, {
         method: 'DELETE'
@@ -397,6 +398,16 @@ const Regions: React.FC = () => {
           </div>
         </div>
       </UnifiedModal>
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteRegion !== null}
+        onClose={() => setPendingDeleteRegion(null)}
+        onConfirm={() => executeDelete(pendingDeleteRegion!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('regions.messages.confirmDelete', { name: pendingDeleteRegion?.var_name || '' })}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   );
 };

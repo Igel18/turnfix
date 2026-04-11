@@ -705,7 +705,8 @@
     },
     "live": "Live",
     "liveUpdates": "Live Updates",
-    "startNumber": "Start Number"
+    "startNumber": "Start Number",
+    "confirmDeleteTitle": "Confirm Delete"
   },
   "events": {
     "title": "Event Management",
@@ -1853,7 +1854,7 @@
       "updateError": "Error updating field",
       "deleteError": "Error deleting field",
       "loadError": "Error loading fields",
-      "confirmDelete": "Are you sure you want to delete this field?"
+      "confirmDelete": "Are you sure you want to delete the field \"{{name}}\"? Fields with existing jury evaluations cannot be deleted."
     }
   },
   "regions": {

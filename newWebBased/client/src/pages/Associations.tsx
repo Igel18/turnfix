@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { exportToCSV } from '@/utils/csvExport';
-import UnifiedModal from '@/components/UnifiedModal';
+import UnifiedModal, { UnifiedConfirmModal } from '@/components/UnifiedModal';
 import { debugLog } from '@/utils/debug';
 
 interface Association {
@@ -37,6 +37,7 @@ const Associations: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<number | ''>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssociation, setEditingAssociation] = useState<Association | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [formData, setFormData] = useState<AssociationForm>({
     var_name: '',
     var_kuerzel: '',
@@ -123,12 +124,13 @@ const Associations: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (associationId: number) => {
+  const handleDelete = (associationId: number) => {
     const association = associations.find(a => a.int_verbaendeid === associationId);
-    if (!association || !window.confirm(t('associations.messages.confirmDelete'))) {
-      return;
-    }
+    if (!association) return;
+    setPendingDeleteId(associationId);
+  };
 
+  const executeDelete = async (associationId: number) => {
     try {
       const response = await fetch(`/api/associations/data/verbaende/${associationId}`, {
         method: 'DELETE'
@@ -392,6 +394,16 @@ const Associations: React.FC = () => {
           </div>
         </div>
       </UnifiedModal>
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('associations.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   );
 };

@@ -20,6 +20,7 @@ import { useEvent } from '@/contexts/EventContext';
 // Template & Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { UnifiedAssignmentModal, useAssignmentRefresh } from '@/components/assignment';
+import { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 // Local Hooks & Types
 import { useGroups, useGroupMembers } from './hooks';
@@ -44,6 +45,8 @@ export function Groups() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
+  const [pendingDeleteGroupId, setPendingDeleteGroupId] = useState<number | string | null>(null);
+  const [pendingRemoveMemberId, setPendingRemoveMemberId] = useState<number | null>(null);
 
   // Form Data (for existing GroupFormModal)
   const [formData, setFormData] = useState<GroupFormData>({
@@ -171,9 +174,13 @@ export function Groups() {
 
   // Handler: Delete Group (receives ID from UnifiedAssignmentModal)
   const handleDeleteGroup = async (groupId: number | string) => {
+    setPendingDeleteGroupId(groupId);
+  };
+
+  const executeDeleteGroup = async (groupId: number | string) => {
     const group = groups.find(g => g.id === groupId);
     if (!group) return;
-    
+
     await deleteGroup(group);
     // Clear selection if deleted group was selected
     if (selectedGroup?.id === groupId) {
@@ -203,7 +210,7 @@ export function Groups() {
   // This ensures callbacks always have fresh closure over current state
   const config = createGroupConfig({
     t,
-    onRemoveMember: removeMember,
+    onRemoveMember: (memberId: number) => setPendingRemoveMemberId(memberId),
     // Filter props
     filters,
     onToggleHidePlanned: setHidePlanned,
@@ -220,6 +227,7 @@ export function Groups() {
   };
 
   return (
+    <>
     <EventManagementTemplate
       title={t('groups.title')}
       subtitle={t('groups.subtitle')}
@@ -321,6 +329,35 @@ export function Groups() {
         )}
       </div>
     </EventManagementTemplate>
+
+    <UnifiedConfirmModal
+      isOpen={pendingDeleteGroupId !== null}
+      onClose={() => setPendingDeleteGroupId(null)}
+      onConfirm={() => {
+        const id = pendingDeleteGroupId!;
+        setPendingDeleteGroupId(null);
+        executeDeleteGroup(id);
+      }}
+      title={t('common.confirmDeleteTitle')}
+      message={t('groups.confirmDelete', { name: groups.find(g => g.id === pendingDeleteGroupId)?.name || '' })}
+      confirmLabel={t('common.delete')}
+      confirmStyle="danger"
+    />
+
+    <UnifiedConfirmModal
+      isOpen={pendingRemoveMemberId !== null}
+      onClose={() => setPendingRemoveMemberId(null)}
+      onConfirm={() => {
+        const id = pendingRemoveMemberId!;
+        setPendingRemoveMemberId(null);
+        removeMember(id);
+      }}
+      title={t('common.confirmDeleteTitle')}
+      message={t('groups.members.confirmRemove')}
+      confirmLabel={t('common.delete')}
+      confirmStyle="danger"
+    />
+  </>
   );
 }
 

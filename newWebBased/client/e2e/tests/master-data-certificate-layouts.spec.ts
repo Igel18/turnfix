@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog, confirmDeleteModal } from '../helpers';
 
 test.describe.serial('Master Data: Certificate Layouts', () => {
   const uniqueSuffix = Date.now().toString().slice(-6);
@@ -93,10 +93,8 @@ test.describe.serial('Master Data: Certificate Layouts', () => {
       if (await deleteButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await deleteButton.click();
 
-        const confirmButton = page.getByRole('button', { name: /löschen|delete|ja|yes|bestätigen|confirm/i }).first();
-        if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await confirmButton.click();
-        }
+        // Confirm deletion via UnifiedConfirmModal (scoped to modal, not page)
+        await confirmDeleteModal(page);
         await page.waitForTimeout(1000);
       }
     }

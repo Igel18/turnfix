@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PencilIcon, TrashIcon, SwatchIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate';
 import StatusFormModal from '../components/StatusFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 import { BlueInfoBox, GreenInfoBox, RedInfoBox, InfoList, FeatureList } from '../components/InfoBoxes';
 import { useFilterPanel } from '@/hooks';
 
@@ -21,6 +22,7 @@ const StatusUnified: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingStatus, setEditingStatus] = useState<Status | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [pendingDeleteStatus, setPendingDeleteStatus] = useState<Status | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter states
@@ -69,21 +71,23 @@ const StatusUnified: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (status: Status) => {
-    if (window.confirm(t('status.messages.confirmDelete'))) {
-      try {
-        const response = await fetch(`/api/statuses/${status.int_statusid}`, {
-          method: 'DELETE',
-        });
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Failed to delete status');
-        }
-        await fetchStatuses();
-      } catch (error) {
-        console.error('Error deleting status:', error);
-        alert(error instanceof Error ? error.message : 'Failed to delete status. This status may be in use.');
+  const handleDelete = (status: Status) => {
+    setPendingDeleteStatus(status);
+  };
+
+  const executeDelete = async (status: Status) => {
+    try {
+      const response = await fetch(`/api/statuses/${status.int_statusid}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete status');
       }
+      await fetchStatuses();
+    } catch (error) {
+      console.error('Error deleting status:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete status. This status may be in use.');
     }
   };
 
@@ -493,6 +497,16 @@ const StatusUnified: React.FC = () => {
           isEditing={isEditing}
         />
       )}
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteStatus !== null}
+        onClose={() => setPendingDeleteStatus(null)}
+        onConfirm={() => executeDelete(pendingDeleteStatus!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('status.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   );
 };

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loadEventAState, setEventContext, apiDelete, apiGet, apiPost, EventAState } from '../fixtures/test-state';
+import { confirmDeleteModal } from '../helpers';
 
 let state: EventAState;
 
@@ -43,8 +44,6 @@ test.describe.serial('Critical Delete Flows', () => {
     const row = page.locator('table tbody tr', { hasText: firstName }).first();
     await expect(row).toBeVisible({ timeout: 10000 });
 
-    page.once('dialog', dialog => dialog.accept());
-
     const namedDeleteButton = row.getByRole('button', { name: /remove|delete|lösch|entfernen/i }).first();
     const titleDeleteButton = row.locator(
       'button[title*="Remove" i], button[title*="Delete" i], button[title*="Lösch" i], button[aria-label*="Delete" i], button[aria-label*="Lösch" i]'
@@ -58,6 +57,7 @@ test.describe.serial('Critical Delete Flows', () => {
       await row.locator('button').last().click();
     }
 
+    await confirmDeleteModal(page);
     await page.waitForTimeout(1000);
 
     const participantsRes = await apiGet(request, `/event-participants?eventId=${state.eventId}&includeAvailable=false&limit=200`);
@@ -111,8 +111,6 @@ test.describe.serial('Critical Delete Flows', () => {
     const row = await tableRow.isVisible({ timeout: 1000 }).catch(() => false) ? tableRow : cardItem;
     await expect(row).toBeVisible({ timeout: 10000 });
 
-    page.once('dialog', dialog => dialog.accept());
-
     const namedDeleteButton = row.getByRole('button', { name: /remove|delete|lösch|entfernen/i }).first();
     const titleDeleteButton = row.locator(
       'button[title*="Delete" i], button[title*="Lösch" i], button[aria-label*="Delete" i], button[aria-label*="Lösch" i]'
@@ -126,6 +124,7 @@ test.describe.serial('Critical Delete Flows', () => {
       await row.locator('button').last().click();
     }
 
+    await confirmDeleteModal(page);
     await page.waitForTimeout(1000);
 
     const squadsRes = await apiGet(request, `/squad-management?eventId=${state.eventId}`);

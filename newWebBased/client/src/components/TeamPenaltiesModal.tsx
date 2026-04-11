@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import UnifiedModal from '@/components/UnifiedModal';
+import UnifiedModal, { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 interface Team {
   int_mannschaftenid: number;
@@ -43,6 +43,7 @@ const TeamPenaltiesModal: React.FC<TeamPenaltiesModalProps> = ({ team, onClose }
   const [selectedPenaltyType, setSelectedPenaltyType] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [pendingRemovePenaltyId, setPendingRemovePenaltyId] = useState<number | null>(null);
 
   // Fetch penalty types
   const fetchPenaltyTypes = useCallback(async () => {
@@ -109,9 +110,11 @@ const TeamPenaltiesModal: React.FC<TeamPenaltiesModalProps> = ({ team, onClose }
   };
 
   // Remove penalty
-  const handleRemovePenalty = async (penaltyId: number) => {
-    if (!window.confirm(t('teams.penalties.confirmRemove'))) return;
+  const handleRemovePenalty = (penaltyId: number) => {
+    setPendingRemovePenaltyId(penaltyId);
+  };
 
+  const executeRemovePenalty = async (penaltyId: number) => {
     try {
       const response = await fetch(
         `/api/teams/${team.int_mannschaftenid}/penalties/${penaltyId}`,
@@ -136,6 +139,7 @@ const TeamPenaltiesModal: React.FC<TeamPenaltiesModalProps> = ({ team, onClose }
   );
 
   return (
+    <>
     <UnifiedModal
       isOpen={true}
       onClose={onClose}
@@ -232,6 +236,20 @@ const TeamPenaltiesModal: React.FC<TeamPenaltiesModalProps> = ({ team, onClose }
         </div>
       </div>
     </UnifiedModal>
+    <UnifiedConfirmModal
+      isOpen={pendingRemovePenaltyId !== null}
+      onClose={() => setPendingRemovePenaltyId(null)}
+      onConfirm={() => {
+        const id = pendingRemovePenaltyId!;
+        setPendingRemovePenaltyId(null);
+        executeRemovePenalty(id);
+      }}
+      title={t('common.confirmDeleteTitle')}
+      message={t('teams.penalties.confirmRemove')}
+      confirmLabel={t('common.delete')}
+      confirmStyle="danger"
+    />
+    </>
   );
 };
 

@@ -5,7 +5,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, getTableRowCount, openFilterAndSearch } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, getTableRowCount, openFilterAndSearch, confirmDeleteModal } from '../helpers';
 
 const TEST_REGION_NAME = `E2E_Region_CRUD_${Date.now()}`;
 const EDITED_NAME = `${TEST_REGION_NAME}_edited`;
@@ -165,11 +165,9 @@ test.describe.serial('Master Data: Regions', () => {
     // Find the row with our edited region
     const row = page.locator('tr', { hasText: EDITED_NAME });
     if ((await row.count()) > 0) {
-      // Set up dialog handler BEFORE clicking delete (native confirm dialog)
-      page.once('dialog', async dialog => await dialog.accept());
-
       const deleteButton = row.locator('button[title="Delete region"], button[title="Region löschen"]').first();
       await deleteButton.click();
+      await confirmDeleteModal(page);
 
       await page.waitForTimeout(2000);
       await page.reload({ waitUntil: 'networkidle' });

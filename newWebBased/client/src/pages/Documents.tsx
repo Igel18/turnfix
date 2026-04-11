@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import FileUploadButton, { UploadedFile } from '@/components/FileUploadButton';
+import { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -114,6 +115,7 @@ const Documents: React.FC = () => {
 
   // Upload target category (defaults to first uploadable or 'icons')
   const [uploadCategory, setUploadCategory] = useState('icons');
+  const [pendingDeleteFile, setPendingDeleteFile] = useState<FileEntry | null>(null);
 
   // ---------------------------------------------------------------------------
   // Data loading
@@ -180,12 +182,13 @@ const Documents: React.FC = () => {
   // Handlers
   // ---------------------------------------------------------------------------
 
-  const handleDelete = async (file: FileEntry) => {
+  const handleDelete = (file: FileEntry) => {
     const cat = categories.find(c => c.key === file.category);
     if (!cat?.deleteAllowed) return;
+    setPendingDeleteFile(file);
+  };
 
-    if (!window.confirm(t('documents.confirmDelete', { name: file.filename }))) return;
-
+  const executeDelete = async (file: FileEntry) => {
     try {
       const res = await fetch(`/api/documents/${file.category}/${file.filename}`, {
         method: 'DELETE',
@@ -462,27 +465,39 @@ const Documents: React.FC = () => {
   // ---------------------------------------------------------------------------
 
   return (
-    <DatabaseManagementTemplate
-      title={t('documents.title', 'Dokumente & Dateien')}
-      subtitle={t('documents.subtitle', '{{count}} Dateien in {{cats}} Kategorien', {
-        count: files.length,
-        cats: categories.length,
-      })}
-      icon={DocumentIcon}
-      data={filteredFiles}
-      isLoading={loading}
-      searchTerm={searchTerm}
-      onSearchChange={setSearchTerm}
-      searchPlaceholder={t('documents.searchPlaceholder', 'Dateiname suchen...')}
-      filterOptions={getFilterOptions()}
-      onClearAllFilters={handleClearAllFilters}
-      viewStorageKey="documents-view"
-      itemsPerPage={20}
-      renderTableHeaders={renderTableHeaders}
-      renderTableRow={renderTableRow}
-      renderCard={renderCard}
-      additionalContent={renderUploadArea()}
-    />
+    <>
+      <DatabaseManagementTemplate
+        title={t('documents.title', 'Dokumente & Dateien')}
+        subtitle={t('documents.subtitle', '{{count}} Dateien in {{cats}} Kategorien', {
+          count: files.length,
+          cats: categories.length,
+        })}
+        icon={DocumentIcon}
+        data={filteredFiles}
+        isLoading={loading}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder={t('documents.searchPlaceholder', 'Dateiname suchen...')}
+        filterOptions={getFilterOptions()}
+        onClearAllFilters={handleClearAllFilters}
+        viewStorageKey="documents-view"
+        itemsPerPage={20}
+        renderTableHeaders={renderTableHeaders}
+        renderTableRow={renderTableRow}
+        renderCard={renderCard}
+        additionalContent={renderUploadArea()}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteFile !== null}
+        onClose={() => setPendingDeleteFile(null)}
+        onConfirm={() => executeDelete(pendingDeleteFile!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('documents.confirmDelete', { name: pendingDeleteFile?.filename || '' })}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
+    </>
   );
 };
 

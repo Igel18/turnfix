@@ -70,7 +70,7 @@ test.describe.serial('Setup: Import Event B (GymNet)', () => {
 
     const res = await request.post(`${API_BASE}/events/import-gymnet`, {
       multipart: {
-        xmlFile: {
+        files: {
           name: 'gymnet-test-import.xml',
           mimeType: 'text/xml',
           buffer: fs.readFileSync(xmlPath),

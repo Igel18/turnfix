@@ -25,7 +25,7 @@ import type { Participant, EditParticipantData } from './EventParticipants.types
 // Components
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import SmartPagination from '@/components/SmartPagination';
-import UnifiedModal from '@/components/UnifiedModal';
+import UnifiedModal, { UnifiedConfirmModal } from '@/components/UnifiedModal';
 import {
   ParticipantTable,
   ParticipantFilters,
@@ -99,6 +99,7 @@ export default function EventParticipants() {
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
+  const [pendingDeleteParticipantId, setPendingDeleteParticipantId] = useState<number | null>(null);
 
   // Pagination Hook
   const pagination = usePagination({
@@ -179,10 +180,12 @@ export default function EventParticipants() {
     setSelectedParticipant(null);
   };
 
-  const handleDeleteParticipant = async (participantId: number) => {
-    if (confirm(t('eventParticipants.confirmDelete'))) {
-      await removeParticipantFromEvent(participantId);
-    }
+  const handleDeleteParticipant = (participantId: number) => {
+    setPendingDeleteParticipantId(participantId);
+  };
+
+  const executeDeleteParticipant = async (participantId: number) => {
+    await removeParticipantFromEvent(participantId);
   };
 
   // PDF Export: Participants List (landscape for wider tables)
@@ -426,6 +429,21 @@ export default function EventParticipants() {
             onClose={() => setShowLabelModal(false)}
             onPrint={generateLabelsPDF}
             participantCount={filteredParticipants.length}
+          />
+
+          {/* Delete Participant Confirmation */}
+          <UnifiedConfirmModal
+            isOpen={pendingDeleteParticipantId !== null}
+            onClose={() => setPendingDeleteParticipantId(null)}
+            onConfirm={() => {
+              const id = pendingDeleteParticipantId!;
+              setPendingDeleteParticipantId(null);
+              executeDeleteParticipant(id);
+            }}
+            title={t('common.confirmDeleteTitle')}
+            message={t('eventParticipants.confirmDelete')}
+            confirmLabel={t('common.delete')}
+            confirmStyle="danger"
           />
         </div>
       )}

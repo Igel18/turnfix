@@ -7,7 +7,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, openFilterAndSearch } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, openFilterAndSearch, confirmDeleteModal } from '../helpers';
 
 const TS = Date.now();
 const TEST_NAME = `E2E_Sport_${TS}`;
@@ -165,10 +165,10 @@ test.describe.serial('Master Data: Sports', () => {
 
     const row = page.locator('tr', { hasText: EDITED_NAME });
     if ((await row.count()) > 0) {
-      page.once('dialog', async dialog => await dialog.accept());
       // Sports uses hardcoded English title "Delete Sport"
       const deleteButton = row.locator('button[title="Delete Sport"], button[title="Sportart löschen"]').first();
       await deleteButton.click();
+      await confirmDeleteModal(page);
       await page.waitForTimeout(2000);
       await page.reload({ waitUntil: 'networkidle' });
       await expect(page.locator('body')).not.toContainText(EDITED_NAME);

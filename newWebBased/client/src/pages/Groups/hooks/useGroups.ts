@@ -126,10 +126,6 @@ export const useGroups = (eventId?: number, selectedGroup?: Group | null, onSele
 
   // Delete group
   const deleteGroup = async (group: Group): Promise<boolean> => {
-    if (!window.confirm(t('groups.confirmDelete', { name: group.name }))) {
-      return false;
-    }
-
     try {
       console.log('🗑️ Deleting group:', group.id);
 

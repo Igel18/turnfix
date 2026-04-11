@@ -5,6 +5,7 @@ import { SortableTableHeader, useTableSort } from '../components/SortableTableHe
 import { GenderBadge, getGenderColumnHeader } from '../components/GenderBadge';
 import { UnifiedActionButtons } from '../components/templates/EventManagementTemplate';
 import ParticipantFormModal from '../components/ParticipantFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 import { 
   UserGroupIcon, 
   CalendarIcon,
@@ -46,6 +47,7 @@ const ParticipantsUnified: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Sorting state
@@ -145,9 +147,11 @@ const ParticipantsUnified: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('participants.messages.confirmDelete'))) return;
-    
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/participants/${id}`, {
         method: 'DELETE'
@@ -475,6 +479,16 @@ const ParticipantsUnified: React.FC = () => {
           clubs={clubs}
         />
       )}
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('participants.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   );
 };

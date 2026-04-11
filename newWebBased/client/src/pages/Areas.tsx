@@ -5,7 +5,7 @@ import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate'
 import { SortableTableHeader, useTableSort } from '@/components/SortableTableHeader';
 import { GenderBadge } from '@/components/GenderBadge';
 import { exportToCSV } from '@/utils/csvExport';
-import UnifiedModal from '@/components/UnifiedModal';
+import UnifiedModal, { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 interface Area {
   int_bereicheid: number;
@@ -23,6 +23,7 @@ const Areas: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<Area | null>(null);
+  const [pendingDeleteArea, setPendingDeleteArea] = useState<Area | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
 
@@ -139,11 +140,11 @@ const Areas: React.FC = () => {
     }
   };
 
-  const handleDelete = async (area: Area) => {
-    if (!window.confirm(t('areas.messages.confirmDelete', { name: area.var_name }))) {
-      return;
-    }
+  const handleDelete = (area: Area) => {
+    setPendingDeleteArea(area);
+  };
 
+  const executeDelete = async (area: Area) => {
     try {
       const response = await fetch(`/api/areas/${area.int_bereicheid}`, {
         method: 'DELETE',
@@ -355,6 +356,16 @@ const Areas: React.FC = () => {
           </div>
         </div>
       </UnifiedModal>
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteArea !== null}
+        onClose={() => setPendingDeleteArea(null)}
+        onConfirm={() => executeDelete(pendingDeleteArea!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('areas.messages.confirmDelete', { name: pendingDeleteArea?.var_name || '' })}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   );
 };

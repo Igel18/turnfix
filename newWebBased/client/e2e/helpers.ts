@@ -161,6 +161,24 @@ export async function closeDialog(page: Page) {
   }
 }
 
+/**
+ * Confirm the UnifiedConfirmModal (replaces native window.confirm).
+ * Waits for the styled React confirm modal to appear and clicks the
+ * danger/confirm button ("Löschen" / "Delete").
+ *
+ * Usage: call AFTER clicking the delete button, before waitForTimeout.
+ */
+export async function confirmDeleteModal(page: Page) {
+  // The modal has title "Löschen bestätigen" (de) / "Confirm Delete" (en)
+  const modal = page.locator('.fixed.inset-0, [role="dialog"]').filter({
+    hasText: /Löschen bestätigen|Confirm Delete/
+  }).first();
+  await modal.waitFor({ timeout: 5_000 });
+  // Click the danger confirm button
+  const confirmBtn = modal.getByRole('button', { name: /^Löschen$|^Delete$/ }).first();
+  await confirmBtn.click();
+}
+
 // ─── Filter Helpers ────────────────────────────────────────────────
 
 /**

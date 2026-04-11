@@ -5,6 +5,7 @@ import DatabaseManagementTemplate from '../components/DatabaseManagementTemplate
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import { BlueInfoBox, GreenInfoBox, RedInfoBox, InfoList, FeatureList } from '../components/InfoBoxes';
 import DisciplineFieldFormModal from '../components/DisciplineFieldFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 
 interface DisciplineField {
   id: number;
@@ -35,6 +36,7 @@ const DisciplineFieldsUnified: React.FC = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingField, setEditingField] = useState<DisciplineField | null>(null);
+  const [pendingDeleteField, setPendingDeleteField] = useState<DisciplineField | null>(null);
   const [formData, setFormData] = useState({
     disciplineId: '',
     name: '',
@@ -168,11 +170,11 @@ const DisciplineFieldsUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (field: DisciplineField) => {
-    if (!confirm(`Are you sure you want to delete the field "${field.name}"?\n\nNote: Fields with existing jury evaluations cannot be deleted.`)) {
-      return;
-    }
+  const handleDelete = (field: DisciplineField) => {
+    setPendingDeleteField(field);
+  };
 
+  const executeDelete = async (field: DisciplineField) => {
     try {
       const response = await fetch(`/api/discipline-fields/${field.id}`, {
         method: 'DELETE',
@@ -624,6 +626,16 @@ const DisciplineFieldsUnified: React.FC = () => {
         setFormData={setFormData}
         onSubmit={handleSubmit}
         disciplines={disciplines}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteField !== null}
+        onClose={() => setPendingDeleteField(null)}
+        onConfirm={() => executeDelete(pendingDeleteField!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('disciplineFields.messages.confirmDelete', { name: pendingDeleteField?.name || '' })}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

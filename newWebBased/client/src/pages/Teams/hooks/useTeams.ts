@@ -163,12 +163,8 @@ export const useTeams = (
     }
   }, [fetchTeams]);
 
-  // Delete team
+  // Delete team — confirmation is handled by UnifiedConfirmModal in Teams/index.tsx
   const deleteTeam = useCallback(async (team: Team): Promise<void> => {
-    if (!confirm(t('teams.messages.confirmDelete', { name: team.name }))) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/teams/${team.id}`, {
         method: 'DELETE'

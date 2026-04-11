@@ -198,10 +198,6 @@ export const useGroupMembers = (
       return false;
     }
 
-    if (!window.confirm(t('groups.members.confirmRemove'))) {
-      return false;
-    }
-
     try {
       console.log('➖ Removing member:', memberId, 'from group:', selectedGroup.id);
       const response = await fetch(`/api/groups/${selectedGroup.id}/members/${memberId}`, {

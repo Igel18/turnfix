@@ -8,7 +8,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, openFilterAndSearch } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, openFilterAndSearch, confirmDeleteModal } from '../helpers';
 
 const TS = Date.now();
 const TEST_FIRST = `E2EVorname${TS}`;
@@ -187,9 +187,9 @@ test.describe.serial('Master Data: Participants', () => {
 
     const row = page.locator('tr', { hasText: EDITED_LAST });
     if ((await row.count()) > 0) {
-      page.once('dialog', async dialog => await dialog.accept());
       const deleteButton = row.locator('button[title="Teilnehmer löschen"], button[title="Delete participant"]').first();
       await deleteButton.click();
+      await confirmDeleteModal(page);
       await page.waitForTimeout(2000);
       await page.reload({ waitUntil: 'networkidle' });
       await expect(page.locator('body')).not.toContainText(EDITED_LAST);
@@ -291,9 +291,9 @@ test.describe.serial('Master Data: Participants', () => {
     await openFilterAndSearch(page, testLastName);
     const deleteRow = page.locator('tr', { hasText: testLastName });
     if ((await deleteRow.count()) > 0) {
-      page.once('dialog', async dialog => await dialog.accept());
       const deleteButton = deleteRow.locator('button[title*="löschen"], button[title*="Delete"]').first();
       await deleteButton.click();
+      await confirmDeleteModal(page);
       await page.waitForTimeout(2000);
     }
   });

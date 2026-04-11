@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { TagIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import DatabaseManagementTemplate from '@/components/DatabaseManagementTemplate';
 import DisciplineGroupFormModal from '@/components/DisciplineGroupFormModal';
+import { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 interface DisciplineGroup {
   int_disziplinen_gruppenid: number;
@@ -32,6 +33,7 @@ const DisciplineGroupsUnified: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [editingGroup, setEditingGroup] = useState<DisciplineGroup | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
 
@@ -103,11 +105,11 @@ const DisciplineGroupsUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('disciplineGroups.messages.confirmDelete'))) {
-      return;
-    }
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
 
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/discipline-groups/${id}`, {
         method: 'DELETE',
@@ -338,6 +340,16 @@ const DisciplineGroupsUnified: React.FC = () => {
         onSave={handleSave}
         disciplineGroup={editingGroup}
         mode={modalMode}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('disciplineGroups.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

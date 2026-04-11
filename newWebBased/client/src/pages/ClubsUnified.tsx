@@ -13,6 +13,7 @@ import {
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import ClubFormModal from '../components/ClubFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 import { debugLog } from '../utils/debug';
 
 interface Club {
@@ -69,6 +70,7 @@ const ClubsUnified: React.FC = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<Club | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
     var_name: '',
     var_website: '',
@@ -198,9 +200,11 @@ const ClubsUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('clubs.messages.confirmDelete'))) return;
-    
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/clubs/${id}`, {
         method: 'DELETE'
@@ -508,6 +512,16 @@ const ClubsUnified: React.FC = () => {
         onSubmit={handleSubmit}
         regions={regions}
         contacts={contacts}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('clubs.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import PersonFormModal from '../components/PersonFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 
 interface Person {
   int_personenid: number;
@@ -47,6 +48,7 @@ const PersonsUnified: React.FC = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
     var_vorname: '',
     var_nachname: '',
@@ -148,9 +150,11 @@ const PersonsUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('persons.messages.confirmDelete'))) return;
-    
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/persons/${id}`, {
         method: 'DELETE'
@@ -400,6 +404,16 @@ const PersonsUnified: React.FC = () => {
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleSubmit}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('persons.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

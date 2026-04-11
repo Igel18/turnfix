@@ -10,6 +10,7 @@ import {
 import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemplate';
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import FormulaFormModal from '../components/FormulaFormModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 
 interface Formula {
   int_formelid: number;
@@ -36,6 +37,7 @@ const FormulasUnified: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFormula, setEditingFormula] = useState<Formula | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   
   // Sorting
   const { sortKey, sortDirection, handleSort, sortData } = useTableSort('var_name', 'asc');
@@ -138,11 +140,11 @@ const FormulasUnified: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('formulas.messages.confirmDelete'))) {
-      return;
-    }
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
 
+  const executeDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/formulas/${id}`, {
         method: 'DELETE',
@@ -434,6 +436,16 @@ const FormulasUnified: React.FC = () => {
         setFormData={setFormData}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => executeDelete(pendingDeleteId!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('formulas.messages.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
       />
     </>
   );

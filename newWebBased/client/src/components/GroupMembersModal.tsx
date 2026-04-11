@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon, PlusIcon, UserIcon } from '@heroicons/react/24/outline';
-import UnifiedModal from './UnifiedModal';
+import UnifiedModal, { UnifiedConfirmModal } from './UnifiedModal';
 
 interface Group {
   id: number;
@@ -45,6 +45,7 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
   const [selectedParticipant, setSelectedParticipant] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingRemoveMemberId, setPendingRemoveMemberId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -116,11 +117,11 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
     }
   };
 
-  const handleRemoveMember = async (participantId: number) => {
-    if (!window.confirm(t('groups.members.confirmRemove'))) {
-      return;
-    }
+  const handleRemoveMember = (participantId: number) => {
+    setPendingRemoveMemberId(participantId);
+  };
 
+  const executeRemoveMember = async (participantId: number) => {
     try {
       const response = await fetch(`/api/groups/${group.id}/members/${participantId}`, {
         method: 'DELETE'
@@ -144,6 +145,7 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
   const filteredParticipants = availableParticipants.filter(p => !memberIds.has(p.int_teilnehmerid));
 
   return (
+    <>
     <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
@@ -256,6 +258,20 @@ const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
         </div>
       </div>
     </UnifiedModal>
+    <UnifiedConfirmModal
+      isOpen={pendingRemoveMemberId !== null}
+      onClose={() => setPendingRemoveMemberId(null)}
+      onConfirm={() => {
+        const id = pendingRemoveMemberId!;
+        setPendingRemoveMemberId(null);
+        executeRemoveMember(id);
+      }}
+      title={t('common.confirmDeleteTitle')}
+      message={t('groups.members.confirmRemove')}
+      confirmLabel={t('common.delete')}
+      confirmStyle="danger"
+    />
+    </>
   );
 };
 

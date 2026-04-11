@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog, getTableRowCount } from '../helpers';
+import { navigateTo, waitForLoadingToFinish, expectPageTitle, clickAddButton, waitForDialog, getTableRowCount, confirmDeleteModal } from '../helpers';
 
 test.describe.serial('Master Data: Areas', () => {
   const uniqueSuffix = Date.now().toString().slice(-6);
@@ -119,11 +119,8 @@ test.describe.serial('Master Data: Areas', () => {
       const deleteButton = row.getByRole('button', { name: /löschen|delete|entfernen/i }).first();
       await deleteButton.click();
 
-      // Confirm deletion
-      const confirmButton = page.getByRole('button', { name: /löschen|delete|ja|yes|bestätigen|confirm/i }).first();
-      if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await confirmButton.click();
-      }
+      // Confirm deletion via UnifiedConfirmModal (scoped to modal, not page)
+      await confirmDeleteModal(page);
 
       await page.waitForTimeout(1000);
     }

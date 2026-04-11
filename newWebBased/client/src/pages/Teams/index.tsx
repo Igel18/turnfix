@@ -18,6 +18,7 @@ import { useTeams, useTeamMembers } from './hooks';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { UnifiedAssignmentModal } from '@/components/assignment';
 import TeamFormModal from '@/components/TeamFormModal';
+import { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 // Configuration
 import { createTeamConfig } from './teamAssignmentConfig';
@@ -42,6 +43,7 @@ const Teams: React.FC = () => {
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [pendingDeleteTeamId, setPendingDeleteTeamId] = useState<number | string | null>(null);
 
   // Filter State
   const [filterClub, setFilterClub] = useState('');
@@ -180,14 +182,19 @@ const Teams: React.FC = () => {
     }
   };
 
-  // Handler: Delete Team
-  const handleDeleteTeam = async (teamId: number | string) => {
-    const team = teams.find(t => t.id === teamId);
+  // Handler: Delete Team — opens confirm modal
+  const handleDeleteTeam = (teamId: number | string) => {
+    setPendingDeleteTeamId(teamId);
+  };
+
+  const executeDeleteTeam = async () => {
+    if (pendingDeleteTeamId === null) return;
+    const team = teams.find(t => t.id === pendingDeleteTeamId);
     if (!team) return;
-    
+    const id = pendingDeleteTeamId;
+    setPendingDeleteTeamId(null);
     await deleteTeam(team);
-    // Clear selection if deleted team was selected
-    if (selectedTeam?.id === teamId) {
+    if (selectedTeam?.id === id) {
       setSelectedTeam(null);
     }
   };
@@ -234,6 +241,7 @@ const Teams: React.FC = () => {
   }), [t]);
 
   return (
+    <>
     <EventManagementTemplate
       title={t('teams.title')}
       subtitle={t('teams.subtitle')}
@@ -329,6 +337,17 @@ const Teams: React.FC = () => {
         )}
       </div>
     </EventManagementTemplate>
+
+    <UnifiedConfirmModal
+      isOpen={pendingDeleteTeamId !== null}
+      onClose={() => setPendingDeleteTeamId(null)}
+      onConfirm={executeDeleteTeam}
+      title={t('common.confirmDeleteTitle')}
+      message={t('teams.messages.confirmDelete')}
+      confirmLabel={t('common.delete')}
+      confirmStyle="danger"
+    />
+    </>
   );
 };
 

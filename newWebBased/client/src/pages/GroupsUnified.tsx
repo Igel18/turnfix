@@ -11,6 +11,7 @@ import { DatabaseManagementTemplate } from '../components/DatabaseManagementTemp
 import { SortableTableHeader, useTableSort } from '../components/SortableTableHeader';
 import GroupFormModal from '../components/GroupFormModal';
 import GroupMembersModal from '../components/GroupMembersModal';
+import { UnifiedConfirmModal } from '../components/UnifiedModal';
 
 interface Group {
   id: number;
@@ -57,6 +58,7 @@ const GroupsUnified: React.FC = () => {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [pendingDeleteGroup, setPendingDeleteGroup] = useState<Group | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     clubId: ''
@@ -125,11 +127,11 @@ const GroupsUnified: React.FC = () => {
     setIsMembersModalOpen(true);
   };
 
-  const handleDelete = async (group: Group) => {
-    if (!window.confirm(t('groups.confirmDelete', { name: group.name }))) {
-      return;
-    }
+  const handleDelete = (group: Group) => {
+    setPendingDeleteGroup(group);
+  };
 
+  const executeDelete = async (group: Group) => {
     try {
       const response = await fetch(`/api/groups/${group.id}`, {
         method: 'DELETE'
@@ -353,6 +355,16 @@ const GroupsUnified: React.FC = () => {
           onMembersChanged={fetchGroups}
         />
       )}
+
+      <UnifiedConfirmModal
+        isOpen={pendingDeleteGroup !== null}
+        onClose={() => setPendingDeleteGroup(null)}
+        onConfirm={() => executeDelete(pendingDeleteGroup!)}
+        title={t('common.confirmDeleteTitle')}
+        message={t('groups.confirmDelete', { name: pendingDeleteGroup?.name || '' })}
+        confirmLabel={t('common.delete')}
+        confirmStyle="danger"
+      />
     </>
   );
 };

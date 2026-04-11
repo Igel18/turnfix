@@ -705,7 +705,8 @@
     },
     "live": "Live",
     "liveUpdates": "Live-Updates",
-    "startNumber": "Startnummer"
+    "startNumber": "Startnummer",
+    "confirmDeleteTitle": "Löschen bestätigen"
   },
   "events": {
     "title": "Veranstaltungsverwaltung",
@@ -1886,7 +1887,7 @@
       "updateError": "Fehler beim Aktualisieren der Disziplin",
       "deleteError": "Fehler beim Löschen der Disziplin",
       "loadError": "Fehler beim Laden der Disziplinen",
-      "confirmDelete": "Sind Sie sicher, dass Sie diese Disziplin löschen möchten?"
+      "confirmDelete": "Soll das Feld \"{{name}}\" wirklich gelöscht werden? Felder mit vorhandenen Jury-Wertungen können nicht gelöscht werden."
     }
   },
   "regions": {
