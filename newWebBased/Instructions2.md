@@ -645,6 +645,7 @@ TDD mit UI Tests
 
 93. [Improvement] Layout designer 
 - Größer, damit man das Urkundendesign besser ändern kann. ggf. über zoom? 
+-> Erledigt ✅
 - Ist es möglich ein PDF in Hintergrund zu laden (so wie auch die PNGs halt zusätzlich)? 
 
 Ja, das ist technisch machbar. Hier die Analyse:

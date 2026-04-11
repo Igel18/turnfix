@@ -652,9 +652,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative min-h-screen mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-7xl mx-auto">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-2">
+        <div className="bg-white rounded-lg shadow-xl w-full flex flex-col" style={{ maxHeight: 'calc(100vh - 1rem)', maxWidth: 'calc(100vw - 1rem)' }}>
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex-1">
@@ -765,9 +764,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             </div>
           </div>
 
-          <div className="flex">
+          <div className="flex flex-1 overflow-hidden">
             {/* Toolbar */}
-            <div className="w-64 border-r border-gray-200 p-4">
+            <div className="w-64 border-r border-gray-200 p-4 overflow-y-auto">
               <h3 className="text-sm font-medium text-gray-900 mb-4">{t('layoutDesigner.addElements')}</h3>
               <div className="space-y-2">
                 {FIELD_TYPES.map((fieldType) => {
@@ -863,8 +862,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             </div>
 
             {/* Canvas */}
-            <div className="flex-1 p-4">
-              <div className="border border-gray-300 bg-white relative overflow-hidden" style={{ height: '600px' }}>
+            <div className="flex-1 p-4 flex flex-col overflow-hidden">
+              <div className="border border-gray-300 bg-white relative overflow-auto flex-1">
                 <div 
                   ref={canvasRef}
                   className="relative bg-white"
@@ -990,7 +989,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
             {/* Properties Panel */}
             {isPropertiesOpen && selectedField && (
-              <div className="w-80 border-l border-gray-200 p-4">
+              <div className="w-80 border-l border-gray-200 p-4 overflow-y-auto">
                 <h3 className="text-sm font-medium text-gray-900 mb-4">{t('layoutDesigner.fieldProperties')}</h3>
                 
                 <div className="space-y-4">
@@ -1257,7 +1256,6 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }
