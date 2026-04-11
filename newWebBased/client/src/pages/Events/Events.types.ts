@@ -91,6 +91,7 @@ export interface ImportApiResult {
   insertionResults: ImportInsertionResults
   warnings: ImportWarning[]
   hints: DisciplineHint[]
+  perFileSummaries?: { filename: string; clubs: number; competitions: number; participants: number; devices: number; teams: number }[]
   extractedData: {
     clubs: any[]
     competitions: any[]

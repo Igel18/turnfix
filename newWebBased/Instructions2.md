@@ -601,6 +601,7 @@ Betroffene Dateien: ScoreCapture/index.tsx, SquadDisciplineSelector.tsx, useScor
 http://localhost:3001/events 
 Der Dialog "Aus Gymnet Importieren" muss auch als Wizard ausgeführt werden. 
 Wichtig ist noch, dass wir mehrere GymNet XML-Dateien gleichzeitig (oder in separaten Dialogen) auswählen können müssen, da Einzelwettkämpfe und Mannschaftswettkämpfe in verschiedenen Dateien kommen (auch wenn diese gleich aufgebaut sind). 
+-> In Arbeit 🚀
 
 84. ✅ [Bug] Teilnehmer hinzufügen 
 Auf der Seite http://localhost:3001/event-participants kann man Teilnehmer mit dem Wizard hinzufügen. In dem WIzard wird eine Liste der TEilnehmer angezeigt. An den Teilnehmern sind auch noch details. Das Jahr wird aber nicht angezeigt, sondern nur "Jahre". TDD
@@ -990,7 +991,6 @@ Das muss ausgeblendet werden und als technische Schuld gekennzeichnet, falls mal
 73	Riegeneinteilung Konzept – Analyse Geräteanzahl/Durchgänge/Zusammenführung kleiner Wettkämpfe	niedrig
 74	Bug: Filter – aktiver Filter muss sichtbar sein; Ausblenden = Zurücksetzen	mittel
 75	Bug: Stufenbarren-Icon fehlt im DB-Wizard (soll "Barren"-Icon erhalten)	niedrig
-83	GymNet Import → Wizard + mehrere XMLs gleichzeitig importieren	mittel
 93	Layout-Designer – Zoom, PDF als Hintergrund laden	niedrig
 96	Feature: Jury-Portal – Teilnehmer sortieren	niedrig
 98	Feature: Siegerliste – Überschrift fixieren bei vielen Teilnehmern	niedrig

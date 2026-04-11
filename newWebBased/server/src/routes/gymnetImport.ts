@@ -21,7 +21,8 @@ import {
   extractAllData,
   analyzeObject,
   findInObject,
-  searchForDevicesAggressively
+  searchForDevicesAggressively,
+  type ExtractedData as ExtractedDataType
 } from '../utils/gymnetXmlParser';
 import { importGymnetData } from '../utils/gymnetDbImport';
 
@@ -96,22 +97,23 @@ router.post('/import-test', upload.single('xmlFile'), async (req: any, res) => {
 });
 
 // ============================================================================
-// Main Import Route
+// Main Import Route — accepts 1–10 XML files, all imported into one event
 // ============================================================================
 
-router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async (req: AuthRequest, res) => {
-  let filePath: string | undefined;
+router.post('/import-gymnet', authenticateToken, upload.array('files', 10), async (req: AuthRequest, res) => {
+  const uploadedFilePaths: string[] = [];
 
   try {
     // --- 1. File upload validation ---
-    if (!req.file) {
+    const uploadedFiles = req.files as Express.Multer.File[] | undefined;
+    if (!uploadedFiles || uploadedFiles.length === 0) {
       return res.status(400).json({ success: false, message: 'Keine XML-Datei hochgeladen' });
     }
 
-    filePath = req.file.path;
-    console.log('🔍 XML Import Started:');
-    console.log('  - File:', req.file.originalname);
-    console.log('  - Size:', req.file.size, 'bytes');
+    uploadedFilePaths.push(...uploadedFiles.map(f => f.path));
+
+    console.log(`🔍 XML Import Started: ${uploadedFiles.length} file(s)`);
+    uploadedFiles.forEach(f => console.log(`  - File: ${f.originalname} (${f.size} bytes)`));
 
     // --- 2. Extract event metadata from form data ---
     const eventName = req.body.eventName;
@@ -124,106 +126,61 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       return res.status(400).json({ success: false, message: 'Event name is required' });
     }
 
-    // --- 3. Parse XML ---
-    const xmlContent = fs.readFileSync(filePath, 'utf-8');
-    console.log('📄 XML Content Preview (first 500 chars):');
-    console.log(xmlContent.substring(0, 500) + '...');
+    // --- 3. Parse and extract data from each XML file, then merge ---
+    const perFileSummaries: { filename: string; clubs: number; competitions: number; participants: number; devices: number; teams: number }[] = [];
 
-    const parsedXml: any = await parseXmlAsync(xmlContent, {
-      explicitArray: false,
-      ignoreAttrs: false,
-      mergeAttrs: true
-    });
+    const allClusters = await Promise.all(uploadedFiles.map(async (file) => {
+      const xmlContent = fs.readFileSync(file.path, 'utf-8');
+      const parsedXml: any = await parseXmlAsync(xmlContent, {
+        explicitArray: false,
+        ignoreAttrs: false,
+        mergeAttrs: true
+      });
+      const data = extractAllData(parsedXml);
+      console.log(`  📄 ${file.originalname}: ${data.clubs.length} clubs, ${data.competitions.length} competitions, ${data.participants.length} participants, ${data.devices.length} devices, ${data.teams.length} teams`);
+      perFileSummaries.push({
+        filename: file.originalname,
+        clubs: data.clubs.length,
+        competitions: data.competitions.length,
+        participants: data.participants.length,
+        devices: data.devices.length,
+        teams: data.teams.length,
+      });
+      return data;
+    }));
 
-    console.log('🎯 XML Structure Analysis:');
-    console.log('📊 Root elements:', Object.keys(parsedXml || {}));
-
-    // Debug analysis
-    const xmlAnalysis = analyzeObject(parsedXml);
-    console.log('🔍 Detailed XML Analysis:');
-    console.log(JSON.stringify(xmlAnalysis, null, 2));
-
-    const debugData: any = {
-      xmlStructure: xmlAnalysis,
-      rawXmlPreview: xmlContent.substring(0, 1000),
-      fileInfo: { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype },
-      parseTimestamp: new Date().toISOString()
+    // Merge extracted data from all files
+    const extractedData: ExtractedDataType = {
+      clubs:        allClusters.flatMap(d => d.clubs),
+      competitions: allClusters.flatMap(d => d.competitions),
+      participants: allClusters.flatMap(d => d.participants),
+      devices:      allClusters.flatMap(d => d.devices),
+      teams:        allClusters.flatMap(d => d.teams),
     };
 
-    // Search for typical elements
-    const searchTerms = [
-      'competition', 'wettkampf', 'event', 'veranstaltung',
-      'participant', 'teilnehmer', 'athlete', 'turner',
-      'score', 'wertung', 'note', 'bewertung',
-      'discipline', 'disziplin', 'apparatus', 'gerät',
-      'club', 'verein', 'team', 'mannschaft',
-      'category', 'kategorie', 'age', 'alter',
-      'name', 'vorname', 'nachname', 'firstname', 'lastname',
-      'result', 'ergebnis', 'ranking', 'platz'
-    ];
-    const foundElements = findInObject(parsedXml, searchTerms);
-    debugData.potentialDataElements = foundElements;
-
-    console.log('🎪 Potential Gymnastics Data Found:');
-    Object.keys(foundElements).forEach(key => {
-      if (foundElements[key].length > 0) {
-        console.log(`  ${key}:`, foundElements[key].length, 'matches');
-      }
-    });
-
-    // --- 4. Extract structured data ---
-    const extractedData = extractAllData(parsedXml);
-    debugData.extractedData = extractedData;
-
-    console.log('📋 Extracted Data Summary:');
+    console.log('📋 Merged Data Summary:');
     console.log(`  🏢 Clubs: ${extractedData.clubs.length}`);
     console.log(`  🏆 Competitions: ${extractedData.competitions.length}`);
     console.log(`  👥 Participants: ${extractedData.participants.length}`);
     console.log(`  🏋️ Devices: ${extractedData.devices.length}`);
     console.log(`  🏅 Teams: ${extractedData.teams.length}`);
 
-    // Aggressive device search fallback
-    if (extractedData.devices.length === 0) {
-      console.log('🔍 DEBUG: No devices found. Searching aggressively...');
-      const foundDeviceData = searchForDevicesAggressively(parsedXml, 'root');
-      if (foundDeviceData.length > 0) {
-        console.log(`  📊 Found ${foundDeviceData.length} potential device references`);
-      } else {
-        console.log('  ❌ No device/discipline references found in entire XML structure');
-      }
-    }
+    const debugData: any = {
+      fileCount: uploadedFiles.length,
+      perFileSummaries,
+      parseTimestamp: new Date().toISOString()
+    };
 
-    // Log detailed findings
-    if (extractedData.clubs.length > 0) {
-      console.log('🏢 Found Clubs:');
-      extractedData.clubs.slice(0, 5).forEach((club: any, index: number) => {
-        console.log(`  ${index + 1}. ${club.name || 'Unnamed'} (ID: ${club.id || 'N/A'})`);
-      });
-    }
-
-    if (extractedData.competitions.length > 0) {
-      console.log('🏆 Found Competitions:');
-      extractedData.competitions.slice(0, 5).forEach((comp: any, index: number) => {
-        console.log(`  ${index + 1}. ${comp.name || 'Unnamed'} (Gender: ${comp.gender || 'N/A'})`);
-      });
-      if (extractedData.competitions.length > 5) {
-        console.log(`  ... and ${extractedData.competitions.length - 5} more`);
-      }
-    }
-
-    if (extractedData.participants.length > 0) {
-      console.log('👥 Found Participants:');
-      extractedData.participants.slice(0, 5).forEach((p: any, index: number) => {
-        console.log(`  ${index + 1}. ${[p.firstName, p.lastName].filter(Boolean).join(' ') || 'Unnamed'}`);
-      });
-    }
-
-    if (extractedData.devices.length > 0) {
-      console.log('🏋️ Found Devices:');
-      extractedData.devices.slice(0, 5).forEach((d: any, index: number) => {
-        console.log(`  ${index + 1}. ${d.name || 'Unnamed'} (code: ${d.code || 'N/A'})`);
-      });
-    }
+    // Search for typical elements in first file (for debug)
+    const firstXmlContent = fs.readFileSync(uploadedFiles[0].path, 'utf-8');
+    const firstParsed: any = await parseXmlAsync(firstXmlContent, { explicitArray: false, ignoreAttrs: false, mergeAttrs: true });
+    const searchTerms = [
+      'competition', 'wettkampf', 'event', 'veranstaltung',
+      'participant', 'teilnehmer', 'athlete', 'turner',
+      'name', 'vorname', 'nachname', 'firstname', 'lastname',
+    ];
+    const foundElements = findInObject(firstParsed, searchTerms);
+    debugData.potentialDataElements = foundElements;
 
     // --- 5. Create event in database ---
     const parsedStartDate = startDate ? new Date(startDate) : new Date();
@@ -363,11 +320,11 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
       },
       debug: debugData,
       summary: {
-        rootElements: Object.keys(parsedXml || {}),
+        filesProcessed: uploadedFiles.length,
+        fileNames: uploadedFiles.map(f => f.originalname),
         potentialDataFound: Object.keys(foundElements).length,
-        fileProcessed: req.file.originalname,
         importLog: [
-          `📄 Datei: ${req.file.originalname} (${req.file.size} bytes)`,
+          `📄 ${uploadedFiles.length} Datei(en): ${uploadedFiles.map(f => f.originalname).join(', ')}`,
           `📊 Extrahierte Daten:`,
           `   - ${extractedData.clubs.length} Vereine`,
           `   - ${extractedData.competitions.length} Wettkämpfe`,
@@ -391,20 +348,25 @@ router.post('/import-gymnet', authenticateToken, upload.single('xmlFile'), async
           'Review the extracted data below for debugging',
           'Verify database connection and constraints'
         ]
-      }
+      },
+      perFileSummaries,
     };
 
     res.status(createdEvent ? 200 : 400).json(responseData);
 
+    // Cleanup uploaded files after response is sent
+    for (const p of uploadedFilePaths) {
+      if (fs.existsSync(p)) {
+        try { fs.unlinkSync(p); } catch { /* ignore */ }
+      }
+    }
+
   } catch (error: any) {
     console.error('❌ XML Import Error:', error);
 
-    if (filePath && fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-        console.log('🗑️ Cleaned up uploaded file after error');
-      } catch (cleanupError) {
-        console.error('Failed to cleanup file:', cleanupError);
+    for (const p of uploadedFilePaths) {
+      if (fs.existsSync(p)) {
+        try { fs.unlinkSync(p); } catch { /* ignore */ }
       }
     }
 

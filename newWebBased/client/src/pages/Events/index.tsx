@@ -2,13 +2,13 @@
  * Events page – main orchestrating component.
  *
  * Refactored from a single 908-line file into focused modules:
- *   Events.types.ts          – interfaces & constants        (~60 lines)
- *   hooks/useEventsData.ts   – data fetching, CRUD, filters  (~210 lines)
- *   components/EventFormModal.tsx   – create/edit dialog      (~150 lines)
- *   components/EventImportModal.tsx – GymNet XML import       (~260 lines)
- *   components/EventCard.tsx        – card view               (~100 lines)
- *   components/EventTableRow.tsx    – table row               (~85 lines)
- *   index.tsx (this file)           – orchestration           (~130 lines)
+ *   Events.types.ts                 – interfaces & constants       (~60 lines)
+ *   hooks/useEventsData.ts          – data fetching, CRUD, filters (~210 lines)
+ *   components/EventFormModal.tsx   – create / edit dialog         (~150 lines)
+ *   components/EventImportWizard/   – GymNet XML import wizard     (~4 steps)
+ *   components/EventCard.tsx        – card view                    (~100 lines)
+ *   components/EventTableRow.tsx    – table row                    (~85 lines)
+ *   index.tsx (this file)           – orchestration                (~130 lines)
  */
 
 import React, { useState } from 'react'
@@ -20,7 +20,6 @@ import { exportToCSV, getEventCSVData } from '../../utils/csvExport'
 
 import { useEventsData } from './hooks/useEventsData'
 import EventFormModal from './components/EventFormModal'
-import EventImportModal from './components/EventImportModal'
 import EventImportWizard from './components/EventImportWizard'
 import EventCard from './components/EventCard'
 import EventTableRow from './components/EventTableRow'
@@ -36,12 +35,9 @@ const Events: React.FC = () => {
     errorMessage,
     editingEvent,
     isModalOpen,
-    isImportModalOpen,
     openEditModal,
     openCreateModal,
-    // openImportModal, (removed)
     closeModal,
-    closeImportModal,
     handleSubmit,
     handleDelete,
     fetchEvents,
@@ -167,15 +163,7 @@ const Events: React.FC = () => {
         onSubmit={handleSubmit}
       />
 
-      {/* Import Modal */}
-      <EventImportModal
-        isOpen={isImportModalOpen}
-        onClose={closeImportModal}
-        venues={venues}
-        onImportComplete={fetchEvents}
-      />
-
-      {/* Import Wizard */}
+      {/* GymNet Import Wizard */}
       <EventImportWizard
         isOpen={isImportWizardOpen}
         onClose={() => setIsImportWizardOpen(false)}

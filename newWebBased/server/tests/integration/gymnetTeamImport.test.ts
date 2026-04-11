@@ -123,7 +123,7 @@ describe('GymNet Team Import', () => {
       .field('startDate', '2025-01-15')
       .field('endDate', '2025-01-15')
       .field('locationId', venueId.toString())
-      .attach('xmlFile', xmlPath);
+      .attach('files', xmlPath); // field name changed in issue 83 (was 'xmlFile')
 
     // Track created event
     if (response.body.createdEvent?.id) {
@@ -377,6 +377,186 @@ describe('GymNet Team Import', () => {
           expect.objectContaining({ firstName: 'Clara', lastName: 'Teamtesterin' }),
         ])
       );
+    });
+  });
+
+  // ==========================================================================
+  // Multi-file import tests (issue 83)
+  // ==========================================================================
+  describe('Multi-file import (issue 83)', () => {
+    /**
+     * Helper: import multiple XML files in one request.
+     * supertest: calling .attach() multiple times with the same field name
+     * sends an array of files matching multer's upload.array('files', N).
+     */
+    async function importMultipleXmlFiles(
+      xmlPaths: string[],
+      eventName: string = 'Multi-File Import Test'
+    ) {
+      const venueId = await getVenueId();
+
+      let req = request(app)
+        .post('/api/events/import-gymnet')
+        .field('eventName', eventName)
+        .field('startDate', '2025-06-01')
+        .field('endDate', '2025-06-01')
+        .field('locationId', venueId.toString());
+
+      for (const xmlPath of xmlPaths) {
+        req = req.attach('files', xmlPath);
+      }
+
+      const response = await req;
+
+      // Track created records for cleanup
+      if (response.body.createdEvent?.id) {
+        createdEventId = response.body.createdEvent.id;
+
+        const competitions = await prisma.tfx_wettkaempfe.findMany({
+          where: { int_veranstaltungenid: createdEventId! }
+        });
+        createdCompetitionIds = competitions.map(c => c.int_wettkaempfeid);
+
+        if (createdCompetitionIds.length > 0) {
+          const teams = await prisma.tfx_mannschaften.findMany({
+            where: { int_wettkaempfeid: { in: createdCompetitionIds } }
+          });
+          createdTeamIds = teams.map(t => t.int_mannschaftenid);
+        }
+      }
+
+      // Track clubs and participants from both fixtures
+      const testClubNames = ['TSV Testverein Alpha', 'SV Testverein Beta', 'FC Einzelstarter'];
+      for (const name of testClubNames) {
+        const club = await prisma.tfx_vereine.findFirst({ where: { var_name: name } });
+        if (club && !createdClubIds.includes(club.int_vereineid)) {
+          createdClubIds.push(club.int_vereineid);
+        }
+      }
+
+      const testLastNames = ['Teamtesterin', 'Betaturnerin', 'Einzelturner'];
+      for (const lastName of testLastNames) {
+        const participants = await prisma.tfx_teilnehmer.findMany({
+          where: { var_nachname: lastName }
+        });
+        for (const p of participants) {
+          if (!createdParticipantIds.includes(p.int_teilnehmerid)) {
+            createdParticipantIds.push(p.int_teilnehmerid);
+          }
+        }
+      }
+
+      return response;
+    }
+
+    it('accepts two XML files in a single request and returns 200', async () => {
+      const response = await importMultipleXmlFiles(
+        [teamFixturePath, singleFixturePath]
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('response includes perFileSummaries with one entry per uploaded file', async () => {
+      const response = await importMultipleXmlFiles(
+        [teamFixturePath, singleFixturePath]
+      );
+      expect(response.status).toBe(200);
+
+      const summaries = response.body.perFileSummaries;
+      expect(Array.isArray(summaries)).toBe(true);
+      expect(summaries).toHaveLength(2);
+    });
+
+    it('each perFileSummary entry has filename and non-negative counts', async () => {
+      const response = await importMultipleXmlFiles(
+        [teamFixturePath, singleFixturePath]
+      );
+      const summaries = response.body.perFileSummaries as any[];
+
+      for (const s of summaries) {
+        expect(typeof s.filename).toBe('string');
+        expect(s.filename.length).toBeGreaterThan(0);
+        expect(typeof s.clubs).toBe('number');
+        expect(typeof s.competitions).toBe('number');
+        expect(typeof s.participants).toBe('number');
+        expect(typeof s.devices).toBe('number');
+        expect(typeof s.teams).toBe('number');
+
+        expect(s.clubs).toBeGreaterThanOrEqual(0);
+        expect(s.competitions).toBeGreaterThanOrEqual(0);
+        expect(s.participants).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it('team file summary has 2 teams, single-person summary has 0 teams', async () => {
+      const response = await importMultipleXmlFiles(
+        [teamFixturePath, singleFixturePath]
+      );
+      const summaries: any[] = response.body.perFileSummaries;
+
+      const teamSummary    = summaries.find(s => s.filename.includes('team-import-test'));
+      const singleSummary  = summaries.find(s => s.filename.includes('single-person-mannschaft'));
+
+      expect(teamSummary).toBeDefined();
+      expect(singleSummary).toBeDefined();
+
+      expect(teamSummary.teams).toBe(2);
+      expect(singleSummary.teams).toBe(0);
+    });
+
+    it('combined participant count equals sum of both files', async () => {
+      // First import each file individually to get baseline counts
+      const [r1, r2] = await Promise.all([
+        request(app)
+          .post('/api/events/import-gymnet')
+          .field('eventName', 'Baseline Team')
+          .field('startDate', '2025-07-01')
+          .field('endDate', '2025-07-01')
+          .field('locationId', (await getVenueId()).toString())
+          .attach('files', teamFixturePath),
+        request(app)
+          .post('/api/events/import-gymnet')
+          .field('eventName', 'Baseline Single')
+          .field('startDate', '2025-07-01')
+          .field('endDate', '2025-07-01')
+          .field('locationId', (await getVenueId()).toString())
+          .attach('files', singleFixturePath),
+      ]);
+
+      // Track those events for cleanup
+      for (const r of [r1, r2]) {
+        if (r.body.createdEvent?.id && !createdEventId) {
+          createdEventId = r.body.createdEvent.id;
+        }
+        if (r.body.createdEvent?.id) {
+          const comps = await prisma.tfx_wettkaempfe.findMany({
+            where: { int_veranstaltungenid: r.body.createdEvent.id }
+          });
+          createdCompetitionIds.push(...comps.map(c => c.int_wettkaempfeid));
+        }
+      }
+
+      const s1: any[] = r1.body.perFileSummaries ?? [];
+      const s2: any[] = r2.body.perFileSummaries ?? [];
+      const total1 = s1.reduce((sum: number, s: any) => sum + s.participants, 0);
+      const total2 = s2.reduce((sum: number, s: any) => sum + s.participants, 0);
+
+      // Import both together
+      const combined = await importMultipleXmlFiles([teamFixturePath, singleFixturePath], 'Combined Import');
+      const combinedSummaries: any[] = combined.body.perFileSummaries ?? [];
+      const combinedTotal = combinedSummaries.reduce((sum: number, s: any) => sum + s.participants, 0);
+
+      expect(combinedTotal).toBe(total1 + total2);
+    });
+
+    it('single file upload still returns perFileSummaries with one entry', async () => {
+      const response = await importMultipleXmlFiles([teamFixturePath], 'Single File Via Wizard');
+      expect(response.status).toBe(200);
+
+      const summaries = response.body.perFileSummaries;
+      expect(Array.isArray(summaries)).toBe(true);
+      expect(summaries).toHaveLength(1);
     });
   });
 });

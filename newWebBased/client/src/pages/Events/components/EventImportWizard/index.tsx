@@ -161,28 +161,71 @@ const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, v
 const StepFileSelection: React.FC<StepProps> = ({ wizard }) => {
   const { t } = useTranslation()
   const { importFiles, setImportFiles, errorMessage, setErrorMessage } = wizard
+
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFiles = e.target.files ? Array.from(e.target.files) : []
+    // Merge with existing, avoid duplicates by name
+    const existing = importFiles
+    const merged = [...existing]
+    for (const f of newFiles) {
+      if (!merged.some(x => x.name === f.name)) merged.push(f)
+    }
+    setImportFiles(merged)
+    setErrorMessage(null)
+    e.target.value = ''
+  }
+
+  const removeFile = (name: string) => {
+    setImportFiles(importFiles.filter(f => f.name !== name))
+  }
+
   return (
     <div className="space-y-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p className="text-xs text-blue-800">
+          💡 {t('events.importWizard.fileSelection.multiHint', 'Einzelwettkämpfe und Mannschaftswettkämpfe können in separaten GymNet-XML-Dateien vorliegen. Wähle alle relevanten Dateien aus – sie werden gemeinsam in eine Veranstaltung importiert.')}
+        </p>
+      </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {t('events.import.selectFile')} <span className="text-red-500">*</span>
         </label>
-        <input
-          type="file"
-          accept=".xml"
-          multiple
-          onChange={(e) => {
-            setImportFiles(e.target.files ? Array.from(e.target.files) : [])
-            setErrorMessage(null)
-          }}
-          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {importFiles.length > 0 && (
-          <ul className="text-xs text-green-600 mt-1 list-disc list-inside">
-            {importFiles.map((f: File) => <li key={f.name}>✓ {f.name}</li>)}
-          </ul>
-        )}
+        <label className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors w-full">
+          <svg className="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm text-blue-700">{t('events.importWizard.fileSelection.addFiles', 'XML-Datei(en) hinzufügen')}</span>
+          <input
+            type="file"
+            accept=".xml"
+            multiple
+            onChange={handleFilesChange}
+            className="sr-only"
+          />
+        </label>
       </div>
+      {importFiles.length > 0 && (
+        <ul className="space-y-1">
+          {importFiles.map((f: File) => (
+            <li key={f.name} className="flex items-center justify-between bg-green-50 border border-green-200 rounded px-3 py-1.5 text-xs text-green-700">
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                </svg>
+                {f.name} <span className="text-green-500">({(f.size / 1024).toFixed(1)} KB)</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => removeFile(f.name)}
+                className="ml-2 text-green-500 hover:text-red-500 transition-colors"
+                aria-label={t('common.remove', 'Entfernen')}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-sm text-red-700">❌ {errorMessage}</p>
@@ -274,7 +317,7 @@ const StepResults: React.FC<StepProps> = ({ wizard }) => {
     )
   }
 
-  const { insertionResults, warnings, hints, createdEvent, extractedData } = importResult
+  const { insertionResults, warnings, hints, createdEvent, extractedData, perFileSummaries } = importResult
   const hasWarnings = warnings && warnings.length > 0
   const hasHints = hints && hints.length > 0
   const hasErrors =
@@ -304,6 +347,29 @@ const StepResults: React.FC<StepProps> = ({ wizard }) => {
           </p>
         )}
       </div>
+
+      {/* Per-file summary if multiple files */}
+      {perFileSummaries && perFileSummaries.length > 1 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            📂 {t('events.importWizard.results.perFileSummary', 'Extrahiert pro Datei')}
+          </h4>
+          <div className="space-y-1">
+            {perFileSummaries.map((fs) => (
+              <div key={fs.filename} className="flex items-center justify-between text-xs text-gray-600 py-0.5">
+                <span className="font-medium truncate max-w-[55%]">{fs.filename}</span>
+                <span className="text-gray-500 flex gap-2">
+                  <span>🏛️{fs.clubs}</span>
+                  <span>🏆{fs.competitions}</span>
+                  <span>👥{fs.participants}</span>
+                  <span>🤸{fs.devices}</span>
+                  {fs.teams > 0 && <span>🏅{fs.teams}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Extracted data summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

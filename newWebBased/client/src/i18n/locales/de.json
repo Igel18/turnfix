@@ -852,8 +852,17 @@
       "title": "GymNet XML importieren",
       "steps": {
         "fileDetails": "Datei & Details",
+        "eventDetails": "Veranstaltungsdetails",
+        "fileSelection": "XML auswählen",
         "importing": "Importieren",
         "results": "Ergebnis"
+      },
+      "fileSelection": {
+        "multiHint": "Einzelwettkämpfe und Mannschaftswettkämpfe können in separaten GymNet-XML-Dateien vorliegen. Wähle alle relevanten Dateien aus \u2013 sie werden gemeinsam in eine Veranstaltung importiert.",
+        "addFiles": "XML-Datei(en) hinzufügen"
+      },
+      "results": {
+        "perFileSummary": "Extrahiert pro Datei"
       },
       "next": "Weiter",
       "back": "Zurück",

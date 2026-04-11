@@ -852,8 +852,17 @@
       "title": "Import GymNet XML",
       "steps": {
         "fileDetails": "File & Details",
+        "eventDetails": "Event Details",
+        "fileSelection": "Select XML",
         "importing": "Importing",
         "results": "Results"
+      },
+      "fileSelection": {
+        "multiHint": "Individual competitions and team competitions may be in separate GymNet XML files. Select all relevant files \u2013 they will be imported together into one event.",
+        "addFiles": "Add XML file(s)"
+      },
+      "results": {
+        "perFileSummary": "Extracted per file"
       },
       "next": "Next",
       "back": "Back",
