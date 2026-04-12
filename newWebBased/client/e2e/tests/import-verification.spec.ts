@@ -181,7 +181,10 @@ test.describe('Import: Imported Event Verification', () => {
   test('import has summary log', async () => {
     const summary = state.importResult?.summary;
     expect(summary).toBeTruthy();
-    expect(summary.fileProcessed).toBe('gymnet-test-import.xml');
+    // Server returns fileNames[] array and filesProcessed count (not fileProcessed)
+    expect(Array.isArray(summary.fileNames)).toBe(true);
+    expect(summary.fileNames.length).toBeGreaterThan(0);
+    expect(summary.fileNames[0]).toBe('gymnet-test-import.xml');
     expect(Array.isArray(summary.importLog)).toBe(true);
     expect(summary.importLog.length).toBeGreaterThan(0);
   });

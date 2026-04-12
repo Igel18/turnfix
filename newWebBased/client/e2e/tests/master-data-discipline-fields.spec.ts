@@ -9,8 +9,8 @@
 import { test, expect } from '@playwright/test';
 import { navigateTo, waitForLoadingToFinish, openFilterAndSearch, confirmDeleteModal } from '../helpers';
 
-const TS = Date.now();
-const TEST_FIELD_NAME = `E2E_Feld_${TS}`;
+// var_name column is VarChar(15); TEST_FIELD_NAME ≤12 so EDITED (+ '_ed') ≤15
+const TEST_FIELD_NAME = `EF_${Date.now().toString().slice(-9)}`;
 const EDITED_FIELD_NAME = `${TEST_FIELD_NAME}_ed`;
 
 test.describe.serial('Master Data: Discipline Fields', () => {
@@ -72,8 +72,16 @@ test.describe.serial('Master Data: Discipline Fields', () => {
     const nameInput = modal.locator('input[type="text"]').first();
     await nameInput.fill(TEST_FIELD_NAME);
 
+    // Fill required sort order (number input)
+    const sortOrderInput = modal.locator('input[type="number"]').first();
+    await sortOrderInput.fill('10');
+
     const submitButton = modal.getByRole('button', { name: /erstellen|create|speichern|save/i });
-    await submitButton.click();
+    const [response] = await Promise.all([
+      page.waitForResponse(r => r.url().includes('/api/discipline-fields') && r.request().method() === 'POST'),
+      submitButton.click(),
+    ]);
+    expect(response.status()).toBeLessThan(300);
 
     // Wait for modal to close
     await expect(modal).toHaveCount(0, { timeout: 5000 });

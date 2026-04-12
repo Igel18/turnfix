@@ -635,7 +635,7 @@ test.describe('Team Competition: GymNet Team XML Import', () => {
 
     const res = await request.post(`${API_BASE}/events/import-gymnet`, {
       multipart: {
-        xmlFile: {
+        files: {
           name: 'gymnet-team-import.xml',
           mimeType: 'text/xml',
           buffer: fs.readFileSync(xmlPath),

@@ -31,42 +31,45 @@ test.describe.serial('Critical Delete Flows', () => {
     });
     expect([200, 201]).toContain(addRes.status);
 
-    await setEventContext(page, state.eventId, state.eventName);
-    await page.goto(`/event-participants?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1200);
+    try {
+      await setEventContext(page, state.eventId, state.eventName);
+      await page.goto(`/event-participants?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1200);
 
-    const searchInput = page.locator('input[type="text"], input[type="search"]').first();
-    if (await searchInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-      await searchInput.fill(firstName);
-      await page.waitForTimeout(700);
+      const searchInput = page.locator('input[type="text"], input[type="search"]').first();
+      if (await searchInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+        await searchInput.fill(firstName);
+        await page.waitForTimeout(700);
+      }
+
+      const row = page.locator('table tbody tr', { hasText: firstName }).first();
+      await expect(row).toBeVisible({ timeout: 10000 });
+
+      const namedDeleteButton = row.getByRole('button', { name: /remove|delete|lösch|entfernen/i }).first();
+      const titleDeleteButton = row.locator(
+        'button[title*="Remove" i], button[title*="Delete" i], button[title*="Lösch" i], button[aria-label*="Delete" i], button[aria-label*="Lösch" i]'
+      ).first();
+
+      if (await namedDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
+        await namedDeleteButton.click();
+      } else if (await titleDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
+        await titleDeleteButton.click();
+      } else {
+        await row.locator('button').last().click();
+      }
+
+      await confirmDeleteModal(page);
+      await page.waitForTimeout(1000);
+
+      const participantsRes = await apiGet(request, `/event-participants?eventId=${state.eventId}&includeAvailable=false&limit=200`);
+      expect(participantsRes.status).toBe(200);
+      const list = participantsRes.body.eventParticipants || participantsRes.body.participants || [];
+      const stillAssigned = list.some((p: any) => p.id === participantId);
+      expect(stillAssigned).toBe(false);
+    } finally {
+      // Always clean up — prevents stale data from corrupting subsequent tests
+      await apiDelete(request, `/participants/${participantId}`).catch(() => {});
     }
-
-    const row = page.locator('table tbody tr', { hasText: firstName }).first();
-    await expect(row).toBeVisible({ timeout: 10000 });
-
-    const namedDeleteButton = row.getByRole('button', { name: /remove|delete|lösch|entfernen/i }).first();
-    const titleDeleteButton = row.locator(
-      'button[title*="Remove" i], button[title*="Delete" i], button[title*="Lösch" i], button[aria-label*="Delete" i], button[aria-label*="Lösch" i]'
-    ).first();
-
-    if (await namedDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
-      await namedDeleteButton.click();
-    } else if (await titleDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
-      await titleDeleteButton.click();
-    } else {
-      await row.locator('button').last().click();
-    }
-
-    await confirmDeleteModal(page);
-    await page.waitForTimeout(1000);
-
-    const participantsRes = await apiGet(request, `/event-participants?eventId=${state.eventId}&includeAvailable=false&limit=200`);
-    expect(participantsRes.status).toBe(200);
-    const list = participantsRes.body.eventParticipants || participantsRes.body.participants || [];
-    const stillAssigned = list.some((p: any) => p.id === participantId);
-    expect(stillAssigned).toBe(false);
-
-    await apiDelete(request, `/participants/${participantId}`);
   });
 
   test('UI: delete squad from squads page', async ({ page, request }) => {
@@ -101,40 +104,43 @@ test.describe.serial('Critical Delete Flows', () => {
     });
     expect([200, 201]).toContain(assignRes.status);
 
-    await setEventContext(page, state.eventId, state.eventName);
-    await page.goto(`/squads?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1200);
+    try {
+      await setEventContext(page, state.eventId, state.eventName);
+      await page.goto(`/squads?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1200);
 
-    const tableRow = page.locator('table tbody tr', { hasText: squadName }).first();
-    const cardItem = page.locator('div, li', { hasText: squadName }).filter({ has: page.locator('button') }).first();
+      const tableRow = page.locator('table tbody tr', { hasText: squadName }).first();
+      const cardItem = page.locator('div, li', { hasText: squadName }).filter({ has: page.locator('button') }).first();
 
-    const row = await tableRow.isVisible({ timeout: 1000 }).catch(() => false) ? tableRow : cardItem;
-    await expect(row).toBeVisible({ timeout: 10000 });
+      const row = await tableRow.isVisible({ timeout: 1000 }).catch(() => false) ? tableRow : cardItem;
+      await expect(row).toBeVisible({ timeout: 10000 });
 
-    const namedDeleteButton = row.getByRole('button', { name: /remove|delete|lösch|entfernen/i }).first();
-    const titleDeleteButton = row.locator(
-      'button[title*="Delete" i], button[title*="Lösch" i], button[aria-label*="Delete" i], button[aria-label*="Lösch" i]'
-    ).first();
+      const namedDeleteButton = row.getByRole('button', { name: /remove|delete|lösch|entfernen/i }).first();
+      const titleDeleteButton = row.locator(
+        'button[title*="Delete" i], button[title*="Lösch" i], button[aria-label*="Delete" i], button[aria-label*="Lösch" i]'
+      ).first();
 
-    if (await namedDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
-      await namedDeleteButton.click();
-    } else if (await titleDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
-      await titleDeleteButton.click();
-    } else {
-      await row.locator('button').last().click();
+      if (await namedDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
+        await namedDeleteButton.click();
+      } else if (await titleDeleteButton.isVisible({ timeout: 800 }).catch(() => false)) {
+        await titleDeleteButton.click();
+      } else {
+        await row.locator('button').last().click();
+      }
+
+      await confirmDeleteModal(page);
+      await page.waitForTimeout(1000);
+
+      const squadsRes = await apiGet(request, `/squad-management?eventId=${state.eventId}`);
+      expect(squadsRes.status).toBe(200);
+      const squads = squadsRes.body.squads || squadsRes.body || [];
+      const stillExists = squads.some((s: any) => (s.name || s.squad_name) === squadName);
+      expect(stillExists).toBe(false);
+    } finally {
+      // Always clean up — prevents stale data from corrupting subsequent tests (e.g. statistical.spec.ts)
+      await apiDelete(request, `/event-participants/remove?eventId=${state.eventId}&participantId=${participantId}`).catch(() => {});
+      await apiDelete(request, `/participants/${participantId}`).catch(() => {});
     }
-
-    await confirmDeleteModal(page);
-    await page.waitForTimeout(1000);
-
-    const squadsRes = await apiGet(request, `/squad-management?eventId=${state.eventId}`);
-    expect(squadsRes.status).toBe(200);
-    const squads = squadsRes.body.squads || squadsRes.body || [];
-    const stillExists = squads.some((s: any) => (s.name || s.squad_name) === squadName);
-    expect(stillExists).toBe(false);
-
-    await apiDelete(request, `/event-participants/remove?eventId=${state.eventId}&participantId=${participantId}`);
-    await apiDelete(request, `/participants/${participantId}`);
   });
 
   test('API: delete temporary group', async ({ request }) => {

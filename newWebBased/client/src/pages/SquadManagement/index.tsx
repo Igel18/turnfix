@@ -12,6 +12,7 @@ import { UserGroupIcon, InformationCircleIcon, SparklesIcon } from '@heroicons/r
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { useEvent } from '@/contexts/EventContext';
 import { UnifiedAssignmentModal } from '@/components/assignment';
+import { UnifiedConfirmModal } from '@/components/UnifiedModal';
 
 // Hooks
 import { useFilterPanel } from '@/hooks';
@@ -57,10 +58,13 @@ const SquadManagementUnified: React.FC = () => {
   const {
     squads,
     isLoading: squadsLoading,
+    pendingDeleteSquadId,
     forceLoadSquads,
     createSquad,
     updateSquad,
-    deleteSquad
+    requestDeleteSquad,
+    confirmDeleteSquad,
+    cancelDeleteSquad,
   } = useSquads(eventId);
 
   const {
@@ -190,7 +194,7 @@ const SquadManagementUnified: React.FC = () => {
       setIsWizardOpen(true);
     },
     onEditMaster: handleEditSquadWizard,
-    onDeleteMaster: deleteSquad,
+    onDeleteMaster: requestDeleteSquad,
     onExportPDF: handleExportPDF
   };
 
@@ -450,6 +454,17 @@ const SquadManagementUnified: React.FC = () => {
               }}
             />
           )}
+
+          {/* Delete Confirm Modal */}
+          <UnifiedConfirmModal
+            isOpen={pendingDeleteSquadId !== null}
+            title={t('common.confirmDeleteTitle')}
+            message={t('squadManagement.messages.confirmDelete')}
+            confirmLabel={t('common.delete')}
+            confirmStyle="danger"
+            onConfirm={confirmDeleteSquad}
+            onClose={cancelDeleteSquad}
+          />
         </div>
       )}
     </EventManagementTemplate>

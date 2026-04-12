@@ -66,7 +66,7 @@ test.describe.serial('Master Data: Locations / Venues', () => {
 
     const submitButton = modal.getByRole('button', { name: /erstellen|create|speichern|save/i });
     const [response] = await Promise.all([
-      page.waitForResponse(r => r.url().includes('/api/location') && r.request().method() === 'POST'),
+      page.waitForResponse(r => r.url().includes('/api/venues') && r.request().method() === 'POST'),
       submitButton.click()
     ]);
     expect(response.status()).toBeLessThan(300);
@@ -99,7 +99,7 @@ test.describe.serial('Master Data: Locations / Venues', () => {
 
     const saveButton = modal.getByRole('button', { name: /aktualisieren|update|speichern|save/i });
     const [response] = await Promise.all([
-      page.waitForResponse(r => r.url().includes('/api/location') && r.request().method() === 'PUT'),
+      page.waitForResponse(r => r.url().includes('/api/venues') && r.request().method() === 'PUT'),
       saveButton.click()
     ]);
     expect(response.status()).toBeLessThan(300);

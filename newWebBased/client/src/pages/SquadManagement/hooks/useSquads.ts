@@ -14,12 +14,15 @@ interface UseSquadsReturn {
   squads: Squad[];
   selectedSquad: Squad | null;
   isLoading: boolean;
+  pendingDeleteSquadId: number | string | null;
   setSelectedSquad: (squad: Squad | null) => void;
   loadSquads: () => Promise<void>;
   forceLoadSquads: () => Promise<void>;
   createSquad: (name: string) => Promise<void>;
   updateSquad: (oldName: string, newName: string) => Promise<void>;
-  deleteSquad: (squadId: number | string) => Promise<void>;
+  requestDeleteSquad: (squadId: number | string) => Promise<void>;
+  confirmDeleteSquad: () => Promise<void>;
+  cancelDeleteSquad: () => void;
 }
 
 export const useSquads = (eventId: string | null): UseSquadsReturn => {
@@ -27,6 +30,7 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
   const [squads, setSquads] = useState<Squad[]>([]);
   const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingDeleteSquadId, setPendingDeleteSquadId] = useState<number | string | null>(null);
 
   /**
    * Keep selected squad in sync with server data
@@ -173,29 +177,40 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
   };
 
   /**
-   * Delete a squad
+   * Request delete — opens modal instead of native confirm
    */
-  const deleteSquad = async (squadId: number | string) => {
-    if (!eventId) return;
-    
-    const squadName = typeof squadId === 'string' 
-      ? squadId 
+  const requestDeleteSquad = async (squadId: number | string): Promise<void> => {
+    setPendingDeleteSquadId(squadId);
+  };
+
+  const cancelDeleteSquad = () => {
+    setPendingDeleteSquadId(null);
+  };
+
+  /**
+   * Confirm and execute squad deletion
+   */
+  const confirmDeleteSquad = async () => {
+    if (!eventId || pendingDeleteSquadId === null) return;
+    const squadId = pendingDeleteSquadId;
+    setPendingDeleteSquadId(null);
+
+    const squadName = typeof squadId === 'string'
+      ? squadId
       : squads.find(s => s.id === squadId)?.name;
-    
+
     if (!squadName) {
       console.error('Squad not found');
       return;
     }
-    
-    if (!confirm(t('squadManagement.messages.confirmDelete'))) return;
-    
+
     try {
       await apiDelete(`/squad-management/delete?squadName=${encodeURIComponent(squadName)}&eventId=${eventId}`);
-      
+
       console.log('🔄 Force reloading data after squad deletion...');
       await forceLoadSquads();
       console.log('✅ Force data reload completed after squad deletion');
-      
+
       // Clear selection if deleted squad was selected
       if (selectedSquad && (selectedSquad.id === squadId || selectedSquad.name === squadName)) {
         setSelectedSquad(null);
@@ -275,11 +290,14 @@ export const useSquads = (eventId: string | null): UseSquadsReturn => {
     squads,
     selectedSquad,
     isLoading,
+    pendingDeleteSquadId,
     setSelectedSquad,
     loadSquads,
     forceLoadSquads,
     createSquad,
     updateSquad,
-    deleteSquad
+    requestDeleteSquad,
+    confirmDeleteSquad,
+    cancelDeleteSquad,
   };
 };
