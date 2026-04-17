@@ -243,7 +243,7 @@ const devices = [
   { name: "Barren", anzeigename: "Barren", kurzname: "BARR", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/barren.png", formula: "LK", sport: "Turnen DTB", bol_m: true, bol_w: false },
   { name: "Reck", anzeigename: "Reck", kurzname: "RECK", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/reck.png", formula: "LK", sport: "Turnen DTB", bol_m: true, bol_w: false },
   { name: "Sprung w", anzeigename: "Sprung", kurzname: "SPRNG", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/sprung.png", formula: "LK", sport: "Turnen DTB", bol_m: false, bol_w: true },
-  { name: "Stufenbarren", anzeigename: "Stufenbarren", kurzname: "STUBA", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/stufenbarren.png", formula: "LK", sport: "Turnen DTB", bol_m: false, bol_w: true },
+  { name: "Stufenbarren", anzeigename: "Stufenbarren", kurzname: "STUBA", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/barren.png", formula: "LK", sport: "Turnen DTB", bol_m: false, bol_w: true },
   { name: "Schwebebalken", anzeigename: "Schwebebalken", kurzname: "BALKN", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/balken.png", formula: "LK", sport: "Turnen DTB", bol_m: false, bol_w: true },
   { name: "Boden w", anzeigename: "Boden", kurzname: "BODEN", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/boden.png", formula: "LK", sport: "Turnen DTB", bol_m: false, bol_w: true },
   { name: "Minitrampolin", anzeigename: "Minitrampolin", kurzname: "MINIT", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/minitrampolin.png", formula: "LK", sport: "Turnen DTB", bol_m: true, bol_w: true },
@@ -312,7 +312,7 @@ const devices = [
   { name: "Par.-Barren P1-P9", anzeigename: "Par.-Barren P1-P9", kurzname: "PBARP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/barren.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: false, bol_w: true, isP: true, fields: pFields },
   { name: "Reck m. P1-P9", anzeigename: "Reck m. P1-P9", kurzname: "RECKP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/reck.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: true, bol_w: false, isP: true, fields: pFields },
   { name: "Sprung w. P1-P9", anzeigename: "Sprung w. P1-P9", kurzname: "SPRWP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/sprung.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: false, bol_w: true, isP: true, fields: pFields },
-  { name: "Reck/StuBa. P1-P9", anzeigename: "Reck/StuBa. P1-P9", kurzname: "RKSBP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/stufenbarren.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: false, bol_w: true, isP: true, fields: pFields },
+  { name: "Reck/StuBa. P1-P9", anzeigename: "Reck/StuBa. P1-P9", kurzname: "RKSBP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/barren.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: false, bol_w: true, isP: true, fields: pFields },
   { name: "Schwebebalken P1-P9", anzeigename: "Schwebebalken P1-P9", kurzname: "BALKP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/balken.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: false, bol_w: true, isP: true, fields: pFields },
   { name: "Boden w. P1-P9", anzeigename: "Boden w. P1-P9", kurzname: "BODWP", eingabemaske: "0.00", einheit: "Pkt.", symbol: "/icons/boden.png", formula: "P-Wettkampf", sport: "Turnen DTB P", bol_m: false, bol_w: true, isP: true, fields: pFields }
 ];

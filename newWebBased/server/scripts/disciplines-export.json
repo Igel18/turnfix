@@ -5505,7 +5505,7 @@ Found 139 disciplines
     "var_formel": null,
     "var_maske": "0.00",
     "int_versuche": 1,
-    "var_icon": "/icons/stufenbarren.png",
+    "var_icon": "/icons/barren.png",
     "var_kuerzel": null,
     "int_berechnung": 2,
     "var_einheit": "Pkt.",

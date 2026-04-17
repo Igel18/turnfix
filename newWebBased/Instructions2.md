@@ -528,6 +528,7 @@ Die Doku muss auch mit dem Setup mitgeliefert werden und soll über einen Deskto
 	-> Erledigt ✅ | String-basierte Eingabe, roter Rahmen + Fehlermeldung bei ungültigem Wert, Generieren-Button deaktiviert bis alle Felder valide
 
 70. [Bug] Löschen von Teilnhemern erscheint ein nicht lokalisierter Dialog 
+	-> Erledigt ✅ | Löschen-Bestätigungsdialog war bereits durch UnifiedDialog/i18n korrekt lokalisiert.
 
 71. [Bug] Hinzufügen von Teilnehmern ist der Modale Dialog nicht lokalisiert 
 	-> Erledigt ✅ 
@@ -553,6 +554,7 @@ Wird über die Globale Event Filterfunktion etwas gesucht und ausgewählt, sprin
 -> Erledigt ✅ | useFilterPanel Hook implementiert: auto-show bei aktivem Filter, Reset beim Ausblenden, prefillSearch-URL-Param öffnet Filter-Panel automatisch; Tests in useFilterPanel.test.ts
 
 75. [Bug] Beim dem DB-Wizard werden geräte angelegt. U.a. auch Stufenbarren in verschiedenen konstellationen (mit P, LK usw.). Hier fehlt noch das Icon. Es soll das Icon "Barren" bekommen. 
+	-> Erledigt ✅ | Alle Stufenbarren-Einträge in den Seed-/Preset-Dateien (productionDisciplines.ts, disciplines-production.json, gymnet-preset.json, disciplines-gymnet.json) auf icon :/icons/barren.png umgestellt.
 
 76. Alter / Geburtsdatum
 Beim Anlegen von Athleten auf der Seite participants kann man das Geburtsdatum angeben. Es wird jedoch nur das Jahr gespeichert, nicht der Tag & Monat. TDD
@@ -703,6 +705,7 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 -> Erledigt ✅ | Root cause: Server mapped `dat_geburtstag` → `birthYear` (year only) — day/month lost. `EditParticipantForm` constructed date as `YYYY-01-01`. Fix: New `participantBirthdayUtils.ts` with `formatBirthday()` (uses UTC methods for DATE columns); server now returns `birthday: YYYY-MM-DD` alongside `birthYear`; `EditParticipantForm` uses `participant.birthday` with year-only fallback. TDD: 10 server unit tests + 6 client component tests (RED→GREEN). `Participant` type updated with `birthday?: string`.
 
 103. [improvement] in der results UI werden im Filter die Wettkämpfe im absteigend angezeigt. Aufsteigend wäre korrekt
+	-> Erledigt ✅ | useResultsData.fetchCompetitions() sortiert Wettkämpfe jetzt numerisch aufsteigend nach number. 2 Unit-Tests ergänzt (useResultsData.test.ts).
 
 104. [Bug] Riegen Status wird nicht angezeigt 
 -> Erledigt ✅ | Root cause: useSquadDisciplineStatus-Hook (1) empfing squadDisciplineStatuses nie von useScoreData (squadStatus immer null), (2) rief falschen Endpoint apiPost('/squad-disciplines') statt PUT /:squadName/:disciplineId/status auf. Fix: Hook akzeptiert squadDisciplineStatuses als Prop + onSquadDisciplineStatusChange-Callback; index.tsx leitet Daten durch; fetch PUT für Save. TDD: 12 Unit-Tests in useSquadDisciplineStatus.test.ts.

@@ -50,8 +50,15 @@ export function useResultsData(
       const cacheBuster = Date.now();
       const data = await apiGet(`/competitions?eventId=${eventId}&_cb=${cacheBuster}`);
       const competitionsArray = Array.isArray(data) ? data : [];
-      setCompetitions(competitionsArray);
-      return competitionsArray;
+      // Sort ascending by competition number (numeric), fallback to id
+      const sorted = [...competitionsArray].sort((a, b) => {
+        const numA = parseInt(String(a.number ?? a.id ?? 0), 10);
+        const numB = parseInt(String(b.number ?? b.id ?? 0), 10);
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numA - numB;
+        return (a.name ?? '').localeCompare(b.name ?? '');
+      });
+      setCompetitions(sorted);
+      return sorted;
     } catch (error) {
       console.error('Error fetching competitions:', error);
       setCompetitions([]);

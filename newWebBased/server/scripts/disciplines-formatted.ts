@@ -3762,7 +3762,7 @@
     maske: '0.00',
     versuche: 1,
     einheit: 'Pkt.',
-    icon: '/icons/stufenbarren.png',
+    icon: '/icons/barren.png',
     kuerzel: '',
     sportart: 'Turnen DTB P',
     maennlich: false,

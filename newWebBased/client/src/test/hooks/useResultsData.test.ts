@@ -731,4 +731,44 @@ describe('useResultsData', () => {
     expect(group!.disciplines).toContain('Boden w')
     expect(group!.disciplines).toContain('Sprung w')
   })
+
+  it('fetchCompetitions returns competitions sorted ascending by number (point 103)', async () => {
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockResolvedValueOnce([
+      { id: 3, name: 'Wettkampf 3', number: '3' },
+      { id: 1, name: 'Wettkampf 1', number: '1' },
+      { id: 2, name: 'Wettkampf 2', number: '2' },
+    ])
+
+    const { result } = renderHook(() => useResultsData('1', ''))
+
+    let competitions: any[] = []
+    await act(async () => {
+      competitions = await result.current.fetchCompetitions()
+    })
+
+    expect(competitions.map(c => c.number)).toEqual(['1', '2', '3'])
+    expect(result.current.competitions.map(c => c.number)).toEqual(['1', '2', '3'])
+  })
+
+  it('fetchCompetitions sorts competitions numerically (not lexicographically)', async () => {
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockResolvedValueOnce([
+      { id: 10, name: 'Wettkampf 10', number: '10' },
+      { id: 2, name: 'Wettkampf 2', number: '2' },
+      { id: 9, name: 'Wettkampf 9', number: '9' },
+    ])
+
+    const { result } = renderHook(() => useResultsData('1', ''))
+
+    let competitions: any[] = []
+    await act(async () => {
+      competitions = await result.current.fetchCompetitions()
+    })
+
+    // Numeric sort: 2, 9, 10 — not lexicographic: 10, 2, 9
+    expect(competitions.map(c => c.number)).toEqual(['2', '9', '10'])
+  })
 })
