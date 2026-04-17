@@ -469,3 +469,209 @@ describe('useAddParticipantWizard – filteredCompetitions with birthYear', () =
     expect(ids).not.toContain(3);
   });
 });
+
+// ── Feature 67: createAthlete step ───────────────────────────────────────────
+
+describe('useAddParticipantWizard – createAthlete step (Feature 67)', () => {
+  const competitions = [makeCompetition({ id: 1, gender: 'gemischt', ageFrom: 8, ageTo: 16 })];
+
+  it('handleGoToCreateAthlete switches step to createAthlete', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+
+    expect(result.current.step).toBe('participant');
+
+    act(() => {
+      result.current.handleGoToCreateAthlete();
+    });
+
+    expect(result.current.step).toBe('createAthlete');
+  });
+
+  it('handleCreateFormChange updates createForm field and clears its error', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+
+    act(() => result.current.handleGoToCreateAthlete());
+
+    // Trigger validation errors first
+    await act(async () => {
+      await result.current.handleCreateAndAdd();
+    });
+    expect(result.current.createErrors.firstname).toBe('required');
+
+    // Now fill the field — error should clear
+    act(() => result.current.handleCreateFormChange('firstname', 'Anna'));
+
+    expect(result.current.createForm.firstname).toBe('Anna');
+    expect(result.current.createErrors.firstname).toBeUndefined();
+  });
+
+  it('handleCreateAndAdd sets validation errors when required fields are missing', async () => {
+    const { apiGet } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+    act(() => result.current.handleGoToCreateAthlete());
+
+    await act(async () => {
+      await result.current.handleCreateAndAdd();
+    });
+
+    expect(result.current.createErrors.firstname).toBe('required');
+    expect(result.current.createErrors.lastname).toBe('required');
+    expect(result.current.createErrors.gender).toBe('required');
+    expect(result.current.createErrors.clubId).toBe('required');
+  });
+
+  it('handleCreateAndAdd calls apiPost with correct payload', async () => {
+    const { apiGet, apiPost } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (apiPost as ReturnType<typeof vi.fn>).mockResolvedValue({
+      int_teilnehmerid: 42,
+      var_vorname: 'Anna',
+      var_nachname: 'Müller',
+      int_geschlecht: 2,
+      int_vereineid: 5,
+    });
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+    act(() => result.current.handleGoToCreateAthlete());
+
+    await act(async () => {
+      result.current.handleCreateFormChange('firstname', 'Anna');
+      result.current.handleCreateFormChange('lastname', 'Müller');
+      result.current.handleCreateFormChange('gender', '2');
+      result.current.handleCreateFormChange('clubId', '5');
+    });
+
+    await act(async () => {
+      await result.current.handleCreateAndAdd();
+    });
+
+    expect(apiPost).toHaveBeenCalledWith('/participants', expect.objectContaining({
+      var_vorname: 'Anna',
+      var_nachname: 'Müller',
+      int_geschlecht: 2,
+      int_vereineid: 5,
+    }));
+  });
+
+  it('handleCreateAndAdd includes birthday in payload when provided', async () => {
+    const { apiGet, apiPost } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (apiPost as ReturnType<typeof vi.fn>).mockResolvedValue({
+      int_teilnehmerid: 99,
+      var_vorname: 'Ben',
+      var_nachname: 'Test',
+      int_geschlecht: 1,
+      int_vereineid: 3,
+    });
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+    act(() => result.current.handleGoToCreateAthlete());
+
+    await act(async () => {
+      result.current.handleCreateFormChange('firstname', 'Ben');
+      result.current.handleCreateFormChange('lastname', 'Test');
+      result.current.handleCreateFormChange('gender', '1');
+      result.current.handleCreateFormChange('clubId', '3');
+      result.current.handleCreateFormChange('birthday', '2010-05-15');
+    });
+
+    await act(async () => {
+      await result.current.handleCreateAndAdd();
+    });
+
+    expect(apiPost).toHaveBeenCalledWith('/participants', expect.objectContaining({
+      dat_geburtstag: '2010-05-15',
+    }));
+  });
+
+  it('handleCreateAndAdd without birthday does NOT include dat_geburtstag in payload', async () => {
+    const { apiGet, apiPost } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (apiPost as ReturnType<typeof vi.fn>).mockResolvedValue({
+      int_teilnehmerid: 77,
+      var_vorname: 'Clara',
+      var_nachname: 'Test',
+      int_geschlecht: 2,
+      int_vereineid: 2,
+    });
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+    act(() => result.current.handleGoToCreateAthlete());
+
+    await act(async () => {
+      result.current.handleCreateFormChange('firstname', 'Clara');
+      result.current.handleCreateFormChange('lastname', 'Test');
+      result.current.handleCreateFormChange('gender', '2');
+      result.current.handleCreateFormChange('clubId', '2');
+      // no birthday
+    });
+
+    await act(async () => {
+      await result.current.handleCreateAndAdd();
+    });
+
+    const [, payload] = (apiPost as ReturnType<typeof vi.fn>).mock.calls.at(-1)!;
+    expect(payload).not.toHaveProperty('dat_geburtstag');
+  });
+
+  it('after successful create, selectedParticipant is set to the newly created person', async () => {
+    const { apiGet, apiPost } = await import('@/utils/api');
+    (apiGet as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (apiPost as ReturnType<typeof vi.fn>).mockResolvedValue({
+      int_teilnehmerid: 55,
+      var_vorname: 'Dora',
+      var_nachname: 'Neu',
+      int_geschlecht: 2,
+      int_vereineid: 1,
+    });
+
+    const { result } = renderHook(() =>
+      useAddParticipantWizard({ ...baseProps, isOpen: true, competitions }),
+    );
+    await act(async () => {});
+    act(() => result.current.handleGoToCreateAthlete());
+
+    await act(async () => {
+      result.current.handleCreateFormChange('firstname', 'Dora');
+      result.current.handleCreateFormChange('lastname', 'Neu');
+      result.current.handleCreateFormChange('gender', '2');
+      result.current.handleCreateFormChange('clubId', '1');
+    });
+
+    await act(async () => {
+      await result.current.handleCreateAndAdd();
+    });
+
+    // New participant is immediately selected after creation
+    expect(result.current.selectedParticipant).not.toBeNull();
+    expect(result.current.selectedParticipant?.id).toBe(55);
+    expect(result.current.selectedParticipant?.firstname).toBe('Dora');
+    expect(result.current.selectedParticipant?.lastname).toBe('Neu');
+  });
+});
