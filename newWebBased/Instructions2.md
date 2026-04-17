@@ -535,7 +535,7 @@ Sollte auch direkt in der Veranstaltung funktionieren und dann bei den Athletes 
 72. [Feature] Beim PDF Export müssen noch ein paar informationen mit dran. 
 Teilnehmerexport: Wettkampfnummer 
 Riegenliste: Wettkampf zusätzlich an die Teilnehmer 
--> In Arbeit 🚀 | Tests fehlen
+-> Erledigt ✅ | Teilnehmer-PDF: Spalte "Wettkämpfe" mit "Name (Nr. X)" hinzugefügt; Riegenliste: Wettkampfnummer in Teilnehmer-Tabellenzeilen; 11 Unit-Tests + Integration (squadPdfExport.test.ts) + 11 Tests eventParticipantsPdfCompetition.test.ts
 
 73. [Feature] Beim Automatischen Riegen erzeugen gehe ich wie folgt vor: 
 1. Analyse wie viele Geräte geturnt werden müssen (je Wettkampf). Manche haben 4-Kampf manche 6-Kampf, das beeinflusst natürlich die Wettkampfdauer und damit die angestrebte Riegengröße 
@@ -566,18 +566,18 @@ Die Filter bei der Riegeneinteilung müssen besser werden.
 a) Man muss über zugewiesen und nicht zugewiesenen Teilnehmern filtern können 
 b) der Namensfilter muss in den "Filter" Bereich 
 c) Es muss auch nach Jahrgang gefiltert werden können 
--> In Arbeit 🚀 | Tests fehlen
+-> Erledigt ✅ | Alle drei Filter implementiert (assignmentStatus, Namensfilter im Filter-Bereich, Jahrgang); 14 Unit-Tests in squadManagement78_79_80.test.ts
 
 79. [improvement] Riegeneinteilung UI 
 In der Spalte Riegen stehen nicht alle Wettkämpfe dran sondern nur 2 stück 
 Bei den Riegen Details steht bei den Teilnehmern fast keine Info dabei. Hier muss die gleiche Karte wie in der Spalte "Teilnehmer" angezeigt werden, mit den ganzen Details. 
 Und die Spalte ist in der Höhe ziemlich begrenzt. Das muss viel länger sein... 
--> In Arbeit 🚀 | Tests fehlen
+-> Erledigt ✅ | MasterList zeigt bis zu 5 Tags (alle Wettkämpfe); Detail-Karte nutzt ParticipantCard; keine Höhenbeschränkung; 5 Unit-Tests in squadManagement78_79_80.test.ts
 
 80. [improvement] Riegeneinteilung 
 Beim klick auf den Pfeil zum entfernen eines Teilnehmers aus der Spalte "Riege Details" aktualisiert die UI nicht. erst nach dem manuellen aktualisieren sieht man welche teilnehmer wo drin sind. 
 Es aktualisiert auch nicht diese Spalte, wenn Teilnehmer hinzugefügt werden... 
--> In Arbeit 🚀 | Tests fehlen 
+-> Erledigt ✅ | useSquadAssignment ruft onDataChange() nach Zuweisung/Entfernung auf; DetailPane-Key beinhaltet participants.length für erzwungenes Re-Render; 4 Unit-Tests in squadManagement78_79_80.test.ts
 
 81. [Bug] Riegenliste PDF 
 Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt. 

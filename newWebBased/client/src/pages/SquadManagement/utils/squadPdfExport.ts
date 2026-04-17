@@ -135,7 +135,7 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
         p.birthYear ? p.birthYear.toString() : t('squadManagement.pdf.notAvailable'),
         p.club || t('squadManagement.pdf.noClub'),
         (p.competitions && p.competitions.length > 0)
-          ? p.competitions.map(c => c.name).join(', ')
+          ? p.competitions.map(c => c.number ? `${c.name} (Nr. ${c.number})` : c.name).join(', ')
           : '',
         p.startNumber ? p.startNumber.toString() : '',
       ]);

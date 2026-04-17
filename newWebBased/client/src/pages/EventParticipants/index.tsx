@@ -196,12 +196,26 @@ export default function EventParticipants() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
+    // Build a lookup map: competition ID → "Name (Nr. X)"
+    const competitionLabel = (ids: number[]): string => {
+      if (!ids || ids.length === 0) return '-';
+      return ids
+        .map((id) => {
+          const comp = competitions.find((c) => c.id === id);
+          if (!comp) return '';
+          return comp.number ? `${comp.name} (Nr. ${comp.number})` : comp.name;
+        })
+        .filter(Boolean)
+        .join(', ') || '-';
+    };
+
     const tableData = sortedParticipants.map((p) => [
       `${p.firstname} ${p.lastname}`,
       p.startNumber?.toString() || '-',
       p.club,
       p.age.toString(),
       t(`common.gender.${p.gender}`),
+      competitionLabel(p.assignedCompetitions),
       p.squad_name || '-',
       p.startet_nicht ? t('eventParticipants.status.notStarting') : t('eventParticipants.status.active'),
     ]);
@@ -214,6 +228,7 @@ export default function EventParticipants() {
           labels.club,
           labels.age,
           labels.gender,
+          t('eventParticipants.table.competitions'),
           labels.squad,
           labels.status,
         ],

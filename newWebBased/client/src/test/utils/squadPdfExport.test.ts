@@ -298,7 +298,7 @@ describe('exportSquadsPDF', () => {
       expect(row[0]).toBe(`${p.firstname} ${p.lastname}`);
       expect(row[1]).toBe(p.birthYear.toString());
       expect(row[2]).toBe(p.club);
-      expect(row[3]).toBe('4-Kampf w P');
+      expect(row[3]).toBe('4-Kampf w P (Nr. 1)');
       expect(row[4]).toBe(p.startNumber!.toString());
     });
 
@@ -337,6 +337,47 @@ describe('exportSquadsPDF', () => {
       exportSquadsPDF({ squads: [squad], selectedEvent: makeEvent(), t: makeT() });
 
       expect(autoTableMock).not.toHaveBeenCalled();
+    });
+
+    // ── Point 72: Competition number in participant rows ──────
+
+    it('shows competition name AND number in participant row when number is set', () => {
+      const p = {
+        ...makeParticipant(1),
+        competitions: [{ id: 7, name: 'Mehrkampf', number: '3' }],
+      };
+      const squad: Squad = { ...makeSquad(1, 1), participants: [p] };
+      exportSquadsPDF({ squads: [squad], selectedEvent: makeEvent(), t: makeT() });
+
+      const row: string[] = autoTableCalls[0].body[0];
+      expect(row[3]).toBe('Mehrkampf (Nr. 3)');
+    });
+
+    it('shows only competition name when number is empty string', () => {
+      const p = {
+        ...makeParticipant(1),
+        competitions: [{ id: 8, name: 'Pflichtprogramm', number: '' }],
+      };
+      const squad: Squad = { ...makeSquad(1, 1), participants: [p] };
+      exportSquadsPDF({ squads: [squad], selectedEvent: makeEvent(), t: makeT() });
+
+      const row: string[] = autoTableCalls[0].body[0];
+      expect(row[3]).toBe('Pflichtprogramm');
+    });
+
+    it('joins multiple competitions with comma and includes numbers', () => {
+      const p = {
+        ...makeParticipant(1),
+        competitions: [
+          { id: 1, name: 'Boden', number: '10' },
+          { id: 2, name: 'Sprung', number: '11' },
+        ],
+      };
+      const squad: Squad = { ...makeSquad(1, 1), participants: [p] };
+      exportSquadsPDF({ squads: [squad], selectedEvent: makeEvent(), t: makeT() });
+
+      const row: string[] = autoTableCalls[0].body[0];
+      expect(row[3]).toBe('Boden (Nr. 10), Sprung (Nr. 11)');
     });
   });
 
