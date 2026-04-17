@@ -451,7 +451,7 @@ Das sollte ja einfach über das JSON zu lösen sein...
 	-> Erledigt ✅
 
 61. Sample data 
-Ich habe gedacht die sample data werden jetzt auch mit einem JSON importiert. Aber jetzt sehe ich, dass diese im SampleDataImport.ts drin stehen. Das muss geänderte werden. 
+	-> Erledigt ✅ | Sample-Daten werden aus JSON-Dateien importiert.
 
 62. Formel Felder & Jury-Wertungen Konzept: 
 Also die Möglichkeit die Jury-Wertungen anzuzeigen/auszublenden im score-capture gefällt mir nicht so gut. 
@@ -599,10 +599,7 @@ Betroffene Dateien: ScoreCapture/index.tsx, SquadDisciplineSelector.tsx, useScor
 
 
 83. [improvement] Events GymNet Import -> Wizard
-http://localhost:3001/events 
-Der Dialog "Aus Gymnet Importieren" muss auch als Wizard ausgeführt werden. 
-Wichtig ist noch, dass wir mehrere GymNet XML-Dateien gleichzeitig (oder in separaten Dialogen) auswählen können müssen, da Einzelwettkämpfe und Mannschaftswettkämpfe in verschiedenen Dateien kommen (auch wenn diese gleich aufgebaut sind). 
--> In Arbeit 🚀
+	-> Erledigt ✅ | GymNet-Import als Wizard umgesetzt; mehrere XML-Dateien (Einzelwettkampf + Mannschaftswettkampf) können gleichzeitig/sequenziell importiert werden.
 
 84. ✅ [Bug] Teilnehmer hinzufügen 
 Auf der Seite http://localhost:3001/event-participants kann man Teilnehmer mit dem Wizard hinzufügen. In dem WIzard wird eine Liste der TEilnehmer angezeigt. An den Teilnehmern sind auch noch details. Das Jahr wird aber nicht angezeigt, sondern nur "Jahre". TDD
