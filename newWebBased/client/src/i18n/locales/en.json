@@ -706,7 +706,9 @@
     "live": "Live",
     "liveUpdates": "Live Updates",
     "startNumber": "Start Number",
-    "confirmDeleteTitle": "Confirm Delete"
+    "confirmDeleteTitle": "Confirm Delete",
+    "optional": "Optional",
+    "fieldRequired": "Required field"
   },
   "events": {
     "title": "Event Management",
@@ -2988,6 +2990,7 @@
       "removeSuccess": "Successfully removed participant from event",
       "updateSuccess": "Successfully updated participant details",
       "addError": "Failed to add participant to event",
+      "createError": "Failed to create participant",
       "removeError": "Failed to remove participant from event",
       "updateError": "Failed to update participant details",
       "noParticipantsToExport": "No participants to export"
@@ -3042,7 +3045,18 @@
       "noMatchingCompetitions": "No matching competitions found",
       "tryDisablingFilters": "Try disabling the filters",
       "participantsInComp": "participants",
-      "addToCompetition": "Add to Competition"
+      "addToCompetition": "Add to Competition",
+      "createNewPerson": "Create New Person",
+      "stepCreateAthlete": "New Person",
+      "createAthleteTitle": "Create New Person",
+      "createFirstname": "First Name",
+      "createLastname": "Last Name",
+      "createGender": "Gender",
+      "createClub": "Club",
+      "createBirthday": "Date of Birth",
+      "createAndAdd": "Create Person & Add",
+      "selectGender": "Select gender…",
+      "selectClub": "Select club…"
     },
     "pdf": {
       "participantsList": "Participants List",

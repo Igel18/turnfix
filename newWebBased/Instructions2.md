@@ -519,7 +519,7 @@ Also:
 Die Doku muss auch mit dem Setup mitgeliefert werden und soll über einen Desktop Icon erreichbar sein. 
 
 67. [Feature] Teilnehmer hinzufügen 
-Sollte auch direkt in der Veranstaltung funktionieren und dann bei den Athletes angelegt werden 
+	-> Erledigt ✅ | "Neue Person anlegen" Button in Step 1 des Wizards; neuer createAthlete-Schritt mit Formular (Vorname, Nachname, Geschlecht, Verein, Geburtsdatum optional); nach Anlegen wird direkt zur Wettkampf-Auswahl weitergeleitet oder bei nur einem Wettkampf direkt hinzugefügt.
 
 68. [Feature] Beim Hinzufügen von Teilnehmern in einer Veranstaltung sollten die Startnummern vergeben werden 
 	-> Erledigt ✅
@@ -550,6 +550,7 @@ Riegenliste: Wettkampf zusätzlich an die Teilnehmer
 Wir haben auf fast jeder Seite einen Filter. Wenn ein Filter aktiv ist (also Filterkriterien eingestellt), dann muss der Filter angezeigt sein. 
 Andersherum. Wird der Filter mittels dem Button Filter ausgeblendet, muss der Filter zurückgesetzt werden. 
 Wird über die Globale Event Filterfunktion etwas gesucht und ausgewählt, springt man an die entsprechende stelle und auch hier muss dann der Filter angezeigt werden. 
+-> Erledigt ✅ | useFilterPanel Hook implementiert: auto-show bei aktivem Filter, Reset beim Ausblenden, prefillSearch-URL-Param öffnet Filter-Panel automatisch; Tests in useFilterPanel.test.ts
 
 75. [Bug] Beim dem DB-Wizard werden geräte angelegt. U.a. auch Stufenbarren in verschiedenen konstellationen (mit P, LK usw.). Hier fehlt noch das Icon. Es soll das Icon "Barren" bekommen. 
 
@@ -631,6 +632,7 @@ Hier lassen sich Teilnehmer hinzufügen. Aber Aber aus der Riege wieder entferne
 -> Erledigt ✅ | Root cause: `save-value` jury results SQL in `scoresScoring.ts` used snake_case column aliases (`field_name`, `sort_order`, `is_final_score`, `is_starting_score`) instead of camelCase (`"fieldName"`, `"sortOrder"`, `"isFinalScore"`, `"isStartingScore"`). `buildFieldSymbolsMap` only reads camelCase properties, so field-name matching always failed. For lowercase formula variables (e.g. `x` in `1*x`) there is no fallback-by-order mechanism → `valuesMap = {}` → `calculateFormula("1*x", {})` replaces `x` with `0` → returns `0` (not null) → overrides the correct body score → socket emits `score: 0` → Live view shows "0,0". Fix: Changed SQL aliases to camelCase (matching `juryResultsScoring.ts`). Added safety net: if formula recalculation yields `0` but body score is clearly non-zero, trust body score. TDD: 12 unit tests in `shared/src/__tests__/liveScoreCalculation.test.ts` (1 RED → 12 GREEN). Files: `server/src/routes/scoresScoring.ts`, `shared/src/__tests__/liveScoreCalculation.test.ts`.
 
 89. Die Wertungen die eingegeben werden, werden nicht im alten Turnfix angezeigt 
+	-> Erledigt ✅ | Scores werden korrekt in tfx_wertungen / tfx_wertungen_details geschrieben, welche auch das alte Qt-TurnFix liest. 
 
 90. Die Wertungen werden in den Ergebnissen nicht angezeigt. Es gibt wohl irgendwie einen Filter der in der URL bei den Ergebnissen gesetzt sein kann. Dann werden nicht alle Wertungen angezeigt. Das darf nicht sein... 
 TDD 
@@ -973,6 +975,15 @@ Line |
 133. Der Status Badge der Teilnehmer ist ja gar nicht Gerätespezifisch. Daher ist es quatsch diesen im Jury-Portal bei der Wertungseingabe anzuzeigen. 
 Das muss ausgeblendet werden und als technische Schuld gekennzeichnet, falls mal die DB erweitert wird. 
 -> Erledigt ✅
+
+134. [Feature] PDF Export vereinheitlichen
+a.) Reihenfolge der Spalten muss einheitlich sein (so wie bei "event-participants")
+b.) Button zum PDF Generieren muss überall identisch benannt sein und ggf. auch ein einheitliches Icon haben 
+c.) Seitenformat sollte eher im Querformat sein (bevor man Zeilenumbrüche erhält) 
+d.) Spaltenbezeichnung muss einheitlich sein (mal steht alter, mal Geburtsdatum drin -> so wie bei "event-participants") 
+
+135. [Refactoring] AddParticipantModal.tsx 
+In dieser Datei ist ziemlich viel Code, der auch in der Klasse AddParticipantModal drin sein sollte weil mit beiden UIs eine Person zur DB hinzugefügt werden kann. Hier sollten wahrscheinlich utils verwenden, was wir ja bisher so gemacht haben... 
 
 
 🚀 In Arbeit (unvollständig)

@@ -706,7 +706,9 @@
     "live": "Live",
     "liveUpdates": "Live-Updates",
     "startNumber": "Startnummer",
-    "confirmDeleteTitle": "Löschen bestätigen"
+    "confirmDeleteTitle": "Löschen bestätigen",
+    "optional": "Optional",
+    "fieldRequired": "Pflichtfeld"
   },
   "events": {
     "title": "Veranstaltungsverwaltung",
@@ -3025,6 +3027,7 @@
       "removeSuccess": "Teilnehmer erfolgreich aus der Veranstaltung entfernt",
       "updateSuccess": "Teilnehmerdaten erfolgreich aktualisiert",
       "addError": "Fehler beim Hinzufügen des Teilnehmers zur Veranstaltung",
+      "createError": "Fehler beim Anlegen des Teilnehmers",
       "removeError": "Fehler beim Entfernen des Teilnehmers aus der Veranstaltung",
       "updateError": "Fehler beim Aktualisieren der Teilnehmerdaten",
       "noParticipantsToExport": "Keine Teilnehmer zum Exportieren"
@@ -3079,7 +3082,18 @@
       "noMatchingCompetitions": "Keine passenden Wettkämpfe gefunden",
       "tryDisablingFilters": "Versuche die Filter zu deaktivieren",
       "participantsInComp": "Teilnehmer",
-      "addToCompetition": "Zum Wettkampf hinzufügen"
+      "addToCompetition": "Zum Wettkampf hinzufügen",
+      "createNewPerson": "Neue Person anlegen",
+      "stepCreateAthlete": "Neue Person",
+      "createAthleteTitle": "Neue Person anlegen",
+      "createFirstname": "Vorname",
+      "createLastname": "Nachname",
+      "createGender": "Geschlecht",
+      "createClub": "Verein",
+      "createBirthday": "Geburtsdatum",
+      "createAndAdd": "Person anlegen & hinzufügen",
+      "selectGender": "Geschlecht wählen…",
+      "selectClub": "Verein auswählen…"
     },
     "pdf": {
       "participantsList": "Teilnehmerliste",

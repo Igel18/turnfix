@@ -40,6 +40,13 @@ export function AddParticipantModal({
     loading,
     filteredParticipants,
     handleSelectParticipant,
+    handleGoToCreateAthlete,
+    createForm,
+    createErrors,
+    clubs,
+    creatingAthlete,
+    handleCreateFormChange,
+    handleCreateAndAdd,
     selectedParticipant,
     setSelectedParticipant,
     selectedCompetitionId,
@@ -123,6 +130,135 @@ export function AddParticipantModal({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Create New Person Button */}
+          <div className="mt-3 flex justify-center">
+            <button
+              onClick={handleGoToCreateAthlete}
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-500 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+            >
+              <UserPlus className="w-4 h-4" />
+              {t('eventParticipants.addModal.createNewPerson')}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ═══════════════════ STEP createAthlete: Create New Person ═══════════════════ */}
+      {step === 'createAthlete' && (
+        <>
+          <div className="space-y-4">
+            {/* Firstname */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.addModal.createFirstname')} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={createForm.firstname}
+                onChange={(e) => handleCreateFormChange('firstname', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${createErrors.firstname ? 'border-red-500' : 'border-gray-300'}`}
+                autoFocus
+              />
+              {createErrors.firstname && (
+                <p className="mt-1 text-xs text-red-600">{t('common.fieldRequired')}</p>
+              )}
+            </div>
+
+            {/* Lastname */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.addModal.createLastname')} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={createForm.lastname}
+                onChange={(e) => handleCreateFormChange('lastname', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${createErrors.lastname ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {createErrors.lastname && (
+                <p className="mt-1 text-xs text-red-600">{t('common.fieldRequired')}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('eventParticipants.addModal.createGender')} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={createForm.gender}
+                  onChange={(e) => handleCreateFormChange('gender', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white ${createErrors.gender ? 'border-red-500' : 'border-gray-300'}`}
+                >
+                  <option value="">{t('eventParticipants.addModal.selectGender')}</option>
+                  <option value="1">{t('common.gender.male')}</option>
+                  <option value="2">{t('common.gender.female')}</option>
+                </select>
+                {createErrors.gender && (
+                  <p className="mt-1 text-xs text-red-600">{t('common.fieldRequired')}</p>
+                )}
+              </div>
+
+              {/* Club */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('eventParticipants.addModal.createClub')} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={createForm.clubId}
+                  onChange={(e) => handleCreateFormChange('clubId', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white ${createErrors.clubId ? 'border-red-500' : 'border-gray-300'}`}
+                >
+                  <option value="">{t('eventParticipants.addModal.selectClub')}</option>
+                  {clubs.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                {createErrors.clubId && (
+                  <p className="mt-1 text-xs text-red-600">{t('common.fieldRequired')}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Birthday (optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('eventParticipants.addModal.createBirthday')}
+                <span className="ml-1 text-xs text-gray-400">({t('common.optional')})</span>
+              </label>
+              <input
+                type="date"
+                value={createForm.birthday}
+                onChange={(e) => handleCreateFormChange('birthday', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              onClick={() => setStep('participant')}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <span className="flex items-center gap-1">
+                <ArrowLeft className="w-4 h-4" />
+                {t('common.back')}
+              </span>
+            </button>
+            <button
+              onClick={handleCreateAndAdd}
+              disabled={creatingAthlete}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <UserPlus className="w-4 h-4" />
+              {creatingAthlete
+                ? t('common.loading')
+                : t('eventParticipants.addModal.createAndAdd')}
+            </button>
           </div>
         </>
       )}

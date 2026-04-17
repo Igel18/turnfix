@@ -57,7 +57,17 @@ export function ageMatchesCompetition(
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type AddParticipantWizardStep = 'participant' | 'competition';
+export type AddParticipantWizardStep = 'participant' | 'competition' | 'createAthlete';
+
+export interface CreateAthleteForm {
+  firstname: string;
+  lastname: string;
+  gender: string;   // '1' = male, '2' = female
+  clubId: string;
+  birthday: string; // 'YYYY-MM-DD' or ''
+}
+
+export type CreateAthleteErrors = Partial<Record<keyof CreateAthleteForm, string>>;
 
 export interface UseAddParticipantWizardProps {
   isOpen: boolean;
@@ -93,6 +103,15 @@ export function useAddParticipantWizard({
   const [filterByAge, setFilterByAge] = useState(true);
   const [adding, setAdding] = useState(false);
 
+  // Step createAthlete: create new person
+  const [createForm, setCreateForm] = useState<CreateAthleteForm>({
+    firstname: '', lastname: '', gender: '', clubId: '', birthday: '',
+  });
+  const [createErrors, setCreateErrors] = useState<CreateAthleteErrors>({});
+  const [clubs, setClubs] = useState<{ id: number; name: string }[]>([]);
+  const [creatingAthlete, setCreatingAthlete] = useState(false);
+  const [isCreatingNewPerson, setIsCreatingNewPerson] = useState(false);
+
   // ── Reset on open ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return;
@@ -103,7 +122,11 @@ export function useAddParticipantWizard({
     setFilterByGender(true);
     setFilterByAge(true);
     setAdding(false);
+    setCreateForm({ firstname: '', lastname: '', gender: '', clubId: '', birthday: '' });
+    setCreateErrors({});
+    setIsCreatingNewPerson(false);
     loadAvailableParticipants();
+    loadClubs();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Data loading ─────────────────────────────────────────────────────────────
@@ -149,7 +172,101 @@ export function useAddParticipantWizard({
     }
   };
 
+  const loadClubs = async () => {
+    try {
+      const data = await apiGet('/clubs');
+      const list: any[] = Array.isArray(data) ? data : (data?.clubs ?? []);
+      setClubs(list.map((c: any) => ({ id: c.id ?? c.int_vereineid, name: c.name ?? c.var_name ?? '' })));
+    } catch (err) {
+      console.error('useAddParticipantWizard: error loading clubs', err);
+    }
+  };
+
   // ── Handlers ─────────────────────────────────────────────────────────────────
+
+  /** Step 1 → navigate to the "create new person" step. */
+  const handleGoToCreateAthlete = () => {
+    setCreateForm({ firstname: '', lastname: '', gender: '', clubId: '', birthday: '' });
+    setCreateErrors({});
+    setIsCreatingNewPerson(true);
+    setStep('createAthlete');
+  };
+
+  /** createAthlete step: update a single form field. */
+  const handleCreateFormChange = (field: keyof CreateAthleteForm, value: string) => {
+    setCreateForm((prev) => ({ ...prev, [field]: value }));
+    if (createErrors[field]) {
+      setCreateErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  /** createAthlete step: POST new participant and then proceed to competition selection. */
+  const handleCreateAndAdd = async () => {
+    // Validate required fields
+    const errors: CreateAthleteErrors = {};
+    if (!createForm.firstname.trim()) errors.firstname = 'required';
+    if (!createForm.lastname.trim()) errors.lastname = 'required';
+    if (!createForm.gender) errors.gender = 'required';
+    if (!createForm.clubId) errors.clubId = 'required';
+    if (Object.keys(errors).length > 0) {
+      setCreateErrors(errors);
+      return;
+    }
+
+    setCreatingAthlete(true);
+    try {
+      const payload: Record<string, unknown> = {
+        var_vorname: createForm.firstname.trim(),
+        var_nachname: createForm.lastname.trim(),
+        int_geschlecht: parseInt(createForm.gender, 10),
+        int_vereineid: parseInt(createForm.clubId, 10),
+      };
+      if (createForm.birthday) {
+        payload.dat_geburtstag = createForm.birthday;
+      }
+
+      const created = await apiPost('/participants', payload);
+
+      // Compute age / birthYear from the provided birthday
+      const birthYear = createForm.birthday
+        ? new Date(createForm.birthday).getFullYear()
+        : created.dat_geburtstag
+          ? new Date(created.dat_geburtstag).getFullYear()
+          : 0;
+      const age = birthYear ? new Date().getFullYear() - birthYear : 0;
+      const clubName = clubs.find((c) => c.id === parseInt(createForm.clubId, 10))?.name
+        ?? created.verein_name ?? '';
+
+      const newParticipant: Participant = {
+        id: created.int_teilnehmerid ?? created.id,
+        firstname: created.var_vorname ?? createForm.firstname.trim(),
+        lastname: created.var_nachname ?? createForm.lastname.trim(),
+        club: clubName,
+        clubId: created.int_vereineid ?? parseInt(createForm.clubId, 10),
+        gender: normalizeGender(created.geschlecht_name ?? created.int_geschlecht),
+        age,
+        birthYear,
+        squad_name: '',
+        startet_nicht: false,
+        bol_ak: false,
+        var_comment: '',
+        isInEvent: false,
+        assignedCompetitions: [],
+        registrationDate: '',
+        startNumber: null,
+      };
+
+      // Add the new person to the available-participants list so it appears if the
+      // user navigates back, then proceed exactly like selecting an existing person.
+      setAvailableParticipants((prev) => [newParticipant, ...prev]);
+      handleSelectParticipant(newParticipant);
+    } catch (err) {
+      console.error('useAddParticipantWizard: error creating athlete', err);
+      alert(t('eventParticipants.messages.createError'));
+    } finally {
+      setCreatingAthlete(false);
+    }
+  };
 
   /** Step 1 → select a participant and decide whether to proceed to step 2. */
   const handleSelectParticipant = (participant: Participant) => {
@@ -242,12 +359,21 @@ export function useAddParticipantWizard({
   const modalTitle =
     step === 'participant'
       ? t('eventParticipants.addModal.title')
-      : t('eventParticipants.addModal.stepCompetition');
+      : step === 'createAthlete'
+        ? t('eventParticipants.addModal.createAthleteTitle')
+        : t('eventParticipants.addModal.stepCompetition');
 
-  const wizardSteps = [
-    { key: 'participant', label: t('eventParticipants.addModal.stepParticipant') },
-    { key: 'competition', label: t('eventParticipants.addModal.stepCompetitionShort') },
-  ];
+  // When going through the "create new person" path show 3 steps; otherwise 2.
+  const wizardSteps = isCreatingNewPerson
+    ? [
+        { key: 'participant', label: t('eventParticipants.addModal.stepParticipant') },
+        { key: 'createAthlete', label: t('eventParticipants.addModal.stepCreateAthlete') },
+        { key: 'competition', label: t('eventParticipants.addModal.stepCompetitionShort') },
+      ]
+    : [
+        { key: 'participant', label: t('eventParticipants.addModal.stepParticipant') },
+        { key: 'competition', label: t('eventParticipants.addModal.stepCompetitionShort') },
+      ];
 
   return {
     // navigation
@@ -261,6 +387,14 @@ export function useAddParticipantWizard({
     loading,
     filteredParticipants,
     handleSelectParticipant,
+    handleGoToCreateAthlete,
+    // step createAthlete
+    createForm,
+    createErrors,
+    clubs,
+    creatingAthlete,
+    handleCreateFormChange,
+    handleCreateAndAdd,
     // step 2
     selectedParticipant,
     setSelectedParticipant,
