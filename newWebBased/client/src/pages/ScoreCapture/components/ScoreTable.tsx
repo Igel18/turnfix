@@ -11,7 +11,7 @@
  * - Validation
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GenderBadge } from '@/components/GenderBadge'
 import { ScoreInputCell } from './ScoreInputCell'
@@ -60,6 +60,7 @@ export const ScoreTable = ({
 }: ScoreTableProps) => {
   const { t } = useTranslation()
   const [visibleRows, setVisibleRows] = useState(INITIAL_VISIBLE_ROWS)
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setVisibleRows(INITIAL_VISIBLE_ROWS)
@@ -67,6 +68,36 @@ export const ScoreTable = ({
 
   const visibleParticipants = filteredParticipants.slice(0, visibleRows)
   const hasMoreRows = filteredParticipants.length > visibleRows
+
+  useEffect(() => {
+    if (!hasMoreRows || !loadMoreSentinelRef.current) {
+      return
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      return
+    }
+
+    const sentinel = loadMoreSentinelRef.current
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry?.isIntersecting) {
+          setVisibleRows(prev => Math.min(filteredParticipants.length, prev + LOAD_MORE_STEP))
+        }
+      },
+      {
+        root: null,
+        rootMargin: '300px 0px',
+        threshold: 0,
+      }
+    )
+
+    observer.observe(sentinel)
+    return () => {
+      observer.disconnect()
+    }
+  }, [hasMoreRows, filteredParticipants.length])
 
   if (filteredParticipants.length === 0) {
     return (
@@ -209,6 +240,7 @@ export const ScoreTable = ({
           </button>
         </div>
       )}
+      <div ref={loadMoreSentinelRef} className="h-1 w-full" />
     </div>
   )
 }
