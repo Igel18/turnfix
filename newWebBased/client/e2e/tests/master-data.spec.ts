@@ -41,7 +41,7 @@ test.describe.serial('Master Data: Regions', () => {
   test('can open add modal', async ({ page }) => {
     await navigateTo(page, '/regions');
     await waitForLoadingToFinish(page);
-    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i });
+    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i }).first();
     await expect(addButton).toBeVisible();
     await addButton.click();
     // Modal should appear
@@ -53,7 +53,7 @@ test.describe.serial('Master Data: Regions', () => {
     await navigateTo(page, '/regions');
     await waitForLoadingToFinish(page);
 
-    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i });
+    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i }).first();
     await addButton.click();
 
     const modal = page.locator('.fixed.inset-0, [role="dialog"]').first();
@@ -183,7 +183,7 @@ test.describe.serial('Master Data: Regions', () => {
     await navigateTo(page, '/regions');
     await waitForLoadingToFinish(page);
 
-    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i });
+    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i }).first();
     await addButton.click();
 
     const modal = page.locator('.fixed.inset-0, [role="dialog"]').first();
@@ -207,7 +207,7 @@ test.describe('Required Field Markers', () => {
     await navigateTo(page, '/regions');
     await waitForLoadingToFinish(page);
 
-    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i });
+    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i }).first();
     await addButton.click();
 
     const modal = page.locator('.fixed.inset-0, [role="dialog"]').first();
@@ -245,7 +245,7 @@ test.describe('Required Field Markers', () => {
     await navigateTo(page, '/associations');
     await waitForLoadingToFinish(page);
 
-    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i });
+    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i }).first();
     await addButton.click();
 
     const modal = page.locator('.fixed.inset-0, [role="dialog"]').first();
@@ -272,7 +272,7 @@ test.describe('Required Field Markers', () => {
     await navigateTo(page, '/regions');
     await waitForLoadingToFinish(page);
 
-    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i });
+    const addButton = page.getByRole('button', { name: /hinzufügen|add|neu/i }).first();
     await addButton.click();
 
     const modal = page.locator('.fixed.inset-0, [role="dialog"]').first();

@@ -92,7 +92,7 @@ export default defineConfig({
   /* Auto-start backend + frontend servers before tests */
   webServer: [
     {
-      command: 'npx ts-node src/index.ts',
+      command: 'node dist/index.js',
       cwd: '../server',
       port: 3001,
       reuseExistingServer: !process.env.CI,

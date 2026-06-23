@@ -490,6 +490,7 @@ export default function ScoreCapture() {
         </BlueInfoBox>
       ) : (
         <ScoreTable
+          eventId={eventId}
           filteredParticipants={filteredParticipants}
           displayDisciplines={displayDisciplines}
           disciplineFields={disciplineFields}

@@ -94,11 +94,34 @@ export function EventSelector({
     competitions: false,
     squads: false
   })
+  const [eventFilterQuery, setEventFilterQuery] = useState('')
 
   // ── Search state ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  const filteredEvents = events.filter(event => {
+    if (!eventFilterQuery.trim()) return true
+    const q = eventFilterQuery.toLowerCase().trim()
+    return (
+      event.var_eventname.toLowerCase().includes(q)
+      || (event.var_location || '').toLowerCase().includes(q)
+      || formatDate(event.dat_eventstartdate).toLowerCase().includes(q)
+    )
+  })
 
   // Determine which state to use - context or local
   const selectedEvent = eventContext?.selectedEvent || localSelectedEvent
@@ -139,8 +162,28 @@ export function EventSelector({
   const fetchEvents = async () => {
     setLoading(prev => ({ ...prev, events: true }))
     try {
-      const data = await apiGet('/events?limit=50')
-      setEvents(data.events || [])
+      const limit = 50
+      let offset = 0
+      let hasMore = true
+      const allEvents: Event[] = []
+
+      while (hasMore) {
+        const data = await apiGet(`/events?limit=${limit}&offset=${offset}`)
+        const pageEvents = data?.events || []
+
+        allEvents.push(...pageEvents)
+
+        const pageHasMore = Boolean(data?.pagination?.hasMore)
+        const total = Number(data?.pagination?.total || allEvents.length)
+
+        if (!pageHasMore || pageEvents.length === 0 || allEvents.length >= total) {
+          hasMore = false
+        } else {
+          offset += limit
+        }
+      }
+
+      setEvents(allEvents)
     } catch (error) {
       console.error('Error fetching events:', error)
     } finally {
@@ -270,18 +313,6 @@ export function EventSelector({
     }
   }, [selectedCompetition, showSquads])
 
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    } catch {
-      return dateString
-    }
-  }
-
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Event Selection */}
@@ -290,6 +321,16 @@ export function EventSelector({
           <CalendarDaysIcon className="h-4 w-4 inline mr-1" />
           {t('eventManagement.selectEvent')}
         </label>
+        <div className="relative mb-2">
+          <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={eventFilterQuery}
+            onChange={(e) => setEventFilterQuery(e.target.value)}
+            placeholder={t('events.search', { defaultValue: 'Search events...' })}
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
         <div className="relative">
           <select
             value={selectedEvent?.int_eventid || ''}
@@ -304,7 +345,7 @@ export function EventSelector({
             <option value="">
               {loading.events ? 'Loading events...' : 'Select an event'}
             </option>
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <option key={event.int_eventid} value={event.int_eventid}>
                 {event.var_eventname} ({formatDate(event.dat_eventstartdate)})
               </option>

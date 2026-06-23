@@ -11,12 +11,17 @@
  * - Validation
  */
 
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GenderBadge } from '@/components/GenderBadge'
 import { ScoreInputCell } from './ScoreInputCell'
 import type { Participant, Discipline, DisciplineField } from '@/types/ScoreCapture.types'
 
+const INITIAL_VISIBLE_ROWS = 40
+const LOAD_MORE_STEP = 40
+
 interface ScoreTableProps {
+  eventId?: string | null
   filteredParticipants: Participant[]
   displayDisciplines: Discipline[]
   disciplineFields: DisciplineField[]
@@ -39,6 +44,7 @@ interface ScoreTableProps {
 }
 
 export const ScoreTable = ({
+  eventId,
   filteredParticipants,
   displayDisciplines,
   disciplineFields: _disciplineFields, // intentionally unused for now
@@ -53,6 +59,14 @@ export const ScoreTable = ({
   getScorePlaceholder,
 }: ScoreTableProps) => {
   const { t } = useTranslation()
+  const [visibleRows, setVisibleRows] = useState(INITIAL_VISIBLE_ROWS)
+
+  useEffect(() => {
+    setVisibleRows(INITIAL_VISIBLE_ROWS)
+  }, [filteredParticipants.length, displayDisciplines.length])
+
+  const visibleParticipants = filteredParticipants.slice(0, visibleRows)
+  const hasMoreRows = filteredParticipants.length > visibleRows
 
   if (filteredParticipants.length === 0) {
     return (
@@ -96,7 +110,7 @@ export const ScoreTable = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {filteredParticipants.map(participant => {
+          {visibleParticipants.map(participant => {
             return (
               <tr key={participant.id} className="hover:bg-gray-50">
                 {/* Start Number */}
@@ -157,6 +171,7 @@ export const ScoreTable = ({
                     <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap text-center">
                       <ScoreInputCell
                         participantId={participant.id}
+                        eventId={eventId || undefined}
                         discipline={discipline}
                         disciplineFields={enabledFields}
                         scoreValue={score}
@@ -179,6 +194,21 @@ export const ScoreTable = ({
           })}
         </tbody>
       </table>
+
+      {hasMoreRows && (
+        <div className="border-t px-4 py-3 flex items-center justify-between bg-gray-50">
+          <span className="text-sm text-gray-600">
+            {visibleParticipants.length} / {filteredParticipants.length} {t('common.results', { defaultValue: 'results' })}
+          </span>
+          <button
+            type="button"
+            onClick={() => setVisibleRows(prev => prev + LOAD_MORE_STEP)}
+            className="px-3 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-md hover:bg-blue-50"
+          >
+            {t('common.loadMore', { defaultValue: 'Load more' })}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

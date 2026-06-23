@@ -8,7 +8,7 @@
  * - simple: Direct endwert input
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { FormulaInput } from '@/components/FormulaInput';
 import { applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
 import { normalizeValueForCalculation } from '@/utils/formulaCalculator';
@@ -16,6 +16,68 @@ import { resolveScoringInputMode, BuiltInFormulaInput } from '@turnfix/shared';
 import type { Discipline, DisciplineField } from '@/types/ScoreCapture.types';
 
 const linkedFormulaCache = new Map<number, string>();
+const linkedFormulaInFlight = new Map<number, Promise<string>>();
+
+type JuryResultsByParticipant = Record<number, Record<number, string>>;
+const juryResultsRequestCache = new Map<string, { timestamp: number; byParticipant: JuryResultsByParticipant }>();
+const juryResultsInFlight = new Map<string, Promise<JuryResultsByParticipant>>();
+const JURY_RESULTS_CACHE_TTL_MS = 10000;
+
+async function fetchJuryResultsByEventAndDiscipline(eventId: string | number, disciplineId: number | string): Promise<JuryResultsByParticipant> {
+  const cacheKey = `${eventId}-${disciplineId}`;
+  const now = Date.now();
+  const cached = juryResultsRequestCache.get(cacheKey);
+
+  if (cached && (now - cached.timestamp) < JURY_RESULTS_CACHE_TTL_MS) {
+    return cached.byParticipant;
+  }
+
+  const inFlight = juryResultsInFlight.get(cacheKey);
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const promise = (async () => {
+    const limit = 500;
+    let offset = 0;
+    let hasMore = true;
+    const byParticipant: JuryResultsByParticipant = {};
+
+    while (hasMore) {
+      const response = await fetch(`/api/jury-results?eventId=${eventId}&disciplineId=${disciplineId}&limit=${limit}&offset=${offset}`);
+      const data = await response.json();
+      const pageResults = Array.isArray(data?.results) ? data.results : [];
+
+      for (const result of pageResults) {
+        const participantId = Number(result?.participantId);
+        const fieldId = Number(result?.disciplineFieldId);
+        if (!participantId || !fieldId) continue;
+
+        if (!byParticipant[participantId]) {
+          byParticipant[participantId] = {};
+        }
+        byParticipant[participantId][fieldId] = result?.performance?.toString() || '';
+      }
+
+      if (data?.pagination?.hasMore && pageResults.length > 0) {
+        offset += limit;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    juryResultsRequestCache.set(cacheKey, { timestamp: Date.now(), byParticipant });
+    return byParticipant;
+  })();
+
+  juryResultsInFlight.set(cacheKey, promise);
+
+  try {
+    return await promise;
+  } finally {
+    juryResultsInFlight.delete(cacheKey);
+  }
+}
 
 export function parseBuiltInFormulaInputValue(scoreValue: string): number {
   if (!scoreValue || scoreValue.trim() === '') {
@@ -30,6 +92,7 @@ export function parseBuiltInFormulaInputValue(scoreValue: string): number {
 
 interface ScoreInputCellProps {
   participantId: number;
+  eventId?: string | number;
   discipline: Discipline;
   disciplineFields: DisciplineField[];
   scoreValue: string;
@@ -42,8 +105,9 @@ interface ScoreInputCellProps {
   validation: { isValid: boolean; message?: string };
 }
 
-export const ScoreInputCell = ({
+export const ScoreInputCell = memo(({
   participantId,
+  eventId,
   discipline,
   disciplineFields,
   scoreValue,
@@ -82,10 +146,28 @@ export const ScoreInputCell = ({
         return;
       }
 
+      const inflight = linkedFormulaInFlight.get(formulaId);
+      if (inflight) {
+        try {
+          const linkedFormula = await inflight;
+          if (isActive) {
+            setResolvedFormula(linkedFormula || formula || '');
+          }
+        } catch {
+          if (isActive) {
+            setResolvedFormula(formula || '');
+          }
+        }
+        return;
+      }
+
       try {
-        const response = await fetch(`/api/formulas/${formulaId}`);
-        const formulaData = await response.json();
-        const linkedFormula = formulaData?.var_formel || formula || '';
+        const request = fetch(`/api/formulas/${formulaId}`)
+          .then(response => response.json())
+          .then(formulaData => formulaData?.var_formel || formula || '');
+
+        linkedFormulaInFlight.set(formulaId, request);
+        const linkedFormula = await request;
         linkedFormulaCache.set(formulaId, linkedFormula);
         if (isActive) {
           setResolvedFormula(linkedFormula);
@@ -94,6 +176,8 @@ export const ScoreInputCell = ({
         if (isActive) {
           setResolvedFormula(formula || '');
         }
+      } finally {
+        linkedFormulaInFlight.delete(formulaId);
       }
     };
 
@@ -119,31 +203,35 @@ export const ScoreInputCell = ({
   // Load existing jury results in linked formula mode
   useEffect(() => {
     if (!isLinkedFormulaMode || !wertungenId || enabledFields.length === 0) {
-      console.log('🔵 Skipping load:', { isLinkedFormulaMode, wertungenId, enabledFieldsLength: enabledFields.length });
       return;
     }
 
-    console.log('🔵 Loading jury results:', { wertungenId, disciplineId, enabledFields });
     setLoadingValues(true);
     
-    // Load jury results for this participant and discipline
-    fetch(`/api/jury-results?participantId=${wertungenId}&disciplineId=${disciplineId}`)
-      .then(res => res.json())
-      .then(data => {
-        console.log('🔵 Loaded jury results from API:', data);
-        if (data.results && Array.isArray(data.results)) {
-          const values: Record<number, string> = {};
-          data.results.forEach((result: any) => {
-            if (result.disciplineFieldId) {
-              values[result.disciplineFieldId] = result.performance?.toString() || '';
-              console.log(`🔵 Mapping field ${result.disciplineFieldId} = ${result.performance}`);
+    const loadResults = eventId
+      ? fetchJuryResultsByEventAndDiscipline(eventId, disciplineId)
+      : fetch(`/api/jury-results?participantId=${wertungenId}&disciplineId=${disciplineId}`)
+          .then(res => res.json())
+          .then(data => {
+            const results = Array.isArray(data?.results) ? data.results : [];
+            const byParticipant: JuryResultsByParticipant = {};
+            for (const result of results) {
+              const participantId = Number(result?.participantId);
+              const fieldId = Number(result?.disciplineFieldId);
+              if (!participantId || !fieldId) continue;
+
+              if (!byParticipant[participantId]) {
+                byParticipant[participantId] = {};
+              }
+              byParticipant[participantId][fieldId] = result?.performance?.toString() || '';
             }
+            return byParticipant;
           });
-          console.log('🔵 Final initialFieldValues:', values);
-          setInitialFieldValues(values);
-        } else {
-          console.warn('⚠️ No results array in response:', data);
-        }
+
+    loadResults
+      .then((byParticipant) => {
+        const values = byParticipant[Number(wertungenId)] || {};
+        setInitialFieldValues(values);
       })
       .catch(error => {
         console.error('❌ Error loading jury results:', error);
@@ -151,7 +239,7 @@ export const ScoreInputCell = ({
       .finally(() => {
         setLoadingValues(false);
       });
-  }, [isLinkedFormulaMode, wertungenId, disciplineId, enabledFields.length]);
+  }, [isLinkedFormulaMode, wertungenId, disciplineId, enabledFields.length, eventId]);
 
   // Detect built-in formula (lowercase variable like "x" in "20-x", "(((1000/x)-2,158)/0,006)/49")
   const activeFormula = resolvedFormula || formula || '';
@@ -314,4 +402,6 @@ export const ScoreInputCell = ({
       />
     </div>
   );
-};
+});
+
+ScoreInputCell.displayName = 'ScoreInputCell';

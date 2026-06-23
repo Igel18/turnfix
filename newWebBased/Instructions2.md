@@ -710,6 +710,20 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 104. [Bug] Riegen Status wird nicht angezeigt 
 -> Erledigt ✅ | Root cause: useSquadDisciplineStatus-Hook (1) empfing squadDisciplineStatuses nie von useScoreData (squadStatus immer null), (2) rief falschen Endpoint apiPost('/squad-disciplines') statt PUT /:squadName/:disciplineId/status auf. Fix: Hook akzeptiert squadDisciplineStatuses als Prop + onSquadDisciplineStatusChange-Callback; index.tsx leitet Daten durch; fetch PUT für Save. TDD: 12 Unit-Tests in useSquadDisciplineStatus.test.ts.
 
+105. [Feature] Es ist möglich Veranstaltungen über ein GymNet-XML zu importieren. Wir haben auch schon eine möglichkeit geschaffen Ergebnisse darzustellen und als CSV zu exportieren. Im GymNet kann jedoch nur eine XML importiert werden. Dieses Import XML hat das identische Format wie das Export XML. 
+Dies soll implementiert werden. Zu beachten ist nun: der Export Button soll in der Ergebnisse UI sichtbar sein. Es sollen Funktionen möglichst wieder verwendet werden und wenn es noch keine gibt, dann sollen diese so geschrieben werden dass sie wiederverwendet werden können. Es müssen Tests geschrieben werden. 
+
+106. Im Jury-Portal gibt es jetzt ein Status, den man an der Person setzen kann. Das ist doch eigentlich eine technische Schuld und sollte ausgeblendet sein, oder? 
+
+107. [Bug] nice to have: Im Jury-Portal kann man Wertungen eingeben und es wird ein "Berechnetes Ergebnis" angezeigt. bei der Eingabe wird mit Punkten gearbeitet und bei der Berechnung mit Kommas. Das sollte einheitlich mit Kommas sein. Genauso bei der Anzeige der Wertung in der Liste der Teilnehmer. 
+
+108. [Bug] DRINGEND
+-> Erledigt ✅ | In der Veranstaltungsliste in der management UI http://localhost:5173/management werden irgendwie nicht alle Veranstaltungen angezeigt ich habe 93 Veranstaltungen in der DB, aber nur etwa 40 in der Liste. Zudem ist es nicht möglich hier nach einer Veranstaltung zu suchen. 
+Natürlich mittels TDD fixen. 
+
+109. [Bug] Dringend: Wertung Eingabefenster wird nicht angezeigt
+In der UI http://localhost:5173/score-capture?eventId=1 wird ständig "Lädt" in dem Eingabefenster der Wertung angzeigt. 
+
 ---
 
 ## Technische Schuld
@@ -898,7 +912,7 @@ i.) Veranstaltungs-Analyzer um Zeitplan verfollständigen: Sind Zeiten eingestel
 
 123. Modale dialoge umbauen zu Wizard 
 a.) Standard button zum Aufruf des Wizards in der Kopfzeile ggf. zusätzlich zum Standardbutton "Hinzufügen" 
-b.) Standard button zum Aufruf des Wizards an Elementen (z.B. Riegen in der Riegeneinteilung)? 
+b.) Standard button zum Aufruf des Wizards an Elementen (z.B. Riegen in der Riegeneinteilung, GymNet XML Importieren (Assistent), Wettkampf-Assistent,) soll immer an der gleichen Postition sein (neben dem Hinzufügen Button z.B. +Wettkampf erstellen), und soll immer das gleiche Icon davor haben. 
 c.) TDD! 
 | Create/Edit Discipline | DisciplineFormModal | HIGH (15+ fields) | UnifiedDialog |
 | Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
