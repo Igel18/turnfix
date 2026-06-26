@@ -184,6 +184,44 @@ export function wedDisNrToName(wedDisNr: string | number): string | null {
   return DISCIPLINE_NAMES[id] ?? null;
 }
 
+/**
+ * Reverse lookup used for XML export.
+ *
+ * If multiple wedDisNr values map to the same TurnFix discipline ID,
+ * prefer the base DTB range (200-299), otherwise use the lowest code.
+ */
+export function turnFixIdToWedDisNr(turnFixId: number): number | null {
+  const candidates = Object.entries(WEDDISNR_TO_DISCIPLINE_ID)
+    .filter(([, id]) => id === turnFixId)
+    .map(([wedDisNr]) => Number(wedDisNr))
+    .filter((value) => !Number.isNaN(value));
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  // Prefer canonical base DTB codes (x0 in 200-299) for GymNet XML export.
+  // Example: Stufenbarren maps from both 270 (base) and 279 (P-level variant),
+  // and GymNet expects 270 in standard result XML.
+  const canonicalBaseCodes = candidates
+    .filter((value) => value >= 200 && value < 300 && value % 10 === 0)
+    .sort((a, b) => a - b);
+
+  if (canonicalBaseCodes.length > 0) {
+    return canonicalBaseCodes[0] ?? null;
+  }
+
+  const fallbackBaseCodes = candidates
+    .filter((value) => value >= 200 && value < 300)
+    .sort((a, b) => a - b);
+
+  if (fallbackBaseCodes.length > 0) {
+    return fallbackBaseCodes[0] ?? null;
+  }
+
+  return candidates.sort((a, b) => a - b)[0] ?? null;
+}
+
 // ============================================================================
 // Multi-apparatus competition helpers
 // ============================================================================

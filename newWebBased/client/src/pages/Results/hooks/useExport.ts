@@ -37,6 +37,7 @@ import {
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types'
 
 interface UseExportProps {
+  eventId: string | null
   eventName: string
   selectedCompetition: string | null
   ranking: Participant[]
@@ -48,6 +49,7 @@ interface UseExportProps {
 }
 
 export const useExport = ({
+  eventId,
   eventName,
   selectedCompetition,
   ranking,
@@ -628,8 +630,41 @@ export const useExport = ({
     }
   }, [selectedCompetition, ranking, competitionGroups, exportSingleCompetitionPDF, exportAllCompetitionsPDF])
 
+  /**
+   * Export GymNet XML for current event/competition
+   */
+  const exportResultsGymNetXML = useCallback(async () => {
+    if (!eventId) return
+
+    const params = new URLSearchParams({ eventId })
+    if (selectedCompetition) {
+      params.append('competitionId', selectedCompetition)
+    }
+
+    const response = await fetch(`/api/results/export-gymnet-xml?${params.toString()}`)
+    if (!response.ok) {
+      throw new Error('Failed to export GymNet XML')
+    }
+
+    const blob = await response.blob()
+    const headerFileName = response.headers
+      .get('content-disposition')
+      ?.match(/filename="?([^";]+)"?/i)?.[1]
+
+    const fallbackName = `gymnet_results_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xml`
+    const fileName = headerFileName || fallbackName
+
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }, [eventId, selectedCompetition, eventName])
+
   return {
     exportResultsCSV,
-    exportResultsPDF
+    exportResultsPDF,
+    exportResultsGymNetXML
   }
 }

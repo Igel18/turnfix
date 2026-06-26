@@ -101,8 +101,10 @@ const Results = () => {
   // Export Hook - CSV/PDF export
   const {
     exportResultsCSV,
-    exportResultsPDF
+    exportResultsPDF,
+    exportResultsGymNetXML
   } = useExport({
+    eventId,
     eventName,
     selectedCompetition,
     ranking,
@@ -259,6 +261,13 @@ const Results = () => {
       customActions={
         <>
           <LiveUpdateIndicator label={t('common.liveUpdates')} />
+          <button
+            onClick={() => void exportResultsGymNetXML()}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+            title="Export GymNet XML"
+          >
+            XML Export
+          </button>
           <button
             onClick={() => setShowDisciplineScores(!showDisciplineScores)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

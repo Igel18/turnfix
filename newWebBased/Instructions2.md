@@ -722,7 +722,8 @@ Dies soll implementiert werden. Zu beachten ist nun: der Export Button soll in d
 Natürlich mittels TDD fixen. 
 
 109. [Bug] Dringend: Wertung Eingabefenster wird nicht angezeigt
-In der UI http://localhost:5173/score-capture?eventId=1 wird ständig "Lädt" in dem Eingabefenster der Wertung angzeigt. 
+-> Erledigt ✅ | In der UI http://localhost:5173/score-capture?eventId=1 wird ständig "Lädt" in dem Eingabefenster der Wertung angzeigt. 
+
 
 ---
 

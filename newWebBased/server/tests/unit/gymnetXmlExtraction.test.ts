@@ -8,7 +8,7 @@
  *   4. Case-insensitive key matching works for wedDisNr, wedDisName, wedDisID
  */
 
-import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition, matchesLevel, getExpectedDisciplineCount, detectLevelFromDevices, detectGenderFromName, DISCIPLINE_IDS, DISCIPLINE_NAMES } from '../../src/utils/gymnetMapping';
+import { wedDisNrToTurnFixId, wedDisNrToName, turnFixIdToWedDisNr, getDisciplinesForCompetition, matchesLevel, getExpectedDisciplineCount, detectLevelFromDevices, detectGenderFromName, DISCIPLINE_IDS, DISCIPLINE_NAMES } from '../../src/utils/gymnetMapping';
 
 // ============================================================================
 // 1. wedDisNr → TurnFix ID mapping
@@ -91,6 +91,21 @@ describe('wedDisNrToName', () => {
 
   it('should return null for unknown codes', () => {
     expect(wedDisNrToName(999)).toBeNull();
+  });
+});
+
+describe('turnFixIdToWedDisNr', () => {
+  it('prefers base DTB code when multiple codes map to one discipline ID', () => {
+    expect(turnFixIdToWedDisNr(DISCIPLINE_IDS.STUFENBARREN)).toBe(270);
+  });
+
+  it('prefers canonical x0 base code over x9 variants for shared IDs', () => {
+    // STUFENBARREN maps from both 270 (base DTB) and 279 (P-level variant)
+    expect(turnFixIdToWedDisNr(DISCIPLINE_IDS.STUFENBARREN)).toBe(270);
+  });
+
+  it('returns null for unknown discipline IDs', () => {
+    expect(turnFixIdToWedDisNr(999999)).toBeNull();
   });
 });
 
