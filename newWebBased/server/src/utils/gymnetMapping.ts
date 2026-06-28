@@ -120,6 +120,26 @@ const WEDDISNR_TO_DISCIPLINE_ID: Record<number, number> = {
 };
 
 // ============================================================================
+// wedDisID overrides for known GymNet exports with ambiguous wedDisNr values
+// ============================================================================
+
+const WEDDISID_TO_DISCIPLINE_ID: Record<number, number> = {
+  // P-level set observed in GymNet XML exports
+  1727: DISCIPLINE_IDS.BODEN_M_P,          // Boden m. P1-P9
+  1728: DISCIPLINE_IDS.SPRUNG_M_P,         // Sprung m. P1-P9
+  1729: DISCIPLINE_IDS.PAR_BARREN_P,       // Par.-Barren m. P1-P9
+  1730: DISCIPLINE_IDS.RECK_M_P,           // Reck m. P1-P9
+  1731: DISCIPLINE_IDS.SPRUNG_W_P,         // Sprung w. P1-P9
+  1732: DISCIPLINE_IDS.RECK_STUBA_P,       // Stu.-Barren/Reck w. P1-P9
+  1733: DISCIPLINE_IDS.SCHWEBEBALKEN_P,    // Sch.-Balken w. P1-P9
+  1734: DISCIPLINE_IDS.BODEN_W_P,          // Boden w. P1-P9
+
+  // Additional P-level codes seen in exports
+  1617: DISCIPLINE_IDS.PAUSCHENPFERD_P,    // P.-Pferd m.
+  493: DISCIPLINE_IDS.RINGE_P,             // Ringe m.
+};
+
+// ============================================================================
 // Legacy BASE_DTB_MAPPING (for backward compatibility with existing code)
 // ============================================================================
 
@@ -168,7 +188,19 @@ export const BASE_DTB_MAPPING: Record<string, DisciplineMapping> = {
  * @param wedDisNr The GymNet discipline number (e.g. 161, 171, 181, 191)
  * @returns The TurnFix discipline database ID, or null if no mapping found
  */
-export function wedDisNrToTurnFixId(wedDisNr: string | number): number | null {
+export function wedDisNrToTurnFixId(
+  wedDisNr: string | number,
+  options?: { wedDisId?: string | number | null; wedDisName?: string | null }
+): number | null {
+  const wedDisIdRaw = options?.wedDisId;
+  const wedDisId = typeof wedDisIdRaw === 'string' ? parseInt(wedDisIdRaw, 10) : wedDisIdRaw;
+  if (wedDisId !== undefined && wedDisId !== null && !isNaN(wedDisId)) {
+    const byWedDisId = WEDDISID_TO_DISCIPLINE_ID[wedDisId];
+    if (byWedDisId !== undefined) {
+      return byWedDisId;
+    }
+  }
+
   const nr = typeof wedDisNr === 'string' ? parseInt(wedDisNr, 10) : wedDisNr;
   if (isNaN(nr)) return null;
 
@@ -178,8 +210,11 @@ export function wedDisNrToTurnFixId(wedDisNr: string | number): number | null {
 /**
  * Returns the discipline name for a wedDisNr code (for logging/debugging).
  */
-export function wedDisNrToName(wedDisNr: string | number): string | null {
-  const id = wedDisNrToTurnFixId(wedDisNr);
+export function wedDisNrToName(
+  wedDisNr: string | number,
+  options?: { wedDisId?: string | number | null; wedDisName?: string | null }
+): string | null {
+  const id = wedDisNrToTurnFixId(wedDisNr, options);
   if (id === null) return null;
   return DISCIPLINE_NAMES[id] ?? null;
 }

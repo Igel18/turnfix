@@ -438,7 +438,10 @@ async function linkDisciplines(
           continue;
         }
 
-        let turnfixId = wedDisNrToTurnFixId(wedDisNr);
+        let turnfixId = wedDisNrToTurnFixId(wedDisNr, {
+          wedDisId: device.id,
+          wedDisName: device.name,
+        });
         if (turnfixId === null) {
           console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}")`);
           results.devices.errors++;
@@ -452,7 +455,10 @@ async function linkDisciplines(
         // Name-based fallback: if preset ID has a different discipline than expected,
         // look up by the canonical name. This handles production DBs where discipline IDs
         // were assigned historically in a different order than the gymnet preset scheme.
-        const expectedDisciplineName = wedDisNrToName(wedDisNr);
+        const expectedDisciplineName = wedDisNrToName(wedDisNr, {
+          wedDisId: device.id,
+          wedDisName: device.name,
+        });
         if (expectedDisciplineName && disciplineCheck.length > 0 && disciplineCheck[0].var_name !== expectedDisciplineName) {
           const byName = await prisma.$queryRawUnsafe(`
             SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen WHERE var_name = $1 LIMIT 1
