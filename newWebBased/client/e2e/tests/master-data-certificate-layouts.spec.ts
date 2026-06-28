@@ -43,19 +43,52 @@ test.describe.serial('Master Data: Certificate Layouts', () => {
     await navigateTo(page, '/certificate-layouts');
     await waitForLoadingToFinish(page);
 
-    // Count layouts before creation
-    const layoutCountBefore = await page.locator('table tbody tr').count().catch(() => 0);
+    // Count total layouts before creation (header: "X Layouts geladen")
+    const bodyTextBefore = await page.locator('body').innerText();
+    const totalBeforeMatch = bodyTextBefore.match(/(\d+)\s+Layouts\s+geladen/i);
+    const totalBefore = totalBeforeMatch ? Number(totalBeforeMatch[1]) : null;
 
-    // The add button creates a layout directly (no dialog)
+    // Create layout via add button
     await clickAddButton(page);
     await page.waitForTimeout(3000);
 
-    // Navigate back to layout list (button may be disabled, so navigate directly)
+    // Try to set a unique name while in designer/detail view
+    const nameInput = page.locator('input[type="text"]').first();
+    if (await nameInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await nameInput.fill(testLayoutName);
+      const saveButton = page.getByRole('button', { name: /speichern|save/i }).first();
+      if (await saveButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await saveButton.click();
+        await page.waitForTimeout(800);
+      }
+    }
+
+    // Navigate back to list view
     await navigateTo(page, '/certificate-layouts');
     await waitForLoadingToFinish(page);
 
-    // Verify a new layout was created (the default name is "Neues Layout") 
-    await expect(page.locator('body')).toContainText(/Neues Layout|New Layout/i, { timeout: 10_000 });
+    // Prefer verifying by unique name (works if naming was possible)
+    const searchInput = page.locator('input[type="search"], input[type="text"], input[placeholder*="Suche"], input[placeholder*="search"]').first();
+    if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await searchInput.fill(testLayoutName);
+      await page.waitForTimeout(1000);
+    }
+
+    const bodyTextAfter = await page.locator('body').innerText();
+    const hasNamedLayout = bodyTextAfter.includes(testLayoutName);
+
+    // Fallback assertion: if list view/pagination prevents direct name visibility,
+    // ensure total layout count increased by at least 1.
+    if (!hasNamedLayout) {
+      const totalAfterMatch = bodyTextAfter.match(/(\d+)\s+Layouts\s+geladen/i);
+      const totalAfter = totalAfterMatch ? Number(totalAfterMatch[1]) : null;
+      expect(totalAfter).not.toBeNull();
+      if (totalBefore !== null && totalAfter !== null) {
+        expect(totalAfter).toBeGreaterThan(totalBefore);
+      }
+    } else {
+      await expect(page.locator('body')).toContainText(testLayoutName, { timeout: 10_000 });
+    }
   });
 
   test('can view layout detail', async ({ page }) => {

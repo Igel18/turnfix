@@ -305,21 +305,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     const squadDisciplinesRaw = await prisma.tfx_riegen_x_disziplinen.findMany({
       where: { int_veranstaltungenid: eventIdNum },
       select: {
-        tfx_disziplinen: {
-          select: {
-            int_disziplinenid: true,
-            var_name: true,
-            var_kurz1: true,
-            var_kurz2: true,
-            var_icon: true
-          }
-        },
-        tfx_status: {
-          select: {
-            var_name: true,
-            ary_colorcode: true
-          }
-        },
+        int_disziplinenid: true,
+        int_statusid: true,
         var_riege: true,
         int_runde: true,
         bol_erstes_geraet: true
@@ -329,6 +316,33 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         { int_runde: 'asc' }
       ]
     });
+    const disciplineIds = Array.from(new Set(squadDisciplinesRaw.map(sd => sd.int_disziplinenid)))
+    const statusIds = Array.from(new Set(squadDisciplinesRaw.map(sd => sd.int_statusid)))
+
+    const [disciplineRows, statusRows] = await Promise.all([
+      prisma.tfx_disziplinen.findMany({
+        where: { int_disziplinenid: { in: disciplineIds } },
+        select: {
+          int_disziplinenid: true,
+          var_name: true,
+          var_kurz1: true,
+          var_kurz2: true,
+          var_icon: true
+        }
+      }),
+      prisma.tfx_status.findMany({
+        where: { int_statusid: { in: statusIds } },
+        select: {
+          int_statusid: true,
+          var_name: true,
+          ary_colorcode: true
+        }
+      })
+    ])
+
+    const disciplineById = new Map(disciplineRows.map(d => [d.int_disziplinenid, d]))
+    const statusById = new Map(statusRows.map(s => [s.int_statusid, s]))
+
     // Lookup table: (var_riege, int_runde) -> competition ID (from tfx_wertungen)
     const squadToCompId = new Map();
     const wettungen = await prisma.tfx_wertungen.findMany({
@@ -349,7 +363,20 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     }
     // Add tfx_wettkaempfeid property for frontend mapping (only once, using lookup)
     const squadDisciplines = squadDisciplinesRaw.map(sd => ({
-      ...sd,
+      tfx_disziplinen: {
+        int_disziplinenid: sd.int_disziplinenid,
+        var_name: disciplineById.get(sd.int_disziplinenid)?.var_name || 'Unknown',
+        var_kurz1: disciplineById.get(sd.int_disziplinenid)?.var_kurz1 || null,
+        var_kurz2: disciplineById.get(sd.int_disziplinenid)?.var_kurz2 || null,
+        var_icon: disciplineById.get(sd.int_disziplinenid)?.var_icon || null
+      },
+      tfx_status: {
+        var_name: statusById.get(sd.int_statusid)?.var_name || 'Unknown',
+        ary_colorcode: statusById.get(sd.int_statusid)?.ary_colorcode || '{128,128,128}'
+      },
+      var_riege: sd.var_riege,
+      int_runde: sd.int_runde,
+      bol_erstes_geraet: sd.bol_erstes_geraet,
       tfx_wettkaempfeid: squadToCompId.get(`${sd.var_riege}__${sd.int_runde ?? ''}`) || null
     }));
 

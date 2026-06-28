@@ -46,10 +46,14 @@ router.get('/', async (req, res) => {
 
     const squadDisciplines = await prisma.tfx_riegen_x_disziplinen.findMany({
       where: whereCondition,
-      include: {
-        tfx_status: true,
-        tfx_disziplinen: true,
-        tfx_veranstaltungen: true
+      select: {
+        int_riegen_x_disziplinenid: true,
+        int_veranstaltungenid: true,
+        var_riege: true,
+        int_disziplinenid: true,
+        int_statusid: true,
+        int_runde: true,
+        bol_erstes_geraet: true
       },
       orderBy: [
         { var_riege: 'asc' },
@@ -57,18 +61,37 @@ router.get('/', async (req, res) => {
       ]
     })
 
+    const statusIds = Array.from(new Set(squadDisciplines.map(sd => sd.int_statusid)))
+    const disciplineIds = Array.from(new Set(squadDisciplines.map(sd => sd.int_disziplinenid)))
+
+    const [statuses, disciplines] = await Promise.all([
+      prisma.tfx_status.findMany({
+        where: { int_statusid: { in: statusIds } },
+        select: { int_statusid: true, var_name: true, ary_colorcode: true }
+      }),
+      prisma.tfx_disziplinen.findMany({
+        where: { int_disziplinenid: { in: disciplineIds } },
+        select: { int_disziplinenid: true, var_name: true, var_kurz1: true }
+      })
+    ])
+
+    const statusById = new Map(statuses.map(s => [s.int_statusid, s]))
+    const disciplineById = new Map(disciplines.map(d => [d.int_disziplinenid, d]))
+
     const formattedData = squadDisciplines.map(sd => ({
       id: sd.int_riegen_x_disziplinenid,
       eventId: sd.int_veranstaltungenid,
+      // Backward compatibility for older clients/tests expecting squadId.
+      squadId: sd.var_riege,
       squadName: sd.var_riege,
       disciplineId: sd.int_disziplinenid,
-      disciplineName: sd.tfx_disziplinen.var_name,
-      disciplineShort: sd.tfx_disziplinen.var_kurz1,
+      disciplineName: disciplineById.get(sd.int_disziplinenid)?.var_name || 'Unknown',
+      disciplineShort: disciplineById.get(sd.int_disziplinenid)?.var_kurz1 || null,
       statusId: sd.int_statusid,
       status: {
-        id: sd.tfx_status.int_statusid,
-        name: sd.tfx_status.var_name,
-        colorCode: sd.tfx_status.ary_colorcode
+        id: statusById.get(sd.int_statusid)?.int_statusid ?? sd.int_statusid,
+        name: statusById.get(sd.int_statusid)?.var_name || 'Unknown',
+        colorCode: statusById.get(sd.int_statusid)?.ary_colorcode || '{128,128,128}'
       },
       round: sd.int_runde,
       isFirstApparatus: sd.bol_erstes_geraet
@@ -105,9 +128,14 @@ router.get('/:squadName/:disciplineId', async (req, res) => {
         var_riege: squadName,
         int_disziplinenid: Number(disciplineId)
       },
-      include: {
-        tfx_status: true,
-        tfx_disziplinen: true
+      select: {
+        int_riegen_x_disziplinenid: true,
+        int_veranstaltungenid: true,
+        var_riege: true,
+        int_disziplinenid: true,
+        int_statusid: true,
+        int_runde: true,
+        bol_erstes_geraet: true
       }
     })
 
@@ -115,17 +143,30 @@ router.get('/:squadName/:disciplineId', async (req, res) => {
       return res.status(404).json({ error: 'Squad-discipline combination not found' })
     }
 
+    const [status, discipline] = await Promise.all([
+      prisma.tfx_status.findUnique({
+        where: { int_statusid: squadDiscipline.int_statusid },
+        select: { int_statusid: true, var_name: true, ary_colorcode: true }
+      }),
+      prisma.tfx_disziplinen.findUnique({
+        where: { int_disziplinenid: squadDiscipline.int_disziplinenid },
+        select: { int_disziplinenid: true, var_name: true }
+      })
+    ])
+
     res.json({
       id: squadDiscipline.int_riegen_x_disziplinenid,
       eventId: squadDiscipline.int_veranstaltungenid,
+      // Backward compatibility for older clients/tests expecting squadId.
+      squadId: squadDiscipline.var_riege,
       squadName: squadDiscipline.var_riege,
       disciplineId: squadDiscipline.int_disziplinenid,
-      disciplineName: squadDiscipline.tfx_disziplinen.var_name,
+      disciplineName: discipline?.var_name || 'Unknown',
       statusId: squadDiscipline.int_statusid,
       status: {
-        id: squadDiscipline.tfx_status.int_statusid,
-        name: squadDiscipline.tfx_status.var_name,
-        colorCode: squadDiscipline.tfx_status.ary_colorcode
+        id: status?.int_statusid ?? squadDiscipline.int_statusid,
+        name: status?.var_name || 'Unknown',
+        colorCode: status?.ary_colorcode || '{128,128,128}'
       },
       round: squadDiscipline.int_runde,
       isFirstApparatus: squadDiscipline.bol_erstes_geraet

@@ -165,9 +165,9 @@ router.get('/', async (req, res) => {
       where: {
         int_veranstaltungenid: eventId
       },
-      include: {
-        tfx_status: true,
-        tfx_disziplinen: true
+      select: {
+        int_disziplinenid: true,
+        int_statusid: true
       }
     })
 
@@ -197,11 +197,11 @@ router.get('/', async (req, res) => {
 
       // Calculate status distribution with percentages
       const statusDistribution = Array.from(statusCounts.entries()).map(([statusId, count]) => {
-        const status = allStatuses.find(s => s.int_statusid === statusId) || allStatuses[0]
+        const status = allStatuses.find(s => s.int_statusid === statusId)
         return {
           statusId,
-          statusName: status.var_name || 'Unknown',
-          colorCode: status.ary_colorcode || '{128,128,128}',
+          statusName: status?.var_name || 'Unknown',
+          colorCode: status?.ary_colorcode || '{128,128,128}',
           count,
           percentage: totalSquadDisciplines > 0 ? (count / totalSquadDisciplines * 100) : 0
         }
@@ -256,7 +256,7 @@ router.get('/', async (req, res) => {
           disciplineStatusCounts.set(statusId, (disciplineStatusCounts.get(statusId) || 0) + 1)
         })
         const disciplineStatusDistribution = Array.from(disciplineStatusCounts.entries()).map(([statusId, count]) => {
-          const status = allStatuses.find(s => s.int_statusid === statusId) || allStatuses[0]
+          const status = allStatuses.find(s => s.int_statusid === statusId)
           return {
             statusId,
             statusName: status?.var_name || 'Unknown',

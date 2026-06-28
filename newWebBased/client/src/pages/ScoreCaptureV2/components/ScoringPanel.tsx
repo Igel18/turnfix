@@ -31,6 +31,11 @@ export interface ScoringPanelProps {
   score: string;
   /** wertungenId needed for loading jury results in linkedFormula mode */
   wertungenId?: number;
+  /**
+   * Existing per-field scores for the current participant, keyed by field ID.
+   * Used to pre-fill LinkedFormulaInput when navigating between participants.
+   */
+  fieldScores?: Record<number, number>;
   participantCount: number;
   currentIndex: number;
   loading: boolean;
@@ -57,6 +62,7 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
   disciplineFields,
   score,
   wertungenId: _wertungenId,
+  fieldScores = {},
   participantCount,
   currentIndex,
   loading,
@@ -144,6 +150,20 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
   const unit: string = (discipline as any)?.var_einheit || '';
   const maxScore = discipline?.maxScore;
 
+  // Build initialValues for LinkedFormulaInput from the saved field scores.
+  // symbol[i] maps to nonFinalFields[i] (positional, same order as extractFormulaSymbols).
+  const linkedInitialValues: Record<string, number> = (() => {
+    if (!resolvedFormula || !fieldScores || Object.keys(fieldScores).length === 0) return {};
+    const symbols = extractFormulaSymbols(resolvedFormula);
+    const nonFinal = disciplineFields.filter(f => !f.isFinalScore && !f.isStartingScore);
+    const init: Record<string, number> = {};
+    symbols.forEach((sym, idx) => {
+      const f = nonFinal[idx];
+      if (f && fieldScores[f.id] !== undefined) init[sym] = fieldScores[f.id];
+    });
+    return init;
+  })();
+
   // Calculated result for builtInFormula
   const builtInCalcResult =
     inputMode === 'builtInFormula' && resolvedFormula && score.trim() !== '' &&
@@ -219,6 +239,7 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
                 disciplineFields={disciplineFields
                   .filter(f => !f.isFinalScore && !f.isStartingScore)
                   .map(f => ({ id: f.id, name: f.name }))}
+                initialValues={linkedInitialValues}
                 onScoreChange={(result, fieldValues) => {
                   setLinkedCalcResult(result);
                   // Notify parent for per-field API saves (symbol[i] → field[i].id)

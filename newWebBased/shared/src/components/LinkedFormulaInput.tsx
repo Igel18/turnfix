@@ -185,7 +185,7 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
         </div>
         <div className="text-3xl font-bold text-green-900 text-center">
           {hasInput && calculatedScore !== null
-            ? calculatedScore.toFixed(decimals).replace('.', ',')
+            ? calculatedScore.toFixed(decimals)
             : '-'}
         </div>
       </div>

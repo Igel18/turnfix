@@ -152,6 +152,19 @@ export function useScoreMatrix({
           } else {
             matrix[key] = '';
           }
+
+          // Pre-fill per-field values from /scores payload when available.
+          // This is the primary source after reload because /scores already
+          // includes juryResults for the corresponding wertung/discipline.
+          const scoreWithJuryResults = existingScore as any;
+          if (Array.isArray(scoreWithJuryResults?.juryResults)) {
+            scoreWithJuryResults.juryResults.forEach((jr: any) => {
+              if (jr?.disciplineFieldId && jr?.performance !== null && jr?.performance !== undefined) {
+                const fieldKey = `${participant.id}-${jr.disciplineFieldId}`;
+                matrix[fieldKey] = normalizeScoreInput(String(jr.performance), discipline.int_berechnung || 2);
+              }
+            });
+          }
           
           console.log(`Initialized Endwert for ${participant.firstname} ${participant.lastname} (${participant.id}) - ${discipline.var_name} (${disciplineId}): ${matrix[key]} (from ${existingScore ? 'DB' : 'default'})`);
           

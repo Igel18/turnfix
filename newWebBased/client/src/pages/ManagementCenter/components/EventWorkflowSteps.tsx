@@ -177,7 +177,7 @@ export function EventWorkflowSteps({
             subtitleKey="managementCenter.eventManagement.competitionDay.subtitle"
             isCollapsed={isCompetitionDayCollapsed}
             onToggle={onToggleCompetitionDay}
-            actions={competitionDayActions}
+            actions={competitionDayActions.filter(action => action.name !== 'Individual Scoring')}
             gridCols="lg:grid-cols-3"
             eventId={selectedEvent.int_eventid}
           />

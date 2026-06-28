@@ -143,8 +143,43 @@ Invoke-Step -Name "Client-Tests (Vitest)" -Skip:($SkipTests -or $SkipUnitTests) 
 # ── 6. E2E-Tests (Playwright) ──────────────────────────────────────────────
 Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) -Action {
     Set-Location $ClientDir
-    # Run with both list (console) and html (report) reporters
-    npx playwright test
+
+    # Ensure required ports are free so Playwright webServer can start cleanly.
+    $requiredPorts = @(3001, 3002, 5173)
+    foreach ($port in $requiredPorts) {
+        $connections = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+        if ($connections) {
+            $pids = $connections | Select-Object -ExpandProperty OwningProcess -Unique
+            foreach ($pidToStop in $pids) {
+                if ($pidToStop -and $pidToStop -ne $PID) {
+                    try {
+                        Stop-Process -Id $pidToStop -Force -ErrorAction Stop
+                        Write-Host "  🔧 Port $port freigegeben (PID $pidToStop beendet)" -ForegroundColor Yellow
+                    }
+                    catch {
+                        Write-Host "  ⚠️  Port $port belegt, PID $pidToStop konnte nicht beendet werden: $($_.Exception.Message)" -ForegroundColor Yellow
+                    }
+                }
+            }
+        }
+    }
+
+    # Force CI mode so Playwright does not reuse arbitrary local dev/PM2 servers.
+    # This makes the pipeline deterministic and avoids flaky 500s from stale processes.
+    $previousCi = $env:CI
+    $env:CI = "1"
+    try {
+        # Run with both list (console) and html (report) reporters
+        npx playwright test
+    }
+    finally {
+        if ($null -eq $previousCi -or $previousCi -eq "") {
+            Remove-Item Env:CI -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:CI = $previousCi
+        }
+    }
     # Show report hint regardless of pass/fail
     $reportPath = Join-Path $ClientDir "playwright-report" "index.html"
     if (Test-Path $reportPath) {

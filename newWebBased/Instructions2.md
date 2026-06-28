@@ -590,6 +590,8 @@ Auf der 1. Seite der RIegenliste wird der name der Riege nicht angezeigt.
 Der DB Wizard in der Configuration soll auch den WizardModal verwenden.  
 -> Erledigt ✅ | UnifiedDialog durch WizardModal ersetzt, 3-phasiger Indikator (Datenbank → Daten importieren → Fertig) wird aus dem Step-Status abgeleitet
 
+83. [Bug] in der Eingabe score-capture-v2 werden die Disziplinen nicht richtig gefiltert. 
+
 ---
 
 ## Zukunftsideen (noch nicht umgesetzt)

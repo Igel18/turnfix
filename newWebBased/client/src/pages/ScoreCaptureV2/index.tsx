@@ -308,6 +308,13 @@ export default function ScoreCaptureV2() {
       const wertungenId = await saveScore(participant.id, disciplineId, scoreToSave);
 
       if (wertungenId !== null) {
+        // Immediately reflect the saved score in the matrix so the participant
+        // list shows the correct value without waiting for a full data reload.
+        setScoreMatrix(prev => ({
+          ...prev,
+          [`${participant.id}-${String(disciplineId)}`]: String(scoreToSave),
+        }));
+
         // Update status to "Wertung erfasst"
         const statusId = findScoreStatus(statuses);
         if (statusId !== null) {
@@ -412,6 +419,20 @@ export default function ScoreCaptureV2() {
     ? participantStatuses[currentOriginalParticipant.id]?.wertungenId
     : undefined;
 
+  // Build the existing field-level scores for the currently selected participant
+  // so ScoringPanel can pre-fill LinkedFormulaInput when navigating between participants.
+  const currentFieldScores: Record<number, number> = {};
+  if (currentOriginalParticipant && selectedDiscipline) {
+    const disciplineId = selectedDiscipline.int_disziplinid || selectedDiscipline.var_name;
+    getDisciplineFields(disciplineId).forEach(f => {
+      const raw = scoreMatrix[`${currentOriginalParticipant.id}-${f.id}`];
+      if (raw && raw !== '') {
+        const num = parseFloat(raw);
+        if (!isNaN(num)) currentFieldScores[f.id] = num;
+      }
+    });
+  }
+
   // ── No event selected ─────────────────────────────────────────────────────────
 
   if (!eventId) {
@@ -499,6 +520,7 @@ export default function ScoreCaptureV2() {
               )}
               score={score}
               wertungenId={wertungenIdForPanel}
+              fieldScores={currentFieldScores}
               participantCount={filteredParticipants.length}
               currentIndex={currentIndex}
               loading={isSaving}

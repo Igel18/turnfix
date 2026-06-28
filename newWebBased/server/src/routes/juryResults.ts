@@ -45,7 +45,10 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     let paramIndex = 1;
     
     if (query.participantId) {
-      whereClause += ` AND jr.int_wertungenid = $${paramIndex}`;
+      // Backward-compatible filter:
+      // - preferred: participant ID (tfx_teilnehmer.int_teilnehmerid)
+      // - legacy:   wertungen ID (tfx_wertungen.int_wertungenid)
+      whereClause += ` AND (w.int_teilnehmerid = $${paramIndex} OR jr.int_wertungenid = $${paramIndex})`;
       queryParams.push(query.participantId);
       paramIndex++;
     }
@@ -84,7 +87,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     const sqlQuery = `
       SELECT 
         jr.int_juryresultsid as id,
-        jr.int_wertungenid as "participantId",
+        w.int_teilnehmerid as "participantId",
+        jr.int_wertungenid as "wertungenId",
         jr.int_disziplinen_felderid as "disciplineFieldId", 
         jr.int_versuch as attempt,
         jr.rel_leistung as performance,

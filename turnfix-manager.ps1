@@ -604,7 +604,18 @@ function Restart-TurnFix {
     Write-Host ""
     
     if ($global:IsProduction) {
+        # Stopping/restarting Windows services requires an elevated PowerShell session.
+        $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        if (-not $isAdmin) {
+            Write-Host "  ✗ Neustart nicht möglich: Bitte TurnFix Manager als Administrator starten." -ForegroundColor Red
+            Write-Host "  Hinweis: Rechtsklick auf turnfix-manager.ps1 oder TurnFix-Manager.bat -> 'Als Administrator ausführen'" -ForegroundColor Yellow
+            Write-Host ""
+            Read-Host "Drücken Sie Enter zum Fortfahren"
+            return
+        }
+
         # Production: Restart Windows Services
+        $restartFailed = $false
         $mainSvc = Get-Service -Name "TurnFixServer" -ErrorAction SilentlyContinue
         if ($mainSvc) {
             try {
@@ -612,7 +623,10 @@ function Restart-TurnFix {
                 Write-Host "  ✓ Haupt-Server neu gestartet" -ForegroundColor Green
             } catch {
                 Write-Host "  ✗ Haupt-Server Neustart fehlgeschlagen: $($_.Exception.Message)" -ForegroundColor Red
+                $restartFailed = $true
             }
+        } else {
+            Write-Host "  ⚠ Haupt-Server Dienst nicht installiert" -ForegroundColor Yellow
         }
         $jurySvc = Get-Service -Name "TurnFixJuryServer" -ErrorAction SilentlyContinue
         if ($jurySvc -and $jurySvc.Status -eq 'Running') {
@@ -620,11 +634,20 @@ function Restart-TurnFix {
                 Restart-Service -Name "TurnFixJuryServer" -Force -ErrorAction Stop
                 Write-Host "  ✓ Kampfrichter-Portal neu gestartet" -ForegroundColor Green
             } catch {
-                Write-Host "  ✗ Kampfrichter-Portal Neustart fehlgeschlagen" -ForegroundColor Red
+                Write-Host "  ✗ Kampfrichter-Portal Neustart fehlgeschlagen: $($_.Exception.Message)" -ForegroundColor Red
+                $restartFailed = $true
             }
+        } elseif ($jurySvc) {
+            Write-Host "  ⚠ Kampfrichter-Portal Dienst ist gestoppt (kein Neustart nötig)" -ForegroundColor Yellow
+        } else {
+            Write-Host "  ⚠ Kampfrichter-Portal Dienst nicht installiert" -ForegroundColor Yellow
         }
         Write-Host ""
-        Write-Host "✓ TurnFix erfolgreich neu gestartet!" -ForegroundColor Green
+        if ($restartFailed) {
+            Write-Host "✗ TurnFix Neustart unvollständig - Details siehe Meldungen oben." -ForegroundColor Red
+        } else {
+            Write-Host "✓ TurnFix erfolgreich neu gestartet!" -ForegroundColor Green
+        }
     } else {
         # Development: Restart PM2
         $serverPath = Join-Path $global:BasePath "server"

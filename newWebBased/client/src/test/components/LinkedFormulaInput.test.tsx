@@ -143,6 +143,23 @@ describe('LinkedFormulaInput', () => {
     expect(lastCall[1]).toMatchObject({ A: 8, B: 2 });
   });
 
+  it('formats calculated result with dot separator consistently', () => {
+    render(
+      <LinkedFormulaInput
+        formula="A + B"
+        onScoreChange={() => {}}
+        disciplineFields={[field(1, 'D-Note'), field(2, 'E-Note')]}
+        decimals={2}
+      />
+    );
+
+    const [inputA, inputB] = screen.getAllByRole('textbox');
+    fireEvent.change(inputA, { target: { value: '3' } });
+    fireEvent.change(inputB, { target: { value: '0.5' } });
+
+    expect(screen.getByText('3.50')).toBeTruthy();
+  });
+
   it('calls onScoreChange with null when field is cleared', () => {
     const onScoreChange = vi.fn();
     render(

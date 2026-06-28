@@ -10,6 +10,11 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import {
+  resolveScoringInputMode as mockResolveScoringInputMode,
+  LinkedFormulaInput as MockLinkedFormulaInput,
+  extractFormulaSymbols as mockExtractFormulaSymbols,
+} from '@turnfix/shared';
 import React from 'react';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -35,9 +40,11 @@ vi.mock('@/components/status', () => ({
 vi.mock('@turnfix/shared', () => ({
   resolveScoringInputMode: vi.fn(() => 'simple'),
   BuiltInFormulaInput: vi.fn(() => null),
+  LinkedFormulaInput: vi.fn(() => null),
   applyBuiltInFormula: vi.fn(() => 0),
   detectFormulaType: vi.fn(() => 'simple'),
   normalizeValueForCalculation: vi.fn((v: unknown) => parseFloat(String(v)) || 0),
+  extractFormulaSymbols: vi.fn(() => []),
 }));
 
 vi.mock('@/components/FormulaInput', () => ({
@@ -511,6 +518,78 @@ describe('ScoringPanel', () => {
     expect(optionTexts).toContain('Angemeldet');
     expect(optionTexts).toContain('Wertung erfasst');
     expect(optionTexts).toContain('Abwesend');
+  });
+
+  it('passes fieldScores as initialValues to LinkedFormulaInput in linkedFormula mode', () => {
+    // Arrange: linked formula mode with two fields and existing field scores
+    vi.mocked(mockResolveScoringInputMode).mockReturnValueOnce('linkedFormula' as any);
+    vi.mocked(mockExtractFormulaSymbols).mockReturnValueOnce(['A', 'B']);
+
+    const fieldScores: Record<number, number> = { 10: 8.5, 11: 1.5 };
+    const disciplineWithFormula = { ...mockDiscipline, var_formel: 'A + B' };
+    const fields = [
+      { id: 10, name: 'D-Note', isFinalScore: false, isStartingScore: false, sortOrder: 1 },
+      { id: 11, name: 'E-Note', isFinalScore: false, isStartingScore: false, sortOrder: 2 },
+    ];
+
+    render(
+      <ScoringPanel
+        participant={makeParticipant()}
+        discipline={disciplineWithFormula}
+        disciplineFields={fields}
+        score=""
+        fieldScores={fieldScores}
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={vi.fn()}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
+      />
+    );
+
+    // LinkedFormulaInput should receive initialValues mapped from fieldScores
+    expect(vi.mocked(MockLinkedFormulaInput)).toHaveBeenCalledWith(
+      expect.objectContaining({ initialValues: { A: 8.5, B: 1.5 } }),
+      expect.anything(),
+    );
+  });
+
+  it('does not pass initialValues when fieldScores is empty', () => {
+    vi.mocked(mockResolveScoringInputMode).mockReturnValueOnce('linkedFormula' as any);
+    vi.mocked(mockExtractFormulaSymbols).mockReturnValueOnce(['A', 'B']);
+
+    render(
+      <ScoringPanel
+        participant={makeParticipant()}
+        discipline={{ ...mockDiscipline, var_formel: 'A + B' }}
+        disciplineFields={[
+          { id: 10, name: 'D-Note', isFinalScore: false, isStartingScore: false, sortOrder: 1 },
+          { id: 11, name: 'E-Note', isFinalScore: false, isStartingScore: false, sortOrder: 2 },
+        ]}
+        score=""
+        fieldScores={{}}   // empty — no pre-fill expected
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={vi.fn()}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
+      />
+    );
+
+    // When fieldScores is empty the component passes an empty object ({}),
+    // which LinkedFormulaInput treats as "no pre-fill".
+      expect(vi.mocked(MockLinkedFormulaInput)).toHaveBeenCalledWith(
+      expect.objectContaining({ initialValues: {} }),
+      expect.anything(),
+    );
   });
 
   // TECH_DEBT_STATUS_NOT_DEVICE_SPECIFIC — status dropdown hidden
