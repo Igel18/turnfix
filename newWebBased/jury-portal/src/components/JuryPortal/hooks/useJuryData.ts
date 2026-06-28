@@ -81,9 +81,19 @@ export function useJuryData(): UseJuryDataReturn {
 
   // Fetch available status options once on mount
   useEffect(() => {
-    fetch(`${API_BASE_URL}/participant-status/statuses`)
+    fetch(`${API_BASE_URL}/statuses?limit=100`)
       .then(r => r.json())
-      .then(data => setStatuses(Array.isArray(data) ? data : []))
+      .then(data => {
+        const list = Array.isArray(data?.statuses) ? data.statuses : (Array.isArray(data) ? data : []);
+        const mapped = list
+          .filter((s: any) => s && (s.id || s.int_statusid))
+          .map((s: any) => ({
+            id: Number(s.id ?? s.int_statusid),
+            name: String(s.name ?? s.var_name ?? ''),
+            colorCode: String(s.colorCode ?? s.ary_colorcode ?? '{128,128,128}')
+          }));
+        setStatuses(mapped);
+      })
       .catch(() => {});
   }, []);
 

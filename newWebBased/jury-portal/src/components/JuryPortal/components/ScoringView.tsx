@@ -49,7 +49,8 @@ interface ScoringViewProps {
   onBack: () => void;
   getScoreValidation: (scoreValue: string) => { isValid: boolean; message: string };
   statuses: JuryStatus[];
-  onStatusChange: (wertungenId: number, statusId: number) => Promise<void>;
+  squadStatusId: number | null;
+  onSquadStatusChange: (statusId: number) => Promise<void>;
 }
 
 const ScoringView: React.FC<ScoringViewProps> = ({
@@ -70,7 +71,8 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   onBack,
   getScoreValidation,
   statuses,
-  onStatusChange,
+  squadStatusId,
+  onSquadStatusChange,
 }) => {
   const completedCount = participants.filter(p => hasStoredScore(p.currentScore)).length;
   const progressPercent = participants.length ? (completedCount / participants.length) * 100 : 0;
@@ -96,6 +98,9 @@ const ScoringView: React.FC<ScoringViewProps> = ({
           completedCount={completedCount}
           progressPercent={progressPercent}
           onParticipantSelect={onParticipantSelect}
+          statuses={statuses}
+          squadStatusId={squadStatusId}
+          onSquadStatusChange={onSquadStatusChange}
         />
 
         {/* Right Panel: Score Input */}
@@ -113,8 +118,6 @@ const ScoringView: React.FC<ScoringViewProps> = ({
           onScoreSubmit={onScoreSubmit}
           onParticipantSelect={onParticipantSelect}
           getScoreValidation={getScoreValidation}
-          statuses={statuses}
-          onStatusChange={onStatusChange}
         />
       </div>
     </div>
@@ -193,6 +196,9 @@ interface ParticipantSidebarProps {
   completedCount: number;
   progressPercent: number;
   onParticipantSelect: (index: number) => void;
+  statuses: JuryStatus[];
+  squadStatusId: number | null;
+  onSquadStatusChange: (statusId: number) => Promise<void>;
 }
 
 const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
@@ -203,11 +209,35 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
   completedCount,
   progressPercent,
   onParticipantSelect,
+  statuses,
+  squadStatusId,
+  onSquadStatusChange,
 }) => (
   <div className="w-full sm:w-2/5 lg:w-1/3 bg-white border-b sm:border-b-0 sm:border-r border-gray-300 flex flex-col">
     <div className="p-2 sm:p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
       <h2 className="text-base sm:text-lg font-semibold text-gray-900">Teilnehmer ({participants.length})</h2>
       <p className="text-xs sm:text-sm text-gray-600 truncate">{selectedDevice?.name} - {selectedSquad?.name}</p>
+
+      <div className="mt-2">
+        <label className="block text-xs text-gray-500 mb-1">
+          Riegenstatus für {selectedDevice?.name || 'Gerät'} {selectedSquad?.name ? `- ${selectedSquad.name}` : ''}
+        </label>
+        <select
+          value={squadStatusId ?? ''}
+          onChange={(e) => {
+            const newId = parseInt(e.target.value, 10);
+            if (!isNaN(newId)) {
+              void onSquadStatusChange(newId);
+            }
+          }}
+          className="w-full px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Status wählen</option>
+          {statuses.map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+      </div>
 
       {/* Progress Bar */}
       <div className="mt-2 sm:mt-3">
@@ -317,8 +347,6 @@ interface ScoreInputPanelProps {
   onScoreSubmit: () => void;
   onParticipantSelect: (index: number) => void;
   getScoreValidation: (scoreValue: string) => { isValid: boolean; message: string };
-  statuses: JuryStatus[];
-  onStatusChange: (wertungenId: number, statusId: number) => Promise<void>;
 }
 
 const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
@@ -335,12 +363,9 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
   onScoreSubmit,
   onParticipantSelect,
   getScoreValidation,
-  statuses,
-  onStatusChange,
 }) => {
   const [resolvedFormula, setResolvedFormula] = React.useState<string>(selectedDevice?.var_formel || '');
   const [formulaLoading, setFormulaLoading] = React.useState(false);
-  const [statusChanging, setStatusChanging] = React.useState(false);
 
   // Focus the score input whenever the active participant changes
   const simpleInputRef = React.useRef<HTMLInputElement>(null);
@@ -425,44 +450,6 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
               </div>
               <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-0.5">{currentParticipant.name}</h2>
               <p className="text-xs sm:text-sm text-gray-600">{currentParticipant.club}</p>
-
-              {/* Status */}
-              <div className="mt-2 flex justify-center">
-                {currentParticipant.wertungenId != null ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 font-medium">Status:</span>
-                    <select
-                      value={currentParticipant.statusId ?? ''}
-                      disabled={statusChanging}
-                      onChange={async (e) => {
-                        const newId = parseInt(e.target.value, 10);
-                        if (!isNaN(newId) && currentParticipant.wertungenId != null) {
-                          setStatusChanging(true);
-                          try {
-                            await onStatusChange(currentParticipant.wertungenId, newId);
-                          } finally {
-                            setStatusChanging(false);
-                          }
-                        }
-                      }}
-                      className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 cursor-pointer"
-                    >
-                      <option value="">Kein Status</option>
-                      {statuses.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                    {statusChanging && <span className="text-xs text-gray-400">…</span>}
-                  </div>
-                ) : currentParticipant.statusName ? (
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: currentParticipant.statusColor ?? '#e5e7eb', color: '#111' }}
-                  >
-                    {currentParticipant.statusName}
-                  </span>
-                ) : null}
-              </div>
             </div>
 
             {/* Score Input Section */}

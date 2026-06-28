@@ -30,6 +30,7 @@ import ScoringView from './components/ScoringView';
 
 const JuryPortal: React.FC = () => {
   const [step, setStep] = useState<JuryStep>('event');
+  const [squadStatusId, setSquadStatusId] = useState<number | null>(null);
 
   // All data fetching and state management
   const data = useJuryData();
@@ -53,22 +54,60 @@ const JuryPortal: React.FC = () => {
     setScore: data.setScore,
   });
 
-  const handleStatusChange = async (wertungenId: number, statusId: number) => {
+  const loadSquadStatus = async () => {
     try {
       const { API_BASE_URL } = await import('./JuryPortal.types');
-      await fetch(`${API_BASE_URL}/participant-status/${wertungenId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ statusId }),
-      });
-      const statusOption = data.statuses.find(s => s.id === statusId);
-      data.setParticipants(prev => prev.map(p =>
-        p.wertungenId === wertungenId
-          ? { ...p, statusId, statusName: statusOption?.name ?? null, statusColor: statusOption?.colorCode ?? null }
-          : p
-      ));
+      if (!data.selectedEvent || !data.selectedSquad || !data.selectedDevice?.disciplineId) {
+        setSquadStatusId(null);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/squad-disciplines?eventId=${data.selectedEvent}`);
+      if (!response.ok) {
+        setSquadStatusId(null);
+        return;
+      }
+
+      const payload = await response.json();
+      const list = Array.isArray(payload?.squadDisciplines) ? payload.squadDisciplines : [];
+      const match = list.find((item: any) =>
+        item?.squadName === data.selectedSquad?.name &&
+        Number(item?.disciplineId) === Number(data.selectedDevice?.disciplineId)
+      );
+
+      setSquadStatusId(match?.statusId ?? null);
     } catch (err) {
-      console.error('Failed to update participant status:', err);
+      console.error('Failed to load squad-discipline status:', err);
+      setSquadStatusId(null);
+    }
+  };
+
+  React.useEffect(() => {
+    loadSquadStatus();
+  }, [data.selectedEvent, data.selectedSquad?.name, data.selectedDevice?.disciplineId]);
+
+  const handleSquadStatusChange = async (statusId: number) => {
+    try {
+      const { API_BASE_URL } = await import('./JuryPortal.types');
+      if (!data.selectedEvent || !data.selectedSquad?.name || !data.selectedDevice?.disciplineId) return;
+
+      const response = await fetch(
+        `${API_BASE_URL}/squad-disciplines/${encodeURIComponent(data.selectedSquad.name)}/${data.selectedDevice.disciplineId}/status?eventId=${data.selectedEvent}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ statusId }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Failed to update squad-discipline status:', await response.text());
+        return;
+      }
+
+      setSquadStatusId(statusId);
+    } catch (err) {
+      console.error('Failed to update squad-discipline status:', err);
     }
   };
 
@@ -179,7 +218,8 @@ const JuryPortal: React.FC = () => {
       onBack={() => setStep('device')}
       getScoreValidation={getScoreValidation}
       statuses={data.statuses}
-      onStatusChange={handleStatusChange}
+      squadStatusId={squadStatusId}
+      onSquadStatusChange={handleSquadStatusChange}
     />
   );
 };
