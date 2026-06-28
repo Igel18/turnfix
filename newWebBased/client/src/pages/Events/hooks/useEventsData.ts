@@ -35,7 +35,7 @@ export const formatEventDate = (dateString: string, locale: string) => {
 
 export function useEventsData() {
   const { t } = useTranslation()
-  const { eventUpdateTrigger } = useEvent()
+  const { eventUpdateTrigger, selectedEvent, setSelectedEvent } = useEvent()
 
   // Data state
   const [events, setEvents] = useState<Event[]>([])
@@ -124,13 +124,14 @@ export function useEventsData() {
   }
 
   const handleDelete = async (eventId: number, forceDelete = false) => {
-    if (!forceDelete && !confirm(t('events.messages.confirmDelete'))) return
-
     setErrorMessage('')
 
     try {
       const url = forceDelete ? `/events/${eventId}?force=true` : `/events/${eventId}`
       await apiDelete(url)
+      if (selectedEvent?.int_eventid === eventId) {
+        setSelectedEvent(null)
+      }
       invalidateCache('/events')
       await fetchEvents()
     } catch (error: any) {
@@ -139,18 +140,7 @@ export function useEventsData() {
       if (error.response?.status === 409) {
         const errorData = error.response.data
         if (errorData.hasScores) {
-          const forceConfirm = confirm(
-            `This event contains ${errorData.scoresCount} scores and cannot be deleted normally.\n\n` +
-            `Do you want to DELETE ALL DATA associated with this event?\n` +
-            `This will permanently remove:\n` +
-            `- All participant scores\n` +
-            `- All competitions\n` +
-            `- The event itself\n\n` +
-            `This action cannot be undone!`
-          )
-          if (forceConfirm) {
-            return handleDelete(eventId, true)
-          }
+          setErrorMessage(errorData.error || 'Cannot delete event with existing scores')
         } else {
           setErrorMessage(errorData.error || 'Cannot delete event with existing data')
         }

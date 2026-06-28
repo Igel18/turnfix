@@ -430,10 +430,11 @@ const EventImportModal: React.FC<EventImportModalProps> = ({
                 <button
                   type="button"
                   onClick={async () => {
-                    for (const hint of hints) {
-                      if (hint.type === 'suggestion' && hint.disciplines.length > 0 && !acceptedHints.has(hint.competitionId)) {
-                        await handleAcceptHint(hint)
-                      }
+                    const pendingHints = hints.filter(
+                      hint => hint.type === 'suggestion' && hint.disciplines.length > 0 && !acceptedHints.has(hint.competitionId)
+                    )
+                    for (const hint of pendingHints) {
+                      await handleAcceptHint(hint)
                     }
                   }}
                   disabled={acceptingHint !== null}

@@ -16,6 +16,7 @@ import { CalendarDaysIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { DatabaseManagementTemplate } from '../../components/DatabaseManagementTemplate'
 import { SortableTableHeader } from '../../components/SortableTableHeader'
+import { UnifiedConfirmModal } from '../../components/UnifiedModal'
 import { exportToCSV, getEventCSVData } from '../../utils/csvExport'
 
 import { useEventsData } from './hooks/useEventsData'
@@ -55,6 +56,17 @@ const Events: React.FC = () => {
   } = useEventsData()
 
   const [isImportWizardOpen, setIsImportWizardOpen] = useState(false)
+  const [pendingDeleteEvent, setPendingDeleteEvent] = useState<Event | null>(null)
+
+  const requestDelete = (event: Event) => {
+    setPendingDeleteEvent(event)
+  }
+
+  const executeDelete = async () => {
+    if (!pendingDeleteEvent) return
+    await handleDelete(pendingDeleteEvent.int_eventid, true)
+    setPendingDeleteEvent(null)
+  }
 
   const handleExportCSV = () => {
     const csvData = getEventCSVData(events)
@@ -83,7 +95,7 @@ const Events: React.FC = () => {
         onAdd={openCreateModal}
         addLabel={t('events.addEvent')}
         onEdit={openEditModal}
-        onDelete={(event) => handleDelete(event.int_eventid)}
+        onDelete={(event) => requestDelete(event)}
         renderTableHeaders={() => (
           <tr>
             <SortableTableHeader
@@ -131,7 +143,10 @@ const Events: React.FC = () => {
             key={event.int_eventid}
             event={event}
             onEdit={openEditModal}
-            onDelete={(id) => handleDelete(id)}
+            onDelete={(id) => {
+              const target = events.find(e => e.int_eventid === id)
+              if (target) requestDelete(target)
+            }}
           />
         )}
         renderCard={(event: Event) => (
@@ -139,7 +154,10 @@ const Events: React.FC = () => {
             key={event.int_eventid}
             event={event}
             onEdit={openEditModal}
-            onDelete={(id) => handleDelete(id)}
+            onDelete={(id) => {
+              const target = events.find(e => e.int_eventid === id)
+              if (target) requestDelete(target)
+            }}
           />
         )}
         additionalContent={
@@ -169,6 +187,28 @@ const Events: React.FC = () => {
         onClose={() => setIsImportWizardOpen(false)}
         venues={venues}
         onImportComplete={fetchEvents}
+      />
+
+      <UnifiedConfirmModal
+        isOpen={!!pendingDeleteEvent}
+        onClose={() => setPendingDeleteEvent(null)}
+        onConfirm={() => { void executeDelete() }}
+        title={t('common.confirmDeleteTitle')}
+        message={
+          <div className="space-y-2 text-sm">
+            <p>
+              {t('events.messages.confirmDelete')}
+            </p>
+            <p className="text-red-700 font-medium">
+              Beim Löschen werden alle zugehörigen Daten (Wertungen, Wettkämpfe und Veranstaltung) dauerhaft entfernt.
+            </p>
+            <p className="text-gray-700">
+              Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+          </div>
+        }
+        confirmLabel={t('events.card.delete')}
+        confirmStyle="danger"
       />
     </div>
   )

@@ -155,6 +155,106 @@ test.describe('ScoreCaptureV2 – API Integration', () => {
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body.participants)).toBe(true);
   });
+
+  test('squad-discipline status dropdown updates status and persists', async ({ page, request }) => {
+    test.setTimeout(90_000);
+
+    const squadName = 'RW';
+    let restoreDisciplineId: number | null = null;
+    let restoreStatusId: number | null = null;
+    let targetDisciplineName = '';
+    let targetDisciplineId: number | null = null;
+
+    try {
+      const statusesRes = await apiGet(request, '/statuses?limit=100');
+      expect(statusesRes.status).toBe(200);
+      const statuses = statusesRes.body.statuses || statusesRes.body.results || statusesRes.body;
+      expect(Array.isArray(statuses)).toBe(true);
+      expect(statuses.length).toBeGreaterThan(1);
+
+      const generateRes = await request.post(`${API_BASE}/squad-disciplines/generate`, {
+        data: { eventId: state.eventId },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect([200, 400]).toContain(generateRes.status());
+
+      const initialSdRes = await apiGet(request, `/squad-disciplines?eventId=${state.eventId}&squadName=${encodeURIComponent(squadName)}`);
+      expect(initialSdRes.status).toBe(200);
+      const initialRows = initialSdRes.body.squadDisciplines || [];
+      expect(initialRows.length).toBeGreaterThan(0);
+
+      const targetRow = initialRows.find((r: any) => r.disciplineName) || initialRows[0];
+      targetDisciplineName = String(targetRow.disciplineName || '').trim();
+      targetDisciplineId = Number(targetRow.disciplineId);
+      restoreDisciplineId = targetDisciplineId;
+      restoreStatusId = targetRow.statusId != null ? Number(targetRow.statusId) : null;
+
+      expect(targetDisciplineName).toBeTruthy();
+      expect(targetDisciplineId).toBeTruthy();
+
+      await setEventContext(page, state.eventId, state.eventName);
+      await page.goto(
+        `/score-capture-v2?eventId=${state.eventId}&competitionId=${state.comp1Id}`,
+        { waitUntil: 'domcontentloaded' }
+      );
+
+      const squadSelect = page.locator('[data-testid="squad-select"]');
+      await squadSelect.waitFor({ state: 'visible', timeout: 20_000 });
+      await page.locator(`select option[value="${squadName}"]`).waitFor({ state: 'attached', timeout: 20_000 });
+      await squadSelect.selectOption({ value: squadName });
+      await page.waitForTimeout(500);
+
+      const disciplineCard = page.locator('div.border-2.rounded-lg', { hasText: targetDisciplineName }).first();
+      await disciplineCard.waitFor({ state: 'visible', timeout: 20_000 });
+      await disciplineCard.click();
+
+      const statusLabel = page.locator('label').filter({ hasText: /Riegenstatus|Status/i }).first();
+      await statusLabel.waitFor({ state: 'visible', timeout: 10_000 });
+      const statusSelect = statusLabel.locator('xpath=following-sibling::select').first();
+      await statusSelect.waitFor({ state: 'visible', timeout: 10_000 });
+
+      const currentValue = await statusSelect.inputValue();
+      const currentStatusId = currentValue ? Number(currentValue) : null;
+
+      const nextStatus = statuses.find((s: any) => Number(s.int_statusid ?? s.id) !== currentStatusId);
+      expect(nextStatus).toBeTruthy();
+      const nextStatusId = Number(nextStatus.int_statusid ?? nextStatus.id);
+
+      await statusSelect.selectOption(String(nextStatusId));
+      await page.waitForTimeout(700);
+
+      const sdRes = await apiGet(request, `/squad-disciplines?eventId=${state.eventId}&squadName=${encodeURIComponent(squadName)}`);
+      expect(sdRes.status).toBe(200);
+      const rows = sdRes.body.squadDisciplines || [];
+      const row = rows.find((r: any) => Number(r.disciplineId) === targetDisciplineId);
+      expect(row).toBeTruthy();
+      expect(Number(row.statusId)).toBe(nextStatusId);
+
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const squadSelectAfter = page.locator('[data-testid="squad-select"]');
+      await squadSelectAfter.waitFor({ state: 'visible', timeout: 20_000 });
+      await squadSelectAfter.selectOption({ value: squadName });
+
+      const disciplineCardAfter = page.locator('div.border-2.rounded-lg', { hasText: targetDisciplineName }).first();
+      await disciplineCardAfter.waitFor({ state: 'visible', timeout: 10_000 });
+      await disciplineCardAfter.click();
+
+      const statusLabelAfter = page.locator('label').filter({ hasText: /Riegenstatus|Status/i }).first();
+      const statusSelectAfter = statusLabelAfter.locator('xpath=following-sibling::select').first();
+      await statusSelectAfter.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(statusSelectAfter).toHaveValue(String(nextStatusId));
+    } finally {
+      if (restoreDisciplineId && restoreStatusId !== null) {
+        await request.put(
+          `${API_BASE}/squad-disciplines/${encodeURIComponent(squadName)}/${restoreDisciplineId}/status?eventId=${state.eventId}`,
+          {
+            data: { statusId: restoreStatusId },
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

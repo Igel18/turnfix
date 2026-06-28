@@ -146,6 +146,27 @@ Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) 
 
     # Ensure required ports are free so Playwright webServer can start cleanly.
     $requiredPorts = @(3001, 3002, 5173)
+
+    function Stop-ServiceByPidIfPossible {
+        param([int]$PidToInspect)
+
+        try {
+            $svc = Get-CimInstance Win32_Service -Filter "ProcessId = $PidToInspect" -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+
+            if ($svc -and $svc.State -eq 'Running') {
+                Write-Host "  🔧 Stoppe Dienst $($svc.Name) (PID $PidToInspect)" -ForegroundColor Yellow
+                Stop-Service -Name $svc.Name -Force -ErrorAction Stop
+                return $true
+            }
+        }
+        catch {
+            Write-Host "  ⚠️  Dienst zu PID $PidToInspect konnte nicht gestoppt werden: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+
+        return $false
+    }
+
     foreach ($port in $requiredPorts) {
         $connections = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
         if ($connections) {
@@ -153,8 +174,12 @@ Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) 
             foreach ($pidToStop in $pids) {
                 if ($pidToStop -and $pidToStop -ne $PID) {
                     try {
-                        Stop-Process -Id $pidToStop -Force -ErrorAction Stop
-                        Write-Host "  🔧 Port $port freigegeben (PID $pidToStop beendet)" -ForegroundColor Yellow
+                        $stoppedService = Stop-ServiceByPidIfPossible -PidToInspect $pidToStop
+
+                        if (-not $stoppedService) {
+                            Stop-Process -Id $pidToStop -Force -ErrorAction Stop
+                            Write-Host "  🔧 Port $port freigegeben (PID $pidToStop beendet)" -ForegroundColor Yellow
+                        }
                     }
                     catch {
                         Write-Host "  ⚠️  Port $port belegt, PID $pidToStop konnte nicht beendet werden: $($_.Exception.Message)" -ForegroundColor Yellow
@@ -162,12 +187,20 @@ Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) 
                 }
             }
         }
+
+        $stillListening = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+        if ($stillListening) {
+            $busyPids = ($stillListening | Select-Object -ExpandProperty OwningProcess -Unique) -join ', '
+            throw "Port $port bleibt belegt (PID(s): $busyPids). Bitte TurnFix-Dienste stoppen und erneut ausführen."
+        }
     }
 
     # Force CI mode so Playwright does not reuse arbitrary local dev/PM2 servers.
     # This makes the pipeline deterministic and avoids flaky 500s from stale processes.
     $previousCi = $env:CI
+    $previousAllowReuse = $env:TURNFIX_E2E_ALLOW_REUSE
     $env:CI = "1"
+    $env:TURNFIX_E2E_ALLOW_REUSE = "1"
     try {
         # Run with both list (console) and html (report) reporters
         npx playwright test
@@ -178,6 +211,13 @@ Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) 
         }
         else {
             $env:CI = $previousCi
+        }
+
+        if ($null -eq $previousAllowReuse -or $previousAllowReuse -eq "") {
+            Remove-Item Env:TURNFIX_E2E_ALLOW_REUSE -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:TURNFIX_E2E_ALLOW_REUSE = $previousAllowReuse
         }
     }
     # Show report hint regardless of pass/fail

@@ -498,4 +498,43 @@ describe('useEventImportWizard – handleAcceptHint', () => {
     await act(async () => { await result.current.handleAcceptHint(hint); });
     expect(callCount).toBe(1);
   });
+
+  it('accumulates multiple accepted hints instead of overwriting earlier ones', async () => {
+    let callCount = 0;
+    server.use(
+      http.post('/api/events/accept-discipline-suggestions', async () => {
+        callCount++;
+        return HttpResponse.json({ success: true });
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    const firstHint: DisciplineHint = {
+      competition: 'AK 10',
+      competitionId: 101,
+      type: 'suggestion',
+      disciplines: [{ id: 5, name: 'Reck' }],
+      message: '',
+    };
+
+    const secondHint: DisciplineHint = {
+      competition: 'AK 11',
+      competitionId: 102,
+      type: 'suggestion',
+      disciplines: [{ id: 6, name: 'Sprung' }],
+      message: '',
+    };
+
+    await act(async () => {
+      await result.current.handleAcceptHint(firstHint);
+      await result.current.handleAcceptHint(secondHint);
+    });
+
+    expect(callCount).toBe(2);
+    expect(result.current.acceptedHints.has(101)).toBe(true);
+    expect(result.current.acceptedHints.has(102)).toBe(true);
+  });
 });

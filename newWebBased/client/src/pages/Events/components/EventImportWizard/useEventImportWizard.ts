@@ -94,7 +94,11 @@ export function useEventImportWizard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ competitionId: hint.competitionId, disciplines: hint.disciplines })
       })
-      setAcceptedHints(new Set([...acceptedHints, hint.competitionId]))
+      setAcceptedHints(prev => {
+        const next = new Set(prev)
+        next.add(hint.competitionId)
+        return next
+      })
     } catch (e) {
       // Optionally handle error
     } finally {

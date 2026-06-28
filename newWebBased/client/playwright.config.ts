@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const allowServerReuse = process.env.TURNFIX_E2E_ALLOW_REUSE === '1';
+
 /**
  * Playwright E2E Test Configuration for TurnFix
  *
@@ -95,7 +97,7 @@ export default defineConfig({
       command: 'node dist/index.js',
       cwd: '../server',
       port: 3001,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: allowServerReuse || !process.env.CI,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -104,7 +106,7 @@ export default defineConfig({
       command: 'node src/index.js',
       cwd: '../jury-server',
       port: 3002,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: allowServerReuse || !process.env.CI,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -113,7 +115,7 @@ export default defineConfig({
       command: 'npx vite',
       cwd: '.',
       port: 5173,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: allowServerReuse || !process.env.CI,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
