@@ -25,6 +25,7 @@ const juryResultQuerySchema = z.object({
   participantId: z.string().transform(Number).optional(),
   disciplineFieldId: z.string().transform(Number).optional(),
   eventId: z.string().transform(Number).optional(),
+  competitionId: z.string().transform(Number).optional(),
   disciplineId: z.string().transform(Number).optional(),
   attempt: z.string().transform(Number).optional(),
   type: z.string().transform(Number).optional(),
@@ -80,6 +81,12 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     if (query.eventId) {
       whereClause += ` AND wk.int_veranstaltungenid = $${paramIndex}`;
       queryParams.push(query.eventId);
+      paramIndex++;
+    }
+
+    if (query.competitionId) {
+      whereClause += ` AND wk.int_wettkaempfeid = $${paramIndex}`;
+      queryParams.push(query.competitionId);
       paramIndex++;
     }
 

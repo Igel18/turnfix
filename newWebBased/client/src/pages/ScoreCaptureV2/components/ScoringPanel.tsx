@@ -173,9 +173,9 @@ export const ScoringPanel: React.FC<ScoringPanelProps> = ({
 
   const handleSaveClick = () => {
     if (inputMode === 'builtInFormula') {
-      // Save the calculated result (not raw x-input)
-      const calcVal = builtInCalcResult ?? (score.trim() !== '' ? parseFloat(normalizeValueForCalculation(score)) : undefined);
-      onSave(calcVal);
+      // Persist the raw user input, consistent with ScoreCapture/Jury Portal.
+      // Formula transformation is applied for ranking display, not DB storage.
+      onSave(score);
     } else if (inputMode === 'linkedFormula') {
       // Fields already auto-saved; save the endwert from the calculated result
       onSave(linkedCalcResult !== null ? linkedCalcResult : undefined);

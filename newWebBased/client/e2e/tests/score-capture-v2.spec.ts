@@ -498,4 +498,234 @@ test.describe('ScoreCaptureV2 – Linked Fields Persistence', () => {
       }
     }
   });
+
+  test('latest overwritten field value persists after full page reload', async ({ page, request }) => {
+    test.setTimeout(120_000);
+
+    const ts = Date.now();
+    const squadName = `U${String(ts).slice(-1)}`;
+    let participantId = 0;
+    let linkedDisciplineId = 0;
+    let linkedCompetitionId = 0;
+    let linkedDisciplineName = '';
+    const firstA = 1.0;
+    const secondA = 2.0;
+    const fieldBValue = 0.5;
+
+    try {
+      const participantRes = await request.post(`${API_BASE}/participants`, {
+        data: {
+          var_vorname: `Overwrite${String(ts).slice(-4)}`,
+          var_nachname: 'Reload',
+          int_geschlecht: 2,
+          int_vereineid: state.clubIds[0],
+          dat_geburtstag: '2015-06-15',
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(participantRes.status()).toBe(201);
+      const participantBody = await participantRes.json();
+      participantId = participantBody.participant?.int_teilnehmerid || participantBody.int_teilnehmerid;
+      expect(participantId).toBeTruthy();
+
+      const disciplineRes = await request.post(`${API_BASE}/disciplines`, {
+        data: {
+          name: `E2E_Overwrite_${ts}`,
+          shortName: `O${String(ts).slice(-3)}`,
+          formula: 'A + B',
+          calculationType: 2,
+          sportId: state.sportId,
+          maleAllowed: true,
+          femaleAllowed: true,
+          shouldCalculate: false,
+          attempts: 1,
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(disciplineRes.status()).toBe(201);
+      const disciplineBody = await disciplineRes.json();
+      linkedDisciplineId =
+        disciplineBody.id || disciplineBody.discipline?.int_disziplinenid || disciplineBody.int_disziplinenid;
+      expect(linkedDisciplineId).toBeTruthy();
+      linkedDisciplineName = `E2E_Overwrite_${ts}`;
+
+      const fieldARes = await request.post(`${API_BASE}/discipline-fields`, {
+        data: {
+          disciplineId: linkedDisciplineId,
+          name: 'D-Note',
+          sortOrder: 1,
+          isFinalScore: false,
+          isStartingScore: false,
+          group: 1,
+          enabled: true,
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(fieldARes.status()).toBeLessThan(300);
+
+      const fieldBRes = await request.post(`${API_BASE}/discipline-fields`, {
+        data: {
+          disciplineId: linkedDisciplineId,
+          name: 'E-Note',
+          sortOrder: 2,
+          isFinalScore: false,
+          isStartingScore: false,
+          group: 1,
+          enabled: true,
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(fieldBRes.status()).toBeLessThan(300);
+
+      const compRes = await request.post(`${API_BASE}/competitions`, {
+        data: {
+          name: `E2E_Overwrite_Comp_${ts}`,
+          number: `OC${String(ts).slice(-3)}`,
+          gender: 'weiblich',
+          ageFrom: 1,
+          ageTo: 99,
+          competitionType: 0,
+          eventId: state.eventId,
+          disciplines: [{ disciplineId: linkedDisciplineId, maxScore: 20 }],
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(compRes.status()).toBe(201);
+      const compBody = await compRes.json();
+      linkedCompetitionId = compBody.id;
+      expect(linkedCompetitionId).toBeTruthy();
+
+      const addParticipantRes = await request.post(`${API_BASE}/event-participants/add`, {
+        data: {
+          eventId: state.eventId,
+          participantId,
+          competitionId: linkedCompetitionId,
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(addParticipantRes.status()).toBeLessThan(300);
+
+      const createSquadRes = await request.post(`${API_BASE}/squad-management/create`, {
+        data: {
+          eventId: state.eventId,
+          name: squadName,
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect([200, 201, 400]).toContain(createSquadRes.status());
+
+      const assignSquadRes = await request.post(`${API_BASE}/squad-management/assign`, {
+        data: {
+          participantId,
+          squadName,
+          eventId: state.eventId,
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(assignSquadRes.status()).toBeLessThan(300);
+
+      const generateRes = await request.post(`${API_BASE}/squad-disciplines/generate`, {
+        data: { eventId: state.eventId },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(generateRes.status()).toBe(200);
+
+      await setEventContext(page, state.eventId, state.eventName);
+      await page.goto(
+        `/score-capture-v2?eventId=${state.eventId}&competitionId=${linkedCompetitionId}`,
+        { waitUntil: 'domcontentloaded' }
+      );
+
+      const squadSelect = page.locator('[data-testid="squad-select"]');
+      await squadSelect.waitFor({ state: 'visible', timeout: 20_000 });
+      await page.locator(`select option[value="${squadName}"]`).first().waitFor({ state: 'attached', timeout: 20_000 });
+      await squadSelect.selectOption({ value: squadName });
+
+      const disciplineCard = page.locator('div.border-2.rounded-lg', { hasText: linkedDisciplineName }).first();
+      await disciplineCard.waitFor({ state: 'visible', timeout: 20_000 });
+      await disciplineCard.click();
+
+      await expect(page.locator('[data-testid="scoring-split-view"]')).toBeVisible({ timeout: 15_000 });
+
+      const participantItem = page.locator(`[data-testid="participant-list-item-${participantId}"]`);
+      if (await participantItem.count()) {
+        await participantItem.click();
+      }
+
+      const inputA = page.locator('label', { hasText: /^A:/ }).locator('xpath=following-sibling::input').first();
+      const inputB = page.locator('label', { hasText: /^B:/ }).locator('xpath=following-sibling::input').first();
+      await expect(inputA).toBeVisible({ timeout: 10_000 });
+      await expect(inputB).toBeVisible({ timeout: 10_000 });
+
+      const saveAFirst = page.waitForResponse(
+        r => r.url().includes('/api/jury-results/save-field-score') && r.request().method() === 'POST' && r.status() < 400
+      );
+      await inputA.fill(String(firstA));
+      await inputA.blur();
+      await saveAFirst;
+
+      const saveASecond = page.waitForResponse(
+        r => r.url().includes('/api/jury-results/save-field-score') && r.request().method() === 'POST' && r.status() < 400
+      );
+      await inputA.fill(String(secondA));
+      await inputA.blur();
+      await saveASecond;
+
+      const saveB = page.waitForResponse(
+        r => r.url().includes('/api/jury-results/save-field-score') && r.request().method() === 'POST' && r.status() < 400
+      );
+      await inputB.fill(String(fieldBValue));
+      await inputB.blur();
+      await saveB;
+
+      await robustReload(page);
+
+      const squadSelectAfter = page.locator('[data-testid="squad-select"]');
+      await squadSelectAfter.waitFor({ state: 'visible', timeout: 20_000 });
+      await page.locator(`select option[value="${squadName}"]`).first().waitFor({ state: 'attached', timeout: 20_000 });
+      await squadSelectAfter.selectOption({ value: squadName });
+
+      const disciplineCardAfter = page.locator('div.border-2.rounded-lg', { hasText: linkedDisciplineName }).first();
+      await disciplineCardAfter.waitFor({ state: 'visible', timeout: 20_000 });
+      await disciplineCardAfter.click();
+
+      await expect(page.locator('[data-testid="scoring-split-view"]')).toBeVisible({ timeout: 15_000 });
+
+      const participantItemAfter = page.locator(`[data-testid="participant-list-item-${participantId}"]`);
+      if (await participantItemAfter.count()) {
+        await participantItemAfter.click();
+      }
+
+      const inputAAfter = page.locator('label', { hasText: /^A:/ }).locator('xpath=following-sibling::input').first();
+      const inputBAfter = page.locator('label', { hasText: /^B:/ }).locator('xpath=following-sibling::input').first();
+
+      await expect(inputAAfter).toBeVisible({ timeout: 10_000 });
+      await expect(inputBAfter).toBeVisible({ timeout: 10_000 });
+
+      await expect.poll(async () => await inputAAfter.inputValue(), { timeout: 15_000 }).not.toBe('');
+      await expect.poll(async () => await inputBAfter.inputValue(), { timeout: 15_000 }).not.toBe('');
+
+      const valueA = await inputAAfter.inputValue();
+      const valueB = await inputBAfter.inputValue();
+
+      const parsedA = parseFloat(valueA.replace(',', '.'));
+      const parsedB = parseFloat(valueB.replace(',', '.'));
+
+      expect(parsedA).toBeCloseTo(secondA, 2);
+      expect(parsedB).toBeCloseTo(fieldBValue, 2);
+    } finally {
+      if (participantId && linkedCompetitionId) {
+        await request.delete(`${API_BASE}/event-participants/unassign?participantId=${participantId}&competitionId=${linkedCompetitionId}`);
+      }
+      if (linkedCompetitionId) {
+        await request.delete(`${API_BASE}/competitions/${linkedCompetitionId}`);
+      }
+      if (linkedDisciplineId) {
+        await request.delete(`${API_BASE}/disciplines/${linkedDisciplineId}`);
+      }
+      if (participantId) {
+        await request.delete(`${API_BASE}/participants/${participantId}`);
+      }
+    }
+  });
 });

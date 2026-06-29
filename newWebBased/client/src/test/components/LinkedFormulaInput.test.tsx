@@ -17,6 +17,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LinkedFormulaInput } from '@turnfix/shared';
+import React from 'react';
 
 // LinkedFormulaInput is a plain component — no hook mocks needed.
 // It uses calculateFormula / extractFormulaSymbols internally (pure functions).
@@ -179,6 +180,24 @@ describe('LinkedFormulaInput', () => {
     expect(lastCall[0]).not.toBeUndefined();
   });
 
+  it('TDD: does not force decimal padding on blur after typing an integer', () => {
+    render(
+      <LinkedFormulaInput
+        formula="1*x"
+        onScoreChange={() => {}}
+        disciplineFields={[field(1, 'Wertung')]}
+        decimals={2}
+      />
+    );
+
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '1' } });
+    fireEvent.blur(input);
+
+    // Keep compact input to avoid follow-up appends like "1.002".
+    expect(input.value).toBe('1');
+  });
+
   // ── Initial values ────────────────────────────────────────────────────────
 
   it('pre-fills input from initialValues', () => {
@@ -193,7 +212,7 @@ describe('LinkedFormulaInput', () => {
     );
 
     const input = screen.getByRole('textbox') as HTMLInputElement;
-    expect(input.value).toBe('5.00');
+    expect(input.value).toBe('5');
   });
 
   it('pre-fills two inputs from initialValues for "A + B"', () => {
@@ -208,8 +227,26 @@ describe('LinkedFormulaInput', () => {
     );
 
     const [inputA, inputB] = screen.getAllByRole('textbox') as HTMLInputElement[];
-    expect(inputA.value).toBe('8.50');
-    expect(inputB.value).toBe('1.50');
+    expect(inputA.value).toBe('8.5');
+    expect(inputB.value).toBe('1.5');
+  });
+
+  it('TDD: initialValues sync keeps compact editable value (no forced .00)', () => {
+    const Host = ({ initial }: { initial: Record<string, number> }) => (
+      <LinkedFormulaInput
+        formula="1*x"
+        onScoreChange={() => {}}
+        disciplineFields={[field(1, 'Wertung')]}
+        decimals={2}
+        initialValues={initial}
+      />
+    );
+
+    const { rerender } = render(<Host initial={{}} />);
+    rerender(<Host initial={{ x: 1 }} />);
+
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    expect(input.value).toBe('1');
   });
 
   // ── Disabled state ────────────────────────────────────────────────────────

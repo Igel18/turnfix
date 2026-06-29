@@ -92,6 +92,7 @@ export default function ScoreCapture() {
     initializeScoreMatrix
   } = useScoreMatrix({
     eventId,
+    competitionId: competitionId ?? undefined,
     activeSquad,
     activeDiscipline,
     participants,

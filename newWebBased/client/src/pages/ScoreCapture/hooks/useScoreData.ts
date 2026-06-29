@@ -194,8 +194,10 @@ export function useScoreData({
       // Load existing scores for the event
       let loadedScores: Score[] = [];
       try {
-        console.log('Fetching ALL scores with URL:', `/scores?eventId=${eventId}&limit=1000`);
-        const scoresData = await apiGet(`/scores?eventId=${eventId}&limit=1000`);
+        const cacheBuster = Date.now();
+        const scoresUrl = `/scores?eventId=${eventId}&limit=1000&_cb=${cacheBuster}`;
+        console.log('Fetching ALL scores with URL:', scoresUrl);
+        const scoresData = await apiGet(scoresUrl);
         console.log('Raw scores response:', scoresData);
         loadedScores = scoresData?.results || [];
         console.log('Loaded existing scores:', loadedScores);

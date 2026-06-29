@@ -82,6 +82,12 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
 }) => {
   const symbols = extractFormulaSymbols(formula);
 
+  const formatEditableValue = (value: number): string => {
+    if (!Number.isFinite(value)) return '';
+    const rounded = Number(value.toFixed(decimals));
+    return String(rounded);
+  };
+
   // Numeric values per symbol, e.g. { x: 5, A: 8.5 }
   const [fieldValues, setFieldValues] = useState<Record<string, number>>(
     () => ({ ...initialValues })
@@ -92,7 +98,7 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
     const init: Record<string, string> = {};
     symbols.forEach(sym => {
       const v = initialValues[sym];
-      init[sym] = v !== undefined ? v.toFixed(decimals) : '';
+      init[sym] = v !== undefined ? formatEditableValue(v) : '';
     });
     return init;
   });
@@ -114,7 +120,7 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
     const newInputs: Record<string, string> = {};
     symbols.forEach(sym => {
       const v = initialValues[sym];
-      newInputs[sym] = v !== undefined ? v.toFixed(decimals) : '';
+      newInputs[sym] = v !== undefined ? formatEditableValue(v) : '';
     });
     setFieldValues(newValues);
     setFieldInputs(newInputs);
@@ -144,10 +150,13 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
   };
 
   const handleBlur = (symbol: string) => {
-    const num = fieldValues[symbol];
-    if (num !== undefined && !isNaN(num)) {
-      setFieldInputs(prev => ({ ...prev, [symbol]: num.toFixed(decimals) }));
-    }
+    const raw = (fieldInputs[symbol] ?? '').trim();
+    if (raw === '') return;
+
+    // Keep user-friendly editable form (no forced trailing zeros like 1.00),
+    // but normalize decimal separator for consistency.
+    const compact = raw.replace(',', '.');
+    setFieldInputs(prev => ({ ...prev, [symbol]: compact }));
   };
 
   const placeholder = '0.' + '0'.repeat(decimals);

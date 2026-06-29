@@ -715,7 +715,7 @@ Reihenfolge sollte per default absteigend sein. Aber auch umschaltbar.
 105. [Feature] Es ist möglich Veranstaltungen über ein GymNet-XML zu importieren. Wir haben auch schon eine möglichkeit geschaffen Ergebnisse darzustellen und als CSV zu exportieren. Im GymNet kann jedoch nur eine XML importiert werden. Dieses Import XML hat das identische Format wie das Export XML. 
 Dies soll implementiert werden. Zu beachten ist nun: der Export Button soll in der Ergebnisse UI sichtbar sein. Es sollen Funktionen möglichst wieder verwendet werden und wenn es noch keine gibt, dann sollen diese so geschrieben werden dass sie wiederverwendet werden können. Es müssen Tests geschrieben werden. -> Erledigt ✅ |
 
-106. Im Jury-Portal gibt es jetzt ein Status, den man an der Person setzen kann. Das ist doch eigentlich eine technische Schuld und sollte ausgeblendet sein, oder? 
+106. Im Jury-Portal gibt es jetzt ein Status, den man an der Person setzen kann. Das ist doch eigentlich eine technische Schuld und sollte ausgeblendet sein, oder?  -> Erledigt ✅ 
 
 107. [Bug] nice to have: Im Jury-Portal kann man Wertungen eingeben und es wird ein "Berechnetes Ergebnis" angezeigt. bei der Eingabe wird mit Punkten gearbeitet und bei der Berechnung mit Kommas. Das sollte einheitlich mit Kommas sein. Genauso bei der Anzeige der Wertung in der Liste der Teilnehmer. -> Erledigt ✅ |
 

@@ -7,7 +7,6 @@
 import React from 'react';
 import { Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { StatusBadge } from '@/components/status';
 import type { ParticipantListItem } from '../ScoreCaptureV2.types';
 
 interface ParticipantListProps {
@@ -129,14 +128,6 @@ export const ParticipantList: React.FC<ParticipantListProps> = ({
                         <span className="text-xs font-medium text-blue-600">→</span>
                       ) : (
                         <span className="text-xs text-gray-400">–</span>
-                      )}
-                      {p.statusName && (
-                        <div className="mt-0.5">
-                          <StatusBadge
-                            label={p.statusName}
-                            colorCode={p.statusColor}
-                          />
-                        </div>
                       )}
                     </div>
                   </div>

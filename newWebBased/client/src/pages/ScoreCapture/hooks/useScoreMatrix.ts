@@ -17,6 +17,7 @@ import type {
 
 interface UseScoreMatrixProps {
   eventId: string | null;
+  competitionId?: string;
   activeSquad: string;
   activeDiscipline: number | string | '';
   participants: Participant[];
@@ -37,7 +38,9 @@ interface UseScoreMatrixReturn {
 
 export function useScoreMatrix({
   eventId,
+  competitionId,
   activeSquad,
+  activeDiscipline,
   disciplineFields,
   getDisciplineFields,
   getFilteredDisciplines
@@ -183,7 +186,24 @@ export function useScoreMatrix({
     if (eventId && filteredParticipants.length > 0) {
       try {
         console.log('Loading jury results for event:', eventId);
-        const juryResults = await apiGet(`/jury-results?eventId=${eventId}&limit=1000`);
+        const cacheBuster = Date.now();
+        const query = new URLSearchParams({
+          eventId: String(eventId),
+          attempt: '1',
+          type: '0',
+          limit: '1000',
+          _cb: String(cacheBuster),
+        });
+
+        if (competitionId) {
+          query.set('competitionId', String(competitionId));
+        }
+
+        if (typeof activeDiscipline === 'number') {
+          query.set('disciplineId', String(activeDiscipline));
+        }
+
+        const juryResults = await apiGet(`/jury-results?${query.toString()}`);
         console.log('Loaded jury results:', juryResults.results?.length || 0, 'entries');
         
         if (juryResults.results) {

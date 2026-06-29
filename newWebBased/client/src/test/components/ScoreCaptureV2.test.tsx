@@ -14,6 +14,8 @@ import {
   resolveScoringInputMode as mockResolveScoringInputMode,
   LinkedFormulaInput as MockLinkedFormulaInput,
   extractFormulaSymbols as mockExtractFormulaSymbols,
+  applyBuiltInFormula as mockApplyBuiltInFormula,
+  detectFormulaType as mockDetectFormulaType,
 } from '@turnfix/shared';
 import React from 'react';
 
@@ -136,7 +138,7 @@ describe('ParticipantList', () => {
     expect(btn.className).toContain('border-blue-600');
   });
 
-  it('shows status badge when statusName provided', () => {
+  it('does not show status badge in participant list (status is not device-specific)', () => {
     render(
       <ParticipantList
         participants={[makeParticipant({ id: 1, statusName: 'Wertung erfasst', statusColor: '#00ff00' })]}
@@ -144,8 +146,7 @@ describe('ParticipantList', () => {
         onSelect={vi.fn()}
       />
     );
-    const badge = screen.getByTestId('status-badge');
-    expect(badge.textContent).toBe('Wertung erfasst');
+    expect(screen.queryByTestId('status-badge')).toBeNull();
   });
 
   it('shows progress fraction', () => {
@@ -619,6 +620,34 @@ describe('ScoringPanel', () => {
       fireEvent.change(select, { target: { value: '3' } });
     });
     expect(onStatusChange).toHaveBeenCalledWith(99, 3);
+  });
+
+  it('saves raw entered value in builtInFormula mode (not calculated result)', () => {
+    vi.mocked(mockResolveScoringInputMode).mockReturnValueOnce('builtInFormula' as any);
+    vi.mocked(mockDetectFormulaType).mockReturnValueOnce('variable' as any);
+    vi.mocked(mockApplyBuiltInFormula).mockReturnValueOnce(7.25 as any);
+
+    const onSave = vi.fn();
+    render(
+      <ScoringPanel
+        participant={makeParticipant()}
+        discipline={{ ...mockDiscipline, var_formel: '20-x' } as any}
+        disciplineFields={[]}
+        score="12.75"
+        participantCount={2}
+        currentIndex={0}
+        loading={false}
+        onScoreChange={vi.fn()}
+        onFieldChange={vi.fn()}
+        onSave={onSave}
+        onNavigate={vi.fn()}
+        getScoreValidation={() => ({ isValid: true, message: '' })}
+        {...defaultStatusProps}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('save-score-button'));
+    expect(onSave).toHaveBeenCalledWith('12.75');
   });
 });
 
