@@ -260,12 +260,11 @@ export async function checkGenderAgeMismatch(eventId: number): Promise<AnalyzerC
         OR (t.int_geschlecht = 2 AND b.bol_weiblich IS NOT TRUE)
         OR (
           t.dat_geburtstag IS NOT NULL
-          AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER < wk.yer_von
+          AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER < LEAST(wk.yer_von, COALESCE(wk.yer_bis, wk.yer_von))
         )
         OR (
           t.dat_geburtstag IS NOT NULL
-          AND wk.yer_bis IS NOT NULL
-          AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER > wk.yer_bis
+          AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER > GREATEST(wk.yer_von, COALESCE(wk.yer_bis, wk.yer_von))
         )
       )
   `, eventId)
@@ -290,12 +289,11 @@ export async function checkGenderAgeMismatch(eventId: number): Promise<AnalyzerC
           OR (t.int_geschlecht = 2 AND b.bol_weiblich IS NOT TRUE)
           OR (
             t.dat_geburtstag IS NOT NULL
-            AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER < wk.yer_von
+            AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER < LEAST(wk.yer_von, COALESCE(wk.yer_bis, wk.yer_von))
           )
           OR (
             t.dat_geburtstag IS NOT NULL
-            AND wk.yer_bis IS NOT NULL
-            AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER > wk.yer_bis
+            AND EXTRACT(YEAR FROM t.dat_geburtstag)::INTEGER > GREATEST(wk.yer_von, COALESCE(wk.yer_bis, wk.yer_von))
           )
         )
       ORDER BY t.var_nachname
