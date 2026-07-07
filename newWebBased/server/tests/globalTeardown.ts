@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 
 export default async function globalTeardown(): Promise<void> {
   // Load test environment
-  dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
+  dotenv.config({ path: path.resolve(__dirname, '../.env.test'), override: true });
 
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🧹 Jest Global Teardown — Cleaning up');
@@ -20,7 +20,13 @@ export default async function globalTeardown(): Promise<void> {
   // On Windows, Prisma's connection pool takes a while to fully close.
   try {
     const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
+    const prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
     await prisma.$disconnect();
   } catch { /* ignore */ }
 

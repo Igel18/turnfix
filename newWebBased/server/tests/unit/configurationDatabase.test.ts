@@ -57,7 +57,7 @@ function buildApp() {
 const dbConfig = {
   db_host: 'localhost',
   db_port: 5432,
-  db_name: 'turnfix_test',
+  db_name: 'turnfix_test_db',
   db_user: 'postgres',
   db_password: 'secret',
   db_ssl: false,
@@ -228,7 +228,7 @@ describe('configurationDatabase routes', () => {
 
     it('should return 400 when database already exists', async () => {
       // DB exists
-      mockQueryRaw.mockResolvedValueOnce([{ datname: 'turnfix_test' }]);
+      mockQueryRaw.mockResolvedValueOnce([{ datname: 'turnfix_test_db' }]);
 
       const res = await request(app)
         .post('/api/configuration/create-database')
@@ -274,7 +274,7 @@ describe('configurationDatabase routes', () => {
 
     it('should return 500 with DB_ALREADY_EXISTS when CREATE DATABASE fails with already exists', async () => {
       mockQueryRaw.mockResolvedValueOnce([]); // DB check: not found
-      mockExecuteRawUnsafe.mockRejectedValue(new Error('database "turnfix_test" already exists'));
+      mockExecuteRawUnsafe.mockRejectedValue(new Error('database "turnfix_test_db" already exists'));
 
       const res = await request(app)
         .post('/api/configuration/create-database')
@@ -375,7 +375,7 @@ describe('configurationDatabase routes', () => {
       const call = mockExecSync.mock.calls[0];
       const options = call[1] as { env: Record<string, string> };
       expect(options.env.DATABASE_URL).toBe(
-        `postgresql://postgres:secret@localhost:5432/turnfix_test?schema=public`
+        `postgresql://postgres:secret@localhost:5432/turnfix_test_db?schema=public`
       );
     });
 

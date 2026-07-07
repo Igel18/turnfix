@@ -1016,6 +1016,68 @@ Ergebnis im Import-Review pro Disziplin sichtbar machen.
 Nach Import weiter editierbar in Disziplin-/Event-Konfiguration.
 -> Erledigt ✅
 
+137. Beim Import der XML kommt es zu Fehlern: 
+Warnungen
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (9-10Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (9-10Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (9-10Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (9-10Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (9-10Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (9-10Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (11-12Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (11-12Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (11-12Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (9-10Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (11-12Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (13-14Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (13-14Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (13-14Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (13-14Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (1-6Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (1-6Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (1-6Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (13-14Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (7-8Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (7-8Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (7-8Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (17-18Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (7-8Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+
+Grund ist wahrscheinlich, dass keine Teilnehmer in diesen Wettkämpfen drin sind und daher auch keine Disziplinen hinzugefügt werden können. 
+Die Meldung ist daher ok, sollte aber den Grund enthalten (wenn dieser ausfindig gemacht werden kann). 
+
+138. [Bug] Beim Import kann kein Veranstaltungsort ausgewählt werden, erst beim nachträglichen editieren. 
+
 🚀 In Arbeit (unvollständig)
 #	Titel
 72	PDF Export – Wettkampfnummer bei Teilnehmer- & Riegenlistenexport (Tests fehlen)

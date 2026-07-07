@@ -3,12 +3,12 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Ensure test environment is loaded
-dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), override: true });
 
 /**
  * Test utilities for database operations.
  * 
- * Uses the dedicated test database (turnfix_test) configured via .env.test.
+ * Uses the dedicated test database (turnfix_test_db) configured via .env.test.
  * The test DB is created/seeded by globalSetup and dropped by globalTeardown.
  * 
  * IMPORTANT: All test data created via TestUtils is tracked by ID
