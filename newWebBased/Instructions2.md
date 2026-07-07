@@ -1076,7 +1076,13 @@ Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10®
 Grund ist wahrscheinlich, dass keine Teilnehmer in diesen Wettkämpfen drin sind und daher auch keine Disziplinen hinzugefügt werden können. 
 Die Meldung ist daher ok, sollte aber den Grund enthalten (wenn dieser ausfindig gemacht werden kann). 
 
-138. [Bug] Beim Import kann kein Veranstaltungsort ausgewählt werden, erst beim nachträglichen editieren. 
+138. [Bug] Beim Import kann kein Veranstaltungsort ausgewählt werden, erst beim nachträglichen editieren. TDD
+
+139. [Bug] Nach dem Import von dem 69. Schüler und Jugendturnfest sind oft 6 Geräte mit einem Wettkampf verknüpft, obwohl das im XML nicht so drin zu sein scheint. TDD -> Liegt an den Zuordnungsvorschlägen. Wird mit 140 gefixt. 
+
+140. [Feature] Beim Import der XML wäre es doch gut, wenn man jeden Wettkampf einmal durch geht / anschaut und die Vorschläge für die Disziplinen anzeigt und dann korrigiert. 
+
+141. [Bug] Beim Wettkampf editieren "Gruppe setzen" wird zwar die Disziplin Gruppe selektiert, aber die anderen ggf. bereits selektierten Diszplinen nicht deselektiert. 
 
 🚀 In Arbeit (unvollständig)
 #	Titel
