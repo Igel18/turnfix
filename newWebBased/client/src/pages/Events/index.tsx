@@ -36,9 +36,12 @@ const Events: React.FC = () => {
     errorMessage,
     editingEvent,
     isModalOpen,
+    isImportModalOpen,
     openEditModal,
     openCreateModal,
+    openImportModal,
     closeModal,
+    closeImportModal,
     handleSubmit,
     handleDelete,
     fetchEvents,
@@ -55,7 +58,6 @@ const Events: React.FC = () => {
     getSortValue,
   } = useEventsData()
 
-  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false)
   const [pendingDeleteEvent, setPendingDeleteEvent] = useState<Event | null>(null)
 
   const requestDelete = (event: Event) => {
@@ -163,7 +165,7 @@ const Events: React.FC = () => {
         additionalContent={
           <div className="mt-4 flex items-center gap-2">
             <button
-              onClick={() => setIsImportWizardOpen(true)}
+              onClick={openImportModal}
               className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100"
             >
               {t('events.importWizard.openButton')}
@@ -183,8 +185,8 @@ const Events: React.FC = () => {
 
       {/* GymNet Import Wizard */}
       <EventImportWizard
-        isOpen={isImportWizardOpen}
-        onClose={() => setIsImportWizardOpen(false)}
+        isOpen={isImportModalOpen}
+        onClose={closeImportModal}
         venues={venues}
         onImportComplete={fetchEvents}
       />
