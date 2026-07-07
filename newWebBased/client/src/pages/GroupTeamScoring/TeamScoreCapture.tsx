@@ -7,6 +7,7 @@ import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import EntityScoringSelector, { type ScoringEntity, type ScoringCompetition, type ScoringDiscipline } from '@/components/EntityScoringSelector';
+import { useFormulaCalculation } from '@/pages/ScoreCapture/hooks';
 import { TeamScoreTable } from './components/TeamScoreTable';
 
 import type {
@@ -19,6 +20,7 @@ import type {
 
 export default function TeamScoreCapture() {
   const { t } = useTranslation();
+  const { calculateFinalScoreFromFieldMap } = useFormulaCalculation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
   const urlCompetitionId = searchParams.get('competitionId');
@@ -272,6 +274,22 @@ export default function TeamScoreCapture() {
     }));
   };
 
+  const getAttemptFieldValueMap = (attempt: number): Record<number, string | number | null> => {
+    return disciplineFields.reduce<Record<number, string | number | null>>((acc, field) => {
+      const key = `team-${selectedTeamId}-attempt-${attempt}-field-${field.id}`;
+      acc[field.id] = scoreMatrix[key] || null;
+      return acc;
+    }, {});
+  };
+
+  const calculateAttemptFinalScore = (attempt: number): number | null => {
+    return calculateFinalScoreFromFieldMap(
+      selectedDiscipline?.formula || null,
+      disciplineFields,
+      getAttemptFieldValueMap(attempt)
+    );
+  };
+
   const handleSaveScore = async (attempt: number) => {
     if (!selectedTeamId || !selectedDisciplineId || !selectedCompetitionId) {
       return;
@@ -297,8 +315,7 @@ export default function TeamScoreCapture() {
       return; // Nothing to save
     }
 
-    // Calculate final score
-    const finalScore = components.reduce((sum: number, c: any) => sum + (c.value || 0), 0);
+    const finalScore = calculateAttemptFinalScore(attempt);
 
     const scoreData: ScoreData = {
       teamId: selectedTeamId,
@@ -375,12 +392,14 @@ export default function TeamScoreCapture() {
               <TeamScoreTable
                 team={selectedTeam}
                 disciplineFields={disciplineFields}
+                formula={selectedDiscipline.formula || null}
                 maxAttempts={selectedDiscipline.attempts}
                 inputMask={selectedDiscipline.inputMask || '0.000'}
                 loading={loadingScores}
                 onScoreChange={handleScoreChange}
                 onSaveScore={handleSaveScore}
                 scoreMatrix={scoreMatrix}
+                calculateFinalScore={calculateAttemptFinalScore}
               />
             </div>
           )}

@@ -32,6 +32,8 @@ export interface Discipline {
   name: string;
   shortName: string;
   icon?: string;
+  formula?: string;
+  formulaId?: number;
   maleAllowed: boolean;
   femaleAllowed: boolean;
   calculationType: number;

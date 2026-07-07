@@ -1052,6 +1052,7 @@ TD-03 TD-Formellogik mehrfach implementiert (hoch)
 Beschreibung: Formel-/Endwert-Logik ist auf Disziplinverwaltung, ScoreCapture, ScoreCaptureV2 und GroupTeamScoring verteilt.
 Risiko: unterschiedliche Ergebnisse je Erfassungsweg.
 Fundstellen: DisciplinesUnified.tsx:367, useFormulaCalculation.ts:62, ScoringPanel.tsx:175, TeamScoreCapture.tsx:300
+-> Erledigt ✅
 
 TD-04 TD-Uneinheitliche Persistenzpfade (mittel-hoch)
 Beschreibung: Scores werden über mehrere Endpunkte/Flows gespeichert (value-save, field-save, group/team save).
@@ -1062,6 +1063,8 @@ TD-05 TD-SoC-Verstoß in zentralen Seiten (mittel)
 Beschreibung: Mehrere große Dateien > 600 Zeilen, teils UI + Workflow + API + Berechnung in einer Einheit.
 Risiko: hoher Änderungsaufwand, Regressionen.
 Fundstellen: Configuration, EventManagement, DisciplinesUnified, EventImportModal
+
+TD-06 Offen bleibt noch ein angrenzender Punkt: die Auflösung von int_formelid per API-Fetch ist weiterhin an mehreren Stellen separat vorhanden. Die reine Berechnungslogik ist jetzt zentralisiert, die Formel-Resolver-Logik noch nicht vollständig. Wenn du willst, ziehe ich das als nächsten Schritt auch noch in eine gemeinsame Hook/Utility zusammen.
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀

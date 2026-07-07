@@ -7,6 +7,7 @@ import { useEvent } from '@/contexts/EventContext';
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate';
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import UnifiedScoreEntry, { type ScoreComponentValue } from '@/components/UnifiedScoreEntry';
+import { useFormulaCalculation } from '@/pages/ScoreCapture/hooks';
 
 import type {
   Group,
@@ -18,6 +19,7 @@ import type {
 
 export default function GroupScoreCapture() {
   const { t } = useTranslation();
+  const { calculateFinalScoreFromFieldMap } = useFormulaCalculation();
   const [searchParams] = useSearchParams();
   const urlEventId = searchParams.get('eventId');
   const urlCompetitionId = searchParams.get('competitionId');
@@ -136,14 +138,16 @@ export default function GroupScoreCapture() {
   };
 
   const calculateFinalScore = () => {
-    const finalField = disciplineFields.find(f => f.isFinalScore);
-    if (!finalField) return 0;
+    const fieldValueMap = scoreComponents.reduce<Record<number, number | null>>((acc, component) => {
+      acc[component.fieldId] = component.value;
+      return acc;
+    }, {});
 
-    const values = scoreComponents
-      .filter(c => !disciplineFields.find(f => f.id === c.fieldId && f.isFinalScore))
-      .map(c => c.value || 0);
-
-    return values.reduce((sum, val) => sum + val, 0);
+    return calculateFinalScoreFromFieldMap(
+      selectedDiscipline?.formula || null,
+      disciplineFields,
+      fieldValueMap
+    ) ?? 0;
   };
 
   const handleOpenScoreEntry = () => {
