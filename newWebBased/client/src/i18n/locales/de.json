@@ -793,6 +793,12 @@
       "locationPlaceholder": "Einen Austragungsort auswählen...",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Optionale Beschreibung",
+      "scoringMode": {
+        "label": "Wertungsmodus",
+        "formulaBased": "Formelberechnung (Standard)",
+        "finalOnly": "Nur Endwert-Eingabe",
+        "help": "Steuert, ob bei diesem Import Endwerte nur direkt eingegeben oder aus Teilwerten berechnet werden."
+      },
       "cancel": "Abbrechen",
       "import": "Importieren",
       "importing": "Importiere...",

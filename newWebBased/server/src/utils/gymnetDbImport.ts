@@ -392,6 +392,27 @@ async function linkDisciplines(
 ): Promise<void> {
   console.log('🤸 Starting comprehensive discipline processing...');
 
+  const getExpectedGenderFromWedDisNr = (wedDisNrRaw: string | number | null | undefined): 'male' | 'female' | 'mixed' | 'unknown' => {
+    const nr = typeof wedDisNrRaw === 'string' ? parseInt(wedDisNrRaw, 10) : wedDisNrRaw;
+    if (nr === undefined || nr === null || Number.isNaN(nr)) return 'unknown';
+
+    if (nr === 630 || nr === 915 || nr === 916) return 'mixed';
+
+    if (nr >= 100 && nr < 200) {
+      const tens = Math.floor(nr / 10);
+      if (tens >= 10 && tens <= 15) return 'male';
+      if (tens >= 16 && tens <= 19) return 'female';
+    }
+
+    if (nr >= 200 && nr < 300) {
+      const tens = Math.floor(nr / 10);
+      if (tens >= 20 && tens <= 25) return 'male';
+      if (tens >= 26 && tens <= 29) return 'female';
+    }
+
+    return 'unknown';
+  };
+
   const eventCompetitions = await prisma.$queryRawUnsafe(`
     SELECT w.int_wettkaempfeid, w.var_name, w.var_nummer, w.int_bereicheid,
            b.bol_maennlich, b.bol_weiblich
@@ -427,16 +448,32 @@ async function linkDisciplines(
 
     if (compDevices && compDevices.length > 0) {
       // === PRECISE MATCHING: Use wedDisNr from XML devices ===
-      console.log(`    📦 Found ${compDevices.length} devices from XML for this competition`);
+      const seenDeviceKeys = new Set<string>();
+      const uniqueCompDevices = compDevices.filter((device: any) => {
+        const key = `${String(device.code ?? '')}|${String(device.id ?? '')}|${String(device.name ?? '')}`;
+        if (seenDeviceKeys.has(key)) return false;
+        seenDeviceKeys.add(key);
+        return true;
+      });
+
+      if (uniqueCompDevices.length !== compDevices.length) {
+        console.log(`    ♻️ Deduplicated XML devices: ${compDevices.length} → ${uniqueCompDevices.length}`);
+      }
+
+      console.log(`    📦 Found ${uniqueCompDevices.length} unique devices from XML for this competition`);
 
       let sortOrder = 0;
-      for (const device of compDevices) {
+      for (const device of uniqueCompDevices) {
         sortOrder++;
         const wedDisNr = device.code;
         if (!wedDisNr) {
           console.log(`    ⚠️ Device "${device.name}" has no wedDisNr code, skipping`);
           continue;
         }
+
+        const expectedGenderByCode = getExpectedGenderFromWedDisNr(wedDisNr);
+        const compIsMale = competition.bol_maennlich === true;
+        const compIsFemale = competition.bol_weiblich === true;
 
         let turnfixId = wedDisNrToTurnFixId(wedDisNr, {
           wedDisId: device.id,
@@ -459,14 +496,42 @@ async function linkDisciplines(
           wedDisId: device.id,
           wedDisName: device.name,
         });
-        if (expectedDisciplineName && disciplineCheck.length > 0 && disciplineCheck[0].var_name !== expectedDisciplineName) {
-          const byName = await prisma.$queryRawUnsafe(`
-            SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen WHERE var_name = $1 LIMIT 1
+        if (expectedDisciplineName && (disciplineCheck.length === 0 || disciplineCheck[0].var_name !== expectedDisciplineName)) {
+          const byNameCandidates = await prisma.$queryRawUnsafe(`
+            SELECT int_disziplinenid, var_name, bol_m, bol_w
+            FROM tfx_disziplinen
+            WHERE var_name = $1
+            ORDER BY int_disziplinenid ASC
           `, expectedDisciplineName) as any[];
-          if (byName.length > 0) {
-            console.log(`    🔄 Name fallback: preset ID ${turnfixId} has "${disciplineCheck[0].var_name}" (expected "${expectedDisciplineName}"), using ID ${byName[0].int_disziplinenid}`);
-            disciplineCheck = byName;
-            turnfixId = byName[0].int_disziplinenid;
+
+          if (byNameCandidates.length > 0) {
+            const candidates = byNameCandidates;
+
+            // Prioritize exact gender semantics from wedDisNr, then competition gender.
+            let selected = candidates[0];
+
+            if (expectedGenderByCode === 'male') {
+              selected = candidates.find((d: any) => d.bol_m === true) || selected;
+            } else if (expectedGenderByCode === 'female') {
+              selected = candidates.find((d: any) => d.bol_w === true) || selected;
+            } else if (compIsMale && !compIsFemale) {
+              selected = candidates.find((d: any) => d.bol_m === true) || selected;
+            } else if (compIsFemale && !compIsMale) {
+              selected = candidates.find((d: any) => d.bol_w === true) || selected;
+            }
+
+            if (candidates.length > 1) {
+              warnings.push({
+                type: 'warning',
+                category: 'discipline',
+                message: `Mehrdeutige Disziplin in DB: "${expectedDisciplineName}" existiert ${candidates.length}x — passende Variante wurde nach Geschlecht gewählt`,
+                details: `Wettkampf="${competition.var_name}", wedDisNr=${wedDisNr}, gewählt ID=${selected.int_disziplinenid}`
+              });
+            }
+
+            console.log(`    🔄 Name fallback: using "${expectedDisciplineName}" with ID ${selected.int_disziplinenid} (candidates=${candidates.length})`);
+            disciplineCheck = [selected];
+            turnfixId = selected.int_disziplinenid;
           }
         }
 
@@ -481,11 +546,47 @@ async function linkDisciplines(
         const discFemale = disciplineCheck[0].bol_w === true;
 
         // Gender validation: Check if discipline gender matches competition gender
-        const compIsMale = competition.bol_maennlich === true;
-        const compIsFemale = competition.bol_weiblich === true;
         let genderMismatch = false;
 
-        if (compIsMale && !compIsFemale && !discMale) {
+        if (expectedGenderByCode === 'male' && !discMale) {
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Disziplin-Stammdaten inkonsistent: wedDisNr=${wedDisNr} erwartet männlich, aber "${disciplineName}" ist in DB mit m=${discMale}, w=${discFemale} hinterlegt`,
+            details: `Wettkampf="${competition.var_name}", Disziplin-ID=${turnfixId}`
+          });
+          console.log(`    ⚠️ Discipline gender flag mismatch in DB (expected male by code): "${disciplineName}" m=${discMale}, w=${discFemale}`);
+        } else if (expectedGenderByCode === 'female' && !discFemale) {
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Disziplin-Stammdaten inkonsistent: wedDisNr=${wedDisNr} erwartet weiblich, aber "${disciplineName}" ist in DB mit m=${discMale}, w=${discFemale} hinterlegt`,
+            details: `Wettkampf="${competition.var_name}", Disziplin-ID=${turnfixId}`
+          });
+          console.log(`    ⚠️ Discipline gender flag mismatch in DB (expected female by code): "${disciplineName}" m=${discMale}, w=${discFemale}`);
+        }
+
+        if (compIsMale && !compIsFemale && expectedGenderByCode === 'female') {
+          genderMismatch = true;
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Wettkampf "${competition.var_name}" (männlich): Disziplin "${disciplineName}" ist nur für weiblich zugelassen — Zuweisung übersprungen`,
+            details: `Disziplin="${disciplineName}", erwartet nach wedDisNr: weiblich`
+          });
+          console.log(`    ⚠️ Gender mismatch by wedDisNr: female-coded device cannot be assigned to male competition "${competition.var_name}" — skipping`);
+        } else if (compIsFemale && !compIsMale && expectedGenderByCode === 'male') {
+          genderMismatch = true;
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Wettkampf "${competition.var_name}" (weiblich): Disziplin "${disciplineName}" ist nur für männlich zugelassen — Zuweisung übersprungen`,
+            details: `Disziplin="${disciplineName}", erwartet nach wedDisNr: männlich`
+          });
+          console.log(`    ⚠️ Gender mismatch by wedDisNr: male-coded device cannot be assigned to female competition "${competition.var_name}" — skipping`);
+        }
+
+        if (!genderMismatch && compIsMale && !compIsFemale && !discMale && expectedGenderByCode !== 'male') {
           // Male-only competition but discipline is female-only
           genderMismatch = true;
           warnings.push({
@@ -495,7 +596,7 @@ async function linkDisciplines(
             details: `wedDisNr=${wedDisNr}, Disziplin erlaubt: m=${discMale}, w=${discFemale}`
           });
           console.log(`    ⚠️ Gender mismatch: "${disciplineName}" (w-only) cannot be assigned to male competition "${competition.var_name}" — skipping`);
-        } else if (compIsFemale && !compIsMale && !discFemale) {
+        } else if (!genderMismatch && compIsFemale && !compIsMale && !discFemale && expectedGenderByCode !== 'female') {
           // Female-only competition but discipline is male-only
           genderMismatch = true;
           warnings.push({

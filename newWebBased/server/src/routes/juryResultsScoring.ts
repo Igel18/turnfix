@@ -4,6 +4,11 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
+import {
+  getEventScoringModeByCompetitionId,
+  getEventScoringModeByWertungenId,
+  shouldUseFormulaCalculation,
+} from '../utils/eventScoringMode';
 
 const router = Router();
 
@@ -28,6 +33,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     // (from Score Capture, it's passed as wertungenId prop)
     const wertungenId = validatedData.participantId;
     console.log(`Using wertungenid: ${wertungenId}`);
+    const scoringMode = await getEventScoringModeByWertungenId(wertungenId);
+    const formulasEnabled = shouldUseFormulaCalculation(scoringMode);
 
     // Check if entry already exists
     const existingQuery = `
@@ -189,7 +196,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
             const info = details[0] || {};
             
             // Get formula and calculate score
-            const formula = info.table_formula || info.discipline_formula;
+            const formula = formulasEnabled ? (info.table_formula || info.discipline_formula) : null;
             let calculatedScore = validatedData.performance;
             
             if (formula) {
@@ -270,6 +277,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
               finalScore: calculatedScore,
               score: calculatedScore,
               formula: formula,
+              scoringMode,
               attempt: validatedData.attempt,
               timestamp: new Date().toISOString()
             });
@@ -340,6 +348,9 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
         error: 'Could not determine correct competition for this participant and discipline field. Please ensure the participant is registered for a competition that includes this discipline.' 
       });
     }
+
+    const scoringMode = await getEventScoringModeByCompetitionId(actualCompetitionId);
+    const formulasEnabled = shouldUseFormulaCalculation(scoringMode);
 
     console.log(`✅ Using competition ID: ${actualCompetitionId} (from ScoreSynchronizer)`);
 
@@ -475,7 +486,7 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
         const formulaResult = await prisma.$queryRawUnsafe(formulaQuery, disciplineId) as any[];
         const formula = formulaResult[0]?.formula;
 
-        if (formula) {
+        if (formula && formulasEnabled) {
           // Fetch all saved jury-result field values for this participant/discipline/attempt
           // Exclude endwert fields (those are the result placeholder, not input values)
           const juryFieldsQuery = `

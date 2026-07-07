@@ -25,6 +25,7 @@ import {
   type ExtractedData as ExtractedDataType
 } from '../utils/gymnetXmlParser';
 import { importGymnetData } from '../utils/gymnetDbImport';
+import { normalizeImportScoringMode, withEventScoringMode } from '../utils/eventScoringMode';
 
 const router = Router();
 
@@ -121,6 +122,7 @@ router.post('/import-gymnet', authenticateToken, upload.array('files', 10), asyn
     const endDate = req.body.endDate;
     const locationId = req.body.locationId;
     const description = req.body.description;
+    const scoringMode = normalizeImportScoringMode(req.body.scoringMode);
 
     if (!eventName || !eventName.trim()) {
       return res.status(400).json({ success: false, message: 'Event name is required' });
@@ -226,7 +228,7 @@ router.post('/import-gymnet', authenticateToken, upload.array('files', 10), asyn
         insertQuery,
         eventName.trim(), parsedStartDate, parsedEndDate, venueNameToUse, venueIdToUse,
         1, 1, 1, null, 1, parsedEndDate, false, 0, 0, 0, 0.0, 0.0, false, false, false,
-        '', '', '', '', '', '', '', ''
+        '', withEventScoringMode('', scoringMode), '', '', '', '', '', ''
       ) as any[];
 
       createdEvent = result[0];
@@ -295,7 +297,8 @@ router.post('/import-gymnet', authenticateToken, upload.array('files', 10), asyn
         endDate: parsedEndDate,
         locationId: venueIdToUse,
         locationName: venueNameToUse,
-        description: description?.trim() || null
+        description: description?.trim() || null,
+        scoringMode
       } : null,
       eventCreationError: eventCreationError ? {
         message: eventCreationError instanceof Error ? eventCreationError.message : String(eventCreationError),

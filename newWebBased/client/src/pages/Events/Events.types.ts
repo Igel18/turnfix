@@ -37,6 +37,7 @@ export interface ImportEventData {
   endDate: string
   locationId: string
   description: string
+  scoringMode: 'formula_based' | 'final_only'
 }
 
 export interface ImportProgress {
@@ -87,6 +88,7 @@ export interface ImportApiResult {
     name: string
     startDate: string
     endDate: string
+    scoringMode?: 'formula_based' | 'final_only'
   }
   insertionResults: ImportInsertionResults
   warnings: ImportWarning[]
@@ -121,5 +123,6 @@ export const EMPTY_IMPORT_DATA: ImportEventData = {
   startDate: '',
   endDate: '',
   locationId: '',
-  description: ''
+  description: '',
+  scoringMode: 'formula_based'
 }

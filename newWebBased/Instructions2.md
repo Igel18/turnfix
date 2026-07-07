@@ -1002,6 +1002,19 @@ d.) Spaltenbezeichnung muss einheitlich sein (mal steht alter, mal Geburtsdatum 
 135. [Refactoring] AddParticipantModal.tsx 
 In dieser Datei ist ziemlich viel Code, der auch in der Klasse AddParticipantModal drin sein sollte weil mit beiden UIs eine Person zur DB hinzugefügt werden kann. Hier sollten wahrscheinlich utils verwenden, was wir ja bisher so gemacht haben... 
 
+136. [Feature] Beim Import auswählbar zu machen ob man Einzelwerte eingeben möchte. Pragmatisch und workflow-freundlich:
+Im Import-Wizard einen zusätzlichen Schritt „Wertungsmodus“ einbauen.
+Default per Auto-Mapping setzen (z. B. aus GymNet-Disziplin + vorhandenem Profil).
+Admin kann vor Abschluss überschreiben: Endwert oder Formelprofil.
+Ergebnis im Import-Review pro Disziplin sichtbar machen.
+Nach Import weiter editierbar in Disziplin-/Event-Konfiguration.
+
+Im Import-Wizard einen zusätzlichen Schritt „Wertungsmodus“ einbauen.
+Default per Auto-Mapping setzen (z. B. aus GymNet-Disziplin + vorhandenem Profil).
+Admin kann vor Abschluss überschreiben: Endwert oder Formelprofil.
+Ergebnis im Import-Review pro Disziplin sichtbar machen.
+Nach Import weiter editierbar in Disziplin-/Event-Konfiguration.
+-> Erledigt ✅
 
 🚀 In Arbeit (unvollständig)
 #	Titel
@@ -1027,6 +1040,28 @@ In dieser Datei ist ziemlich viel Code, der auch in der Klasse AddParticipantMod
 108	Improvement: Status "Gedruckt" automatisch setzen beim PDF-Export	niedrig
 123	Modale Dialoge → Wizard (Disziplin, Wettkampf, GymNet-Import)	niedrig
 TD-01	Technische Schuld: "Pause"-Erkennung per Name-Regex in ScheduleMatrixView.tsx	niedrig
+
+
+TD-02 TD-Import-Scoring-Kopplung (hoch) 
+Beschreibung: Import legt Disziplinen an, aber der Wertungsmodus ist nicht als erster Klassenbürger im Importprozess modelliert.
+Risiko: Nacharbeit nach Import, inkonsistente Defaults je Seite.
+Fundstellen: index.tsx:4, index.tsx:449, Configuration.tsx:1089
+-> Erledigt ✅
+
+TD-03 TD-Formellogik mehrfach implementiert (hoch)
+Beschreibung: Formel-/Endwert-Logik ist auf Disziplinverwaltung, ScoreCapture, ScoreCaptureV2 und GroupTeamScoring verteilt.
+Risiko: unterschiedliche Ergebnisse je Erfassungsweg.
+Fundstellen: DisciplinesUnified.tsx:367, useFormulaCalculation.ts:62, ScoringPanel.tsx:175, TeamScoreCapture.tsx:300
+
+TD-04 TD-Uneinheitliche Persistenzpfade (mittel-hoch)
+Beschreibung: Scores werden über mehrere Endpunkte/Flows gespeichert (value-save, field-save, group/team save).
+Risiko: Validierung/Audit/Plausi verhalten sich nicht überall gleich.
+Fundstellen: useScoreActions.ts:163, useScoreActions.ts:216, GroupScoreCapture.tsx:175, TeamScoreCapture.tsx:316
+
+TD-05 TD-SoC-Verstoß in zentralen Seiten (mittel)
+Beschreibung: Mehrere große Dateien > 600 Zeilen, teils UI + Workflow + API + Berechnung in einer Einheit.
+Risiko: hoher Änderungsaufwand, Regressionen.
+Fundstellen: Configuration, EventManagement, DisciplinesUnified, EventImportModal
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀

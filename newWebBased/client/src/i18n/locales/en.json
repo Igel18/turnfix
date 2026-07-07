@@ -793,6 +793,12 @@
       "locationPlaceholder": "Select a location...",
       "description": "Description",
       "descriptionPlaceholder": "Optional description",
+      "scoringMode": {
+        "label": "Scoring mode",
+        "formulaBased": "Formula calculation (default)",
+        "finalOnly": "Final score only input",
+        "help": "Controls whether final scores are entered directly or calculated from field values for this import."
+      },
       "cancel": "Cancel",
       "import": "Import",
       "importing": "Importing...",

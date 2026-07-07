@@ -143,6 +143,25 @@ const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, v
             className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+        <div>
+          <label className="block text-xs font-medium text-blue-800 mb-1">
+            {t('events.import.scoringMode.label', 'Wertungsmodus')}
+          </label>
+          <select
+            value={importEventData.scoringMode}
+            onChange={(e) => setImportEventData({
+              ...importEventData,
+              scoringMode: e.target.value as 'formula_based' | 'final_only'
+            })}
+            className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="formula_based">{t('events.import.scoringMode.formulaBased', 'Formelberechnung (Standard)')}</option>
+            <option value="final_only">{t('events.import.scoringMode.finalOnly', 'Nur Endwert-Eingabe')}</option>
+          </select>
+          <p className="text-xs text-blue-700 mt-1">
+            {t('events.import.scoringMode.help', 'Steuert, ob bei diesem Import Endwerte nur direkt eingegeben oder aus Teilwerten berechnet werden.')}
+          </p>
+        </div>
       </div>
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">

@@ -11,6 +11,7 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
+import { getEventScoringModeByCompetitionId, shouldUseFormulaCalculation } from '../utils/eventScoringMode';
 
 
 const router = Router();
@@ -64,6 +65,9 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
         error: 'Could not determine correct competition for this participant and discipline. Please ensure the participant is registered for a competition that includes this discipline.' 
       });
     }
+
+    const scoringMode = await getEventScoringModeByCompetitionId(actualCompetitionId);
+    const formulasEnabled = shouldUseFormulaCalculation(scoringMode);
 
     console.log(`✅ Using competition ID: ${actualCompetitionId}`);
 
@@ -157,7 +161,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
         console.log(`🔔 Score details from DB:`, details);
         
         // Get formula (prefer table formula over discipline formula)
-        const formula = details.table_formula || details.discipline_formula;
+        const formula = formulasEnabled ? (details.table_formula || details.discipline_formula) : null;
         
         let calculatedScore = parseFloat(score); // Default to stored score
         
@@ -253,6 +257,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
           finalScore: calculatedScore,  // Use calculated score for live view
           storedScore: parseFloat(score), // Include original stored score for debugging
           hasFormula: !!formula,
+          scoringMode,
           timestamp: new Date().toISOString(),
           updated: true 
         });
@@ -374,6 +379,11 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
     
     const wertungenId = wertungenResult[0].int_wertungenid;
     console.log('✅ Found wertungenId:', wertungenId);
+
+    const scoringMode = await getEventScoringModeByCompetitionId(competitionId);
+    if (!shouldUseFormulaCalculation(scoringMode)) {
+      return res.status(400).json({ error: 'Formula calculation is disabled for this event (final score only mode)' });
+    }
     
     // Get formula for discipline
     const formulaQuery = `
