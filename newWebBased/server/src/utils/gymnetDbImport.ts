@@ -542,8 +542,43 @@ async function linkDisciplines(
         }
 
         const disciplineName = disciplineCheck[0].var_name;
-        const discMale = disciplineCheck[0].bol_m === true;
-        const discFemale = disciplineCheck[0].bol_w === true;
+        let discMale = disciplineCheck[0].bol_m === true;
+        let discFemale = disciplineCheck[0].bol_w === true;
+
+        // If wedDisNr has a strict gender expectation but the mapped DB row has
+        // inconsistent gender flags, try to resolve to a same-name discipline
+        // that supports the expected gender (common in legacy/prod DBs).
+        if ((expectedGenderByCode === 'male' && !discMale) || (expectedGenderByCode === 'female' && !discFemale)) {
+          const canonicalName = expectedDisciplineName || disciplineName;
+          const sameNameCandidates = await prisma.$queryRawUnsafe(`
+            SELECT int_disziplinenid, var_name, bol_m, bol_w
+            FROM tfx_disziplinen
+            WHERE var_name = $1
+            ORDER BY int_disziplinenid ASC
+          `, canonicalName) as any[];
+
+          const compatibleAlternative = expectedGenderByCode === 'male'
+            ? sameNameCandidates.find((d: any) => d.int_disziplinenid !== turnfixId && d.bol_m === true)
+            : sameNameCandidates.find((d: any) => d.int_disziplinenid !== turnfixId && d.bol_w === true);
+
+          if (compatibleAlternative) {
+            turnfixId = compatibleAlternative.int_disziplinenid;
+            disciplineCheck = [compatibleAlternative];
+            discMale = compatibleAlternative.bol_m === true;
+            discFemale = compatibleAlternative.bol_w === true;
+
+            console.log(
+              `    🔄 Gender fallback: using ${canonicalName} with ID ${turnfixId} for wedDisNr=${wedDisNr} (expected ${expectedGenderByCode})`
+            );
+
+            warnings.push({
+              type: 'info',
+              category: 'discipline',
+              message: `Disziplin-Zuordnung korrigiert: wedDisNr=${wedDisNr} erwartet ${expectedGenderByCode === 'male' ? 'männlich' : 'weiblich'} — alternative Disziplin-ID ${turnfixId} verwendet`,
+              details: `Wettkampf="${competition.var_name}", Disziplin="${canonicalName}"`
+            });
+          }
+        }
 
         // Gender validation: Check if discipline gender matches competition gender
         let genderMismatch = false;

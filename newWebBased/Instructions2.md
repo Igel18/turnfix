@@ -1080,9 +1080,17 @@ Die Meldung ist daher ok, sollte aber den Grund enthalten (wenn dieser ausfindig
 
 139. [Bug] Nach dem Import von dem 69. Schüler und Jugendturnfest sind oft 6 Geräte mit einem Wettkampf verknüpft, obwohl das im XML nicht so drin zu sein scheint. TDD -> Liegt an den Zuordnungsvorschlägen. Wird mit 140 gefixt. 
 
-140. [Feature] Beim Import der XML wäre es doch gut, wenn man jeden Wettkampf einmal durch geht / anschaut und die Vorschläge für die Disziplinen anzeigt und dann korrigiert. 
+140. [Feature] Beim Import der XML wäre es doch gut, wenn man jeden Wettkampf einmal durch geht / anschaut und die Vorschläge für die Disziplinen anzeigt und dann korrigiert. Also ob die Disziplin passt und ob der Wettkampf passt. ggf. dann mit den auto-imports. Wie wäre sowas?
 
-141. [Bug] Beim Wettkampf editieren "Gruppe setzen" wird zwar die Disziplin Gruppe selektiert, aber die anderen ggf. bereits selektierten Diszplinen nicht deselektiert. 
+141. [Bug] Beim Wettkampf editieren "Gruppe setzen" wird zwar die Disziplin Gruppe selektiert, aber die anderen ggf. bereits selektierten Diszplinen nicht 
+deselektiert. 
+
+142. Die TurnFix Tray app muss als admin ausgeführt werden, da man sonst keine Services starten / stoppen kann 
+
+143. [Bug] Beim Import eines Wettkampfs mit der Disziplin 140 wedDisNr erwartet er männlich, ist aber in der DB mit w=true und m=false hinterlegt! TDD! 
+-> In Arbeit 🚀
+
+144. Beim dem DB Wizard / Setup sollte bei den Disziplingruppen folgende mitkommen: Turn10 3-Kampf w, Turn10 3-Kampf m, Turn10 4-Kampf w, Turn10 4-Kampf m. 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

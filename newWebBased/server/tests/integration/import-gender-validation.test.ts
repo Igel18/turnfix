@@ -263,4 +263,104 @@ describe('Import Gender Validation', () => {
     const minitrampolinLinked = linkedDiscs.find(l => l.int_disziplinenid === DISCIPLINE_IDS.MINITRAMPOLIN);
     expect(minitrampolinLinked).toBeDefined();
   });
+
+  it('should use a male-compatible alternative for wedDisNr 140 when mapped ID has wrong gender flags', async () => {
+    const sport = await prisma.tfx_sport.findFirst();
+    expect(sport).not.toBeNull();
+    const sportId = sport!.int_sportid;
+
+    const mappedId = DISCIPLINE_IDS.PAR_BARREN_KUER; // wedDisNr 140
+    const fallbackId = 925;
+
+    const originalMapped = await prisma.tfx_disziplinen.findUnique({
+      where: { int_disziplinenid: mappedId }
+    });
+
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO tfx_disziplinen (int_disziplinenid, int_sportid, var_name, bol_m, bol_w)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (int_disziplinenid) DO UPDATE
+      SET int_sportid = EXCLUDED.int_sportid,
+          var_name = EXCLUDED.var_name,
+          bol_m = EXCLUDED.bol_m,
+          bol_w = EXCLUDED.bol_w
+    `, mappedId, sportId, 'Par.-Barren Kür', false, true);
+
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO tfx_disziplinen (int_disziplinenid, int_sportid, var_name, bol_m, bol_w)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (int_disziplinenid) DO UPDATE
+      SET int_sportid = EXCLUDED.int_sportid,
+          var_name = EXCLUDED.var_name,
+          bol_m = EXCLUDED.bol_m,
+          bol_w = EXCLUDED.bol_w
+    `, fallbackId, sportId, 'Par.-Barren Kür', true, false);
+
+    if (!createdDisciplineIds.includes(fallbackId)) {
+      createdDisciplineIds.push(fallbackId);
+    }
+
+    try {
+      const maleComp = await prisma.tfx_wettkaempfe.create({
+        data: {
+          int_veranstaltungenid: testEventId,
+          int_bereicheid: BEREICH_MALE,
+          var_name: 'GenderTest wedDisNr140 male fallback',
+          var_nummer: 'GM140',
+          yer_von: 10
+        }
+      });
+      createdCompetitionIds.push(maleComp.int_wettkaempfeid);
+
+      const extractedData: ExtractedData = {
+        clubs: [],
+        participants: [],
+        competitions: [{
+          name: 'GenderTest wedDisNr140 male fallback',
+          gender: 'male',
+          waNr: 'GM140',
+          ageInfo: { min: 10, max: 18 }
+        }],
+        devices: [{
+          name: 'Par.-Barren Kür',
+          code: '140',
+          competitionWaNr: 'GM140'
+        }],
+        teams: []
+      };
+
+      const result: ImportResult = await importGymnetData(extractedData, testEventId, 2026);
+
+      const inconsistencyWarning = result.warnings.find(
+        w => w.category === 'discipline' && w.message.includes('Disziplin-Stammdaten inkonsistent')
+      );
+      expect(inconsistencyWarning).toBeUndefined();
+
+      const linkedDiscs = await prisma.tfx_wettkaempfe_x_disziplinen.findMany({
+        where: { int_wettkaempfeid: maleComp.int_wettkaempfeid }
+      });
+
+      const mappedLinked = linkedDiscs.find(l => l.int_disziplinenid === mappedId);
+      const fallbackLinked = linkedDiscs.find(l => l.int_disziplinenid === fallbackId);
+
+      expect(mappedLinked).toBeUndefined();
+      expect(fallbackLinked).toBeDefined();
+    } finally {
+      if (originalMapped) {
+        await prisma.tfx_disziplinen.update({
+          where: { int_disziplinenid: mappedId },
+          data: {
+            int_sportid: originalMapped.int_sportid,
+            var_name: originalMapped.var_name,
+            bol_m: originalMapped.bol_m,
+            bol_w: originalMapped.bol_w
+          }
+        }).catch(() => {});
+      } else {
+        await prisma.tfx_disziplinen.delete({
+          where: { int_disziplinenid: mappedId }
+        }).catch(() => {});
+      }
+    }
+  });
 });
