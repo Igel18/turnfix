@@ -1088,9 +1088,27 @@ deselektiert.
 142. Die TurnFix Tray app muss als admin ausgeführt werden, da man sonst keine Services starten / stoppen kann 
 
 143. [Bug] Beim Import eines Wettkampfs mit der Disziplin 140 wedDisNr erwartet er männlich, ist aber in der DB mit w=true und m=false hinterlegt! TDD! 
--> In Arbeit 🚀
+-> Erledigt ✅
 
 144. Beim dem DB Wizard / Setup sollte bei den Disziplingruppen folgende mitkommen: Turn10 3-Kampf w, Turn10 3-Kampf m, Turn10 4-Kampf w, Turn10 4-Kampf m. 
+
+145. [Feature] Mehrfachselektion von Wettkämpfen und editieren davon 
+
+146. Doppelte Disziplinen und Barren als (w) 
+
+147. auf der Seite competitions muss man immer links / rechts scrollen... Die 1. Spalte könnte man doch schmäler machen. 
+
+148. Manche Riegenbezeichnungen nicht auf den Etiketten. 
+-> 🚀 In Arbeit 
+
+149. Etiketten default maße: 
+oben / unten 8 
+rechts / links 3 
+höhe 15
+
+150. Im letzten Setup gibt es 2 Probleme: 
+a.) Das setup läuft ohne probleme durch. Wenn jetzt eine veranstaltung versucht wird zu importieren kommt die fehlermeldung "Import fehlgeschlagen: XML import failed: Invalid prisma.$queryRawUnsafe() invocation: Database not available does not exist on the database server at localhost" Das ist auch vollkommen richtig. Aber eine Abhilfemaßnahme sollte mit angezeigt werden, da es ja die möglichkeit gibt in den Anwendungseinstellungen unter Datenbankkonfiguration den Setup-Assistent zu durchlaufen.  
+b.) wird der Setup-Assistent gestartet kommt es im Step 3 Schema erstellen zu dem Fehler "Command failed: npx prisma db push --schema="c:\... Siehe bild. 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

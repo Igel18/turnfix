@@ -8,6 +8,7 @@ import {
   calcLabelStartOffset,
   calcLabelPagesNeeded,
   sortParticipantsForLabels,
+  getParticipantSquadLabel,
 } from '../hooks/useLabelPrinting';
 import type { Participant } from '../EventParticipants.types';
 
@@ -146,5 +147,46 @@ describe('sortParticipantsForLabels', () => {
     const original = [...p];
     sortParticipantsForLabels(p);
     expect(p[0].id).toBe(original[0].id);
+  });
+
+  it('treats whitespace-only squad names as empty', () => {
+    const p = [
+      makeParticipant(1, 'male', '   ', 'Club A'),
+      makeParticipant(2, 'male', 'Riege A', 'Club B'),
+    ];
+    const sorted = sortParticipantsForLabels(p);
+    expect(sorted[0].id).toBe(1);
+    expect(sorted[1].id).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getParticipantSquadLabel
+// ---------------------------------------------------------------------------
+
+describe('getParticipantSquadLabel', () => {
+  it('reads squad_name and trims it', () => {
+    const participant = makeParticipant(1, 'male', '  mBlau  ', 'Club');
+    expect(getParticipantSquadLabel(participant)).toBe('mBlau');
+  });
+
+  it('falls back to squadName when squad_name is missing', () => {
+    const participant = ({
+      ...makeParticipant(2, 'female', '', 'Club'),
+      squad_name: undefined,
+      squadName: 'wRot',
+    } as unknown) as Participant;
+
+    expect(getParticipantSquadLabel(participant)).toBe('wRot');
+  });
+
+  it('returns empty string for null/whitespace values', () => {
+    const participant = ({
+      ...makeParticipant(3, 'female', '   ', 'Club'),
+      squad_name: null,
+      squadName: '   ',
+    } as unknown) as Participant;
+
+    expect(getParticipantSquadLabel(participant)).toBe('');
   });
 });

@@ -44,6 +44,19 @@ export function calcLabelPagesNeeded(
 }
 
 /**
+ * Resolves and normalizes squad label for printing.
+ * Handles mixed payloads (squad_name vs squadName) and whitespace-only values.
+ */
+export function getParticipantSquadLabel(participant: Participant): string {
+  const anyParticipant = participant as Participant & {
+    squadName?: string | null;
+  };
+
+  const rawSquad = anyParticipant.squad_name ?? anyParticipant.squadName ?? '';
+  return String(rawSquad).trim();
+}
+
+/**
  * Sorts participants by: 1. Gender (male first), 2. Squad name, 3. Club name.
  */
 export function sortParticipantsForLabels(participants: Participant[]): Participant[] {
@@ -53,8 +66,8 @@ export function sortParticipantsForLabels(participants: Participant[]): Particip
     const gB = genderOrder[b.gender as keyof typeof genderOrder] ?? 2;
     if (gA !== gB) return gA - gB;
 
-    const squadA = (a.squad_name || '').toLowerCase();
-    const squadB = (b.squad_name || '').toLowerCase();
+    const squadA = getParticipantSquadLabel(a).toLowerCase();
+    const squadB = getParticipantSquadLabel(b).toLowerCase();
     if (squadA !== squadB) return squadA.localeCompare(squadB, 'de');
 
     return (a.club || '').toLowerCase().localeCompare((b.club || '').toLowerCase(), 'de');
@@ -104,6 +117,17 @@ export function useLabelPrinting({ participants, competitions, eventId }: UseLab
     // Sort participants by: 1. Gender, 2. Squad, 3. Club
     const sortedParticipants = sortParticipantsForLabels(participants);
 
+    const participantsWithoutSquad = sortedParticipants.filter((p) => getParticipantSquadLabel(p) === '');
+    if (participantsWithoutSquad.length > 0) {
+      const preview = participantsWithoutSquad
+        .slice(0, 5)
+        .map((p) => `${p.firstname} ${p.lastname}`)
+        .join(', ');
+      console.warn(
+        `[LabelPrint] ${participantsWithoutSquad.length} Teilnehmende ohne Riege. Beispiele: ${preview}`
+      );
+    }
+
     sortedParticipants.forEach((participant, index) => {
       // Check if we need a new page
       if (index > 0 && currentRow === 0 && currentCol === 0) {
@@ -133,7 +157,7 @@ export function useLabelPrinting({ participants, competitions, eventId }: UseLab
         .join(', ');
 
       // Get squad information
-      const squadInfo = participant.squad_name || '';
+      const squadInfo = getParticipantSquadLabel(participant);
 
       // Set font for label content
       doc.setFont(pdfFonts.tableHeader.family, 'bold');
