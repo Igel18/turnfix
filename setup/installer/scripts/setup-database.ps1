@@ -26,7 +26,8 @@ Write-Host "╚═════════════════════�
 Write-Host ""
 
 $ServerDir = Join-Path $InstallDir "server"
-$NpxPath = Join-Path (Split-Path $NodePath -Parent) "npx.cmd"
+$NodeBinDir = Split-Path $NodePath -Parent
+$PrismaPath = Join-Path $ServerDir "node_modules\.bin\prisma.cmd"
 
 # === Check PostgreSQL availability ===
 Write-Host "  Checking PostgreSQL connection..." -ForegroundColor Cyan
@@ -97,10 +98,11 @@ $env:DATABASE_URL = "postgresql://postgres:${DbPassword}@${DbHost}:${DbPort}/${D
 
 Push-Location $ServerDir
 try {
-    # Use the embedded Node.js
-    $env:PATH = "$(Split-Path $NodePath -Parent);$env:PATH"
-    
-    & $NpxPath prisma db push --accept-data-loss 2>&1
+    # Use the installed local Prisma CLI instead of npx so the setup works
+    # even when the shell environment does not expose npx on PATH.
+    $env:PATH = "$NodeBinDir;$env:PATH"
+
+    & $PrismaPath db push --accept-data-loss 2>&1
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✓ Database schema synchronized" -ForegroundColor Green

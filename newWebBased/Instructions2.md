@@ -1109,6 +1109,7 @@ höhe 15
 150. Im letzten Setup gibt es 2 Probleme: 
 a.) Das setup läuft ohne probleme durch. Wenn jetzt eine veranstaltung versucht wird zu importieren kommt die fehlermeldung "Import fehlgeschlagen: XML import failed: Invalid prisma.$queryRawUnsafe() invocation: Database not available does not exist on the database server at localhost" Das ist auch vollkommen richtig. Aber eine Abhilfemaßnahme sollte mit angezeigt werden, da es ja die möglichkeit gibt in den Anwendungseinstellungen unter Datenbankkonfiguration den Setup-Assistent zu durchlaufen.  
 b.) wird der Setup-Assistent gestartet kommt es im Step 3 Schema erstellen zu dem Fehler "Command failed: npx prisma db push --schema="c:\... Siehe bild. 
+-> Erledigt ✅ | Import zeigt jetzt einen Hinweis auf den Setup-Assistenten an; der Schema-Schritt nutzt die lokale Prisma-CLI statt `npx` und ist getestet.
 
 🚀 In Arbeit (unvollständig)
 #	Titel

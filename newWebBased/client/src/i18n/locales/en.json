@@ -813,6 +813,10 @@
         "participantsUpdate": "Existing participants will be updated if found",
         "noDisciplineGuessing": "Disciplines are only assigned when explicitly listed in the XML file. Otherwise, suggestions will be shown."
       },
+      "errors": {
+        "databaseSetupHintTitle": "Check database configuration",
+        "databaseSetupHint": "Open Settings > Database Configuration, launch the setup wizard, and run the database connection and schema creation steps."
+      },
       "progress": {
         "parsing": "Parsing XML file...",
         "uploading": "Uploading and processing file...",

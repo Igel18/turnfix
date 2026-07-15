@@ -239,10 +239,14 @@ router.post('/create-schema', async (req, res) => {
         }
       }
       
-      // Run Prisma db push to create schema directly from schema.prisma
-      // Use serverRoot as cwd so Prisma finds prisma/schema.prisma
+      // Run Prisma db push to create schema directly from schema.prisma.
+      // Use the local Prisma CLI so this works even when npx is unavailable.
+      // Use serverRoot as cwd so Prisma finds prisma/schema.prisma.
       const schemaPath = path.join(serverRoot, 'prisma', 'schema.prisma');
-      const output = execSync(`npx prisma db push --schema="${schemaPath}"`, {
+      const prismaExecutable = process.platform === 'win32'
+        ? path.join(serverRoot, 'node_modules', '.bin', 'prisma.cmd')
+        : path.join(serverRoot, 'node_modules', '.bin', 'prisma');
+      const output = execSync(`"${prismaExecutable}" db push --schema="${schemaPath}"`, {
         cwd: serverRoot,
         encoding: 'utf-8',
         env
@@ -292,7 +296,10 @@ router.post('/init-database', async (req, res) => {
     // 1. Create schema
     const schemaResult = await new Promise((resolve, reject) => {
       const schemaPath = path.join(serverRoot, 'prisma', 'schema.prisma');
-      exec(`npx prisma migrate deploy --schema="${schemaPath}"`, { cwd: serverRoot }, (error, stdout, stderr) => {
+      const prismaExecutable = process.platform === 'win32'
+        ? path.join(serverRoot, 'node_modules', '.bin', 'prisma.cmd')
+        : path.join(serverRoot, 'node_modules', '.bin', 'prisma');
+      exec(`"${prismaExecutable}" migrate deploy --schema="${schemaPath}"`, { cwd: serverRoot }, (error, stdout, stderr) => {
         if (error) reject({ error: 'Schema creation failed', details: stderr || error.message });
         else resolve({ success: true, step: 'schema', output: stdout });
       });

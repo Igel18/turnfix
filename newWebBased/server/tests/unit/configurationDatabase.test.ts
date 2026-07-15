@@ -342,7 +342,8 @@ describe('configurationDatabase routes', () => {
 
       const call = mockExecSync.mock.calls[0];
       const command = call[0] as string;
-      expect(command).toContain('npx prisma db push');
+      expect(command).toContain('prisma');
+      expect(command).toContain('db push');
       expect(command).toContain('--schema=');
       expect(command).toContain('prisma');
       expect(command).toContain('schema.prisma');
@@ -497,7 +498,8 @@ describe('configurationDatabase routes', () => {
         .expect(200);
 
       const command = mockExec.mock.calls[0][0] as string;
-      expect(command).toContain('npx prisma migrate deploy');
+      expect(command).toContain('prisma');
+      expect(command).toContain('migrate deploy');
       expect(command).toContain('--schema=');
       expect(command).toContain('schema.prisma');
     });

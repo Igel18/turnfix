@@ -813,6 +813,10 @@
         "participantsUpdate": "Bestehende Teilnehmer werden aktualisiert, falls vorhanden",
         "noDisciplineGuessing": "Disziplinen werden nur zugewiesen, wenn sie explizit in der XML-Datei enthalten sind. Andernfalls werden Vorschläge angezeigt."
       },
+      "errors": {
+        "databaseSetupHintTitle": "Datenbank-Konfiguration prüfen",
+        "databaseSetupHint": "Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus."
+      },
       "progress": {
         "parsing": "XML-Datei wird geparst...",
         "uploading": "Datei wird hochgeladen und verarbeitet...",

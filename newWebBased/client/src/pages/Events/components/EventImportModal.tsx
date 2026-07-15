@@ -16,6 +16,7 @@ import { debugLog } from '../../../utils/debug'
 import { invalidateCache } from '../../../utils/api'
 import type { Venue, ImportEventData, ImportApiResult, ImportWarning, DisciplineHint } from '../Events.types'
 import { EMPTY_IMPORT_DATA } from '../Events.types'
+import { isDatabaseUnavailableImportError } from '../utils/importErrorHints'
 
 interface EventImportModalProps {
   isOpen: boolean
@@ -244,6 +245,16 @@ const EventImportModal: React.FC<EventImportModalProps> = ({
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-sm text-red-700">❌ {errorMessage}</p>
+          {isDatabaseUnavailableImportError(errorMessage) && (
+            <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+              <p className="font-medium">
+                {t('events.import.errors.databaseSetupHintTitle', 'Datenbank-Konfiguration prüfen')}
+              </p>
+              <p className="mt-1">
+                {t('events.import.errors.databaseSetupHint', 'Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus.')}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 import WizardModal from '../../../../components/WizardModal'
 import { useEventImportWizard } from './useEventImportWizard'
 import type { Venue, DisciplineHint } from '../../Events.types'
+import { isDatabaseUnavailableImportError } from '../../utils/importErrorHints'
 
 // StepProps type for all step and navbar components
 type StepProps = { wizard: ReturnType<typeof useEventImportWizard> }
@@ -73,6 +74,9 @@ export default EventImportWizard
 const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, venues }) => {
   const { t } = useTranslation()
   const { importEventData, setImportEventData, errorMessage } = wizard
+  const databaseSetupHint = errorMessage && isDatabaseUnavailableImportError(errorMessage)
+    ? t('events.import.errors.databaseSetupHint', 'Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus.')
+    : null
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
@@ -166,6 +170,14 @@ const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, v
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-sm text-red-700">❌ {errorMessage}</p>
+          {databaseSetupHint && (
+            <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+              <p className="font-medium">
+                {t('events.import.errors.databaseSetupHintTitle', 'Datenbank-Konfiguration prüfen')}
+              </p>
+              <p className="mt-1">{databaseSetupHint}</p>
+            </div>
+          )}
         </div>
       )}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -320,6 +332,9 @@ const StepImporting: React.FC<StepProps> = ({ wizard }) => {
 const StepResults: React.FC<StepProps> = ({ wizard }) => {
   const { t } = useTranslation()
   const { importResult, errorMessage, importState, acceptedHints, acceptingHint, handleAcceptHint } = wizard
+  const databaseSetupHint = errorMessage && isDatabaseUnavailableImportError(errorMessage)
+    ? t('events.import.errors.databaseSetupHint', 'Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus.')
+    : null
 
   // Error state
   if (importState === 'error' || !importResult) {
@@ -332,6 +347,14 @@ const StepResults: React.FC<StepProps> = ({ wizard }) => {
           </h3>
         </div>
         <p className="text-sm text-red-700 mt-2">{errorMessage}</p>
+        {databaseSetupHint && (
+          <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+            <p className="font-medium">
+              {t('events.import.errors.databaseSetupHintTitle', 'Datenbank-Konfiguration prüfen')}
+            </p>
+            <p className="mt-1">{databaseSetupHint}</p>
+          </div>
+        )}
       </div>
     )
   }
