@@ -45,6 +45,7 @@ $ServerDir     = Join-Path $WebDir  "server"
 $ClientDir     = Join-Path $WebDir  "client"
 $JuryPortalDir = Join-Path $WebDir  "jury-portal"
 $InstallerScript = Join-Path $RootDir "setup\installer\build-installer.ps1"
+$InstallerSmokeTest = Join-Path $RootDir "setup\installer\tests\setup-database-smoke.test.ps1"
 
 # ── Ergebnis-Tracking ──────────────────────────────────────────────────────
 $results = [ordered]@{}   # name → 'OK' | 'FEHLER' | 'ÜBERSPRUNGEN'
@@ -229,7 +230,13 @@ Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) 
     }
 }
 
-# ── 7. Installer erstellen ────────────────────────────────────────────────
+# ── 7. Setup-Datenbank-Smoke-Test ─────────────────────────────────────────
+Invoke-Step -Name "Setup-Datenbank-Smoke-Test" -Action {
+    Set-Location (Join-Path $RootDir "setup\installer\tests")
+    pwsh -NoProfile -ExecutionPolicy Bypass -File $InstallerSmokeTest
+}
+
+# ── 8. Installer erstellen ────────────────────────────────────────────────
 Invoke-Step -Name "Installer erstellen (Inno Setup)" -Skip:$SkipInstaller -Action {
     # Hashtable splatting so switches are passed as named parameters, not positional strings
     $installerArgs = @{ SkipBuild = $true }

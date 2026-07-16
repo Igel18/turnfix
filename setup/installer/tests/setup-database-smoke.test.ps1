@@ -12,51 +12,21 @@ $logFile = Join-Path $tempRoot 'prisma-invocation.txt'
 
 New-Item -ItemType Directory -Force -Path $fakeBin, $fakePrismaDir | Out-Null
 
-$fakePgIsReady = @'
-Write-Output 'accepting connections'
-exit 0
-'@
+@'
+@echo accepting connections
+exit /b 0
+'@ | Set-Content -Path (Join-Path $fakeBin 'pg_isready.cmd') -Encoding ASCII
 
-$fakePsql = @'
-param([Parameter(ValueFromRemainingArguments=$true)]$Args)
-if ($Args -join ' ' -match 'SELECT 1 FROM pg_database') {
-  Write-Output '1'
-  exit 0
-}
-if ($Args -join ' ' -match 'CREATE DATABASE') {
-  Write-Output 'CREATE DATABASE'
-  exit 0
-}
-Write-Output '1'
-exit 0
-'@
+@'
+@echo 1
+exit /b 0
+'@ | Set-Content -Path (Join-Path $fakeBin 'psql.cmd') -Encoding ASCII
 
-$fakePrisma = @"
-param([Parameter(ValueFromRemainingArguments=$true)]`$Args)
-Set-Content -Path '$logFile' -Value (`$Args -join ' ')
-exit 0
-"@
-
-Set-Content -Path (Join-Path $fakeBin 'pg_isready.ps1') -Value $fakePgIsReady -Encoding UTF8
-Set-Content -Path (Join-Path $fakeBin 'psql.ps1') -Value $fakePsql -Encoding UTF8
-Set-Content -Path (Join-Path $fakePrismaDir 'prisma.cmd') -Value $fakePrisma -Encoding UTF8
-
-function New-CommandShim {
-  param(
-    [string]$Name,
-    [string]$ScriptPath,
-    [string]$DestinationDir
-  )
-
-  $shimPath = Join-Path $DestinationDir $Name
-  @"
+@"
 @echo off
-powershell -NoProfile -ExecutionPolicy Bypass -File "$ScriptPath" %*
-"@ | Set-Content -Path $shimPath -Encoding ASCII
-}
-
-New-CommandShim -Name 'pg_isready.cmd' -ScriptPath (Join-Path $fakeBin 'pg_isready.ps1') -DestinationDir $fakeBin
-New-CommandShim -Name 'psql.cmd' -ScriptPath (Join-Path $fakeBin 'psql.ps1') -DestinationDir $fakeBin
+echo `%* > "$logFile"
+exit /b 0
+"@ | Set-Content -Path (Join-Path $fakePrismaDir 'prisma.cmd') -Encoding ASCII
 
 $oldPath = $env:PATH
 try {
